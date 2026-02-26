@@ -1,10 +1,10 @@
-import React from 'react';
-import Sefaria from '../sefaria/sefaria';
-import { InterfaceText, LoadingMessage } from '../Misc';
-import SelectableOption from './SelectableOption';
-import MarketingEmailToggle from './MarketingEmailToggle';
-import { BILINGUAL_TEXT } from './bilingualUtils';
-import { FORM_STATUS } from './constants';
+import React from "react";
+import Sefaria from "../sefaria/sefaria";
+import { InterfaceText, LoadingMessage } from "../Misc";
+import SelectableOption from "./SelectableOption";
+import MarketingEmailToggle from "./MarketingEmailToggle";
+import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { FORM_STATUS } from "./constants";
 
 /**
  * NewsletterFormView - Stage 1: Newsletter Selection Form
@@ -41,16 +41,16 @@ export default function NewsletterFormView({
   newsletters,
   isLoggedIn,
   userEmail,
-  fieldErrors = {},           // Per-field validation errors
+  fieldErrors = {}, // Per-field validation errors
   hasAttemptedSubmit = false, // Whether user has tried to submit
-  errorSummaryRef,            // Ref for focusing error summary
+  errorSummaryRef, // Ref for focusing error summary
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
   onConfirmEmailChange,
   onNewsletterToggle,
   onMarketingEmailToggle,
-  onFieldBlur,                // Handler for field blur validation
+  onFieldBlur, // Handler for field blur validation
   onSubmit,
 }) {
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
@@ -59,12 +59,13 @@ export default function NewsletterFormView({
   const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
 
   return (
-    <div className="newsletterFormView"
-         data-anl-batch={JSON.stringify({
-           form_name: 'newsletter_signup',
-           form_destination: isLoggedIn ? 'manage_preferences' : 'new_subscription',
-         })}>
-
+    <div
+      className="newsletterFormView"
+      data-anl-batch={JSON.stringify({
+        form_name: "newsletter_signup",
+        form_destination: isLoggedIn ? "manage_preferences" : "new_subscription",
+      })}
+    >
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
         <h2 className="newsletterFormTitle">
@@ -78,22 +79,32 @@ export default function NewsletterFormView({
       {/* EMAIL INFO SECTION (for logged-in users) */}
       {isLoggedIn && (
         <div className="newsletterEmailInfo">
-          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} />
-          {' '}<strong>{userEmail}</strong>
+          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} /> <strong>{userEmail}</strong>
         </div>
       )}
 
       {/* FORM FIELDS SECTION */}
-      <form className="newsletterForm" onSubmit={(e) => { e.preventDefault(); onSubmit(); }} noValidate>
+      <form
+        className="newsletterForm"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+        noValidate
+      >
         {/* BACKEND ERROR — shown when API call fails after successful client-side validation */}
         {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
-          <div className="newsletterErrorMessage"
-               role="alert"
-               data-anl-event="form_error:displayed"
-               data-anl-engagement_type="error"
-               data-anl-form_name="newsletter_signup">
+          <div
+            className="newsletterErrorMessage"
+            role="alert"
+            data-anl-event="form_error:displayed"
+            data-anl-engagement_type="error"
+            data-anl-form_name="newsletter_signup"
+          >
             <span className="errorIcon">⚠️</span>
-            <span><InterfaceText text={formStatus.errorMessage} /></span>
+            <span>
+              <InterfaceText text={formStatus.errorMessage} />
+            </span>
           </div>
         )}
         {/* ERROR SUMMARY - Focus target for accessibility */}
@@ -136,15 +147,15 @@ export default function NewsletterFormView({
                 <input
                   id="firstName"
                   type="text"
-                  placeholder={Sefaria._('First Name')}
+                  placeholder={Sefaria._("First Name")}
                   value={formData.firstName}
                   onChange={(e) => onFirstNameChange(e.target.value)}
-                  onBlur={() => onFieldBlur && onFieldBlur('firstName')}
+                  onBlur={() => onFieldBlur && onFieldBlur("firstName")}
                   disabled={isSubmitting}
-                  aria-label={Sefaria._('First Name')}
+                  aria-label={Sefaria._("First Name")}
                   aria-invalid={!!fieldErrors.firstName}
-                  aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
-                  className={fieldErrors.firstName ? 'hasError' : ''}
+                  aria-describedby={fieldErrors.firstName ? "firstName-error" : undefined}
+                  className={fieldErrors.firstName ? "hasError" : ""}
                   data-anl-event="form_interaction:inputStart"
                   data-anl-form_name="newsletter_signup"
                 />
@@ -153,11 +164,11 @@ export default function NewsletterFormView({
                 <input
                   id="lastName"
                   type="text"
-                  placeholder={Sefaria._('Last Name (Optional)')}
+                  placeholder={Sefaria._("Last Name (Optional)")}
                   value={formData.lastName}
                   onChange={(e) => onLastNameChange(e.target.value)}
                   disabled={isSubmitting}
-                  aria-label={Sefaria._('Last Name (Optional)')}
+                  aria-label={Sefaria._("Last Name (Optional)")}
                   aria-required="false"
                   data-anl-event="form_interaction:inputStart"
                   data-anl-form_name="newsletter_signup"
@@ -178,15 +189,15 @@ export default function NewsletterFormView({
               <input
                 id="email"
                 type="email"
-                placeholder={Sefaria._('Email Address')}
+                placeholder={Sefaria._("Email Address")}
                 value={formData.email}
                 onChange={(e) => onEmailChange(e.target.value)}
-                onBlur={() => onFieldBlur && onFieldBlur('email')}
+                onBlur={() => onFieldBlur && onFieldBlur("email")}
                 disabled={isSubmitting}
-                aria-label={Sefaria._('Email Address')}
+                aria-label={Sefaria._("Email Address")}
                 aria-invalid={!!fieldErrors.email}
-                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                className={fieldErrors.email ? 'hasError' : ''}
+                aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                className={fieldErrors.email ? "hasError" : ""}
                 data-anl-event="form_interaction:inputStart"
                 data-anl-form_name="newsletter_signup"
               />
@@ -196,15 +207,15 @@ export default function NewsletterFormView({
               <input
                 id="confirmEmail"
                 type="email"
-                placeholder={Sefaria._('Confirm Email Address')}
+                placeholder={Sefaria._("Confirm Email Address")}
                 value={formData.confirmEmail}
                 onChange={(e) => onConfirmEmailChange(e.target.value)}
-                onBlur={() => onFieldBlur && onFieldBlur('confirmEmail')}
+                onBlur={() => onFieldBlur && onFieldBlur("confirmEmail")}
                 disabled={isSubmitting}
-                aria-label={Sefaria._('Confirm Email Address')}
+                aria-label={Sefaria._("Confirm Email Address")}
                 aria-invalid={!!fieldErrors.confirmEmail}
-                aria-describedby={fieldErrors.confirmEmail ? 'confirmEmail-error' : undefined}
-                className={fieldErrors.confirmEmail ? 'hasError' : ''}
+                aria-describedby={fieldErrors.confirmEmail ? "confirmEmail-error" : undefined}
+                className={fieldErrors.confirmEmail ? "hasError" : ""}
                 data-anl-event="form_interaction:inputStart"
                 data-anl-form_name="newsletter_signup"
               />
@@ -223,11 +234,11 @@ export default function NewsletterFormView({
 
           {/* CHECKBOXES */}
           <div
-            className={`newsletterCheckboxes${isLoggedIn && !formData.wantsMarketingEmails ? ' disabled' : ''}${fieldErrors.newsletters ? ' hasError' : ''}`}
+            className={`newsletterCheckboxes${isLoggedIn && !formData.wantsMarketingEmails ? " disabled" : ""}${fieldErrors.newsletters ? " hasError" : ""}`}
             role="group"
-            aria-label={Sefaria._('Newsletter options')}
+            aria-label={Sefaria._("Newsletter options")}
             aria-invalid={!!fieldErrors.newsletters}
-            aria-describedby={fieldErrors.newsletters ? 'newsletters-error' : undefined}
+            aria-describedby={fieldErrors.newsletters ? "newsletters-error" : undefined}
           >
             {newsletters.map((newsletter) => (
               <SelectableOption
@@ -239,9 +250,9 @@ export default function NewsletterFormView({
                 onChange={() => onNewsletterToggle(newsletter.key)}
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
                 analyticsAttributes={{
-                  'data-anl-event': 'newsletter_selected:input',
-                  'data-anl-text': Sefaria._(newsletter.labelKey),
-                  'data-anl-form_name': 'newsletter_signup',
+                  "data-anl-event": "newsletter_selected:input",
+                  "data-anl-text": Sefaria._(newsletter.labelKey),
+                  "data-anl-form_name": "newsletter_signup",
                 }}
               />
             ))}
@@ -268,9 +279,14 @@ export default function NewsletterFormView({
               className="submitButton primary"
               disabled={isSubmitting}
               data-anl-event="newsletter_action:click"
-              data-anl-action={isLoggedIn ? 'update_preferences' : 'submit'}
-              data-anl-form_name="newsletter_signup">
-              {isSubmitting ? <LoadingMessage message={loadingText.en} heMessage={loadingText.he} /> : <InterfaceText text={buttonText} />}
+              data-anl-action={isLoggedIn ? "update_preferences" : "submit"}
+              data-anl-form_name="newsletter_signup"
+            >
+              {isSubmitting ? (
+                <LoadingMessage message={loadingText.en} heMessage={loadingText.he} />
+              ) : (
+                <InterfaceText text={buttonText} />
+              )}
             </button>
           </div>
         </div>

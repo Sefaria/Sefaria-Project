@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const DEFAULT_ICON = 'news-and-resources.svg';
-const ICON_BASE_PATH = '/static/icons/newsletter-signup/';
+const DEFAULT_ICON = "news-and-resources.svg";
+const ICON_BASE_PATH = "/static/icons/newsletter-signup/";
 
 /**
  * SelectableOption - Shared radio/checkbox button-style selectable item
@@ -15,7 +15,7 @@ const ICON_BASE_PATH = '/static/icons/newsletter-signup/';
  * - Full bilingual support (English/Hebrew)
  */
 export default function SelectableOption({
-  type = 'checkbox',
+  type = "checkbox",
   name,
   value,
   label,
@@ -25,9 +25,7 @@ export default function SelectableOption({
   disabled = false,
   analyticsAttributes = {},
 }) {
-  const [iconSrc, setIconSrc] = useState(
-    icon ? `${ICON_BASE_PATH}${icon}` : null
-  );
+  const [iconSrc, setIconSrc] = useState(icon ? `${ICON_BASE_PATH}${icon}` : null);
 
   // Preload icon and handle errors by falling back to default
   useEffect(() => {
@@ -50,20 +48,20 @@ export default function SelectableOption({
 
   const inputProps = {
     type,
-    className: 'selectableOptionInput',
+    className: "selectableOptionInput",
     checked: isSelected,
     onChange,
     disabled,
     ...analyticsAttributes,
   };
-  if (type === 'radio') {
+  if (type === "radio") {
     inputProps.name = name;
     inputProps.value = value;
   }
 
   return (
     <div className="selectableOptionWrapper">
-      <label className={`selectableOptionLabel ${isSelected ? 'selected' : ''}`}>
+      <label className={`selectableOptionLabel ${isSelected ? "selected" : ""}`}>
         <input {...inputProps} />
         {iconSrc && (
           <span
@@ -75,11 +73,7 @@ export default function SelectableOption({
         )}
         <span className="selectableOptionText">{label}</span>
         <span className="selectedCheckmark">
-          <img
-            src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
-            alt=""
-            aria-hidden="true"
-          />
+          <img src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg" alt="" aria-hidden="true" />
         </span>
       </label>
     </div>

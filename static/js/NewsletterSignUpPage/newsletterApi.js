@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 /**
  * Newsletter API Module - Dual Mode (Mock/Real)
@@ -30,14 +30,14 @@ import Cookies from 'js-cookie';
  */
 const isMockMode = () => {
   // Check localStorage override first (highest priority)
-  const localStorageValue = localStorage.getItem('_use_mock_api');
+  const localStorageValue = localStorage.getItem("_use_mock_api");
   if (localStorageValue !== null) {
-    return localStorageValue === 'true';
+    return localStorageValue === "true";
   }
 
   // Fall back to environment variable
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env.REACT_APP_USE_MOCK_API === 'true';
+  if (typeof process !== "undefined" && process.env) {
+    return process.env.REACT_APP_USE_MOCK_API === "true";
   }
 
   // Default to real API (production mode)
@@ -52,7 +52,7 @@ const isMockMode = () => {
  */
 const simulateNetworkDelay = (minMs = 300, maxMs = 800) => {
   const delay = Math.random() * (maxMs - minMs) + minMs;
-  return new Promise(resolve => setTimeout(resolve, delay));
+  return new Promise((resolve) => setTimeout(resolve, delay));
 };
 
 // ============================================================================
@@ -68,7 +68,7 @@ const MockAPI = {
     await simulateNetworkDelay();
 
     if (!firstName || !email) {
-      throw new Error('First name and email are required.');
+      throw new Error("First name and email are required.");
     }
 
     const selectedNewsletterKeys = Object.entries(newsletters)
@@ -76,10 +76,10 @@ const MockAPI = {
       .map(([key]) => key);
 
     if (selectedNewsletterKeys.length === 0) {
-      throw new Error('Please select at least one newsletter.');
+      throw new Error("Please select at least one newsletter.");
     }
 
-    console.log('✓ Newsletter subscription (MOCKED):', {
+    console.log("✓ Newsletter subscription (MOCKED):", {
       firstName,
       lastName,
       email,
@@ -88,7 +88,7 @@ const MockAPI = {
 
     return {
       success: true,
-      message: 'Successfully subscribed to newsletters',
+      message: "Successfully subscribed to newsletters",
       email,
       subscribedNewsletters: selectedNewsletterKeys,
     };
@@ -105,7 +105,7 @@ const MockAPI = {
     await simulateNetworkDelay();
 
     if (!email) {
-      throw new Error('Email is required.');
+      throw new Error("Email is required.");
     }
 
     const { marketingOptOut = false } = options;
@@ -117,7 +117,7 @@ const MockAPI = {
     // No validation on empty newsletters - logged-in users can always submit
     // The marketingOptOut flag is informational metadata for backend processing
 
-    console.log('✓ Newsletter preferences updated (MOCKED):', {
+    console.log("✓ Newsletter preferences updated (MOCKED):", {
       email,
       newsletters: selectedNewsletterKeys,
       marketingOptOut,
@@ -125,9 +125,7 @@ const MockAPI = {
 
     return {
       success: true,
-      message: marketingOptOut
-        ? 'You have opted out of marketing emails'
-        : 'Preferences updated successfully',
+      message: marketingOptOut ? "You have opted out of marketing emails" : "Preferences updated successfully",
       email,
       subscribedNewsletters: selectedNewsletterKeys,
       marketingOptOut,
@@ -141,24 +139,24 @@ const MockAPI = {
     await simulateNetworkDelay();
 
     if (!email) {
-      throw new Error('Email is required.');
+      throw new Error("Email is required.");
     }
 
     // Allow null/undefined (optional)
     if (learningLevel !== null && learningLevel !== undefined) {
       if (learningLevel < 1 || learningLevel > 5) {
-        throw new Error('Please select a valid learning level (1-5).');
+        throw new Error("Please select a valid learning level (1-5).");
       }
     }
 
-    console.log('✓ Learning level saved (MOCKED):', {
+    console.log("✓ Learning level saved (MOCKED):", {
       email,
       learningLevel,
     });
 
     return {
       success: true,
-      message: 'Learning level saved successfully',
+      message: "Learning level saved successfully",
       email,
       learningLevel,
     };
@@ -170,13 +168,13 @@ const MockAPI = {
   fetchUserSubscriptions: async (email) => {
     await simulateNetworkDelay();
 
-    console.log('✓ Fetching user subscriptions (MOCKED):', email);
+    console.log("✓ Fetching user subscriptions (MOCKED):", email);
 
     // Mock response
     return {
       success: true,
       email,
-      subscribedNewsletters: ['sefaria_news', 'text_updates'],
+      subscribedNewsletters: ["sefaria_news", "text_updates"],
       learningLevel: null,
       wantsMarketingEmails: true,
     };
@@ -188,51 +186,51 @@ const MockAPI = {
   getNewsletterLists: async () => {
     await simulateNetworkDelay();
 
-    console.log('✓ Fetching newsletter lists (MOCKED)');
+    console.log("✓ Fetching newsletter lists (MOCKED)");
 
     return {
       newsletters: [
         {
-          id: '1',
-          stringid: 'sefaria_news',
-          displayName: 'Sefaria News & Resources',
-          icon: 'news-and-resources.svg',
-          language: 'english',
+          id: "1",
+          stringid: "sefaria_news",
+          displayName: "Sefaria News & Resources",
+          icon: "news-and-resources.svg",
+          language: "english",
         },
         {
-          id: '2',
-          stringid: 'educator_resources',
-          displayName: 'Educator Resources',
-          icon: 'educator-resources.svg',
-          language: 'english',
+          id: "2",
+          stringid: "educator_resources",
+          displayName: "Educator Resources",
+          icon: "educator-resources.svg",
+          language: "english",
         },
         {
-          id: '3',
-          stringid: 'text_updates',
-          displayName: 'New Text Updates',
-          icon: 'new-text-release-updates.svg',
-          language: 'english',
+          id: "3",
+          stringid: "text_updates",
+          displayName: "New Text Updates",
+          icon: "new-text-release-updates.svg",
+          language: "english",
         },
         {
-          id: '4',
-          stringid: 'parashah_series',
-          displayName: 'Weekly Parashah Study Series',
-          icon: 'weekly-study-guide.svg',
-          language: 'english',
+          id: "4",
+          stringid: "parashah_series",
+          displayName: "Weekly Parashah Study Series",
+          icon: "weekly-study-guide.svg",
+          language: "english",
         },
         {
-          id: '5',
-          stringid: 'tech_updates',
-          displayName: 'Technology and Developer Updates',
-          icon: 'technology-updates.svg',
-          language: 'english',
+          id: "5",
+          stringid: "tech_updates",
+          displayName: "Technology and Developer Updates",
+          icon: "technology-updates.svg",
+          language: "english",
         },
         {
-          id: '6',
-          stringid: 'timeless_topics',
-          displayName: 'Timeless Topics',
-          icon: 'timeless-topics.svg',
-          language: 'english',
+          id: "6",
+          stringid: "timeless_topics",
+          displayName: "Timeless Topics",
+          icon: "timeless-topics.svg",
+          language: "english",
         },
       ],
     };
@@ -248,16 +246,16 @@ const RealAPI = {
    * Real: Subscribe new (logged-out) user to newsletters
    */
   subscribeNewsletter: async (data) => {
-    const response = await fetch('/api/newsletter/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/newsletter/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to subscribe');
+      throw new Error(result.error || "Failed to subscribe");
     }
 
     return result;
@@ -273,13 +271,13 @@ const RealAPI = {
   updatePreferences: async (email, newsletters, options = {}) => {
     const { marketingOptOut = false } = options;
 
-    const response = await fetch('/api/newsletter/preferences', {
-      method: 'POST',
-      mode: 'same-origin',
-      credentials: 'same-origin',
+    const response = await fetch("/api/newsletter/preferences", {
+      method: "POST",
+      mode: "same-origin",
+      credentials: "same-origin",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': Cookies.get('csrftoken'),
+        "Content-Type": "application/json",
+        "X-CSRFToken": Cookies.get("csrftoken"),
       },
       body: JSON.stringify({
         newsletters,
@@ -290,7 +288,7 @@ const RealAPI = {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to update preferences');
+      throw new Error(result.error || "Failed to update preferences");
     }
 
     return result;
@@ -300,16 +298,16 @@ const RealAPI = {
    * Real: Save user's learning level preference
    */
   updateLearningLevel: async (email, learningLevel) => {
-    const response = await fetch('/api/newsletter/learning-level', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/newsletter/learning-level", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, learningLevel }),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to update learning level');
+      throw new Error(result.error || "Failed to update learning level");
     }
 
     return result;
@@ -319,15 +317,15 @@ const RealAPI = {
    * Real: Fetch user's current newsletter subscriptions
    */
   fetchUserSubscriptions: async (email) => {
-    const response = await fetch('/api/newsletter/subscriptions', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/newsletter/subscriptions", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to fetch subscriptions');
+      throw new Error(result.error || "Failed to fetch subscriptions");
     }
 
     return result;
@@ -337,15 +335,15 @@ const RealAPI = {
    * Real: Get available newsletters
    */
   getNewsletterLists: async () => {
-    const response = await fetch('/api/newsletter/lists', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/newsletter/lists", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to fetch newsletter lists');
+      throw new Error(result.error || "Failed to fetch newsletter lists");
     }
 
     return result;
@@ -364,11 +362,11 @@ const NewsletterAPI = {
    */
   setUseMockAPI(useMock) {
     if (useMock) {
-      localStorage.setItem('_use_mock_api', 'true');
-      console.log('✓ Switched to MOCK API mode');
+      localStorage.setItem("_use_mock_api", "true");
+      console.log("✓ Switched to MOCK API mode");
     } else {
-      localStorage.setItem('_use_mock_api', 'false');
-      console.log('✓ Switched to REAL API mode');
+      localStorage.setItem("_use_mock_api", "false");
+      console.log("✓ Switched to REAL API mode");
     }
   },
 
@@ -433,12 +431,9 @@ const NewsletterAPI = {
 export default NewsletterAPI;
 
 // Also export individual methods for backward compatibility
-export const subscribeNewsletter = (data) =>
-  NewsletterAPI.subscribeNewsletter(data);
+export const subscribeNewsletter = (data) => NewsletterAPI.subscribeNewsletter(data);
 export const updatePreferences = (email, newsletters, options = {}) =>
   NewsletterAPI.updatePreferences(email, newsletters, options);
-export const updateLearningLevel = (email, learningLevel) =>
-  NewsletterAPI.updateLearningLevel(email, learningLevel);
-export const fetchUserSubscriptions = (email) =>
-  NewsletterAPI.fetchUserSubscriptions(email);
+export const updateLearningLevel = (email, learningLevel) => NewsletterAPI.updateLearningLevel(email, learningLevel);
+export const fetchUserSubscriptions = (email) => NewsletterAPI.fetchUserSubscriptions(email);
 export const getNewsletterLists = () => NewsletterAPI.getNewsletterLists();

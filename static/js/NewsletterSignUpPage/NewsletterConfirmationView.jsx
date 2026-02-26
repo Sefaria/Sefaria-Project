@@ -1,8 +1,8 @@
-import React from 'react';
-import { InterfaceText, LoadingMessage } from '../Misc';
-import SelectableOption from './SelectableOption';
-import { BILINGUAL_TEXT } from './bilingualUtils';
-import { FORM_STATUS } from './constants';
+import React from "react";
+import { InterfaceText, LoadingMessage } from "../Misc";
+import SelectableOption from "./SelectableOption";
+import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { FORM_STATUS } from "./constants";
 
 /**
  * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level
@@ -49,31 +49,28 @@ export default function NewsletterConfirmationView({
    */
   const generalNewsletter = newsletters.length > 0 ? newsletters[0] : null;
 
-  const willReceiveConfirmationEmail = generalNewsletter && (
-    (isLoggedIn && subscriptionDiffs)
+  const willReceiveConfirmationEmail =
+    generalNewsletter &&
+    (isLoggedIn && subscriptionDiffs
       ? subscriptionDiffs.added.includes(Sefaria._(generalNewsletter.labelKey))
-      : selectedNewsletters[generalNewsletter.key]
-  );
+      : selectedNewsletters[generalNewsletter.key]);
 
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
 
   return (
-    <div className="newsletterConfirmationView"
-         data-anl-batch={JSON.stringify({
-           form_name: 'newsletter_confirmation',
-           engagement_type: 'success',
-         })}>
-
+    <div
+      className="newsletterConfirmationView"
+      data-anl-batch={JSON.stringify({
+        form_name: "newsletter_confirmation",
+        engagement_type: "success",
+      })}
+    >
       {/* SUCCESS ICON AND HEADING - Only show when NOT opting out of marketing */}
       <div className="confirmationContent">
         {!marketingOptOut && (
           <>
             <div className="successIcon">
-              <img
-                src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
-                alt=""
-                aria-hidden="true"
-              />
+              <img src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg" alt="" aria-hidden="true" />
             </div>
 
             <h2 className="confirmationTitle">
@@ -86,13 +83,13 @@ export default function NewsletterConfirmationView({
             */}
             {willReceiveConfirmationEmail ? (
               <p className="confirmationMessage">
-                <InterfaceText text={BILINGUAL_TEXT.CONFIRMATION_SENT} />
-                {' '}<strong>{email}</strong>.<br />
+                <InterfaceText text={BILINGUAL_TEXT.CONFIRMATION_SENT} /> <strong>{email}</strong>.<br />
                 <InterfaceText text={BILINGUAL_TEXT.SHOULD_SEE_SOON} />
               </p>
             ) : (
               <p className="confirmationMessage">
-                <InterfaceText text={BILINGUAL_TEXT.SUBMISSION_RECEIVED} /><br />
+                <InterfaceText text={BILINGUAL_TEXT.SUBMISSION_RECEIVED} />
+                <br />
                 <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_SAVED} />
               </p>
             )}
@@ -103,19 +100,19 @@ export default function NewsletterConfirmationView({
         {isLoggedIn && subscriptionDiffs ? (
           <div className="selectedNewslettersDisplay">
             {subscriptionDiffs.added.length > 0 && (
-              <div data-anl-text={subscriptionDiffs.added.join(', ')}>
+              <div data-anl-text={subscriptionDiffs.added.join(", ")}>
                 <p className="selectedLabel">
                   <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
                 </p>
-                <p className="selectedList">{subscriptionDiffs.added.join(', ')}</p>
+                <p className="selectedList">{subscriptionDiffs.added.join(", ")}</p>
               </div>
             )}
             {subscriptionDiffs.removed.length > 0 && (
-              <div data-anl-text={subscriptionDiffs.removed.join(', ')}>
+              <div data-anl-text={subscriptionDiffs.removed.join(", ")}>
                 <p className="selectedLabel">
                   <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
                 </p>
-                <p className="selectedList">{subscriptionDiffs.removed.join(', ')}</p>
+                <p className="selectedList">{subscriptionDiffs.removed.join(", ")}</p>
               </div>
             )}
             {marketingOptOut && (
@@ -131,8 +128,7 @@ export default function NewsletterConfirmationView({
           </div>
         ) : (
           selectedNewsletterLabels && (
-            <div className="selectedNewslettersDisplay"
-                 data-anl-text={selectedNewsletterLabels}>
+            <div className="selectedNewslettersDisplay" data-anl-text={selectedNewsletterLabels}>
               <p className="selectedLabel">
                 <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
               </p>
@@ -143,12 +139,13 @@ export default function NewsletterConfirmationView({
       </div>
 
       {/* EMBEDDED LEARNING LEVEL SECTION */}
-      <div className="embeddedLearningLevel"
-           data-anl-batch={JSON.stringify({
-             form_name: 'learning_level_survey',
-             engagement_type: 'optional_profile_data',
-           })}>
-
+      <div
+        className="embeddedLearningLevel"
+        data-anl-batch={JSON.stringify({
+          form_name: "learning_level_survey",
+          engagement_type: "optional_profile_data",
+        })}
+      >
         {/* HEADER WITH OPTIONAL INDICATOR */}
         <div className="learningLevelHeaderWrapper">
           <h3 className="learningLevelHeader">
@@ -161,17 +158,27 @@ export default function NewsletterConfirmationView({
 
         {/* ERROR MESSAGE (if any) */}
         {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
-          <div className="learningLevelErrorMessage"
-               data-anl-event="form_error:displayed"
-               data-anl-engagement_type="error"
-               data-anl-form_name="learning_level_survey">
+          <div
+            className="learningLevelErrorMessage"
+            data-anl-event="form_error:displayed"
+            data-anl-engagement_type="error"
+            data-anl-form_name="learning_level_survey"
+          >
             <span className="errorIcon">⚠️</span>
-            <span><InterfaceText text={formStatus.errorMessage} /></span>
+            <span>
+              <InterfaceText text={formStatus.errorMessage} />
+            </span>
           </div>
         )}
 
         {/* RADIO OPTIONS */}
-        <form className="learningLevelForm" onSubmit={(e) => { e.preventDefault(); onSave(true); }}>
+        <form
+          className="learningLevelForm"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSave(true);
+          }}
+        >
           <div className="learningLevelOptions">
             {learningLevels.map((level) => (
               <SelectableOption
@@ -184,9 +191,9 @@ export default function NewsletterConfirmationView({
                 onChange={() => onLevelSelect(level.value)}
                 disabled={isSubmitting}
                 analyticsAttributes={{
-                  'data-anl-event': 'learning_level_selected:input',
-                  'data-anl-text': level.label.en,
-                  'data-anl-form_name': 'learning_level_survey',
+                  "data-anl-event": "learning_level_selected:input",
+                  "data-anl-text": level.label.en,
+                  "data-anl-form_name": "learning_level_survey",
                 }}
               />
             ))}
@@ -200,27 +207,34 @@ export default function NewsletterConfirmationView({
               disabled={isSubmitting || selectedLevel === null}
               data-anl-event="learning_level_action:click"
               data-anl-action="save_learning_level"
-              data-anl-form_name="learning_level_survey">
-              {isSubmitting ? <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} /> : <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />}
+              data-anl-form_name="learning_level_survey"
+            >
+              {isSubmitting ? (
+                <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} />
+              ) : (
+                <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />
+              )}
             </button>
 
             {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
             <p className="skipPrompt">
-              <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />
-              {' '}<a href="#"
-                     className={`skipLink${isSubmitting ? ' disabled' : ''}`}
-                     onClick={(e) => {
-                       e.preventDefault();
-                       if (!isSubmitting) {
-                         onSkip();
-                       }
-                     }}
-                     aria-disabled={isSubmitting}
-                     data-anl-event="learning_level_action:click"
-                     data-anl-action="skip_learning_level"
-                     data-anl-form_name="learning_level_survey">
+              <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />{" "}
+              <a
+                href="#"
+                className={`skipLink${isSubmitting ? " disabled" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isSubmitting) {
+                    onSkip();
+                  }
+                }}
+                aria-disabled={isSubmitting}
+                data-anl-event="learning_level_action:click"
+                data-anl-action="skip_learning_level"
+                data-anl-form_name="learning_level_survey"
+              >
                 <InterfaceText text={BILINGUAL_TEXT.SKIP_THIS_STEP} />
-              </a>{' '}
+              </a>{" "}
               <InterfaceText text={BILINGUAL_TEXT.AND_GO_TO_HOMEPAGE} />
             </p>
           </div>

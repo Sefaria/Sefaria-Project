@@ -1,8 +1,8 @@
-import React from 'react';
-import { InterfaceText, LoadingMessage } from '../Misc';
-import SelectableOption from './SelectableOption';
-import { BILINGUAL_TEXT } from './bilingualUtils';
-import { FORM_STATUS } from './constants';
+import React from "react";
+import { InterfaceText, LoadingMessage } from "../Misc";
+import SelectableOption from "./SelectableOption";
+import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { FORM_STATUS } from "./constants";
 
 /**
  * LearningLevelView - Stage 2b: Optional Learning Level Survey
@@ -27,12 +27,13 @@ export default function LearningLevelView({
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
 
   return (
-    <div className="learningLevelView"
-         data-anl-batch={JSON.stringify({
-           form_name: 'learning_level_survey',
-           engagement_type: 'optional_profile_data',
-         })}>
-
+    <div
+      className="learningLevelView"
+      data-anl-batch={JSON.stringify({
+        form_name: "learning_level_survey",
+        engagement_type: "optional_profile_data",
+      })}
+    >
       {/* HEADER SECTION */}
       <div className="learningLevelHeader">
         <h2 className="learningLevelTitle">
@@ -50,17 +51,27 @@ export default function LearningLevelView({
 
       {/* ERROR MESSAGE (if any) */}
       {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
-        <div className="learningLevelErrorMessage"
-             data-anl-event="form_error:displayed"
-             data-anl-engagement_type="error"
-             data-anl-form_name="learning_level_survey">
+        <div
+          className="learningLevelErrorMessage"
+          data-anl-event="form_error:displayed"
+          data-anl-engagement_type="error"
+          data-anl-form_name="learning_level_survey"
+        >
           <span className="errorIcon">⚠️</span>
-          <span><InterfaceText text={formStatus.errorMessage} /></span>
+          <span>
+            <InterfaceText text={formStatus.errorMessage} />
+          </span>
         </div>
       )}
 
       {/* RADIO OPTIONS */}
-      <form className="learningLevelForm" onSubmit={(e) => { e.preventDefault(); onSave(true); }}>
+      <form
+        className="learningLevelForm"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave(true);
+        }}
+      >
         <div className="learningLevelOptions">
           {learningLevels.map((level) => (
             <SelectableOption
@@ -73,9 +84,9 @@ export default function LearningLevelView({
               onChange={() => onLevelSelect(level.value)}
               disabled={isSubmitting}
               analyticsAttributes={{
-                'data-anl-event': 'learning_level_selected:input',
-                'data-anl-text': level.label.en,
-                'data-anl-form_name': 'learning_level_survey',
+                "data-anl-event": "learning_level_selected:input",
+                "data-anl-text": level.label.en,
+                "data-anl-form_name": "learning_level_survey",
               }}
             />
           ))}
@@ -89,8 +100,13 @@ export default function LearningLevelView({
             disabled={isSubmitting || selectedLevel === null}
             data-anl-event="learning_level_action:click"
             data-anl-action="save_learning_level"
-            data-anl-form_name="learning_level_survey">
-            {isSubmitting ? <LoadingMessage message={BILINGUAL_TEXT.SAVING.en} heMessage={BILINGUAL_TEXT.SAVING.he} /> : <InterfaceText text={BILINGUAL_TEXT.SAVE_MY_LEVEL} />}
+            data-anl-form_name="learning_level_survey"
+          >
+            {isSubmitting ? (
+              <LoadingMessage message={BILINGUAL_TEXT.SAVING.en} heMessage={BILINGUAL_TEXT.SAVING.he} />
+            ) : (
+              <InterfaceText text={BILINGUAL_TEXT.SAVE_MY_LEVEL} />
+            )}
           </button>
 
           <button
@@ -100,7 +116,8 @@ export default function LearningLevelView({
             disabled={isSubmitting}
             data-anl-event="learning_level_action:click"
             data-anl-action="skip_learning_level"
-            data-anl-form_name="learning_level_survey">
+            data-anl-form_name="learning_level_survey"
+          >
             <InterfaceText text={BILINGUAL_TEXT.SKIP_TO_HOMEPAGE} />
           </button>
         </div>
