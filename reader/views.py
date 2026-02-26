@@ -354,6 +354,7 @@ def base_props(request):
         "chatbot_user_token": None,
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
     }
     if _is_user_in_experiment(request):
