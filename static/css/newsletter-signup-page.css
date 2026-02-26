@@ -660,6 +660,10 @@
   letter-spacing: 0.5px;
 }
 
+.newsletterConfirmationView .selectedNewslettersDisplay > div + div {
+  margin-top: 16px;
+}
+
 .interface-hebrew .newsletterConfirmationView .selectedLabel {
   font-family: var(--hebrew-sans-serif-font-family);
 }
