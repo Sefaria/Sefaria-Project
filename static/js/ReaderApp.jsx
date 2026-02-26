@@ -1895,6 +1895,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   showSearch(searchQuery) {
+    if (Sefaria.activeModule === Sefaria.VOICES_MODULE && searchQuery) {
+      const parsedRef = Sefaria.parseRef(searchQuery);
+      if (!parsedRef?.error) {
+        const ref = parsedRef.ref || searchQuery;
+        window.location = `/sheets-with-ref/${encodeURIComponent(ref)}`;
+        return;
+      }
+    }
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});

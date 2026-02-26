@@ -955,6 +955,20 @@ def search(request):
     Search or Search Results page.
     """
     search_params = get_search_params(request.GET)
+    if request.active_module == VOICES_MODULE and search_params["query"]:
+        try:
+            if Ref.is_ref(search_params["query"]):
+                tref = Ref(search_params["query"]).normal()
+                params = request.GET.copy()
+                if "q" in params:
+                    del params["q"]
+                query_string = params.urlencode()
+                target = f"/sheets-with-ref/{urllib.parse.quote(tref)}"
+                if query_string:
+                    target = f"{target}?{query_string}"
+                return redirect(target, permanent=False)
+        except Exception:
+            pass
 
     props={
         "initialMenu": "search",
