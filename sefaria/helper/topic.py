@@ -324,6 +324,56 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
 
 
+def _serialize_author_work(index: Index, include_descriptions: bool = False) -> dict:
+    try:
+        url = f"/{Ref(index.title).url()}"
+    except InputError:
+        url = None
+    response = {
+        "title": index.title,
+        "heTitle": index.get_title("he"),
+        "categories": getattr(index, "categories", []),
+        "url": url,
+        "dependence": getattr(index, "dependence", None),
+    }
+    if include_descriptions:
+        description = {}
+        en_desc = getattr(index, "enShortDesc", None) or getattr(index, "enDesc", None)
+        he_desc = getattr(index, "heShortDesc", None) or getattr(index, "heDesc", None)
+        if en_desc:
+            description["en"] = en_desc
+        if he_desc:
+            description["he"] = he_desc
+        response["description"] = description
+    return response
+
+
+def _get_author_works_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
+    works = [_serialize_author_work(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
+    response = {
+        "works": works,
+        "total": len(works),
+    }
+    if include_aggregations:
+        response["aggregations"] = author_topic.get_aggregated_urls_for_authors_indexes()
+    return response
+
+
+def get_author_works(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
+    topic = Topic.init(slug)
+    if topic is None or not isinstance(topic, AuthorTopic):
+        return None
+    response = _get_author_works_from_topic(topic, include_aggregations=include_aggregations, include_descriptions=include_descriptions)
+    response["author"] = {
+        "slug": topic.slug,
+        "title": {
+            "en": topic.get_primary_title("en"),
+            "he": topic.get_primary_title("he"),
+        }
+    }
+    return response
+
+
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
     seg_refs = []

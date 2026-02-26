@@ -165,6 +165,7 @@ shared_patterns = [
 
     url(r'^api/(?P<action>(block|unblock))/(?P<uid>\d+)$', reader_views.block_api),
 
+    url(r'^api/authors/(?P<author_slug>[^/]+)/works/?$', reader_views.author_works_api),
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
