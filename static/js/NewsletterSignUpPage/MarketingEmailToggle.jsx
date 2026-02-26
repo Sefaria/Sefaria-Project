@@ -3,6 +3,7 @@ import Sefaria from '../sefaria/sefaria';
 import { InterfaceText, ToggleSet } from '../Misc';
 import { BILINGUAL_TEXT } from './bilingualUtils';
 
+
 /**
  * MarketingEmailToggle - Yes/No toggle for marketing email opt-out
  *
@@ -23,20 +24,19 @@ export default function MarketingEmailToggle({
   onToggle,
   disabled = false,
 }) {
-  // Get the current interface language for bilingual text
+  // Define toggle options for ToggleSet.
+  // content accepts React elements; ariaLabel must be a plain string for aria-label attribute.
   const isHebrew = Sefaria.interfaceLang === 'hebrew';
-
-  // Define toggle options for ToggleSet
   const toggleOptions = [
     {
       name: 'yes',
-      content: isHebrew ? BILINGUAL_TEXT.YES.he : BILINGUAL_TEXT.YES.en,
+      content: <InterfaceText text={BILINGUAL_TEXT.YES} />,
       role: 'radio',
       ariaLabel: isHebrew ? BILINGUAL_TEXT.YES.he : BILINGUAL_TEXT.YES.en,
     },
     {
       name: 'no',
-      content: isHebrew ? BILINGUAL_TEXT.NO.he : BILINGUAL_TEXT.NO.en,
+      content: <InterfaceText text={BILINGUAL_TEXT.NO} />,
       role: 'radio',
       ariaLabel: isHebrew ? BILINGUAL_TEXT.NO.he : BILINGUAL_TEXT.NO.en,
     },
