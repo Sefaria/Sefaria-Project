@@ -382,15 +382,6 @@ def catchall(request, tref, sheet=None):
     Handle any URL not explicitly covers in urls.py.
     Catches text refs for text content and text titles for text table of contents.
     """
-    def reader_redirect(uref):
-        # Redirect to standard URLs
-        url = "/" + uref
-
-        response = redirect(iri_to_uri(url), permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
-
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
     for version in ['ven', 'vhe']:
@@ -398,16 +389,20 @@ def catchall(request, tref, sheet=None):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
-        if active_module != LIBRARY_MODULE:
-            raise Http404
+        # Validate ref first
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
+        # If on wrong module, redirect to library module
+        if active_module != LIBRARY_MODULE:
+            return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
+
+        # Normal processing for library module
         uref = oref.url(False)
         if uref and tref != uref:
-            return reader_redirect(uref)
+            return redirect_to_module(request, uref, target_module=None)
 
         return text_panels(request, ref=tref)
     else:
@@ -648,8 +643,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     primaryVersion = _extract_version_params(request, 'vhe')
     translationVersion = _extract_version_params(request, 'ven')
 
-    filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
-    filter = [] if filter == ["all"] else filter
+    filter = request.GET.get("with")
+    if request.active_module == VOICES_MODULE:
+        filter = None  # remove side panel from legacy voices urls
+    elif filter == 'all':
+        filter = []
+    elif filter:
+        filter = filter.replace("_", " ").split("+")
 
     noindex = False
 
@@ -3318,7 +3318,7 @@ def topics_list_api(request):
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         task_ids = []
-        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
         from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
         post_body = json.loads(request.body)
@@ -4766,34 +4766,53 @@ def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
-def redirect_to_voices(request, target_path):
+def redirect_to_module(request, target_path, target_module=None):
     """
-    Redirect from library module to voices module
+    Redirect to a path, optionally to a different module (library or voices).
+    
+    Args:
+        request: Django request object
+        target_path: Path to redirect to (e.g., "/Jeremiah.16.19-17.14" or "Jeremiah.16.19-17.14")
+        target_module: Optional target module constant (LIBRARY_MODULE or VOICES_MODULE).
+                      If None, redirects within the same module.
+    
+    Returns:
+        HttpResponseRedirect to the target URL
     """
-    # Get the voices domain from settings
-    lang_code = get_short_lang(request.interfaceLang)
-    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
-    target_url = urllib.parse.urljoin(voices_domain, target_path)
-
     # Preserve query parameters
-    if params := request.GET.urlencode():
-        target_url += f"?{params}"
-
-    return redirect(target_url, permanent=True)
+    params = request.GET.urlencode()
+    
+    if target_module is None:
+        # Same-module redirect (URL normalization)
+        # Ensure path starts with "/"
+        url = target_path if target_path.startswith("/") else f"/{target_path}"
+        response = redirect(iri_to_uri(url), permanent=True)
+        if params:
+            response['Location'] += f"?{params}"
+        return response
+    else:
+        # Cross-module redirect
+        # Get the target domain from settings
+        lang_code = get_short_lang(request.interfaceLang)
+        target_domain = DOMAIN_MODULES.get(lang_code, {}).get(target_module)
+        target_url = urllib.parse.urljoin(target_domain, target_path)
+        if params:
+            target_url += f"?{params}"
+        return redirect(target_url, permanent=True)
 
 
 def settings_profile_redirect(request):
     """
     Redirect /settings/profile from library module to voices module
     """
-    return redirect_to_voices(request, "/settings/profile/")
+    return redirect_to_module(request, "/settings/profile/", VOICES_MODULE)
 
 
 def community_to_voices_redirect(request):
     """
     Redirect /community from library module to voices module root
     """
-    return redirect_to_voices(request, "/")
+    return redirect_to_module(request, "/", VOICES_MODULE)
 
 
 def collections_redirect(request, slug=None):
@@ -4806,7 +4825,7 @@ def collections_redirect(request, slug=None):
     else:
         target_path = "/collections"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def profile_redirect_to_voices(request, username=None):
@@ -4819,7 +4838,7 @@ def profile_redirect_to_voices(request, username=None):
     else:
         target_path = "/profile"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def sheets_redirect_to_voices(request, sheet_id=None):
@@ -4832,7 +4851,7 @@ def sheets_redirect_to_voices(request, sheet_id=None):
     else:
         target_path = "/sheets"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def _get_sheet_tag_garden(tag):

@@ -21,7 +21,8 @@ import {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
-  SheetsLandingPage
+  SheetsLandingPage,
+  NewsletterPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -1098,6 +1099,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Update href for links with data-target-module to ensure correct subdomain
+        this.updateModuleLinkHref(linkTarget);
         // in this case we want to stop other handlers from running and just go to target href
         e.stopImmediatePropagation();
         return;
@@ -1159,19 +1162,29 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
 
+  updateModuleLinkHref(link) {
+    /*
+    Update href for a link with data-target-module to ensure correct subdomain.
+    Used by both modifier key clicks and right-clicks.
+    */
+    if (!link) {
+      return;
+    }
+    const moduleTarget = link.getAttribute('data-target-module');
+    if (moduleTarget) {
+      const href = link.getAttribute('href');
+      const fullUrl = Sefaria.util.fullURL(href, moduleTarget);
+      link.setAttribute('href', fullUrl);
+    }
+  }
+
   handleModuleLinkRightClick(e) {
     /*
     Handle right-clicks on links with data-target-module to ensure correct subdomain.
     Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
-    if (link) {
-      const href = link.getAttribute('href');
-      const targetModule = link.getAttribute('data-target-module');
-      
-      const fullUrl = Sefaria.util.fullURL(href, targetModule);
-      link.setAttribute('href', fullUrl);
-    }
+    this.updateModuleLinkHref(link);
   }
 
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
@@ -2470,5 +2483,6 @@ export {
   TeamMembersPage,
   ProductsPage,
   SheetsLandingPage,
+  NewsletterPage,
   UpdatesPanel
 };

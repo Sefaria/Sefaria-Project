@@ -11,16 +11,8 @@ class SearchSheetResult extends Component {
     handleSheetClick(e) {
       const s = this.props.metadata;
       if (this.props.onResultClick) {
-        const queryIsRef = !Sefaria.parseRef(this.props.query)?.error;
         e.preventDefault();
-        if (queryIsRef) {
-          // This is called from SheetsWithRefPage which has a ref query.  In this case, onResultClick is handleSheetClick in ReaderPanel.jsx
-          this.props.onResultClick(e, s.sheetId, null, [this.props.query]);
-        }
-        else {
-          // This is called from ElasticSearchQuerier which has a text query. In this case, onResultClick is the panel's onSearchResultClick
-          this.props.onResultClick(`Sheet ${s.sheetId}`);
-        }
+        this.props.onResultClick(`Sheet ${s.sheetId}`);
       }
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
