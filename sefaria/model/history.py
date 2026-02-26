@@ -12,6 +12,7 @@ Writes to MongoDB Collection: history
 "edit link"     done
 "edit note"     done
 "edit text"     done
+"edit version_metadata"  done
 "publish sheet"
 "revert text"
 "review"
@@ -69,7 +70,7 @@ def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
 
 
 def log_update(user, klass, old_dict, new_dict, **kwargs):
-    kind = klass.history_noun
+    kind = kwargs.pop("history_noun", None) or klass.history_noun
     rev_type = "edit {}".format(kind)
     return _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs)
 
@@ -109,6 +110,13 @@ def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
 
     if kind == "index":
         log['title'] = new_dict["title"]
+
+    if kind == "version_metadata":
+        # Queryable fields for filtering/display (following index pattern)
+        log['title'] = new_dict.get("title")
+        log['version'] = new_dict.get("versionTitle")
+        log['language'] = new_dict.get("language")
+        log['method'] = kwargs.get("method", "Site")
 
     return History(log).save()
 
@@ -207,4 +215,4 @@ def process_version_title_change_in_history(ver, **kwargs):
         "version": kwargs["old"],
         "language": ver.language,
     }
-    db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)
+    db.history.update_many(query, {"$set": {"version": kwargs["new"]}})

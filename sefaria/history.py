@@ -51,8 +51,10 @@ def filter_type_to_query(filter_type):
     Translates an activity filter string into a query that searches for it.
     Most strings search for filter_type in the rev_type field, but others may have different behavior:
 
-    'translate' - version is SCT and type is 'add text'
-    'flagged'   - type is review and score is less thatn 0.4
+    'translate'        - version is SCT and type is 'add text'
+    'index_change'     - matches both 'add index' and 'edit index' rev_types
+    'flagged'          - type is review and score is less than 0.4
+    'version_metadata' - version metadata edits (license, status, priority, etc.)
     """
     q = {}
 
@@ -60,6 +62,8 @@ def filter_type_to_query(filter_type):
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
+    elif filter_type == "version_metadata":
+        q = {"rev_type": "edit version_metadata"}
     elif filter_type == "flagged":
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "review"}.items())), {"score": {"$lte": 0.4}}]}
     elif filter_type:
