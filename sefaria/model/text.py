@@ -6208,7 +6208,8 @@ class Library(object):
 
     @staticmethod
     def _wrap_ref_match(ref, match):
-        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+        data_target_module = constants.VOICES_MODULE if ref.is_sheet() else constants.LIBRARY_MODULE
+        return f'<a class ="refLink" href="/{ref.url()}" data-ref="{ref.normal()}" data-target-module="{data_target_module}">{match.group(0)}</a>'
 
     def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
         try:
