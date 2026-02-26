@@ -2300,6 +2300,7 @@ const Banner = ({ onClose }) => {
       !strapi.banner.locales.includes("he")
     )
       return false;
+    if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
 
