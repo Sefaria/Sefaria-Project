@@ -3849,6 +3849,7 @@ Sefaria.unpackBaseProps = function(props){
       "domainModules",
       "_debug",
       "_debug_mode",
+      "remoteConfig",
       "chatbot_enabled",
       "chatbot_user_token",
       "chatbot_api_base_url",
