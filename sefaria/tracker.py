@@ -37,7 +37,14 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
         kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
-        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, str(chunk.full_version._id), **kwargs)
+        version_id = str(chunk.full_version._id)
+
+        orig_count_after = kwargs.get("count_after", 1)
+        kwargs['count_after'] = False
+
+        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, **kwargs)
+
+        count_and_index(oref, lang, vtitle, to_count=orig_count_after)
 
     return chunk
 
@@ -156,6 +163,21 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             autolinker.refresh_links(**kwargs)
 
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
+
+
+def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, new_text, version_id, **kwargs):
+    """Recursively walk old_text/new_text and call post_modify_text only for changed segments."""
+    if isinstance(new_text, list):
+        if not isinstance(old_text, list):
+            old_text = []
+        padded_old = old_text + [""] * max(0, len(new_text) - len(old_text))
+        for i in range(len(new_text)):
+            if padded_old[i] != new_text[i]:
+                _post_modify_changed_segments(user, action, oref.subref(i + 1), lang, vtitle, padded_old[i], new_text[i], version_id, **kwargs)
+    else:
+        # Segment level — call post_modify_text if changed
+        if old_text != new_text:
+            post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, **kwargs)
 
 
 def count_and_index(oref, lang, vtitle, to_count=1):
