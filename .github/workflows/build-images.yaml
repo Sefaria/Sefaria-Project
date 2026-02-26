@@ -1,0 +1,118 @@
+name: Build and Push Container Images
+
+on:
+  workflow_call:
+    inputs:
+      git_ref:
+        type: string
+        required: true
+      image_tag:
+        type: string
+        required: true
+      branch_name:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      push_to_prod_registry:
+        type: boolean
+        default: false
+    secrets:
+      PROD_GKE_PROJECT_ID:
+        required: true
+      PROD_GKE_SA:
+        required: true
+
+    outputs:
+      web_image:
+        value: ${{ jobs.calculate.outputs.web_image }}
+      node_image:
+        value: ${{ jobs.calculate.outputs.node_image }}
+      asset_image:
+        value: ${{ jobs.calculate.outputs.asset_image }}
+
+jobs:
+  calculate:
+    name: "calculate variables for the pipeline"
+    runs-on: ubuntu-latest
+
+    outputs:
+      datetime: ${{ steps.datetime.outputs.dt }}
+      web_image: ${{ steps.images.outputs.web_image }}
+      node_image: ${{ steps.images.outputs.node_image }}
+      asset_image: ${{ steps.images.outputs.asset_image }}
+
+    steps:
+      - id: datetime
+        run: echo "dt=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+      - name: Compute image names
+        id: images
+        run: |
+          web="sefaria-web"
+          node="sefaria-node"
+          asset="sefaria-asset"
+          if [ -n "${{ inputs.branch_name }}" ]; then
+            web="$web-${{ inputs.branch_name }}"
+            node="$node-${{ inputs.branch_name }}"
+            asset="$asset-${{ inputs.branch_name }}"
+          fi
+
+          echo "web_image=$web" >> $GITHUB_OUTPUT
+          echo "node_image=$node" >> $GITHUB_OUTPUT
+          echo "asset_image=$asset" >> $GITHUB_OUTPUT
+
+  build_web:
+    needs: calculate
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: web
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+      image: ${{ needs.calculate.outputs.web_image }}
+      prod: ${{ inputs.push_to_prod_registry }}
+      build_args: ""
+    secrets:
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
+
+  build_node:
+    needs: calculate
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: node
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+      image: ${{ needs.calculate.outputs.node_image }}
+      prod: ${{ inputs.push_to_prod_registry }}
+      build_args: ""
+    secrets:
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
+
+  build_asset:
+    needs: [calculate, build_web]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: ./.github/workflows/build-single-image.yaml
+    with:
+      app: asset
+      git_ref: ${{ inputs.git_ref }}
+      datetime: ${{ needs.calculate.outputs.datetime }}
+      image_tag: ${{ inputs.image_tag }}
+      image: ${{ needs.calculate.outputs.asset_image }}
+      prod: ${{ inputs.push_to_prod_registry }}
+      build_args: >-
+        SRC_IMG=${{ needs.build_web.outputs.image }}
+    secrets:
+      PROD_GKE_PROJECT_ID: ${{ secrets.PROD_GKE_PROJECT_ID }}
+      PROD_GKE_SA: ${{ secrets.PROD_GKE_SA }}
