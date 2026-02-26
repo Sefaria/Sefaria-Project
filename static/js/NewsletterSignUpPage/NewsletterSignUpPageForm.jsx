@@ -214,6 +214,26 @@ export default function NewsletterSignUpPageForm() {
     }
   }, []);
 
+  // Revalidate newsletter selection reactively after submit has been attempted.
+  // This runs after render, so formData.selectedNewsletters is always fresh —
+  // unlike the old setTimeout approach which suffered from stale closures.
+  useEffect(() => {
+    if (!validationState.hasAttemptedSubmit) return;
+    setValidationState(prev => {
+      const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
+      const newErrors = { ...prev.fieldErrors };
+      if (!formStatus.isLoggedIn && !hasSelection) {
+        newErrors.newsletters = BILINGUAL_TEXT.SELECT_NEWSLETTER;
+      } else {
+        delete newErrors.newsletters;
+      }
+      const hadError = !!prev.fieldErrors.newsletters;
+      const hasError = !!newErrors.newsletters;
+      if (hadError === hasError) return prev;
+      return { ...prev, fieldErrors: newErrors };
+    });
+  }, [formData.selectedNewsletters, validationState.hasAttemptedSubmit, formStatus.isLoggedIn]);
+
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
 

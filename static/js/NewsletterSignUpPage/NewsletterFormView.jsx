@@ -236,14 +236,7 @@ export default function NewsletterFormView({
                 label={Sefaria._(newsletter.labelKey)}
                 icon={newsletter.icon}
                 isSelected={formData.selectedNewsletters[newsletter.key] || false}
-                onChange={() => {
-                  onNewsletterToggle(newsletter.key);
-                  // Trigger validation on newsletter change if submit was attempted
-                  if (onFieldBlur) {
-                    // Small delay to let state update first
-                    setTimeout(() => onFieldBlur('newsletters'), 0);
-                  }
-                }}
+                onChange={() => onNewsletterToggle(newsletter.key)}
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
                 analyticsAttributes={{
                   'data-anl-event': 'newsletter_selected:input',
