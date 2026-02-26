@@ -37,7 +37,7 @@ export const VersionsTextList = ({
         };
 
         preloadText(vFilter);
-    }, [vFilter]);
+    }, [vFilter, currSelectedVersions]);
 
 
     const getSectionRef = () => {
@@ -55,12 +55,40 @@ export const VersionsTextList = ({
         return <LoadingMessage/>;
     }
 
-    const {languageFamilyName, versionTitle, language, isPrimary} = getVersion()
-    const pseudoLanguage = (isPrimary) ? 'he' : 'en';
-    const currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
-    const handleRangeClick = (sref) => {
-        onRangeClick(sref, false, currSelectedVersions);
-    };
+    const version = getVersion();
+    let textRange, connectionButtons, currSelectedVersions;
+    if (version) {
+        const {languageFamilyName, versionTitle, language, isPrimary} = version;
+        const pseudoLanguage = (isPrimary) ? 'he' : 'en';
+        currSelectedVersions = {[pseudoLanguage]: {versionTitle, languageFamilyName}};
+        const handleRangeClick = (sref) => {
+            onRangeClick(sref, false, currSelectedVersions);
+        };    
+        textRange = (
+            <TextRange
+                sref={Sefaria.humanRef(srefs)}
+                currVersions={currSelectedVersions}
+                useVersionLanguage={true}
+                hideTitle={true}
+                numberLabel={0}
+                basetext={false}
+                onCitationClick={onCitationClick}
+                translationLanguagePreference={translationLanguagePreference}
+            />);
+        connectionButtons = (
+            <ConnectionButtons>
+                <OpenConnectionTabButton 
+                    srefs={srefs} 
+                    openInTabCallback={handleRangeClick} 
+                />
+                <AddConnectionToSheetButton 
+                    srefs={srefs} 
+                    versions={{ [language]: versionTitle }}
+                    addToSheetCallback={setConnectionsMode} 
+                />
+                {/* use language for sheets because there language means direction */}
+            </ConnectionButtons>);
+   }
 
     return (
         <div className="versionsTextList">
@@ -71,22 +99,8 @@ export const VersionsTextList = ({
                 recentFilters={recentVFilters}
                 setFilter={setFilter}
             />
-            <TextRange
-                sref={Sefaria.humanRef(srefs)}
-                currVersions={currSelectedVersions}
-                useVersionLanguage={true}
-                hideTitle={true}
-                numberLabel={0}
-                basetext={false}
-                onCitationClick={onCitationClick}
-                translationLanguagePreference={translationLanguagePreference}
-            />
-            <ConnectionButtons>
-                <OpenConnectionTabButton srefs={srefs} openInTabCallback={handleRangeClick}/>
-                <AddConnectionToSheetButton srefs={srefs} versions={{[language]: versionTitle}}
-                                            addToSheetCallback={setConnectionsMode}/>
-                                            {/*use language for sheets because there language means direction*/}
-            </ConnectionButtons>
+            {connectionButtons}
+            {textRange}
         </div>
     );
 };
