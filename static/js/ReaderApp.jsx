@@ -2461,6 +2461,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   placement="right"
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
+                  welcome-messages={this.props.chatbot_welcome_messages}
                 />
               )}
               </main>
