@@ -36,6 +36,10 @@ export const BILINGUAL_TEXT = {
     en: 'Choose which newsletters you\'d like to receive.',
     he: 'בחר אילו ניוזלטרים תרצה לקבל.',
   },
+  MANAGING_SUBSCRIPTIONS_FOR: {
+    en: 'Managing subscriptions for',
+    he: 'נהל מינויים עבור',
+  },
 
   OPTIONAL: {
     en: '(Optional)',
@@ -148,6 +152,18 @@ export const BILINGUAL_TEXT = {
   SKIP_TO_HOMEPAGE: {
     en: 'No thanks, take me to the homepage',
     he: 'לא תודה, קח אותי לדף הבית',
+  },
+  OR_PREFIX: {
+    en: 'Or',
+    he: 'או',
+  },
+  SKIP_THIS_STEP: {
+    en: 'skip this step',
+    he: 'דלג על שלב זה',
+  },
+  AND_GO_TO_HOMEPAGE: {
+    en: 'and go straight to the homepage',
+    he: 'ועבור ישירות לדף הבית',
   },
 
   // Success

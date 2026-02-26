@@ -78,8 +78,8 @@ export default function NewsletterFormView({
       {/* EMAIL INFO SECTION (for logged-in users) */}
       {isLoggedIn && (
         <div className="newsletterEmailInfo">
-          <span className="int-en">Managing subscriptions for <strong>{userEmail}</strong></span>
-          <span className="int-he">נהל מינויים עבור <strong>{userEmail}</strong></span>
+          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} />
+          {' '}<strong>{userEmail}</strong>
         </div>
       )}
 

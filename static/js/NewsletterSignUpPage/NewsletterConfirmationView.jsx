@@ -86,25 +86,14 @@ export default function NewsletterConfirmationView({
             */}
             {willReceiveConfirmationEmail ? (
               <p className="confirmationMessage">
-                <span className="int-en">
-                  {BILINGUAL_TEXT.CONFIRMATION_SENT.en} <strong>{email}</strong>.<br />
-                  {BILINGUAL_TEXT.SHOULD_SEE_SOON.en}
-                </span>
-                <span className="int-he">
-                  {BILINGUAL_TEXT.CONFIRMATION_SENT.he} <strong>{email}</strong>.<br />
-                  {BILINGUAL_TEXT.SHOULD_SEE_SOON.he}
-                </span>
+                <InterfaceText text={BILINGUAL_TEXT.CONFIRMATION_SENT} />
+                {' '}<strong>{email}</strong>.<br />
+                <InterfaceText text={BILINGUAL_TEXT.SHOULD_SEE_SOON} />
               </p>
             ) : (
               <p className="confirmationMessage">
-                <span className="int-en">
-                  {BILINGUAL_TEXT.SUBMISSION_RECEIVED.en}<br />
-                  {BILINGUAL_TEXT.PREFERENCES_SAVED.en}
-                </span>
-                <span className="int-he">
-                  {BILINGUAL_TEXT.SUBMISSION_RECEIVED.he}<br />
-                  {BILINGUAL_TEXT.PREFERENCES_SAVED.he}
-                </span>
+                <InterfaceText text={BILINGUAL_TEXT.SUBMISSION_RECEIVED} /><br />
+                <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_SAVED} />
               </p>
             )}
           </>
@@ -116,8 +105,7 @@ export default function NewsletterConfirmationView({
             {subscriptionDiffs.added.length > 0 && (
               <div data-anl-text={subscriptionDiffs.added.join(', ')}>
                 <p className="selectedLabel">
-                  <span className="int-en">{BILINGUAL_TEXT.SUBSCRIBED_TO.en}</span>
-                  <span className="int-he">{BILINGUAL_TEXT.SUBSCRIBED_TO.he}</span>
+                  <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
                 </p>
                 <p className="selectedList">{subscriptionDiffs.added.join(', ')}</p>
               </div>
@@ -125,22 +113,19 @@ export default function NewsletterConfirmationView({
             {subscriptionDiffs.removed.length > 0 && (
               <div data-anl-text={subscriptionDiffs.removed.join(', ')}>
                 <p className="selectedLabel">
-                  <span className="int-en">{BILINGUAL_TEXT.UNSUBSCRIBED_FROM.en}</span>
-                  <span className="int-he">{BILINGUAL_TEXT.UNSUBSCRIBED_FROM.he}</span>
+                  <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
                 </p>
                 <p className="selectedList">{subscriptionDiffs.removed.join(', ')}</p>
               </div>
             )}
             {marketingOptOut && (
               <p className="selectedLabel">
-                <span className="int-en">{BILINGUAL_TEXT.OPTED_OUT_MARKETING.en}</span>
-                <span className="int-he">{BILINGUAL_TEXT.OPTED_OUT_MARKETING.he}</span>
+                <InterfaceText text={BILINGUAL_TEXT.OPTED_OUT_MARKETING} />
               </p>
             )}
             {subscriptionDiffs.added.length === 0 && subscriptionDiffs.removed.length === 0 && !marketingOptOut && (
               <p className="selectedLabel">
-                <span className="int-en">{BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE.en}</span>
-                <span className="int-he">{BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE.he}</span>
+                <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE} />
               </p>
             )}
           </div>
@@ -149,8 +134,7 @@ export default function NewsletterConfirmationView({
             <div className="selectedNewslettersDisplay"
                  data-anl-text={selectedNewsletterLabels}>
               <p className="selectedLabel">
-                <span className="int-en">{BILINGUAL_TEXT.SUBSCRIBED_TO.en}</span>
-                <span className="int-he">{BILINGUAL_TEXT.SUBSCRIBED_TO.he}</span>
+                <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
               </p>
               <p className="selectedList">{selectedNewsletterLabels}</p>
             </div>
@@ -222,38 +206,22 @@ export default function NewsletterConfirmationView({
 
             {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
             <p className="skipPrompt">
-              <span className="int-en">
-                Or <a href="#"
-                       className={`skipLink${isSubmitting ? ' disabled' : ''}`}
-                       onClick={(e) => {
-                         e.preventDefault();
-                         if (!isSubmitting) {
-                           onSkip();
-                         }
-                       }}
-                       aria-disabled={isSubmitting}
-                       data-anl-event="learning_level_action:click"
-                       data-anl-action="skip_learning_level"
-                       data-anl-form_name="learning_level_survey">
-                  skip this step
-                </a> and go straight to the homepage
-              </span>
-              <span className="int-he">
-                או <a href="#"
-                      className={`skipLink${isSubmitting ? ' disabled' : ''}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!isSubmitting) {
-                          onSkip();
-                        }
-                      }}
-                      aria-disabled={isSubmitting}
-                      data-anl-event="learning_level_action:click"
-                      data-anl-action="skip_learning_level"
-                      data-anl-form_name="learning_level_survey">
-                  דלג על שלב זה
-                </a> ועבור ישירות לדף הבית
-              </span>
+              <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />
+              {' '}<a href="#"
+                     className={`skipLink${isSubmitting ? ' disabled' : ''}`}
+                     onClick={(e) => {
+                       e.preventDefault();
+                       if (!isSubmitting) {
+                         onSkip();
+                       }
+                     }}
+                     aria-disabled={isSubmitting}
+                     data-anl-event="learning_level_action:click"
+                     data-anl-action="skip_learning_level"
+                     data-anl-form_name="learning_level_survey">
+                <InterfaceText text={BILINGUAL_TEXT.SKIP_THIS_STEP} />
+              </a>{' '}
+              <InterfaceText text={BILINGUAL_TEXT.AND_GO_TO_HOMEPAGE} />
             </p>
           </div>
         </form>
