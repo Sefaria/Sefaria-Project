@@ -22,15 +22,6 @@
 </script>
 {% endblock %}
 
-{% block js %}
-<script>
-    {% autoescape off %}
-    DJANGO_VARS.containerId = 'newsletterPageContent';
-    DJANGO_VARS.reactComponentName = 'NewsletterPage';
-    {% endautoescape %}
-</script>
-{% endblock %}
-
 {% block content %}
 <div id="NewsletterOuter" class="staticPageFrame">
   <div id="NewsletterInner" class="staticPageInner">
