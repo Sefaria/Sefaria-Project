@@ -8,6 +8,7 @@ import api.views as api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
+import api.newsletter_views as newsletter_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -205,6 +206,12 @@ shared_patterns = [
     url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
     url(r'^api/newsletter_mailing_lists/?$', sefaria_views.get_available_newsletter_mailing_lists),
+
+    url(r'^api/newsletter/lists/?$', newsletter_views.get_newsletter_lists),
+    url(r'^api/newsletter/subscribe/?$', newsletter_views.subscribe_newsletter),
+    url(r'^api/newsletter/subscriptions/?$', newsletter_views.get_user_subscriptions),
+    url(r'^api/newsletter/preferences/?$', newsletter_views.update_user_preferences),
+    url(r'^api/newsletter/learning-level/?$', newsletter_views.update_learning_level),
 
     url(r'^api/strapi/graphql-cache$', sefaria_views.strapi_graphql_cache),
     url(r'^api/strapi/cache-invalidate$', sefaria_views.strapi_cache_invalidate),

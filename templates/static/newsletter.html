@@ -3,20 +3,28 @@
 
 {% block title %}{% trans "Sign up for Sefaria's Newsletter" %}{% endblock %}
 
-{% block description %}{% trans "Sign up for Sefaria's Newsletter" %}{% endblock %}
+{% block description %}{% trans "Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria." %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/newsletter-signup-page.css' %}">
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
 
 {% block js %}
 <script>
     {% autoescape off %}
-    DJANGO_VARS.containerId = 'newsletterPageContent';
+    DJANGO_VARS.containerId = 'NewsletterInner';
     DJANGO_VARS.reactComponentName = 'NewsletterPage';
     {% endautoescape %}
 </script>
 {% endblock %}
 
 {% block content %}
-<div id="newsletterPageOuter" class="staticPageFrame">
-  <div id="newsletterPageContent" class="staticPageInner">
+<div id="NewsletterOuter" class="staticPageFrame">
+  <div id="NewsletterInner" class="staticPageInner">
     <h1 id="appLoading">Loading...</h1>
   </div>
 </div>

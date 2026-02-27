@@ -1,0 +1,1160 @@
+/**
+ * Newsletter Signup Page Styles
+ *
+ * This file extends existing Sefaria CSS classes rather than creating new ones.
+ * It adds newsletter-specific modifiers and minimal new classes for container styling.
+ *
+ * Reuses:
+ * - .button (base class with modifiers)
+ * - .newsletterInput (for text inputs)
+ * - .subscribeMessage / .subscribeErrorMessage (for feedback)
+ * - Custom checkbox/radio patterns from search filters
+ */
+
+/* ============================================
+   FORM CONTAINERS
+   ============================================ */
+
+.newsletterSignUpPageForm {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* Base view styling with fade animation */
+.newsletterFormView,
+.newsletterConfirmationView,
+.learningLevelView,
+.successView {
+  width: 100%;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   HEADERS & TITLES (Extend existing typography)
+   ============================================ */
+
+.newsletterFormView .newsletterFormHeader {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.interface-hebrew .newsletterFormView .newsletterFormHeader {
+  text-align: right;
+}
+
+.newsletterConfirmationView .confirmationContent,
+.learningLevelView .learningLevelHeader,
+.successView .successContent {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.newsletterFormView .newsletterFormTitle,
+.newsletterConfirmationView .confirmationTitle,
+.learningLevelView .learningLevelTitle,
+.successView .successTitle {
+  font-size: var(--sans-serif-h2-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin: 0 0 15px 0;
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.3;
+}
+
+.interface-hebrew .newsletterFormView .newsletterFormTitle,
+.interface-hebrew .newsletterConfirmationView .confirmationTitle,
+.interface-hebrew .learningLevelView .learningLevelTitle,
+.interface-hebrew .successView .successTitle {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+.newsletterFormView .newsletterFormSubtitle,
+.newsletterConfirmationView .confirmationMessage,
+.learningLevelView .learningLevelDescription {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0 0 25px 0;
+  line-height: 1.6;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .newsletterFormSubtitle,
+.interface-hebrew .newsletterConfirmationView .confirmationMessage,
+.interface-hebrew .learningLevelView .learningLevelDescription {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+/* ============================================
+   FORM FIELDS - Extend existing .newsletterInput
+   ============================================ */
+
+/* ============================================
+   FORM SECTIONS
+   ============================================ */
+
+/* Base section container */
+.newsletterFormView .formSection {
+  margin-bottom: 30px;
+}
+
+/* Section headers - left aligned by default */
+.newsletterFormView .sectionHeader {
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin: 0 0 15px 0;
+  font-family: var(--english-sans-serif-font-family);
+  text-align: left;
+}
+
+.interface-hebrew .newsletterFormView .sectionHeader {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right; /* Opposite alignment for Hebrew */
+}
+
+/* Name section - side by side fields */
+.newsletterFormView .nameFieldsRow {
+  display: flex;
+  gap: 16px;
+}
+
+.newsletterFormView .nameFieldsRow .formField {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Mobile: stack name fields vertically */
+@media (max-width: 700px) {
+  .newsletterFormView .nameFieldsRow {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+/* Base form field container */
+.newsletterFormView .formField {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Extend .newsletterInput for form fields */
+.newsletterFormView input[type="text"],
+.newsletterFormView input[type="email"] {
+  padding: 12px 20px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  font-size: var(--sans-serif-body-font-size);
+  font-family: var(--english-sans-serif-font-family);
+  color: var(--darkest-grey);
+  box-sizing: border-box;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin: 0; /* Override .newsletterInput margin */
+}
+
+.interface-hebrew .newsletterFormView input[type="text"],
+.interface-hebrew .newsletterFormView input[type="email"] {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView input[type="text"]::placeholder,
+.newsletterFormView input[type="email"]::placeholder {
+  color: var(--medium-grey);
+}
+
+.newsletterFormView input[type="text"]:focus,
+.newsletterFormView input[type="email"]:focus {
+  outline: none;
+  border-color: var(--select-blue);
+  box-shadow: 0 0 0 3px rgba(11, 113, 231, 0.1);
+}
+
+.newsletterFormView input[type="text"]:disabled,
+.newsletterFormView input[type="email"]:disabled {
+  background-color: var(--lightest-grey);
+  color: var(--medium-grey);
+  cursor: not-allowed;
+}
+
+/* Logged-in user email display */
+.newsletterFormView .newsletterEmailInfo {
+  background-color: var(--lightest-grey);
+  padding: 15px 20px;
+  border-radius: 6px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .newsletterEmailInfo {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+.newsletterFormView .newsletterEmailInfo strong {
+  color: var(--darkest-grey);
+  font-weight: 600;
+}
+
+/* ============================================
+   ERROR MESSAGES - Reuse existing classes
+   ============================================ */
+
+/* Extend .subscribeErrorMessage for form errors */
+.newsletterFormView .newsletterErrorMessage,
+.learningLevelView .learningLevelErrorMessage {
+  background-color: #f2dede;
+  border: 1px solid #eed3d7;
+  color: #b94a48;
+  padding: 15px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .newsletterErrorMessage,
+.interface-hebrew .learningLevelView .learningLevelErrorMessage {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView .newsletterErrorMessage .errorIcon,
+.learningLevelView .learningLevelErrorMessage .errorIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   ERROR SUMMARY - Multi-error display at top of form
+   ============================================ */
+
+.newsletterFormView .newsletterErrorSummary {
+  background-color: #fef2f2;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.newsletterFormView .newsletterErrorSummary:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.newsletterFormView .errorSummaryTitle {
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryTitle {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView .errorSummaryList {
+  margin: 0;
+  padding-left: 24px;
+  list-style-type: disc;
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryList {
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+.newsletterFormView .errorSummaryList li {
+  color: #dc2626;
+  margin-bottom: 4px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .errorSummaryList li {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterFormView .errorSummaryLink {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+.newsletterFormView .errorSummaryLink:hover {
+  text-decoration: none;
+}
+
+/* ============================================
+   INLINE FIELD ERRORS - Above each invalid field
+   ============================================ */
+
+.newsletterFormView .inlineFieldError {
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterFormView .inlineFieldError {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+/* ============================================
+   INPUT ERROR STATE - Visual feedback on invalid fields
+   Note: Must use [type] selectors to match specificity of base input styles
+   ============================================ */
+
+.newsletterFormView input[type="text"].hasError,
+.newsletterFormView input[type="email"].hasError,
+.newsletterFormView input[type="text"][aria-invalid="true"],
+.newsletterFormView input[type="email"][aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
+.newsletterFormView input[type="text"].hasError:focus,
+.newsletterFormView input[type="email"].hasError:focus,
+.newsletterFormView input[type="text"][aria-invalid="true"]:focus,
+.newsletterFormView input[type="email"][aria-invalid="true"]:focus {
+  outline: none;
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Newsletter section error state */
+.newsletterFormView .newsletterCheckboxes.hasError {
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 0;  /* Don't pull up into the error message */
+  margin-left: -12px;
+  margin-right: -12px;
+  margin-bottom: -12px;
+  background-color: #fef2f2;
+}
+
+/* Extra spacing for newsletter inline error */
+.newsletterFormView .newsletterSelectionSection > .inlineFieldError {
+  margin-bottom: 12px;
+}
+
+/* ============================================
+   NEWSLETTER SELECTION SECTION
+   ============================================ */
+
+.newsletterFormView .newsletterSelectionSection {
+  margin: 0;
+  padding: 0;
+  border-top: none;
+  border-bottom: none;
+}
+
+.newsletterFormView .newsletterSelectionSection .sectionHeader {
+  margin-bottom: 20px;
+}
+
+/* ============================================
+   SELECTABLE OPTION - Shared radio/checkbox button style
+   Used by newsletter checkboxes and learning level options
+   ============================================ */
+
+.selectableOptionWrapper {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.selectableOptionInput {
+  display: none;
+}
+
+.selectableOptionLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-family: var(--english-sans-serif-font-family);
+  background-color: white;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.interface-hebrew .selectableOptionLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+.selectableOptionLabel:hover {
+  background-color: var(--lightest-grey);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.selectableOptionLabel.selected {
+  background-color: #E8E8E8;
+}
+
+.selectableOptionLabel.selected:hover {
+  background-color: #DEDEDE;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+/* Focus state for accessibility */
+.selectableOptionLabel:focus-within {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
+}
+
+/* Selected checkmark icon - positioned at end (right for LTR, left for RTL) */
+/* Always present in DOM to prevent reflow, hidden by default */
+.selectedCheckmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  flex-shrink: 0;
+  visibility: hidden;
+}
+
+.selectableOptionLabel.selected .selectedCheckmark {
+  visibility: visible;
+}
+
+.selectedCheckmark img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Hebrew interface - checkmark on left side */
+.interface-hebrew .selectedCheckmark {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* Optional icon - uses CSS mask for dynamic color control */
+.selectableOptionIcon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background-color: #CCCCCC;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: background-color 0.2s ease;
+}
+
+.selectableOptionLabel.selected .selectableOptionIcon {
+  background-color: #999999;
+}
+
+.selectableOptionLabel:hover .selectableOptionIcon {
+  background-color: #999999;
+}
+
+/* Text label */
+.selectableOptionText {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--darkest-grey);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* ============================================
+   NEWSLETTER CHECKBOX CONTAINER (grid layout)
+   ============================================ */
+
+.newsletterFormView .newsletterCheckboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 16px;
+  row-gap: 16px;
+}
+
+/* Mobile: single column layout */
+@media (max-width: 768px) {
+  .newsletterFormView .newsletterCheckboxes {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   BUTTONS - Extend .button with .newsletter modifier
+   ============================================ */
+
+/* Newsletter button modifier - extends .button.small */
+.newsletterFormView .submitButton,
+.newsletterConfirmationView .continueButton,
+.learningLevelView .saveButton,
+.successView .homepageLink {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px 40px;
+  height: 50px;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 500;
+  font-family: var(--english-sans-serif-font-family);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.interface-hebrew .newsletterFormView .submitButton,
+.interface-hebrew .newsletterConfirmationView .continueButton,
+.interface-hebrew .learningLevelView .saveButton,
+.interface-hebrew .successView .homepageLink {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+/* Primary button styling (extends .button) */
+.newsletterFormView .submitButton,
+.newsletterConfirmationView .continueButton,
+.learningLevelView .saveButton,
+.successView .homepageLink {
+  background-color: var(--sefaria-blue);
+  color: white;
+}
+
+.newsletterFormView .submitButton:hover:not(:disabled),
+.newsletterConfirmationView .continueButton:hover,
+.learningLevelView .saveButton:hover:not(:disabled),
+.successView .homepageLink:hover {
+  background-color: #0f2647;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.newsletterFormView .submitButton:active:not(:disabled),
+.learningLevelView .saveButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.newsletterFormView .submitButton:disabled,
+.learningLevelView .saveButton:disabled {
+  background-color: var(--light-grey);
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Secondary button - skip button */
+.learningLevelView .skipButton {
+  background-color: white;
+  color: var(--sefaria-blue);
+  border: 2px solid var(--light-grey);
+}
+
+.learningLevelView .skipButton:hover:not(:disabled) {
+  background-color: var(--lightest-grey);
+  border-color: var(--sefaria-blue);
+}
+
+.learningLevelView .skipButton:disabled {
+  background-color: var(--lightest-grey);
+  color: var(--medium-grey);
+  border-color: var(--light-grey);
+  cursor: not-allowed;
+}
+
+/* Form actions container - start aligned (works for both LTR and RTL) */
+.newsletterFormView .formActions {
+  margin: 0;
+  display: flex;
+  gap: 15px;
+  justify-content: flex-start;
+}
+
+/* Finished section styling */
+.newsletterFormView .finishedSection {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--lighter-grey);
+}
+
+/* Learning level actions (column layout for skip/save) */
+.learningLevelView .learningLevelActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ============================================
+   LEARNING LEVEL OPTIONS - Button-style Radio Selection
+   Pattern: Matches newsletter checkbox styling with radio behavior
+   ============================================ */
+
+/* Learning level options container (flex column layout) */
+.learningLevelView .learningLevelOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+/* ============================================
+   CONFIRMATION & SUCCESS VIEWS
+   ============================================ */
+
+/* Success icon container */
+.newsletterConfirmationView .successIcon,
+.successView .successIcon {
+  width: 69px;
+  height: 69px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 28px;
+}
+
+.newsletterConfirmationView .successIcon img,
+.successView .successIcon img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Selected newsletters display */
+.newsletterConfirmationView .selectedNewslettersDisplay {
+  background-color: var(--lightest-grey);
+  padding: 20px;
+  border-radius: 6px;
+  margin-top: 25px;
+}
+
+.newsletterConfirmationView .selectedLabel {
+  font-size: 14px;
+  color: var(--medium-grey);
+  margin: 0 0 8px 0;
+  font-family: var(--english-sans-serif-font-family);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.newsletterConfirmationView .selectedNewslettersDisplay > div + div {
+  margin-top: 16px;
+}
+
+.interface-hebrew .newsletterConfirmationView .selectedLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterConfirmationView .selectedList {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--darkest-grey);
+  margin: 0;
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+}
+
+.interface-hebrew .newsletterConfirmationView .selectedList {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+/* Skip link */
+.newsletterConfirmationView .skipPrompt {
+  text-align: center;
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0;
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.6;
+}
+
+.interface-hebrew .newsletterConfirmationView .skipPrompt {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+.newsletterConfirmationView .skipLink {
+  color: var(--select-blue);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+}
+
+.newsletterConfirmationView .skipLink:hover {
+  text-decoration: underline;
+}
+
+.newsletterConfirmationView .skipLink.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--medium-grey);
+  pointer-events: none;
+}
+
+.newsletterConfirmationView .skipLink.disabled:hover {
+  text-decoration: none;
+}
+
+/* Success message */
+.successView .successMessage {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0;
+  line-height: 1.6;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .successView .successMessage {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+.successView .successActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.successView .homepageLink {
+  text-decoration: none;
+}
+
+.successView .homepageLink:hover {
+  text-decoration: none;
+}
+
+/* ============================================
+   PRIVACY NOTE
+   ============================================ */
+
+.newsletterFormView .privacyNote {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.newsletterFormView .privacyNote .small {
+  font-size: 13px;
+  color: var(--dark-grey);
+  margin: 0;
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.4;
+}
+
+.interface-hebrew .newsletterFormView .privacyNote .small {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 700px) {
+  .newsletterSignUpPageForm {
+    padding: 20px;
+  }
+
+  .newsletterFormView .newsletterFormTitle,
+  .newsletterConfirmationView .confirmationTitle,
+  .learningLevelView .learningLevelTitle,
+  .successView .successTitle {
+    font-size: var(--sans-serif-h3-font-size);
+  }
+
+  .newsletterFormView .sectionHeader {
+    font-size: var(--sans-serif-h3-font-size);
+  }
+
+  /* 16px font on inputs prevents iOS zoom */
+  .newsletterFormView input[type="text"],
+  .newsletterFormView input[type="email"] {
+    font-size: 16px;
+  }
+
+  /* Full width buttons on mobile */
+  .newsletterFormView .submitButton,
+  .newsletterConfirmationView .continueButton,
+  .learningLevelView .saveButton,
+  .learningLevelView .skipButton,
+  .successView .homepageLink {
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* Adjust spacing */
+  .learningLevelView .learningLevelActions {
+    gap: 10px;
+  }
+
+  .learningLevelView .selectableOptionLabel {
+    padding: 12px;
+  }
+
+  .newsletterFormView .formSection {
+    margin-bottom: 25px;
+  }
+
+  .newsletterFormView .finishedSection {
+    margin-top: 25px;
+    padding-top: 25px;
+  }
+}
+
+/* Tablet breakpoint */
+@media (max-width: 1000px) and (min-width: 701px) {
+  .newsletterFormView .submitButton,
+  .newsletterConfirmationView .continueButton,
+  .learningLevelView .saveButton,
+  .learningLevelView .skipButton,
+  .successView .homepageLink {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* ============================================
+   RTL (Right-to-Left) for Hebrew
+   ============================================ */
+
+.interface-hebrew .newsletterFormView,
+.interface-hebrew .newsletterConfirmationView,
+.interface-hebrew .learningLevelView,
+.interface-hebrew .successView {
+  direction: rtl;
+}
+
+.interface-hebrew .newsletterFormView .formField label {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+/* ============================================
+   EMBEDDED LEARNING LEVEL (in Confirmation View)
+   ============================================ */
+
+.newsletterConfirmationView .embeddedLearningLevel {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid var(--lighter-grey);
+}
+
+/* Learning level header wrapper */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelHeaderWrapper {
+  margin-bottom: 20px;
+}
+
+/* Learning level section header - matches form section header styling */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelHeader {
+  font-size: var(--sans-serif-h3-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin: 0 0 8px 0;
+  font-family: var(--english-sans-serif-font-family);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelHeader {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* Optional label */
+.newsletterConfirmationView .embeddedLearningLevel .optionalLabel {
+  font-size: 14px;
+  color: var(--medium-grey);
+  font-weight: 400;
+  font-family: var(--english-sans-serif-font-family);
+  display: block;
+  text-align: left;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .optionalLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+  text-align: right;
+}
+
+/* Learning level options container within confirmation view */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+/* Error message within embedded learning level */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage {
+  background-color: #f2dede;
+  border: 1px solid #eed3d7;
+  color: #b94a48;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelErrorMessage .errorIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Actions container - row layout with skip prompt on right */
+.newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+  flex-direction: row-reverse;
+}
+
+/* Submit button - same width as newsletter form submit button */
+.newsletterConfirmationView .embeddedLearningLevel .saveButton {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px 40px;
+  height: 50px;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 500;
+  font-family: var(--english-sans-serif-font-family);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--sefaria-blue);
+  color: white;
+  flex-shrink: 0;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .saveButton {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:hover:not(:disabled) {
+  background-color: #0f2647;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:disabled {
+  background-color: var(--light-grey);
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Skip prompt text - positioned to the right of button */
+.newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+  text-align: left;
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0;
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.6;
+}
+
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink {
+  color: var(--select-blue);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink:hover {
+  text-decoration: underline;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--medium-grey);
+  pointer-events: none;
+}
+
+.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled:hover {
+  text-decoration: none;
+}
+
+/* Mobile responsive for embedded learning level */
+@media (max-width: 700px) {
+  .newsletterConfirmationView .embeddedLearningLevel {
+    margin-top: 30px;
+    padding-top: 25px;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .selectableOptionLabel {
+    padding: 12px;
+  }
+
+  /* Stack button and skip text on mobile */
+  .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .saveButton {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* ============================================
+   MARKETING EMAIL TOGGLE (Logged-in users only)
+   Uses existing ToggleSet component with blueStyle
+   ============================================ */
+
+.marketingEmailToggleSection {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid var(--lighter-grey);
+}
+
+.marketingEmailToggleLabel {
+  font-size: var(--sans-serif-body-font-size);
+  font-weight: 500;
+  color: var(--darkest-grey);
+  margin-bottom: 15px;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+.interface-hebrew .marketingEmailToggleLabel {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* Wrapper for the toggle - handles disabled state */
+.marketingToggleWrapper {
+  display: inline-block;
+}
+
+.marketingToggleWrapper.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Override width for marketing toggle to be auto instead of percentage */
+.marketingToggleWrapper .toggleSet.blueStyle {
+  width: auto;
+}
+
+.marketingToggleWrapper .toggleSet.blueStyle .toggleOption {
+  padding: 0 24px;
+  min-width: 60px;
+}
+
+/* Helper text note */
+.marketingEmailNote {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--dark-grey);
+  font-family: var(--english-sans-serif-font-family);
+  line-height: 1.4;
+}
+
+.interface-hebrew .marketingEmailNote {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-size: 122%;
+  text-align: right;
+}
+
+/* ============================================
+   DISABLED NEWSLETTER CHECKBOXES STATE
+   (When marketing emails opt-out is selected)
+   ============================================ */
+
+.newsletterCheckboxes.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.newsletterCheckboxes.disabled .selectableOptionLabel {
+  cursor: not-allowed;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* Focus visible for keyboard navigation */
+.newsletterFormView input:focus-visible,
+.newsletterFormView button:focus-visible,
+.newsletterConfirmationView a:focus-visible,
+.learningLevelView button:focus-visible,
+.successView a:focus-visible {
+  outline: 3px solid var(--select-blue);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .newsletterFormView,
+  .newsletterConfirmationView,
+  .learningLevelView,
+  .successView {
+    animation: none;
+  }
+
+  .newsletterFormView input,
+  .newsletterFormView button,
+  .learningLevelView button,
+  .successView a {
+    transition: none;
+  }
+}
