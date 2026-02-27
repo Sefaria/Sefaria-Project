@@ -12596,6 +12596,7 @@ cursor: pointer;
   cursor: pointer;
   position: relative;
   line-height: normal;
+  outline: none; /* Ensure the button itself can receive focus */
 }
 .tooltip-toggle svg {
   height: 18px;
@@ -12623,8 +12624,8 @@ cursor: pointer;
     right: -165px;
   }
 }
-
 .tooltip-toggle::before {
+  content: attr(aria-label);
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -12638,16 +12639,26 @@ cursor: pointer;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,.2);
   border-radius: 5px;
-  content: attr(aria-label);
   text-transform: none;
-  transition: all 0.5s ease;
+  transition: opacity 0.5s ease;
   width: 140px;
   z-index: 1;
+  visibility: hidden; /* Hide completely when not shown */
 }
-/*Triggering the transition*/
-.tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
-  opacity: 1;
-  transition: all 0.75s ease;
+/* Combine hover and focus for better accessibility */
+@media (hover: hover) and (pointer: fine) {
+  .tooltip-toggle:hover::before,
+  .tooltip-toggle:focus::before {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.75s ease;
+  }
+}
+@media (pointer: coarse) {
+  .tooltip-toggle::before {
+    /* Mobile-specific styles */
+    display: none;
+  }
 }
 .largeFollowButton {
   display: inline-flex;
