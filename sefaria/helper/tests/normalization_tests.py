@@ -2,19 +2,45 @@ import pytest
 import django
 django.setup()
 from sefaria.helper.normalization import *
+from sefaria.search import TextIndexer
 
 
-def test_itag_normalizer():
-    text = "Yo <sup>3</sup><i class=\"footnote\"> <i> Am </i>. 4:4</i>."
-    itn = ITagNormalizer(' ')
+@pytest.mark.parametrize(('input_text', 'output_text'), [
+    ['''Women<sup class="footnote-marker">1</sup><i class="footnote"><i>Kiddushin</i> 29b says <i>bineichem</i> - implying one's male offspring.</i> are great.''', 'Women are great.']
+])
+def test_itag_normalizer(input_text, output_text):
+    itn = FootnoteNormalizer('')
+    norm_text = itn.normalize(input_text)
+    assert norm_text == output_text
+
+
+@pytest.mark.parametrize(('input_text', 'output_text'), [
+    ['''Women<sup class="footnote-marker">1</sup>''', 'Women '],
+    ['''Women<sup class="endFootnote">1</sup>''', 'Women '],
+    ['''Women<sup class="itag">1</sup>''', 'Women '],
+])
+def test_fn_marker_normalizer(input_text, output_text):
+    fn_marker_normalizer = NormalizerFactory.get('fn-marker')
+    norm_text = fn_marker_normalizer.normalize(input_text)
+    assert norm_text == output_text
+
+
+def test_itag_normalizer_deep_dive():
+    text = "Yo <sup class=\"footnote-marker\">3</sup><i class=\"footnote\"> <i> Am </i>. 4:4</i>."
+    itn = FootnoteNormalizer(' ')
     norm_text = itn.normalize(text)
-    assert norm_text == "Yo   ."
+    assert norm_text == "Yo  ."
     text_to_remove = itn.find_text_to_remove(text)
-    assert len(text_to_remove) == 2
+    assert len(text_to_remove) == 1
     (s1, e1), r1 = text_to_remove[0]
-    assert (s1, e1) == (3, 15)
-    (s2, e2), r2 = text_to_remove[1]
-    assert (s2, e2) == (15, len(text)-1)
+    assert (s1, e1) == (3, len(text)-1)
+    
+    
+def test_fn_marker_normalizer():
+    text = 'Yo <sup class="footnote-marker">3</sup><i> Am </i>. 4:4</i>.'
+    fnn = NormalizerFactory.get('fn-marker')
+    norm_text = fnn.normalize(text)
+    assert norm_text == "Yo <i> Am </i>. 4:4</i>."
 
 
 def test_replace_normalizer():
@@ -103,16 +129,17 @@ def test_html_normalizer_for_empty_prefix():
 
 
 def test_nested_itag():
-    text = """<sup>outer</sup><i class="footnote">bull<sup>nested</sup><i class="footnote">The</i>.</i>"""
-    normalizer = ITagNormalizer(' ')
+    text = """Some normal<sup class="footnote-marker">outer</sup><i class="footnote">bull<sup class="footnote-marker">nested</sup><i class="footnote">The</i>.</i> text."""
+    normalizer = FootnoteNormalizer('')
     norm_text = normalizer.normalize(text)
-    assert norm_text == "  "
+    assert norm_text == "Some normal text."
     text_to_remove = normalizer.find_text_to_remove(text)
-    assert len(text_to_remove) == 2
+    assert len(text_to_remove) == 1
     (s, e), r = text_to_remove[0]
-    assert text[s:e] == "<sup>outer</sup>"
-    (s, e), r = text_to_remove[1]
-    assert text[s:e] == """<i class="footnote">bull<sup>nested</sup><i class="footnote">The</i>.</i>"""
+    assert s == 11 and e == 148
+    
+    content = TextIndexer.remove_footnotes(text)
+    assert content == "Some normal text. outer bull."
 
 
 @pytest.mark.xfail(reason="not clear we want to support char_indices_from_word_indices as it's unused")

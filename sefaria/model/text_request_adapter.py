@@ -3,6 +3,9 @@ from collections import defaultdict
 from functools import reduce
 from typing import List
 import django
+from queue import Queue, Empty
+import re
+from sefaria.model.marked_up_text_chunk import get_mutc_class, LinkerOutput
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
@@ -20,11 +23,12 @@ class TextRequestAdapter:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default'):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default', debug_mode=None):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
         self.return_format = return_format
+        self.debug_mode = debug_mode
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -142,98 +146,82 @@ class TextRequestAdapter:
         if not inode.is_virtual:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
-    def _format_text(self):
-        # Early return for default format to avoid any processing
-        if self.return_format == 'default':
+    def _add_linker_output(self):
+        if self.debug_mode != "linker":
             return
 
+        linker_output_list = []
+        for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+            for version in self.return_obj['versions']:
+                language = version['language']
+                version_title = version['versionTitle']
+                linker_output = LinkerOutput().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                if linker_output:
+                    linker_output_list.append(linker_output.contents())
+        self.return_obj["linker_output"] = linker_output_list
+
+    def _format_text(self):
         # Pre-compute shared data outside the version loop
         shared_data = {}
+        MUTCClass = get_mutc_class(self.debug_mode == "linker")
+
+        # In the next functions the vars `version_title` and `language` come from the outer scope
+        def get_marked_up_text_chunk_queue():
+            q = Queue()
+            for i, segment_ref in enumerate(self.oref.all_segment_refs()):
+                marked_up_chunk = MUTCClass().load({
+                    "ref": segment_ref.normal(),
+                    "versionTitle": version_title,
+                    "language": language,
+                })
+                q.put(marked_up_chunk)
+            return q
+
+        def mutc_wrapper(string, sections):
+            try:
+                chunk: MUTCClass = chunks_queue.get(block=False)
+            except Empty:
+                chunk = None
+            if chunk:
+                string = chunk.apply_spans_to_text(string)
+            return string
+
+        # Define text modification functions based on return format
+        text_modification_funcs = []
         if self.return_format == 'wrap_all_entities':
             # Check for links and load segment refs only once
             shared_data['all_segment_refs'] = self.oref.all_segment_refs()
 
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            shared_data['has_links'] = bool(Link().load(query))
+            text_modification_funcs.append(mutc_wrapper)
 
-        def make_named_entities_dict(version_title, language):
-            # Cache named entities per version to avoid repeated DB queries
-            cache_key = f"{version_title}_{language}"
-            if cache_key not in shared_data:
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in shared_data['all_segment_refs']]},
-                                                  "charLevelData.versionTitle": version_title,
-                                                  "charLevelData.language": language})
-                # assumption is that refTopicLinks are all to unranged refs
-                ne_by_secs = defaultdict(list)
-                for ne in named_entities:
-                    try:
-                        ne_ref = Ref(ne.ref)
-                    except InputError:
-                        continue
-                    ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
-                shared_data[cache_key] = ne_by_secs
-            return shared_data[cache_key]
-
-        # helper to build a segment-level link-wrapper once per version
-        def build_link_wrapper(lang, version_text):
-            # Compile regex once for entire version to cover all titles that appear anywhere
-            reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(version_text, lang=lang, citing_only=True)
-
-            # Return a function that wraps refs in an individual segment using the precompiled regex
-            return lambda string, _: library.get_wrapped_refs_string(string, lang=lang, citing_only=True,
-                                                                      reg=reg, title_nodes=title_nodes)
-
-        # Define text modification functions based on return format
-        text_modification_funcs = []
-
-
-
-        if self.return_format == 'text_only':
-            # Combine all text_only operations into a single function to minimize passes
-            def combined_text_only(string, _):
-                string = text.AbstractTextRecord.strip_itags(string)
-                string = text.AbstractTextRecord.remove_html(string)
-                return ' '.join(string.split())
-            text_modification_funcs = [combined_text_only]
+        elif self.return_format == 'text_only':
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: text.AbstractTextRecord.remove_html(string),
+                                       lambda string, _: ' '.join(string.split())]
 
         elif self.return_format == 'strip_only_footnotes':
-            # Combine strip operations into a single function
-            def combined_strip_footnotes(string, _):
-                string = text.AbstractTextRecord.strip_itags(string)
-                return ' '.join(string.split())
-            text_modification_funcs = [combined_strip_footnotes]
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: ' '.join(string.split())]
+
+        else:
+            return
 
         # Process each version
+        composed_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string)
         for version in self.return_obj['versions']:
-            current_funcs = text_modification_funcs.copy()
-            
             if self.return_format == 'wrap_all_entities':
                 language = 'he' if version['direction'] == 'rtl' else 'en'
-                ne_by_secs = make_named_entities_dict(version['versionTitle'], language)
-                
-                # Create closure-safe functions by capturing values explicitly
-                def make_ne_wrapper(ne_dict):
-                    return lambda string, sections: library.get_wrapped_named_entities_string(ne_dict[(sections[-1],)], string)
-                
-                current_funcs.append(make_ne_wrapper(ne_by_secs))
-                
-                # Build link-wrapper once per version
-                flat_version_text = " ".join(JaggedTextArray(version['text']).flatten_to_array())
-                if shared_data['has_links']:
-                    current_funcs.append(build_link_wrapper(language, flat_version_text))
+                version_title = version['versionTitle']
+                chunks_queue = get_marked_up_text_chunk_queue()
 
-            # Only process if there are functions to apply
-            if current_funcs:
-                ja = JaggedTextArray(version['text'])
-                
-                # Combine all functions into one to minimize passes over the text
-                if len(current_funcs) == 1:
-                    composite_func = current_funcs[0]
-                else:
-                    composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), current_funcs, string)
-                
-                version['text'] = ja.modify_by_function(composite_func)
+            ja = JaggedTextArray(version['text'])
+            version['text'] = ja.modify_by_function(composed_func)
 
     def get_versions_for_query(self) -> dict:
         self.oref = self.oref.default_child_ref()
@@ -242,5 +230,6 @@ class TextRequestAdapter:
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
+        self._add_linker_output()
         self._format_text()
         return self.return_obj

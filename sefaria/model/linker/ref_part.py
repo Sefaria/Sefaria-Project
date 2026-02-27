@@ -123,6 +123,23 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         self.span = self.span.doc[self_start:other_end]
 
 
+class RawRefPartPair(RawRefPart):
+    """
+    Represents two RawRefParts that should be treated as a single unit
+    Usually these parts are adjacent in the text
+    """
+
+    def __init__(self, part1: RawRefPart, part2: RawRefPart):
+        if part1.type != part2.type:
+            raise Exception(f"Part types need to be the same. Received types: {part1.type} and {part2.type}")
+        # get span by combining spans of part1 and part2
+        span1, span2 = part1.span, part2.span
+        span = span1.doc.subspan(slice(span1.range[0], span2.range[1]), span1.label)
+        _type = part1.type
+        super().__init__(_type, span, None)
+        self.part_pair = (part1, part2)
+
+
 class ContextPart(RawRefPart):
     # currently used to easily differentiate TermContext and SectionContext from a vanilla RawRefPart
     pass
@@ -162,7 +179,7 @@ class SectionContext(ContextPart):
     NOTE: used to used index of section to help validate. Doesn't work b/c we change sections list on the nodes as we refine them
     """
 
-    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int) -> None:
+    def __init__(self, addr_type: schema.AddressType, section_name: str, address: int, to_address: int = None) -> None:
         """
         :param addr_type: AddressType of section
         :param section_name: Name of section
@@ -172,6 +189,7 @@ class SectionContext(ContextPart):
         self.addr_type = addr_type
         self.section_name = section_name
         self.address = address
+        self.to_address = to_address  # used for ranged contexts
 
     @property
     def text(self):

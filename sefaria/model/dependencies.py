@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -28,6 +28,7 @@ subscribe(ref_data.process_index_title_change_in_ref_data,              text.Ind
 subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
+subscribe(marked_up_text_chunk.process_index_title_change,              text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -43,7 +44,7 @@ subscribe(text.process_index_delete_in_versions,                        text.Ind
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
-
+subscribe(marked_up_text_chunk.process_index_delete,                    text.Index, "delete")
 
 # Process in ES
 # todo: handle index name change in ES
@@ -75,6 +76,7 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_description_change,                       topic.Topic, "attributeChange", "description")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+subscribe(marked_up_text_chunk.process_topic_slug_change,             topic.Topic, "attributeChange", "slug")
 
 
 # Terms
@@ -112,6 +114,7 @@ subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug"
 
 # Categories
 subscribe(category.process_category_path_change,  category.Category, "attributeChange", "path")
+subscribe(marked_up_text_chunk.process_category_path_change,  category.Category, "attributeChange", "path")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
 
 # Manuscripts

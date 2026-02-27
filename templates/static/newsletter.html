@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Stay Connected" %}{% endblock %}
+{% block title %}{% trans "Sign up for Sefaria's Newsletter" %}{% endblock %}
 
 {% block description %}{% trans "Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria." %}{% endblock %}
 
@@ -17,6 +17,15 @@
 <script>
     {% autoescape off %}
     DJANGO_VARS.containerId = 'NewsletterInner';
+    DJANGO_VARS.reactComponentName = 'NewsletterPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'newsletterPageContent';
     DJANGO_VARS.reactComponentName = 'NewsletterPage';
     {% endautoescape %}
 </script>

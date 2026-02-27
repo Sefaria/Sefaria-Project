@@ -10,10 +10,8 @@ logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
+from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
@@ -39,7 +37,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
         kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
-        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
+        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, str(chunk.full_version._id), **kwargs)
 
     return chunk
 
@@ -87,7 +85,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
         kwargs['count_after'] = False
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), **kwargs)
 
     count_segments(version.get_index())
     return error_map
@@ -136,7 +134,7 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     version.save()
 
     for change in changing_texts:
-        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], version._id, **kwargs)
+        post_modify_text(user, change['action'], change['oref'], lang, version_title, change['old_text'], change['curr_text'], str(version._id), **kwargs)
     count_segments(version.get_index())
 
 
@@ -149,17 +147,14 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
     if not kwargs.get("skip_links", None):
-        from sefaria.helper.link import add_links_from_text
+        if CELERY_ENABLED:
+            generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
+            generator.generate_from_ref_and_version_id(oref, version_id)
         # Some commentaries can generate links to their base text automatically
-        linker = oref.autolinker(user=user)
-        if linker:
-            linker.refresh_links(**kwargs)
-        # scan text for links to auto add
-        add_links_from_text(oref, lang, curr_text, version_id, user, **kwargs)
+        autolinker = oref.autolinker(user=user)
+        if autolinker:
+            autolinker.refresh_links(**kwargs)
 
-        if USE_VARNISH:
-            invalidate_linked(oref)
-    # rabbis_move(oref, vtitle)
     count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
 
 

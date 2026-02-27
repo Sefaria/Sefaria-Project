@@ -66,3 +66,17 @@ test('Open panel window', async ({ context }) => {
 test('Share link', async ({ context }) => {
   // fill in test
 });
+
+
+test('Footer is sticky on home page', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/texts');
+  await page.mouse.wheel(0, 1000);
+  await page.getByText('Ways to Give').isVisible();
+});
+
+test('Footer is sticky on text category page', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/texts');
+  await page.getByRole('link', { name: 'Tanakh' }).click();
+  await page.mouse.wheel(0, 2000);
+  await page.getByText('Ways to Give').isVisible();
+});

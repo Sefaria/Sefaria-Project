@@ -3,22 +3,20 @@
 """
 Djagno Context Processors, for decorating all HTTP requests with common data.
 """
+import time
 import json
-from datetime import datetime
 from functools import wraps
 
-from django.template.loader import render_to_string
-
+from reader.models import user_has_experiments
 from sefaria.settings import *
+from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
-from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.hebrew import hebrew_parasha_name
-from reader.views import render_react_component, _get_user_calendar_params
+from sefaria.model.user_profile import UserProfile
 
 import structlog
+
+from sefaria.utils.util import is_int
 logger = structlog.get_logger(__name__)
 
 
@@ -86,6 +84,13 @@ def base_props(request):
 
 
 @user_only
+def module_context(request):
+    return {
+        'active_module': request.active_module,
+        'domain_modules': DOMAIN_MODULES
+    }
+
+@user_only
 def cache_timestamp(request):
     return {
         "last_cached": library.get_last_cached_time(),
@@ -105,93 +110,59 @@ def large_data(request):
         'virtual_books': library.get_virtual_books()
     }
 
-
-HEADER = {
-    'logged_in': {'english': None, 'hebrew': None},
-    'logged_out': {'english': None, 'hebrew': None},
-    'logged_in_mobile': {'english': None, 'hebrew': None},
-    'logged_out_mobile': {'english': None, 'hebrew': None},
-}
-@user_only
-def header_html(request):
-    """
-    Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
-    Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
-    """
-    global HEADER
-    if USE_NODE:
-        lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": None,
-                                                 "interfaceLang": lang,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": True,
-                                                 "interfaceLang": lang,
-                                                 "notificationCount": 0,
-                                                 "profile_pic_url": "",
-                                                 "full_name": "",
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        MOBILE_LOGGED_OUT_HEADER = HEADER["logged_out_mobile"][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": None,
-                                                 "interfaceLang": lang,
-                                                 "multiPanel": False,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-        MOBILE_LOGGED_IN_HEADER = HEADER["logged_in_mobile"][lang] or \
-            render_react_component("ReaderApp", {"headerMode": True,
-                                                 "_uid": True,
-                                                 "interfaceLang": lang,
-                                                 "notificationCount": 0,
-                                                 "profile_pic_url": "",
-                                                 "full_name": "",
-                                                 "multiPanel": False,
-                                                 "_siteSettings": SITE_SETTINGS})
-
-
-
-        LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
-        LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
-        MOBILE_LOGGED_OUT_HEADER = "" if "appLoading" in MOBILE_LOGGED_OUT_HEADER else MOBILE_LOGGED_OUT_HEADER
-        MOBILE_LOGGED_IN_HEADER = "" if "appLoading" in MOBILE_LOGGED_IN_HEADER else MOBILE_LOGGED_IN_HEADER
-        HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
-        HEADER['logged_in'][lang] = LOGGED_IN_HEADER
-        HEADER['logged_out_mobile'][lang] = MOBILE_LOGGED_OUT_HEADER
-        HEADER['logged_in_mobile'][lang] = MOBILE_LOGGED_IN_HEADER
-    else:
-        LOGGED_OUT_HEADER = ""
-        LOGGED_IN_HEADER = ""
-        MOBILE_LOGGED_OUT_HEADER = ""
-        MOBILE_LOGGED_IN_HEADER = ""
-    
-    return {
-        "logged_in_header":  LOGGED_IN_HEADER,
-        "logged_out_header": LOGGED_OUT_HEADER,
-        "logged_in_mobile_header":     MOBILE_LOGGED_IN_HEADER,
-        "logged_out_mobile_header": MOBILE_LOGGED_OUT_HEADER,
-    }
-
-
-FOOTER = {'english': None, 'hebrew': None}
-@user_only
-def footer_html(request):
-    global FOOTER
-    lang = request.interfaceLang
-    if USE_NODE:
-        FOOTER[lang] = FOOTER[lang] or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
-        FOOTER[lang] = "" if "appLoading" in FOOTER[lang] else FOOTER[lang]
-    else:
-        FOOTER[lang] = ""
-    return {
-        "footer": FOOTER[lang]
-    }
-
-
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
+
+
+def _chatbot_script_url_and_type(chatbot_version):
+    """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
+    if chatbot_version:
+        # is_int check is a safeguard to ensure chatbot_version is a valid integer before using it,
+        # as it is used for a script insersion and we want to avoid any potential security issues with malicious input.
+        if not is_int(chatbot_version):
+            return None, None
+        return (
+            f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs?rand={int(time.time())}",
+            None,
+        )
+    if settings.CHATBOT_USE_LOCAL_SCRIPT:
+        return ("http://localhost:5173/src/main.js", "module")
+    return (
+        "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
+        None,
+    )
+
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
+        return False
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return False
+    return True
+
+@user_only
+def chatbot_user_token(request):
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+    # if chatbot_version add it to cookies so it can be used in subsequent requests
+    if chatbot_version:
+        if chatbot_version == "clear":
+            if "chatbot_version" in request.session:
+                del request.session["chatbot_version"]
+        else:
+            request.session["chatbot_version"] = chatbot_version
+    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
+    elif "chatbot_version" in request.session:
+        chatbot_version = request.session["chatbot_version"]
+
+    if not _is_user_in_experiment(request):
+        return {
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
+
+    script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
+    return {
+        "chatbot_script_url": script_url,
+        "chatbot_script_type": script_type,
+    }

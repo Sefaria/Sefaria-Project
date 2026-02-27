@@ -36,6 +36,7 @@ import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
             heImgAlt=""
             heActionURL={null}
             heActionText={null}
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block
@@ -88,6 +89,7 @@ const ContestLandingPage = () => (
             heImgAlt=""
             heActionURL="#"
             heActionText="הרשמה לתחרות"
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <H2Block en="The Contest" he="התחרות"/>
@@ -268,6 +270,7 @@ const RambanLandingPage = () => {
             heActionText="Read the Text"
             enImg=""
             heImg=""
+            module={Sefaria.LIBRARY_MODULE}
         />
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
@@ -383,6 +386,7 @@ const SheetsLandingPage = () => (
             heImgAlt="דפי מקורות"
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox light={true}>
             <H2Block
@@ -515,7 +519,6 @@ const SheetsLandingPage = () => (
     </StaticPage>
 );
 
-
 const EducatorsPage = () => (
   <StaticPage>
     <HeaderForEducatorsPage/>
@@ -545,8 +548,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://www.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/KGMlHrvA"],
+          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://chiburim.sefaria.org.il/sheets/361600?lang=he"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators"],
           ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
       ].map(i =>
           <SimpleButton
@@ -577,9 +580,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/sheets/281661?lang=he"],
+          ["Get New Text Updates", "10 רעיונות להערכה חלופית", "https://sefaria.formstack.com/forms/monthly_new_text_roundup?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://chiburim.sefaria.org.il/sheets/281661?lang=he"],
           ["Sefaria in Action", "עבודת חקר: מסע בין מקורות", "/sheets/311116?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "https://www.sefaria.org.il/collections/%D7%A2%D7%91%D7%95%D7%93%D7%AA-%D7%97%D7%A7%D7%A8-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90-%D7%9E%D7%A1%D7%A2-%D7%91%D7%99%D7%9F-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA"],
-          ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://www.sefaria.org.il/sheets/361593?lang=he"]
+          ["For Your Students", "מערכי שיעור", "/sheets/311291?lang=bi", "https://chiburim.sefaria.org.il/sheets/361593?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -607,9 +610,9 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://www.sefaria.org.il/sheets/360599?lang=he"],
+          ["Help Center", "אסופות מומלצות", Sefaria._siteSettings.HELP_CENTER_URLS.EN_US,"https://voices.sefaria.org.il/sheets/360599?lang=he"],
           ["Request New Resources", "עמוד הקהילה", "https://sefaria.formstack.com/forms/text_request_feedback?utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/community"],
-          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://www.sefaria.org.il/sheets/228260.2?lang=he"]
+          ["Sefaria for Google Docs", "הסודות של ספריא", "/sheets/529099?lang=bi&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators","https://chiburim.sefaria.org.il/sheets/228260.2?lang=he"]
       ].map(i =>
           <SimpleButton
               white={true}
@@ -725,6 +728,7 @@ const PBSC2020LandingPage = () => (
             heText="הכירו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
@@ -1198,7 +1202,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
                     heTitle=""
-                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information.)</p>"
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a></p>"
                     heText=""
                     colorBar="#97B386"
                 />
@@ -1238,7 +1242,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we're devoted to making sure we're transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2023_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we're devoted to making sure we're transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2024_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1414,7 +1418,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_2023_990_Public.pdf"
+                        href="/static/files/Sefaria_2024_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -1476,7 +1480,7 @@ const WordByWordPage = () => {
     
     const ctaText = "Learn more about our authors and their work.";
     const ctaButtonText = "Learn about our authors";
-    const ctaHref = "https://www.sefaria.org/sheets/485180?lang=bi";
+    const ctaHref = "https://voices.sefaria.org/sheets/485180?lang=bi";
   
     return (
       <StaticPage optionalClass="donate wordbyword">
@@ -1612,6 +1616,7 @@ const PoweredByPage = () => (
             heActionURL="https://developers.sefaria.org/"
             heActionText="Create Something New"
             newTab={true}
+            module={Sefaria.LIBRARY_MODULE}
         />
         <GreyBox>
             <H2Block en="Open Source Torah" he="Open Source Torah"/>
@@ -1740,6 +1745,7 @@ const PBSC2021LandingPage = () => (
             heText="גלו את המיזמים"
             heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
             heImgAlt=""
+            module={Sefaria.LIBRARY_MODULE}
         />
 
         <GreyBox>
@@ -2322,7 +2328,7 @@ const partition = (arr, prop) =>
 
 // Defines a comparator to be used for sorting team members
 const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    const locale = Sefaria._getShortInterfaceLang();
     return (a, b) => {
         const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
         const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
@@ -2849,7 +2855,7 @@ const ProductCTA = ({product, cta}) => {
         <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
             {cta.icon.url && <img className="productsCTAIcon" 
                                     src={cta.icon.url}
-                                    alt="Click icon" />}
+                                    alt={Sefaria._("Click icon")} />}
                                 
             <span className="productsCTA">
                 <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
@@ -3099,6 +3105,36 @@ const ProductsPage = memo(() => {
         </>
     );
 });
+
+const NewsletterPage = () => (
+  <StaticPage>
+    <Spacer height={100} />
+    <div className="staticPageBlockInner" style={{ textAlign: 'center' }}>
+      <h2 style={{
+        fontSize: '30px',
+        fontWeight: 'normal',
+        marginBottom: '30px',
+        letterSpacing: '1px'
+      }}>
+        <InterfaceText text={{en: "Stay Connected", he: "הישארו מחוברים"}} />
+      </h2>
+      <div className="sans" style={{
+        fontSize: '14px',
+        color: 'var(--medium-grey)',
+        marginBottom: '40px'
+      }}>
+        <InterfaceText text={{en: "Sign up for Sefaria emails", he: "הצטרפו לרשימת הדיוור שלנו"}} />
+      </div>
+    </div>
+    <div className="staticPageBlockInner" style={{ width: '200px', margin: '0 auto' }}>
+      <NewsletterSignUpForm
+        contextName="Newsletter Page"
+        includeEducatorOption={true}
+      />
+    </div>
+    <Spacer height={100} />
+  </StaticPage>
+);
 
 
 const HeaderForNewsletterPage = () => {

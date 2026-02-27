@@ -19,6 +19,13 @@ class MatchTemplateMixin:
         # cache the trie for future use
         self._match_template_trie_cache[lang] = trie
         return trie
+    
+    def is_root(self) -> bool:
+        """
+        Default implementation to make sure objects that aren't SchemaNodes can be used with match templates
+        :return: 
+        """
+        return False
 
     def has_scope_alone_match_template(self):
         """

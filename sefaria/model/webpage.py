@@ -1,5 +1,4 @@
 # coding=utf-8
-from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
 from django.core.validators import URLValidator
@@ -7,7 +6,6 @@ from django.core.exceptions import ValidationError
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
-from sefaria.system.cache import in_memory_cache
 import bleach
 import structlog
 logger = structlog.get_logger(__name__)
@@ -18,6 +16,10 @@ from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
 from sefaria.model import *
+from sefaria.helper.webpages import normalize_url as normalize_webpage_url
+from sefaria.helper.webpages import site_data_for_domain as get_site_data_for_domain
+from sefaria.helper.webpages import get_website_cache as get_cached_websites
+from sefaria.helper.webpages import domain_for_url as webpage_domain_for_url
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -36,17 +38,18 @@ class WebPage(abst.AbstractMongoRecord):
         "linkerHits",
         'authors',
         'articleSource',
-        'type'
+        'type',
+        'whitelisted'
     ]
 
     def load(self, url_or_query):
-        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
+        query = {"url": normalize_webpage_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
 
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
-            self.domain      = WebPage.domain_for_url(self.url)
-            self._site_data  = WebPage.site_data_for_domain(self.domain)
+            self.domain      = webpage_domain_for_url(self.url)
+            self._site_data  = get_site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
             self.favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else None
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
@@ -56,7 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
         self.lastUpdated = datetime.now()
 
     def _normalize_data_sent_from_linker(self):
-        self.url = self.normalize_url(self.url)
+        self.url = normalize_webpage_url(self.url)
         self.refs = self._normalize_refs(getattr(self, "refs", []))
         self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
         self.description = self.clean_description(getattr(self, "description", ""))
@@ -95,43 +98,15 @@ class WebPage(abst.AbstractMongoRecord):
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
-        domain = WebPage.domain_for_url(WebPage.normalize_url(self.url))
+        domain = webpage_domain_for_url(normalize_webpage_url(self.url))
         if dict_only is False:
             return WebSite().load({"domains": domain})
         else:
-            sites = get_website_cache()
+            sites = get_cached_websites()
             for site in sites:
                 if domain in site["domains"]:
                     return site
             return {}
-
-    @staticmethod
-    def normalize_url(url):
-        rewrite_rules = {
-            "use https": lambda url: re.sub(r"^http://", "https://", url),
-            "remove hash": lambda url: re.sub(r"#.*", "", url),
-            "remove url params": lambda url: re.sub(r"\?.+", "", url),
-            "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
-            "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
-            "remove www": lambda url: re.sub(r"^(https?://)?www\.", r"\1", url),
-            "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
-            "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
-            "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
-        }
-        global_rules = ["remove hash", "remove utm params", "remove fbclid param", "remove www", "use https"]
-        domain = WebPage.domain_for_url(url)
-        site_rules = global_rules
-        site_data = WebPage.site_data_for_domain(domain)
-        if site_data and site_data["is_whitelisted"]:
-            site_rules += [x for x in site_data.get("normalization_rules", []) if x not in global_rules]
-        for rule in site_rules:
-            url = rewrite_rules[rule](url)
-
-        return url
-
-    @staticmethod
-    def domain_for_url(url):
-        return urlparse(url).netloc
 
     def should_be_excluded(self):
         """ Returns true if this webpage should not be included in our index
@@ -164,7 +139,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
-        sites = get_website_cache()
+        sites = get_cached_websites()
         for site in sites:
             if looking_for_domain is None or looking_for_domain in site["domains"]:
                 bad_urls += site.get("bad_urls", [])
@@ -185,15 +160,6 @@ class WebPage(abst.AbstractMongoRecord):
             r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
-
-    @staticmethod
-    def site_data_for_domain(domain):
-        sites = get_website_cache()
-        for site in sites:
-            for site_domain in site["domains"]:
-                if site_domain == domain or domain.endswith("." + site_domain):
-                    return site
-        return None
 
     @staticmethod
     def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
@@ -327,41 +293,83 @@ class WebSite(abst.AbstractMongoRecord):
 class WebSiteSet(abst.AbstractMongoSet):
     recordClass = WebSite
 
+def _webpage_client_contents_minimal(webpage):
+    site_data = getattr(webpage, "_site_data", {}) or {}
+    site_name = getattr(webpage, "site_name", "")
+    return {
+        "url": webpage.url,
+        "title": WebPage.clean_title(webpage.title, site_data, site_name),
+        "description": WebPage.clean_description(getattr(webpage, "description", "")),
+        "linkerHits": getattr(webpage, "linkerHits", 0),
+        "domain": webpage.domain,
+        "siteName": site_name,
+        "favicon": webpage.favicon,
+        "authors": getattr(webpage, "authors", None),
+        "articleSource": getattr(webpage, "articleSource", None),
+    }
 
-def get_website_cache():
-    sites = in_memory_cache.get("websites_data")
-    if sites in [None, []]:
-        sites = [w.contents() for w in WebSiteSet()]
-        in_memory_cache.set("websites_data", sites)
-        return sites
-    return sites
-
-
-def get_webpages_for_ref(tref):
+def _get_webpages_for_segment_refs(oref, segment_refs):
     from pymongo.errors import OperationFailure
-    oref = text.Ref(tref)
-    segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
+    if not segment_refs:
+        return []
+    segment_ref_objs = []
+    for tref in segment_refs:
+        try:
+            segment_ref_objs.append(text.Ref(tref))
+        except InputError:
+            continue
+    # only get items that lastUpdated in last year
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs},
+                                "title": {"$ne": ""},
+                                "lastUpdated": {"$gte": datetime.now() - timedelta(days=365)}
+                                },
+                                 proj={
+                                     "url": 1,
+                                     "title": 1,
+                                     "refs": 1,
+                                     "lastUpdated": 1,
+                                     "description": 1,
+                                     "linkerHits": 1,
+                                     "authors": 1,
+                                     "articleSource": 1,
+                                 },
+                                 hint="expandedRefs_1", 
+                                 sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
         # If documents are too large or there are too many results, fail gracefully
-        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        logger.warn(f"WebPageSet for ref {oref.normal()} failed due to Error: {repr(e)}")
         return []
     webpage_objs = {}      # webpage_obj is an actual WebPage()
     webpage_results = {}  # webpage_results is dictionary that API returns
-    
+
     for webpage in results:
-        if not webpage.whitelisted or len(webpage.title) == 0:
+        if not webpage.whitelisted:
             continue
-          
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
         if prev_webpage_obj is None or prev_webpage_obj.lastUpdated < webpage.lastUpdated:
-            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs,
-                                                                                 webpage.expandedRefs)
+            # Recompute anchor refs from segment refs + webpage refs to avoid loading/using expandedRefs.
+            # This is a reimplementation of the logic in Ref.get_all_anchor_refs to avoid loading Ref objects unnecessarily.
+            anchor_ref_list = []
+            anchor_ref_expanded_list = []
+            for tref in webpage.refs:
+                if not tref.startswith(oref.index.title):
+                    continue
+                try:
+                    document_ref = text.Ref(tref)
+                except InputError:
+                    continue
+                if not oref.overlaps(document_ref):
+                    continue
+                anchor_ref_list.append(document_ref)
+                anchor_ref_expanded_list.append(
+                    [segment_ref for segment_ref in segment_ref_objs if document_ref.overlaps(segment_ref)]
+                )
+            base_webpage_contents = _webpage_client_contents_minimal(webpage)
             for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-                webpage_contents = webpage.client_contents()
+                webpage_contents = dict(base_webpage_contents)
                 webpage_contents["anchorRef"] = anchor_ref.normal()
                 webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
                 webpage_objs[webpage_key] = webpage
@@ -370,11 +378,28 @@ def get_webpages_for_ref(tref):
     return list(webpage_results.values())
 
 
+def get_webpages_for_ref(tref):
+    oref = text.Ref(tref)
+    if oref.is_segment_level():
+        segment_refs = [oref.normal()]
+    elif oref.is_range() and oref.range_depth() == 1:
+        segment_refs = [r.normal() for r in oref.range_list()]
+    else:
+        raise InputError("Webpages API requires a segment-level ref.")
+    return _get_webpages_for_segment_refs(oref, segment_refs)
+
+
+def get_webpages_for_section_ref(tref):
+    oref = text.Ref(tref)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    return _get_webpages_for_segment_refs(oref, segment_refs)
+
+
 def test_normalization():
     pages = WebPageSet()
     count = 0
     for page in pages:
-        norm = WebPage.normalize_url(page.url)
+        norm = normalize_webpage_url(page.url)
         if page.url != norm:
             print(page.url.encode("utf-8"))
             print(norm.encode("utf-8"))
@@ -389,7 +414,7 @@ def dedupe_webpages(webpages, test=True):
     norm_count = 0
     dedupe_count = 0
     for i, webpage in tqdm(enumerate(webpages)):
-        norm = WebPage.normalize_url(webpage.url)
+        norm = normalize_webpage_url(webpage.url)
         if webpage.url != norm:
             normpage = WebPage().load(norm)
             if normpage:
@@ -651,7 +676,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     from datetime import datetime, timedelta
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
     webpages_without_websites = 0
-    for data in get_website_cache():
+    for data in get_cached_websites():
          if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
                 ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
@@ -679,4 +704,3 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
-

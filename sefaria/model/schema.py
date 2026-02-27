@@ -1217,7 +1217,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_mutations", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1250,6 +1250,55 @@ class SchemaNode(TitledTreeNode):
         if self.default and self.key != "default":
             raise IndexSchemaError("'default' nodes need to have key name 'default'")
 
+        self._validate_context_mutations()
+
+    def _validate_context_mutations(self):
+        mutations = getattr(self, "ref_resolver_context_mutations", None)
+        if mutations is None:
+            return
+
+        full_title = self.full_title()
+
+        if not isinstance(mutations, list):
+            raise IndexSchemaError(
+                f"ref_resolver_context_mutations on {full_title} must be a list"
+            )
+
+        from sefaria.model.linker.context_mutation import ContextMutation, ContextMutationOp
+        allowed_ops = {op.value for op in ContextMutationOp}
+
+        def err(idx, msg: str) -> None:
+            raise IndexSchemaError(f"Context mutation #{idx} on {full_title} {msg}")
+
+        for idx, m in enumerate(mutations):
+            if not isinstance(m, dict):
+                err(idx, "must be a dict with op/input_terms/output_terms")
+
+            op_token = m.get("op")
+            try:
+                op = ContextMutationOp(op_token)
+            except Exception:
+                err(idx, f"has invalid op {op_token!r}. Valid options: {sorted(allowed_ops)}")
+
+            input_terms = m.get("input_terms", ())
+            output_terms = m.get("output_terms", ())
+
+            if not (isinstance(input_terms, (list, tuple)) and input_terms):
+                err(idx, "must declare input_terms as a non-empty list/tuple")
+
+            if not isinstance(output_terms, (list, tuple)):
+                err(idx, "must declare output_terms as a list/tuple")
+
+            if not all(isinstance(t, str) and t for t in input_terms):
+                err(idx, "has invalid input_terms (non-empty strings only)")
+
+            if not all(isinstance(t, str) and t for t in output_terms):
+                err(idx, "has invalid output_terms (non-empty strings only)")
+
+            try:
+                ContextMutation(op, input_terms, output_terms)
+            except ValueError as exc:
+                err(idx, f"is invalid: {exc}")
     def concrete_children(self):
         return [c for c in self.children if not c.is_virtual]
 
@@ -2288,6 +2337,17 @@ class AddressTalmud(AddressType):
             return re.search(cls.amud_patterns["he"], part) is None
         else:
             return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+        
+    @classmethod
+    def sections_lack_amud(cls, section:int, toSection:int) -> bool:
+        """
+        Given section and toSection integers, return whether together they represent a range that lacks amud.
+        For example, section=3 (daf 2b) and toSection=4 (daf 2b) represent a daf 2 which lacks amud.
+        :param section: 
+        :param toSection: 
+        :return: 
+        """
+        return section % 2 == 1 and toSection % 2 == 0 and toSection == section + 1
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
@@ -2720,7 +2780,7 @@ class AddressHalakhah(AddressInteger):
 
 class AddressSeif(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+)			# Seif spelled out, with a space after
             |(?:\u05e1(?:\u05e2\u05d9)?(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3]|\s+)?)?)	# or trie of first three letters followed by a quote of some sort
@@ -2730,7 +2790,7 @@ class AddressSeif(AddressInteger):
 
 class AddressSeifKatan(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+\u05e7\u05d8\u05df\s+)			# Seif katan spelled out with or without nikud
             |(?:\u05e1(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3])?)?\u05e7)(?:['\u2018\u2019\u05f3"\u05f4]['\u2018\u2019\u05f3]?|\s+)?	# or trie of first three letters followed by a quote of some sort

@@ -7,6 +7,8 @@ import time
 import structlog
 from functools import reduce, partial
 from typing import Optional, Union
+
+from remote_config.keys import REF_CACHE_LIMIT_KEY
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -15,10 +17,11 @@ import copy
 import bleach
 import json
 import itertools
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from bs4 import BeautifulSoup, Tag
 import re2 as re
 from . import abstract as abst
+from django_topics.models.topic import Topic as DjangoTopic
 from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
@@ -32,6 +35,8 @@ from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
+from sefaria.helper.normalization import NormalizerFactory
+from remote_config import remoteConfigCache
 
 """
                 ----------------------------------
@@ -1213,27 +1218,15 @@ class AbstractTextRecord(object):
         else:
             return False
         return t
-
+    
     @staticmethod
-    def find_all_itags(s, only_footnotes=False):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
-        if only_footnotes:
-            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
-        return soup, itag_list
-
-    @staticmethod
-    def _itag_is_footnote(tag):
-        return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
-
-    @staticmethod
-    def _find_itags(tag):
-        if isinstance(tag, Tag):
-            is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
-            is_page_marker = tag.name == "i" and len(tag.get('data-overlay','')) > 0
-            is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
-            return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
-        return False
+    def find_all_footnotes(s: str) -> list[str]:
+        fn_normalizer = NormalizerFactory.get('footnote')
+        text_to_remove = fn_normalizer.find_text_to_remove(s)
+        footnotes = []
+        for (start, end), repl in text_to_remove:
+            footnotes.append(s[start:end])
+        return footnotes
 
     @staticmethod
     def strip_imgs(s, sections=None):
@@ -1245,15 +1238,10 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def strip_itags(s, sections=None):
-        soup, itag_list = AbstractTextRecord.find_all_itags(s)
-        for itag in itag_list:
-            try:
-                if AbstractTextRecord._itag_is_footnote(itag):
-                    itag.next_sibling.decompose()  # it's a footnote
-            except AttributeError:
-                pass  # it's an inline commentator
-            itag.decompose()
-        return soup.root.encode_contents().decode()  # remove divs added
+        s = NormalizerFactory.get('footnote').normalize(s)
+        s = NormalizerFactory.get('other-itag').normalize(s)
+        s = NormalizerFactory.get('fn-marker').normalize(s)
+        return s
 
     def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """
@@ -1363,8 +1351,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version direction must be either 'rtl' or 'ltr'")
         assert isinstance(getattr(self, "isSource", False), bool), "'isSource' must be bool"
         assert isinstance(getattr(self, "isPrimary", False), bool), "'isPrimary' must be bool"
-        isAnyOtherVersionPrimary = any([v.isPrimary for v in VersionSet({"title": self.title}) if v.versionTitle != self.versionTitle])
-        if not any([self.isPrimary, isAnyOtherVersionPrimary]):  # if all are False, return true
+        is_any_other_primary = any(v.isPrimary for v in index.versionSet() if v._id != getattr(self, '_id', None))
+        if not self.isPrimary and not is_any_other_primary:  # if all are False, return true
             raise InputError("There must be at least one version that is primary.")
         return True
 
@@ -2404,7 +2392,7 @@ class TextFamily(object):
 
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
                  version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
-                 wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+                 translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
@@ -2417,7 +2405,6 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
-        :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
         :return:
         """
         if pad:
@@ -2468,20 +2455,6 @@ class TextFamily(object):
                 c = TextChunk(**tc_kwargs)
             self._chunks[language] = c
             text_modification_funcs = []
-            if wrapNamedEntities and len(c._versions) > 0:
-                from . import RefTopicLinkSet
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
-                if len(named_entities) > 0:
-                    # assumption is that refTopicLinks are all to unranged refs
-                    ne_by_secs = defaultdict(list)
-                    for ne in named_entities:
-                        try:
-                            temp_ref = Ref(ne.ref)
-                        except InputError:
-                            continue
-                        temp_secs = tuple(s-1 for s in temp_ref.sections)
-                        ne_by_secs[temp_secs] += [ne]
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
                 text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
@@ -2626,8 +2599,26 @@ class RefCacheType(type):
 
     def __init__(cls, name, parents, dct):
         super(RefCacheType, cls).__init__(name, parents, dct)
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
+        cls._tref_oref_cache_limit = remoteConfigCache.get(REF_CACHE_LIMIT_KEY, 60000)
+
+    def _touch_cache_key(cls, key):
+        try:
+            cls.__tref_oref_map.move_to_end(key)
+        except KeyError:
+            pass
+
+    def _set_cache_key(cls, key, value):
+        cls.__tref_oref_map[key] = value
+        cls._enforce_cache_limit()
+
+    def _enforce_cache_limit(cls):
+        limit = getattr(cls, "_tref_oref_cache_limit", None)
+        if not limit:
+            return
+        while len(cls.__tref_oref_map) > limit:
+            cls.__tref_oref_map.popitem(last=False)
 
     def cache_size(cls):
         return len(cls.__tref_oref_map)
@@ -2643,7 +2634,7 @@ class RefCacheType(type):
         return cls.__tref_oref_map
 
     def clear_cache(cls):
-        cls.__tref_oref_map = {}
+        cls.__tref_oref_map = OrderedDict()
         cls.__index_tref_map = {}
 
     def remove_index_from_cache(cls, index_title):
@@ -2672,21 +2663,25 @@ class RefCacheType(type):
 
         if tref:
             if tref in cls.__tref_oref_map:
-                return cls.__tref_oref_map[tref]
+                result = cls.__tref_oref_map[tref]
+                cls._touch_cache_key(tref)
+                return result
             else:
                 result = super(RefCacheType, cls).__call__(*args, **kwargs)
                 uid = result.uid()
                 title = result.index.title
                 if uid in cls.__tref_oref_map:
                     #del result  #  Do we need this to keep memory clean?
-                    cls.__tref_oref_map[tref] = cls.__tref_oref_map[uid]
+                    cached = cls.__tref_oref_map[uid]
+                    cls._touch_cache_key(uid)
+                    cls._set_cache_key(tref, cached)
                     try:
                         cls.__index_tref_map[title] += [tref]
                     except KeyError:
                         cls.__index_tref_map[title] = [tref]
-                    return cls.__tref_oref_map[uid]
-                cls.__tref_oref_map[uid] = result
-                cls.__tref_oref_map[tref] = result
+                    return cached
+                cls._set_cache_key(uid, result)
+                cls._set_cache_key(tref, result)
                 try:
                     cls.__index_tref_map[title] += [tref]
                 except KeyError:
@@ -2700,8 +2695,10 @@ class RefCacheType(type):
             title = result.index.title
             if uid in cls.__tref_oref_map:
                 #del result  #  Do we need this to keep memory clean?
-                return cls.__tref_oref_map[uid]
-            cls.__tref_oref_map[uid] = result
+                cached = cls.__tref_oref_map[uid]
+                cls._touch_cache_key(uid)
+                return cached
+            cls._set_cache_key(uid, result)
             try:
                 cls.__index_tref_map[title] += [uid]
             except KeyError:
@@ -4194,7 +4191,7 @@ class Ref(object, metaclass=RefCacheType):
             for r in normals:
                 sections = re.sub(r"^%s" % re.escape(self.book), '', r)
                 patterns.append(r"%s$" % sections)   # exact match
-                patterns.append(r"%s:" % sections)   # more granualar, exact match followed by :
+                patterns.append(r"%s:" % sections)   # more granular, exact match followed by :
                 patterns.append(r"%s \d" % sections) # extra granularity following space
         else:
             sections = re.sub(r"^%s" % re.escape(self.book), '', self.normal())
@@ -5057,6 +5054,8 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+        
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
@@ -5067,6 +5066,14 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
+        
+        # functions backed by lru cache
+        if rebuild:
+            get_talmud_perek_ref_set.cache_clear()
+            get_parasha_ref_set.cache_clear()
+        get_talmud_perek_ref_set()
+        get_parasha_ref_set()
+        
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5164,22 +5171,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = {
-                "slug": topic.slug,
-                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
-                "en": topic.get_primary_title("en"),
-                "he": topic.get_primary_title("he"),
-                "displayOrder": getattr(topic, "displayOrder", 10000)
-            }
-
-            with_descriptions = True # TODO revisit for data size / performance
-            if with_descriptions:
-                if getattr(topic, "categoryDescription", False):
-                    topic_json['categoryDescription'] = topic.categoryDescription
-                description = getattr(topic, "description", None)
-                if description is not None and getattr(topic, "description_published", False):
-                    topic_json['description'] = description
-
+            topic_json = topic.contents(minify=True, children=children, with_html=True)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)
@@ -5716,8 +5708,7 @@ class Library(object):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
 
         named_entity_types_to_topics = {
-            "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
-            "GROUP": {'ontology_roots': ["group-of-people"]},
+            "PERSON": {"ontology_roots": ['people', 'group-of-people'], "single_slugs": ['god', 'the-tetragrammaton']},
         }
         return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
 
@@ -6217,7 +6208,8 @@ class Library(object):
 
     @staticmethod
     def _wrap_ref_match(ref, match):
-        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+        data_target_module = constants.VOICES_MODULE if ref.is_sheet() else constants.LIBRARY_MODULE
+        return f'<a class ="refLink" href="/{ref.url()}" data-ref="{ref.normal()}" data-target-module="{data_target_module}">{match.group(0)}</a>'
 
     def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
         try:
@@ -6232,41 +6224,6 @@ class Library(object):
         except (InputError, KeyError) as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
-
-    @staticmethod
-    def get_wrapped_named_entities_string(links, s):
-        """
-        Parallel to library.get_wrapped_refs_string
-        Returns `s` with every link in `links` wrapped in an a-tag
-        """
-        if len(links) == 0:
-            return s
-        links.sort(key=lambda x: x.charLevelData['startChar'])
-
-        # replace all mentions with `dummy_char` so they can later be easily replaced using re.sub()
-        # this ensures char locations are preserved
-        dummy_char = "█"
-        char_list = list(s)
-        start_char_to_slug = {}
-        for link in links:
-            start = link.charLevelData['startChar']
-            end = link.charLevelData['endChar']
-            mention = s[start:end]
-            if mention != link.charLevelData['text']:
-                # dont link if current text at startChar:endChar doesn't match text on link
-                continue
-            start_char_to_slug[start] = (mention, link.toTopic, getattr(link, 'unambiguousToTopic', None))
-            char_list[start:end] = list(dummy_char*(end-start))
-        dummy_text = "".join(char_list)
-
-        def repl(match):
-            try:
-                mention, slug, unambiguous_slug = start_char_to_slug[match.start()]
-            except KeyError:
-                return match.group()
-            link_slug = unambiguous_slug or slug
-            return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
-        return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         """Returns a dict of unique category ids based on the ToC, with the
