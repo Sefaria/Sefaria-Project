@@ -201,6 +201,21 @@ cronJobs:
     enabled: true
   weeklyEmailNotifications:
      enabled: true
+  braintrust:
+    enabled: true
+    image:
+      repository:
+      tag:
+    backupLogs:
+      enabled: true
+      schedule: "0 1 * * 0"
+      serviceAccount: braintrust-backup-logs
+      bucket: braintrust-logs
+      prefix: "logs/"
+    tagAndPush:
+      enabled: true
+      schedule: "0 2 * * *"
+      serviceAccount: braintrust-tag-push
 secrets:
   localSettings:
     ref: local-settings-secrets-production
@@ -208,6 +223,10 @@ secrets:
     ref: backup-manager-secret-production
   slackWebhook:
     ref: slack-webhook-production
+  braintrust:
+    ref: braintrust-secret-production
+  anthropic:
+    ref: anthropic-api-key-production
 instrumentation:
   enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"
