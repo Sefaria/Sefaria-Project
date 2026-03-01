@@ -221,6 +221,13 @@ DISABLE_AUTOCOMPLETER = False
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
 
+# File-based caching for library objects (AutoCompleter, Linker) during development.
+# When enabled, these expensive objects are serialized to disk after first build
+# and loaded from disk on subsequent server reloads, significantly speeding up
+# development iteration. Should NOT be used in production.
+USE_DEV_FILE_CACHE = False
+DEV_FILE_CACHE_DIR = "/tmp/sefaria_dev_cache"
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""

@@ -313,6 +313,11 @@ CACHES = {
 }
 
 
+# Default values for settings that may be overridden in local_settings.
+# These ensure the application works even if local_settings doesn't define them.
+USE_DEV_FILE_CACHE = False
+DEV_FILE_CACHE_DIR = "/tmp/sefaria_dev_cache"
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 try:
