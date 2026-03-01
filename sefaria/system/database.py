@@ -2,12 +2,16 @@
 database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
+import os
 import sys
 import pymongo
 import urllib.parse
 from pymongo.errors import OperationFailure
 
+import structlog
 from sefaria.settings import *
+
+logger = structlog.get_logger(__name__)
 
 def check_db_exists(db_name):
     dbnames = client.list_database_names()
@@ -32,9 +36,9 @@ else:
     #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, connect=False)
         else:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, connect=False)
     #Else if we are using a replica set mongo, we need to connect with a URI that containts a comma separated list of 'host:port' strings
     else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
@@ -45,7 +49,7 @@ else:
         else:
             connection_uri = 'mongodb://{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
         # Now connect to the mongo server
-        client = pymongo.MongoClient(connection_uri)
+        client = pymongo.MongoClient(connection_uri, connect=False)
 
 
 
@@ -60,6 +64,52 @@ else:
 def drop_test():
     global client
     client.drop_database(TEST_DB)
+
+
+def reset_connection():
+    """
+    Reset MongoDB connection after fork. Called from Gunicorn post_fork hook.
+    Closes inherited connections and re-establishes fresh ones for this worker.
+    """
+    global client, db
+
+    pid = os.getpid()
+
+    # Close the inherited client to release file descriptors
+    if client is not None:
+        try:
+            client.close()
+            logger.info("mongodb_connection_closed", pid=pid)
+        except Exception as e:
+            logger.warning("mongodb_close_error", pid=pid, error=str(e))
+
+    # Create fresh client for this worker
+    if MONGO_REPLICASET_NAME is None:
+        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT,
+                                         username=SEFARIA_DB_USER,
+                                         password=SEFARIA_DB_PASSWORD,
+                                         connect=False)
+        else:
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, connect=False)
+    else:
+        if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
+            username = urllib.parse.quote_plus(SEFARIA_DB_USER)
+            password = urllib.parse.quote_plus(SEFARIA_DB_PASSWORD)
+            connection_uri = 'mongodb://{}:{}@{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(
+                username, password, MONGO_HOST, MONGO_REPLICASET_NAME)
+        else:
+            connection_uri = 'mongodb://{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(
+                MONGO_HOST, MONGO_REPLICASET_NAME)
+        client = pymongo.MongoClient(connection_uri, connect=False)
+
+    # Re-establish db reference
+    if not hasattr(sys, '_called_from_test'):
+        db = client[SEFARIA_DB]
+    else:
+        db = client[TEST_DB]
+
+    logger.info("mongodb_connection_reset", pid=pid)
 
 
 # Not used
