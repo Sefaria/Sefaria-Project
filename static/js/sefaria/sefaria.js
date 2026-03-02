@@ -606,7 +606,7 @@ Sefaria = extend(Sefaria, {
   },
   _textsStore: {},
   _textsStoreSet: function(key, value) {
-    this._textsStore[key] = value;
+    this._textsStore[key] = Sefaria.util.clone(value);
   },
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
@@ -3637,7 +3637,7 @@ _media: {},
           Sefaria._ApiPromise(url)
               .then(data => {
                   if (processor) { data = processor(data); }
-                  store[key] = data;
+                  store[key] = Sefaria.util.clone(data);
                   return data;
               })
   },
