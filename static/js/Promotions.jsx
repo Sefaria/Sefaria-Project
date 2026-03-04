@@ -90,6 +90,7 @@ const Promotions = () => {
   // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
   
   useEffect(() => {
+    // debugger;
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
     }

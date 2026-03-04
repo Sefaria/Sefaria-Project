@@ -398,6 +398,10 @@ class UserProfile(object):
         self.is_sustainer = False
         self.experiments = False
 
+        # Newsletter preferences
+        self.learning_level = None  # numeric 1-5 for user learning level in Sefaria, None if not set
+        self.wants_marketing_emails = True  # whether user wants marketing emails; default opted-in
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile: # overwrite if fake profile in db
@@ -676,6 +680,8 @@ class UserProfile(object):
             "nationbuilder_id":      self.nationbuilder_id,
             "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
+            "learning_level":        self.learning_level,
+            "wants_marketing_emails": self.wants_marketing_emails,
         }
 
     def to_api_dict(self, basic=False):
@@ -708,6 +714,7 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
+            "learning_level":        self.learning_level,
             "experiments":           self.experiments,
         }
         dictionary.update(other_info)

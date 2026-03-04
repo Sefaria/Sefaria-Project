@@ -335,6 +335,9 @@ data:
     STRAPI_LOCATION = os.getenv("STRAPI_LOCATION")
     STRAPI_PORT = os.getenv("STRAPI_PORT")
 
+    ACTIVECAMPAIGN_API_TOKEN = os.getenv("ACTIVECAMPAIGN_API_TOKEN")
+    ACTIVECAMPAIGN_ACCOUNT_NAME = os.getenv("ACTIVECAMPAIGN_ACCOUNT_NAME")
+
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
