@@ -42,6 +42,9 @@ data:
     fi
 
     DATADIR="/mongodumps/shared_volume"
+    echo "DEBUG: Initial disk usage (use for ephemeral-storage sizing):"
+    df -h "$DATADIR" | head -1
+    du -sh "$DATADIR" 2>/dev/null || true
     echo "dumping"
     until mongodump --uri="$URI" -vvv -d $DATABASE --collection history -o "${DATADIR}/dump"
     do
@@ -73,6 +76,10 @@ data:
     sleep 2
     done
 
+    echo "DEBUG: After full dump - raw dump size (use for ephemeral-storage sizing):"
+    du -sh "${DATADIR}/dump" 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
+
     # exit and restart job if dump fails
     #if [ $? -ne 0 ]
     #then
@@ -84,6 +91,10 @@ data:
     echo "building full private tar file"
     tar cvzf "${DATADIR}/private_dump.tar.gz" -C "${DATADIR}" ./dump
 
+    echo "DEBUG: After private_dump.tar.gz (use for ephemeral-storage sizing):"
+    ls -lh "${DATADIR}/private_dump.tar.gz" 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
+
     rm "${DATADIR}/dump/sefaria/user_history.bson"
     rm "${DATADIR}/dump/sefaria/user_history.metadata.json"
 
@@ -92,6 +103,10 @@ data:
 
     echo "building small private tar file"
     tar cvzf "${DATADIR}/private_dump_small.tar.gz" -C "${DATADIR}" ./dump
+
+    echo "DEBUG: After private_dump_small.tar.gz - peak before public (use for ephemeral-storage sizing):"
+    ls -lh "${DATADIR}"/*.tar.gz 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
 
     {{- if .Values.backup.mongo.public }}
     echo "creating public dump"
@@ -138,12 +153,25 @@ data:
     echo "building small public tar file"
     tar cvzf "${DATADIR}/dump_small.tar.gz" -C "${DATADIR}" ./dump
 
+    echo "DEBUG: After dump_small.tar.gz (use for ephemeral-storage sizing):"
+    ls -lh "${DATADIR}"/*.tar.gz 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
+
     mv "/tmp_storage/history.bson" "${DATADIR}/dump/sefaria/history.bson"
     mv "/tmp_storage/history.metadata.json" "${DATADIR}/dump/sefaria/history.metadata.json"
 
     echo "building full public tar file"
     tar cvzf "${DATADIR}/dump.tar.gz" -C "${DATADIR}" ./dump
+
+    echo "DEBUG: PEAK storage - all 4 zips on disk (use for ephemeral-storage sizing):"
+    ls -lh "${DATADIR}"/*.tar.gz 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
+    df -h "$DATADIR" 2>/dev/null || true
     {{- end }}
+
+    echo "DEBUG: Total storage before upload (use for ephemeral-storage sizing):"
+    ls -lh "${DATADIR}"/*.tar.gz 2>/dev/null || true
+    du -sh "$DATADIR" 2>/dev/null || true
 
     echo "upload shoud start"
 {{- end }}

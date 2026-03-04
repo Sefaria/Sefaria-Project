@@ -12,6 +12,11 @@ data:
     set -x
 
     cd "/mongodumps/shared_volume"
+
+    echo "DEBUG: Storage at upload start (use for ephemeral-storage sizing):"
+    ls -lh *.tar.gz 2>/dev/null || true
+    du -sh . 2>/dev/null || true
+    df -h . 2>/dev/null || true
     today="$(date +'%d.%m.%y')"
     last_week="$(date --date='last week' +'%d.%m.%y')"
 
