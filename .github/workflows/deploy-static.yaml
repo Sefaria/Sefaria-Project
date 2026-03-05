@@ -192,6 +192,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      release_tag: ${{ steps.tag.outputs.release_tag }}
     env:
       ENV_NAME: ${{ needs.detect.outputs.env }}
       ENV_FILE: ${{ needs.detect.outputs.env_file }}
@@ -234,11 +236,23 @@ jobs:
             .spec.values.monitor.containerImage.tag = strenv(APP_TAG)
           ' "$ENV_FILE"
       - name: Commit and tag
+        id: tag
         run: |
           APP_VERSION="${{ steps.app.outputs.version }}"
           CHART_VERSION="${{ steps.chart.outputs.version }}"
+          RELEASE_TAG="${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}"
 
           git add "$ENV_FILE"
           git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
-          git tag -a "${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
+          git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
           git push origin "${GITHUB_REF_NAME}" --follow-tags
+
+          echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+
+  trigger-deploy:
+    needs: [detect, update-deployment-state]
+    uses: ./.github/workflows/trigger-infra-deploy.yml
+    with:
+      tag: ${{ needs.update-deployment-state.outputs.release_tag }}
+      environment: ${{ needs.detect.outputs.env }}
+    secrets: inherit
