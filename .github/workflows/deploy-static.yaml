@@ -255,4 +255,5 @@ jobs:
     with:
       tag: ${{ needs.update-deployment-state.outputs.release_tag }}
       environment: ${{ needs.detect.outputs.env }}
-    secrets: inherit
+    secrets:
+      INFRA_WORKFLOW_TOKEN: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
