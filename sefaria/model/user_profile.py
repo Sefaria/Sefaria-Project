@@ -502,7 +502,8 @@ class UserProfile(object):
         if self._id:
             db.profiles.replace_one({'_id': self._id}, d, upsert=True)
         else:
-            db.profiles.insert_one(d)
+            inserted = db.profiles.insert_one(d)
+            self._id = inserted.inserted_id
 
         # store name changes on Django User object
         if self._name_updated:

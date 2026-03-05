@@ -142,8 +142,10 @@ domains:
         - profile
 gateway:
   enabled: true
+  alpnProtocols:
+    - h2
+    - http/1.1
   annotations: {}
-  clientIPHeader: CF-Connecting-IP
 ingress:
   enabled: false
 nginx:

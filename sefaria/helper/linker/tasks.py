@@ -25,12 +25,11 @@ from sefaria.helper.linker.disambiguator import (
     NonSegmentResolutionResult,
     DictaAPIError,
 )
+from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
 from dataclasses import dataclass, field, asdict
 from bson import ObjectId
 import structlog
 from typing import Any, Dict, List, Optional
-from functools import lru_cache
-
 
 logger = structlog.get_logger(__name__)
 
@@ -261,70 +260,7 @@ def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bo
             return False
     if not oref.is_segment_level():
         return True
-    return ref_str in _get_talmud_perek_ref_set() or ref_str in _get_parasha_ref_set()
-
-
-@lru_cache(maxsize=1)
-def _get_talmud_perek_ref_set() -> set[str]:
-    """Cache of Talmud perakim refs (Bavli/Yerushalmi/Tosefta/Mishnah)."""
-    categories = [
-        ["Talmud", "Bavli"],
-        ["Talmud", "Yerushalmi"],
-        ["Tosefta"],
-        ["Mishnah"],
-    ]
-    perakim: set[str] = set()
-    for path in categories:
-        for index in library.get_indexes_in_category_path(path, full_records=True) or []:
-            try:
-                alone_nodes = index.get_referenceable_alone_nodes()
-            except Exception:
-                continue
-            for node in alone_nodes:
-                try:
-                    perakim.add(node.ref().normal())
-                except Exception:
-                    continue
-
-    return perakim
-
-
-@lru_cache(maxsize=1)
-def _get_parasha_ref_set() -> set[str]:
-    """Cache of parasha wholeRef ranges from alt-struct leaves whose titles map to Parasha terms."""
-    parasha_titles: set[str] = set()
-    for term in TermSet({"scheme": "Parasha"}):
-        for lang in ("en", "he"):
-            try:
-                parasha_titles.update(term.get_titles(lang))
-            except Exception:
-                continue
-
-    parasha_refs: set[str] = set()
-    for index in library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []:
-        try:
-            alt_leaves = index.get_alt_struct_leaves()
-        except Exception:
-            continue
-        for node in alt_leaves:
-            if not getattr(node, "wholeRef", None):
-                continue
-            try:
-                titles = set()
-                titles.update(node.get_titles("en"))
-                titles.update(node.get_titles("he"))
-                if getattr(node, "sharedTitle", None):
-                    titles.add(node.sharedTitle)
-            except Exception:
-                titles = set()
-            if parasha_titles and titles.isdisjoint(parasha_titles):
-                continue
-            try:
-                parasha_refs.add(Ref(node.wholeRef).normal())
-            except Exception:
-                continue
-
-    return parasha_refs
+    return ref_str in get_talmud_perek_ref_set() or ref_str in get_parasha_ref_set()
 
 
 def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:

@@ -272,9 +272,10 @@ ingress:
 gateway:
   enabled: false
   className: envoy
+  alpnProtocols:
+    - http/1.1
   annotations:
     cert-manager.io/cluster-issuer: ingress-ca
-  clientIPHeader: X-Forwarded-For
 
 nginx:
   containerImage:

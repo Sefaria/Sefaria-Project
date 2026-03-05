@@ -2433,7 +2433,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-
+    const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
+    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
       // InterruptingMessage modals and Banners will always render if available but stay hidden initially
@@ -2449,14 +2452,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 <div className="panelContainer">
                   {panels}
                 </div>
-                {this.props.chatbot_enabled && this.props.chatbot_user_token && (
+                {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
                   api-base-url={this.props.chatbot_api_base_url}
                   is-moderator={this.props.is_moderator || undefined}
                   default-open="false"
                   placement="right"
-                  mode="docked"  //this simply defines the initial mode which can be toggled by the user
+                  mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                 />
               )}
