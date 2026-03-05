@@ -251,6 +251,7 @@ jobs:
 
   trigger-deploy:
     needs: [detect, update-deployment-state]
+    if: always() && !failure() && !cancelled()
     uses: ./.github/workflows/trigger-infra-deploy.yml
     with:
       tag: ${{ needs.update-deployment-state.outputs.release_tag }}
