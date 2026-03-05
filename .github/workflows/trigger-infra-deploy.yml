@@ -14,6 +14,9 @@ on:
       environment:
         type: string
         required: true
+    secrets:
+      INFRA_WORKFLOW_TOKEN:
+        required: true
 
 jobs:
   dispatch:
