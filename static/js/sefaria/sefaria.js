@@ -605,9 +605,6 @@ Sefaria = extend(Sefaria, {
     return url;
   },
   _textsStore: {},
-  _textsStoreSet: function(key, value) {
-    this._textsStore[key] = Sefaria.util.clone(value);
-  },
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
     // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
@@ -3632,14 +3629,15 @@ _media: {},
   _cachedApiPromise: function({url, key, store, processor}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches in store[key], and returns
-      return (key in store) ?
-          Promise.resolve(store[key]) :
-          Sefaria._ApiPromise(url)
-              .then(data => {
-                  if (processor) { data = processor(data); }
-                  store[key] = Sefaria.util.clone(data);
-                  return data;
-              })
+      // Anyway, return clone
+      const promise = (key in store)
+        ? Promise.resolve(store[key])
+        : Sefaria._ApiPromise(url).then(data => {
+          if (processor) { data = processor(data); }
+          store[key] = data;
+          return data;
+        });
+      return promise.then(data => Sefaria.util.clone(data));
   },
   //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {
@@ -3768,7 +3766,7 @@ Sefaria.unpackDataFromProps = function(props) {
       let panel = initialPanels[i];
       if (panel.text) {
         const urlKey = Sefaria._makeV3VersionsUrlCacheKey(panel.text.ref, panel.text.versions)
-        Sefaria._textsStoreSet(urlKey, panel.text);
+        this._textsStore[urlKey] = Sefaria.util.clone(panel.text);
 
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
