@@ -58,10 +58,13 @@ data:
     fi
 
     # Swap in license-filtered texts for public variants, restore after upload.
-    cp "${DATADIR}/dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts_full.bson"
-    cp "${DATADIR}/dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts_full.metadata.json"
-    cp "${DATADIR}/public_texts_dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts.bson"
-    cp "${DATADIR}/public_texts_dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
+    # Use mv (rename) instead of cp to avoid holding two copies of texts.bson on
+    # disk simultaneously — both source and destination are in the same emptyDir,
+    # so mv is a metadata-only operation that does not consume additional space.
+    mv "${DATADIR}/dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts_full.bson"
+    mv "${DATADIR}/dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts_full.metadata.json"
+    mv "${DATADIR}/public_texts_dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts.bson"
+    mv "${DATADIR}/public_texts_dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
     rm -rf "${DATADIR}/public_texts_dump"
 
     PRIVATE_FILES=(
