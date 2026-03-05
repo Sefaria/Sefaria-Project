@@ -1,0 +1,59 @@
+name: Trigger Infrastructure Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. preprod/6.67.0+chart.0.76.4)'
+        required: true
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve environment and validate tag
+        id: setup
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENVIRONMENT="${{ inputs.tag }}"
+            ENVIRONMENT="${ENVIRONMENT%%/*}"
+            if [[ ! "$ENVIRONMENT" =~ ^(prod|preprod|qa|dev)$ ]]; then
+              echo "ERROR: Tag prefix '${ENVIRONMENT}' is not a valid environment (prod, preprod, qa, dev)"
+              exit 1
+            fi
+            if ! git tag -l "${{ inputs.tag }}" | grep -q .; then
+              echo "ERROR: Tag '${{ inputs.tag }}' does not exist in git history"
+              exit 1
+            fi
+          else
+            ENVIRONMENT="${{ inputs.environment }}"
+          fi
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+      - name: Trigger infrastructure deploy
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'Sefaria',
+              repo: 'infrastructure',
+              workflow_id: 'static-env-deploy.yml',
+              ref: 'main',
+              inputs: {
+                tag: '${{ inputs.tag }}',
+                environment: '${{ steps.setup.outputs.environment }}'
+              }
+            })
