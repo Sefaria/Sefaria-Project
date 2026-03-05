@@ -218,7 +218,7 @@ class SheetMedia extends Component {
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" alt="' + Sefaria._("User uploaded image") + '" />';
     }
-    else if (mediaURL.match(/(?:https?:)?\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
+    else if (mediaURL.match(/(?:https?:)?\/\/(?:www\.)?youtube\.com\/embed\/.+/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
     else if (mediaURL.toLowerCase().match(/(?:https?:)?\/\/player\.vimeo\.com\/.*/i) != null) {
