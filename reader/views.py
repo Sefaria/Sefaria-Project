@@ -379,20 +379,50 @@ def user_credentials(request):
         return {"user_type": "API", "user_id": apikey["uid"]}
 
 
-def _reader_redirect_add_languages(request, tref):
-    versions = Ref(tref).version_list()
+def _reader_redirect_versions(request, tref, current_versions, normalized_versions):
     query_params = QueryDict(request.GET.urlencode(), mutable=True)
-    for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
-        version_title = request.GET.get(vlang)
-        if version_title:
-            version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
-            if version is not None:
-                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
-            else:
-                query_params.pop(vlang)
-    return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+    for version in current_versions:
+        if version in normalized_versions:
+            query_params[version] = normalized_versions[version]
+        else:
+            query_params.pop(version, None)
+    return redirect(f'/{tref}/?{query_params.urlencode()}')
 
+
+def _get_normalized_versions(tref, ven, vhe):
+    versions = Ref(tref).version_list()
+    normalized = []
+    for version_param, direction in [(ven, 'ltr'), (vhe, 'rtl')]:
+        if not version_param:
+            normalized.append(None)
+            continue
+        if '|' in version_param:
+            lang, vtitle = version_param.split('|', 1)
+        else:
+            lang, vtitle = None, version_param  # Legacy url with only version title
+        vtitle = vtitle.replace('_', ' ')
+        candidates = [v for v in versions if v['direction'] == direction]
+        version = (next((v for v in candidates if v['versionTitle'] == vtitle and v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['versionTitle'] == vtitle), None))
+        if version:
+            normalized.append(f'{version["languageFamilyName"]}|{version["versionTitle"].replace(" ", "_")}')
+        else:
+            normalized.append(None)
+    return normalized
+
+def _get_current_and_normalized_versions(request, tref):
+    current_versions, normalized_versions = {}, {}
+    tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
+    tref_mappings[''] = tref
+    tref_mappings = dict(sorted(tref_mappings.items()))
+    for panel_num, tref in tref_mappings.items():
+        ven = request.GET.get(f'ven{panel_num}')
+        vhe = request.GET.get(f'vhe{panel_num}')
+        norm_ven, norm_vhe = _get_normalized_versions(tref, ven, vhe)
+        current_versions.update({k: v for k, v in [(f'ven{panel_num}', ven), (f'vhe{panel_num}', vhe)] if v})
+        normalized_versions.update({k: v for k, v in [(f'ven{panel_num}', norm_ven), (f'vhe{panel_num}', norm_vhe)] if v})
+    return current_versions, normalized_versions
 
 
 @ensure_csrf_cookie
@@ -403,9 +433,9 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    for version in ['ven', 'vhe']:
-        if request.GET.get(version) and '|' not in request.GET.get(version):
-            return _reader_redirect_add_languages(request, tref)
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
 
     if sheet is None:
         # Validate ref first
