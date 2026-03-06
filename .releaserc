@@ -4,6 +4,7 @@ plugins: [
     "releaseRules": [
       {"type": "static", "release": "patch"},
       {"type": "chore", "release": "patch"},
+      {"type": "ci", "release": "patch"},
       {"type": "helm", "release": false}
     ]
   }],
