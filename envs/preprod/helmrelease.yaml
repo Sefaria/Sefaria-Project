@@ -42,7 +42,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.73.0-preprod.1"
+        tag: "v6.73.0-preprod.2"
       replicaCount: 2
       resources:
         web:
@@ -78,7 +78,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.73.0-preprod.1"
+        tag: "v6.73.0-preprod.2"
       replicaCount: 1
       resources:
         requests:
@@ -159,7 +159,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.73.0-preprod.1"
+        tag: "v6.73.0-preprod.2"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -176,7 +176,7 @@ spec:
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.73.0-preprod.1"
+        tag: "v6.73.0-preprod.2"
       replicaCount: 1
       resources:
         requests:
