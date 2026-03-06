@@ -41,6 +41,5 @@ Stories live in the `stories/` directory. Each story can import components from 
 
 
 ## License
-
 [GPL](http://www.gnu.org/copyleft/gpl.html)
 
