@@ -13,6 +13,7 @@ Interested developers can join the [sefaria-dev mailing list](https://groups.goo
 - If you have questions about our API or our technology, you can [contact us](https://developers.sefaria.org/page/contact-us) via the [Developer Portal](https://developers.sefaria.org/).
 - For general questions about using Sefaria.org, please email [hello@sefaria.org](mailto:hello@sefaria.org).
 
+
 ## Bugs and Corrections
 - If you find textual problems in our library, please email [corrections@sefaria.org](mailto:corrections@sefaria.org).
 - If you believe you have encountered a bug while using our website or mobile app, you can report it [here](https://sefaria.formstack.com/forms/bug_report).
