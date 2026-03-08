@@ -11,6 +11,8 @@ class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
         "welcome_hebrew_preview",
         "restart_english_preview",
         "restart_hebrew_preview",
+        "new_session_english_preview",
+        "new_session_hebrew_preview",
         "updated_at",
     )
     list_display_links = ("key",)
@@ -25,6 +27,8 @@ class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
                     "welcome_hebrew",
                     "restart_english",
                     "restart_hebrew",
+                    "new_session_english",
+                    "new_session_hebrew",
                 ),
             },
         ),
@@ -50,3 +54,13 @@ class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
         s = obj.restart_hebrew or ""
         return (s[:50] + "…") if len(s) > 50 else s
     restart_hebrew_preview.short_description = "Restart (Hebrew)"
+
+    def new_session_english_preview(self, obj):
+        s = obj.new_session_english or ""
+        return (s[:50] + "…") if len(s) > 50 else s
+    new_session_english_preview.short_description = "New session (English)"
+
+    def new_session_hebrew_preview(self, obj):
+        s = obj.new_session_hebrew or ""
+        return (s[:50] + "…") if len(s) > 50 else s
+    new_session_hebrew_preview.short_description = "New session (Hebrew)"

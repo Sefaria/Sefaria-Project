@@ -5,6 +5,8 @@ DEFAULT_WELCOME_EN = "Welcome! Ask me anything about Jewish texts."
 DEFAULT_WELCOME_HE = "ברוך הבא! שאל אותי כל מה שתרצה על טקסטים יהודיים."
 DEFAULT_RESTART_EN = "Start a conversation"
 DEFAULT_RESTART_HE = "התחל שיחה"
+DEFAULT_NEW_SESSION_EN = "Start a new conversation"
+DEFAULT_NEW_SESSION_HE = "התחל שיחה חדשה"
 
 
 class ChatbotWelcomeMessage(models.Model):
@@ -35,6 +37,14 @@ class ChatbotWelcomeMessage(models.Model):
         default=DEFAULT_RESTART_HE,
         help_text="Restart message (Hebrew) shown when chat is empty after restart",
     )
+    new_session_english = models.TextField(
+        default=DEFAULT_NEW_SESSION_EN,
+        help_text="New session message (English) shown when returning user has empty chat",
+    )
+    new_session_hebrew = models.TextField(
+        default=DEFAULT_NEW_SESSION_HE,
+        help_text="New session message (Hebrew) shown when returning user has empty chat",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -48,8 +58,9 @@ class ChatbotWelcomeMessage(models.Model):
 
 def get_chatbot_welcome_messages():
     """
-    Returns dict with welcome_english, welcome_hebrew, restart_english, restart_hebrew
-    for the chatbot. Falls back to defaults if no record exists.
+    Returns dict with welcome_english, welcome_hebrew, restart_english, restart_hebrew,
+    new_session_english, new_session_hebrew for the chatbot.
+    Falls back to defaults if no record exists.
     """
     try:
         obj = ChatbotWelcomeMessage.objects.get(key="default")
@@ -58,6 +69,8 @@ def get_chatbot_welcome_messages():
             "welcome_hebrew": obj.welcome_hebrew or DEFAULT_WELCOME_HE,
             "restart_english": obj.restart_english or DEFAULT_RESTART_EN,
             "restart_hebrew": obj.restart_hebrew or DEFAULT_RESTART_HE,
+            "new_session_english": obj.new_session_english or DEFAULT_NEW_SESSION_EN,
+            "new_session_hebrew": obj.new_session_hebrew or DEFAULT_NEW_SESSION_HE,
         }
     except ChatbotWelcomeMessage.DoesNotExist:
         return {
@@ -65,4 +78,6 @@ def get_chatbot_welcome_messages():
             "welcome_hebrew": DEFAULT_WELCOME_HE,
             "restart_english": DEFAULT_RESTART_EN,
             "restart_hebrew": DEFAULT_RESTART_HE,
+            "new_session_english": DEFAULT_NEW_SESSION_EN,
+            "new_session_hebrew": DEFAULT_NEW_SESSION_HE,
         }
