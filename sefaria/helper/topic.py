@@ -349,6 +349,18 @@ def _serialize_author_index(index: Index, include_descriptions: bool = False) ->
 
 
 def _get_author_indexes_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
+    """
+    Return authored indexes payload.
+
+    Example (Rambam):
+    {"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary"}],"total":1}
+
+    If include_descriptions=True, each index adds:
+    "description": {"en": "...", "he": "..."}  # present keys only
+
+    If include_aggregations=True, payload adds:
+    "aggregations": [{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]
+    """
     indexes = [_serialize_author_index(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
     response = {
         "indexes": indexes,
