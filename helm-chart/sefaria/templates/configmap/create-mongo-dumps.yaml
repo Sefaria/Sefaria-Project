@@ -9,6 +9,7 @@ metadata:
 data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
+    set -euo pipefail
 
     {{- if .Values.restore.dynamicName }}
     DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"

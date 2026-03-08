@@ -70,8 +70,8 @@ data:
     # Use mv instead of cp to avoid temporarily doubling texts.bson disk usage.
     mv "${DATADIR}/dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts_full.bson"
     mv "${DATADIR}/dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts_full.metadata.json"
-    cp "${DATADIR}/public_texts_dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts.bson"
-    cp "${DATADIR}/public_texts_dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
+    mv "${DATADIR}/public_texts_dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts.bson"
+    mv "${DATADIR}/public_texts_dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
     rm -rf "${DATADIR}/public_texts_dump"
 
     PRIVATE_FILES=(
