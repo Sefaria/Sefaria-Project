@@ -81,7 +81,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
-    get_author_works
+    get_author_indexes
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3337,12 +3337,12 @@ def topics_list_api(request):
 
 
 @catch_error_as_json
-def author_works_api(request, author_slug):
+def author_indexes_api(request, author_slug):
     if request.method != "GET":
         return jsonResponse({"error": "This API only accepts GET requests."})
     include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
     include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
-    response = get_author_works(
+    response = get_author_indexes(
         author_slug,
         include_aggregations=include_aggregations,
         include_descriptions=include_descriptions,

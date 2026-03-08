@@ -29,7 +29,7 @@ class _DummyAuthorTopic:
         return self._aggregations
 
 
-def test_get_author_works_from_topic_serializes_flat_works(monkeypatch):
+def test_get_author_indexes_from_topic_serializes_flat_indexes(monkeypatch):
     class _DummyRef:
         def __init__(self, title):
             self.title = title
@@ -46,10 +46,10 @@ def test_get_author_works_from_topic_serializes_flat_works(monkeypatch):
         aggregations=[],
     )
 
-    response = topic._get_author_works_from_topic(author_topic, include_descriptions=True)
+    response = topic._get_author_indexes_from_topic(author_topic, include_descriptions=True)
 
     assert response["total"] == 2
-    assert response["works"][0] == {
+    assert response["indexes"][0] == {
         "title": "Book One",
         "heTitle": "ספר אחד",
         "categories": ["Tanakh"],
@@ -57,11 +57,11 @@ def test_get_author_works_from_topic_serializes_flat_works(monkeypatch):
         "dependence": None,
         "description": {"en": "Short EN", "he": "Long HE"},
     }
-    assert response["works"][1]["url"] == "/Book.Two"
-    assert response["works"][1]["description"] == {}
+    assert response["indexes"][1]["url"] == "/Book.Two"
+    assert response["indexes"][1]["description"] == {}
 
 
-def test_get_author_works_from_topic_includes_aggregations_when_requested(monkeypatch):
+def test_get_author_indexes_from_topic_includes_aggregations_when_requested(monkeypatch):
     class _DummyRef:
         def __init__(self, title):
             self.title = title
@@ -73,12 +73,12 @@ def test_get_author_works_from_topic_includes_aggregations_when_requested(monkey
     aggregations = [{"url": "/Tanakh/Rashi", "title": {"en": "Rashi on Tanakh", "he": "רש\"י"}}]
     author_topic = _DummyAuthorTopic(indexes=[_DummyIndex("Book", "ספר")], aggregations=aggregations)
 
-    response = topic._get_author_works_from_topic(author_topic, include_aggregations=True)
+    response = topic._get_author_indexes_from_topic(author_topic, include_aggregations=True)
 
     assert response["aggregations"] == aggregations
 
 
-def test_get_author_works_from_topic_omits_descriptions_by_default(monkeypatch):
+def test_get_author_indexes_from_topic_omits_descriptions_by_default(monkeypatch):
     class _DummyRef:
         def __init__(self, title):
             self.title = title
@@ -89,18 +89,18 @@ def test_get_author_works_from_topic_omits_descriptions_by_default(monkeypatch):
     monkeypatch.setattr(topic, "Ref", _DummyRef)
     author_topic = _DummyAuthorTopic(indexes=[_DummyIndex("Book", "ספר", en_desc="desc")], aggregations=[])
 
-    response = topic._get_author_works_from_topic(author_topic)
+    response = topic._get_author_indexes_from_topic(author_topic)
 
-    assert "description" not in response["works"][0]
+    assert "description" not in response["indexes"][0]
 
 
-def test_serialize_author_work_sets_null_url_on_invalid_ref(monkeypatch):
+def test_serialize_author_index_sets_null_url_on_invalid_ref(monkeypatch):
     class _InvalidRef:
         def __init__(self, _title):
             raise InputError("bad ref")
 
     monkeypatch.setattr(topic, "Ref", _InvalidRef)
 
-    response = topic._serialize_author_work(_DummyIndex("Bad Book", "ספר רע"))
+    response = topic._serialize_author_index(_DummyIndex("Bad Book", "ספר רע"))
 
     assert response["url"] is None

@@ -324,7 +324,7 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
 
 
-def _serialize_author_work(index: Index, include_descriptions: bool = False) -> dict:
+def _serialize_author_index(index: Index, include_descriptions: bool = False) -> dict:
     try:
         url = f"/{Ref(index.title).url()}"
     except InputError:
@@ -348,22 +348,22 @@ def _serialize_author_work(index: Index, include_descriptions: bool = False) -> 
     return response
 
 
-def _get_author_works_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
-    works = [_serialize_author_work(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
+def _get_author_indexes_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
+    indexes = [_serialize_author_index(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
     response = {
-        "works": works,
-        "total": len(works),
+        "indexes": indexes,
+        "total": len(indexes),
     }
     if include_aggregations:
         response["aggregations"] = author_topic.get_aggregated_urls_for_authors_indexes()
     return response
 
 
-def get_author_works(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
+def get_author_indexes(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
     topic = Topic.init(slug)
     if topic is None or not isinstance(topic, AuthorTopic):
         return None
-    response = _get_author_works_from_topic(topic, include_aggregations=include_aggregations, include_descriptions=include_descriptions)
+    response = _get_author_indexes_from_topic(topic, include_aggregations=include_aggregations, include_descriptions=include_descriptions)
     response["author"] = {
         "slug": topic.slug,
         "title": {
