@@ -100,7 +100,7 @@ class TextRequestAdapter:
             'toSections': oref.normal_toSections(),
             'sectionRef': oref.section_ref().normal(),
             'heSectionRef': oref.section_ref().he_normal(),
-            'firstAvailableSectionRef': first_available.normal() if (first_available := oref.first_available_section_ref()) else oref.normal(),
+            'firstAvailableSectionRef': oref.first_available_section_ref().normal(),
             'isSpanning': oref.is_spanning(),
             'next': oref.next_section_ref().normal() if oref.next_section_ref() else None,
             'prev': oref.prev_section_ref().normal() if oref.prev_section_ref() else None,
