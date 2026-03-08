@@ -3339,7 +3339,7 @@ def topics_list_api(request):
 @catch_error_as_json
 def author_indexes_api(request, author_slug):
     if request.method != "GET":
-        return jsonResponse({"error": "This API only accepts GET requests."})
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
     include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
     include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
     response = get_author_indexes(
