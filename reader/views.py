@@ -390,6 +390,8 @@ def _reader_redirect_versions(request, tref, current_versions, normalized_versio
 
 
 def _get_normalized_versions(tref, ven, vhe):
+    if not ven and not vhe:
+        return [None, None] # saves `version_list()` db query
     versions = Ref(tref).version_list()
     normalized = []
     for version_param, direction in [(ven, 'ltr'), (vhe, 'rtl')]:
