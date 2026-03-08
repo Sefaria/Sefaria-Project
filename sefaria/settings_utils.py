@@ -1,35 +1,60 @@
-from http.client import HTTPException
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
+from django.http import Http404
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-import os
+from remote_config import remoteConfigCache
+from remote_config.keys import SENTRY_CONFIG_JSON
+
+IGNORED_EXCEPTIONS = (
+    Http404,
+    PermissionDenied,
+    SuspiciousOperation,
+)
+
 
 def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
+    """
+    Configure Sentry for error tracking only.
+    Performance and profiling are intentionally disabled to reduce event volume.
+    """
 
     def before_send(event, hint):
-        # Check if the event has an exception
-        if 'exc_info' in hint:
-            exc_type, exc_value, tb = hint['exc_info']
-            # If it is not an HTTP 500 error, drop the event
-            if isinstance(exc_value, HTTPException) and exc_value.code != 500:
-                return None
+        if "exception" not in event:
+            # Drop non-exception events (messages/log records).
+            return None
 
-        # If there is no exception, drop the event
-        if 'exception' not in event:
+        exc_info = hint.get("exc_info")
+        if not exc_info:
+            # Keep exception events even when hint metadata is unavailable.
+            return event
+
+        _, exc_value, _ = exc_info
+
+        # Drop expected non-error HTTP exceptions.
+        if isinstance(exc_value, IGNORED_EXCEPTIONS):
+            return None
+
+        # If an exception carries a status code, only keep server errors (5xx).
+        status_code = getattr(exc_value, "status_code", None)
+        if isinstance(status_code, int) and status_code < 500:
             return None
 
         return event
+
+    sentry_confing = remoteConfigCache.get(SENTRY_CONFIG_JSON) or {}
+    sample_rate = sentry_confing.get("sample_rate", 0.01)
+    traces_sample_rate = sentry_confing.get("traces_sample_rate", 0.0)
+    profiles_sample_rate = sentry_confing.get("profiles_sample_rate", 0.0)
 
     sentry_sdk.init(
         dsn=sentry_dsn,
         environment=sentry_environment,
         integrations=[DjangoIntegration()],
-        traces_sample_rate=0.20,
-        profiles_sample_rate=0.20,
+        sample_rate=sample_rate,
+        traces_sample_rate=traces_sample_rate,
+        profiles_sample_rate=profiles_sample_rate,
         send_default_pii=False,
         before_send=before_send,
-        max_breadcrumbs=30,
+        max_breadcrumbs=10,
         release=sentry_code_version,
-        _experiments={
-            "continuous_profiling_auto_start": True,
-        },
     )
