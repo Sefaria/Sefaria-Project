@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -355,6 +355,7 @@ def base_props(request):
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
+        'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
     }
     if _is_user_in_experiment(request):
         chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
