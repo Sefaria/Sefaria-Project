@@ -413,6 +413,7 @@ def _get_normalized_versions(tref, ven, vhe):
             normalized.append(None)
     return normalized
 
+
 def _get_current_and_normalized_versions(request, tref):
     current_versions, normalized_versions = {}, {}
     tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
