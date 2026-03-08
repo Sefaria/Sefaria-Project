@@ -67,12 +67,19 @@ data:
     fi
 
     # Swap in license-filtered texts for public variants, restore after upload.
-    # Use mv instead of cp to avoid temporarily doubling texts.bson disk usage.
-    mv "${DATADIR}/dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts_full.bson"
-    mv "${DATADIR}/dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts_full.metadata.json"
+    # Use mv to avoid temporarily doubling texts.bson disk usage.
+    # Move full texts outside the dump tree so they aren't included in public tarballs.
+    mv "${DATADIR}/dump/${DB}/texts.bson"          "${DATADIR}/texts_full.bson"
+    mv "${DATADIR}/dump/${DB}/texts.metadata.json" "${DATADIR}/texts_full.metadata.json"
     mv "${DATADIR}/public_texts_dump/${DB}/texts.bson"          "${DATADIR}/dump/${DB}/texts.bson"
     mv "${DATADIR}/public_texts_dump/${DB}/texts.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
-    rm -rf "${DATADIR}/public_texts_dump"
+
+    # Restore original texts on any failure so the dump directory stays consistent.
+    restore_texts() {
+        mv "${DATADIR}/texts_full.bson"          "${DATADIR}/dump/${DB}/texts.bson"          2>/dev/null || true
+        mv "${DATADIR}/texts_full.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json" 2>/dev/null || true
+    }
+    trap restore_texts EXIT
 
     PRIVATE_FILES=(
         "apikeys.bson"                    "apikeys.metadata.json"
@@ -100,8 +107,11 @@ data:
         "${PRIVATE_FILES[@]}"
     gsutil acl ch -u AllUsers:R "gs://${BUCKET}/${PREFIX}dump.tar.gz"
 
-    mv "${DATADIR}/dump/${DB}/texts_full.bson"          "${DATADIR}/dump/${DB}/texts.bson"
-    mv "${DATADIR}/dump/${DB}/texts_full.metadata.json" "${DATADIR}/dump/${DB}/texts.metadata.json"
+    rm -rf "${DATADIR}/public_texts_dump"
+
+    # Restore original texts (also runs via trap on failure).
+    restore_texts
+    trap - EXIT
 
     {{- end }}
 {{- end }}

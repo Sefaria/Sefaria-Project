@@ -9,7 +9,7 @@ metadata:
 data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
-    set -euo pipefail
+    set -eo pipefail
 
     {{- if .Values.restore.dynamicName }}
     DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
@@ -17,16 +17,16 @@ data:
     DATABASE="${SEFARIA_DB}"
     {{- end }}
 
-    if [[ -z "$MONGO_HOST" ]]; then
+    if [[ -z "${MONGO_HOST:-}" ]]; then
       echo "Mongo Host not specified"
       exit 1
     fi
 
     URI="mongodb://"
 
-    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+    if [[ -n "${SEFARIA_DB_USER:-}" ]]; then
       URI="${URI}${SEFARIA_DB_USER}"
-      if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+      if [[ -n "${SEFARIA_DB_PASSWORD:-}" ]]; then
           URI="${URI}:${SEFARIA_DB_PASSWORD}"
       fi
       URI="${URI}@"
@@ -34,11 +34,11 @@ data:
 
     URI="${URI}${MONGO_HOST}/?ssl=false"
 
-    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+    if [[ -n "${SEFARIA_DB_USER:-}" ]]; then
       URI="${URI}&authSource=admin"
     fi
 
-    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    if [[ -n "${MONGO_REPLICASET_NAME:-}" ]]; then
       URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
 
@@ -61,7 +61,7 @@ data:
     echo "Dumping license-filtered texts for public variant"
     until mongodump --uri="$URI" -v -d "$DATABASE" \
       --collection texts \
-      --query '{"license": {"$not": {"$regex": "/^Copyright/i"}}}' \
+      --query '{"license": {"$not": {"$regex": "^Copyright", "$options": "i"}}}' \
       -o "${DATADIR}/public_texts_dump"
     do
       echo "filtered texts dump failed, retrying in 5s..."
