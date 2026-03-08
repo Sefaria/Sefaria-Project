@@ -12,7 +12,7 @@ data:
     set -eo pipefail
 
     {{- if .Values.restore.dynamicName }}
-    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv }}"
     {{- else }}
     DATABASE="${SEFARIA_DB}"
     {{- end }}

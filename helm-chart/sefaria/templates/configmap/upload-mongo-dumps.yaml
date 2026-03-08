@@ -30,6 +30,10 @@ data:
         echo "ERROR: db_name.txt is empty"
         exit 1
     fi
+    if [ ! -d "${DATADIR}/dump/${DB}" ]; then
+        echo "ERROR: dump directory for DB '${DB}' missing at '${DATADIR}/dump/${DB}'"
+        exit 1
+    fi
 
     # Pipe tar output directly into gsutil instead of writing a file first.
     # This keeps peak disk usage to just the dump directory (~11G).
