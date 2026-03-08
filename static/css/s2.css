@@ -11535,7 +11535,7 @@ background-color: white;
 .cookiesNotification .button {
   margin-inline-start: 12px;
 }
-@media (min-width: 843px) {
+@media (min-width: var(--bp-tablet-min)) {
   .cookiesNotification {
     width: 360px;
     margin: 10px;
