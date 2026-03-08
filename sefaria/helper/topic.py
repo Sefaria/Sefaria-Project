@@ -372,6 +372,10 @@ def _get_author_indexes_from_topic(author_topic: AuthorTopic, include_aggregatio
 
 
 def get_author_indexes(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
+    """Return author-indexes payload for `slug`, or `None` if slug is missing/non-author.
+    Optional flags: `include_aggregations`, `include_descriptions`.
+    Example: {"author":{"slug":"rambam","title":{"en":"Maimonides","he":"רמב\"ם"}},"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary","description":{"en":"...","he":"..."}}],"total":1,"aggregations":[{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]}
+    """
     topic = Topic.init(slug)
     if topic is None or not isinstance(topic, AuthorTopic):
         return None
