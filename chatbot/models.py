@@ -1,5 +1,7 @@
 from django.db import models
 
+from sefaria.system.cache import django_cache
+
 
 DEFAULT_WELCOME_EN = "Welcome! Ask me anything about Jewish texts."
 DEFAULT_WELCOME_HE = "ברוך הבא! שאל אותי כל מה שתרצה על טקסטים יהודיים."
@@ -56,6 +58,7 @@ class ChatbotWelcomeMessage(models.Model):
         return f"Chatbot welcome ({self.key})"
 
 
+@django_cache(timeout=300, cache_key="chatbot_welcome_messages")
 def get_chatbot_welcome_messages():
     """
     Returns dict with welcome_english, welcome_hebrew, restart_english, restart_hebrew,

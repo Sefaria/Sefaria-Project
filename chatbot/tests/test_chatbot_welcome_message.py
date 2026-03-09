@@ -1,5 +1,8 @@
 """Tests for ChatbotWelcomeMessage model and get_chatbot_welcome_messages()."""
 import pytest
+
+from sefaria.system.cache import delete_cache_elem
+
 from chatbot.models import (
     ChatbotWelcomeMessage,
     get_chatbot_welcome_messages,
@@ -14,6 +17,7 @@ from chatbot.models import (
 
 @pytest.mark.django_db
 def test_get_chatbot_welcome_messages_returns_defaults_when_no_record():
+    delete_cache_elem("chatbot_welcome_messages")
     ChatbotWelcomeMessage.objects.filter(key="default").delete()
     result = get_chatbot_welcome_messages()
     assert result["welcome_english"] == DEFAULT_WELCOME_EN
@@ -26,6 +30,7 @@ def test_get_chatbot_welcome_messages_returns_defaults_when_no_record():
 
 @pytest.mark.django_db
 def test_get_chatbot_welcome_messages_returns_db_values_when_record_exists():
+    delete_cache_elem("chatbot_welcome_messages")
     ChatbotWelcomeMessage.objects.update_or_create(
         key="default",
         defaults={
@@ -48,6 +53,7 @@ def test_get_chatbot_welcome_messages_returns_db_values_when_record_exists():
 
 @pytest.mark.django_db
 def test_get_chatbot_welcome_messages_returns_defaults_when_record_has_empty_strings():
+    delete_cache_elem("chatbot_welcome_messages")
     ChatbotWelcomeMessage.objects.update_or_create(
         key="default",
         defaults={
