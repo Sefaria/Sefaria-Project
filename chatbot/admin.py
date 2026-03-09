@@ -3,6 +3,15 @@ from django.contrib import admin
 from .models import ChatbotWelcomeMessage
 
 
+def _make_preview(field_name, label):
+    def preview(self, obj):
+        s = getattr(obj, field_name, None) or ""
+        return (s[:50] + "…") if len(s) > 50 else s
+
+    preview.short_description = label
+    return preview
+
+
 @admin.register(ChatbotWelcomeMessage)
 class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
     list_display = (
@@ -35,32 +44,13 @@ class ChatbotWelcomeMessageAdmin(admin.ModelAdmin):
         ("Metadata", {"fields": ("updated_at",)}),
     )
 
-    def welcome_english_preview(self, obj):
-        s = obj.welcome_english or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    welcome_english_preview.short_description = "Welcome (English)"
-
-    def welcome_hebrew_preview(self, obj):
-        s = obj.welcome_hebrew or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    welcome_hebrew_preview.short_description = "Welcome (Hebrew)"
-
-    def restart_english_preview(self, obj):
-        s = obj.restart_english or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    restart_english_preview.short_description = "Restart (English)"
-
-    def restart_hebrew_preview(self, obj):
-        s = obj.restart_hebrew or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    restart_hebrew_preview.short_description = "Restart (Hebrew)"
-
-    def new_session_english_preview(self, obj):
-        s = obj.new_session_english or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    new_session_english_preview.short_description = "New session (English)"
-
-    def new_session_hebrew_preview(self, obj):
-        s = obj.new_session_hebrew or ""
-        return (s[:50] + "…") if len(s) > 50 else s
-    new_session_hebrew_preview.short_description = "New session (Hebrew)"
+    welcome_english_preview = _make_preview("welcome_english", "Welcome (English)")
+    welcome_hebrew_preview = _make_preview("welcome_hebrew", "Welcome (Hebrew)")
+    restart_english_preview = _make_preview("restart_english", "Restart (English)")
+    restart_hebrew_preview = _make_preview("restart_hebrew", "Restart (Hebrew)")
+    new_session_english_preview = _make_preview(
+        "new_session_english", "New session (English)"
+    )
+    new_session_hebrew_preview = _make_preview(
+        "new_session_hebrew", "New session (Hebrew)"
+    )
