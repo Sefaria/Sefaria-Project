@@ -181,7 +181,7 @@ def ensure_indices(active_db=None):
         ('vstate', ["flags.enComplete"], {}),
         ('guide', ["expanded_refs"], {}),
         ('topics', ["parasha"], {}),
-
+        ('webpages_text', ["url"], {})
     ]
 
     for col, args, kwargs in indices:
