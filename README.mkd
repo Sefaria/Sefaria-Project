@@ -30,7 +30,6 @@ We're grateful to the following organizations for providing us with donated serv
 
 
 ## Storybook
-
 We use [Storybook](https://storybook.js.org/) with the Vite builder to develop and review shared React components. To start Storybook locally:
 
 1. Ensure you are using Node.js 18 or newer (Storybook 8 requires the active LTS releases).
