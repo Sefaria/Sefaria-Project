@@ -21,7 +21,6 @@ Interested developers can join the [sefaria-dev mailing list](https://groups.goo
 
 
 ## Thanks
-
 We're grateful to the following organizations for providing us with donated services:
 
 - [Google Apps for Work](https://apps.google.com/)

@@ -7,7 +7,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: sefaria-project
+      chart: sefaria
       version: "0.76.4"
       sourceRef:
         kind: HelmRepository
