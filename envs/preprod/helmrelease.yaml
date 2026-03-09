@@ -156,6 +156,10 @@ spec:
             - sheets
             - collections
             - profile
+    ingress:
+      enabled: true
+    gateway:
+      enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
