@@ -9,8 +9,6 @@ def init_library_cache():
     from sefaria.model.text import library
     from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
-    logger.info("Initializing topic pools cache")
-    DjangoTopic.objects.build_slug_to_pools_cache()
 
     sentry_dsn = getattr(settings, "SENTRY_DSN", None)
     if sentry_dsn:
@@ -21,6 +19,9 @@ def init_library_cache():
             getattr(settings, "SENTRY_CODE_VERSION", "unknown"),
             getattr(settings, "SENTRY_ENVIRONMENT", "unknown"),
         )
+
+    logger.info("Initializing topic pools cache")
+    DjangoTopic.objects.build_slug_to_pools_cache()
 
     logger.info("Initializing library objects.")
     logger.info("Initializing TOC Tree")
