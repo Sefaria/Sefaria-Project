@@ -348,14 +348,15 @@ body.hasBannerMessage #s2.headerOnly {
   }
 }
 .siteWideBanner {
-  background-color: #F2F5FA;
-  height: 76px;
+  height: auto;
   box-sizing: border-box;
-  padding: 0 36px;
   display: flex;
   align-items: center;
   margin-top: 60px;
   transition: .5s;
+  padding: 10px;
+  border-bottom: 1px solid lightgrey;
+  background-color: #f7f7f7;
 }
 .siteWideBanner.hidden {
   height: 0;
@@ -372,6 +373,10 @@ body.hasBannerMessage #s2.headerOnly {
   align-items: center;
   justify-content: space-between;
   color: black;
+  border: 1px solid #d2dcff;
+  border-radius: 10px;
+  padding: 20px;
+  background: #f0f7ff;
 }
 .siteWideBanner .siteWideBannerTextBox {
   flex: 1;
@@ -388,6 +393,7 @@ body.hasBannerMessage #s2.headerOnly {
   margin-inline-start: 50px;
 }
 .siteWideBanner .siteWideBannerClose {
+  margin-inline-start: 70px;
   color: black;
   font-size: 26px;
   cursor: pointer;

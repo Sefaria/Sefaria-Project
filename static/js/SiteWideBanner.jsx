@@ -88,14 +88,14 @@ const SiteWideBanner = ({
             {learnMoreText || "Learn more"}
           </a>
         )}
+        <button
+          className="siteWideBannerClose"
+          onClick={() => closeBanner("close_clicked")}
+          aria-label="Close banner"
+        >
+          &times;
+        </button>
       </div>
-      <button
-        className="siteWideBannerClose"
-        onClick={() => closeBanner("close_clicked")}
-        aria-label="Close banner"
-      >
-        &times;
-      </button>
     </div>
   );
 };
