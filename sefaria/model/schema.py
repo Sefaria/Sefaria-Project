@@ -15,7 +15,8 @@ from . import abstract as abst
 from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
-from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
+from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError, \
+    DuplicateRecordError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
 
@@ -241,7 +242,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     collection = 'term'
     track_pkeys = True
-    pkeys = ["name"]
+    pkeys = ["name", "_primary_en", "_primary_he"]
     title_group = None
     history_noun = "term"
 
@@ -258,9 +259,24 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         "description"
     ]
 
-    def load_by_title(self, title):
-        query = {'titles.text': title}
+    def load_by_primary_titles(self, en_title, he_title):
+        query = {
+            'titles': {
+                '$all': [{'$elemMatch': {
+                    'text': t, 'primary': True
+                }} for t in [en_title, he_title]]
+            }
+        }
         return self.load(query=query)
+
+    def _update_tracked_primary_titles(self):
+        self._primary_en = self.get_primary_title("en")
+        self._primary_he = self.get_primary_title("he")
+
+    def _set_pkeys(self):
+        self.set_titles(getattr(self, "titles", None))
+        self._update_tracked_primary_titles()
+        super()._set_pkeys()
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
@@ -268,25 +284,40 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
+    def _set_name(self):
+        name = base_name = self.get_primary_title()
+        terms = TermSet({'name': {'$regex': f'^{re.escape(name)}\d*$'}})
+        existing_names = {t.name for t in terms}
+        i = 1
+        while name in existing_names:
+            name = f"{base_name}{i}"
+            i += 1
+        self.name = name
+
     def _normalize(self):
         self.titles = self.title_group.titles
+        self._update_tracked_primary_titles()
+        if not hasattr(self, 'name'):
+            self._set_name()
 
     def _validate(self):
         super(Term, self)._validate()
-        # do not allow duplicates:
-        for title in self.get_titles():
-            other_term = Term().load_by_title(title)
-            if other_term and not self.same_record(other_term):
-                raise InputError("A Term with the title {} in it already exists".format(title))
+        # ensue uniqueness of primary titles together
+        same_titles_term = Term().load_by_primary_titles(self.get_primary_title(), self.get_primary_title('he'))
+        if same_titles_term and not self.same_record(same_titles_term):
+            raise DuplicateRecordError(f"A Term with the primary titles {self.get_primary_title()} and {self.get_primary_title('he')} already exists")
+        # do not allow duplicate names
+        if self.is_new() and Term().load({'name': self.name}):
+            raise DuplicateRecordError(f"A Term with the name {self.name} already exists")
+        elif not self.is_new() and self.is_key_changed('name'):
+            raise InputError("The 'name' field of a Term cannot be changed.")
         self.title_group.validate()
-        if self.name != self.get_primary_title():
-            raise InputError("Term name {} does not match primary title {}".format(self.name, self.get_primary_title()))
 
     @staticmethod
     def normalize(term, lang="en"):
         """ Returns the primary title for of 'term' if it exists in the terms collection
         otherwise return 'term' unchanged """
-        t = Term().load_by_title(term)
+        t = Term().load({'name': term})
         return t.get_primary_title(lang=lang) if t else term
 
 
@@ -860,23 +891,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject, MatchTemplateMixin)
 
         if self.sharedTitle and Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
             raise IndexSchemaError("Schema node {} with sharedTitle can not have explicit titles".format(self))
-
-        # disable this check while data is still not conforming to validation
-        if not self.sharedTitle and False:
-            special_book_cases = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Judges"]
-            for title in self.title_group.titles:
-                title = title["text"]
-                if self.get_primary_title() in special_book_cases:
-                    break
-                term = Term().load_by_title(title)
-                if term:
-                    if "scheme" in list(vars(term).keys()):
-                        if vars(term)["scheme"] == "Parasha":
-                            raise InputError(
-                                "Nodes that represent Parashot must contain the corresponding sharedTitles.")
-
-        # if not self.default and not self.primary_title("he"):
-        #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
     def serialize(self, **kwargs):
         d = super(TitledTreeNode, self).serialize(**kwargs)
