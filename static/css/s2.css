@@ -347,6 +347,69 @@ body.hasBannerMessage #s2.headerOnly {
     font-size: 13px;
   }
 }
+.siteWideBanner {
+  background-color: #F2F5FA;
+  height: 76px;
+  box-sizing: border-box;
+  padding: 0 36px;
+  display: flex;
+  align-items: center;
+  margin-top: 60px;
+  transition: .5s;
+}
+.siteWideBanner.hidden {
+  height: 0;
+  overflow: hidden;
+}
+.interface-hebrew .siteWideBanner {
+  direction: rtl;
+}
+.siteWideBanner .siteWideBannerContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  color: black;
+}
+.siteWideBanner .siteWideBannerTextBox {
+  flex: 1;
+}
+.siteWideBanner .bannerMainText {
+  font-weight: 600;
+}
+.siteWideBanner .bannerSecondaryText {
+  display: block;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+.siteWideBanner .siteWideBannerButtonBox {
+  margin-inline-start: 50px;
+}
+.siteWideBanner .siteWideBannerClose {
+  color: black;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.siteWideBanner .bannerLearnMore {
+  margin-inline-start: 20px;
+  white-space: nowrap;
+}
+@media (max-width: 540px) {
+  .siteWideBanner {
+    padding: 0 10px;
+  }
+  .siteWideBanner .siteWideBannerButtonBox {
+    margin-inline-start: 10px;
+    max-width: 170px;
+  }
+}
+@media (max-width: 450px) {
+  .siteWideBanner {
+    font-size: 13px;
+  }
+}
 .noOverflowX {
   overflow-x: hidden;
 }
@@ -398,6 +461,10 @@ input.noselect {
 }
 .multiPanel #panelWrapBox {
   top: 60px;
+}
+.siteWideBanner ~ #main #panelWrapBox {
+  top: 0;
+  height: 100%;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;

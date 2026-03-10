@@ -6,3 +6,4 @@ EXPIRE_LEGACY_COOKIES = "feature.cookies.expire_legacy"
 
 # Chatbot configuration
 CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
+SHOW_JOIN_CHATBOT_BANNER = "feature.client.show_join_chatbot_banner"

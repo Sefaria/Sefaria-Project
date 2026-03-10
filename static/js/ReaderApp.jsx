@@ -39,6 +39,7 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { SiteWideBanner } from './SiteWideBanner';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -2436,7 +2437,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    
+    const showChatbotBanner = Sefaria._uid && isLibraryModule && this.props.interfaceLang === "english" && !this.props.chatbot_enabled && this.props.show_join_chatbot_banner;
+
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
       // InterruptingMessage modals and Banners will always render if available but stay hidden initially
@@ -2448,6 +2450,30 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
+              {showChatbotBanner && (
+                <SiteWideBanner
+                  mainText="Try Sefaria's new Library Assistant (Experimental)"
+                  secondaryText="Explore Jewish texts with our experimental AI-powered assistant."
+                  actionButtonText="Join the Experiment"
+                  actionButtonPendingText="Joining..."
+                  onActionClick={() => {
+                    return Sefaria.experimentsOptInAPI()
+                      .catch(err => {
+                        alert("API call went wrong.")
+                        throw err;
+                      })
+                      .then(() => Sefaria.editProfileAPI({experiments: true}))
+                      .then(() => {
+                        window.location.reload();
+                        return new Promise(() => {}); // never resolves
+                      });
+                  }}
+                  learnMoreUrl="https://help.sefaria.org/hc/en-us/articles/26006423836828"
+                  learnMoreText="Learn More"
+                  cookieName="chatbot_experiment_banner_dismissed"
+                  bannerName="chatbot_experiment_opt_in"
+                />
+              )}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
