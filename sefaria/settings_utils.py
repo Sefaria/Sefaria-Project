@@ -41,10 +41,10 @@ def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
 
         return event
 
-    sentry_confing = remoteConfigCache.get(SENTRY_CONFIG_JSON) or {}
-    sample_rate = sentry_confing.get("sample_rate", 0.01)
-    traces_sample_rate = sentry_confing.get("traces_sample_rate", 0.0)
-    profiles_sample_rate = sentry_confing.get("profiles_sample_rate", 0.0)
+    sentry_config = remoteConfigCache.get(SENTRY_CONFIG_JSON) or {}
+    sample_rate = sentry_config.get("sample_rate", 0.01)
+    traces_sample_rate = sentry_config.get("traces_sample_rate", 0.0)
+    profiles_sample_rate = sentry_config.get("profiles_sample_rate", 0.0)
 
     sentry_sdk.init(
         dsn=sentry_dsn,
