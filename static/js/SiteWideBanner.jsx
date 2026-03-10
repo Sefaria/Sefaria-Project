@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import $ from "./sefaria/sefariaJquery";
 import Sefaria from "./sefaria/sefaria";
-import { OnInView } from "./Misc";
 
 const SiteWideBanner = ({
   mainText,
