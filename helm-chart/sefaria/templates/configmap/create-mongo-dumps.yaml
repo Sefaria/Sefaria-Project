@@ -48,6 +48,9 @@ data:
     until mongodump --uri="$URI" -v -d "$DATABASE" \
       --excludeCollection=django_cache \
       --excludeCollection=user_history \
+      --excludeCollection=history \
+      --excludeCollection=linker_output \
+      --excludeCollection=webpages_text \
       -o "${DATADIR}/dump"
     do
       echo "mongodump failed, retrying in 5s..."
