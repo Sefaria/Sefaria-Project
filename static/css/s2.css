@@ -396,20 +396,6 @@ body.hasBannerMessage #s2.headerOnly {
   margin-inline-start: 20px;
   white-space: nowrap;
 }
-@media (max-width: 540px) {
-  .siteWideBanner {
-    padding: 0 10px;
-  }
-  .siteWideBanner .siteWideBannerButtonBox {
-    margin-inline-start: 10px;
-    max-width: 170px;
-  }
-}
-@media (max-width: 450px) {
-  .siteWideBanner {
-    font-size: 13px;
-  }
-}
 .noOverflowX {
   overflow-x: hidden;
 }
