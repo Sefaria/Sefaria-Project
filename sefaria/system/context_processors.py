@@ -123,7 +123,7 @@ def _chatbot_script_url_and_type(chatbot_version):
         if not is_int(chatbot_version):
             return None, None
         return (
-            f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs?rand={int(time.time())}",
+            f"https://{chatbot_version}.ai-server.coolifydev.sefaria.org/static/js/lc-chatbot.umd.cjs?rand={int(time.time())}",
             None,
         )
     if settings.CHATBOT_USE_LOCAL_SCRIPT:

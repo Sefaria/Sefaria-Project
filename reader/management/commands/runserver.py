@@ -1,6 +1,6 @@
 # Using staticfiles as the base class in order to not overwrite its custom runserver logic
 from django.contrib.staticfiles.management.commands.runserver import Command as RunserverCommand
-from reader.startup import init_library_cache
+from reader.startup import init_library_cache, init_sentry_from_settings
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -11,4 +11,5 @@ class Command(RunserverCommand):
         handler = super(Command, self).get_handler(*args, **options)
         logger.info("Starting reader application")
         init_library_cache()
+        init_sentry_from_settings()
         return handler
