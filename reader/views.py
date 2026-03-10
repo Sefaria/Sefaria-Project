@@ -357,6 +357,8 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=True),
     }
+    if user_has_experiments(request.user):
+        chatbot_data["in_chatbot_experiment"] = True
     if _is_user_in_experiment(request):
         chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
         chatbot_data["chatbot_enabled"] = True
