@@ -1,0 +1,100 @@
+{{- if eq .Values.backup.mongo.linkerEnabled true }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-mongobackup-linker
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  concurrencyPolicy: Replace
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
+          affinity:
+            podAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - mongo
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: schedule-on-database-vm
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+            - key: mongo-replicaset
+              operator: "Equal"
+              value: "reserved"
+              effect: "NoSchedule"
+          initContainers:
+          - name: mongo-linker-dumper
+            image: mongo:{{ .Values.backup.mongo.version }}
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: create-linker-dumps-script
+              mountPath: /scripts/create-linker-dumps.sh
+              subPath: create-linker-dumps.sh
+              readOnly: true
+            command: ["bash"]
+            args: ["-c", "/scripts/create-linker-dumps.sh"]
+            resources:
+              requests:
+                ephemeral-storage: 12Gi
+              limits:
+                memory: "500Mi"
+          containers:
+          - name: linker-dump-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: upload-linker-dumps-script
+              mountPath: /scripts/upload-linker-dumps.sh
+              subPath: upload-linker-dumps.sh
+              readOnly: true
+            env:
+            - name: PREFIX
+              value: {{ .Values.backup.mongo.prefix }}
+            - name: BUCKET
+              value: {{ .Values.backup.mongo.bucket }}
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-linker-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+          restartPolicy: OnFailure
+          volumes:
+          - name: create-linker-dumps-script
+            configMap:
+              name: create-linker-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: upload-linker-dumps-script
+            configMap:
+              name: upload-linker-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: shared-volume
+            emptyDir:
+              sizeLimit: 12Gi
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

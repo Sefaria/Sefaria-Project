@@ -1,0 +1,49 @@
+{{- if .Values.backup.mongo.linkerEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-linker-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-linker-dumps.sh: |-
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
+
+    DATADIR="/mongodumps/shared_volume"
+    today="$(date +'%d.%m.%y')"
+    # Keep 5 snapshots — delete the file from 5 days ago
+    five_days_ago="$(date --date='5 days ago' +'%d.%m.%y')"
+
+    if [ ! -f "${DATADIR}/db_name.txt" ]; then
+        echo "ERROR: db_name.txt missing"
+        exit 1
+    fi
+    DB=$(cat "${DATADIR}/db_name.txt")
+    if [ -z "${DB}" ]; then
+        echo "ERROR: db_name.txt is empty"
+        exit 1
+    fi
+
+    # Remove the snapshot from 5 days ago (rotation — keep 5 days)
+    gsutil rm "gs://${BUCKET}/${PREFIX}linker_output_${five_days_ago}.tar.gz" || true
+    gsutil rm "gs://${BUCKET}/${PREFIX}webpages_text_${five_days_ago}.tar.gz" || true
+
+    # Upload linker_output as its own tarball
+    echo "Uploading linker_output dump"
+    tar czf - -C "${DATADIR}" \
+        "./dump/${DB}/linker_output.bson" \
+        "./dump/${DB}/linker_output.metadata.json" \
+      | gsutil cp - "gs://${BUCKET}/${PREFIX}linker_output_${today}.tar.gz"
+
+    # Upload webpages_text as its own tarball
+    echo "Uploading webpages_text dump"
+    tar czf - -C "${DATADIR}" \
+        "./dump/${DB}/webpages_text.bson" \
+        "./dump/${DB}/webpages_text.metadata.json" \
+      | gsutil cp - "gs://${BUCKET}/${PREFIX}webpages_text_${today}.tar.gz"
+
+    echo "Linker dump upload complete"
+{{- end }}
