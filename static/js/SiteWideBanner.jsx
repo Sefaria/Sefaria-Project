@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import $ from "./sefaria/sefariaJquery";
 import Sefaria from "./sefaria/sefaria";
 
 const SiteWideBanner = ({
   mainText,
   secondaryText,
-  actionButtonText,
-  actionButtonPendingText,
-  onActionClick,
+  actionButtons,
   learnMoreUrl,
   learnMoreText,
   cookieName,
   bannerName,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
-  const [isActionPending, setIsActionPending] = useState(false);
 
   useEffect(() => {
     gtag("event", "banner_viewed", {
@@ -36,7 +34,6 @@ const SiteWideBanner = ({
     $.cookie(cookieName, 1, cookieOptions);
   };
 
-
   const trackBannerInteraction = (eventDescription) => {
     gtag("event", `banner_interacted_with_${eventDescription}`, {
       campaignID: bannerName,
@@ -44,24 +41,11 @@ const SiteWideBanner = ({
     });
   };
 
-  const closeBanner = (eventDescription) => {
+  const closeBanner = () => {
     setBannerVisibility("hidden");
     dismiss();
-    trackBannerInteraction(eventDescription);
+    trackBannerInteraction("close_clicked");
   };
-
-  const handleAction = async () => {
-    trackBannerInteraction("banner_button_clicked");
-    if (onActionClick) {
-      setIsActionPending(true);
-      try {
-        await onActionClick();
-      } finally {
-        setIsActionPending(false);
-      }
-    }
-  };
-
 
   return (!isDismissed() &&
     <div className={`siteWideBanner ${bannerVisibility}`}>
@@ -73,9 +57,7 @@ const SiteWideBanner = ({
           )}
         </div>
         <div className="siteWideBannerButtonBox">
-          <button className="button small" onClick={handleAction} disabled={isActionPending}>
-            <span>{isActionPending ? actionButtonPendingText : actionButtonText}</span>
-          </button>
+          {actionButtons}
         </div>
         {learnMoreUrl && (
           <a
@@ -90,7 +72,7 @@ const SiteWideBanner = ({
         )}
         <button
           className="siteWideBannerClose"
-          onClick={() => closeBanner("close_clicked")}
+          onClick={closeBanner}
           aria-label="Close banner"
         >
           &times;
@@ -100,4 +82,80 @@ const SiteWideBanner = ({
   );
 };
 
-export { SiteWideBanner };
+SiteWideBanner.propTypes = {
+  mainText: PropTypes.string.isRequired,
+  secondaryText: PropTypes.string,
+  actionButtons: PropTypes.node.isRequired,
+  learnMoreUrl: PropTypes.string,
+  learnMoreText: PropTypes.string,
+  cookieName: PropTypes.string.isRequired,
+  bannerName: PropTypes.string.isRequired,
+};
+
+const CHATBOT_BANNER_MAIN_TEXT = "Try Sefaria's new Library Assistant (Experimental)";
+const CHATBOT_BANNER_SECONDARY_TEXT = "Explore Jewish texts with our experimental AI-powered assistant.";
+const CHATBOT_BANNER_LEARN_MORE_URL = "https://help.sefaria.org/hc/en-us/articles/26006423836828";
+
+const ChatbotExperimentBanner = () => {
+  const [isActionPending, setIsActionPending] = useState(false);
+
+  const handleJoin = async () => {
+    gtag("event", "banner_interacted_with_banner_button_clicked", {
+      campaignID: "chatbot_experiment_opt_in",
+      adType: "banner",
+    });
+    setIsActionPending(true);
+    try {
+      await Sefaria.experimentsOptInAPI()
+        .catch(err => {
+          alert("API call went wrong.");
+          throw err;
+        })
+        .then(() => Sefaria.editProfileAPI({experiments: true}))
+        .then(() => {
+          window.location.reload();
+          return new Promise(() => {}); // never resolves
+        });
+    } finally {
+      setIsActionPending(false);
+    }
+  };
+
+  if (Sefaria._uid) {
+    return (
+      <SiteWideBanner
+        mainText={CHATBOT_BANNER_MAIN_TEXT}
+        secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
+        actionButtons={
+          <button className="button small" onClick={handleJoin} disabled={isActionPending}>
+            <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
+          </button>
+        }
+        learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
+        cookieName="chatbot_experiment_banner_dismissed"
+        bannerName="chatbot_experiment_opt_in"
+      />
+    );
+  }
+
+  const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  return (
+    <SiteWideBanner
+      mainText={CHATBOT_BANNER_MAIN_TEXT}
+      secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
+      actionButtons={<>
+        <a className="button small" href={"/login" + nextParam}>
+          <span>Log in to join</span>
+        </a>
+        <a className="button small white" href={"/register" + nextParam}>
+          <span>Create an account</span>
+        </a>
+      </>}
+      learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
+      cookieName="signup_promo_banner_dismissed"
+      bannerName="signup_promo"
+    />
+  );
+};
+
+export { SiteWideBanner, ChatbotExperimentBanner };

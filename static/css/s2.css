@@ -390,6 +390,8 @@ body.hasBannerMessage #s2.headerOnly {
   margin-top: 4px;
 }
 .siteWideBanner .siteWideBannerButtonBox {
+  display: flex;
+  gap: 20px;
   margin-inline-start: 50px;
 }
 .siteWideBanner .siteWideBannerClose {
