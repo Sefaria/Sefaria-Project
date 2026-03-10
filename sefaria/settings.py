@@ -151,6 +151,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'reader',
+    'chatbot',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
