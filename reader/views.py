@@ -59,7 +59,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
@@ -80,7 +80,8 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
-    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
+    get_author_indexes
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -349,11 +350,15 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
     })
+    chatbot_version = request.session.get("chatbot_version")
+    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
         "chatbot_user_token": None,
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_version": chatbot_version,
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
     }
@@ -3334,6 +3339,22 @@ def topics_list_api(request):
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
+
+
+@catch_error_as_json
+def author_indexes_api(request, author_slug):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
+    include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
+    include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
+    response = get_author_indexes(
+        author_slug,
+        include_aggregations=include_aggregations,
+        include_descriptions=include_descriptions,
+    )
+    if response is None:
+        return jsonResponse({"error": f"Author slug '{author_slug}' does not exist"}, status=404)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @staff_member_required

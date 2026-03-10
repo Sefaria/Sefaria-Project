@@ -2436,6 +2436,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
@@ -2455,7 +2456,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
-                  api-base-url={this.props.chatbot_api_base_url}
+                  api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
                   default-open="false"
