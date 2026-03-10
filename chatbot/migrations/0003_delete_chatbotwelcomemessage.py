@@ -48,7 +48,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(migrate_to_remote_config, migrations.RunPython.noop),
+        
         migrations.DeleteModel(name="ChatbotWelcomeMessage"),
+        
         migrations.CreateModel(
             name="ChatbotWelcomeMessageProxy",
             fields=[],
