@@ -121,39 +121,30 @@ const ChatbotExperimentBanner = () => {
     }
   };
 
-  if (Sefaria._uid) {
-    return (
-      <SiteWideBanner
-        mainText={CHATBOT_BANNER_MAIN_TEXT}
-        secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
-        actionButtons={
-          <button className="button small" onClick={handleJoin} disabled={isActionPending}>
-            <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
-          </button>
-        }
-        learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
-        cookieName="chatbot_experiment_banner_dismissed"
-        bannerName="chatbot_experiment_opt_in"
-      />
-    );
-  }
-
+  const isLoggedIn = !!Sefaria._uid;
   const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+
+  const actionButtons = isLoggedIn ? (
+    <button className="button small" onClick={handleJoin} disabled={isActionPending}>
+      <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
+    </button>
+  ) : (<>
+    <a className="button small" href={"/login" + nextParam}>
+      <span>Log in to join</span>
+    </a>
+    <a className="button small white" href={"/register" + nextParam}>
+      <span>Create an account</span>
+    </a>
+  </>);
+
   return (
     <SiteWideBanner
       mainText={CHATBOT_BANNER_MAIN_TEXT}
       secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
-      actionButtons={<>
-        <a className="button small" href={"/login" + nextParam}>
-          <span>Log in to join</span>
-        </a>
-        <a className="button small white" href={"/register" + nextParam}>
-          <span>Create an account</span>
-        </a>
-      </>}
+      actionButtons={actionButtons}
       learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
-      cookieName="signup_promo_banner_dismissed"
-      bannerName="signup_promo"
+      cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
+      bannerName={isLoggedIn ? "chatbot_experiment_opt_in" : "signup_promo"}
     />
   );
 };
