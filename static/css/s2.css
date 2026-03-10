@@ -360,6 +360,8 @@ body.hasBannerMessage #s2.headerOnly {
 .siteWideBanner.hidden {
   height: 0;
   overflow: hidden;
+  margin-top: 0;
+  padding: 0;
 }
 .interface-hebrew .siteWideBanner {
   direction: rtl;
