@@ -1,9 +1,9 @@
-{{- if eq .Values.backup.mongo.extrasEnabled true }}
+{{- if eq .Values.backup.mongo.linkerOutputEnabled true }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-mongobackup-extras
+  name: {{ .Values.deployEnv }}-mongobackup-linker-output
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -37,7 +37,7 @@ spec:
               value: "reserved"
               effect: "NoSchedule"
           initContainers:
-          - name: mongo-extras-dumper
+          - name: mongo-linker-output-dumper
             image: mongo:{{ .Values.backup.mongo.version }}
             envFrom:
             - secretRef:
@@ -51,26 +51,26 @@ spec:
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: create-mongo-extras-dumps-script
-              mountPath: /scripts/create-mongo-extras-dumps.sh
-              subPath: create-mongo-extras-dumps.sh
+            - name: create-linker-output-dumps-script
+              mountPath: /scripts/create-linker-output-dumps.sh
+              subPath: create-linker-output-dumps.sh
               readOnly: true
             command: ["bash"]
-            args: ["-c", "/scripts/create-mongo-extras-dumps.sh"]
+            args: ["-c", "/scripts/create-linker-output-dumps.sh"]
             resources:
               requests:
                 ephemeral-storage: 12Gi
               limits:
                 memory: "500Mi"
           containers:
-          - name: mongo-extras-dump-uploader
+          - name: linker-output-dump-uploader
             image: google/cloud-sdk
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: upload-mongo-extras-dumps-script
-              mountPath: /scripts/upload-mongo-extras-dumps.sh
-              subPath: upload-mongo-extras-dumps.sh
+            - name: upload-linker-output-dumps-script
+              mountPath: /scripts/upload-linker-output-dumps.sh
+              subPath: upload-linker-output-dumps.sh
               readOnly: true
             env:
             - name: PREFIX
@@ -78,19 +78,19 @@ spec:
             - name: BUCKET
               value: {{ .Values.backup.mongo.bucket }}
             command: ["bash"]
-            args: ["-c", "/scripts/upload-mongo-extras-dumps.sh"]
+            args: ["-c", "/scripts/upload-linker-output-dumps.sh"]
             resources:
               limits:
                 memory: "500Mi"
           restartPolicy: OnFailure
           volumes:
-          - name: create-mongo-extras-dumps-script
+          - name: create-linker-output-dumps-script
             configMap:
-              name: create-mongo-extras-dumps-{{ .Values.deployEnv }}
+              name: create-linker-output-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
-          - name: upload-mongo-extras-dumps-script
+          - name: upload-linker-output-dumps-script
             configMap:
-              name: upload-mongo-extras-dumps-{{ .Values.deployEnv }}
+              name: upload-linker-output-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: shared-volume
             emptyDir:

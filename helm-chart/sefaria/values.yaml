@@ -49,7 +49,7 @@ restore:
 backup:
   mongo:
     enabled: false
-    extrasEnabled: false
+    linkerOutputEnabled: false
     historyEnabled: false
     prefix: ""
     public: true

@@ -10,7 +10,7 @@ restore:
 backup:
   mongo:
     enabled: true
-    extrasEnabled: true
+    linkerOutputEnabled: true
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
