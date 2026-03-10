@@ -1,9 +1,9 @@
-{{- if eq .Values.backup.mongo.linkerEnabled true }}
+{{- if eq .Values.backup.mongo.extrasEnabled true }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-mongobackup-linker
+  name: {{ .Values.deployEnv }}-mongobackup-extras
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -37,7 +37,7 @@ spec:
               value: "reserved"
               effect: "NoSchedule"
           initContainers:
-          - name: mongo-linker-dumper
+          - name: mongo-extras-dumper
             image: mongo:{{ .Values.backup.mongo.version }}
             envFrom:
             - secretRef:
@@ -51,26 +51,26 @@ spec:
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: create-linker-dumps-script
-              mountPath: /scripts/create-linker-dumps.sh
-              subPath: create-linker-dumps.sh
+            - name: create-mongo-extras-dumps-script
+              mountPath: /scripts/create-mongo-extras-dumps.sh
+              subPath: create-mongo-extras-dumps.sh
               readOnly: true
             command: ["bash"]
-            args: ["-c", "/scripts/create-linker-dumps.sh"]
+            args: ["-c", "/scripts/create-mongo-extras-dumps.sh"]
             resources:
               requests:
                 ephemeral-storage: 12Gi
               limits:
                 memory: "500Mi"
           containers:
-          - name: linker-dump-uploader
+          - name: mongo-extras-dump-uploader
             image: google/cloud-sdk
             volumeMounts:
             - name: shared-volume
               mountPath: /mongodumps/shared_volume
-            - name: upload-linker-dumps-script
-              mountPath: /scripts/upload-linker-dumps.sh
-              subPath: upload-linker-dumps.sh
+            - name: upload-mongo-extras-dumps-script
+              mountPath: /scripts/upload-mongo-extras-dumps.sh
+              subPath: upload-mongo-extras-dumps.sh
               readOnly: true
             env:
             - name: PREFIX
@@ -78,19 +78,19 @@ spec:
             - name: BUCKET
               value: {{ .Values.backup.mongo.bucket }}
             command: ["bash"]
-            args: ["-c", "/scripts/upload-linker-dumps.sh"]
+            args: ["-c", "/scripts/upload-mongo-extras-dumps.sh"]
             resources:
               limits:
                 memory: "500Mi"
           restartPolicy: OnFailure
           volumes:
-          - name: create-linker-dumps-script
+          - name: create-mongo-extras-dumps-script
             configMap:
-              name: create-linker-dumps-{{ .Values.deployEnv }}
+              name: create-mongo-extras-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
-          - name: upload-linker-dumps-script
+          - name: upload-mongo-extras-dumps-script
             configMap:
-              name: upload-linker-dumps-{{ .Values.deployEnv }}
+              name: upload-mongo-extras-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: shared-volume
             emptyDir:

@@ -1,13 +1,13 @@
-{{- if .Values.backup.mongo.linkerEnabled }}
+{{- if .Values.backup.mongo.extrasEnabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: upload-linker-dumps-{{ .Values.deployEnv }}
+  name: upload-mongo-extras-dumps-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  upload-linker-dumps.sh: |-
+  upload-mongo-extras-dumps.sh: |-
     #!/usr/bin/env bash
     set -euo pipefail
     set -x
@@ -45,5 +45,5 @@ data:
         "./dump/${DB}/webpages_text.metadata.json" \
       | gsutil cp - "gs://${BUCKET}/${PREFIX}webpages_text_${today}.tar.gz"
 
-    echo "Linker dump upload complete"
+    echo "Mongo extras dump upload complete"
 {{- end }}

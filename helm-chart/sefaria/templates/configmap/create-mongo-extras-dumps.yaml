@@ -1,13 +1,13 @@
-{{- if .Values.backup.mongo.linkerEnabled }}
+{{- if .Values.backup.mongo.extrasEnabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: create-linker-dumps-{{ .Values.deployEnv }}
+  name: create-mongo-extras-dumps-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  create-linker-dumps.sh: |-
+  create-mongo-extras-dumps.sh: |-
     #!/usr/bin/env bash
     set -eo pipefail
 
