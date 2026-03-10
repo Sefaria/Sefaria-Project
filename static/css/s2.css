@@ -11599,6 +11599,20 @@ background-color: white;
 .cookiesNotification .button {
   margin-inline-start: 12px;
 }
+@media (min-width: 843px) {
+  .cookiesNotification {
+    width: 360px;
+    margin: 10px;
+    padding: 15px;
+    text-align: start;
+    border-radius: 10px;
+    border-top: none;
+  }
+  .cookiesNotification .button {
+    display: block;
+    margin: 10px 0 0 0;
+  }
+}
 .readerMessageBox {
   z-index: 9999;
   color: #000;
