@@ -391,6 +391,9 @@ body.hasBannerMessage #s2.headerOnly {
   cursor: pointer;
   display: flex;
   align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 .siteWideBanner .bannerLearnMore {
   margin-inline-start: 20px;
