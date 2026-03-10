@@ -1,0 +1,100 @@
+{{- if eq .Values.backup.mongo.historyEnabled true }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-mongobackup-history
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  concurrencyPolicy: Replace
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
+          affinity:
+            podAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - mongo
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: schedule-on-database-vm
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+            - key: mongo-replicaset
+              operator: "Equal"
+              value: "reserved"
+              effect: "NoSchedule"
+          initContainers:
+          - name: mongo-history-dumper
+            image: mongo:{{ .Values.backup.mongo.version }}
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: create-history-dump-script
+              mountPath: /scripts/create-history-dump.sh
+              subPath: create-history-dump.sh
+              readOnly: true
+            command: ["bash"]
+            args: ["-c", "/scripts/create-history-dump.sh"]
+            resources:
+              requests:
+                ephemeral-storage: 25Gi
+              limits:
+                memory: "500Mi"
+          containers:
+          - name: history-dump-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: upload-history-dump-script
+              mountPath: /scripts/upload-history-dump.sh
+              subPath: upload-history-dump.sh
+              readOnly: true
+            env:
+            - name: PREFIX
+              value: {{ .Values.backup.mongo.prefix }}
+            - name: BUCKET
+              value: {{ .Values.backup.mongo.bucket }}
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-history-dump.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+          restartPolicy: OnFailure
+          volumes:
+          - name: create-history-dump-script
+            configMap:
+              name: create-history-dump-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: upload-history-dump-script
+            configMap:
+              name: upload-history-dump-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: shared-volume
+            emptyDir:
+              sizeLimit: 25Gi
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

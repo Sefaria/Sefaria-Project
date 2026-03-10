@@ -1,0 +1,42 @@
+{{- if .Values.backup.mongo.historyEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-history-dump-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-history-dump.sh: |-
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
+
+    DATADIR="/mongodumps/shared_volume"
+    today="$(date +'%d.%m.%y')"
+    # Keep 3 snapshots — each history dump is a superset of the previous,
+    # so only a couple are needed. Delete the file from 3 days ago.
+    three_days_ago="$(date --date='3 days ago' +'%d.%m.%y')"
+
+    if [ ! -f "${DATADIR}/db_name.txt" ]; then
+        echo "ERROR: db_name.txt missing"
+        exit 1
+    fi
+    DB=$(cat "${DATADIR}/db_name.txt")
+    if [ -z "${DB}" ]; then
+        echo "ERROR: db_name.txt is empty"
+        exit 1
+    fi
+
+    # Remove the snapshot from 3 days ago (rotation — keep 3 days)
+    gsutil rm "gs://${BUCKET}/${PREFIX}history_${three_days_ago}.tar.gz" || true
+
+    # Stream history dump directly to GCS
+    echo "Uploading history dump"
+    tar czf - -C "${DATADIR}" \
+        "./dump/${DB}/history.bson" \
+        "./dump/${DB}/history.metadata.json" \
+      | gsutil cp - "gs://${BUCKET}/${PREFIX}history_${today}.tar.gz"
+
+    echo "History dump upload complete"
+{{- end }}
