@@ -68,6 +68,7 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
+from sefaria import tracker
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -1669,6 +1670,126 @@ def text_upload_api(request):
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
+
+
+@staff_member_required
+def version_indices_api(request):
+    """
+    Get indices that have versions matching a versionTitle.
+
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
+    Returns indices and optional metadata (categories) for each index.
+    """
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+
+    version_title = request.GET.get("versionTitle")
+    if not version_title:
+        raise InputError("versionTitle is required")
+    language = request.GET.get("language")
+
+    query = {"versionTitle": version_title}
+    if language:
+        query["language"] = language
+    indices = db.texts.distinct("title", query)
+    sorted_indices = sorted(indices)
+
+    # Build metadata with categories for each index
+    # Note: library.get_index() uses an in-memory cache, so this loop is efficient
+    metadata = {}
+    for index_title in sorted_indices:
+        try:
+            index = library.get_index(index_title)
+            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
+        except Exception:
+            metadata[index_title] = {"categories": []}
+
+    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
+
+
+# Allowed fields for version bulk edit - prevents arbitrary attribute injection
+# Note: versionTitle is excluded - it's the search key used to find versions, not editable
+VERSION_BULK_EDIT_ALLOWED_FIELDS = {
+    "versionTitleInHebrew", "versionSource", "license", "status",
+    "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
+    "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
+}
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    """
+    Bulk update Version metadata for multiple indices.
+
+    Request:
+      POST {"versionTitle": "...", "language": "he", "indices": [...], "updates": {...}}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        language = data["language"]
+        indices = data["indices"]
+        updates = data["updates"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if language not in ("en", "he"):
+        return jsonResponse({"error": "language must be 'en' or 'he'"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    if not updates:
+        return jsonResponse({"error": "updates may not be empty"}, status=400)
+
+    # Validate that all update fields are allowed
+    disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
+    if disallowed_fields:
+        return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
+
+    # Required Version fields cannot be cleared (set to None)
+    null_required = {k for k, v in updates.items() if v is None and k in Version.required_attrs}
+    if null_required:
+        return jsonResponse({"error": f"Cannot clear required fields: {', '.join(null_required)}"}, status=400)
+
+    # Track successes and failures for detailed reporting
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            version = Version().load({
+                "title": index_title,
+                "versionTitle": version_title,
+                "language": language,
+            })
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            tracker.update_version_metadata(request.user.id, version, updates)
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
 
 
 @staff_member_required
