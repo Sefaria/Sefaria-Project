@@ -60,6 +60,7 @@ data:
       -o "${DATADIR}/dump"
     do
       echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
       sleep 5
     done
 
@@ -69,6 +70,7 @@ data:
       -o "${DATADIR}/dump"
     do
       echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
       sleep 5
     done
 
