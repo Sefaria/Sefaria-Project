@@ -10,15 +10,12 @@ const SiteWideBanner = ({
   learnMoreUrl,
   learnMoreText,
   cookieName,
-  bannerName,
+  gtagParams,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
 
   useEffect(() => {
-    gtag("event", "banner_viewed", {
-      campaignID: bannerName,
-      adType: "banner",
-    });
+    gtag("event", "promo_viewed", gtagParams);
   }, []);
 
   const isDismissed = () => {
@@ -34,17 +31,14 @@ const SiteWideBanner = ({
     $.cookie(cookieName, 1, cookieOptions);
   };
 
-  const trackBannerInteraction = (eventDescription) => {
-    gtag("event", `banner_interacted_with_${eventDescription}`, {
-      campaignID: bannerName,
-      adType: "banner",
-    });
+  const trackBannerInteraction = (feature_name) => {
+    gtag("event", "promo_clicked", { ...gtagParams, feature_name });
   };
 
   const closeBanner = () => {
     setBannerVisibility("hidden");
     dismiss();
-    trackBannerInteraction("close_clicked");
+    trackBannerInteraction("close");
   };
 
   return (!isDismissed() &&
@@ -57,15 +51,14 @@ const SiteWideBanner = ({
           )}
         </div>
         <div className="siteWideBannerButtonBox">
-          {actionButtons}
+          {actionButtons(trackBannerInteraction)}
         </div>
         {learnMoreUrl && (
           <a
             href={learnMoreUrl}
             className="bannerLearnMore"
             target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackBannerInteraction("learn_more_clicked")}
+            onClick={() => trackBannerInteraction("learn_more")}
           >
             {learnMoreText || "Learn more"}
           </a>
@@ -85,25 +78,23 @@ const SiteWideBanner = ({
 SiteWideBanner.propTypes = {
   mainText: PropTypes.string.isRequired,
   secondaryText: PropTypes.string,
-  actionButtons: PropTypes.node.isRequired,
+  actionButtons: PropTypes.func.isRequired,
   learnMoreUrl: PropTypes.string,
   learnMoreText: PropTypes.string,
   cookieName: PropTypes.string.isRequired,
-  bannerName: PropTypes.string.isRequired,
+  gtagParams: PropTypes.object.isRequired,
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = "Try Sefaria's new Library Assistant (Experimental)";
 const CHATBOT_BANNER_SECONDARY_TEXT = "Explore Jewish texts with our experimental AI-powered assistant.";
 const CHATBOT_BANNER_LEARN_MORE_URL = "https://help.sefaria.org/hc/en-us/articles/26006423836828";
+const CAMPAIGN_ID = "LA Stand Alone Promo";
+const PROJECT = 'Library Assistant';
 
 const ChatbotExperimentBanner = () => {
   const [isActionPending, setIsActionPending] = useState(false);
 
   const handleJoin = async () => {
-    gtag("event", "banner_interacted_with_banner_button_clicked", {
-      campaignID: "chatbot_experiment_opt_in",
-      adType: "banner",
-    });
     setIsActionPending(true);
     try {
       await Sefaria.experimentsOptInAPI()
@@ -124,27 +115,25 @@ const ChatbotExperimentBanner = () => {
   const isLoggedIn = !!Sefaria._uid;
   const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
-  const actionButtons = isLoggedIn ? (
-    <button className="button small" onClick={handleJoin} disabled={isActionPending}>
-      <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
-    </button>
-  ) : (<>
-    <a className="button small" href={"/login" + nextParam}>
-      <span>Log in to join</span>
-    </a>
-    <a className="button small white" href={"/register" + nextParam}>
-      <span>Create an account</span>
-    </a>
-  </>);
-
   return (
     <SiteWideBanner
       mainText={CHATBOT_BANNER_MAIN_TEXT}
       secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
-      actionButtons={actionButtons}
+      actionButtons={(track) => isLoggedIn ? (
+        <button className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+          <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
+        </button>
+      ) : (<>
+        <a className="button small" href={"/login" + nextParam} onClick={() => track("login")}>
+          <span>Log in to join</span>
+        </a>
+        <a className="button small white" href={"/register" + nextParam} onClick={() => track("create_an_account")}>
+          <span>Create an account</span>
+        </a>
+      </>)}
       learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
-      bannerName={isLoggedIn ? "chatbot_experiment_opt_in" : "signup_promo"}
+      gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
     />
   );
 };
