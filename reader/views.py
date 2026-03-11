@@ -360,7 +360,7 @@ def base_props(request):
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
-        'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=True),
+        'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
