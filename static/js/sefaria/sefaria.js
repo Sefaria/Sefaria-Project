@@ -911,9 +911,9 @@ Sefaria = extend(Sefaria, {
   postRefTopicLink: function(refInUrl, payload) {
       const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
       // payload will need to be refactored once /api/ref-topic-links takes a more standard input
-      return Sefaria.adminEditorApiRequest(url, null, payload);
+      return Sefaria.apiRequestWithBodyAndAlert(url, null, payload);
   },
-  adminEditorApiRequest: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBodyAndAlert: async function(url, urlParams, payload, method="POST") {
       /**
        * Wraps apiRequestWithBody() with basic alerting if response has an error
        */
