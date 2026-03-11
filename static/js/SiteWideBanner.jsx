@@ -60,7 +60,7 @@ const SiteWideBanner = ({
             target="_blank"
             onClick={() => trackBannerInteraction("learn_more")}
           >
-            {learnMoreText || "Learn more"}
+            {learnMoreText || "Learn More"}
           </a>
         )}
         <button
@@ -86,7 +86,7 @@ SiteWideBanner.propTypes = {
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = "Try Sefaria's new Library Assistant (Experimental)";
-const CHATBOT_BANNER_SECONDARY_TEXT = "Explore Jewish texts with our experimental AI-powered assistant.";
+const CHATBOT_BANNER_SECONDARY_TEXT = "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.";
 const CHATBOT_BANNER_LEARN_MORE_URL = "https://help.sefaria.org/hc/en-us/articles/26006423836828";
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
@@ -125,7 +125,7 @@ const ChatbotExperimentBanner = () => {
         </button>
       ) : (<>
         <a className="button small" href={"/login" + nextParam} onClick={() => track("login")}>
-          <span>Log in to join</span>
+          <span>Log in to Join</span>
         </a>
         <a className="button small white" href={"/register" + nextParam} onClick={() => track("create_an_account")}>
           <span>Create an account</span>
