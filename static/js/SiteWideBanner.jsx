@@ -128,7 +128,7 @@ const ChatbotExperimentBanner = () => {
           <span>Log in to Join</span>
         </a>
         <a className="button small white" href={"/register" + nextParam} onClick={() => track("create_an_account")}>
-          <span>Create an account</span>
+          <span>Create an Account</span>
         </a>
       </>)}
       learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
