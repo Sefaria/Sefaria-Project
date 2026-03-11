@@ -15,7 +15,10 @@ const SiteWideBanner = ({
   const [bannerVisibility, setBannerVisibility] = useState("");
 
   useEffect(() => {
-    gtag("event", "promo_viewed", gtagParams);
+    if (!sessionStorage.getItem("promo_viewed")) {
+      sessionStorage.setItem("promo_viewed", "1");
+      gtag("event", "promo_viewed", gtagParams);
+    }
   }, []);
 
   const isDismissed = () => {
