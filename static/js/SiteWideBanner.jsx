@@ -112,6 +112,9 @@ const ChatbotExperimentBanner = () => {
   };
 
   const isLoggedIn = !!Sefaria._uid;
+  if (!isLoggedIn) { // Temp! will be removed/replaced in the next phase
+    return null;
+  }
   const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
   return (
