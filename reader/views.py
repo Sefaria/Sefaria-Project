@@ -364,9 +364,9 @@ def base_props(request):
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
-    if _is_user_in_experiment(request):
-        chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-        chatbot_data["chatbot_enabled"] = True
+        if _is_user_in_experiment(request):
+            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            chatbot_data["chatbot_enabled"] = True
     user_data.update(chatbot_data)
     return user_data
 
