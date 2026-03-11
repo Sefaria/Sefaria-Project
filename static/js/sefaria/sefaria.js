@@ -2747,7 +2747,7 @@ _media: {},
     });
   },
   experimentsOptInAPI: () => {
-    return Sefaria.apiRequestWithBody("/api/profile/experiments/opt-in", null, null, "POST");
+    return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
   },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);

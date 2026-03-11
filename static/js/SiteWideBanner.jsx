@@ -98,10 +98,6 @@ const ChatbotExperimentBanner = () => {
     setIsActionPending(true);
     try {
       await Sefaria.experimentsOptInAPI()
-        .catch(err => {
-          alert("API call went wrong.");
-          throw err;
-        })
         .then(() => Sefaria.editProfileAPI({experiments: true}))
         .then(() => {
           window.location.reload();
