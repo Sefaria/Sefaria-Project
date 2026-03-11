@@ -5,6 +5,7 @@ metadata:
   namespace: prod
 spec:
   interval: 5m
+  timeout: 30m
   chart:
     spec:
       chart: sefaria
@@ -230,12 +231,6 @@ spec:
     localSettings:
       DEBUG: false
       OFFLINE: false
-      DOMAIN_LANGUAGE:
-        "https://www.sefaria.org": "english"
-        "https://www.sefaria.org.il": "hebrew"
-      DOMAIN_MODULES:
-        "library": "https://www.sefaria.org"
-        "sheets": "https://sheets.sefaria.org"
       MONGO_HOST: "mongo"
       APSCHEDULER_NAME: "apscheduler-production"
       USE_CLOUDFLARE: false
