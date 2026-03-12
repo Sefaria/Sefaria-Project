@@ -102,6 +102,10 @@ from sefaria.helper.texts.tasks import save_version, save_changes, save_link
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
+import threading
+import time
+import requests
+import sentry_sdk
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -3881,6 +3885,7 @@ def profile_api(request, slug=None):
             profileUpdate.pop("experiments", None)
 
         profile = UserProfile(id=request.user.id)
+        old_experiments = profile.experiments
         profile.update(profileUpdate)
 
         error = profile.errors()
@@ -3889,9 +3894,31 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            if "experiments" in profileUpdate and profile.experiments != old_experiments:
+                dispatch_chatbot_opt_in_webhook(request.user.email, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+def dispatch_chatbot_opt_in_webhook(email: str, opt_in: bool) -> None:
+    """Fire the Salesforce webhook for a chatbot experiment opt-in/opt-out change."""
+    if not email:
+        return
+    from sefaria.settings import CELERY_ENABLED
+    from sefaria.helper.crm.tasks import send_chatbot_opt_in_webhook
+    from sefaria.celery_setup.config import CeleryQueue
+
+    if CELERY_ENABLED:
+        send_chatbot_opt_in_webhook.apply_async(
+            args=[email, opt_in],
+            queue=CeleryQueue.TASKS.value,
+        )
+    else:
+        try:
+            send_chatbot_opt_in_webhook(email, opt_in)
+        except Exception:
+            logger.warning("chatbot_opt_in_webhook_sync_failed", email=email, exc_info=True)
 
 
 @catch_error_as_json
@@ -3904,10 +3931,13 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": "Unsupported HTTP method."})
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
-    user_settings, _ = UserExperimentSettings.objects.get_or_create(user=request.user)
-    if not user_settings.experiments:
+    user_settings, created = UserExperimentSettings.objects.get_or_create(user=request.user)
+    was_opted_out = not user_settings.experiments
+    if was_opted_out:
         user_settings.experiments = True
         user_settings.save(update_fields=["experiments"])
+    if created or was_opted_out:
+        dispatch_chatbot_opt_in_webhook(request.user.email, True)
     return jsonResponse({"status": "ok"})
 
 
