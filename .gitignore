@@ -36,6 +36,7 @@ ehthumbs.db
 Icon[\r]
 Thumbs.db
 .idea
+.instance
 
 # Apache Config #
 #################
