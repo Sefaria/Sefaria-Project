@@ -394,6 +394,11 @@ def _reader_redirect_versions(request, tref, current_versions, normalized_versio
 
 
 def _get_normalized_versions(tref, ven, vhe):
+    """
+    Normalize version params for a single ref into the canonical 'language|version_title' format.
+    Matches each param against known versions by title and/or language, falling back to partial matches
+    (language-only or title-only) when an exact match isn't found. Returns None for unmatched params.
+    """
     if not ven and not vhe:
         return [None, None] # saves `version_list()` db query
     versions = Ref(tref).version_list()
@@ -419,6 +424,12 @@ def _get_normalized_versions(tref, ven, vhe):
 
 
 def _get_current_and_normalized_versions(request, tref):
+    """
+    Extract current version query params (ven/vhe) from the request for each panel and normalize them.
+    Normalization resolves legacy or partial version params (e.g. title-only without language) to the
+    canonical 'language|version_title' format by matching against known versions in the database.
+    Returns two dicts mapping param names to their current and normalized values respectively.
+    """
     current_versions, normalized_versions = {}, {}
     tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
     tref_mappings[''] = tref
