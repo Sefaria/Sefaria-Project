@@ -132,6 +132,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
+    'sefaria.system.middleware.MaxRSSMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
