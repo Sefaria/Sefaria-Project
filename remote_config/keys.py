@@ -7,3 +7,4 @@ SENTRY_CONFIG_JSON = "feature.sentry.config"
 
 # Chatbot configuration
 CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
+CHATBOT_WELCOME_MESSAGES = "feature.chatbot.welcome_messages"
