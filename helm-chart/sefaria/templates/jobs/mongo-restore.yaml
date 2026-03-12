@@ -19,7 +19,8 @@ spec:
       serviceAccount: {{ .Values.restore.serviceAccount }}
       volumes:
         - name: shared-volume
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 30Gi
         - name: script
           configMap:
             name: mongo-restore-{{ .Values.deployEnv }}
@@ -27,6 +28,9 @@ spec:
       initContainers:
         - name: mongo-backup-downloader-{{ .Values.deployEnv }}
           image: google/cloud-sdk
+          resources:
+            requests:
+              ephemeral-storage: 30Gi
           volumeMounts:
             - name: shared-volume
               mountPath: /storage
