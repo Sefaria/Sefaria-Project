@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, SHOW_JOIN_CHATBOT_BANNER
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -72,7 +72,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
-from reader.models import user_has_experiments
+from reader.models import user_has_experiments, UserExperimentSettings
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -360,10 +360,13 @@ def base_props(request):
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
+        'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if _is_user_in_experiment(request):
-        chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-        chatbot_data["chatbot_enabled"] = True
+    if user_has_experiments(request.user):
+        chatbot_data["in_chatbot_experiment"] = True
+        if _is_user_in_experiment(request):
+            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            chatbot_data["chatbot_enabled"] = True
     user_data.update(chatbot_data)
     return user_data
 
@@ -3889,6 +3892,23 @@ def profile_api(request, slug=None):
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def experiments_opt_in_api(request):
+    """
+    API endpoint for users to self-enroll in the experiments whitelist.
+    This enables the experiments toggle in their settings menu.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to join experiments.")})
+    user_settings, _ = UserExperimentSettings.objects.get_or_create(user=request.user)
+    if not user_settings.experiments:
+        user_settings.experiments = True
+        user_settings.save(update_fields=["experiments"])
+    return jsonResponse({"status": "ok"})
 
 
 @login_required

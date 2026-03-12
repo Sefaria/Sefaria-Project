@@ -7,3 +7,4 @@ SENTRY_CONFIG_JSON = "feature.sentry.config"
 
 # Chatbot configuration
 CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
+SHOW_JOIN_CHATBOT_BANNER = "feature.client.show_join_chatbot_banner"

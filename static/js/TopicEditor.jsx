@@ -43,7 +43,7 @@ const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
 const deleteTopicImage = (image_src, topic_image_api) => {
     const old_filename_wout_url = image_src.split("/").slice(-1);
     const url = `${Sefaria.apiHost}/${topic_image_api}?old_filename=${old_filename_wout_url}`;
-    return Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => alert("Deleted image."));
+    return Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE").then(() => alert("Deleted image."));
 }
 
 const CurrImageThumbnail = ({image_src, caption, deleteImage, removeButtonText}) => {
@@ -252,7 +252,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveReorderedSubtopics = function () {
          const url = `/api/topic/reorder`;
          const postCategoryData = {topics: sortedSubtopics};
-         Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+         Sefaria.apiRequestWithBodyAndAlert(url, null, postCategoryData)
              .then(() => window.location.href = "/topics")
              .finally(() => setSavingStatus(false));
     }
@@ -363,7 +363,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE").then(() => window.location.href = "/topics");
+        Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE").then(() => window.location.href = "/topics");
     }
     let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "English Alternate Titles", "Hebrew Alternate Titles",];
     if (isCategory) {
