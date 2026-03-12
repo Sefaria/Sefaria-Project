@@ -14,6 +14,7 @@ from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 
 
+@mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
 class TestUserExperimentSettingsSync(TestCase):
     # pytest-django in this environment expects unittest classes to define this.
     databases = "__all__"
@@ -31,7 +32,7 @@ class TestUserExperimentSettingsSync(TestCase):
     def tearDown(self):
         db.profiles.delete_many({"id": self.user.id})
 
-    def test_set_user_experiments_updates_profile_without_duplicates(self):
+    def test_set_user_experiments_updates_profile_without_duplicates(self, _mock_dispatch):
         self.assertEqual(db.profiles.count_documents({"id": self.user.id}), 0)
         self.assertEqual(UserExperimentSettings.objects.filter(user=self.user).count(), 0)
 
@@ -51,8 +52,8 @@ class TestUserExperimentSettingsSync(TestCase):
         self.assertEqual(db.profiles.count_documents({"id": self.user.id}), 1)
         self.assertEqual(UserExperimentSettings.objects.filter(user=self.user).count(), 1)
 
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_set_user_experiments_fires_webhook_on_change(self, mock_dispatch):
+        mock_dispatch.reset_mock()
         _set_user_experiments(self.user, True)  # first call — created, fires
         self.assertEqual(mock_dispatch.call_count, 1)
         mock_dispatch.assert_called_with(self.user.email, True)
@@ -65,7 +66,7 @@ class TestUserExperimentSettingsSync(TestCase):
         mock_dispatch.assert_called_once_with(self.user.email, False)
 
     # Keep compatibility with older test node IDs.
-    def test_user_experiment_settings_admin_updates_profile_without_duplicates(self):
+    def test_user_experiment_settings_admin_updates_profile_without_duplicates(self, _mock_dispatch):
         self.test_set_user_experiments_updates_profile_without_duplicates()
 
 
@@ -94,6 +95,7 @@ def _build_post_request(admin_user, csv_bytes):
     return request
 
 
+@mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
 class TestUploadCsvView(TestCase):
     databases = "__all__"
     multi_db = True
@@ -133,7 +135,7 @@ class TestUploadCsvView(TestCase):
     def _get_messages(self, request):
         return list(request._messages)
 
-    def test_existing_users_get_experiments_enabled(self):
+    def test_existing_users_get_experiments_enabled(self, _mock_dispatch):
         emails = [u.email for u in self.existing_users]
         request = _build_post_request(self.admin_user, _make_csv_bytes(emails))
 
@@ -151,7 +153,7 @@ class TestUploadCsvView(TestCase):
         self.assertEqual(len(success_msgs), 1)
         self.assertIn(str(len(emails)), success_msgs[0].message)
 
-    def test_nonexistent_emails_reported_as_warnings(self):
+    def test_nonexistent_emails_reported_as_warnings(self, _mock_dispatch):
         request = _build_post_request(
             self.admin_user, _make_csv_bytes(self.nonexistent_emails)
         )
@@ -169,7 +171,7 @@ class TestUploadCsvView(TestCase):
         success_msgs = [m for m in msgs if m.level == 25]
         self.assertEqual(len(success_msgs), 0)
 
-    def test_mixed_existing_and_nonexistent(self):
+    def test_mixed_existing_and_nonexistent(self, _mock_dispatch):
         existing_emails = [u.email for u in self.existing_users]
         all_emails = existing_emails + self.nonexistent_emails
         request = _build_post_request(self.admin_user, _make_csv_bytes(all_emails))
@@ -192,7 +194,7 @@ class TestUploadCsvView(TestCase):
         for email in self.nonexistent_emails:
             self.assertIn(email, warning_msgs[0].message)
 
-    def test_blank_rows_and_whitespace_are_skipped(self):
+    def test_blank_rows_and_whitespace_are_skipped(self, _mock_dispatch):
         email = self.existing_users[0].email
         csv_content = f"\n  {email}  \n\n  \n".encode("utf-8")
         uploaded = SimpleUploadedFile("emails.csv", csv_content, content_type="text/csv")
@@ -214,8 +216,8 @@ class TestUploadCsvView(TestCase):
         warning_msgs = [m for m in msgs if m.level == 30]
         self.assertEqual(len(warning_msgs), 0)
 
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_csv_upload_fires_webhook_for_each_user(self, mock_dispatch):
+        mock_dispatch.reset_mock()
         emails = [u.email for u in self.existing_users]
         request = _build_post_request(self.admin_user, _make_csv_bytes(emails))
 
@@ -225,7 +227,7 @@ class TestUploadCsvView(TestCase):
         for u in self.existing_users:
             mock_dispatch.assert_any_call(u.email, True)
 
-    def test_case_insensitive_email_matching(self):
+    def test_case_insensitive_email_matching(self, _mock_dispatch):
         user = self.existing_users[0]
         upper_email = user.email.upper()
         request = _build_post_request(
