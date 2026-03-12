@@ -29,6 +29,8 @@ def get_chatbot_welcome_messages():
     for any missing or empty value.
     """
     stored = remoteConfigCache.get(CHATBOT_WELCOME_MESSAGES, {})
+    if not isinstance(stored, dict):
+        stored = {}
     return {key: stored.get(key) or default for key, default in DEFAULTS.items()}
 
 
