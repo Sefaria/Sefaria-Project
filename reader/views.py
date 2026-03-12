@@ -59,7 +59,7 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
@@ -351,14 +351,18 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
     })
+    chatbot_version = request.session.get("chatbot_version")
+    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+
     # Chatbot props (passed through base_props for ReaderApp)
     chatbot_data = {
         "chatbot_user_token": None,
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
-        'chatbot_welcome_messages': json.dumps(get_chatbot_welcome_messages()),
+        'chatbot_welcome_messages': get_chatbot_welcome_messages(),
     }
     if _is_user_in_experiment(request):
         chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)

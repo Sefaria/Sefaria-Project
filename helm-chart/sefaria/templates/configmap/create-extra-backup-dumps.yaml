@@ -1,13 +1,13 @@
-{{- if .Values.backup.mongo.enabled }}
+{{- if .Values.backup.mongo.extraBackupEnabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: create-dumps-{{ .Values.deployEnv }}
+  name: create-extra-backup-dumps-{{ .Values.deployEnv }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  create-dumps.sh: |-
+  create-extra-backup-dumps.sh: |-
     #!/usr/bin/env bash
     set -eo pipefail
 
@@ -44,13 +44,29 @@ data:
 
     DATADIR="/mongodumps/shared_volume"
 
-    echo "Dumping database: ${DATABASE}"
+    echo "Dumping history collection"
     until mongodump --uri="$URI" -v -d "$DATABASE" \
-      --excludeCollection=django_cache \
-      --excludeCollection=user_history \
-      --excludeCollection=history \
-      --excludeCollection=linker_output \
-      --excludeCollection=webpages_text \
+      --collection=history \
+      -o "${DATADIR}/dump"
+    do
+      echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
+      sleep 5
+    done
+
+    echo "Dumping linker_output collection"
+    until mongodump --uri="$URI" -v -d "$DATABASE" \
+      --collection=linker_output \
+      -o "${DATADIR}/dump"
+    do
+      echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
+      sleep 5
+    done
+
+    echo "Dumping webpages_text collection"
+    until mongodump --uri="$URI" -v -d "$DATABASE" \
+      --collection=webpages_text \
       -o "${DATADIR}/dump"
     do
       echo "mongodump failed, retrying in 5s..."
@@ -59,19 +75,6 @@ data:
     done
 
     echo "${DATABASE}" > "${DATADIR}/db_name.txt"
-
-    {{- if .Values.backup.mongo.public }}
-    echo "Dumping license-filtered texts for public variant"
-    until mongodump --uri="$URI" -v -d "$DATABASE" \
-      --collection texts \
-      --query '{"license": {"$not": {"$regex": "^Copyright", "$options": "i"}}}' \
-      -o "${DATADIR}/public_texts_dump"
-    do
-      echo "filtered texts dump failed, retrying in 5s..."
-      rm -rf "${DATADIR}/public_texts_dump"
-      sleep 5
-    done
-    {{- end }}
 
     echo "dump complete - upload should start"
 {{- end }}
