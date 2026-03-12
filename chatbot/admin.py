@@ -47,19 +47,27 @@ class ChatbotWelcomeMessagesForm(forms.ModelForm):
 
     class Meta:
         model = ChatbotWelcomeMessageProxy
+        # Exclude all but the manually-declared fields; only these appear on the form.
         fields = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Hydrate the individual form fields from RemoteConfigEntry.
         if self.instance and self.instance.pk:
             try:
-                data = json.loads(self.instance.raw_value)
+                data = json.loads(self.instance.raw_value) # RemoteConfigEntry.raw_value is a JSON blob.
             except (json.JSONDecodeError, TypeError):
                 data = {}
             for key, default in DEFAULTS.items():
-                self.fields[key].initial = data.get(key, default)
+                # We set `initial` here because the
+                # values depend on the specific model instance being edited.
+                self.fields[key].initial = data.get(key, default) 
+                
 
     def save(self, commit=True):
+        # Re-pack the individual form fields into the single JSON blob that
+        # RemoteConfigEntry stores, and set the row's metadata so it stays
+        # consistent regardless of how it was originally created.
         data = {key: self.cleaned_data.get(key, "") for key in DEFAULTS}
         self.instance.key = CHATBOT_WELCOME_MESSAGES
         self.instance.raw_value = json.dumps(data)
@@ -73,7 +81,7 @@ class ChatbotWelcomeMessagesForm(forms.ModelForm):
 class ChatbotWelcomeMessagesAdmin(admin.ModelAdmin):
     """
     Singleton-style admin: always edits the one RemoteConfigEntry keyed
-    feature.chatbot.welcome_messages.  The changelist redirects straight
+    feature.chatbot.welcome_messages.  The changelist_view() method redirects straight
     to the edit form.
     """
     form = ChatbotWelcomeMessagesForm
@@ -92,6 +100,9 @@ class ChatbotWelcomeMessagesAdmin(admin.ModelAdmin):
         return False
 
     def changelist_view(self, request, extra_context=None):
+        # Skip the normal list view entirely. Ensure the singleton row exists
+        # (seeding it with defaults on first visit), then redirect straight to
+        # its change/edit form so admins always land on the edit page.
         obj, _ = RemoteConfigEntry.objects.get_or_create(
             key=CHATBOT_WELCOME_MESSAGES,
             defaults={
