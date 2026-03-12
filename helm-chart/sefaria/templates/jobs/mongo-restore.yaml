@@ -20,7 +20,7 @@ spec:
       volumes:
         - name: shared-volume
           emptyDir:
-            sizeLimit: 60Gi
+            sizeLimit: 40Gi
         - name: script
           configMap:
             name: mongo-restore-{{ .Values.deployEnv }}
@@ -30,7 +30,7 @@ spec:
           image: google/cloud-sdk
           resources:
             requests:
-              ephemeral-storage: 60Gi
+              ephemeral-storage: 40Gi
           volumeMounts:
             - name: shared-volume
               mountPath: /storage
