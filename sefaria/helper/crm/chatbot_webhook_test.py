@@ -156,9 +156,9 @@ def test_webhook_rejects_get_with_400(mock_post, mock_capture):
 
 @patch("sefaria.helper.crm.tasks.send_chatbot_opt_in_webhook")
 def test_dispatch_celery_enabled_uses_apply_async(mock_task):
-    from reader.views import dispatch_chatbot_opt_in_webhook
+    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
 
-    with patch("sefaria.settings.CELERY_ENABLED", True):
+    with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", True):
         dispatch_chatbot_opt_in_webhook("user@example.com", True)
 
     mock_task.apply_async.assert_called_once()
@@ -166,18 +166,18 @@ def test_dispatch_celery_enabled_uses_apply_async(mock_task):
 
 @patch("sefaria.helper.crm.tasks.requests.post")
 def test_dispatch_celery_disabled_calls_synchronously(mock_post):
-    from reader.views import dispatch_chatbot_opt_in_webhook
+    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
 
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
 
-    with patch("sefaria.settings.CELERY_ENABLED", False):
+    with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", False):
         dispatch_chatbot_opt_in_webhook("user@example.com", True)
 
     mock_post.assert_called_once()
 
 
 def test_dispatch_empty_email_is_noop():
-    from reader.views import dispatch_chatbot_opt_in_webhook
+    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
 
     with patch("sefaria.helper.crm.tasks.requests.post") as mock_post:
         dispatch_chatbot_opt_in_webhook("", True)
@@ -228,7 +228,7 @@ def test_user_with_profile(test_user):
 @pytest.mark.django_db
 class TestExperimentsOptInWebhook:
 
-    @mock.patch("reader.views.dispatch_chatbot_opt_in_webhook")
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_opt_in_fires_webhook(self, mock_dispatch, client, test_user):
         client.login(email=test_user.email, password="testpass123")
 
@@ -237,7 +237,7 @@ class TestExperimentsOptInWebhook:
         assert response.status_code == 200
         mock_dispatch.assert_called_once_with(test_user.email, True)
 
-    @mock.patch("reader.views.dispatch_chatbot_opt_in_webhook")
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_repeated_opt_in_does_not_refire(self, mock_dispatch, client, test_user):
         client.login(email=test_user.email, password="testpass123")
 
@@ -258,7 +258,7 @@ class TestExperimentsOptInWebhook:
 @pytest.mark.django_db
 class TestProfileExperimentsToggleWebhook:
 
-    @mock.patch("reader.views.dispatch_chatbot_opt_in_webhook")
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_toggle_off_fires_webhook(self, mock_dispatch, client, test_user_with_profile):
         user = test_user_with_profile
         client.login(email=user.email, password="testpass123")
@@ -271,7 +271,7 @@ class TestProfileExperimentsToggleWebhook:
         assert response.status_code == 200
         mock_dispatch.assert_called_once_with(user.email, False)
 
-    @mock.patch("reader.views.dispatch_chatbot_opt_in_webhook")
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_same_value_does_not_fire_webhook(self, mock_dispatch, client, test_user_with_profile):
         user = test_user_with_profile
         client.login(email=user.email, password="testpass123")

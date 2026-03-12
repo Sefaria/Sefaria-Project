@@ -6,6 +6,8 @@ import sentry_sdk
 import structlog
 
 from sefaria.celery_setup.app import app
+from sefaria.celery_setup.config import CeleryQueue
+from sefaria.settings import CELERY_ENABLED
 
 logger = structlog.get_logger(__name__)
 
@@ -87,3 +89,19 @@ def extract_error_detail(exc: Exception) -> str:
         except (ValueError, AttributeError):
             return exc.response.text[:500]
     return str(exc)
+
+
+def dispatch_chatbot_opt_in_webhook(email: str, opt_in: bool) -> None:
+    """Fire the Salesforce webhook for a chatbot experiment opt-in/opt-out change."""
+    if not email:
+        return
+    if CELERY_ENABLED:
+        send_chatbot_opt_in_webhook.apply_async(
+            args=[email, opt_in],
+            queue=CeleryQueue.TASKS.value,
+        )
+    else:
+        try:
+            send_chatbot_opt_in_webhook(email, opt_in)
+        except Exception:
+            logger.warning("chatbot_opt_in_webhook_sync_failed", email=email, exc_info=True)

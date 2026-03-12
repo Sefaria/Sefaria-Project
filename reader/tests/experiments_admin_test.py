@@ -1,6 +1,7 @@
 import csv
 import io
 import uuid
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -49,6 +50,19 @@ class TestUserExperimentSettingsSync(TestCase):
         self.assertFalse(updated_profile.get("experiments"))
         self.assertEqual(db.profiles.count_documents({"id": self.user.id}), 1)
         self.assertEqual(UserExperimentSettings.objects.filter(user=self.user).count(), 1)
+
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
+    def test_set_user_experiments_fires_webhook_on_change(self, mock_dispatch):
+        _set_user_experiments(self.user, True)  # first call — created, fires
+        self.assertEqual(mock_dispatch.call_count, 1)
+        mock_dispatch.assert_called_with(self.user.email, True)
+
+        mock_dispatch.reset_mock()
+        _set_user_experiments(self.user, True)  # same value — no fire
+        mock_dispatch.assert_not_called()
+
+        _set_user_experiments(self.user, False)  # changed — fires
+        mock_dispatch.assert_called_once_with(self.user.email, False)
 
     # Keep compatibility with older test node IDs.
     def test_user_experiment_settings_admin_updates_profile_without_duplicates(self):
@@ -199,6 +213,17 @@ class TestUploadCsvView(TestCase):
         msgs = self._get_messages(request)
         warning_msgs = [m for m in msgs if m.level == 30]
         self.assertEqual(len(warning_msgs), 0)
+
+    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
+    def test_csv_upload_fires_webhook_for_each_user(self, mock_dispatch):
+        emails = [u.email for u in self.existing_users]
+        request = _build_post_request(self.admin_user, _make_csv_bytes(emails))
+
+        self.model_admin.upload_csv_view(request)
+
+        self.assertEqual(mock_dispatch.call_count, len(emails))
+        for u in self.existing_users:
+            mock_dispatch.assert_any_call(u.email, True)
 
     def test_case_insensitive_email_matching(self):
         user = self.existing_users[0]
