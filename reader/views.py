@@ -380,6 +380,10 @@ def user_credentials(request):
 
 
 def _reader_redirect_versions(request, tref, current_versions, normalized_versions):
+    """
+    Redirect to a URL with normalized version query params.
+    Replaces version params that have a normalized form and removes those that don't match any known version.
+    """
     query_params = QueryDict(request.GET.urlencode(), mutable=True)
     for version in current_versions:
         if version in normalized_versions:
