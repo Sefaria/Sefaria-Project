@@ -195,8 +195,6 @@ cronJobs:
     enabled: false
   topicsIndexing:
     enabled: false
-  trello:
-    enabled: false
   trends:
     enabled: false
   weeklyEmailNotifications:
