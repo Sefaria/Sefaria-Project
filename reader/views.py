@@ -73,6 +73,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
+from chatbot.models import get_chatbot_welcome_messages
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -359,8 +360,10 @@ def base_props(request):
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
+        "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
+        'chatbot_welcome_messages': get_chatbot_welcome_messages(),
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True

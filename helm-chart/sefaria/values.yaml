@@ -49,6 +49,7 @@ restore:
 backup:
   mongo:
     enabled: false
+    extraBackupEnabled: false
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup

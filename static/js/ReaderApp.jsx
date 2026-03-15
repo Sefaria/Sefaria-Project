@@ -2460,11 +2460,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
                   api-base-url={chatBotApiBaseUrl}
+                  origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
                   default-open="false"
                   placement="right"
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
+                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
+                  interface-lang={this.props.interfaceLang}
                 />
               )}
               </main>
