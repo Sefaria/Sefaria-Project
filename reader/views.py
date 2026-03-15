@@ -362,6 +362,7 @@ def base_props(request):
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS),
+        "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'chatbot_welcome_messages': get_chatbot_welcome_messages(),
     }
     if _is_user_in_experiment(request):

@@ -2457,6 +2457,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
                   api-base-url={chatBotApiBaseUrl}
+                  origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
                   default-open="false"
                   placement="right"
