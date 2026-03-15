@@ -2459,6 +2459,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
+                  is-staff={this.props.chatbot_is_sefaria_staff || undefined}
                   default-open="false"
                   placement="right"
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user

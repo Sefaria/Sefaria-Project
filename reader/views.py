@@ -355,12 +355,14 @@ def base_props(request):
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
     # Chatbot props (passed through base_props for ReaderApp)
+    is_sefaria_staff = user_data["is_moderator"] or user_data["_email"].endswith("@sefaria.org")
     chatbot_data = {
         "chatbot_user_token": None,
         "chatbot_enabled": False,
         "chatbot_api_base_url": CHATBOT_API_BASE_URL,
         "chatbot_version": chatbot_version,
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_is_sefaria_staff": is_sefaria_staff,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
         'chatbot_welcome_messages': get_chatbot_welcome_messages(),
     }
