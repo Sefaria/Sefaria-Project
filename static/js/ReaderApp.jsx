@@ -2458,7 +2458,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   user-id={this.props.chatbot_user_token}
                   api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
-                  is-moderator={this.props.is_moderator || undefined}
                   is-staff={this.props.chatbot_is_sefaria_staff || undefined}
                   default-open="false"
                   placement="right"
