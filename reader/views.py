@@ -72,7 +72,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
-from reader.models import user_has_experiments, UserExperimentSettings
+from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from chatbot.models import get_chatbot_welcome_messages
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -3892,6 +3892,8 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            if "experiments" in profileUpdate:
+                _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3907,10 +3909,7 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": "Unsupported HTTP method."})
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
-    user_settings, _ = UserExperimentSettings.objects.get_or_create(user=request.user)
-    if not user_settings.experiments:
-        user_settings.experiments = True
-        user_settings.save(update_fields=["experiments"])
+    _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
 
 
