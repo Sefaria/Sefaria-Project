@@ -36,7 +36,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* timeout for each test */
-  timeout: t(200000),
+  timeout: t(100000),
 
   /* timeout for each expect */
   expect: {
@@ -112,7 +112,7 @@ export default defineConfig({
     // Library-specific tests
     {
       name: 'chrome-library',
-      testDir: './e2e-tests/library-specific',
+      testDir: './e2e-tests/library',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -121,7 +121,7 @@ export default defineConfig({
     // Voices-specific tests
     {
       name: 'chrome-voices',
-      testDir: './e2e-tests/voices-specific',
+      testDir: './e2e-tests/voices',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -147,7 +147,7 @@ export default defineConfig({
     // Firefox - Library-specific modularization tests
     {
       name: 'firefox-library',
-      testDir: './e2e-tests/library-specific',
+      testDir: './e2e-tests/library',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -156,7 +156,7 @@ export default defineConfig({
     // Firefox - Voices-specific modularization tests
     {
       name: 'firefox-voices',
-      testDir: './e2e-tests/voices-specific',
+      testDir: './e2e-tests/voices',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -183,7 +183,7 @@ export default defineConfig({
     // Safari - Library-specific modularization tests
     {
       name: 'safari-library',
-      testDir: './e2e-tests/library-specific',
+      testDir: './e2e-tests/library',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -192,7 +192,7 @@ export default defineConfig({
     // Safari - Voices-specific modularization tests
     {
       name: 'safari-voices',
-      testDir: './e2e-tests/voices-specific',
+      testDir: './e2e-tests/voices',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,

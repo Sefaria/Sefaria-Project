@@ -145,7 +145,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     } catch (e) { console.log(e); }
   }
   // await page.evaluate(() => {
-  //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
+  //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2, [id^="interruptingMessage"], [class*="genericBanner"]');
   //   overlays.forEach(el => el.remove());
   // }).catch(() => { });
   await page.waitForTimeout(t(300));
@@ -273,6 +273,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     await page.context().addCookies(storageState.cookies);
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await hideAllModalsAndPopups(page);
   } else {
     const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
@@ -281,9 +282,9 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     }
     await page.context().addCookies(storageCookies);
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await hideAllModalsAndPopups(page);
   }
 
-  //await hideAllModalsAndPopups(page);
   await hideAllModalsAndPopups(page);
   return page
 }
