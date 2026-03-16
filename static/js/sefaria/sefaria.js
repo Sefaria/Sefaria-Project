@@ -3497,6 +3497,14 @@ _media: {},
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
   },
+  updateCalendars: function(custom, diaspora) {
+    return Sefaria._ApiPromise(`/api/calendars?custom=${custom}&diaspora=${diaspora}`)
+      .then(data => {
+        if (data.calendar_items) {
+          Sefaria.calendars = data.calendar_items;
+        }
+      });
+  },
   _translateTerms: {},
   _cacheHebrewTerms: function(terms) {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);

@@ -4239,6 +4239,7 @@ def account_settings(request):
         'experiments_available': experiments_available,
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
+        'diaspora': request.diaspora,
         "renderStatic": True
     })
 

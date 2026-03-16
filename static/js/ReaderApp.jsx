@@ -206,7 +206,8 @@ class ReaderApp extends Component {
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
-    
+    document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
@@ -239,6 +240,7 @@ class ReaderApp extends Component {
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
+    document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1171,6 +1173,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!url) { return; }
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
+  }
+  handleSettingsUpdatedEvent(event) {
+    const detail = event?.detail;
+    if (!detail) return;
+    if (detail.translationLanguagePreference !== undefined) {
+      this.setState({ translationLanguagePreference: detail.translationLanguagePreference });
+    }
+    if (detail.readingHistory !== undefined) {
+      Sefaria.is_history_enabled = detail.readingHistory;
+    }
+    if (detail.experiments !== undefined) {
+      Sefaria.experiments = detail.experiments;
+    }
+    if (detail.textualCustom !== undefined) {
+      Sefaria.updateCalendars(detail.textualCustom, detail.diaspora);
+    }
   }
   _getPathAndRefFromUrl(href) {
     let url;
