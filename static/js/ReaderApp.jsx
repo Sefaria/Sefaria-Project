@@ -1183,9 +1183,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (detail.readingHistory !== undefined) {
       Sefaria.is_history_enabled = detail.readingHistory;
     }
-    if (detail.experiments !== undefined) {
-      Sefaria.experiments = detail.experiments;
-    }
     if (detail.textualCustom !== undefined) {
       Sefaria.updateCalendars(detail.textualCustom, detail.diaspora);
     }
