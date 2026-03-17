@@ -39,6 +39,7 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { ChatbotExperimentBanner } from './SiteWideBanner';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -2436,6 +2437,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && Sefaria.interfaceLang === "english" && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2449,6 +2451,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
+              {showChatbotBanner && <ChatbotExperimentBanner />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}

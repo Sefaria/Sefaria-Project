@@ -128,8 +128,13 @@ def _chatbot_script_url_and_type(chatbot_version):
         )
     if settings.CHATBOT_USE_LOCAL_SCRIPT:
         return ("http://localhost:5173/src/main.js", "module")
+    
+    if settings.CHATBOT_API_BASE_URL:
+        chatbot_base = settings.CHATBOT_API_BASE_URL.replace("/api", "")
+    else:
+        chatbot_base = "https://chat-dev.sefaria.org"
     return (
-        "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
+        f"{chatbot_base}/static/js/lc-chatbot.umd.cjs",
         None,
     )
 

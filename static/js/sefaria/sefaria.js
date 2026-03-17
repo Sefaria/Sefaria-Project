@@ -911,9 +911,9 @@ Sefaria = extend(Sefaria, {
   postRefTopicLink: function(refInUrl, payload) {
       const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
       // payload will need to be refactored once /api/ref-topic-links takes a more standard input
-      return Sefaria.adminEditorApiRequest(url, null, payload);
+      return Sefaria.apiRequestWithBodyAndAlert(url, null, payload);
   },
-  adminEditorApiRequest: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBodyAndAlert: async function(url, urlParams, payload, method="POST") {
       /**
        * Wraps apiRequestWithBody() with basic alerting if response has an error
        */
@@ -2746,6 +2746,9 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
+  experimentsOptInAPI: () => {
+    return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
+  },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
@@ -3851,6 +3854,7 @@ Sefaria.unpackBaseProps = function(props){
       "_debug_mode",
       "remoteConfig",
       "chatbot_enabled",
+      "in_chatbot_experiment",
       "chatbot_user_token",
       "chatbot_api_base_url",
       "chatbot_version",
