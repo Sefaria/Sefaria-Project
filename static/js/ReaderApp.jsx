@@ -2463,6 +2463,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
                   placement="right"
+                  default-open={true}
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                   welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
