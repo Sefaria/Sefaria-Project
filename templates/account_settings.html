@@ -255,10 +255,9 @@
 						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
-							window.location = `/interface/${$newLang}?next=${encodeURIComponent(window.location.pathname)}`;
-							return;
-                        }
-						if (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments) {  // experiments toggle only exists for whitelisted users; reload needed for fresh chatbot_user_token
+						}
+						// Interface language or experiments changed → reload (interface language affects RTL/LTR and server-rendered content; experiments needs fresh chatbot_user_token)
+						if ($newLang != $curLang || (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments)) {
 							window.location.reload();
 							return;
 						}
