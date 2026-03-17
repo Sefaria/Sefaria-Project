@@ -364,13 +364,13 @@ def base_props(request):
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
-        'chatbot_welcome_messages': get_chatbot_welcome_messages(),
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
         if _is_user_in_experiment(request):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
+            chatbot_data["chatbot_welcome_messages"] = get_chatbot_welcome_messages()
     user_data.update(chatbot_data)
     return user_data
 
