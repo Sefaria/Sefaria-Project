@@ -76,6 +76,7 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
+SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
@@ -121,6 +122,7 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sefaria.system.middleware.SessionIDAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'sefaria.system.middleware.ModuleMiddleware',
