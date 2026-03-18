@@ -1175,15 +1175,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } catch {
       return;
     }
-    const decodedPath = decodeURI(parsedUrl.pathname);
-    const sheetPathMatch = decodedPath.match(/^\/sheets\/[^\/?#]+/);
-    if (sheetPathMatch) {
-      const sheetUrl = new URL(sheetPathMatch[0], window.location.origin);
-      sheetUrl.search = parsedUrl.search;
-      sheetUrl.hash = parsedUrl.hash;
-      window.open(sheetUrl.toString(), "_blank");
-      return;
-    }
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
   }
