@@ -203,6 +203,8 @@
 
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
+		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
+		    const $curExperiments = $("#experimentsSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
@@ -251,12 +253,28 @@
 						alert(Sefaria._("Settings Saved"));
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
 						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
-						if($newLang != $curLang){
+						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
-                        }
+						}
+						// Interface language or experiments changed → reload (interface language affects RTL/LTR and server-rendered content; experiments needs fresh chatbot_user_token)
+						if ($newLang != $curLang || (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments)) {
+							window.location.reload();
+							return;
+						}
 						if ($newTransLangPref !== "{{ translation_language_preference }}") {
                             Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
+						const detail = {
+							translationLanguagePreference: profile.settings.translation_language_preference,
+							readingHistory: profile.settings.reading_history,
+						};
+						const newTextualCustom = profile.settings.textual_custom;
+						if (newTextualCustom !== $curTextualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
+							detail.textualCustom = newTextualCustom;
+							detail.diaspora = "{% if diaspora %}1{% else %}0{% endif %}";
+							$curTextualCustom = newTextualCustom;
+						}
+						document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
 					}
 				});
 			});
