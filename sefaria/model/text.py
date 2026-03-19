@@ -4656,6 +4656,17 @@ class Ref(object, metaclass=RefCacheType):
     def normal_toSections(self, lang="en"):
         return [self.normal_section(i, lang, 'toSections') for i in range(len(self.toSections))]
 
+    def ref_parts(self):
+        """
+        Returns a list of strings representing the ref's node titles and sections.
+        e.g. Ref("Siddur Ashkenaz, Weekday, Shacharit, Post Service, Six Remembrances 3").ref_parts() ->
+             ["Siddur Ashkenaz", "Weekday", "Shacharit", "Post Service", "Six Remembrances", "3"]
+        """
+        nodes = self.index_node.ancestors() + [self.index_node]
+        parts = [node.get_primary_title() for node in nodes if not node.is_default()]
+        parts += self.normal_sections()
+        return parts
+
     def normal_section(self, section_index, lang='en', attr='sections', **kwargs):
         sections = getattr(self, attr)
         assert len(sections) > section_index
