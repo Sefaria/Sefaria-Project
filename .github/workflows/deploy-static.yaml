@@ -203,6 +203,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
       - name: Setup git
         run: |
           git config user.name "$GITHUB_ACTOR"
