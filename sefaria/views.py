@@ -63,6 +63,7 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
@@ -488,7 +489,7 @@ def async_task_status_api(request, task_id: str):
 @api_view(["GET"])
 def websites_api(request, domain):
     cb = request.GET.get("callback", None)
-    domain = WebPage.normalize_url(domain)
+    domain = normalize_webpage_url(domain)
     website = WebSite().load({"domains": domain})
     if website is None:
         return jsonResponse({"error": f"no website found with domain: '{domain}'"})
@@ -504,7 +505,7 @@ def linker_data_api(request, titles):
             res["error"] = title_regex.pop("error")
         res["regexes"] = title_regex
         url = request.GET.get("url", "")
-        domain = WebPage.domain_for_url(WebPage.normalize_url(url))
+        domain = webpage_domain_for_url(normalize_webpage_url(url))
 
         website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
                                                          # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py

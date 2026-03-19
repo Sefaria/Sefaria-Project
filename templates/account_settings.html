@@ -105,6 +105,24 @@
 		</div>
 	</div>
 	{% endif %}
+    {% if experiments_available %}
+    <div id="experimentsSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">Experiments</span>
+			<span class="int-he">ניסויים</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="experiments" data-value=true class="toggleOption {% if profile.experiments %} on{% endif %}" tabindex="{% if profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-name="experiments" data-value=false class="toggleOption {% if not profile.experiments %} on{% endif %}" tabindex="{% if not profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if not profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+    {% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
@@ -185,6 +203,8 @@
 
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
+		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
+		    const $curExperiments = $("#experimentsSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
@@ -220,6 +240,10 @@
                         translation_language_preference_suggested: true,
                     }
 				};
+                const $experimentsToggle = $("#experimentsSetting .toggleOption.on");
+                if ($experimentsToggle.length) {
+                    profile.experiments = $experimentsToggle.attr("data-value") === "true";
+                }
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
                 $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
                 $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
@@ -229,12 +253,28 @@
 						alert(Sefaria._("Settings Saved"));
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
 						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
-						if($newLang != $curLang){
+						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
-                        }
+						}
+						// Interface language or experiments changed → reload (interface language affects RTL/LTR and server-rendered content; experiments needs fresh chatbot_user_token)
+						if ($newLang != $curLang || (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments)) {
+							window.location.reload();
+							return;
+						}
 						if ($newTransLangPref !== "{{ translation_language_preference }}") {
                             Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
+						const detail = {
+							translationLanguagePreference: profile.settings.translation_language_preference,
+							readingHistory: profile.settings.reading_history,
+						};
+						const newTextualCustom = profile.settings.textual_custom;
+						if (newTextualCustom !== $curTextualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
+							detail.textualCustom = newTextualCustom;
+							detail.diaspora = "{% if diaspora %}1{% else %}0{% endif %}";
+							$curTextualCustom = newTextualCustom;
+						}
+						document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
 					}
 				});
 			});

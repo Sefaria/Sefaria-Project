@@ -19,6 +19,9 @@ import re
 import uuid
 from dataclasses import asdict
 
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, SHOW_JOIN_CHATBOT_BANNER
+from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
@@ -56,18 +59,21 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
+    CHATBOT_API_BASE_URL
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
+from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
+from chatbot.models import get_chatbot_welcome_messages
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -75,7 +81,8 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
-    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
+    get_author_indexes
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -84,6 +91,7 @@ import sefaria.tracker as tracker
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
+from sefaria.utils.chatbot import build_chatbot_user_token
 from PIL import Image
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
@@ -282,6 +290,7 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
+            "experiments": profile.experiments,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -303,6 +312,7 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
+            "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -341,6 +351,26 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
     })
+    chatbot_version = request.session.get("chatbot_version")
+    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+
+    # Chatbot props (passed through base_props for ReaderApp)
+    chatbot_data = {
+        "chatbot_user_token": None,
+        "chatbot_enabled": False,
+        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_version": chatbot_version,
+        "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=500),
+        'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
+        'chatbot_welcome_messages': get_chatbot_welcome_messages(),
+    }
+    if user_has_experiments(request.user):
+        chatbot_data["in_chatbot_experiment"] = True
+        if _is_user_in_experiment(request):
+            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            chatbot_data["chatbot_enabled"] = True
+    user_data.update(chatbot_data)
     return user_data
 
 
@@ -3306,6 +3336,22 @@ def topics_list_api(request):
     return response
 
 
+@catch_error_as_json
+def author_indexes_api(request, author_slug):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
+    include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
+    include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
+    response = get_author_indexes(
+        author_slug,
+        include_aggregations=include_aggregations,
+        include_descriptions=include_descriptions,
+    )
+    if response is None:
+        return jsonResponse({"error": f"Author slug '{author_slug}' does not exist"}, status=404)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 @staff_member_required
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
@@ -3824,6 +3870,8 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        if "experiments" in profileUpdate and not user_has_experiments(request.user):
+            profileUpdate.pop("experiments", None)
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -3834,9 +3882,25 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            if "experiments" in profileUpdate:
+                _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def experiments_opt_in_api(request):
+    """
+    API endpoint for users to self-enroll in the experiments whitelist.
+    This enables the experiments toggle in their settings menu.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to join experiments.")})
+    _set_user_experiments(request.user, True)
+    return jsonResponse({"status": "ok"})
 
 
 @login_required
@@ -4158,11 +4222,14 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
+        'experiments_available': experiments_available,
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
+        'diaspora': request.diaspora,
         "renderStatic": True
     })
 
