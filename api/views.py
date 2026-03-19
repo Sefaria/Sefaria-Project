@@ -80,7 +80,7 @@ class RefView(View):
             return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self):
+    def get(self, request, *args, **kwargs):
         oref = self.oref
         index = oref.index
         index_node = oref.index_node
@@ -120,4 +120,4 @@ class RefView(View):
             return_object['lexicon_name'] = lexicon_entry.parent_lexicon
             return_object['headword'] = lexicon_entry.headword
 
-        return return_object
+        return jsonResponse(return_object)
