@@ -1737,14 +1737,10 @@ def version_bulk_edit_api(request):
 
     try:
         version_title = data["versionTitle"]
-        language = data["language"]
         indices = data["indices"]
         updates = data["updates"]
     except KeyError as e:
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
-
-    if language not in ("en", "he"):
-        return jsonResponse({"error": "language must be 'en' or 'he'"}, status=400)
 
     if not indices:
         return jsonResponse({"error": "indices may not be empty"}, status=400)
@@ -1768,10 +1764,10 @@ def version_bulk_edit_api(request):
 
     for index_title in indices:
         try:
+            # title + versionTitle uniquely identifies a version (pkeys in Version model)
             version = Version().load({
                 "title": index_title,
                 "versionTitle": version_title,
-                "language": language,
             })
             if not version:
                 failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
