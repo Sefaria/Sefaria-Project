@@ -7,9 +7,6 @@ on:
       - synchronize
       - ready_for_review
   merge_group:
-  push:
-    branches:
-      - master
 
 concurrency:
   group: ${{ github.ref }}
