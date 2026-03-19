@@ -22,6 +22,7 @@ jobs:
   # Since the build strategy is now a push instead of a pull, all images could live in a single registry, at which point this action would use cache and effectively just perform a tag
   workflow-check:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref_name, '-') || inputs.version != '' }}
     outputs:
       ref: ${{ steps.check.outputs.ref }}
     steps:
