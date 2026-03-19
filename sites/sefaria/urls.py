@@ -10,7 +10,6 @@ from sites.sefaria.site_settings import SITE_SETTINGS
 static_pages = [
     "strategy",
     "supporters",
-    "connect",
     "visualizations",
     "jobs",
     "terms",
@@ -99,6 +98,7 @@ site_urlpatterns += [
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
     url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
     url(r'^rabbis/?$', lambda x: HttpResponseRedirect('/educators')),
+    url(r'^connect/?$', lambda x: HttpResponseRedirect('/newsletter')),
 ]
 
 

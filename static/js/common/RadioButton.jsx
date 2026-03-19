@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import {InterfaceText} from "../Misc";
 import Util from "../sefaria/util";
 
-export default function RadioButton  ({isActive, onClick, value, name, label, id, onKeyDown, ...rest}) {
+export default function RadioButton({isActive, onClick, value, name, label, id, onKeyDown, ...rest}) {
 
     const handleChange = (e) => {
         e.stopPropagation();
@@ -19,10 +19,8 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
     };
 
     return (
-        <div className='button'>
-            <label htmlFor={id}>
-                <InterfaceText>{label}</InterfaceText>
-            </label>
+        <label className='button'>
+            <InterfaceText>{label}</InterfaceText>
             <input
                 type='radio'
                 id={id}
@@ -33,7 +31,7 @@ export default function RadioButton  ({isActive, onClick, value, name, label, id
                 onKeyDown={handleKeyDown}
                 {...rest}
             />
-        </div>
+        </label>
     );
 }
 RadioButton.propTypes = {

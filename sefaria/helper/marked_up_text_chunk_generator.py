@@ -3,7 +3,6 @@ from typing import Optional
 
 import structlog
 from sefaria.model.text import Ref, TextChunk, Version
-from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
 logger = structlog.get_logger(__name__)
@@ -65,6 +64,7 @@ class MarkedUpTextChunkGenerator:
     ##  Private methods:
 
     def _create_and_save_marked_up_text_chunk(self, segment_ref: Ref, vtitle: str, lang: str, text: str) -> None:
+        from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
         kwargs = dict(self.kwargs)
         linking_args = LinkingArgs(ref=segment_ref.normal(), text=text,
                                    lang=lang, vtitle=vtitle,

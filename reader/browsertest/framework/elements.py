@@ -529,17 +529,6 @@ class SefariaTest(AbstractTest):
         slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
         return self.get_element(slctr)
 
-    def type_in_mailing_list_email(self, str):
-        self.type_in_text_box_by_id('mailingListEmail', str)
-
-    def type_in_text_box_by_id(self, obj_id, txt_to_type):
-        WebDriverWait(self.driver, TEMPER).until(
-            element_to_be_clickable((By.CSS_SELECTOR, "#" + obj_id))
-        )
-        txt_box = self.driver.find_element_by_css_selector("#" + obj_id)
-        txt_box.clear()
-        txt_box.send_keys(txt_to_type)
-
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
         try:
             # if logged out, first click to open dropdown
