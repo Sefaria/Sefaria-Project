@@ -1,15 +1,15 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: preprod
-  namespace: preprod
+  name: production
+  namespace: default
 spec:
   interval: 5m
   timeout: 30m
   chart:
     spec:
       chart: sefaria
-      version: "0.76.4"
+      version: "0.0.0"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -17,7 +17,7 @@ spec:
   values:
     sandbox: "false"
     contentSandbox: "false"
-    deployEnv: preprod
+    deployEnv: production
     previousServicesCount: "3"
     deploymentMessage: true
     restore:
@@ -26,25 +26,25 @@ spec:
       cleanup: false
     backup:
       mongo:
-        enabled: false
+        enabled: true
         prefix: ""
         public: true
         bucket: sefaria-mongo-backup
         archiveBucket: sefaria-mongo-archive
         serviceAccount: database-backup-write
       postgres:
-        enabled: false
+        enabled: true
         version: 10.3
         prefix: ""
         bucket: sefaria-user-backup
         serviceAccount: database-backup-write
       sitemaps:
-        enabled: false
+        enabled: true
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.73.0-preprod.6"
-      replicaCount: 2
+        tag: "0.0.0"
+      replicaCount: 7
       resources:
         web:
           gunicornWorkerCount: 5
@@ -79,8 +79,8 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.73.0-preprod.6"
-      replicaCount: 1
+        tag: "0.0.0"
+      replicaCount: 4
       resources:
         requests:
           memory: "1Gi"
@@ -116,12 +116,12 @@ spec:
       enabled: true
       resources:
         requests:
-          memory: "1Gi"
+          memory: "3Gi"
           cpu: "500m"
         limits:
           memory: "6Gi"
           cpu: "1000m"
-      replicaCount: 1
+      replicaCount: 6
       redis:
         url: ""
         port: "26379"
@@ -138,13 +138,13 @@ spec:
         llm: llm-llm
     domains:
       root:
-        - url: "sefariapreprod.org"
-          cert: "sefariapreprod-tls"
+        - url: "sefaria.org"
+          cert: "origin-tls-prod2"
           language: english
           code:
             - en
-        - url: "sefariapreprod-il.org"
-          cert: "sefariapreprod-il-tls"
+        - url: "sefaria.org.il"
+          cert: "origin-il-tls-prod2"
           language: hebrew
           code:
             - he
@@ -157,20 +157,24 @@ spec:
             - sheets
             - collections
             - profile
-    ingress:
-      enabled: true
     gateway:
+      enabled: true
+      alpnProtocols:
+        - h2
+        - http/1.1
+      annotations: {}
+    ingress:
       enabled: true
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.73.0-preprod.6"
+        tag: "0.0.0"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
       SEARCH_SSL_ENABLE: false
       disableScraping: false
-      replicaCount: 1
+      replicaCount: 2
       resources:
         requests:
           memory: "200Mi"
@@ -181,7 +185,7 @@ spec:
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.73.0-preprod.6"
+        tag: "0.0.0"
       replicaCount: 1
       resources:
         requests:
@@ -192,27 +196,27 @@ spec:
           cpu: "100m"
     cronJobs:
       regenerate:
-        enabled: false
+        enabled: true
       dailyEmailNotifications:
-        enabled: false
+        enabled: true
       indexFromQueue:
-        enabled: false
+        enabled: true
       metrics:
-        enabled: false
+        enabled: true
       nationBuilderSync:
         enabled: false
       rambiWebpagesWeekly:
-        enabled: false
+        enabled: true
       reindexElasticSearch:
-        enabled: false
+        enabled: true
       topicsIndexing:
-        enabled: false
+        enabled: true
       trello:
-        enabled: false
+        enabled: true
       trends:
-        enabled: false
+        enabled: true
       weeklyEmailNotifications:
-        enabled: false
+        enabled: true
     secrets:
       localSettings:
         ref: local-settings-secrets-production
@@ -225,15 +229,12 @@ spec:
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"
       jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
     localSettings:
-      DEBUG: true
+      DEBUG: false
       OFFLINE: false
-      DOMAIN_LANGUAGE:
-        "https://www.sefaria.org": "english"
-        "https://www.sefaria.org.il": "hebrew"
       MONGO_HOST: "mongo"
-      APSCHEDULER_NAME: "apscheduler-preprod"
+      APSCHEDULER_NAME: "apscheduler-production"
       USE_CLOUDFLARE: false
-      FRONT_END_URL: "https://www.sefariapreprod.org"
+      FRONT_END_URL: "http://www.sefaria.org"
       DOWN_FOR_MAINTENANCE: false
       MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
       GLOBAL_WARNING: false
@@ -244,3 +245,10 @@ spec:
       MULTISERVER_ENABLED: "True"
       CRM_TYPE: "SALESFORCE"
       FAIL_GRACEFULLY: "True"
+      SESSION_COOKIE_DOMAIN: ".sefaria.org"
+      SESSION_COOKIE_SECURE: true
+      SESSION_COOKIE_HTTPONLY: true
+      SESSION_COOKIE_SAMESITE: "Lax"
+      CSRF_COOKIE_SECURE: true
+      CSRF_COOKIE_HTTPONLY: false
+      CSRF_COOKIE_SAMESITE: "Lax"

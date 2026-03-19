@@ -2,7 +2,7 @@ name: Deploy Static Environment
 
 on:
   push:
-    branches: [preprod]
+    branches: [master, preprod, prod]
 
 concurrency:
   group: deploy-${{ github.ref_name }}
@@ -24,7 +24,9 @@ jobs:
         id: env
         run: |
           declare -A branch_to_env=(
+            ["master"]="staging"
             ["preprod"]="preprod"
+            ["prod"]="prod"
           )
 
           branch="${GITHUB_REF_NAME}"
