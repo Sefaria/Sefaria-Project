@@ -34,7 +34,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.heRef}</a>
+              <a href={Sefaria.util.fullURL("/" + Sefaria.normRef(this.props.source.ref), Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.heRef}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
@@ -43,7 +43,7 @@ class SheetSource extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="ref">
               {this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}
-              <a href={"/" + Sefaria.normRef(this.props.source.ref)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.ref}</a>
+              <a href={Sefaria.util.fullURL("/" + Sefaria.normRef(this.props.source.ref), Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE}>{this.props.source.ref}</a>
             </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
@@ -207,19 +207,24 @@ class SheetMedia extends Component {
     var caption  = this.props.source.caption;
     let parsedUrl
     if (mediaURL) {
-      parsedUrl = new URL(mediaURL);
+      try {
+        const urlStr = mediaURL.startsWith('//') ? 'https:' + mediaURL : mediaURL;
+        parsedUrl = new URL(urlStr);
+      } catch(e) {
+        // invalid URL, parsedUrl remains undefined
+      }
     }
 
     if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" alt="' + Sefaria._("User uploaded image") + '" />';
     }
-    else if (mediaURL.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
+    else if (mediaURL.match(/(?:https?:)?\/\/(?:www\.)?youtube\.com\/embed\/.+/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
-    else if (mediaURL.toLowerCase().match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
+    else if (mediaURL.toLowerCase().match(/(?:https?:)?\/\/player\.vimeo\.com\/.*/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
     }
-    else if (mediaURL.match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
+    else if (mediaURL.match(/(?:https?:)?\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }
     else if (parsedUrl && parsedUrl.hostname.includes("spotify.com")) {

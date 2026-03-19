@@ -112,7 +112,7 @@
     {% autoescape off %}
       var JSON_PROPS = {{ JSON_PROPS }}
       var DJANGO_VARS = {
-            static_url: {{ STATIC_PREFIX }},
+            static_url: "{{ STATIC_PREFIX }}",
             props:    {{ propsJSON|default:"null" }},
 
         };

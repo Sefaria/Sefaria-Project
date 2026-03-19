@@ -15,6 +15,19 @@ import google_auth_oauthlib.flow
 
 from sefaria import settings
 
+# Error codes for OAuth failures - used to communicate specific errors to frontend
+GAUTH_ERROR_CODES = ['access_denied', 'invalid_grant', 'scope_mismatch']
+
+def _redirect_with_error(next_view, error_code):
+    """
+    Redirect to next_view with gauth_error appended to the URL fragment.
+    This keeps the error in the client-side state alongside afterLoading.
+    
+    """
+    separator = '&' if '#' in next_view else '#'
+    redirect_url = f"{next_view}{separator}gauth_error={error_code}"
+    return redirect(redirect_url)
+
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
@@ -26,8 +39,6 @@ def index(request):
     """
     Step 1 of Google OAuth 2.0 flow.
     """
-    # get authorization url
-
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scopes=request.session.get('gauth_scope', '')
@@ -46,7 +57,6 @@ def index(request):
     except KeyError:
         pass
 
-
     return redirect(authorization_url)
 
 @login_required
@@ -54,6 +64,11 @@ def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
     """
+    # Check for OAuth errors from Google (e.g., user denied access)
+    oauth_error = request.GET.get('error', None)
+    if oauth_error and oauth_error in GAUTH_ERROR_CODES:
+        return _redirect_with_error(request.session.get('next_view', '/'), oauth_error)
+
     state = request.GET.get('state', None)
 
     if not state:
@@ -68,11 +83,15 @@ def auth_return(request):
     redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
     flow.redirect_uri = redirect_url
 
-    # flow.redirect_uri = request.session.get('next_view', '/')
-
     authorization_response = request.build_absolute_uri().replace("http:", "https:")
-    flow.fetch_token(authorization_response=authorization_response)
-    credentials = flow.credentials
+        
+    try:
+        flow.fetch_token(authorization_response=authorization_response)
+        credentials = flow.credentials
+    except Warning as e:
+        # oauthlib raises Warning when scope changes (user didn't grant all requested scopes)
+        next_view = request.session.get('next_view', '/')
+        return _redirect_with_error(next_view, 'scope_mismatch')
 
     credentials_dict = {
         'token': credentials.token,
@@ -92,7 +111,5 @@ def auth_return(request):
 
     profile.update({"gauth_token": credentials_dict})
     profile.save()
-
-    # return credentials
 
     return redirect(request.session.get('next_view', '/'))
