@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.77.2-prod.1"
+      version: "0.77.2-prod.2"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
