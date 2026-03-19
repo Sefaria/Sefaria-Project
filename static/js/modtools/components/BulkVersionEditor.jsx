@@ -51,8 +51,8 @@ const HELP_CONTENT = (
 
     <h3>Available Fields</h3>
     <p>
-      <strong>Note:</strong> The version title you searched for is used to identify which versions to update.
-      To rename a version, edit it individually (not in bulk).
+      <strong>Note:</strong> The <code>versionTitle</code> field serves as a database identifier for versions
+      and cannot be edited in bulk. To rename a version title, edit versions individually.
     </p>
     <table className="field-table">
       <thead>
@@ -92,8 +92,12 @@ const HELP_CONTENT = (
     <h3>Mark for Deletion</h3>
     <p>
       The "Mark for Deletion" button does NOT immediately delete versions. Instead, it adds
-      a timestamped note to <code>versionNotes</code> flagging the version for manual review.
+      a timestamped "[MARKED FOR DELETION]" note to <code>versionNotes</code>, flagging them for review.
       This is a safety mechanism to prevent accidental data loss.
+    </p>
+    <p>
+      To complete the deletion after marking, contact a developer who can query the database
+      for versions with this note and remove them after verification.
     </p>
 
     <div className="warning">
@@ -406,7 +410,7 @@ const BulkVersionEditor = () => {
 
     await performBulkEdit(
       { versionNotes: deletionNote },
-      (successCount) => `Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`,
+      (successCount) => `Marked ${successCount} versions for deletion review. A timestamped "[MARKED FOR DELETION]" note has been added to their versionNotes. To complete the deletion, contact a developer to query for and remove these versions from the database.`,
       (successCount, total, failureList) => `Marked ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
       (failureCount, failureList) => `All ${failureCount} versions failed to be marked for deletion:\n${failureList}`
     );
