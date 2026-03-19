@@ -10,6 +10,7 @@ restore:
 backup:
   mongo:
     enabled: true
+    extraBackupEnabled: true
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
@@ -99,7 +100,7 @@ tasks:
   enabled: true
   resources:
     requests:
-      memory: "1Gi"
+      memory: "3Gi"
       cpu: "500m"
     limits:
       memory: "6Gi"
@@ -140,6 +141,14 @@ domains:
         - sheets
         - collections
         - profile
+ingress:
+  enabled: true
+gateway:
+  enabled: true
+  alpnProtocols:
+    - h2
+    - http/1.1
+  annotations: {}
 nginx:
   containerImage:
     imageRegistry:
@@ -186,8 +195,6 @@ cronJobs:
   reindexElasticSearch:
     enabled: true
   topicsIndexing:
-    enabled: true
-  trello:
     enabled: true
   trends:
     enabled: true

@@ -200,7 +200,7 @@ class ReaderPanel extends Component {
      * depending on whether we're in multi-panel mode
      */
     if (this.props.multiPanel) {
-      this.props.openConnectionsPanel(ref, null, additionalState);
+      this.props.openConnectionsPanel(ref, additionalState);
     } else {
       this.openConnectionsInPanel(ref, additionalState);
     }

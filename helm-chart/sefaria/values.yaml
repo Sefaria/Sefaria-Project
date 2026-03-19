@@ -49,6 +49,7 @@ restore:
 backup:
   mongo:
     enabled: false
+    extraBackupEnabled: false
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
@@ -265,6 +266,17 @@ domains:
         - sheets
         - collections
         - profile
+
+ingress:
+  enabled: true
+
+gateway:
+  enabled: false
+  className: envoy
+  alpnProtocols:
+    - http/1.1
+  annotations:
+    cert-manager.io/cluster-issuer: ingress-ca
 
 nginx:
   containerImage:

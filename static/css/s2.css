@@ -252,6 +252,15 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
   z-index: 1000;
   height: 60px;
 }
+
+/* lc-chatbot docked mode conflicts with readerApp so pointer-events are disabled for the readerApp and enabled for the main content */
+#s2.headerOnly .readerApp {
+  pointer-events: none;
+}
+#s2.headerOnly .readerApp > *:not(#main), #s2.headerOnly #main lc-chatbot {
+  pointer-events: auto;
+}
+
 #readerAppWrap {
   display: flex;
   flex-direction: column;
@@ -338,14 +347,92 @@ body.hasBannerMessage #s2.headerOnly {
     font-size: 13px;
   }
 }
+.siteWideBanner {
+  height: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  margin-top: 60px;
+  transition: .5s;
+  padding: 10px;
+  border-bottom: 1px solid lightgrey;
+  background-color: #f7f7f7;
+}
+.siteWideBanner.hidden {
+  height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  padding: 0;
+}
+.interface-hebrew .siteWideBanner {
+  direction: rtl;
+}
+.siteWideBanner .siteWideBannerContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  color: black;
+  border: 1px solid #d2dcff;
+  border-radius: 10px;
+  padding: 20px;
+  background: #f0f7ff;
+}
+.siteWideBanner .siteWideBannerTextBox {
+  flex: 1;
+}
+.siteWideBanner .bannerMainText {
+  font-weight: 600;
+}
+.siteWideBanner .bannerSecondaryText {
+  display: block;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+.siteWideBanner .siteWideBannerButtonBox {
+  display: flex;
+  gap: 20px;
+  margin-inline-start: 50px;
+}
+.siteWideBanner .siteWideBannerClose {
+  margin-inline-start: 70px;
+  color: black;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.siteWideBanner .bannerLearnMore {
+  margin-inline-start: 20px;
+  white-space: nowrap;
+}
 .noOverflowX {
   overflow-x: hidden;
 }
 .readerApp {
   display: flex;
+  flex-direction: column;
   flex: 1;
   position: relative;
 }
+
+#main {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+#main .panelContainer {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
 .noselect {
   user-select: none;
 }
@@ -373,6 +460,10 @@ input.noselect {
 }
 .multiPanel #panelWrapBox {
   top: 60px;
+}
+.siteWideBanner ~ #main #panelWrapBox {
+  top: 0;
+  height: 100%;
 }
 #panelWrapBox.wrapBoxScroll {
   overflow-x: scroll;
@@ -7469,11 +7560,15 @@ But not to use a display block directive that might break continuous mode for ot
   margin-bottom: 0;
   padding-bottom: 0;
 }
+
 .textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
   margin-bottom: 28px;
   display: flex;
   align-items: flex-start;
   align-content: flex-start;
+}
+.textListTextRangeBox .connection-buttons {
+  margin-top: 10px;
 }
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
@@ -11505,6 +11600,20 @@ background-color: white;
 }
 .cookiesNotification .button {
   margin-inline-start: 12px;
+}
+@media (min-width: 843px) {
+  .cookiesNotification {
+    width: 360px;
+    margin: 10px;
+    padding: 15px;
+    text-align: start;
+    border-radius: 10px;
+    border-top: none;
+  }
+  .cookiesNotification .button {
+    display: block;
+    margin: 10px 0 0 0;
+  }
 }
 .readerMessageBox {
   z-index: 9999;

@@ -5054,6 +5054,8 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+        
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
@@ -5064,6 +5066,14 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
+        
+        # functions backed by lru cache
+        if rebuild:
+            get_talmud_perek_ref_set.cache_clear()
+            get_parasha_ref_set.cache_clear()
+        get_talmud_perek_ref_set()
+        get_parasha_ref_set()
+        
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -6198,7 +6208,8 @@ class Library(object):
 
     @staticmethod
     def _wrap_ref_match(ref, match):
-        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+        data_target_module = constants.VOICES_MODULE if ref.is_sheet() else constants.LIBRARY_MODULE
+        return f'<a class ="refLink" href="/{ref.url()}" data-ref="{ref.normal()}" data-target-module="{data_target_module}">{match.group(0)}</a>'
 
     def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
         try:

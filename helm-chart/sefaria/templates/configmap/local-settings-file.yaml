@@ -140,6 +140,8 @@ data:
     CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
     SECRET_KEY = os.getenv("SECRET_KEY")
+    CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
@@ -278,12 +280,6 @@ data:
     CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
     SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
     SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "unknown")
-
-    if SENTRY_DSN:
-        from sefaria.settings_utils import init_sentry
-        
-        init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
-
 
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {

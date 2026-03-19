@@ -39,6 +39,7 @@ shared_patterns = [
     url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
+    url(r'^api/profile/experiments/opt-in$', reader_views.experiments_opt_in_api),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
@@ -88,6 +89,7 @@ shared_patterns = [
     url(r'^api/link-summary/(?P<ref>.+)$', reader_views.link_summary_api),
     url(r'^api/notes/all$', reader_views.all_notes_api),
     url(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
+    url(r'^api/related/(?P<tref>.+)/websites$', reader_views.websites_api),
     url(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     url(r'^api/counts/links/(?P<cat1>.+)/(?P<cat2>.+)$', reader_views.link_count_api),
     url(r'^api/counts/words/(?P<title>.+)/(?P<version>.+)/(?P<language>.+)$', reader_views.word_count_api),
@@ -166,6 +168,7 @@ shared_patterns = [
 
     url(r'^api/(?P<action>(block|unblock))/(?P<uid>\d+)$', reader_views.block_api),
 
+    url(r'^api/authors/(?P<author_slug>[^/]+)/indexes/?$', reader_views.author_indexes_api),
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/generate-prompts/(?P<slug>.+)$', reader_views.generate_topic_prompts_api),
     url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),

@@ -149,7 +149,7 @@ class ReindexingResult:
         if self.failed_text_versions:
             lines.append(f"\nFailed Text Versions: {len(self.failed_text_versions)}")
             lines.append("-" * 40)
-            for i, failure in enumerate(self.failed_text_versions[:50], 1):
+            for i, failure in enumerate(self.failed_text_versions, 1):
                 title = failure.get('title', 'Unknown')
                 version = failure.get('version', 'Unknown')
                 lang = failure.get('lang', 'Unknown')
@@ -157,21 +157,15 @@ class ReindexingResult:
                 error = failure.get('error', 'Unknown error')[:100]
                 lines.append(f"{i}. {title} ({version}, {lang})")
                 lines.append(f"   Error: {error_type}: {error}")
-            
-            if len(self.failed_text_versions) > 50:
-                lines.append(f"... and {len(self.failed_text_versions) - 50} more")
         
         if self.skipped_text_versions:
             lines.append(f"\nSkipped Text Versions: {len(self.skipped_text_versions)}")
             lines.append("-" * 40)
-            for i, skip in enumerate(self.skipped_text_versions[:20], 1):
+            for i, skip in enumerate(self.skipped_text_versions, 1):
                 title = skip.get('title', 'Unknown')
                 version = skip.get('version', 'Unknown')
                 reason = skip.get('reason', 'Unknown')
                 lines.append(f"{i}. {title} ({version}) - {reason}")
-            
-            if len(self.skipped_text_versions) > 20:
-                lines.append(f"... and {len(self.skipped_text_versions) - 20} more")
         
         lines.append(SEPARATOR_LINE)
         return "\n".join(lines)
