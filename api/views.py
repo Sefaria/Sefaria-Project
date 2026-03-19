@@ -91,6 +91,7 @@ class RefView(View):
             'url_ref': oref.url(),
             'index_title': index.title,
             'node_type': type(index_node).__name__,
+            'ref_parts': oref.ref_parts()
         }
 
         if return_object['node_type'] == 'SchemaNode':
