@@ -98,11 +98,12 @@ class RefView(View):
             return_object['schema_node_children'] = [child.get_primary_title() for child in index_node.children]  # TODO should deafult be an empry string?
 
         if return_object['node_type'] == 'JaggedArrayNode' or index_node.has_default_child():
-            default_node = index_node.get_default_child() or index_node
-            return_object['jagged_array_node_metadata'] = {
-                'depth': default_node.depth,
-                'address_types': default_node.addressTypes,
-                'section_names': default_node.sectionNames,
+            node = index_node.get_default_child() or index_node
+            attr_name = 'jagged_array_node_metadata' if return_object['node_type'] == 'JaggedArrayNode' else 'default_node_metadata'
+            return_object[attr_name] = {
+                'depth': node.depth,
+                'address_types': node.addressTypes,
+                'section_names': node.sectionNames,
                 'sections': oref.sections,
                 'to_sections': oref.toSections,
             }
