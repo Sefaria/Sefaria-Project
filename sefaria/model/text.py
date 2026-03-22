@@ -4665,16 +4665,15 @@ class Ref(object, metaclass=RefCacheType):
     def normal_toSections(self, lang="en"):
         return [self.normal_section(i, lang, 'toSections') for i in range(len(self.toSections))]
 
-    def ref_parts(self):
+    def get_lineage_titles_top_down(self):
         """
-        Returns a list of strings representing the ref's node titles and sections.
+        Returns a list of strings representing the ref's node titles.
         e.g. Ref("Siddur Ashkenaz, Weekday, Shacharit, Post Service, Six Remembrances 3").ref_parts() ->
-             ["Siddur Ashkenaz", "Weekday", "Shacharit", "Post Service", "Six Remembrances", "3"]
+             ["Siddur Ashkenaz", "Weekday", "Shacharit", "Post Service", "Six Remembrances"]
+        Ignores default nodes
         """
         nodes = self.index_node.ancestors() + [self.index_node]
-        parts = [node.get_primary_title() for node in nodes if not node.is_default()]
-        parts += self.normal_sections()
-        return parts
+        return [node.get_primary_title() for node in nodes if not node.is_default()]
 
     def normal_section(self, section_index, lang='en', attr='sections', **kwargs):
         sections = getattr(self, attr)
