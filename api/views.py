@@ -84,7 +84,13 @@ class RefView(View):
         oref = self.oref
         index = oref.index
         index_node = oref.index_node
-        state_ja = oref.get_state_ja() if isinstance(index_node, JaggedArrayNode) else None
+        if isinstance(index_node, JaggedArrayNode):
+            _state_node = oref.get_state_node(hint=[("all", "availableTexts")])
+            state_ja = _state_node.ja("all")
+            vstate = _state_node.versionState
+        else:
+            state_ja = None
+            vstate = None
         return_object = {
             'is_ref': True,
             'normalized': oref.normal(),
@@ -116,6 +122,13 @@ class RefView(View):
                 'sections': oref.sections,
                 'to_sections': oref.toSections,
             }
+            norm = lambda r: r.normal() if r else None
+            if oref.is_segment_level():
+                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
+                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
+            if oref.is_section_level():
+                return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
+                return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
 
         if return_object['node_type'] == 'SheetNode':
             return_object['sheet_id'] = index_node.sheetId
