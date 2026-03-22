@@ -98,7 +98,7 @@ class RefView(View):
             'url_ref': oref.url(),
             'index_title': index.title,
             'node_type': type(index_node).__name__,
-            'ref_parts': oref.ref_parts(),
+            'lineage_titles_top_down': index_node.address(),
             'navigation_refs': {
                 'first_available_section_ref': oref.first_available_section_ref(state_ja=state_ja).normal()
             }
@@ -119,8 +119,10 @@ class RefView(View):
                 'depth': node.depth,
                 'address_types': node.addressTypes,
                 'section_names': node.sectionNames,
-                'sections': oref.sections,
-                'to_sections': oref.toSections,
+                'start_indexes': oref.sections,
+                'start_labels': oref.normal_sections(),
+                'end_indexes': oref.toSections,
+                'end_labels': oref.normal_toSections(),
             }
             norm = lambda r: r.normal() if r else None
             if oref.is_segment_level():
