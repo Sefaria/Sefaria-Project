@@ -852,6 +852,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
+        authors = self.author_objects()
+        if authors:
+            toc_contents_dict["authors"] = [
+                {"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug}
+                for author in authors
+            ]
+
         if include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()

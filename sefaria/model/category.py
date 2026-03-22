@@ -524,6 +524,7 @@ class TocTextIndex(TocNode):
         "base_text_titles",
         "base_text_mapping",
         "heCollectiveTitle",
+        "authors",
         "commentator",
         "heCommentator",
         "refs_to_base_texts",
