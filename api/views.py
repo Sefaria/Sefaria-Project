@@ -91,11 +91,19 @@ class RefView(View):
             'url_ref': oref.url(),
             'index_title': index.title,
             'node_type': type(index_node).__name__,
-            'ref_parts': oref.ref_parts()
+            'ref_parts': oref.ref_parts(),
+            'navigation_refs': {
+                'first_available_section_ref': oref.first_available_section_ref().normal()
+            }
         }
 
         if return_object['node_type'] == 'SchemaNode':
             return_object['schema_node_children'] = [child.get_primary_title() for child in index_node.children]  # TODO should deafult be an empry string?
+
+        elif not oref.is_range() and not oref.is_segment_level():
+            subrefs = oref.all_subrefs()
+            return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
+            return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
 
         if return_object['node_type'] == 'JaggedArrayNode' or index_node.has_default_child():
             node = index_node.get_default_child() or index_node
