@@ -84,6 +84,7 @@ class RefView(View):
         oref = self.oref
         index = oref.index
         index_node = oref.index_node
+        state_ja = oref.get_state_ja() if isinstance(index_node, JaggedArrayNode) else None
         return_object = {
             'is_ref': True,
             'normalized': oref.normal(),
@@ -93,7 +94,7 @@ class RefView(View):
             'node_type': type(index_node).__name__,
             'ref_parts': oref.ref_parts(),
             'navigation_refs': {
-                'first_available_section_ref': oref.first_available_section_ref().normal()
+                'first_available_section_ref': oref.first_available_section_ref(state_ja=state_ja).normal()
             }
         }
 
@@ -101,7 +102,7 @@ class RefView(View):
             return_object['schema_node_children'] = [child.get_primary_title() for child in index_node.children]  # TODO should deafult be an empry string?
 
         elif not oref.is_range() and not oref.is_segment_level():
-            subrefs = oref.all_subrefs()
+            subrefs = oref.all_subrefs(state_ja=state_ja)
             return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
 
