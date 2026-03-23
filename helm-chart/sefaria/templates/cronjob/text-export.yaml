@@ -78,10 +78,8 @@ spec:
             env:
             - name: BUCKET
               value: {{ .Values.export.bucket }}
-            - name: EXPORT_REPO
-              value: {{ .Values.export.repo }}
             command: ["bash"]
-            args: ["-c", "/scripts/upload-and-generate-index.sh"]
+            args: ["-c", "/scripts/upload-to-gcs.sh"]
             resources:
               limits:
                 memory: "512Mi"

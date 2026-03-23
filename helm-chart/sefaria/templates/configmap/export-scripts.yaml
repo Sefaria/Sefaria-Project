@@ -7,151 +7,15 @@ metadata:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  upload-and-generate-index.sh: |-
+  upload-to-gcs.sh: |-
     #!/usr/bin/env bash
     set -euo pipefail
     set -x
 
-    EXPORT_DIR="/export"
-
-    echo "=== Step 1: Sync export data to GCS ==="
+    echo "Syncing export data to gs://${BUCKET}/current/"
     gcloud storage rsync -r --delete-unmatched-destination-objects \
-      "${EXPORT_DIR}/" "gs://${BUCKET}/current/"
-
-    echo "=== Step 2: Generate books.json ==="
-    WORK_DIR=$(mktemp -d)
-    gcloud storage objects list "gs://${BUCKET}/current/" \
-      --recursive --format=json > "${WORK_DIR}/all_objects.json"
-
-    python3 /scripts/generate-books-json.py \
-      --objects "${WORK_DIR}/all_objects.json" \
-      --bucket "${BUCKET}" \
-      --output "${WORK_DIR}/books.json"
-
-    echo "=== Step 3: Push books.json to git ==="
-    cd "${WORK_DIR}"
-    git clone --depth 1 "${EXPORT_REPO}" repo/
-    cp "${WORK_DIR}/books.json" repo/books.json
-
-    cd repo/
-    git config user.email "devops@sefaria.org"
-    git config user.name "Sefaria Export Bot"
-    git add books.json
-    if git diff --cached --quiet; then
-      echo "No changes"
-    else
-      git commit -m "Update books.json $(date +%Y-%m-%d)"
-      git push origin main
-    fi
-
-    echo "=== Done ==="
-
-  generate-books-json.py: |-
-    #!/usr/bin/env python3
-    """
-    Generates a single books.json index from a GCS bucket object listing.
-    One entry per text version with metadata and download URLs for all formats.
-    Inspired by Dicta's books.json approach.
-    """
-    import argparse
-    import json
-    import os
-    from collections import defaultdict
-    from datetime import datetime
-
-    FORMATS = {"json", "txt", "cltk-full", "cltk-flat"}
-    BASE = "https://storage.googleapis.com"
-
-
-    def parse_path(rel_path):
-        """Parse: {format}/{cat1}/{cat2}/.../{title}/{language}/{version}.{ext}"""
-        parts = rel_path.split("/")
-        if len(parts) < 4:
-            return None
-        fmt = parts[0]
-        if fmt not in FORMATS:
-            return None
-        file_name = parts[-1]
-        language = parts[-2]
-        title = parts[-3]
-        categories = parts[1:-3]
-        version = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
-        return {
-            "format": fmt,
-            "categories": categories,
-            "title": title,
-            "language": language,
-            "version": version,
-        }
-
-
-    def main():
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--objects", required=True)
-        parser.add_argument("--bucket", required=True)
-        parser.add_argument("--output", required=True)
-        args = parser.parse_args()
-
-        with open(args.objects, "r", encoding="utf-8") as f:
-            objects = json.load(f)
-
-        # Group by (title, language, version) -> {format: url}
-        # key: (title, language, version, categories_tuple)
-        texts = defaultdict(lambda: {"formats": {}, "size": 0})
-        special = []  # schemas, links, metadata files
-
-        for obj in objects:
-            name = obj.get("name", "")
-            if not name.startswith("current/"):
-                continue
-            rel = name[len("current/"):]
-            if not rel or rel.endswith("/"):
-                continue
-
-            size = int(obj.get("size", 0))
-            url = f"{BASE}/{args.bucket}/{name}"
-            updated = obj.get("updated", obj.get("timeCreated", ""))
-
-            parsed = parse_path(rel)
-            if parsed:
-                key = (parsed["title"], parsed["language"], parsed["version"], tuple(parsed["categories"]))
-                texts[key]["formats"][parsed["format"]] = url
-                texts[key]["size"] += size
-                texts[key]["last_modified"] = updated
-            else:
-                # schemas, links, table_of_contents, etc.
-                special.append({"path": rel, "url": url, "size": size, "last_modified": updated})
-
-        # Build flat books array
-        books = []
-        for (title, language, version, categories), data in sorted(texts.items()):
-            entry = {
-                "title": title,
-                "language": language,
-                "versionTitle": version,
-                "categories": list(categories),
-            }
-            # Add a URL per format
-            for fmt in ["json", "txt", "cltk-full", "cltk-flat"]:
-                if fmt in data["formats"]:
-                    key = fmt.replace("-", "_") + "URL"
-                    entry[key] = data["formats"][fmt]
-            books.append(entry)
-
-        output = {
-            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "bucket": f"gs://{args.bucket}",
-            "base_url": f"{BASE}/{args.bucket}/current",
-            "total_texts": len(books),
-            "special_files": special,
-            "books": books,
-        }
-
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(output, f, indent=1, ensure_ascii=False)
-
-        print(f"Generated books.json: {len(books)} texts, {len(special)} special files")
-
-    if __name__ == "__main__":
-        main()
+      /export/ "gs://${BUCKET}/current/"
+    echo "Done. $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /tmp/last_export.txt
+    gcloud storage cp /tmp/last_export.txt "gs://${BUCKET}/current/last_export.txt"
+    echo "Upload complete."
 {{- end }}

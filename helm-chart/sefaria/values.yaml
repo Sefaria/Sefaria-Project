@@ -72,7 +72,6 @@ export:
   bucket: sefaria-export
   schedule: "0 3 * * 0"
   serviceAccount: text-export-write
-  repo: "https://github.com/Sefaria/Sefaria-Export.git"
 
 # PostgreSQL configuration - can be overridden per environment
 postgres:
