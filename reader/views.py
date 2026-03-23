@@ -1828,7 +1828,23 @@ def find_holiday_in_hebcal_results(response):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
+    include_authors = bool(int(request.GET.get("includeAuthors", False)))
+    toc = library.get_toc()
+    if not include_authors:
+        toc = _remove_keys_from_nested_collection(toc, {"authors"})
+    return jsonResponse(toc, callback=request.GET.get("callback", None))
+
+
+def _remove_keys_from_nested_collection(data, keys_to_remove):
+    if isinstance(data, list):
+        return [_remove_keys_from_nested_collection(item, keys_to_remove) for item in data]
+    if isinstance(data, dict):
+        return {
+            key: _remove_keys_from_nested_collection(value, keys_to_remove)
+            for key, value in data.items()
+            if key not in keys_to_remove
+        }
+    return data
 
 
 @catch_error_as_json
