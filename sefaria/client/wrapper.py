@@ -161,13 +161,15 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True, with_sheet_links=False):
+def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
     If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
+    If `categories` is provided, only include links whose derived client-facing category matches.
     """
     links = []
+    categories = set(categories) if categories else None
     oref = Ref(tref)
     nRef = oref.normal()
     lenRef = len(nRef)
@@ -292,7 +294,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             com[versionAttr] = versions
                             com[licenseAttr] = licenses
                             com[vtitleInHeAttr] = versionTitlesInHebrew
-            links.append(com)
+            if categories is None or com["category"] in categories:
+                links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
@@ -317,6 +320,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     if with_sheet_links and len(collections):
         sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
+        if categories is not None:
+            formatted_sheet_links = [sheet for sheet in formatted_sheet_links if sheet["category"] in categories]
         links += formatted_sheet_links
 
     return links

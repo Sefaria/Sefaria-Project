@@ -2172,6 +2172,15 @@ def links_api(request, link_id_or_ref=None):
         obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
+    def _get_requested_categories(request):
+        categories = []
+        categories += request.GET.getlist("category")
+        raw_categories = request.GET.get("categories", "")
+        if raw_categories:
+            categories += re.split(r"[|,]", raw_categories)
+        categories = [c.strip() for c in categories if c and c.strip()]
+        return categories or None
+
     if request.method == "GET":
         callback=request.GET.get("callback", None)
         if link_id_or_ref is None:
@@ -2181,7 +2190,8 @@ def links_api(request, link_id_or_ref=None):
         Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
-        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
+        categories = _get_requested_categories(request)
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 
     if not request.user.is_authenticated:
         delete_query = QueryDict(request.body)
