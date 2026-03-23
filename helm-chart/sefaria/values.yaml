@@ -70,7 +70,7 @@ backup:
 export:
   enabled: false
   bucket: sefaria-export
-  schedule: "0 3 * * 0"
+  schedule: "0 3 1 * *"
   serviceAccount: text-export-write
 
 # PostgreSQL configuration - can be overridden per environment
