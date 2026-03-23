@@ -15,7 +15,5 @@ data:
     echo "Syncing export data to gs://${BUCKET}/current/"
     gcloud storage rsync -r --delete-unmatched-destination-objects \
       /export/ "gs://${BUCKET}/current/"
-    echo "Done. $(date -u +%Y-%m-%dT%H:%M:%SZ)" > /tmp/last_export.txt
-    gcloud storage cp /tmp/last_export.txt "gs://${BUCKET}/current/last_export.txt"
     echo "Upload complete."
 {{- end }}
