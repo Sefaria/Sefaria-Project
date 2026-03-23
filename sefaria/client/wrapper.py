@@ -294,8 +294,7 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
                             com[versionAttr] = versions
                             com[licenseAttr] = licenses
                             com[vtitleInHeAttr] = versionTitlesInHebrew
-            if categories is None or com["category"] in categories:
-                links.append(com)
+            links.append(com)
         except NoVersionFoundError as e:
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
@@ -320,8 +319,9 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
     if with_sheet_links and len(collections):
         sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
-        if categories is not None:
-            formatted_sheet_links = [sheet for sheet in formatted_sheet_links if sheet["category"] in categories]
         links += formatted_sheet_links
+
+    if categories is not None:
+        links = [link for link in links if link["category"] in categories]
 
     return links
