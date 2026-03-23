@@ -1,0 +1,295 @@
+{{- if .Values.export.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: export-scripts-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-and-manifest.sh: |-
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
+
+    EXPORT_DIR="/export"
+
+    echo "=== Step 1: Sync export data to GCS bucket ==="
+    gcloud storage rsync -r --delete-unmatched-destination-objects \
+      "${EXPORT_DIR}/" "gs://${BUCKET}/current/"
+
+    echo "=== Step 2: Generate manifests ==="
+    WORK_DIR=$(mktemp -d)
+
+    gcloud storage objects list "gs://${BUCKET}/current/" \
+      --recursive --format=json > "${WORK_DIR}/all_objects.json"
+
+    python3 /scripts/generate-manifests.py \
+      --objects "${WORK_DIR}/all_objects.json" \
+      --bucket "${BUCKET}" \
+      --output "${WORK_DIR}/manifests/"
+
+    echo "=== Step 3: Push manifests to git repo ==="
+    cd "${WORK_DIR}"
+    git clone --depth 1 "${EXPORT_REPO}" repo/
+
+    # Clear old manifests but preserve non-json files like README, LICENSE, .gitignore
+    find repo/ -name "*.json" -not -path "repo/.git/*" -delete
+    # Remove old manifest directories to handle category renames
+    for dir in json txt cltk-full cltk-flat schemas links metadata; do
+      rm -rf "repo/${dir}"
+    done
+
+    cp -r "${WORK_DIR}/manifests/"* repo/
+
+    cd repo/
+    git config user.email "devops@sefaria.org"
+    git config user.name "Sefaria Export Bot"
+    git add -A
+    if git diff --cached --quiet; then
+      echo "No manifest changes detected"
+    else
+      git commit -m "Update export manifests $(date +%Y-%m-%d)"
+      git push origin main
+    fi
+
+    echo "=== Export complete ==="
+
+  generate-manifests.py: |-
+    #!/usr/bin/env python3
+    """
+    Generates hybrid category-level manifests from a GCS bucket object listing.
+    Produces:
+      - index.json (root index)
+      - {format}/{Category}.json (per-category manifests)
+      - schemas/manifest.json
+      - links/manifest.json
+      - metadata/table_of_contents.json, metadata/search-filter-index.json
+    """
+    import argparse
+    import json
+    import os
+    import hashlib
+    from collections import defaultdict
+    from datetime import datetime
+
+    FORMATS = ["json", "txt", "cltk-full", "cltk-flat"]
+    SPECIAL_DIRS = ["schemas", "links"]
+    METADATA_FILES = ["table_of_contents.json", "search-filter-index.json", "last_export.txt"]
+
+
+    def parse_text_path(obj_path, fmt):
+        """Parse a text export path into structured metadata.
+
+        Expected path pattern: {format}/{category1}/{category2}/.../{title}/{language}/{versionTitle}.{ext}
+        Minimum depth: format/category/title/language/file = 5 segments
+        """
+        # Remove the format prefix (e.g., "json/")
+        rel = obj_path[len(fmt) + 1:]
+        parts = rel.split("/")
+
+        if len(parts) < 4:
+            return None
+
+        file_name = parts[-1]
+        language = parts[-2]
+        title = parts[-3]
+        category_path = parts[:-3]
+
+        # version_title is filename without extension
+        version_title = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
+
+        return {
+            "category_path": category_path,
+            "title": title,
+            "language": language,
+            "version_title": version_title,
+        }
+
+
+    def build_url(bucket, obj_name):
+        return f"https://storage.googleapis.com/{bucket}/{obj_name}"
+
+
+    def process_objects(objects, bucket):
+        """Group objects into format/category buckets."""
+        format_categories = defaultdict(lambda: defaultdict(list))
+        schemas = []
+        links = []
+        metadata = {}
+        other = []
+
+        for obj in objects:
+            name = obj.get("name", "")
+            # Skip the "current/" prefix
+            if name.startswith("current/"):
+                rel_path = name[len("current/"):]
+            else:
+                rel_path = name
+
+            if not rel_path or rel_path.endswith("/"):
+                continue
+
+            size = int(obj.get("size", 0))
+            updated = obj.get("updated", obj.get("timeCreated", ""))
+
+            entry_base = {
+                "url": build_url(bucket, name),
+                "size": size,
+                "last_modified": updated,
+            }
+
+            # Check if it's a metadata file at root
+            if rel_path in METADATA_FILES:
+                metadata[rel_path] = entry_base
+                continue
+
+            # Check format directories
+            matched_format = None
+            for fmt in FORMATS:
+                if rel_path.startswith(fmt + "/"):
+                    matched_format = fmt
+                    break
+
+            if matched_format:
+                parsed = parse_text_path(rel_path, matched_format)
+                if parsed and parsed["category_path"]:
+                    top_category = parsed["category_path"][0]
+                    entry = {
+                        "path": rel_path[len(matched_format) + 1:],
+                        **entry_base,
+                        "title": parsed["title"],
+                        "category_path": parsed["category_path"],
+                        "language": parsed["language"],
+                        "version_title": parsed["version_title"],
+                    }
+                    format_categories[matched_format][top_category].append(entry)
+                continue
+
+            # Check special directories
+            if rel_path.startswith("schemas/"):
+                file_name = rel_path[len("schemas/"):]
+                title = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
+                schemas.append({
+                    "path": file_name,
+                    **entry_base,
+                    "title": title,
+                })
+                continue
+
+            if rel_path.startswith("links/"):
+                file_name = rel_path[len("links/"):]
+                links.append({
+                    "path": file_name,
+                    **entry_base,
+                })
+                continue
+
+            other.append({"path": rel_path, **entry_base})
+
+        return format_categories, schemas, links, metadata, other
+
+
+    def write_manifest(output_dir, path, data):
+        full_path = os.path.join(output_dir, path)
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+    def main():
+        parser = argparse.ArgumentParser(description="Generate export manifests from GCS listing")
+        parser.add_argument("--objects", required=True, help="Path to GCS objects JSON listing")
+        parser.add_argument("--bucket", required=True, help="GCS bucket name")
+        parser.add_argument("--output", required=True, help="Output directory for manifests")
+        args = parser.parse_args()
+
+        with open(args.objects, "r", encoding="utf-8") as f:
+            objects = json.load(f)
+
+        format_categories, schemas, links, metadata, other = process_objects(objects, args.bucket)
+
+        generated_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        base_url = f"https://storage.googleapis.com/{args.bucket}/current"
+
+        # Build index
+        index = {
+            "version": datetime.utcnow().strftime("%Y-%m-%d"),
+            "generated_at": generated_at,
+            "base_url": base_url,
+            "formats": FORMATS,
+            "categories": {},
+            "metadata": {},
+        }
+
+        # Write per-format/category manifests
+        for fmt in FORMATS:
+            index["categories"][fmt] = {}
+            for category, files in sorted(format_categories[fmt].items()):
+                manifest = {
+                    "category": category,
+                    "format": fmt,
+                    "generated_at": generated_at,
+                    "base_url": f"{base_url}/{fmt}",
+                    "file_count": len(files),
+                    "total_size_bytes": sum(f["size"] for f in files),
+                    "files": sorted(files, key=lambda x: x["path"]),
+                }
+                manifest_path = f"{fmt}/{category}.json"
+                write_manifest(args.output, manifest_path, manifest)
+
+                index["categories"][fmt][category] = {
+                    "manifest": manifest_path,
+                    "file_count": len(files),
+                    "total_size_bytes": manifest["total_size_bytes"],
+                }
+
+        # Write schemas manifest
+        if schemas:
+            schemas_manifest = {
+                "generated_at": generated_at,
+                "base_url": f"{base_url}/schemas",
+                "file_count": len(schemas),
+                "total_size_bytes": sum(f["size"] for f in schemas),
+                "files": sorted(schemas, key=lambda x: x["path"]),
+            }
+            write_manifest(args.output, "schemas/manifest.json", schemas_manifest)
+            index["metadata"]["schemas"] = "schemas/manifest.json"
+
+        # Write links manifest
+        if links:
+            links_manifest = {
+                "generated_at": generated_at,
+                "base_url": f"{base_url}/links",
+                "file_count": len(links),
+                "total_size_bytes": sum(f["size"] for f in links),
+                "files": sorted(links, key=lambda x: x["path"]),
+            }
+            write_manifest(args.output, "links/manifest.json", links_manifest)
+            index["metadata"]["links"] = "links/manifest.json"
+
+        # Write metadata pointers
+        for name, entry in metadata.items():
+            pointer = {
+                "generated_at": generated_at,
+                "url": entry["url"],
+                "size": entry["size"],
+                "last_modified": entry["last_modified"],
+            }
+            write_manifest(args.output, f"metadata/{name}", pointer)
+            index["metadata"][name] = f"metadata/{name}"
+
+        # Write root index
+        write_manifest(args.output, "index.json", index)
+
+        total_files = sum(
+            len(files)
+            for fmt_cats in format_categories.values()
+            for files in fmt_cats.values()
+        ) + len(schemas) + len(links) + len(metadata)
+        print(f"Generated manifests for {total_files} files across {len(format_categories)} formats")
+
+
+    if __name__ == "__main__":
+        main()
+{{- end }}
