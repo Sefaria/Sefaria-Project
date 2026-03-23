@@ -1828,7 +1828,7 @@ def find_holiday_in_hebcal_results(response):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    include_authors = bool(int(request.GET.get("includeAuthors", False)))
+    include_authors = bool(int(request.GET.get("include_authors", False)))
     toc = library.get_toc()
     if not include_authors:
         toc = _remove_keys_from_nested_collection(toc, {"authors"})
