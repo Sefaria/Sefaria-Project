@@ -81,7 +81,7 @@ spec:
             - name: EXPORT_REPO
               value: {{ .Values.export.repo }}
             command: ["bash"]
-            args: ["-c", "/scripts/upload-and-manifest.sh"]
+            args: ["-c", "/scripts/upload-and-generate-index.sh"]
             resources:
               limits:
                 memory: "512Mi"
