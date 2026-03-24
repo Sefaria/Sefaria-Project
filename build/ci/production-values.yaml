@@ -178,6 +178,8 @@ monitor:
     limits:
       memory: "400Mi"
       cpu: "100m"
+export:
+  enabled: true
 cronJobs:
   # Settings for regenerating long cached data
   regenerate:
