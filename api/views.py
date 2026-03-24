@@ -122,7 +122,6 @@ class RefView(View):
                 lexicon_entry = index_node.lexicon_entry
                 return_object['lexicon_name'] = lexicon_entry.parent_lexicon
                 return_object['headword'] = lexicon_entry.headword
-                #prev and next?todo
 
         elif return_object['node_type'] == 'SheetNode':
             return_object['sheet_id'] = index_node.sheetId
