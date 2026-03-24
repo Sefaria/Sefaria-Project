@@ -67,6 +67,12 @@ backup:
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
 
+export:
+  enabled: false
+  bucket: sefaria-export
+  schedule: "0 3 1 * *"
+  serviceAccount: text-export-write
+
 # PostgreSQL configuration - can be overridden per environment
 postgres:
   # host: defaults to DATABASES_HOST from secret if not specified
@@ -268,10 +274,10 @@ domains:
         - profile
 
 ingress:
-  enabled: true
+  enabled: false
 
 gateway:
-  enabled: false
+  enabled: true
   className: envoy
   alpnProtocols:
     - http/1.1
