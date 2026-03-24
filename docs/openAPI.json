@@ -3617,6 +3617,22 @@
               "type": "string"
             },
             "in": "query"
+          },
+          {
+            "name": "category",
+            "description": "Optional repeatable filter. Only include links whose API response `category` exactly matches this value. May be passed multiple times, e.g. `?category=Commentary&category=Midrash`.",
+            "schema": {
+              "type": "string"
+            },
+            "in": "query"
+          },
+          {
+            "name": "categories",
+            "description": "Optional multi-value category filter. Only include links whose API response `category` exactly matches one of the provided values. Values may be separated by commas or pipes, e.g. `?categories=Commentary,Midrash` or `?categories=Commentary|Midrash`.",
+            "schema": {
+              "type": "string"
+            },
+            "in": "query"
           }
         ],
         "responses": {
@@ -3635,7 +3651,7 @@
           }
         },
         "summary": "Links",
-        "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata."
+        "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata. Category filters apply to the derived `category` value returned in the API payload, such as `Commentary`, `Midrash`, `Essay`, or `Quoting Commentary`."
       },
       "parameters": [
         {
