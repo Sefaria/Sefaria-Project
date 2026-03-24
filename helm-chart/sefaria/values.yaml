@@ -25,7 +25,7 @@ rollouts:
 
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
-# For development environments
+# For development environments:
 # - install mongo using an upstream chart
 # - enable restore
 # - populate the settings with the appropriate connection details
