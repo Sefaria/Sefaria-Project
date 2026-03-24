@@ -147,10 +147,10 @@ class RefView(View):
 
         norm = lambda r: r.normal() if r else None
         if oref.is_segment_level():
-            return_object['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
-            return_object['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
+            return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
+            return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
         elif oref.is_section_level():
-            return_object['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
-            return_object['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
+            return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
+            return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
 
         return jsonResponse(return_object)
