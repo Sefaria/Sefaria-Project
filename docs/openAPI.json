@@ -2473,6 +2473,22 @@
         "tags": [
           "Index"
         ],
+        "parameters": [
+          {
+            "name": "include_authors",
+            "in": "query",
+            "description": "When set to `1`, include author metadata on text entries in the table of contents response.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ],
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2486,7 +2502,7 @@
           }
         },
         "summary": "Table of Contents",
-        "description": "This API endpoint returns the titles of all the books in the Sefaria Library arranged by their category along with some additional metadata. This is a large and rarely changing request and should be cached locally if you utilize it."
+        "description": "This API endpoint returns the titles of all the books in the Sefaria Library arranged by their category along with some additional metadata. This is a large and rarely changing request and should be cached locally if you utilize it. By default, author metadata is omitted from text entries; set `include_authors=1` to include it."
       }
     },
     "/api/shape/{title}": {
@@ -3617,6 +3633,22 @@
               "type": "string"
             },
             "in": "query"
+          },
+          {
+            "name": "category",
+            "description": "Optional repeatable filter. Only include links whose API response `category` exactly matches this value. May be passed multiple times, e.g. `?category=Commentary&category=Midrash`.",
+            "schema": {
+              "type": "string"
+            },
+            "in": "query"
+          },
+          {
+            "name": "categories",
+            "description": "Optional multi-value category filter. Only include links whose API response `category` exactly matches one of the provided values. Values may be separated by commas or pipes, e.g. `?categories=Commentary,Midrash` or `?categories=Commentary|Midrash`.",
+            "schema": {
+              "type": "string"
+            },
+            "in": "query"
           }
         ],
         "responses": {
@@ -3635,7 +3667,7 @@
           }
         },
         "summary": "Links",
-        "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata."
+        "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata. Category filters apply to the derived `category` value returned in the API payload, such as `Commentary`, `Midrash`, `Essay`, or `Quoting Commentary`."
       },
       "parameters": [
         {
@@ -8633,6 +8665,24 @@
                         "corpus": {
                           "description": "The corpus that this work belongs to e.g. `Tanakh` or `Mishnah` etc.",
                           "type": "string"
+                        },
+                        "authors": {
+                          "description": "Returned only when `include_authors=1`. Author metadata for the text.",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "en": {
+                                "type": "string"
+                              },
+                              "he": {
+                                "type": "string"
+                              },
+                              "slug": {
+                                "type": "string"
+                              }
+                            }
+                          }
                         },
                         "heTitle": {
                           "description": "The Hebrew title of this work.",
