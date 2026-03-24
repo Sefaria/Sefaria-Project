@@ -6,6 +6,9 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+    branches-ignore:
+      - preprod
+      - prod
   merge_group:
 
 concurrency:
