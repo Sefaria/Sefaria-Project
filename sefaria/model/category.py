@@ -296,8 +296,8 @@ class TocTree(object):
             else:
                 cat.children.sort(key=_explicit_order_and_title)
 
-    def _make_index_node(self, index, old_title=None, mobile=False, include_first_section=False):
-        d = index.toc_contents(include_first_section=include_first_section, include_flags=False, include_base_texts=True)
+    def _make_index_node(self, index, old_title=None, mobile=False, include_first_section=False, options=None):
+        d = index.toc_contents(include_first_section=include_first_section, include_flags=False, include_base_texts=True, options=options)
 
         title = old_title or d["title"]
 
@@ -327,8 +327,8 @@ class TocTree(object):
     def get_root(self):
         return self._root
 
-    def get_serialized_toc(self):
-        return self._root.serialize().get("contents", [])
+    def get_serialized_toc(self, options=None):
+        return self._root.serialize(options=options).get("contents", [])
 
     def get_collections_in_library(self):
         return self._collections_in_library
@@ -509,6 +509,15 @@ class TocTextIndex(TocNode):
 
     def get_index_object(self):
         return self._index_object
+
+    def serialize(self, **kwargs):
+        d = super(TocTextIndex, self).serialize(**kwargs)
+        options = kwargs.get("options") or text.TocSerializationOptions()
+        if options.include_authors and self._index_object:
+            authors = self._index_object.toc_contents(options=options).get("authors")
+            if authors:
+                d["authors"] = authors
+        return d
 
     optional_param_keys = [
         "categories",

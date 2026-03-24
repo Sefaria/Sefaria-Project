@@ -9,6 +9,7 @@ from sefaria import tracker
 import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
+from sefaria.model.text import TocSerializationOptions
 class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_new_terms(self):
@@ -288,6 +289,9 @@ class Test_Categories(object):
 
             toc_node = library.get_toc_tree().lookup(index.categories, title)
             serialized = toc_node.serialize()
+            assert "authors" not in serialized
+
+            serialized = toc_node.serialize(options=TocSerializationOptions(include_authors=True))
 
             assert serialized["authors"] == [{
                 "en": "Test TOC Author",

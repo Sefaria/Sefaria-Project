@@ -5,6 +5,7 @@ text.py
 
 import time
 import structlog
+import dataclasses
 from functools import reduce, partial
 from typing import Optional, Union
 
@@ -168,6 +169,11 @@ class AbstractIndex(object):
 
         annotate_schema(contents["schema"], vstate.content)
         return contents
+
+
+@dataclasses.dataclass(frozen=True)
+class TocSerializationOptions:
+    include_authors: bool = False
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -815,8 +821,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False):
+    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False, options=None):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
+        options = options or TocSerializationOptions()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -852,12 +859,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
-        authors = self.author_objects()
-        if authors:
-            toc_contents_dict["authors"] = [
-                {"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug}
-                for author in authors
-            ]
+        if options.include_authors:
+            authors = self.author_objects()
+            if authors:
+                toc_contents_dict["authors"] = [
+                    {"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug}
+                    for author in authors
+                ]
 
         if include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
@@ -5095,10 +5103,15 @@ class Library(object):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
-    def get_toc(self, rebuild=False):
+    def get_toc(self, rebuild=False, options=None):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
+        options = options or TocSerializationOptions()
+        if options != TocSerializationOptions():
+            if rebuild:
+                self.get_toc_tree(rebuild=True)
+            return self.get_toc_tree().get_serialized_toc(options=options)
         if rebuild or not self._toc:
             if not rebuild:
                 self._toc = scache.get_shared_cache_elem('toc')
