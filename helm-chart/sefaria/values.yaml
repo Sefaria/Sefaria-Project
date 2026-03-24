@@ -131,12 +131,6 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
-# Single-replica web pod with MaxRSS memory logging middleware enabled.
-# Used to diagnose memory leaks by logging per-request maxrss delta.
-# This pod joins the main web Service and receives production traffic.
-webMemlog:
-  enabled: false
-
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
