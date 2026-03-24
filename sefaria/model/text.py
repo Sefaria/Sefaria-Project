@@ -3629,6 +3629,8 @@ class Ref(object, metaclass=RefCacheType):
             r = r.prev_section_ref()
             if not r:
                 return None
+            if self.index_node.is_virtual:
+                return r.all_subrefs()[0]
             d = r._core_dict()
             ja = state_ja or self.get_state_ja()
             newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
@@ -3647,6 +3649,15 @@ class Ref(object, metaclass=RefCacheType):
         r = self.ending_ref()
         if not r.is_segment_level():
             return r
+        if self.index_node.is_virtual:
+            section_ref = self.context_ref()
+            siblings = section_ref.all_subrefs(state_ja=state_ja)
+            curr_index = siblings.index(self)
+            if len(siblings) == curr_index + 1:
+                next_section = section_ref.next_section_ref()
+                return next_section.all_subrefs()[0] if next_section else None
+            else:
+                return siblings[curr_index+1]
         sectionRef = r.section_ref()
         ja = state_ja or self.get_state_ja()
         sectionLength = ja.sub_array_length([i - 1 for i in sectionRef.sections])
