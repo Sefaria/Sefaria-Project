@@ -87,7 +87,7 @@ class RefView(View):
         if isinstance(index_node, JaggedArrayNode):
             _state_node = oref.get_state_node(hint=[("all", "availableTexts")])
             state_ja = _state_node.ja("all")
-            vstate = _state_node.versionState
+            vstate = VersionState(index.title)  # load full vstate (not just current node) so prev/next_section_ref can cross into neighboring nodes
         else:
             state_ja = None
             vstate = None
@@ -97,47 +97,61 @@ class RefView(View):
             'hebrew': oref.he_normal(),
             'url_ref': oref.url(),
             'index_title': index.title,
-            'node_type': type(index_node).__name__,
             'lineage_titles_top_down': index_node.address(),
+            'node_type': type(index_node).__name__,
             'navigation_refs': {
                 'first_available_section_ref': oref.first_available_section_ref(state_ja=state_ja).normal()
             }
         }
 
         if return_object['node_type'] == 'SchemaNode':
-            return_object['schema_node_children'] = [child.get_primary_title() for child in index_node.children]  # TODO should deafult be an empry string?
+            return_object['children'] = [child.get_primary_title() for child in index_node.children]
 
-        elif not oref.is_range() and not oref.is_segment_level():
-            subrefs = oref.all_subrefs(state_ja=state_ja)
-            return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
-            return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
-
-        if return_object['node_type'] == 'JaggedArrayNode' or index_node.has_default_child():
-            node = index_node.get_default_child() or index_node
-            attr_name = 'jagged_array_node_metadata' if return_object['node_type'] == 'JaggedArrayNode' else 'default_node_metadata'
-            return_object[attr_name] = {
-                'depth': node.depth,
-                'address_types': node.addressTypes,
-                'section_names': node.sectionNames,
+        elif return_object['node_type'] in ['JaggedArrayNode', 'DictionaryEntryNode']:
+            return_object.update({
+                'depth': index_node.depth,
+                'address_types': index_node.addressTypes,
+                'section_names': index_node.sectionNames,
                 'start_indexes': oref.sections,
                 'start_labels': oref.normal_sections(),
                 'end_indexes': oref.toSections,
                 'end_labels': oref.normal_toSections(),
-            }
-            norm = lambda r: r.normal() if r else None
-            if oref.is_segment_level():
-                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
-                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
-            if oref.is_section_level():
-                return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
-                return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
+            })
 
-        if return_object['node_type'] == 'SheetNode':
+            if return_object['node_type'] == 'DictionaryEntryNode':
+                lexicon_entry = index_node.lexicon_entry
+                return_object['lexicon_name'] = lexicon_entry.parent_lexicon
+                return_object['headword'] = lexicon_entry.headword
+                #prev and next?todo
+
+        elif return_object['node_type'] == 'SheetNode':
             return_object['sheet_id'] = index_node.sheetId
 
-        if return_object['node_type'] == 'DictionaryEntryNode':
-            lexicon_entry = index_node.lexicon_entry
-            return_object['lexicon_name'] = lexicon_entry.parent_lexicon
-            return_object['headword'] = lexicon_entry.headword
+        elif return_object['node_type'] == 'DictionaryNode':
+            return_object['lexicon_name'] = index_node.lexiconName
+
+        if index_node.has_default_child():
+            default_ref = oref.default_child_ref()
+            default_node = default_ref.index_node
+            return_object['default_child_node'] = {
+                'node_type': type(default_node).__name__,
+                'depth': default_node.depth,
+                'node_index': index_node.children.index(default_node)
+            }
+            if return_object['node_type'] == 'DictionaryNode':
+                return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
+
+        if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
+            subrefs = oref.all_subrefs(state_ja=state_ja)
+            return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
+            return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
+
+        norm = lambda r: r.normal() if r else None
+        if oref.is_segment_level():
+            return_object['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
+            return_object['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
+        elif oref.is_section_level():
+            return_object['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
+            return_object['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
 
         return jsonResponse(return_object)
