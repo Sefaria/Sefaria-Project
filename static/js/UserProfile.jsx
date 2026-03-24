@@ -289,7 +289,7 @@ class UserProfile extends Component {
                     sortOptions={["Recent", "Views"]}
                     containerClass={"sheetsProfileList"}
                     getData={this.getSheets}
-                    data={this.getSheetsFromCache()}
+                    data={this.getSheetsFromCache() || null}
                     refreshData={this.state.refreshSheetData}
                   />
 
