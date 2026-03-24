@@ -268,10 +268,10 @@ domains:
         - profile
 
 ingress:
-  enabled: true
+  enabled: false
 
 gateway:
-  enabled: false
+  enabled: true
   className: envoy
   alpnProtocols:
     - http/1.1
