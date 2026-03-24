@@ -100,7 +100,8 @@ class RefView(View):
             'lineage_titles_top_down': index_node.address(),
             'node_type': type(index_node).__name__,
             'navigation_refs': {
-                'first_available_section_ref': oref.first_available_section_ref(state_ja=state_ja).normal()
+                'first_available_section_ref': oref.first_available_section_ref(state_ja=state_ja).normal(),
+                'parent_ref': None if oref.is_book_level() else oref.all_context_refs()[1]
             }
         }
 
