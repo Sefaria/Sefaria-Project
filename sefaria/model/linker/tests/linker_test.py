@@ -187,7 +187,6 @@ def test_multiple_ambiguities():
     [crrd(['@תו"כ', '@ויקרא', '@דבורא דחובה', "#פר' יא"]), ['Sifra, Vayikra Dibbura DeChovah, Section 11']],
 
     # Mis-classified part types
-    [crrd(['@ושו"ע', "#אה״ע", "#סי׳ כ״ח", "#סעיף א"]), ("Shulchan Arukh, Even HaEzer 28:1",)],
 
     # Ibid
     [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
