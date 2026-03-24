@@ -1830,7 +1830,7 @@ def find_holiday_in_hebcal_results(response):
 @catch_error_as_json
 def table_of_contents_api(request):
     include_authors = bool(int(request.GET.get("include_authors", False)))
-    toc = library.get_toc(options=TocSerializationOptions(include_authors=include_authors))
+    toc = library.get_toc(serialization_options=TocSerializationOptions(include_authors=include_authors))
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 

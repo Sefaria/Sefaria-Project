@@ -173,6 +173,9 @@ class AbstractIndex(object):
 
 @dataclasses.dataclass(frozen=True)
 class TocSerializationOptions:
+    include_first_section: bool = False
+    include_flags: bool = False
+    include_base_texts: bool = True
     include_authors: bool = False
 
 
@@ -821,9 +824,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False, options=None):
+    def toc_contents(self, serialization_options=None):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-        options = options or TocSerializationOptions()
+        serialization_options = serialization_options or TocSerializationOptions()
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -840,11 +843,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # first elem in corpora is the main corpus
             toc_contents_dict["corpus"] = self.corpora[0]
 
-        if include_first_section:
+        if serialization_options.include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
 
-        if include_flags:
+        if serialization_options.include_flags:
             vstate = self.versionState()
             toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
             toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
@@ -859,7 +862,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
-        if options.include_authors:
+        if serialization_options.include_authors:
             authors = self.author_objects()
             if authors:
                 toc_contents_dict["authors"] = [
@@ -867,10 +870,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     for author in authors
                 ]
 
-        if include_base_texts and hasattr(self, 'base_text_titles'):
+        if serialization_options.include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
-            if include_first_section:
+            if serialization_options.include_first_section:
                 toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
@@ -878,7 +881,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         elif hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
 
-        if include_base_texts and hasattr(self, 'base_text_mapping'):
+        if serialization_options.include_base_texts and hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         if hasattr(self, 'hidden'):
@@ -5103,15 +5106,15 @@ class Library(object):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
-    def get_toc(self, rebuild=False, options=None):
+    def get_toc(self, rebuild=False, serialization_options=None):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
-        options = options or TocSerializationOptions()
-        if options != TocSerializationOptions():
+        serialization_options = serialization_options or TocSerializationOptions()
+        if serialization_options != TocSerializationOptions():
             if rebuild:
                 self.get_toc_tree(rebuild=True)
-            return self.get_toc_tree().get_serialized_toc(options=options)
+            return self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
         if rebuild or not self._toc:
             if not rebuild:
                 self._toc = scache.get_shared_cache_elem('toc')
