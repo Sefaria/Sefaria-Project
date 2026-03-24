@@ -25,6 +25,19 @@ class Test_get_links():
         assert all(r in r3 or r in r4 for r in r34)
 
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    def test_get_links_filtered_by_single_category(self, mock_collections):
+        links = get_links("Exodus 1:12", with_text=False, categories=["Commentary"])
+        assert len(links) > 0
+        assert all(link["category"] == "Commentary" for link in links)
+
+    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    def test_get_links_filtered_by_multiple_categories(self, mock_collections):
+        allowed_categories = {"Commentary", "Midrash"}
+        links = get_links("Exodus 1:12", with_text=False, categories=list(allowed_categories))
+        assert len(links) > 0
+        assert all(link["category"] in allowed_categories for link in links)
+
+    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_excludes_talmud_perek_refs(self, mock_collections):
         """Links whose anchor ref is a Talmud perek ref should be excluded from results."""
         perek_refs = get_talmud_perek_ref_set()
