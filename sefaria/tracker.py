@@ -36,15 +36,13 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
+        skip_links = kwargs.pop('skip_links', False) or chunk.has_manually_wrapped_refs()
+        count_after = kwargs.pop("count_after", 1)
         version_id = str(chunk.full_version._id)
 
-        orig_count_after = kwargs.get("count_after", 1)
-        kwargs['count_after'] = False
+        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
 
-        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, **kwargs)
-
-        count_and_index(oref, lang, vtitle, to_count=orig_count_after)
+        count_and_index(oref, lang, vtitle, to_count=count_after)
 
     return chunk
 
@@ -86,13 +84,12 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
             error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
+    skip_links = kwargs.pop('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
     for old_text, new_text, oref in change_map.values():
         if oref.normal() in error_map: continue
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
-        kwargs['count_after'] = False
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), **kwargs)
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), skip_links=skip_links, count_after=False, **kwargs)
 
     count_segments(version.get_index())
     return error_map
@@ -145,7 +142,7 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     count_segments(version.get_index())
 
 
-def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
+def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, skip_links=False, count_after=1, **kwargs) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:
         invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
@@ -153,7 +150,7 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-    if not kwargs.get("skip_links", None):
+    if not skip_links:
         if CELERY_ENABLED:
             generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
             generator.generate_from_ref_and_version_id(oref, version_id)
@@ -162,10 +159,10 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
         if autolinker:
             autolinker.refresh_links(**kwargs)
 
-    count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
+    count_and_index(oref, lang, vtitle, to_count=count_after)
 
 
-def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, new_text, version_id, **kwargs):
+def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=False, **kwargs):
     """Recursively walk old_text/new_text and call post_modify_text only for changed segments."""
     if isinstance(new_text, list):
         if not isinstance(old_text, list):
@@ -173,11 +170,11 @@ def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, ne
         padded_old = old_text + [""] * max(0, len(new_text) - len(old_text))
         for i in range(len(new_text)):
             if padded_old[i] != new_text[i]:
-                _post_modify_changed_segments(user, action, oref.subref(i + 1), lang, vtitle, padded_old[i], new_text[i], version_id, **kwargs)
+                _post_modify_changed_segments(user, action, oref.subref(i + 1), lang, vtitle, padded_old[i], new_text[i], version_id, skip_links=skip_links, **kwargs)
     else:
         # Segment level — call post_modify_text if changed
         if old_text != new_text:
-            post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, **kwargs)
+            post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
 
 
 def count_and_index(oref, lang, vtitle, to_count=1):
