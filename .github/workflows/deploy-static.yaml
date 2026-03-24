@@ -245,7 +245,11 @@ jobs:
           CHART_VERSION="${{ steps.chart.outputs.version }}"
           RELEASE_TAG="${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}"
 
-          git add "$ENV_FILE"
+          mkdir -p helm-chart/promotions promotions
+          echo "${CHART_VERSION}" > helm-chart/promotions/${ENV_NAME}
+          echo "${APP_VERSION}" > promotions/${ENV_NAME}
+
+          git add "$ENV_FILE" helm-chart/promotions/${ENV_NAME} promotions/${ENV_NAME}
           git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
           git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
           git push origin "${GITHUB_REF_NAME}" --follow-tags

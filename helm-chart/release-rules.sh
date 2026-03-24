@@ -17,6 +17,8 @@ plugins:
         - {"type": "perf", "release": "patch"}
         - {"type": "test", "release": "patch"}
         - {"type": "static", "release": "patch"}
+        - {"type": "helm", "release": "patch"}
+        - {"type": "deploy", "release": "patch"}
       parserOpts:
         noteKeywords:
           - MAJOR RELEASE
