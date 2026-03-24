@@ -297,7 +297,12 @@ class TocTree(object):
                 cat.children.sort(key=_explicit_order_and_title)
 
     def _make_index_node(self, index, old_title=None, mobile=False, serialization_options=None):
-        serialization_options = serialization_options or text.TocSerializationOptions()
+        serialization_options = serialization_options or text.TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
         d = index.toc_contents(serialization_options=serialization_options)
 
         title = old_title or d["title"]
@@ -513,7 +518,12 @@ class TocTextIndex(TocNode):
 
     def serialize(self, **kwargs):
         d = super(TocTextIndex, self).serialize(**kwargs)
-        serialization_options = kwargs.get("serialization_options") or text.TocSerializationOptions()
+        serialization_options = kwargs.get("serialization_options") or text.TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
         if serialization_options.include_authors and self._index_object:
             authors = self._index_object.toc_contents(serialization_options=serialization_options).get("authors")
             if authors:

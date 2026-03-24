@@ -291,7 +291,12 @@ class Test_Categories(object):
             serialized = toc_node.serialize()
             assert "authors" not in serialized
 
-            serialized = toc_node.serialize(serialization_options=TocSerializationOptions(include_authors=True))
+            serialized = toc_node.serialize(serialization_options=TocSerializationOptions(
+                include_first_section=False,
+                include_flags=False,
+                include_base_texts=True,
+                include_authors=True,
+            ))
 
             assert serialized["authors"] == [{
                 "en": "Test TOC Author",

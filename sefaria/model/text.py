@@ -826,7 +826,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def toc_contents(self, serialization_options=None):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
-        serialization_options = serialization_options or TocSerializationOptions()
+        serialization_options = serialization_options or TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -5110,8 +5115,14 @@ class Library(object):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
-        serialization_options = serialization_options or TocSerializationOptions()
-        if serialization_options != TocSerializationOptions():
+        default_serialization_options = TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
+        serialization_options = serialization_options or default_serialization_options
+        if serialization_options != default_serialization_options:
             if rebuild:
                 self.get_toc_tree(rebuild=True)
             return self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
