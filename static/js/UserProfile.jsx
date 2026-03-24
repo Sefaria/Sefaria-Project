@@ -279,15 +279,21 @@ class UserProfile extends Component {
                   renderTab={this.renderTab}
                   setTab={this.props.setTab}
                 >
-                 {this.props.profile &&
-                    <SheetsList profile={this.props.profile}
-                                  handleSheetDelete={this.handleSheetDelete}
-                                  handleCollectionsChange={this.handleCollectionsChange}
-                                  toggleSignUpModal={this.props.toggleSignUpModal}
-                                  refreshData={this.state.refreshSheetData}/>}
+                  <FilterableList
+                    key="sheet"
+                    pageSize={1e6}
+                    filterFunc={this.filterSheet}
+                    sortFunc={this.sortSheet}
+                    renderItem={this.renderSheet}
+                    renderEmptyList={this.renderEmptySheetList}
+                    sortOptions={["Recent", "Views"]}
+                    containerClass={"sheetsProfileList"}
+                    getData={this.getSheets}
+                    data={this.getSheetsFromCache()}
+                    refreshData={this.state.refreshSheetData}
+                  />
 
-                  {this.props.profile &&
-                    <CollectionsList profile={this.props.profile} />}
+                  <CollectionsList profile={this.props.profile} />
 
                   <FilterableList
                     key="follower"
@@ -327,44 +333,6 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
-};
-
-const SheetsList = ({profile, handleSheetDelete, handleCollectionsChange, toggleSignUpModal, refreshData}) => {
-  const [sheets, setSheets] = useState(null);
-
-  useEffect(() => {
-    // Get cached data or fetch if needed (this is what FilterableList does)
-    Sefaria.sheets.userSheets(profile.id, sheets => {
-      if (sheets) {
-        setSheets(sheets);
-      }
-    }, undefined, 0, 0);
-  }, [profile.id, refreshData]);
-
-  if (!sheets) {
-    return <div>Loading sheets...</div>;
-  }
-
-  return (
-    <div className="sheetsProfileList">
-      {sheets.map(sheet => (
-        <SheetListing
-          key={sheet.id}
-          sheet={sheet}
-          hideAuthor={true}
-          handleSheetDelete={handleSheetDelete}
-          handleCollectionsChange={handleCollectionsChange}
-          editable={Sefaria._uid === profile.id}
-          deletable={Sefaria._uid === profile.id}
-          saveable={Sefaria._uid !== profile.id}
-          collectable={true}
-          connectedRefs={[]}
-          infoUnderneath={true}
-          toggleSignUpModal={toggleSignUpModal}
-        />
-      ))}
-    </div>
-  );
 };
 
 const CollectionsList = ({profile}) => {
