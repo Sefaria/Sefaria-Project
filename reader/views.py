@@ -45,6 +45,7 @@ from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
+from sefaria.model.text import TocSerializationOptions
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -1829,7 +1830,14 @@ def find_holiday_in_hebcal_results(response):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
+    include_authors = bool(int(request.GET.get("include_authors", False)))
+    toc = library.get_toc(serialization_options=TocSerializationOptions(
+        include_first_section=False,
+        include_flags=False,
+        include_base_texts=True,
+        include_authors=include_authors,
+    ))
+    return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
