@@ -47,6 +47,8 @@ web:
       ref: logging-secret-production
     schoolLookup:
       ref: school-lookup-data-production
+webMemlog:
+  enabled: true
 redis:
   containerImage:
     imageRegistry: redis
