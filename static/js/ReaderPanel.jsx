@@ -47,6 +47,7 @@ import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import GuideOverlay from './GuideOverlay';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import {DropdownMenu} from "./common/DropdownMenu";
+import {ReadingModeProvider} from "./useReadingMode";
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -725,6 +726,7 @@ class ReaderPanel extends Component {
       panelMode: this.state.mode,
       aliyotShowStatus: this.state.settings.aliyotTorah,
       vowelsAndCantillationState: this.state.settings.vowels,
+      readingMode: this.state.settings.readingMode,
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
       panelPosition: this.props.panelPosition,
@@ -737,42 +739,48 @@ class ReaderPanel extends Component {
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
       const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
       items.push(
-        <TextColumn
-          panelPosition ={this.props.panelPosition}
-          srefs={this.state.refs.slice()}
-          currVersions={this.state.currVersions}
+        <ReadingModeProvider
+          active={!!this.state.settings.readingMode}
           highlightedRefs={this.state.highlightedRefs}
-          currentlyVisibleRef={this.state.currentlyVisibleRef}
-          showHighlight={showHighlight}
-          basetext={true}
-          bookTitle={textColumnBookTitle}
-          heBookTitle={heTextColumnBookTitle}
-          withContext={true}
-          loadLinks={true}
-          prefetchNextPrev={true}
-          multiPanel={this.props.multiPanel}
-          mode={this.state.mode}
-          settings={Sefaria.util.clone(this.state.settings)}
-          hasSidebar={this.props.hasSidebar}
-          interfaceLang={this.props.interfaceLang}
-          setOption={this.setOption}
-          showBaseText={this.showBaseText}
-          updateTextColumn={this.updateTextColumn}
-          onSegmentClick={this.handleBaseSegmentClick}
-          onCitationClick={this.handleCitationClick}
-          onNamedEntityClick={this.onNamedEntityClick}
-          setTextListHighlight={this.setTextListHighlight}
-          setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
-          setSelectedWords={this.setSelectedWords}
-          selectedWords={this.state.selectedWords}
-          panelsOpen={this.props.panelsOpen}
-          layoutWidth={this.props.layoutWidth}
-          filter={this.state.filter}
-          textHighlights={this.state.textHighlights}
-          unsetTextHighlight={this.props.unsetTextHighlight}
-          translationLanguagePreference={this.props.translationLanguagePreference}
-          navigatePanel={this.props.navigatePanel}
-          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
+          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-ReadingModeProvider`}
+        >
+          <TextColumn
+            panelPosition ={this.props.panelPosition}
+            srefs={this.state.refs.slice()}
+            currVersions={this.state.currVersions}
+            highlightedRefs={this.state.highlightedRefs}
+            currentlyVisibleRef={this.state.currentlyVisibleRef}
+            showHighlight={showHighlight}
+            basetext={true}
+            bookTitle={textColumnBookTitle}
+            heBookTitle={heTextColumnBookTitle}
+            withContext={true}
+            loadLinks={true}
+            prefetchNextPrev={true}
+            multiPanel={this.props.multiPanel}
+            mode={this.state.mode}
+            settings={Sefaria.util.clone(this.state.settings)}
+            hasSidebar={this.props.hasSidebar}
+            interfaceLang={this.props.interfaceLang}
+            setOption={this.setOption}
+            showBaseText={this.showBaseText}
+            updateTextColumn={this.updateTextColumn}
+            onSegmentClick={this.handleBaseSegmentClick}
+            onCitationClick={this.handleCitationClick}
+            onNamedEntityClick={this.onNamedEntityClick}
+            setTextListHighlight={this.setTextListHighlight}
+            setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
+            setSelectedWords={this.setSelectedWords}
+            selectedWords={this.state.selectedWords}
+            panelsOpen={this.props.panelsOpen}
+            layoutWidth={this.props.layoutWidth}
+            filter={this.state.filter}
+            textHighlights={this.state.textHighlights}
+            unsetTextHighlight={this.props.unsetTextHighlight}
+            translationLanguagePreference={this.props.translationLanguagePreference}
+            navigatePanel={this.props.navigatePanel}
+            key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
+        </ReadingModeProvider>
       );
     }
     if (this.state.mode === "Sheet") {
