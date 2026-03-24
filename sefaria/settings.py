@@ -151,6 +151,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'reader',
+    'chatbot',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
@@ -315,13 +316,13 @@ CACHES = {
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    if os.getenv("CI_RUN"):
-        from sefaria.local_settings_ci import *
-    else:
+if os.getenv("CI_RUN"):
+    from sefaria.local_settings_ci import *
+else:
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), 'local_settings.py')):
         from sefaria.local_settings import *
-except ImportError:
-    from sefaria.local_settings_example import *
+    else:
+        from sefaria.local_settings_example import *
 if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 

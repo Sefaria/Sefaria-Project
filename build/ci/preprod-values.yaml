@@ -142,6 +142,10 @@ domains:
         - profile
 gateway:
   enabled: true
+  alpnProtocols:
+    - h2
+    - http/1.1
+  annotations: {}
 ingress:
   enabled: false
 nginx:
@@ -190,8 +194,6 @@ cronJobs:
   reindexElasticSearch:
     enabled: false
   topicsIndexing:
-    enabled: false
-  trello:
     enabled: false
   trends:
     enabled: false

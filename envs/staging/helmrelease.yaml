@@ -1,0 +1,149 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sefariastaging
+  namespace: default
+spec:
+  interval: 5m
+  timeout: 30m
+  chart:
+    spec:
+      chart: sefaria
+      version: "0.79.1"
+      sourceRef:
+        kind: HelmRepository
+        name: sefaria-project-helm-repo
+        namespace: default
+      interval: 1m
+  upgrade:
+    remediation:
+      remediateLastFailure: false
+  values:
+    sandbox: "true"
+    contentSandbox: "true"
+    deployEnv: sefariastaging
+    previousServicesCount: "1"
+    rollouts:
+      prePromotionAnalysis: false
+    restore:
+      enabled: true
+    web:
+      containerImage:
+        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
+        tag: "v6.80.0"
+      resources:
+        web:
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "4000m"
+            limits:
+              memory: "8Gi"
+              cpu: "4000m"
+      secrets:
+        googleClient:
+          ref: google-client-secret
+        logging:
+          ref: logging-secret
+        schoolLookup:
+          ref: school-lookup-data
+    redis:
+      containerImage:
+        imageRegistry: redis
+        tag: latest
+    nodejs:
+      containerImage:
+        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
+        tag: "v6.80.0"
+      resources:
+        requests:
+          memory: "400Mi"
+          cpu: "400m"
+        limits:
+          memory: "400Mi"
+          cpu: "400m"
+    varnish:
+      secrets:
+        varnish:
+          ref: varnish-secret-helm
+    ingress:
+      enabled: false
+    gateway:
+      enabled: true
+      alpnProtocols:
+        - h2
+        - http/1.1
+    nginx:
+      containerImage:
+        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
+        tag: "v6.80.0"
+    monitor:
+      containerImage:
+        imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
+        tag: "v6.80.0"
+    tasks:
+      enabled: false
+    postgres:
+      db: "sefariastaging"
+    domains:
+      root:
+        - url: "sefariastaging.org"
+          cert: "sefariastaging-tls"
+          language: english
+          code:
+            - en
+        - url: "sefariastaging-il.org"
+          cert: "sefariastaging-il-tls"
+          language: hebrew
+          code:
+            - he
+      modules:
+        - name: voices
+          subdomains:
+            en: voices
+            he: chiburim
+          redirects:
+            - sheets
+            - collections
+            - profile
+    cronJobs:
+      reindexElasticSearch:
+        enabled: true
+      syncPostgresProductionData:
+        enabled: true
+      syncMongoProductionData:
+        enabled: true
+    secrets:
+      localSettings:
+        ref: local-settings-secrets
+      backupManager:
+        ref: backup-manager
+      slackWebhook:
+        ref: slack-webhook-helm
+    localSettings:
+      DEBUG: true
+      DOMAIN_LANGUAGE:
+        "https://sefariastaging.org": "english"
+        "https://voices.sefariastaging.org": "english"
+        "https://www.sefariastaging.org": "english"
+        "https://sefariastaging-il.org": "hebrew"
+        "https://chiburim.sefariastaging-il.org": "hebrew"
+        "https://www.sefariastaging-il.org": "hebrew"
+      DOMAIN_MODULES:
+        en:
+          library: "https://www.sefariastaging.org"
+          voices: "https://voices.sefariastaging.org"
+        he:
+          library: "https://www.sefariastaging-il.org"
+          voices: "https://chiburim.sefariastaging-il.org"
+      MONGO_HOST: "mongo"
+      APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
+      SEARCH_ADMIN: "http://elasticsearch-data:9200"
+      TURN_SERVER: ""
+      USE_CLOUDFLARE: false
+      FRONT_END_URL: "http://sefariastaging.org"
+      OFFLINE: false
+      DOWN_FOR_MAINTENANCE: false
+      MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+      GLOBAL_WARNING: false
+      GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."

@@ -95,7 +95,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const deleteTopicSource = function() {
         const url = `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+        Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE")
             .then(() => window.location.href = `/topics/${topic}`);
     }
     const previousTitleItemRef = useRef(data.enTitle ? "Previous Title" : null); //use useRef to make value null even if component re-renders

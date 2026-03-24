@@ -10,6 +10,7 @@ restore:
 backup:
   mongo:
     enabled: true
+    extraBackupEnabled: true
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
@@ -144,6 +145,9 @@ ingress:
   enabled: true
 gateway:
   enabled: true
+  alpnProtocols:
+    - h2
+    - http/1.1
   annotations: {}
 nginx:
   containerImage:
@@ -191,8 +195,6 @@ cronJobs:
   reindexElasticSearch:
     enabled: true
   topicsIndexing:
-    enabled: true
-  trello:
     enabled: true
   trends:
     enabled: true

@@ -11,7 +11,8 @@ spec:
     kind: Gateway
     name: {{ .Values.deployEnv }}
   tls:
-    alpnProtocols:
-      - h2
-      - http/1.1
+    alpnProtocols: {{ .Values.gateway.alpnProtocols | toJson | nindent 6 }}
+  clientIPDetection:
+    xForwardedFor:
+      numTrustedHops: 1
 {{- end }}
