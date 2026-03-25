@@ -3770,7 +3770,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         if vstate and not self.index_node.is_virtual:
             state_ja = self.get_state_ja(vstate=vstate)
-            return state_ja.sub_array_length([i - 1 for i in self.sections]) in (0, None)
+            return state_ja.subarray_with_ref(self).is_empty()
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
