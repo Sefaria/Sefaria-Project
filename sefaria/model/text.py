@@ -3630,7 +3630,7 @@ class Ref(object, metaclass=RefCacheType):
             if not r:
                 return None
             if self.index_node.is_virtual:
-                return r.all_subrefs()[0]
+                return r.all_subrefs()[-1]
             d = r._core_dict()
             ja = self.get_state_ja(vstate=vstate)
             newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
