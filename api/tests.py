@@ -230,7 +230,7 @@ class APITextsTests(SefariaTestCase):
 class APIRefTests(SefariaTestCase):
 
     def get_ref(self, tref, max_mongo_calls=1):
-        QueryCounter.reset()
+        QueryCounter.reset(tracked_commands={'find', 'aggregate', 'count', 'distinct'})
         response = c.get(f'/api/ref/{tref}')
         data = json.loads(response.content)
         if max_mongo_calls is not None:

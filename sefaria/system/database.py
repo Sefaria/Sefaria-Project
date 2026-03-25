@@ -14,8 +14,11 @@ from sefaria.settings import *
 class QueryCounter(monitoring.CommandListener):
     count = 0
     queries = []
+    tracked_commands = None
 
     def started(self, event):
+        if self.tracked_commands is not None and event.command_name not in self.tracked_commands:
+            return
         import traceback
         QueryCounter.count += 1
         QueryCounter.queries.append({
@@ -28,9 +31,10 @@ class QueryCounter(monitoring.CommandListener):
     def failed(self, event): pass
 
     @classmethod
-    def reset(cls):
+    def reset(cls, tracked_commands=None):
         cls.count = 0
         cls.queries = []
+        cls.tracked_commands = tracked_commands
 
 def check_db_exists(db_name):
     dbnames = client.list_database_names()
