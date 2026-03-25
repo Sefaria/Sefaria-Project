@@ -99,12 +99,11 @@ class RefView(View):
             'index_title': index.title,
             'node_type': type(index_node).__name__,
             'navigation_refs': {
-                'parent_ref': None if oref.is_book_level() else oref.all_context_refs(False, True)[0].normal()
+                'lineage_refs_top_down': [r.normal() for r in oref.all_context_refs(False, True)]
             }
         }
 
         if return_object['node_type'] != 'SheetNode':
-            return_object['lineage_titles_top_down'] = index_node.address()
             return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(state_ja=state_ja).normal()
             norm = lambda r: r.normal() if r else None
             if oref.is_segment_level():
