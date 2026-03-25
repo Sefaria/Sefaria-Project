@@ -62,7 +62,7 @@ def make_path(doc, format, extension=None):
 
 
 def remove_illegal_file_chars(filename_str):
-    p = re.compile('[/:()<>"|?*]|(\\\)')
+    p = re.compile('[/:()<>"|?*\r\n\t]|(\\\)')
     new_filename = p.sub('', filename_str)
     return new_filename
 
