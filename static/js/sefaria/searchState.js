@@ -14,7 +14,6 @@ class SearchState {
     fieldBroad,
     field,
     sortType,
-    filterMySheets,
   } = {}) {
     this.type                  = type;  // always required
     this.appliedFilters        = appliedFilters   || [];
@@ -27,7 +26,6 @@ class SearchState {
     this.fieldBroad            = fieldBroad         || SearchState.metadataByType[type].fieldBroad;
     this.field                 = field              || SearchState.metadataByType[type].field;
     this.sortType              = sortType           || SearchState.metadataByType[type].sortType;
-    this.filterMySheets        = filterMySheets     || false;
   }
 
   _recreateRegistry(filters, registry = {}) {
@@ -51,7 +49,6 @@ class SearchState {
       fieldBroad:         this.fieldBroad,
       field:              this.field,
       sortType:           this.sortType,
-      filterMySheets:     this.filterMySheets,
     });
   }
 
@@ -67,7 +64,6 @@ class SearchState {
     fieldBroad,
     field,
     sortType,
-    filterMySheets,
     aggregationsToUpdate,
   }) {
     type             = typeof type             === 'undefined' ? this.type             : type;
@@ -79,7 +75,6 @@ class SearchState {
     fieldBroad       = typeof fieldBroad       === 'undefined' ? this.fieldBroad       : fieldBroad;
     field            = typeof field            === 'undefined' ? this.field            : field;
     sortType         = typeof sortType         === 'undefined' ? this.sortType         : sortType;
-    filterMySheets   = typeof filterMySheets   === 'undefined' ? this.filterMySheets   : filterMySheets;
     const tempAvailableFilters = availableFilters;
     const tempFilterRegistry   = typeof filterRegistry   === 'undefined' ? this.filterRegistry   : filterRegistry;
     if (!!aggregationsToUpdate && this.filtersValid) {
@@ -103,7 +98,6 @@ class SearchState {
       fieldBroad,
       field,
       sortType,
-      filterMySheets,
     });
   }
 

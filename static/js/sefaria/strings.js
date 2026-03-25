@@ -168,7 +168,6 @@ const Strings = {
     "Results": "תוצאות",
     "Options": "אפשרויות",
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
-    "My Public Sheets": "הדפים הציבוריים שלי",
     "Search Texts": "חפש מקורות",
     "Search in this text": "חפש בטקסט",
     "Search Collections": "חיפוש באסופות",

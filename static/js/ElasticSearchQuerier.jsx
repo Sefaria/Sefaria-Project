@@ -101,8 +101,7 @@ class ElasticSearchQuerier extends Component {
         pagesLoaded:    0,
         hits:           [],
         error:          false,
-        topics:         [],
-        userSheetCount: 0,
+        topics:         []
       }
 
       // Load search results from cache so they are available for immediate render
@@ -135,8 +134,7 @@ class ElasticSearchQuerier extends Component {
         let state = {
             hits: [],
             pagesLoaded: 0,
-            moreToLoad: true,
-            userSheetCount: 0,
+            moreToLoad: true
         };
         if (this.props.query !== newProps.query) {
             this.setState(state, () => {
@@ -248,15 +246,10 @@ class ElasticSearchQuerier extends Component {
               }
 
               if (data.aggregations) {
-                if (data.aggregations.owner_id && Sefaria._uid) {
-                  const userBucket = data.aggregations.owner_id.buckets.find(b => b.key === Sefaria._uid);
-                  this.setState({ userSheetCount: userBucket ? userBucket.doc_count : 0 });
-                }
                 let availableFilters = [];
                 let registry = {};
                 let orphans = [];
                 for (let aggregation of args.aggregationsToUpdate) {
-                  if (aggregation === 'owner_id') continue;
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
                     const {
@@ -284,10 +277,7 @@ class ElasticSearchQuerier extends Component {
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[this.props.searchState.type];
-      let aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.searchState.type);
-      if (this.props.searchState.type === 'sheet' && Sefaria._uid) {
-        aggregationsToUpdate = [...aggregationsToUpdate, 'owner_id'];
-      }
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.searchState.type);
 
       return {
         query: props.query,
@@ -334,9 +324,6 @@ class ElasticSearchQuerier extends Component {
     normalizeHitsMetaData() {
         if (this.props.searchState.type === 'sheet') {
             let results = this.state.hits;
-            if (this.props.searchState.filterMySheets && Sefaria._uid) {
-                results = results.filter(result => result._source.owner_id === Sefaria._uid);
-            }
             return results.map(result => {
                 let normalizedResult = result._source;
                 normalizedResult.snippet = result.highlight.content.join('...');
@@ -369,8 +356,6 @@ class ElasticSearchQuerier extends Component {
                     updateAppliedFilter={this.props.updateAppliedFilter}
                     updateAppliedOptionField={this.props.updateAppliedOptionField}
                     updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                    updateSearchMySheets={this.props.updateSearchMySheets}
-                    userSheetCount={this.state.userSheetCount}
                     registerAvailableFilters={this.props.registerAvailableFilters}
                     compare={this.props.compare}
                     loadNextPage={this._loadNextPage}
