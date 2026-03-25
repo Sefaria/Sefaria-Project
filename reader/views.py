@@ -1242,6 +1242,7 @@ def notifications(request):
     return menu_page(request, props, page="notifications", title=title)
 
 
+@ensure_csrf_cookie
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
