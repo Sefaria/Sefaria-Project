@@ -100,8 +100,8 @@ class RefView(View):
         }
 
         if return_object['node_type'] != 'SheetNode':
-            return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(vstate=vstate).normal()
             norm = lambda r: r.normal() if r else None
+            return_object['navigation_refs']['first_available_section_ref'] = norm(oref.first_available_section_ref(vstate=vstate))
             if oref.is_segment_level():
                 return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(vstate=vstate))
                 return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(vstate=vstate))
