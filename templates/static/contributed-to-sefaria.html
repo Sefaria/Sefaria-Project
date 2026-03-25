@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Texts Contributed to Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Texts Contributed to Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Texts on Sefaria that list this page as their source were contributed directly to Sefaria and have not yet been published elsewhere in print or on the web." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Texts on Sefaria that list this page as their source were contributed directly to Sefaria and have not yet been published elsewhere in print or on the web." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 

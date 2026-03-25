@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Terms of Use" %} | {% trans "Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Terms of Use" %} | {% trans "Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% endblock %}
 
 {% block content %}
 <div class="superAbout">

@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sign up for Sefaria's Newsletter" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sign up for Sefaria's Newsletter" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sign up for Sefaria's Newsletter" %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sign up for Sefaria's Newsletter" %}{% endmeta_desc %}{% endblock %}
 
 {% block js %}
 <script>

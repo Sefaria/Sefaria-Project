@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sheets on Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sheets on Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 {% endblock %}

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
 
-{% block title %}{% trans "Sefaria Torah Tab" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria Torah Tab" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Install the free Sefaria Torah Tab for your web browser." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Install the free Sefaria Torah Tab for your web browser." %}{% endmeta_desc %}{% endblock %}
 
 {% block head %}
     <meta property="og:type" content="website"/>
