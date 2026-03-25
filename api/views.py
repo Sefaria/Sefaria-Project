@@ -1,5 +1,4 @@
 from sefaria.model import *
-from sefaria.model.schema import DictionaryEntryNode, DictionaryNode
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
