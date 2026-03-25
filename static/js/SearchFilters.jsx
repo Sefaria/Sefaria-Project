@@ -63,6 +63,9 @@ class SearchFilters extends Component {
       <SheetSearchFilters
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
+        filterMySheets={this.props.searchState.filterMySheets}
+        updateSearchMySheets={this.props.updateSearchMySheets}
+        userSheetCount={this.props.userSheetCount}
       />
     );
 
@@ -363,6 +366,19 @@ class SheetSearchFilters extends Component {
 
     return (
       <div className="searchFilterBoxes" role="dialog">
+        {this.props.userSheetCount > 0 && (
+          <div className="searchFilterGroup">
+            <h2>
+              <InterfaceText context="SearchFilters">Options</InterfaceText>
+            </h2>
+            <MyPublicSheetsCheckbox
+              selected={this.props.filterMySheets}
+              count={this.props.userSheetCount}
+              onChange={() => this.props.updateSearchMySheets(!this.props.filterMySheets)}
+            />
+          </div>
+        )}
+
         <SearchFilterGroup
           name="Topics"
           filters={tagFilters}
@@ -381,9 +397,28 @@ class SheetSearchFilters extends Component {
   }
 }
 SheetSearchFilters.propTypes = {
-  updateAppliedFilter: PropTypes.func.isRequired,
-  availableFilters:    PropTypes.array.isRequired,
+  updateAppliedFilter:  PropTypes.func.isRequired,
+  availableFilters:     PropTypes.array.isRequired,
+  filterMySheets:       PropTypes.bool,
+  updateSearchMySheets: PropTypes.func,
+  userSheetCount:       PropTypes.number,
 };
+
+
+const MyPublicSheetsCheckbox = ({selected, count, onChange}) => (
+  <ul className="searchFilterList">
+  <li>
+    <div className="checkboxAndText">
+      <input type="checkbox" id="searchFilterMySheets" className="filter" checked={selected} onChange={onChange}/>
+      <label tabIndex="0" onClick={onChange} onKeyDown={Util.handleEnterKey(onChange)}><span></span></label>
+      <span className="filter-title">
+        <InterfaceText>My Public Sheets</InterfaceText>&nbsp;
+        <span className="filter-count"><InterfaceText>{`(${count})`}</InterfaceText></span>
+      </span>
+    </div>
+  </li>
+  </ul>
+);
 
 
 const PagedList = ({items, initial=8, pageSize=20}) => {

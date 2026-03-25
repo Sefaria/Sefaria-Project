@@ -960,6 +960,7 @@ class ReaderPanel extends Component {
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                    updateSearchMySheets={this.props.updateSearchMySheets}
                     registerAvailableFilters={this.props.registerAvailableFilters}
                     compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "topics") {

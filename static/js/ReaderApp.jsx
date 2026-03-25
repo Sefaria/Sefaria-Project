@@ -1422,6 +1422,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       searchState: searchState.update({ sortType })
     });
   }
+  updateSearchMySheets(n, filterMySheets) {
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state);
+    this.setPanelState(n, {
+      searchState: searchState.update({ filterMySheets })
+    });
+  }
   setPanelState(n, state, replaceHistory) {
     // Set replaceHistory flag - this will be consumed and reset by updateHistoryState
     this.replaceHistory  = Boolean(replaceHistory);
@@ -2335,6 +2342,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       const resetSearchFilters           = this.resetSearchFilters.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
+      var updateSearchMySheets           = this.updateSearchMySheets.bind(null, i);
       var openConnectionsPanel           = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -2393,6 +2401,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       updateSearchFilter={updateSearchFilter}
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
+                      updateSearchMySheets={updateSearchMySheets}
                       registerAvailableFilters={updateAvailableFilters}
                       searchInCollection={this.searchInCollection}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
