@@ -148,7 +148,7 @@ class RefView(View):
                 return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
 
         if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
-            state_ja = oref._get_state_ja(vstate) if vstate else None
+            state_ja = oref.get_state_ja(vstate=vstate) if vstate else None
             subrefs = oref.all_subrefs(state_ja=state_ja)
             return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()

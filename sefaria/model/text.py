@@ -3632,7 +3632,7 @@ class Ref(object, metaclass=RefCacheType):
             if self.index_node.is_virtual:
                 return r.all_subrefs()[0]
             d = r._core_dict()
-            ja = self._get_state_ja(vstate)
+            ja = self.get_state_ja(vstate=vstate)
             newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
             d["sections"] = d["toSections"] = newSections
             return Ref(_obj=d)
@@ -3659,7 +3659,7 @@ class Ref(object, metaclass=RefCacheType):
             else:
                 return siblings[curr_index+1]
         sectionRef = r.section_ref()
-        ja = self._get_state_ja(vstate)
+        ja = self.get_state_ja(vstate=vstate)
         sectionLength = ja.sub_array_length([i - 1 for i in sectionRef.sections])
         if r.sections[-1] < sectionLength:
             d = r._core_dict()
@@ -3711,18 +3711,12 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return None
 
-        def _is_empty(ref):
-            if ref.index_node.is_virtual:
-                return ref.is_empty()
-            state_ja = ref._get_state_ja(vstate)
-            return state_ja.sub_array_length([i - 1 for i in ref.sections]) in (0, None)
-
         if r.is_book_level():
             # r is depth 1. return first segment
             r = r.subref([1])
-            return r.next_segment_ref(vstate=vstate) if _is_empty(r) else r
+            return r.next_segment_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
         else:
-            return r.next_section_ref(vstate=vstate) if _is_empty(r) else r
+            return r.next_section_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):
@@ -3732,24 +3726,16 @@ class Ref(object, metaclass=RefCacheType):
         from . import version_state
         return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
-    def get_state_ja(self, lang="all"):
+    def get_state_ja(self, lang="all", vstate=None):
         """
         :param lang: "all", "he", or "en"
-        :return: :class:`sefaria.datatype.jagged_array`
-        """
-        #TODO: also does not work with complex texts...
-        return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
-
-    def _get_state_ja(self, vstate=None, lang="all"):
-        """
-        Derive state JaggedIntArray from vstate if available, otherwise load from DB.
-        :param vstate: optional pre-fetched VersionState
-        :param lang: "all", "he", or "en"
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`sefaria.datatype.jagged_array`
         """
         if vstate:
             return vstate.state_node(self.index_node).ja(lang)
-        return self.get_state_ja(lang)
+        #TODO: also does not work with complex texts...
+        return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
     def is_text_fully_available(self, lang):
         """
@@ -3775,17 +3761,16 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.is_text_fully_available("en")
 
-    def is_empty(self, lang=None):
+    def is_empty(self, lang=None, vstate=None):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: Bool True is there is not text at this ref in any language
         """
-
-        # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
-        # return not len(self.versionset())
-        # depricated
-        # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+        if vstate and not self.index_node.is_virtual:
+            state_ja = self.get_state_ja(vstate=vstate)
+            return state_ja.sub_array_length([i - 1 for i in self.sections]) in (0, None)
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
