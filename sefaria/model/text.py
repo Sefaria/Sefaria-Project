@@ -5,6 +5,7 @@ text.py
 
 import time
 import structlog
+import dataclasses
 from functools import reduce, partial
 from typing import Optional, Union
 
@@ -168,6 +169,14 @@ class AbstractIndex(object):
 
         annotate_schema(contents["schema"], vstate.content)
         return contents
+
+
+@dataclasses.dataclass(frozen=True)
+class TocSerializationOptions:
+    include_first_section: bool = False
+    include_flags: bool = False
+    include_base_texts: bool = True
+    include_authors: bool = False
 
 
 class Index(abst.AbstractMongoRecord, AbstractIndex):
@@ -815,8 +824,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=False, include_flags=False, include_base_texts=False):
+    def toc_contents(self, serialization_options=None):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
+        serialization_options = serialization_options or TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
         toc_contents_dict = {
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
@@ -833,11 +848,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # first elem in corpora is the main corpus
             toc_contents_dict["corpus"] = self.corpora[0]
 
-        if include_first_section:
+        if serialization_options.include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()
             toc_contents_dict["firstSection"] = firstSection.normal() if firstSection else None
 
-        if include_flags:
+        if serialization_options.include_flags:
             vstate = self.versionState()
             toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
             toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
@@ -852,10 +867,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
-        if include_base_texts and hasattr(self, 'base_text_titles'):
+        if serialization_options.include_authors:
+            authors = self.author_objects()
+            if authors:
+                toc_contents_dict["authors"] = [
+                    {"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug}
+                    for author in authors
+                ]
+
+        if serialization_options.include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
-            if include_first_section:
+            if serialization_options.include_first_section:
                 toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
                 toc_contents_dict["collectiveTitle"] = self.title
@@ -863,7 +886,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         elif hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
 
-        if include_base_texts and hasattr(self, 'base_text_mapping'):
+        if serialization_options.include_base_texts and hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         if hasattr(self, 'hidden'):
@@ -5071,6 +5094,8 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+        
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
@@ -5081,6 +5106,14 @@ class Library(object):
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
         self.get_virtual_books(rebuild=rebuild)
+        
+        # functions backed by lru cache
+        if rebuild:
+            get_talmud_perek_ref_set.cache_clear()
+            get_parasha_ref_set.cache_clear()
+        get_talmud_perek_ref_set()
+        get_parasha_ref_set()
+        
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5095,10 +5128,21 @@ class Library(object):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
-    def get_toc(self, rebuild=False):
+    def get_toc(self, rebuild=False, serialization_options=None):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
         """
+        default_serialization_options = TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
+        serialization_options = serialization_options or default_serialization_options
+        if serialization_options != default_serialization_options:
+            if rebuild:
+                self.get_toc_tree(rebuild=True)
+            return self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
         if rebuild or not self._toc:
             if not rebuild:
                 self._toc = scache.get_shared_cache_elem('toc')
@@ -6215,7 +6259,8 @@ class Library(object):
 
     @staticmethod
     def _wrap_ref_match(ref, match):
-        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+        data_target_module = constants.VOICES_MODULE if ref.is_sheet() else constants.LIBRARY_MODULE
+        return f'<a class ="refLink" href="/{ref.url()}" data-ref="{ref.normal()}" data-target-module="{data_target_module}">{match.group(0)}</a>'
 
     def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
         try:

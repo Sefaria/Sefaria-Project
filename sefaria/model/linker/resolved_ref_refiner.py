@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from itertools import product
 from typing import List
 
+from sefaria.utils.hebrew import decode_hebrew_numeral
 from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from sefaria.model.schema import AddressInteger
 from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet, PassageNodeSet
@@ -151,11 +152,31 @@ class ResolvedRefRefinerForRangedPart(ResolvedRefRefiner):
 class ResolvedRefRefinerForNamedNode(ResolvedRefRefiner):
 
     def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
-        if self.node.ref_part_title_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id) \
+        part_key = self.part_to_match.key()
+        if self.node.ref_part_title_trie(lang).has_continuations(part_key, key_is_id=self.part_to_match.key_is_id) \
                 and not self._has_prev_unused_numbered_ref_part_for_node(lang):
 
-            return [self._clone_resolved_ref(ref=self.node.ref())]
+            can_ooo = self._can_match_out_of_order(lang)
+            return [self._clone_resolved_ref(ref=self.node.ref(), can_match_out_of_order=can_ooo)]
         return []
+    
+    def _can_match_out_of_order(self, lang) -> bool:
+        """
+        Named nodes normally can match out of order unless they have a numeric equivalent
+        that matches the current raw ref part being matched.
+        :param lang: either 'en' or 'he'
+        :return: True if can match out of order, False otherwise
+        """
+        num = self.node.get_numeric_equivalent()
+        part_key = self.part_to_match.key()
+        if num is None:
+            return True
+        try:
+            part_num = str(decode_hebrew_numeral(part_key)) if lang == 'he' else part_key
+            return str(num) != part_num
+        except KeyError:
+            # can fail due to invalid hebrew numeral
+            return True
 
 
 class ResolvedRefRefinerForDiburHamatchilPart(ResolvedRefRefiner):

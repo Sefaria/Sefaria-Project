@@ -75,6 +75,8 @@ STATICFILES_DIRS = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
+CHATBOT_USER_ID_SECRET = 'secret'
+CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
     {
@@ -98,6 +100,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.cache_timestamp",
                     "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
+                    "sefaria.system.context_processors.chatbot_user_token",
                     "sefaria.system.context_processors.base_props",
                     "sefaria.system.context_processors.module_context",
             ],
@@ -129,6 +132,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
+    *(['sefaria.system.middleware.MaxRSSMiddleware'] if os.environ.get('ENABLE_MAXRSS_MIDDLEWARE') else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -148,6 +152,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'reader',
+    'chatbot',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
@@ -312,13 +317,13 @@ CACHES = {
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    if os.getenv("CI_RUN"):
-        from sefaria.local_settings_ci import *
-    else:
+if os.getenv("CI_RUN"):
+    from sefaria.local_settings_ci import *
+else:
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), 'local_settings.py')):
         from sefaria.local_settings import *
-except ImportError:
-    from sefaria.local_settings_example import *
+    else:
+        from sefaria.local_settings_example import *
 if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 

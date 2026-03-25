@@ -21,7 +21,8 @@ import {
   JobsPage,
   TeamMembersPage,
   ProductsPage,
-  SheetsLandingPage
+  SheetsLandingPage,
+  NewsletterPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -38,6 +39,7 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
+import { ChatbotExperimentBanner } from './SiteWideBanner';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -203,7 +205,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
-    
+    document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
+    document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
@@ -235,6 +239,8 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
+    document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
+    document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1098,6 +1104,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Update href for links with data-target-module to ensure correct subdomain
+        this.updateModuleLinkHref(linkTarget);
         // in this case we want to stop other handlers from running and just go to target href
         e.stopImmediatePropagation();
         return;
@@ -1158,6 +1166,73 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       e.preventDefault();
     }
   }
+  handleBootstrapUrlEvent(event) {
+    if (!event || !event.detail) { return; }
+    const detail = event.detail;
+    const url = (typeof detail === "string") ? detail : detail.url;
+    if (!url) { return; }
+    const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
+    this.bootstrapUrl(url, {replaceHistory: replaceHistory});
+  }
+  handleSettingsUpdatedEvent(event) {
+    const detail = event?.detail;
+    if (!detail) return;
+    if (detail.translationLanguagePreference !== undefined) {
+      this.setState({ translationLanguagePreference: detail.translationLanguagePreference });
+    }
+    if (detail.readingHistory !== undefined) {
+      Sefaria.is_history_enabled = detail.readingHistory;
+    }
+    if (detail.textualCustom !== undefined) {
+      Sefaria.updateCalendars(detail.textualCustom, detail.diaspora);
+    }
+  }
+  _getPathAndRefFromUrl(href) {
+    let url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch {
+      return false;
+    }
+    const hostname = url.hostname || "";
+    if (hostname && hostname !== window.location.hostname && hostname.indexOf("sefaria.org") === -1) {
+      return false;
+    }
+    const path = decodeURI(url.pathname);
+    const ref = path.slice(1).replace(/%3F/g, '?');
+    return {path, ref};
+  }
+  bootstrapUrl(href, options) {
+    if (this.shouldAlertBeforeCloseEditor()) {
+      if (!this.alertUnsavedChangesConfirmed()) {
+        return true;
+      }
+    }
+    const opts = options || {};
+    const {path, ref} = this._getPathAndRefFromUrl(href);
+    if (Sefaria.isRef(ref)) {
+      // Route bot refs through the same path as Header search ref navigation.
+      this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
+      return true;
+    }
+    return this.openURL(path + url.search, true);
+  }
+
+  updateModuleLinkHref(link) {
+    /*
+    Update href for a link with data-target-module to ensure correct subdomain.
+    Used by both modifier key clicks and right-clicks.
+    */
+    if (!link) {
+      return;
+    }
+    const moduleTarget = link.getAttribute('data-target-module');
+    if (moduleTarget) {
+      const href = link.getAttribute('href');
+      const fullUrl = Sefaria.util.fullURL(href, moduleTarget);
+      link.setAttribute('href', fullUrl);
+    }
+  }
 
   handleModuleLinkRightClick(e) {
     /*
@@ -1165,13 +1240,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
-    if (link) {
-      const href = link.getAttribute('href');
-      const targetModule = link.getAttribute('data-target-module');
-      
-      const fullUrl = Sefaria.util.fullURL(href, targetModule);
-      link.setAttribute('href', fullUrl);
-    }
+    this.updateModuleLinkHref(link);
   }
 
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
@@ -1533,13 +1602,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setState(this.state);
     }
   }
-  openPanel(ref, currVersions, options) {
+  openPanel(ref, currVersions, options, replaceHistory=false) {
     // Opens a text panel, replacing all panels currently open.
     // options can contain {
     //  'textHighlights': array of strings to highlight in focused segment. used when clicking on search query result
     // }
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
-    this.openPanelAt(0, ref, currVersions, options);
+    this.openPanelAt(0, ref, currVersions, options, undefined, true, replaceHistory);
   }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true,
               replaceHistory=false, saveLastPlace=true, forceOpenCommentaryPanel=false) {
@@ -2045,7 +2114,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    const tagsToIgnore = ["INPUT", "TEXTAREA"];
+    const tagsToIgnore = ["INPUT", "TEXTAREA", "LC-CHATBOT"];
     if (tagsToIgnore.includes(e.srcElement.tagName)) {
       // If the selection is from an input or textarea tag, don't do anything special
       return
@@ -2380,7 +2449,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-
+    const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
+    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && Sefaria.interfaceLang === "english" && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
+    
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
       // InterruptingMessage modals and Banners will always render if available but stay hidden initially
@@ -2392,8 +2466,26 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
+              {showChatbotBanner && <ChatbotExperimentBanner />}
               <main id="main" role="main">
-                {panels}
+                <div className="panelContainer">
+                  {panels}
+                </div>
+                {displayChatbot && (
+                <lc-chatbot
+                  user-id={this.props.chatbot_user_token}
+                  api-base-url={chatBotApiBaseUrl}
+                  origin={this.props.chatbot_origin}
+                  is-moderator={this.props.is_moderator || undefined}
+                  placement="right"
+                  default-open={true}
+                  mode="floating"  //this simply defines the initial mode which can be toggled by the user
+                  max-input-chars={this.props.chatbot_max_input_chars}
+                  max-prompts={this.props.chatbot_max_prompts}
+                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
+                  interface-lang={this.props.interfaceLang}
+                />
+              )}
               </main>
               {signUpModal}
               {communityPagePreviewControls}
@@ -2470,5 +2562,6 @@ export {
   TeamMembersPage,
   ProductsPage,
   SheetsLandingPage,
+  NewsletterPage,
   UpdatesPanel
 };

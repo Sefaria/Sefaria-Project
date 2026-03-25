@@ -226,12 +226,12 @@ class AbstractMongoRecord(object):
         """
         is_root = schema is None
         schema = schema or self.attr_schemas
-        if not is_root and schema['type'] == 'dict':
+        if not is_root and schema.get('type') == 'dict':
             schema['allow_unknown'] = schema.get('allow_unknown', False)
         for key in schema:
             if isinstance(schema[key], dict):
                 if 'schema' in schema[key]:
-                    self.__set_allow_unknown_false(schema[key]['schema'])
+                    self.__set_allow_unknown_false(schema[key])
  
     def _validate(self):
         """

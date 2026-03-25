@@ -637,7 +637,7 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 ########
 
 PREFIXES = {
-	'ב', 'ד', 'ה', 'ו', 'ל', 'מ', 'ע',   # single letter
+    'כ', 'ש', 'ב', 'ד', 'ה', 'ו', 'ל', 'מ', 'ע',   # single letter
 	'דב', 'וב', 'וה', 'כד', 'מה', 'שב',  # double letter
 }  # careful of Ayin prefix...
 

@@ -32,12 +32,13 @@ data:
         max_requests = int(os.getenv("MAX_REQUESTS"))
         max_requests_jitter = int(os.getenv("MAX_REQUESTS_JITTER"))
 
-    {{- if .Values.instrumentation.enabled }}
     def post_fork(server, worker):
         server.log.info("Worker spawned (pid: %s)", worker.pid)
+        from reader.startup import init_sentry_from_settings
+        init_sentry_from_settings()
+        {{- if .Values.instrumentation.enabled }}
         from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
-    
-    {{- end }}
+        {{- end }}
 
     def on_starting(server):
         from reader.startup import init_library_cache
@@ -173,4 +174,3 @@ data:
     #     wrapper_class=structlog.stdlib.BoundLogger,
     #     cache_logger_on_first_use=True,
     # )
-

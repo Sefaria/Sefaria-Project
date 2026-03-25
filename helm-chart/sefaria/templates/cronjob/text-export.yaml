@@ -1,0 +1,89 @@
+{{- if .Values.export.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-text-export
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  concurrencyPolicy: Forbid
+  schedule: {{ .Values.export.schedule | quote }}
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 14400
+      template:
+        spec:
+          serviceAccount: {{ .Values.export.serviceAccount }}
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          - name: shared-volume
+            emptyDir:
+              sizeLimit: 40Gi
+          - name: export-scripts
+            configMap:
+              name: export-scripts-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          initContainers:
+          - name: text-exporter
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: SEFARIA_EXPORT_PATH
+              value: "/export"
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - name: shared-volume
+                mountPath: /export
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: ["-c", "/app/run /app/scripts/export_all.py"]
+            resources:
+              requests:
+                ephemeral-storage: 40Gi
+                memory: "4Gi"
+                cpu: "1000m"
+              limits:
+                memory: "4Gi"
+          containers:
+          - name: export-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /export
+            - name: export-scripts
+              mountPath: /scripts
+            env:
+            - name: BUCKET
+              value: {{ .Values.export.bucket }}
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-to-gcs.sh"]
+            resources:
+              limits:
+                memory: "2Gi"
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

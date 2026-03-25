@@ -9,7 +9,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
-from functools import reduce
+from functools import reduce, lru_cache
 from sefaria.system.exceptions import InputError
 
 import regex as re
@@ -610,6 +610,68 @@ def word_frequency_for_text(title, lang="en"):
     counts = sorted(iter(count.items()), key=lambda x: -x[1])
 
     return counts
+
+@lru_cache(maxsize=1)
+def get_talmud_perek_ref_set() -> frozenset[str]:
+    """Cache of Talmud perakim refs (Bavli/Yerushalmi/Tosefta/Mishnah)."""
+    categories = [
+        ["Talmud", "Bavli"],
+        ["Talmud", "Yerushalmi"],
+        ["Tosefta"],
+        ["Mishnah"],
+    ]
+    perakim: set[str] = set()
+    for path in categories:
+        for index in library.get_indexes_in_category_path(path, full_records=True) or []:
+            try:
+                alone_nodes = index.get_referenceable_alone_nodes()
+            except Exception:
+                continue
+            for node in alone_nodes:
+                try:
+                    perakim.add(node.ref().normal())
+                except Exception:
+                    continue
+
+    return frozenset(perakim)
+
+
+@lru_cache(maxsize=1)
+def get_parasha_ref_set() -> frozenset[str]:
+    """Cache of parasha wholeRef ranges from alt-struct leaves whose titles map to Parasha terms."""
+    parasha_titles: set[str] = set()
+    for term in TermSet({"scheme": "Parasha"}):
+        for lang in ("en", "he"):
+            try:
+                parasha_titles.update(term.get_titles(lang))
+            except Exception:
+                continue
+
+    parasha_refs: set[str] = set()
+    for index in library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []:
+        try:
+            alt_leaves = index.get_alt_struct_leaves()
+        except Exception:
+            continue
+        for node in alt_leaves:
+            if not getattr(node, "wholeRef", None):
+                continue
+            try:
+                titles = set()
+                titles.update(node.get_titles("en"))
+                titles.update(node.get_titles("he"))
+                if getattr(node, "sharedTitle", None):
+                    titles.add(node.sharedTitle)
+            except Exception:
+                titles = set()
+            if parasha_titles and titles.isdisjoint(parasha_titles):
+                continue
+            try:
+                parasha_refs.add(Ref(node.wholeRef).normal())
+            except Exception:
+                continue
+
+    return frozenset(parasha_refs)
 
 
 class WorkflowyParser(object):

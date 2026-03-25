@@ -296,8 +296,14 @@ class TocTree(object):
             else:
                 cat.children.sort(key=_explicit_order_and_title)
 
-    def _make_index_node(self, index, old_title=None, mobile=False, include_first_section=False):
-        d = index.toc_contents(include_first_section=include_first_section, include_flags=False, include_base_texts=True)
+    def _make_index_node(self, index, old_title=None, mobile=False, serialization_options=None):
+        serialization_options = serialization_options or text.TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
+        d = index.toc_contents(serialization_options=serialization_options)
 
         title = old_title or d["title"]
 
@@ -305,7 +311,7 @@ class TocTree(object):
             vs = self._vs_lookup.get(title, {})
             d["firstSection"] = vs.get("first_section_ref", None)
         
-        if "base_text_titles" in d and len(d["base_text_titles"]) > 0 and include_first_section:
+        if "base_text_titles" in d and len(d["base_text_titles"]) > 0 and serialization_options.include_first_section:
             # `d["firstSection"]` assumes `include_first_section` is True
             #  this code seems to never actually get run
             d["refs_to_base_texts"] = {btitle:
@@ -327,8 +333,8 @@ class TocTree(object):
     def get_root(self):
         return self._root
 
-    def get_serialized_toc(self):
-        return self._root.serialize().get("contents", [])
+    def get_serialized_toc(self, serialization_options=None):
+        return self._root.serialize(serialization_options=serialization_options).get("contents", [])
 
     def get_collections_in_library(self):
         return self._collections_in_library
@@ -510,6 +516,20 @@ class TocTextIndex(TocNode):
     def get_index_object(self):
         return self._index_object
 
+    def serialize(self, **kwargs):
+        d = super(TocTextIndex, self).serialize(**kwargs)
+        serialization_options = kwargs.get("serialization_options") or text.TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=False,
+        )
+        if serialization_options.include_authors and self._index_object:
+            authors = self._index_object.toc_contents(serialization_options=serialization_options).get("authors")
+            if authors:
+                d["authors"] = authors
+        return d
+
     optional_param_keys = [
         "categories",
         "dependence",
@@ -524,6 +544,7 @@ class TocTextIndex(TocNode):
         "base_text_titles",
         "base_text_mapping",
         "heCollectiveTitle",
+        "authors",
         "commentator",
         "heCommentator",
         "refs_to_base_texts",

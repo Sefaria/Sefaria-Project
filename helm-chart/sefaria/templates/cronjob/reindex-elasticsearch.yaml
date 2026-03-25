@@ -33,7 +33,7 @@ spec:
                 memory: 7Gi
             env:
             - name: SEARCH_HOST
-              value: "elasticsearch-es-http.elasticsearch.svc"
+              value: "elasticsearch-1b-es-http.elasticsearch.svc"
             - name: SEARCH_PORT
               value: "9200"
             - name: SEARCH_PATH

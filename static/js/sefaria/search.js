@@ -40,7 +40,7 @@ class Search {
             }
 
             wrapper.addQuery($.ajax({
-                url: `https://metrics-facelift.cauldron.sefaria.org/api/search-wrapper/es8`,
+                url: `${Sefaria.apiHost}/api/search-wrapper/es8`,
                 type: 'POST',
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",
