@@ -59,7 +59,7 @@ spec:
                 subPath: local_settings.py
                 readOnly: true
             command: ["bash"]
-            args: ["-c", "/app/run /app/manage.py export_all"]
+            args: ["-c", "/app/run /app/scripts/export_all.py"]
             resources:
               requests:
                 ephemeral-storage: 50Gi
@@ -82,7 +82,7 @@ spec:
             args: ["-c", "/scripts/upload-to-gcs.sh"]
             resources:
               limits:
-                memory: "512Mi"
+                memory: "2Gi"
           restartPolicy: Never
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
