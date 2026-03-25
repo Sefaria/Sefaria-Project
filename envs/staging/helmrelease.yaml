@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.77.3"
+      version: "0.80.0"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project-helm-repo
@@ -30,7 +30,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.79.5"
+        tag: "v6.85.3"
       resources:
         web:
           resources:
@@ -54,7 +54,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.79.5"
+        tag: "v6.85.3"
       resources:
         requests:
           memory: "400Mi"
@@ -76,11 +76,11 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.79.5"
+        tag: "v6.85.3"
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.79.5"
+        tag: "v6.85.3"
     tasks:
       enabled: false
     postgres:

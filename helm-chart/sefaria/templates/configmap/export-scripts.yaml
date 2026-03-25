@@ -1,0 +1,19 @@
+{{- if .Values.export.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: export-scripts-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-to-gcs.sh: |-
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
+
+    echo "Syncing export data to gs://${BUCKET}/current/"
+    gcloud storage rsync -r --delete-unmatched-destination-objects \
+      /export/ "gs://${BUCKET}/current/"
+    echo "Upload complete."
+{{- end }}
