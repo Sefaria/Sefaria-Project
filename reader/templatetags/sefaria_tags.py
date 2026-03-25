@@ -45,18 +45,37 @@ register = template.Library()
 domain = SimpleLazyObject(lambda: Site.objects.get_current().domain)
 
 
-class MetaTitleNode(template.Node):
-    """Renders {% meta_title %}...{% endmeta_title %} as synchronized title + og:title + twitter:title tags."""
+class SyncedMetaTagNode(template.Node):
+    """
+    Base node that renders content into synchronized regular, OpenGraph, and Twitter meta tags.
+    Subclasses provide a format_template that receives the escaped content via {content}.
+    """
+    format_template = ""
+
     def __init__(self, nodelist):
         self.nodelist = nodelist
 
     def render(self, context):
         content = conditional_escape(self.nodelist.render(context).strip())
-        return mark_safe(
-            f'<title>{content}</title>\n'
-            f'    <meta property="og:title" content="{content}"/>\n'
-            f'    <meta name="twitter:title" content="{content}"/>'
-        )
+        return mark_safe(self.format_template.format(content=content))
+
+
+class MetaTitleNode(SyncedMetaTagNode):
+    """Renders {% meta_title %}...{% endmeta_title %} as synchronized title + og:title + twitter:title tags."""
+    format_template = (
+        '<title>{content}</title>\n'
+        '    <meta property="og:title" content="{content}"/>\n'
+        '    <meta name="twitter:title" content="{content}"/>'
+    )
+
+
+class MetaDescNode(SyncedMetaTagNode):
+    """Renders {% meta_desc %}...{% endmeta_desc %} as synchronized description + og:description + twitter:description tags."""
+    format_template = (
+        '<meta name="description" content="{content}"/>\n'
+        '    <meta property="og:description" content="{content}"/>\n'
+        '    <meta name="twitter:description" content="{content}"/>'
+    )
 
 
 @register.tag('meta_title')
@@ -64,20 +83,6 @@ def meta_title_tag(parser, token):
     nodelist = parser.parse(('endmeta_title',))
     parser.delete_first_token()
     return MetaTitleNode(nodelist)
-
-
-class MetaDescNode(template.Node):
-    """Renders {% meta_desc %}...{% endmeta_desc %} as synchronized description + og:description + twitter:description tags."""
-    def __init__(self, nodelist):
-        self.nodelist = nodelist
-
-    def render(self, context):
-        content = conditional_escape(self.nodelist.render(context).strip())
-        return mark_safe(
-            f'<meta name="description" content="{content}"/>\n'
-            f'    <meta property="og:description" content="{content}"/>\n'
-            f'    <meta name="twitter:description" content="{content}"/>'
-        )
 
 
 @register.tag('meta_desc')
