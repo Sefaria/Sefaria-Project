@@ -85,11 +85,9 @@ class RefView(View):
         oref = self.oref
         index = oref.index
         index_node = oref.index_node
-        vstate = VersionState(index.title)  # load full vstate (not just current node) so prev/next_section_ref can cross into neighboring nodes
-        try:
-            state_ja = vstate.state_node(index_node).ja("all")
-        except:
-            state_ja = None
+        # Load vstate for non-virtual nodes (JaggedArrayNode, SchemaNode, DictionaryNode).
+        # Virtual nodes (Sheet, DictionaryEntry, virtual JA) use tree navigation with 0 DB calls.
+        vstate = VersionState(index.title) if not index_node.is_virtual else None
         return_object = {
             'is_ref': True,
             'normalized': oref.normal(),
@@ -103,11 +101,11 @@ class RefView(View):
         }
 
         if return_object['node_type'] != 'SheetNode':
-            return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(state_ja=state_ja, vstate=vstate).normal()
+            return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(vstate=vstate).normal()
             norm = lambda r: r.normal() if r else None
             if oref.is_segment_level():
-                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja, vstate=vstate))
-                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja, ))
+                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(vstate=vstate))
+                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(vstate=vstate))
             elif oref.is_section_level():
                 return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
                 return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
@@ -150,6 +148,7 @@ class RefView(View):
                 return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
 
         if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
+            state_ja = oref._get_state_ja(vstate) if vstate else None
             subrefs = oref.all_subrefs(state_ja=state_ja)
             return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()

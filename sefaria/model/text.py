@@ -3609,14 +3609,13 @@ class Ref(object, metaclass=RefCacheType):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-    def prev_segment_ref(self, state_ja=None, vstate=None):
+    def prev_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next previous populated segment.
 
         If this ref is not segment level, will return ``self```
 
-        :param state_ja: optional pre-fetched JaggedIntArray to avoid a DB call
-        :param vstate: optional pre-fetched VersionState to pass to prev_section_ref
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.starting_ref()
@@ -3633,19 +3632,18 @@ class Ref(object, metaclass=RefCacheType):
             if self.index_node.is_virtual:
                 return r.all_subrefs()[0]
             d = r._core_dict()
-            ja = state_ja or self.get_state_ja()
+            ja = self._get_state_ja(vstate)
             newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
             d["sections"] = d["toSections"] = newSections
             return Ref(_obj=d)
 
-    def next_segment_ref(self, state_ja=None, vstate=None):
+    def next_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next populated segment.
 
         If this ref is not segment level, will return ``self```
 
-        :param state_ja: optional pre-fetched JaggedIntArray to avoid a DB call
-        :param vstate: optional pre-fetched VersionState to pass to next_section_ref
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.ending_ref()
@@ -3653,7 +3651,7 @@ class Ref(object, metaclass=RefCacheType):
             return r
         if self.index_node.is_virtual:
             section_ref = self.context_ref()
-            siblings = section_ref.all_subrefs(state_ja=state_ja)
+            siblings = section_ref.all_subrefs()
             curr_index = siblings.index(self)
             if len(siblings) == curr_index + 1:
                 next_section = section_ref.next_section_ref(vstate=vstate)
@@ -3661,7 +3659,7 @@ class Ref(object, metaclass=RefCacheType):
             else:
                 return siblings[curr_index+1]
         sectionRef = r.section_ref()
-        ja = state_ja or self.get_state_ja()
+        ja = self._get_state_ja(vstate)
         sectionLength = ja.sub_array_length([i - 1 for i in sectionRef.sections])
         if r.sections[-1] < sectionLength:
             d = r._core_dict()
@@ -3686,15 +3684,14 @@ class Ref(object, metaclass=RefCacheType):
         o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
         return Ref(_obj=o)
 
-    def first_available_section_ref(self, state_ja=None, vstate=None):
+    def first_available_section_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
         Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
-        :param state_ja: optional pre-fetched JaggedIntArray to avoid DB calls for emptiness check
-        :param vstate: optional pre-fetched VersionState to derive state_ja for leaf nodes and pass to navigation methods
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         if isinstance(self.index_node, JaggedArrayNode):
@@ -3708,9 +3705,6 @@ class Ref(object, metaclass=RefCacheType):
                     return None
                 try:
                     r = first_leaf.ref().padded_ref()
-                    # If navigated to a different leaf node, derive state_ja from vstate
-                    if state_ja is None and vstate is not None:
-                        state_ja = vstate.state_node(r.index_node).ja("all")
                 except Exception as e: #VirtualNodes dont have a .ref() function so fall back to VersionState
                     if self.is_book_level():
                         return self.index.versionSet().array()[0].first_section_ref()
@@ -3718,14 +3712,15 @@ class Ref(object, metaclass=RefCacheType):
             return None
 
         def _is_empty(ref):
-            if state_ja is not None:
-                return state_ja.sub_array_length([i - 1 for i in ref.sections]) in (0, None)
-            return ref.is_empty()
+            if ref.index_node.is_virtual:
+                return ref.is_empty()
+            state_ja = ref._get_state_ja(vstate)
+            return state_ja.sub_array_length([i - 1 for i in ref.sections]) in (0, None)
 
         if r.is_book_level():
             # r is depth 1. return first segment
             r = r.subref([1])
-            return r.next_segment_ref(state_ja=state_ja, vstate=vstate) if _is_empty(r) else r
+            return r.next_segment_ref(vstate=vstate) if _is_empty(r) else r
         else:
             return r.next_section_ref(vstate=vstate) if _is_empty(r) else r
 
@@ -3744,6 +3739,17 @@ class Ref(object, metaclass=RefCacheType):
         """
         #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
+
+    def _get_state_ja(self, vstate=None, lang="all"):
+        """
+        Derive state JaggedIntArray from vstate if available, otherwise load from DB.
+        :param vstate: optional pre-fetched VersionState
+        :param lang: "all", "he", or "en"
+        :return: :class:`sefaria.datatype.jagged_array`
+        """
+        if vstate:
+            return vstate.state_node(self.index_node).ja(lang)
+        return self.get_state_ja(lang)
 
     def is_text_fully_available(self, lang):
         """
