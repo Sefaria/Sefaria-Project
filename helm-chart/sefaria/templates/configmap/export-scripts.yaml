@@ -9,11 +9,40 @@ metadata:
 data:
   upload-to-gcs.sh: |-
     #!/usr/bin/env bash
-    set -euo pipefail
+    set -uo pipefail
     set -x
 
-    echo "Syncing export data to gs://${BUCKET}/current/"
-    gcloud storage rsync -r --delete-unmatched-destination-objects \
-      /export/ "gs://${BUCKET}/current/"
-    echo "Upload complete."
+    FAILED=0
+    > /tmp/failed-sources.log
+
+    for dir in /export/*/; do
+      dir_name=$(basename "$dir")
+      echo "--- Syncing ${dir_name} ---"
+      gcloud storage rsync -r --delete-unmatched-destination-objects \
+        "$dir" "gs://${BUCKET}/${dir_name}/" 2>&1 | tee /tmp/upload-${dir_name}.log
+      if [ ${PIPESTATUS[0]} -ne 0 ]; then
+        FAILED=$((FAILED + 1))
+        grep -i 'error\|FileNotFoundError\|not found\|crashed' /tmp/upload-${dir_name}.log \
+          >> /tmp/failed-sources.log || true
+      fi
+      echo "--- Done ${dir_name} ---"
+    done
+
+    # Upload top-level files (table_of_contents.json, last_export.txt, etc.)
+    find /export -maxdepth 1 -type f | while read -r f; do
+      gcloud storage cp "$f" "gs://${BUCKET}/$(basename "$f")" || true
+    done
+
+    if [ -s /tmp/failed-sources.log ]; then
+      echo ""
+      echo "===== FAILED SOURCES ====="
+      cat /tmp/failed-sources.log
+      echo "=========================="
+    fi
+
+    if [ $FAILED -gt 0 ]; then
+      echo "Upload completed with ${FAILED} failed directory sync(s)"
+    else
+      echo "Upload complete."
+    fi
 {{- end }}
