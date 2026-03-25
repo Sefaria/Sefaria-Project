@@ -1,4 +1,5 @@
 from sefaria.model import *
+from sefaria.model.schema import DictionaryEntryNode, DictionaryNode
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
@@ -84,13 +85,11 @@ class RefView(View):
         oref = self.oref
         index = oref.index
         index_node = oref.index_node
-        if isinstance(index_node, JaggedArrayNode):
-            _state_node = oref.get_state_node(hint=[("all", "availableTexts")])
-            state_ja = _state_node.ja("all")
-            vstate = VersionState(index.title)  # load full vstate (not just current node) so prev/next_section_ref can cross into neighboring nodes
-        else:
+        vstate = VersionState(index.title)  # load full vstate (not just current node) so prev/next_section_ref can cross into neighboring nodes
+        try:
+            state_ja = vstate.state_node(index_node).ja("all")
+        except:
             state_ja = None
-            vstate = None
         return_object = {
             'is_ref': True,
             'normalized': oref.normal(),
@@ -104,11 +103,11 @@ class RefView(View):
         }
 
         if return_object['node_type'] != 'SheetNode':
-            return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(state_ja=state_ja).normal()
+            return_object['navigation_refs']['first_available_section_ref'] = oref.first_available_section_ref(state_ja=state_ja, vstate=vstate).normal()
             norm = lambda r: r.normal() if r else None
             if oref.is_segment_level():
-                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja))
-                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja))
+                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(state_ja=state_ja, vstate=vstate))
+                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(state_ja=state_ja, ))
             elif oref.is_section_level():
                 return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
                 return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
