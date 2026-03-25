@@ -800,8 +800,6 @@ const Strings = {
       "Alphabetical": "אלפביתי",
       "Recent": "הכי חדש",
       "Views": "הכי נצפה",
-      "Name": "שם",
-      "Sheets": "דפי מקורות",
       /*"Relevance": 'רלוונטיות', //these 3 are duplicates but it doesnt seem to work without them, why?
       "Chronological": 'כרונולוגי',
       "Newest": "הכי חדש",*/
