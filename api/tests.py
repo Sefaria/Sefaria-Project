@@ -4,6 +4,7 @@ django.setup()
 from reader.tests import SefariaTestCase
 import json
 from api.api_warnings import APIWarningCode
+from sefaria.system.database import QueryCounter
 
 
 c = Client()
@@ -228,15 +229,26 @@ class APITextsTests(SefariaTestCase):
 
 class APIRefTests(SefariaTestCase):
 
-    def test_not_ref(self):
-        response = c.get('/api/ref/Not Ref')
+    def get_ref(self, tref, max_mongo_calls=1):
+        QueryCounter.reset()
+        response = c.get(f'/api/ref/{tref}')
         data = json.loads(response.content)
+        if max_mongo_calls is not None:
+            if QueryCounter.count > max_mongo_calls:
+                for i, q in enumerate(QueryCounter.queries):
+                    print(f"\n--- Query {i+1}: {q['command']} on {q['collection']} ---")
+                    print(q['traceback'])
+            self.assertLessEqual(QueryCounter.count, max_mongo_calls,
+                f"Expected at most {max_mongo_calls} mongo call(s) for '{tref}', got {QueryCounter.count}")
+        return data
+
+    def test_not_ref(self):
+        data = self.get_ref('Not Ref', max_mongo_calls=0)
         self.assertFalse(data['is_ref'])
 
     def test_book_level_jagged_array(self):
         """Penei Moshe on Jerusalem Talmud Shabbat - book-level JaggedArrayNode depth 4"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'JaggedArrayNode')
         self.assertEqual(data['index_title'], 'Penei Moshe on Jerusalem Talmud Shabbat')
@@ -256,8 +268,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_one_level_below_book(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 2 - one level below book"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 2')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [2])
         self.assertEqual(data['start_labels'], ['2'])
@@ -273,8 +284,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_two_levels_below_book(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 3:2 - two levels below book"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 3:2')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [3, 2])
         self.assertEqual(data['start_labels'], ['3', '2'])
@@ -289,8 +299,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_section_level(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 2:3:2 - section-level with prev/next"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 2:3:2')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2:3:2')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [2, 3, 2])
         self.assertEqual(data['end_indexes'], [2, 3, 2])
@@ -304,8 +313,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_section_level_with_cross_node_navigation(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 2:3:1 - section-level crossing into prev chapter"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 2:3:1')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2:3:1')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['navigation_refs']['prev_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:2:6')
         self.assertEqual(data['navigation_refs']['next_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:2')
@@ -314,8 +322,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_segment_level_first(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1 - first segment in section"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [3, 2, 1, 1])
         self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][0], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1')
@@ -327,8 +334,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_segment_level_last_in_section(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2 - last segment in section"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['navigation_refs']['prev_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1')
         self.assertEqual(data['navigation_refs']['next_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:2:1')
@@ -337,8 +343,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_range_halakhah_level(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1 - range at halakhah level"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [3, 2])
         self.assertEqual(data['start_labels'], ['3', '2'])
@@ -353,8 +358,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_range_section_level(self):
         """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1-4:1:1 - range at section level"""
-        response = c.get('/api/ref/Penei Moshe on Jerusalem Talmud Shabbat 3:2:1-4:1:1')
-        data = json.loads(response.content)
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1-4:1:1')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['start_indexes'], [3, 2, 1])
         self.assertEqual(data['end_indexes'], [4, 1, 1])
@@ -366,8 +370,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_talmud_section(self):
         """Berakhot 22a - Talmud section-level ref"""
-        response = c.get('/api/ref/Berakhot 22a')
-        data = json.loads(response.content)
+        data = self.get_ref('Berakhot 22a')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['index_title'], 'Berakhot')
         self.assertEqual(data['node_type'], 'JaggedArrayNode')
@@ -384,8 +387,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_schema_node(self):
         """Siddur Ashkenaz, Weekday, Shacharit - SchemaNode"""
-        response = c.get('/api/ref/Siddur Ashkenaz, Weekday, Shacharit')
-        data = json.loads(response.content)
+        data = self.get_ref('Siddur Ashkenaz, Weekday, Shacharit')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'SchemaNode')
         self.assertEqual(data['index_title'], 'Siddur Ashkenaz')
@@ -395,8 +397,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_deep_complex_segment(self):
         """Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2 - deep segment"""
-        response = c.get('/api/ref/Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2')
-        data = json.loads(response.content)
+        data = self.get_ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2', max_mongo_calls=1)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'JaggedArrayNode')
         self.assertEqual(data['depth'], 1)
@@ -407,8 +408,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_schema_node_with_default_child(self):
         """Ramban on Genesis - SchemaNode with default child JaggedArrayNode"""
-        response = c.get('/api/ref/Ramban on Genesis')
-        data = json.loads(response.content)
+        data = self.get_ref('Ramban on Genesis')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'SchemaNode')
         self.assertIn('Introduction', data['children'])
@@ -419,8 +419,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_jagged_array_under_default_child(self):
         """Ramban on Genesis 1 - JaggedArrayNode under default child"""
-        response = c.get('/api/ref/Ramban on Genesis 1')
-        data = json.loads(response.content)
+        data = self.get_ref('Ramban on Genesis 1')
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'JaggedArrayNode')
         self.assertEqual(data['depth'], 3)
@@ -429,8 +428,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_dictionary_node(self):
         """BDB - SchemaNode with default DictionaryNode child"""
-        response = c.get('/api/ref/BDB')
-        data = json.loads(response.content)
+        data = self.get_ref('BDB', max_mongo_calls=None)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'SchemaNode')
         self.assertEqual(data['navigation_refs']['lineage_refs_top_down'], [])
@@ -439,8 +437,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_dictionary_entry_node(self):
         """BDB, א - DictionaryEntryNode"""
-        response = c.get('/api/ref/BDB, א')
-        data = json.loads(response.content)
+        data = self.get_ref('BDB, א', max_mongo_calls=None)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'DictionaryEntryNode')
         self.assertEqual(data['index_title'], 'BDB')
@@ -452,8 +449,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_dictionary_entry_segment(self):
         """BDB, א 1 - DictionaryEntryNode segment-level"""
-        response = c.get('/api/ref/BDB, אָב 1')
-        data = json.loads(response.content)
+        data = self.get_ref('BDB, אָב 1', max_mongo_calls=None)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'DictionaryEntryNode')
         self.assertEqual(data['start_indexes'], [1])
@@ -465,8 +461,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_sheet_node(self):
         """Sheet 1 - SheetNode"""
-        response = c.get('/api/ref/Sheet 1')
-        data = json.loads(response.content)
+        data = self.get_ref('Sheet 1', max_mongo_calls=2)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'SheetNode')
         self.assertEqual(data['sheet_id'], 1)
@@ -475,8 +470,7 @@ class APIRefTests(SefariaTestCase):
 
     def test_sheet_segment(self):
         """Sheet 1:1 - SheetNode segment-level"""
-        response = c.get('/api/ref/Sheet 1:1')
-        data = json.loads(response.content)
+        data = self.get_ref('Sheet 1:1', max_mongo_calls=1)
         self.assertTrue(data['is_ref'])
         self.assertEqual(data['node_type'], 'SheetNode')
         self.assertEqual(data['sheet_id'], 1)
