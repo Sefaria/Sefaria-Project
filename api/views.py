@@ -142,6 +142,9 @@ class RefView(View):
             }
             if return_object['default_child_node']['node_type'] == 'JaggedArrayNode':
                 return_object['default_child_node']['depth'] = default_node.depth
+                return_object['default_child_node']['address_types'] = default_node.addressTypes
+                return_object['default_child_node']['sectionNames'] = default_node.sectionNames
+
             if return_object['node_type'] == 'DictionaryNode':
                 return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
 

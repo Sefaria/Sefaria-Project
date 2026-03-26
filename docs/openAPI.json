@@ -5818,7 +5818,7 @@
           }
         },
         "summary": "Ref",
-        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nAll types include `navigation_refs` with `lineage_refs_top_down` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`."
+        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nAll types include `navigation_refs` with `lineage_refs_top_down` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`."
       },
       "parameters": [
         {
@@ -14198,6 +14198,20 @@
               "depth": {
                 "description": "The depth of the default child. Present only when the default child is a JaggedArrayNode.",
                 "type": "integer"
+              },
+              "address_types": {
+                "description": "The address type for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "section_names": {
+                "description": "Human-readable names for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               },
               "lexicon_name": {
                 "description": "The lexicon name. Present only when the parent is a DictionaryNode.",
