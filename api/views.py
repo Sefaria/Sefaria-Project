@@ -1,7 +1,7 @@
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
-from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
+from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
 from django.views import View
 from .api_warnings import *
 
@@ -74,7 +74,7 @@ class RefView(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
-        except InputError:
+        except (InputError, DictionaryEntryNotFoundError):
             return jsonResponse({'is_ref': False})
         except Exception as e:
             return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
