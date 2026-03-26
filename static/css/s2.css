@@ -13165,6 +13165,24 @@ body .homeFeedWrapper .content {
   padding-left: 2px;
   padding-right: 2px;
 }
+/* Reading Mode — word-level highlighting for kriya practice */
+.readingModeWord {
+  padding: 1px 0;
+  border-radius: 2px;
+  transition: background-color 0.2s, font-weight 0.15s;
+}
+.readingMode-current {
+  background-color: #ffe066;
+}
+.readingMode-unread {
+  opacity: 0.85;
+}
+.sepia .readingMode-current {
+  background-color: #e8d8a0;
+}
+.dark .readingMode-current {
+  background-color: #665a22;
+}
 body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;

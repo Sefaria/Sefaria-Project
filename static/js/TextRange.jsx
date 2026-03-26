@@ -10,6 +10,7 @@ import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
 import {ReaderPanelContext} from "./context";
+import ReadingModeText from "./ReadingModeText";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -48,6 +49,7 @@ class TextRange extends Component {
           nextProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
           nextProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
           nextProps.settings.vowels !== this.props.settings.vowels ||
+          nextProps.settings.readingMode !== this.props.settings.readingMode ||
           nextProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
           nextProps.settings.biLayout !== this.props.settings.biLayout ||
           nextProps.settings.fontSize !== this.props.settings.fontSize ||
@@ -282,8 +284,9 @@ class TextRange extends Component {
     const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
 
     let strip_vowels_re = null;
+    const readingMode = !!this.props.settings?.readingMode;
 
-    if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
+    if(!readingMode && this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
       strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
@@ -343,6 +346,7 @@ class TextRange extends Component {
             onFootnoteClick={this.onFootnoteClick}
             onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
+            readingMode={readingMode}
             formatEnAsPoetry={formatEnAsPoetry}
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.conditionalPlaceSegmentNumbers}
@@ -450,6 +454,7 @@ class TextSegment extends Component {
   static contextType = ReaderPanelContext;
 
   shouldComponentUpdate(nextProps) {
+    if (this.props.readingMode !== nextProps.readingMode)       { return true; }
     if (this.props.highlight !== nextProps.highlight)           { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight)   { return true; }
     if (this.props.textHighlights !== nextProps.textHighlights) { return true; }
@@ -663,7 +668,18 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <VersionContent primary={primary} translation={translation} imageLoadCallback={this.props.placeSegmentNumbers}/>
+          {this.props.readingMode && shouldPrimaryShow ? (
+            <>
+              <ReadingModeText sref={this.props.sref} heText={this.props.he || ""} />
+              {shouldTranslationShow && translation.text && (
+                <span className={`contentSpan ${translation.direction === 'rtl' ? 'he' : 'en'} translation`}
+                      lang={translation.direction === 'rtl' ? 'he' : 'en'}
+                      dangerouslySetInnerHTML={{__html: translation.text}} />
+              )}
+            </>
+          ) : (
+            <VersionContent primary={primary} translation={translation} imageLoadCallback={this.props.placeSegmentNumbers}/>
+          )}
         </p>
 
         <div className="clearFix"></div>
