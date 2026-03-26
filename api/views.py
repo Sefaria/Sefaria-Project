@@ -85,7 +85,6 @@ class RefView(View):
         index = oref.index
         index_node = oref.index_node
         # Load vstate for non-virtual nodes (JaggedArrayNode, SchemaNode, DictionaryNode).
-        # Virtual nodes (Sheet, DictionaryEntry, virtual JA) use tree navigation with 0 DB calls.
         vstate = VersionState(index.title) if not index_node.is_virtual else None
         return_object = {
             'is_ref': True,
