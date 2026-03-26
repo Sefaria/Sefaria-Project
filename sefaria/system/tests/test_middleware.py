@@ -5,9 +5,11 @@ Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
 from unittest.mock import patch
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
-from sefaria.system.middleware import SessionCookieDomainMiddleware
+from sefaria.system.middleware import SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from sefaria.utils.chatbot import build_chatbot_user_token
 
 
 # ============================================================================
@@ -509,3 +511,59 @@ class TestLegacyCookieExpiration:
         # Only CSRF legacy header should be added
         assert 'set-cookie-legacy-csrftoken' in result._headers
         assert 'set-cookie-legacy-sessionid' not in result._headers
+
+
+class TestSessionIDAuthMiddleware:
+    secret = "test-session-id-secret"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def test_valid_header_authenticates_anonymous_request(self, django_user_model):
+        user = django_user_model.objects.create_user(username="header-auth-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.is_authenticated
+        assert request.user.id == user.id
+        assert request.user_id == user.id
+        assert request._cached_user.id == user.id
+
+    def test_invalid_header_leaves_request_anonymous(self):
+        request = self.factory.get("/", HTTP_X_SESSION_ID="not-a-valid-token")
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+    def test_existing_session_user_takes_precedence(self, django_user_model):
+        session_user = django_user_model.objects.create_user(username="session-user", password="pass")
+        other_user = django_user_model.objects.create_user(username="header-other-user", password="pass")
+        token = build_chatbot_user_token(other_user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = session_user
+        request._cached_user = session_user
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.id == session_user.id
+        assert request._cached_user.id == session_user.id
+
+    def test_expired_header_leaves_request_anonymous(self, django_user_model):
+        user = django_user_model.objects.create_user(username="expired-header-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret, ttl_hours=-1)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
