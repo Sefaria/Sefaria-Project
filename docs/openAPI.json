@@ -5737,7 +5737,7 @@
                       "index_title": "Genesis",
                       "node_type": "JaggedArrayNode",
                       "navigation_refs": {
-                        "lineage_refs_top_down": ["Genesis 1", "Genesis"],
+                        "lineage_refs_top_down": ["Genesis", "Genesis 1"],
                         "first_available_section_ref": "Genesis 1",
                         "prev_segment_ref": null,
                         "next_segment_ref": "Genesis 1:2"
@@ -14078,7 +14078,7 @@
             "type": "object",
             "properties": {
               "lineage_refs_top_down": {
-                "description": "An array of references representing the hierarchical path from the immediate parent up to the book level. Empty array if at book level.",
+                "description": "An array of references representing the hierarchical path from the book level down to the immediate parent. Empty array if at book level.",
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -14214,7 +14214,7 @@
           "index_title": "Genesis",
           "node_type": "JaggedArrayNode",
           "navigation_refs": {
-            "lineage_refs_top_down": ["Genesis 1", "Genesis"],
+            "lineage_refs_top_down": ["Genesis", "Genesis 1"],
             "first_available_section_ref": "Genesis 1",
             "prev_segment_ref": null,
             "next_segment_ref": "Genesis 1:2"

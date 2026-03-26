@@ -95,7 +95,7 @@ class RefView(View):
             'index_title': index.title,
             'node_type': type(index_node).__name__,
             'navigation_refs': {
-                'lineage_refs_top_down': [r.normal() for r in oref.all_context_refs(False, True)]
+                'lineage_refs_top_down': [r.normal() for r in oref.all_context_refs(False, True)][::-1]
             }
         }
 
