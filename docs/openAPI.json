@@ -14092,6 +14092,7 @@
               "prev_segment_ref": {
                 "description": "The previous segment-level reference. Only present for segment-level refs.",
                 "type": "string",
+                "nullable": true
               },
               "next_segment_ref": {
                 "description": "The next segment-level reference. Only present for segment-level refs.",
