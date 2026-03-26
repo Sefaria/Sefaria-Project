@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
-{% block title %}{% trans "Privacy Policy" %} | {% trans "Sefaria" %}{% endblock %}
+{% load sefaria_tags %}
+{% block meta_title %}{% meta_title %}{% trans "Privacy Policy" %} | {% trans "Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% endblock %}
 
 {% block content %}
 <div class="superAbout">

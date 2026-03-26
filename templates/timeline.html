@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Timeline" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Timeline" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Timeline" %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Timeline" %}{% endmeta_desc %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v5.min.js"></script>
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
     #textBox {

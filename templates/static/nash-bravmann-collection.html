@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}The Nash-Bravmann Collection{% endblock %}
+{% block meta_title %}{% meta_title %}The Nash-Bravmann Collection{% endmeta_title %}{% endblock %}
 
-{% block description %}The Jack Nash and Ludwig Bravmann Collection is a free, online library of Rabbi Adin Steinsaltz's major commentaries in Hebrew and English. Interlinked to Sefaria’s vast and ever-growing corpus of Jewish text, The Nash-Bravmann collection will further integrate Rabbi Steinsaltz’s Torah into the Jewish library, while also bringing these already-renowned commentaries to an even wider global audience. This exciting partnership was made possible by a generous donation by the Pershing Square Foundation in honor of Jack Nash and Ludwig (Lou) Bravmann, two pioneering Jewish philanthropists whose lifelong support of Rabbi Steinsaltz was essential to his outsized output and impact.{% endblock %}
+{% block meta_description %}{% meta_desc %}The Jack Nash and Ludwig Bravmann Collection is a free, online library of Rabbi Adin Steinsaltz's major commentaries in Hebrew and English. Interlinked to Sefaria’s vast and ever-growing corpus of Jewish text, The Nash-Bravmann collection will further integrate Rabbi Steinsaltz’s Torah into the Jewish library, while also bringing these already-renowned commentaries to an even wider global audience. This exciting partnership was made possible by a generous donation by the Pershing Square Foundation in honor of Jack Nash and Ludwig (Lou) Bravmann, two pioneering Jewish philanthropists whose lifelong support of Rabbi Steinsaltz was essential to his outsized output and impact.{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 #nashBravemannCollection {

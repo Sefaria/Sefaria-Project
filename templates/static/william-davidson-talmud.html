@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "The William Davidson Talmud" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "The William Davidson Talmud" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "The William Davidson Talmud is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "The William Davidson Talmud is a free digital edition of the Babylonian Talmud with parallel translations, interlinked to major commentaries, biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish texts." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
     #davidsonTalmud {
