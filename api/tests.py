@@ -4,6 +4,7 @@ django.setup()
 from reader.tests import SefariaTestCase
 import json
 from api.api_warnings import APIWarningCode
+from sefaria.system.database import QueryCounter
 
 
 c = Client()
@@ -224,3 +225,253 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(400, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes'].")
+
+
+class APIRefTests(SefariaTestCase):
+
+    def get_ref(self, tref, max_mongo_calls=1):
+        QueryCounter.reset(tracked_commands={'find', 'aggregate', 'count', 'distinct'})
+        response = c.get(f'/api/ref/{tref}')
+        data = json.loads(response.content)
+        if max_mongo_calls is not None:
+            if QueryCounter.count > max_mongo_calls:
+                for i, q in enumerate(QueryCounter.queries):
+                    print(f"\n--- Query {i+1}: {q['command']} on {q['collection']} ---")
+                    print(q['traceback'])
+            self.assertLessEqual(QueryCounter.count, max_mongo_calls,
+                f"Expected at most {max_mongo_calls} mongo call(s) for '{tref}', got {QueryCounter.count}")
+        return data
+
+    def test_not_ref(self):
+        data = self.get_ref('Not Ref', max_mongo_calls=0)
+        self.assertFalse(data['is_ref'])
+
+    def test_book_level_jagged_array(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat - book-level JaggedArrayNode depth 4"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'JaggedArrayNode')
+        self.assertEqual(data['index_title'], 'Penei Moshe on Jerusalem Talmud Shabbat')
+        self.assertEqual(data['depth'], 4)
+        self.assertEqual(data['address_types'], ['Perek', 'Halakhah', 'Integer', 'Integer'])
+        self.assertEqual(data['section_names'], ['Chapter', 'Halakhah', 'Segment', 'Comment'])
+        self.assertEqual(data['start_indexes'], [])
+        self.assertEqual(data['end_indexes'], [])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'], [])
+        self.assertEqual(data['navigation_refs']['first_available_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 1:1:1')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 1')
+        self.assertEqual(data['navigation_refs']['last_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 24')
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_one_level_below_book(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 2 - one level below book"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [2])
+        self.assertEqual(data['start_labels'], ['2'])
+        self.assertEqual(data['end_indexes'], [2])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat')
+        self.assertEqual(data['navigation_refs']['first_available_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:1:1')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:1')
+        self.assertEqual(data['navigation_refs']['last_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:7')
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_two_levels_below_book(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 3:2 - two levels below book"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [3, 2])
+        self.assertEqual(data['start_labels'], ['3', '2'])
+        self.assertEqual(data['end_indexes'], [3, 2])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat 3')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1')
+        self.assertEqual(data['navigation_refs']['last_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:3')
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_section_level(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 2:3:2 - section-level with prev/next"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2:3:2')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [2, 3, 2])
+        self.assertEqual(data['end_indexes'], [2, 3, 2])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3')
+        self.assertEqual(data['navigation_refs']['prev_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:1')
+        self.assertEqual(data['navigation_refs']['next_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:3')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:2:1')
+        self.assertEqual(data['navigation_refs']['last_subref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:2:7')
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_section_level_with_cross_node_navigation(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 2:3:1 - section-level crossing into prev chapter"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 2:3:1')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['navigation_refs']['prev_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:2:6')
+        self.assertEqual(data['navigation_refs']['next_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 2:3:2')
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_segment_level_first(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1 - first segment in section"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [3, 2, 1, 1])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1')
+        self.assertEqual(data['navigation_refs']['prev_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:1:14:2')
+        self.assertEqual(data['navigation_refs']['next_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2')
+        self.assertNotIn('first_subref', data['navigation_refs'])
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+
+    def test_segment_level_last_in_section(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2 - last segment in section"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:2')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['navigation_refs']['prev_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:1:1')
+        self.assertEqual(data['navigation_refs']['next_segment_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2:2:1')
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+
+    def test_range_halakhah_level(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1 - range at halakhah level"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [3, 2])
+        self.assertEqual(data['start_labels'], ['3', '2'])
+        self.assertEqual(data['end_indexes'], [4, 1])
+        self.assertEqual(data['end_labels'], ['4', '1'])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat 3-4')
+        self.assertNotIn('first_subref', data['navigation_refs'])
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_range_section_level(self):
+        """Penei Moshe on Jerusalem Talmud Shabbat 3:2:1-4:1:1 - range at section level"""
+        data = self.get_ref('Penei Moshe on Jerusalem Talmud Shabbat 3:2:1-4:1:1')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['start_indexes'], [3, 2, 1])
+        self.assertEqual(data['end_indexes'], [4, 1, 1])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Penei Moshe on Jerusalem Talmud Shabbat 3:2-4:1')
+        self.assertEqual(data['navigation_refs']['prev_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 3:1:14')
+        self.assertEqual(data['navigation_refs']['next_section_ref'], 'Penei Moshe on Jerusalem Talmud Shabbat 4:1:2')
+        self.assertNotIn('prev_segment_ref', data['navigation_refs'])
+        self.assertNotIn('next_segment_ref', data['navigation_refs'])
+
+    def test_talmud_section(self):
+        """Berakhot 22a - Talmud section-level ref"""
+        data = self.get_ref('Berakhot 22a')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['index_title'], 'Berakhot')
+        self.assertEqual(data['node_type'], 'JaggedArrayNode')
+        self.assertEqual(data['depth'], 2)
+        self.assertEqual(data['address_types'], ['Talmud', 'Integer'])
+        self.assertEqual(data['section_names'], ['Daf', 'Line'])
+        self.assertEqual(data['start_indexes'], [43])
+        self.assertEqual(data['start_labels'], ['22a'])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Berakhot')
+        self.assertEqual(data['navigation_refs']['prev_section_ref'], 'Berakhot 21b')
+        self.assertEqual(data['navigation_refs']['next_section_ref'], 'Berakhot 22b')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Berakhot 22a:1')
+        self.assertEqual(data['navigation_refs']['last_subref'], 'Berakhot 22a:25')
+
+    def test_schema_node(self):
+        """Siddur Ashkenaz, Weekday, Shacharit - SchemaNode"""
+        data = self.get_ref('Siddur Ashkenaz, Weekday, Shacharit')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'SchemaNode')
+        self.assertEqual(data['index_title'], 'Siddur Ashkenaz')
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Siddur Ashkenaz, Weekday')
+        self.assertIn('Preparatory Prayers', data['children'])
+        self.assertIn('Amidah', data['children'])
+
+    def test_deep_complex_segment(self):
+        """Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2 - deep segment"""
+        data = self.get_ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 2', max_mongo_calls=1)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'JaggedArrayNode')
+        self.assertEqual(data['depth'], 1)
+        self.assertEqual(data['start_indexes'], [2])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
+        self.assertEqual(data['navigation_refs']['prev_segment_ref'], 'Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani 1')
+        self.assertEqual(data['navigation_refs']['next_segment_ref'], 'Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Netilat Yadayim 1')
+
+    def test_schema_node_with_default_child(self):
+        """Ramban on Genesis - SchemaNode with default child JaggedArrayNode"""
+        data = self.get_ref('Ramban on Genesis')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'SchemaNode')
+        self.assertIn('Introduction', data['children'])
+        self.assertIn('default_child_node', data)
+        self.assertEqual(data['default_child_node']['node_type'], 'JaggedArrayNode')
+        self.assertEqual(data['default_child_node']['depth'], 3)
+        self.assertEqual(data['default_child_node']['node_index'], 2)
+
+    def test_jagged_array_under_default_child(self):
+        """Ramban on Genesis 1 - JaggedArrayNode under default child"""
+        data = self.get_ref('Ramban on Genesis 1')
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'JaggedArrayNode')
+        self.assertEqual(data['depth'], 3)
+        self.assertEqual(data['start_indexes'], [1])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Ramban on Genesis')
+
+    def test_dictionary_node(self):
+        """BDB - SchemaNode with default DictionaryNode child"""
+        data = self.get_ref('BDB', max_mongo_calls=None)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'SchemaNode')
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'], [])
+        self.assertIn('default_child_node', data)
+        self.assertEqual(data['default_child_node']['node_type'], 'DictionaryNode')
+
+    def test_dictionary_entry_node(self):
+        """BDB, א - DictionaryEntryNode"""
+        data = self.get_ref('BDB, א', max_mongo_calls=None)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'DictionaryEntryNode')
+        self.assertEqual(data['index_title'], 'BDB')
+        self.assertEqual(data['lexicon_name'], 'BDB Dictionary')
+        self.assertEqual(data['headword'], 'א')
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'BDB')
+        self.assertIsNone(data['navigation_refs']['prev_section_ref'])
+        self.assertIsNotNone(data['navigation_refs']['next_section_ref'])
+
+    def test_dictionary_entry_segment(self):
+        """BDB, א 1 - DictionaryEntryNode segment-level"""
+        data = self.get_ref('BDB, אָב 1', max_mongo_calls=None)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'DictionaryEntryNode')
+        self.assertEqual(data['start_indexes'], [1])
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'BDB, אָב')
+        self.assertIsNotNone(data['navigation_refs']['prev_segment_ref'])
+        self.assertIsNotNone(data['navigation_refs']['next_segment_ref'])
+        self.assertNotIn('prev_section_ref', data['navigation_refs'])
+        self.assertNotIn('next_section_ref', data['navigation_refs'])
+
+    def test_sheet_node(self):
+        """Sheet 1 - SheetNode"""
+        data = self.get_ref('Sheet 1', max_mongo_calls=2)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'SheetNode')
+        self.assertEqual(data['sheet_id'], 1)
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Sheet')
+        self.assertEqual(data['navigation_refs']['first_subref'], 'Sheet 1:1')
+
+    def test_sheet_segment(self):
+        """Sheet 1:1 - SheetNode segment-level"""
+        data = self.get_ref('Sheet 1:1', max_mongo_calls=1)
+        self.assertTrue(data['is_ref'])
+        self.assertEqual(data['node_type'], 'SheetNode')
+        self.assertEqual(data['sheet_id'], 1)
+        self.assertEqual(data['navigation_refs']['lineage_refs_top_down'][-1], 'Sheet 1')

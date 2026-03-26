@@ -51,6 +51,10 @@
     {
       "name": "Misc",
       "description": "Miscellaneous API endpoints"
+    },
+    {
+      "name": "Ref",
+      "description": "Operations related to validating and analyzing text references"
     }
   ],
   "paths": {
@@ -5705,6 +5709,140 @@
           },
           "in": "path",
           "required": true
+        }
+      ]
+    },
+    "/api/ref/{tref}": {
+      "summary": "Ref",
+      "description": "Validates a text reference string and returns metadata about it, including its type, structure, and navigation information (prev/next refs, parent ref, etc.).",
+      "get": {
+        "operationId": "get-ref",
+        "tags": [
+          "Ref"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefJSON"
+                },
+                "examples": {
+                  "JaggedArrayNode (Segment Level)": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Genesis 1:1",
+                      "hebrew": "בראשית א׳:א׳",
+                      "url_ref": "Genesis.1.1",
+                      "index_title": "Genesis",
+                      "node_type": "JaggedArrayNode",
+                      "navigation_refs": {
+                        "lineage_refs_top_down": ["Genesis", "Genesis 1"],
+                        "first_available_section_ref": "Genesis 1",
+                        "prev_segment_ref": null,
+                        "next_segment_ref": "Genesis 1:2"
+                      },
+                      "depth": 2,
+                      "address_types": ["Perek", "Pasuk"],
+                      "section_names": ["Chapter", "Verse"],
+                      "start_indexes": [1, 1],
+                      "start_labels": ["1", "1"],
+                      "end_indexes": [1, 1],
+                      "end_labels": ["1", "1"]
+                    }
+                  },
+                  "JaggedArrayNode (Section Level)": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Genesis 1",
+                      "hebrew": "בראשית א׳",
+                      "url_ref": "Genesis.1",
+                      "index_title": "Genesis",
+                      "node_type": "JaggedArrayNode",
+                      "navigation_refs": {
+                        "lineage_refs_top_down": ["Genesis"],
+                        "first_available_section_ref": "Genesis 1",
+                        "prev_section_ref": null,
+                        "next_section_ref": "Genesis 2",
+                        "first_subref": "Genesis 1:1",
+                        "last_subref": "Genesis 1:31"
+                      },
+                      "depth": 2,
+                      "address_types": ["Perek", "Pasuk"],
+                      "section_names": ["Chapter", "Verse"],
+                      "start_indexes": [1],
+                      "start_labels": ["1"],
+                      "end_indexes": [1],
+                      "end_labels": ["1"]
+                    }
+                  },
+                  "SchemaNode": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Ramban on Genesis",
+                      "hebrew": "רמב\"ן על בראשית",
+                      "url_ref": "Ramban_on_Genesis",
+                      "index_title": "Ramban on Genesis",
+                      "node_type": "SchemaNode",
+                      "navigation_refs": {
+                        "lineage_refs_top_down": [],
+                        "first_available_section_ref": "Ramban on Genesis, Introduction 1"
+                      },
+                      "children": ["Introduction", ""]
+                    }
+                  },
+                  "Invalid Ref": {
+                    "value": {
+                      "is_ref": false
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns reference metadata. If the reference string is invalid, returns `{\"is_ref\": false}` with HTTP 200."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returned when the reference string causes a parsing error."
+          }
+        },
+        "summary": "Ref",
+        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nAll types include `navigation_refs` with `lineage_refs_top_down` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`."
+      },
+      "parameters": [
+        {
+          "name": "tref",
+          "description": "A text reference string to validate and analyze. Can be any Sefaria reference, including book-level, section-level, segment-level, or ranged references.",
+          "schema": {
+            "type": "string"
+          },
+          "in": "path",
+          "required": true,
+          "examples": {
+            "Segment Level": {
+              "value": "Genesis 1:1"
+            },
+            "Section Level": {
+              "value": "Berakhot 22a"
+            },
+            "Book Level": {
+              "value": "Ramban on Genesis"
+            },
+            "Range": {
+              "value": "Genesis 1:1-3"
+            }
+          }
         }
       ]
     }
@@ -13903,6 +14041,206 @@
             }
           ],
           "lastPath": "Torah"
+        }
+      },
+      "RefJSON": {
+        "title": "Root Type for RefJSON",
+        "description": "The JSON returned from the `ref` endpoint. Contains metadata about a validated text reference, including its type, structure, and navigation information. The fields returned vary based on the `node_type`.",
+        "type": "object",
+        "properties": {
+          "is_ref": {
+            "description": "Whether the provided string is a valid Sefaria reference.",
+            "type": "boolean"
+          },
+          "normalized": {
+            "description": "The normalized (canonical) form of the reference string.",
+            "type": "string"
+          },
+          "hebrew": {
+            "description": "The Hebrew form of the reference string.",
+            "type": "string"
+          },
+          "url_ref": {
+            "description": "A URL-friendly form of the reference (spaces replaced with underscores, etc.).",
+            "type": "string"
+          },
+          "index_title": {
+            "description": "The title of the book/index this reference belongs to.",
+            "type": "string"
+          },
+          "node_type": {
+            "description": "The type of the index node. Determines which additional fields are present in the response.",
+            "type": "string",
+            "enum": ["JaggedArrayNode", "SchemaNode", "DictionaryNode", "DictionaryEntryNode", "SheetNode"]
+          },
+          "navigation_refs": {
+            "description": "An object containing related references for navigating within the text.",
+            "type": "object",
+            "properties": {
+              "lineage_refs_top_down": {
+                "description": "An array of references representing the hierarchical path from the book level down to the immediate parent. Empty array if at book level.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "first_available_section_ref": {
+                "description": "The first section-level reference that has available text content.",
+                "type": "string",
+                "nullable": true
+              },
+              "prev_segment_ref": {
+                "description": "The previous segment-level reference. Only present for segment-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "next_segment_ref": {
+                "description": "The next segment-level reference. Only present for segment-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "prev_section_ref": {
+                "description": "The previous section-level reference. Only present for section-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "next_section_ref": {
+                "description": "The next section-level reference. Only present for section-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "first_subref": {
+                "description": "The first sub-reference within this ref. Present for non-segment-level refs with depth.",
+                "type": "string"
+              },
+              "last_subref": {
+                "description": "The last sub-reference within this ref. Present for non-segment-level refs with depth.",
+                "type": "string"
+              }
+            }
+          },
+          "depth": {
+            "description": "The depth of the text structure (e.g. 2 for Chapter/Verse). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "integer"
+          },
+          "address_types": {
+            "description": "The address type for each level of depth (e.g. [\"Perek\", \"Pasuk\"]). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "section_names": {
+            "description": "Human-readable names for each level of depth (e.g. [\"Chapter\", \"Verse\"]). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "start_indexes": {
+            "description": "The numeric index values for the start of this reference at each depth level. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "start_labels": {
+            "description": "The display labels for the start of this reference at each depth level. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "end_indexes": {
+            "description": "The numeric index values for the end of this reference at each depth level. For non-range refs, same as start_indexes. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "end_labels": {
+            "description": "The display labels for the end of this reference at each depth level. For non-range refs, same as start_labels. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "description": "The primary titles of child nodes. Present only for SchemaNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lexicon_name": {
+            "description": "The name of the lexicon (dictionary). Present for DictionaryNode and DictionaryEntryNode.",
+            "type": "string"
+          },
+          "headword": {
+            "description": "The headword of the dictionary entry. Present only for DictionaryEntryNode.",
+            "type": "string"
+          },
+          "sheet_id": {
+            "description": "The ID of the source sheet. Present only for SheetNode.",
+            "type": "integer"
+          },
+          "default_child_node": {
+            "description": "Information about the default child node, if the current node has one. A default child is a child node that represents the primary content of a schema node.",
+            "type": "object",
+            "properties": {
+              "node_type": {
+                "description": "The type of the default child node.",
+                "type": "string"
+              },
+              "node_index": {
+                "description": "The index of the default child within the parent's children array.",
+                "type": "integer"
+              },
+              "depth": {
+                "description": "The depth of the default child. Present only when the default child is a JaggedArrayNode.",
+                "type": "integer"
+              },
+              "address_types": {
+                "description": "The address type for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "section_names": {
+                "description": "Human-readable names for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "lexicon_name": {
+                "description": "The lexicon name. Present only when the parent is a DictionaryNode.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "example": {
+          "is_ref": true,
+          "normalized": "Genesis 1:1",
+          "hebrew": "בראשית א׳:א׳",
+          "url_ref": "Genesis.1.1",
+          "index_title": "Genesis",
+          "node_type": "JaggedArrayNode",
+          "navigation_refs": {
+            "lineage_refs_top_down": ["Genesis", "Genesis 1"],
+            "first_available_section_ref": "Genesis 1",
+            "prev_segment_ref": null,
+            "next_segment_ref": "Genesis 1:2"
+          },
+          "depth": 2,
+          "address_types": ["Perek", "Pasuk"],
+          "section_names": ["Chapter", "Verse"],
+          "start_indexes": [1, 1],
+          "start_labels": ["1", "1"],
+          "end_indexes": [1, 1],
+          "end_labels": ["1", "1"]
         }
       }
     }

@@ -3632,12 +3632,13 @@ class Ref(object, metaclass=RefCacheType):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-    def prev_segment_ref(self):
+    def prev_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next previous populated segment.
 
         If this ref is not segment level, will return ``self```
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.starting_ref()
@@ -3648,34 +3649,48 @@ class Ref(object, metaclass=RefCacheType):
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
             return Ref(_obj=d)
         else:
-            r = r.prev_section_ref()
+            r = r.prev_section_ref(vstate=vstate)
             if not r:
                 return None
+            if self.index_node.is_virtual:
+                return r.all_subrefs()[-1]
             d = r._core_dict()
-            newSections = r.sections + [self.get_state_ja().sub_array_length([i - 1 for i in r.sections])]
+            ja = self.get_state_ja(vstate=vstate)
+            newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
             d["sections"] = d["toSections"] = newSections
             return Ref(_obj=d)
 
-    def next_segment_ref(self):
+    def next_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next populated segment.
 
         If this ref is not segment level, will return ``self```
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.ending_ref()
         if not r.is_segment_level():
             return r
+        if self.index_node.is_virtual:
+            section_ref = self.context_ref()
+            siblings = section_ref.all_subrefs()
+            curr_index = siblings.index(self)
+            if len(siblings) == curr_index + 1:
+                next_section = section_ref.next_section_ref(vstate=vstate)
+                return next_section.all_subrefs()[0] if next_section else None
+            else:
+                return siblings[curr_index+1]
         sectionRef = r.section_ref()
-        sectionLength = self.get_state_ja().sub_array_length([i - 1 for i in sectionRef.sections])
+        ja = self.get_state_ja(vstate=vstate)
+        sectionLength = ja.sub_array_length([i - 1 for i in sectionRef.sections])
         if r.sections[-1] < sectionLength:
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
             return Ref(_obj=d)
         else:
             try:
-                return r.next_section_ref().subref(1)
+                return r.next_section_ref(vstate=vstate).subref(1)
             except AttributeError:
                 # No next section
                 return None
@@ -3692,16 +3707,16 @@ class Ref(object, metaclass=RefCacheType):
         o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
         return Ref(_obj=o)
 
-    def first_available_section_ref(self):
+    def first_available_section_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
         Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
-        # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
@@ -3722,9 +3737,9 @@ class Ref(object, metaclass=RefCacheType):
         if r.is_book_level():
             # r is depth 1. return first segment
             r = r.subref([1])
-            return r.next_segment_ref() if r.is_empty() else r
+            return r.next_segment_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
         else:
-            return r.next_section_ref() if r.is_empty() else r
+            return r.next_section_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):
@@ -3734,11 +3749,14 @@ class Ref(object, metaclass=RefCacheType):
         from . import version_state
         return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
-    def get_state_ja(self, lang="all"):
+    def get_state_ja(self, lang="all", vstate=None):
         """
         :param lang: "all", "he", or "en"
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        if vstate:
+            return vstate.state_node(self.index_node).ja(lang)
         #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
@@ -3766,17 +3784,16 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.is_text_fully_available("en")
 
-    def is_empty(self, lang=None):
+    def is_empty(self, lang=None, vstate=None):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: Bool True is there is not text at this ref in any language
         """
-
-        # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
-        # return not len(self.versionset())
-        # depricated
-        # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+        if vstate and not self.index_node.is_virtual:
+            state_ja = self.get_state_ja(vstate=vstate)
+            return state_ja.subarray_with_ref(self).is_empty()
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 

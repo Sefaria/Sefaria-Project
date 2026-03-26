@@ -100,6 +100,7 @@ shared_patterns = [
     url(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     url(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
+    url(r'^api/ref/(?P<tref>.+)$', api_views.RefView.as_view()),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     url(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     url(r'^api/words/completion/(?P<word>.+)/(?P<lexicon>.+)$', reader_views.dictionary_completion_api),
