@@ -141,6 +141,7 @@ def ensure_indices(active_db=None):
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
         ('texts', ["actualLanguage"], {}),
+        ('texts', ["digitizedBySefaria"], {}),
         ('topics', ["titles.text"], {}),
         ('topic_links', ["class"], {}),
         ('topic_links', ["expandedRefs"], {}),
