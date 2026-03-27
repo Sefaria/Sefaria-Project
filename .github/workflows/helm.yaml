@@ -35,8 +35,6 @@ jobs:
       contents: write # needed to write releases
     needs:
       - lint
-    if: |
-      (github.repository == 'sefaria/sefaria-project')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
