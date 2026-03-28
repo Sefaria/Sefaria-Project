@@ -158,7 +158,7 @@ const TopicStoryDescBlock = ({title, tref}) =>
     (
       <div className="topicStoryDescBlock">
             <StoryTitleBlock en={title.en} he={title.he}></StoryTitleBlock>
-        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref).index).primary_category).toUpperCase()}</div>
+        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref)?.index)?.primary_category || "Other").toUpperCase()}</div>
       </div>
 )
 
