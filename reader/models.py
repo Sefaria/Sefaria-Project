@@ -47,4 +47,4 @@ if not hasattr(User, "experiments"):
 def user_has_experiments(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    return UserExperimentSettings.objects.filter(user=user, experiments=True).exists()
+    return UserExperimentSettings.objects.filter(user=user).exists()

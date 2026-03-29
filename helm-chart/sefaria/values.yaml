@@ -25,7 +25,7 @@ rollouts:
 
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
-# For development environments
+# For development environments:
 # - install mongo using an upstream chart
 # - enable restore
 # - populate the settings with the appropriate connection details
@@ -66,6 +66,12 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+export:
+  enabled: false
+  bucket: sefaria-export
+  schedule: "0 3 1 * *"
+  serviceAccount: text-export-write
 
 # PostgreSQL configuration - can be overridden per environment
 postgres:
@@ -268,10 +274,10 @@ domains:
         - profile
 
 ingress:
-  enabled: true
+  enabled: false
 
 gateway:
-  enabled: false
+  enabled: true
   className: envoy
   alpnProtocols:
     - http/1.1

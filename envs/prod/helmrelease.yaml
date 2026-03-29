@@ -194,6 +194,8 @@ spec:
         limits:
           memory: "400Mi"
           cpu: "100m"
+    export:
+      enabled: true
     cronJobs:
       regenerate:
         enabled: true
