@@ -49,11 +49,16 @@ const HELP_CONTENT = (
       <li><strong>Save:</strong> Click "Update" to apply changes to all selected versions.</li>
     </ol>
 
-    <h3>Available Fields</h3>
+    <h3>Renaming Version Titles</h3>
     <p>
-      <strong>Note:</strong> The <code>versionTitle</code> field serves as a database identifier for versions
-      and cannot be edited in bulk. To rename a version title, edit versions individually.
+      You can rename the <code>versionTitle</code> (database identifier) across all selected texts
+      using the "New Version Title" field. This is a significant operation — the rename cascades
+      to history records, search index, links, and other collections. However, some side effects
+      cannot be fixed automatically: existing bookmarks and shared links will break, user version
+      preferences may reset, and source sheet references will keep the old title.
     </p>
+
+    <h3>Available Fields</h3>
     <table className="field-table">
       <thead>
         <tr><th>Field</th><th>Description</th></tr>
@@ -129,7 +134,7 @@ const FIELD_GROUPS = [
   {
     id: 'identification',
     header: 'Version Identification',
-    fields: ['versionTitleInHebrew']  // versionTitle is the search key, not editable
+    fields: ['versionTitleInHebrew']  // versionTitle rename is handled separately via newVersionTitle
   },
   {
     id: 'source',
@@ -196,12 +201,14 @@ const BulkVersionEditor = () => {
   const [updates, setUpdates] = useState({});
   const [validationErrors, setValidationErrors] = useState({});
   const [fieldsToClear, setFieldsToClear] = useState(new Set());
+  const [newVersionTitle, setNewVersionTitle] = useState("");
 
   // UI state
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showRenameConfirm, setShowRenameConfirm] = useState(false);
 
   /**
    * Clear search and reset state
@@ -212,15 +219,18 @@ const BulkVersionEditor = () => {
     setUpdates({});
     setValidationErrors({});
     setFieldsToClear(new Set());
+    setNewVersionTitle("");
     setMsg("");
     setSearched(false);
   }, []);
 
   /**
    * Load indices that have versions matching the search criteria
+   * @param {string} [overrideTitle] - If provided, search with this title instead of vtitle state
    */
-  const load = async () => {
-    if (!vtitle.trim()) {
+  const load = async (overrideTitle) => {
+    const searchTitle = overrideTitle || vtitle;
+    if (!searchTitle.trim()) {
       setMsg({ type: MESSAGE_TYPES.WARNING, message: 'Please enter a version title' });
       return;
     }
@@ -229,7 +239,7 @@ const BulkVersionEditor = () => {
     setSearched(true);
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Loading indices...' });
 
-    const urlParams = { versionTitle: vtitle };
+    const urlParams = { versionTitle: searchTitle };
     if (lang) {
       urlParams.language = lang;
     }
@@ -322,7 +332,7 @@ const BulkVersionEditor = () => {
    * @param {Function} getErrorMsg - Function that takes failureCount, failureList and returns error message
    * @param {Function} onSuccess - Optional callback to run on successful completion
    */
-  const performBulkEdit = async (updatesToApply, getSuccessMsg, getPartialMsg, getErrorMsg, onSuccess) => {
+  const performBulkEdit = async (updatesToApply, getSuccessMsg, getPartialMsg, getErrorMsg, onSuccess, renameTitle) => {
     setSaving(true);
 
     try {
@@ -331,6 +341,9 @@ const BulkVersionEditor = () => {
         indices: Array.from(pick),
         updates: updatesToApply
       };
+      if (renameTitle) {
+        payload.newVersionTitle = renameTitle;
+      }
 
       const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
       const successCount = data.successes?.length || 0;
@@ -340,9 +353,20 @@ const BulkVersionEditor = () => {
       if (data.status === "ok") {
         setMsg({ type: MESSAGE_TYPES.SUCCESS, message: getSuccessMsg(successCount) });
         if (onSuccess) onSuccess();
+        // After a fully successful rename, refresh search with the new title
+        if (data.newVersionTitle) {
+          setVtitle(data.newVersionTitle);
+          setNewVersionTitle("");
+          // Re-load indices under the new title (pass explicitly since state update is async)
+          load(data.newVersionTitle);
+        }
       } else if (data.status === "partial") {
         const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        setMsg({ type: MESSAGE_TYPES.WARNING, message: getPartialMsg(successCount, total, failureList) });
+        let partialMsg = getPartialMsg(successCount, total, failureList);
+        if (data.newVersionTitle) {
+          partialMsg += `\n\nSuccessfully renamed versions now appear under "${data.newVersionTitle}". Search for the new title to continue editing them.`;
+        }
+        setMsg({ type: MESSAGE_TYPES.WARNING, message: partialMsg });
       } else {
         const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
         setMsg({ type: MESSAGE_TYPES.ERROR, message: getErrorMsg(failureCount, failureList) });
@@ -356,18 +380,9 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Save changes to selected versions
+   * Build the processed updates object from current state
    */
-  const save = async () => {
-    // Validation is handled proactively via getValidationState()
-    // Button is disabled when validation fails, so these are just safety checks
-    if (!pick.size || !hasChanges || hasValidationErrors) {
-      return;
-    }
-
-    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Saving changes...' });
-
-    // Convert boolean string values to actual booleans for the API
+  const buildProcessedUpdates = () => {
     const processedUpdates = { ...updates };
     ['digitizedBySefaria', 'isPrimary', 'isSource'].forEach(field => {
       if (processedUpdates[field] === 'true') {
@@ -376,22 +391,51 @@ const BulkVersionEditor = () => {
         processedUpdates[field] = false;
       }
     });
-
-    // Add cleared fields with null value (backend will delete them)
     fieldsToClear.forEach(field => {
       processedUpdates[field] = null;
     });
+    return processedUpdates;
+  };
+
+  /**
+   * Save changes to selected versions.
+   * If a rename is included, shows a confirmation dialog first.
+   */
+  const save = async () => {
+    if (!pick.size || !hasChanges || hasValidationErrors) {
+      return;
+    }
+    // If renaming, show confirmation dialog instead of saving directly
+    if (isRenaming) {
+      setShowRenameConfirm(true);
+      return;
+    }
+    await doSave();
+  };
+
+  /**
+   * Execute the save (called directly for non-rename, or after rename confirmation)
+   */
+  const doSave = async () => {
+    setShowRenameConfirm(false);
+    setMsg({ type: MESSAGE_TYPES.INFO, message: isRenaming ? 'Renaming and saving changes...' : 'Saving changes...' });
+
+    const processedUpdates = buildProcessedUpdates();
+    const renameTitle = isRenaming ? newVersionTitle.trim() : null;
+    const renameLabel = renameTitle ? ` and renamed to "${renameTitle}"` : "";
 
     await performBulkEdit(
       processedUpdates,
-      (successCount) => `Successfully updated ${successCount} versions`,
+      (successCount) => `Successfully updated ${successCount} versions${renameLabel}`,
       (successCount, total, failureList) => `Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
       (failureCount, failureList) => `All ${failureCount} updates failed:\n${failureList}`,
       () => {
         setUpdates({});
         setValidationErrors({});
         setFieldsToClear(new Set());
-      }
+        setNewVersionTitle("");
+      },
+      renameTitle
     );
   };
 
@@ -501,8 +545,10 @@ const BulkVersionEditor = () => {
     );
   };
 
-  const hasChanges = Object.keys(updates).length > 0 || fieldsToClear.size > 0;
-  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+  const isRenaming = newVersionTitle.trim() !== "" && newVersionTitle.trim() !== vtitle;
+  const hasChanges = Object.keys(updates).length > 0 || fieldsToClear.size > 0 || isRenaming;
+  const hasValidationErrors = Object.keys(validationErrors).length > 0
+    || (newVersionTitle.trim() !== "" && newVersionTitle.trim() === vtitle);
 
   // Compute validation state message (shown proactively, not on click)
   const getValidationState = () => {
@@ -622,6 +668,26 @@ const BulkVersionEditor = () => {
             <div key={group.id} className="fieldGroupSection">
               <div className="fieldGroupHeader">{group.header}</div>
               <div className="fieldGroupGrid">
+                {/* Rename field in the identification group */}
+                {group.id === 'identification' && (
+                  <div className={`fieldGroup ${newVersionTitle.trim() !== "" && newVersionTitle.trim() === vtitle ? 'hasError' : ''}`}>
+                    <label>New Version Title (rename):</label>
+                    <div className="fieldHelp">
+                      Rename the versionTitle across all selected texts. This is a significant operation
+                      that cascades to multiple database collections.
+                    </div>
+                    <input
+                      className="dlVersionSelect fieldInput renameInput"
+                      type="text"
+                      placeholder={`Current: "${vtitle}"`}
+                      value={newVersionTitle}
+                      onChange={e => setNewVersionTitle(e.target.value)}
+                    />
+                    {newVersionTitle.trim() !== "" && newVersionTitle.trim() === vtitle && (
+                      <div className="fieldError">New title must differ from current title</div>
+                    )}
+                  </div>
+                )}
                 {group.fields.map(fieldName => renderField(fieldName))}
               </div>
             </div>
@@ -632,6 +698,11 @@ const BulkVersionEditor = () => {
             <div className="changesPreview">
               <strong>Changes to apply:</strong>
               <ul>
+                {isRenaming && (
+                  <li key="rename" className="renameItem">
+                    <strong>Rename version title:</strong> "{vtitle}" &rarr; "{newVersionTitle.trim()}"
+                  </li>
+                )}
                 {Object.entries(updates).map(([k, v]) => (
                   <li key={k}>
                     <strong>{VERSION_FIELD_METADATA[k]?.label || k}:</strong> "{v}"
@@ -643,6 +714,46 @@ const BulkVersionEditor = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Rename confirmation dialog */}
+          {showRenameConfirm && (
+            <div className="dangerBox">
+              <strong>Confirm Version Title Rename</strong>
+              <p className="sectionDescription">
+                This will rename the database identifier for <strong>{pick.size}</strong> version{pick.size !== 1 ? 's' : ''} from
+                "<strong>{vtitle}</strong>" to "<strong>{newVersionTitle.trim()}</strong>".
+              </p>
+              <p className="sectionDescription">
+                The rename will cascade to history records, search index, links, and other database collections.
+                However, the following side effects <strong>cannot be automatically fixed</strong>:
+              </p>
+              <ul className="sectionDescription">
+                <li>Existing bookmarks and shared links containing the old version title will stop working</li>
+                <li>Users who set this as their preferred version will have their preference reset to default</li>
+                <li>Source sheet references to the old version title will not be updated</li>
+                <li>Previously exported files will reference the old title</li>
+              </ul>
+              <p className="sectionDescription">
+                This operation may take a moment as it updates multiple database collections.
+              </p>
+              <div className="actionRow">
+                <button
+                  className="modtoolsButton danger"
+                  onClick={doSave}
+                  disabled={saving}
+                >
+                  {saving ? <><span className="loadingSpinner" />Renaming...</> : "Yes, Rename"}
+                </button>
+                <button
+                  className="modtoolsButton secondary"
+                  onClick={() => setShowRenameConfirm(false)}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
 

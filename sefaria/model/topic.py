@@ -1183,6 +1183,15 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
         except InputError:
             logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
 
+def process_version_title_change_in_topic_links(ver, **kwargs):
+    print("Cascading Topic Link versionTitle from {} to {}".format(kwargs['old'], kwargs['new']))
+    # topic_links charLevelData is a single dict (not an array)
+    db.topic_links.update_many(
+        {"charLevelData.versionTitle": kwargs['old']},
+        {"$set": {"charLevelData.versionTitle": kwargs['new']}}
+    )
+
+
 def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
