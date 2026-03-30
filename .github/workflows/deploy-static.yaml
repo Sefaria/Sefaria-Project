@@ -9,71 +9,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  branch-protection:
-    name: "Gate: Validate promotion path"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 50
-      - name: Enforce promotion rules
-        env:
-          HOTFIX_USERS: ${{ secrets.HOTFIX_ALLOWED_USERS }}
-        run: |
-          BRANCH="${GITHUB_REF_NAME}"
-          ACTOR="${GITHUB_ACTOR}"
-
-          # master can receive merges from any branch — no restriction
-          if [[ "$BRANCH" == "master" ]]; then
-            echo "✅ master: no source restriction"
-            exit 0
-          fi
-
-          # Get the source branch of the merge commit
-          MERGE_PARENTS=$(git log -1 --pretty=format:"%P" HEAD)
-          PARENT_COUNT=$(echo "$MERGE_PARENTS" | wc -w | tr -d ' ')
-
-          if [[ "$PARENT_COUNT" -lt 2 ]]; then
-            # Direct push (not a merge), check if it's a [skip ci] commit from deploy workflow
-            COMMIT_MSG=$(git log -1 --pretty=format:"%s" HEAD)
-            if [[ "$COMMIT_MSG" == *"[skip ci]"* ]]; then
-              echo "✅ Deploy state commit — allowed"
-              exit 0
-            fi
-            # Direct push to protected branch
-            SOURCE_BRANCH="direct-push"
-          else
-            # Merge commit — resolve source branch name
-            SECOND_PARENT=$(echo "$MERGE_PARENTS" | awk '{print $2}')
-            SOURCE_BRANCH=$(git branch -r --contains "$SECOND_PARENT" 2>/dev/null | grep -v HEAD | head -1 | sed 's|.*origin/||' | tr -d ' ')
-          fi
-
-          echo "Branch: $BRANCH"
-          echo "Source: $SOURCE_BRANCH"
-          echo "Actor: $ACTOR"
-
-          if [[ "$BRANCH" == "preprod" ]]; then
-            if [[ "$SOURCE_BRANCH" != "master" ]]; then
-              echo "❌ preprod only accepts merges from master (got: $SOURCE_BRANCH)"
-              exit 1
-            fi
-            echo "✅ preprod ← master: allowed"
-
-          elif [[ "$BRANCH" == "prod" ]]; then
-            if [[ "$SOURCE_BRANCH" == "preprod" ]]; then
-              echo "✅ prod ← preprod: allowed"
-            elif echo "${HOTFIX_USERS:-}" | tr ',' '\n' | grep -qx "$ACTOR"; then
-              echo "⚠️  prod ← $SOURCE_BRANCH: HOTFIX by authorized user $ACTOR"
-            else
-              echo "❌ prod only accepts merges from preprod (got: $SOURCE_BRANCH)"
-              echo "   Direct push to prod requires authorization."
-              echo "   Authorized hotfix users are configured in HOTFIX_ALLOWED_USERS secret."
-              exit 1
-            fi
-          fi
-
   detect:
-    needs: branch-protection
     runs-on: ubuntu-latest
     outputs:
       app_changed: ${{ steps.changes.outputs.app_changed }}

@@ -1,0 +1,59 @@
+name: "Promotion Gate"
+
+# Runs on PRs targeting preprod or prod.
+# Validates the source branch matches the allowed promotion path.
+# Add "Promotion Gate" as a required status check in branch protection
+# settings for preprod and prod — PRs cannot merge without this passing.
+
+on:
+  pull_request:
+    branches: [preprod, prod]
+
+jobs:
+  validate-promotion-path:
+    name: "Promotion Gate"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        env:
+          HOTFIX_USERS: ${{ secrets.HOTFIX_ALLOWED_USERS }}
+        run: |
+          TARGET="${{ github.base_ref }}"
+          SOURCE="${{ github.head_ref }}"
+          ACTOR="${{ github.actor }}"
+
+          echo "PR: $SOURCE → $TARGET"
+          echo "Actor: $ACTOR"
+
+          if [[ "$TARGET" == "preprod" ]]; then
+            if [[ "$SOURCE" == "master" ]]; then
+              echo "✅ preprod ← master: allowed"
+            else
+              echo "❌ BLOCKED: preprod only accepts PRs from master"
+              echo ""
+              echo "  Got: $SOURCE → preprod"
+              echo "  Expected: master → preprod"
+              echo ""
+              echo "  To promote to preprod, create a PR from master."
+              exit 1
+            fi
+
+          elif [[ "$TARGET" == "prod" ]]; then
+            if [[ "$SOURCE" == "preprod" ]]; then
+              echo "✅ prod ← preprod: allowed"
+            elif echo "${HOTFIX_USERS:-}" | tr ',' '\n' | grep -qx "$ACTOR"; then
+              echo "⚠️  HOTFIX: prod ← $SOURCE by authorized user $ACTOR"
+              echo ""
+              echo "  This is a hotfix bypass. The normal path is preprod → prod."
+              echo "  Proceeding because $ACTOR is in the HOTFIX_ALLOWED_USERS list."
+            else
+              echo "❌ BLOCKED: prod only accepts PRs from preprod"
+              echo ""
+              echo "  Got: $SOURCE → prod"
+              echo "  Expected: preprod → prod"
+              echo ""
+              echo "  To promote to prod, create a PR from preprod."
+              echo "  For hotfixes, ask an authorized user (HOTFIX_ALLOWED_USERS) to open the PR."
+              exit 1
+            fi
+          fi
