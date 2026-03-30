@@ -15,6 +15,8 @@ name: "Promotion Gate"
 on:
   pull_request:
     branches: [preprod, prod]
+  merge_group:
+    branches: [preprod, prod]
 
 jobs:
   validate-promotion-path:
