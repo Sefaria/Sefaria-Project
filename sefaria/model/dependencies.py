@@ -65,6 +65,11 @@ def process_version_title_change_in_search(ver, **kwargs):
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
 subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
+subscribe(marked_up_text_chunk.process_version_title_change,            text.Version, "attributeChange", "versionTitle")
+subscribe(link.process_version_title_change_in_links,                   text.Version, "attributeChange", "versionTitle")
+subscribe(topic.process_version_title_change_in_topic_links,            text.Version, "attributeChange", "versionTitle")
+subscribe(user_profile.process_version_title_change_in_user_history,    text.Version, "attributeChange", "versionTitle")
+subscribe(user_profile.process_version_title_change_in_profile_preferences, text.Version, "attributeChange", "versionTitle")
 
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
 

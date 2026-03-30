@@ -323,6 +323,294 @@ class TestVersionBulkEditAPI:
         # Cleanup
         v.delete()
 
+    @pytest.mark.django_db
+    def test_bulk_rename_version_title(self, staff_client):
+        """Should rename versionTitle across multiple indices."""
+        from sefaria.model import Version
+
+        # Create test versions across two indices
+        versions = []
+        for title in ['Genesis', 'Exodus']:
+            v = Version({
+                'versionTitle': 'TestRenameOld',
+                'language': 'en',
+                'title': title,
+                'chapter': [],
+                'versionSource': 'https://test.com',
+            })
+            v.save()
+            versions.append(v)
+
+        try:
+            response = staff_client.post(
+                '/api/version-bulk-edit',
+                data=json.dumps({
+                    'versionTitle': 'TestRenameOld',
+                    'indices': ['Genesis', 'Exodus'],
+                    'updates': {},
+                    'newVersionTitle': 'TestRenameNew'
+                }),
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = json.loads(response.content)
+            assert data['status'] == 'ok', f"Expected ok, got: {data}"
+            assert len(data['successes']) == 2
+            assert data['newVersionTitle'] == 'TestRenameNew'
+
+            # Old title should no longer exist
+            for title in ['Genesis', 'Exodus']:
+                assert Version().load({'versionTitle': 'TestRenameOld', 'title': title}) is None
+
+            # New title should exist
+            for title in ['Genesis', 'Exodus']:
+                v = Version().load({'versionTitle': 'TestRenameNew', 'title': title})
+                assert v is not None
+        finally:
+            # Cleanup (may be under old or new title)
+            for title in ['Genesis', 'Exodus']:
+                for vt in ['TestRenameOld', 'TestRenameNew']:
+                    v = Version().load({'versionTitle': vt, 'title': title})
+                    if v:
+                        v.delete()
+
+    @pytest.mark.django_db
+    def test_bulk_rename_rejects_duplicate(self, staff_client):
+        """Should reject rename when newVersionTitle already exists for an index."""
+        from sefaria.model import Version
+
+        # Create the version to rename
+        v1 = Version({
+            'versionTitle': 'TestRenameSrc',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v1.save()
+
+        # Create a conflicting version with the target title
+        v2 = Version({
+            'versionTitle': 'TestRenameDst',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test2.com',
+        })
+        v2.save()
+
+        try:
+            response = staff_client.post(
+                '/api/version-bulk-edit',
+                data=json.dumps({
+                    'versionTitle': 'TestRenameSrc',
+                    'indices': ['Genesis'],
+                    'updates': {},
+                    'newVersionTitle': 'TestRenameDst'
+                }),
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = json.loads(response.content)
+            assert 'error' in data
+            assert 'already exists' in data['error']
+
+            # Original should still exist (no modification happened)
+            v = Version().load({'versionTitle': 'TestRenameSrc', 'title': 'Genesis'})
+            assert v is not None
+        finally:
+            for vt in ['TestRenameSrc', 'TestRenameDst']:
+                v = Version().load({'versionTitle': vt, 'title': 'Genesis'})
+                if v:
+                    v.delete()
+
+    @pytest.mark.django_db
+    def test_bulk_rename_with_field_updates(self, staff_client):
+        """Should apply both field updates and rename in one call."""
+        from sefaria.model import Version
+
+        v = Version({
+            'versionTitle': 'TestRenameCombo',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v.save()
+
+        try:
+            response = staff_client.post(
+                '/api/version-bulk-edit',
+                data=json.dumps({
+                    'versionTitle': 'TestRenameCombo',
+                    'indices': ['Genesis'],
+                    'updates': {'license': 'CC-BY'},
+                    'newVersionTitle': 'TestRenameComboNew'
+                }),
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = json.loads(response.content)
+            assert data['status'] == 'ok'
+
+            # Verify both rename and update applied
+            v = Version().load({'versionTitle': 'TestRenameComboNew', 'title': 'Genesis'})
+            assert v is not None
+            assert v.license == 'CC-BY'
+        finally:
+            for vt in ['TestRenameCombo', 'TestRenameComboNew']:
+                v = Version().load({'versionTitle': vt, 'title': 'Genesis'})
+                if v:
+                    v.delete()
+
+    @pytest.mark.django_db
+    def test_bulk_rename_empty_string_rejected(self, staff_client):
+        """Should reject empty or whitespace-only newVersionTitle."""
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'SomeVersion',
+                'indices': ['Genesis'],
+                'updates': {},
+                'newVersionTitle': '   '
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_bulk_rename_same_title_rejected(self, staff_client):
+        """Should reject when newVersionTitle equals current versionTitle."""
+        response = staff_client.post(
+            '/api/version-bulk-edit',
+            data=json.dumps({
+                'versionTitle': 'SomeVersion',
+                'indices': ['Genesis'],
+                'updates': {},
+                'newVersionTitle': 'SomeVersion'
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'differ' in data['error']
+
+
+class TestVersionTitleCascade:
+    """Tests for versionTitle change cascade handlers."""
+
+    @pytest.mark.django_db
+    def test_rename_cascades_to_marked_up_text_chunks(self, staff_client):
+        """Renaming versionTitle should update marked_up_text_chunks records."""
+        from sefaria.model import Version
+        from sefaria.system.database import db
+
+        # Create a test version
+        v = Version({
+            'versionTitle': 'TestCascadeMUTC',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v.save()
+
+        # Create a matching marked_up_text_chunk record
+        db.marked_up_text_chunks.insert_one({
+            'ref': 'Genesis 1:1',
+            'versionTitle': 'TestCascadeMUTC',
+            'language': 'en',
+            'spans': []
+        })
+
+        try:
+            response = staff_client.post(
+                '/api/version-bulk-edit',
+                data=json.dumps({
+                    'versionTitle': 'TestCascadeMUTC',
+                    'indices': ['Genesis'],
+                    'updates': {},
+                    'newVersionTitle': 'TestCascadeMUTC_New'
+                }),
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = json.loads(response.content)
+            assert data['status'] == 'ok'
+
+            # Verify cascade: old title gone, new title present
+            assert db.marked_up_text_chunks.count_documents({'versionTitle': 'TestCascadeMUTC'}) == 0
+            assert db.marked_up_text_chunks.count_documents({'versionTitle': 'TestCascadeMUTC_New'}) == 1
+        finally:
+            # Cleanup
+            for vt in ['TestCascadeMUTC', 'TestCascadeMUTC_New']:
+                v = Version().load({'versionTitle': vt, 'title': 'Genesis'})
+                if v:
+                    v.delete()
+                db.marked_up_text_chunks.delete_many({'versionTitle': vt})
+
+    @pytest.mark.django_db
+    def test_rename_cascades_to_links_char_level_data(self, staff_client):
+        """Renaming versionTitle should update charLevelData in links."""
+        from sefaria.model import Version
+        from sefaria.system.database import db
+
+        # Create a test version
+        v = Version({
+            'versionTitle': 'TestCascadeLink',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v.save()
+
+        # Create a link with charLevelData referencing this version
+        db.links.insert_one({
+            'refs': ['Genesis 1:1', 'Rashi on Genesis 1:1'],
+            'type': 'quotation',
+            'charLevelData': [
+                {'startChar': 0, 'endChar': 10, 'versionTitle': 'TestCascadeLink', 'language': 'en'},
+                {'startChar': 0, 'endChar': 5, 'versionTitle': 'Other Version', 'language': 'en'}
+            ]
+        })
+
+        try:
+            response = staff_client.post(
+                '/api/version-bulk-edit',
+                data=json.dumps({
+                    'versionTitle': 'TestCascadeLink',
+                    'indices': ['Genesis'],
+                    'updates': {},
+                    'newVersionTitle': 'TestCascadeLink_New'
+                }),
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = json.loads(response.content)
+            assert data['status'] == 'ok'
+
+            # Verify cascade: charLevelData[0] updated, charLevelData[1] unchanged
+            link = db.links.find_one({'refs': ['Genesis 1:1', 'Rashi on Genesis 1:1'], 'type': 'quotation'})
+            assert link is not None
+            assert link['charLevelData'][0]['versionTitle'] == 'TestCascadeLink_New'
+            assert link['charLevelData'][1]['versionTitle'] == 'Other Version'  # unchanged
+        finally:
+            # Cleanup
+            for vt in ['TestCascadeLink', 'TestCascadeLink_New']:
+                v = Version().load({'versionTitle': vt, 'title': 'Genesis'})
+                if v:
+                    v.delete()
+            db.links.delete_many({'refs': ['Genesis 1:1', 'Rashi on Genesis 1:1'], 'type': 'quotation'})
+
 
 # ============================================================================
 # Legacy Modtools API Tests (Priority 1 - Write Operations)

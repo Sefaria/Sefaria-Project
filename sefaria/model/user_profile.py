@@ -892,6 +892,35 @@ def annotate_user_list(uids):
     return annotated_list
 
 
+def process_version_title_change_in_user_history(ver, **kwargs):
+    print("Cascading User History versionTitle from {} to {}".format(kwargs['old'], kwargs['new']))
+    lang = ver.language
+    if lang in ("en", "he"):
+        db.user_history.update_many(
+            {f"versions.{lang}": kwargs['old']},
+            {"$set": {f"versions.{lang}": kwargs['new']}}
+        )
+
+
+def process_version_title_change_in_profile_preferences(ver, **kwargs):
+    print("Cascading Profile version preferences from {} to {}".format(kwargs['old'], kwargs['new']))
+    # version_preferences_by_corpus is {corpus: {lang: vtitle}} — iterate matching profiles
+    profiles = db.profiles.find({"version_preferences_by_corpus": {"$exists": True}})
+    for profile in profiles:
+        prefs = profile.get("version_preferences_by_corpus", {})
+        updated = False
+        for corpus, lang_map in prefs.items():
+            for lang, vtitle in lang_map.items():
+                if vtitle == kwargs['old']:
+                    prefs[corpus][lang] = kwargs['new']
+                    updated = True
+        if updated:
+            db.profiles.update_one(
+                {"_id": profile["_id"]},
+                {"$set": {"version_preferences_by_corpus": prefs}}
+            )
+
+
 def process_index_title_change_in_user_history(indx, **kwargs):
     print("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
 

@@ -363,6 +363,22 @@ def process_index_title_change_in_links(indx, **kwargs):
             l.delete()
 
 
+def process_version_title_change_in_links(ver, **kwargs):
+    print("Cascading Link versionTitle from {} to {}".format(kwargs['old'], kwargs['new']))
+    # charLevelData is an array of 2 dicts, each with a versionTitle key
+    db.links.update_many(
+        {"charLevelData.versionTitle": kwargs['old']},
+        {"$set": {"charLevelData.$[elem].versionTitle": kwargs['new']}},
+        array_filters=[{"elem.versionTitle": kwargs['old']}]
+    )
+    # Essay-type links store versionTitle in versions[].title
+    db.links.update_many(
+        {"versions.title": kwargs['old']},
+        {"$set": {"versions.$[elem].title": kwargs['new']}},
+        array_filters=[{"elem.title": kwargs['old']}]
+    )
+
+
 def process_index_delete_in_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)

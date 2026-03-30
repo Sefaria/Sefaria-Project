@@ -385,4 +385,12 @@ def process_topic_slug_change(topic, **kwargs):
     print("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs['old'], kwargs['new']))
     db.marked_up_text_chunks.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
     db.linker_output.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
+
+
+def process_version_title_change(ver, **kwargs):
+    print("Cascading Marked Up Text Chunk versionTitle from {} to {}".format(kwargs['old'], kwargs['new']))
+    query = {"versionTitle": kwargs['old'], "language": ver.language}
+    update = {"$set": {"versionTitle": kwargs['new']}}
+    db.marked_up_text_chunks.update_many(query, update)
+    db.linker_output.update_many(query, update)
     

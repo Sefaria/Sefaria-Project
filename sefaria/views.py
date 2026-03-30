@@ -1709,7 +1709,7 @@ def version_indices_api(request):
 
 
 # Allowed fields for version bulk edit - prevents arbitrary attribute injection
-# Note: versionTitle is excluded - it's the search key used to find versions, not editable
+# Note: versionTitle is handled separately via newVersionTitle, not through updates dict
 VERSION_BULK_EDIT_ALLOWED_FIELDS = {
     "versionTitleInHebrew", "versionSource", "license", "status",
     "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
@@ -1719,13 +1719,14 @@ VERSION_BULK_EDIT_ALLOWED_FIELDS = {
 @staff_member_required
 def version_bulk_edit_api(request):
     """
-    Bulk update Version metadata for multiple indices.
+    Bulk update Version metadata for multiple indices, with optional versionTitle rename.
 
     Request:
-      POST {"versionTitle": "...", "language": "he", "indices": [...], "updates": {...}}
+      POST {"versionTitle": "...", "indices": [...], "updates": {...}, "newVersionTitle": "..." (optional)}
 
     Response:
-      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...],
+       "newVersionTitle": "..." (if rename was requested)}
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -1742,21 +1743,43 @@ def version_bulk_edit_api(request):
     except KeyError as e:
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
 
+    new_version_title = data.get("newVersionTitle")
+
     if not indices:
         return jsonResponse({"error": "indices may not be empty"}, status=400)
 
-    if not updates:
-        return jsonResponse({"error": "updates may not be empty"}, status=400)
+    if not updates and not new_version_title:
+        return jsonResponse({"error": "updates may not be empty (or provide newVersionTitle)"}, status=400)
 
-    # Validate that all update fields are allowed
-    disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
-    if disallowed_fields:
-        return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
+    # Validate update fields
+    if updates:
+        disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
+        if disallowed_fields:
+            return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
 
-    # Required Version fields cannot be cleared (set to None)
-    null_required = {k for k, v in updates.items() if v is None and k in Version.required_attrs}
-    if null_required:
-        return jsonResponse({"error": f"Cannot clear required fields: {', '.join(null_required)}"}, status=400)
+        # Required Version fields cannot be cleared (set to None)
+        null_required = {k for k, v in updates.items() if v is None and k in Version.required_attrs}
+        if null_required:
+            return jsonResponse({"error": f"Cannot clear required fields: {', '.join(null_required)}"}, status=400)
+
+    # Validate newVersionTitle if provided
+    if new_version_title is not None:
+        if not isinstance(new_version_title, str) or not new_version_title.strip():
+            return jsonResponse({"error": "newVersionTitle must be a non-empty string"}, status=400)
+        new_version_title = new_version_title.strip()
+        if new_version_title == version_title:
+            return jsonResponse({"error": "newVersionTitle must differ from current versionTitle"}, status=400)
+
+        # Pre-check for duplicates across ALL indices before modifying anything
+        conflicts = []
+        for index_title in indices:
+            existing = Version().load({"title": index_title, "versionTitle": new_version_title})
+            if existing:
+                conflicts.append(index_title)
+        if conflicts:
+            return jsonResponse({
+                "error": f'Cannot rename: a version titled "{new_version_title}" already exists for: {", ".join(conflicts)}'
+            }, status=400)
 
     # Track successes and failures for detailed reporting
     successes = []
@@ -1773,7 +1796,20 @@ def version_bulk_edit_api(request):
                 failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
                 continue
 
-            tracker.update_version_metadata(request.user.id, version, updates)
+            # Phase 1: Apply regular field updates
+            if updates:
+                tracker.update_version_metadata(request.user.id, version, updates)
+
+            # Phase 2: Rename versionTitle (after metadata updates)
+            # Version.save() fires attributeChange handlers via track_pkeys,
+            # cascading the rename to history, search, notifications, links, etc.
+            if new_version_title:
+                old_dict = version.contents()
+                version.versionTitle = new_version_title
+                version.save()
+                model.log_update(request.user.id, model.Version, old_dict, version.contents(),
+                                 history_noun="version_title_change")
+
             successes.append(index_title)
 
         except Exception as e:
@@ -1786,6 +1822,8 @@ def version_bulk_edit_api(request):
         "successes": successes,
         "failures": failures
     }
+    if new_version_title:
+        result["newVersionTitle"] = new_version_title
     return jsonResponse(result)
 
 

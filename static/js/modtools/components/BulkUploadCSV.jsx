@@ -94,14 +94,27 @@ function BulkUploadCSV() {
     }
 
     try {
+      const csrfToken = Cookies.get('csrftoken');
+      if (!csrfToken) {
+        setUploadError("Error - CSRF token not found. Try refreshing the page.");
+        setUploading(false);
+        return;
+      }
+
       const response = await fetch('/api/text-upload', {
         method: 'POST',
         headers: {
-          'X-CSRFToken': Cookies.get('csrftoken')
+          'X-CSRFToken': csrfToken
         },
         credentials: 'same-origin',
         body: formData
       });
+
+      if (response.status === 403) {
+        setUploadError("Error - Permission denied (403). Try refreshing the page to get a new CSRF token.");
+        setUploading(false);
+        return;
+      }
 
       const data = await response.json();
 
