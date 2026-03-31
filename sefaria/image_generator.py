@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+import html
 import textwrap
 from bidi.algorithm import get_display
 import re
@@ -54,16 +55,52 @@ def smart_truncate(content, length=180, suffix='...'):
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
+
+def _text_width(font, text):
+    """Horizontal advance for `text` using Pillow 10+ API (replaces removed getsize)."""
+    if not text:
+        return 0
+    left, _top, right, _bottom = font.getbbox(text)
+    return right - left
+
+
 def calc_letters_per_line(text, font, img_width):
-    avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
-    max_char_count = int(img_width / avg_char_width )
-    return max_char_count
+    if not text:
+        return 40
+    avg_char_width = sum(_text_width(font, char) for char in text) / len(text)
+    if avg_char_width <= 0:
+        return 40
+    max_char_count = int(img_width / avg_char_width)
+    return max(1, max_char_count)
 
 def cleanup_and_format_text(text, language):
     #removes html tags, nikkudot and taamim.
+    if not text:
+        return ""
     text = text.replace('<br>', ' ')
     cleanr = re.compile('<.*?>')
     text = re.sub(cleanr, '', text)
+    text = html.unescape(text)
+    # Normalize HTML space characters (nbsp, thinsp, em/quad spaces, etc.) for PIL
+    for ch in (
+        "\u00a0",
+        "\u2000",
+        "\u2001",
+        "\u2002",
+        "\u2003",
+        "\u2004",
+        "\u2005",
+        "\u2006",
+        "\u2007",
+        "\u2008",
+        "\u2009",
+        "\u200a",
+        "\u202f",
+        "\u205f",
+    ):
+        text = text.replace(ch, " ")
+    # Remove zero-width / invisible formatting (zwnj, zwj, word joiner, BOM, etc.)
+    text = re.sub(r"[\u200b-\u200d\u2060\ufeff]", "", text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
 
