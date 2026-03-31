@@ -49,13 +49,11 @@ platforms = {
 
 }
 
-
 def smart_truncate(content, length=180, suffix='...'):
     if len(content) <= length:
         return content
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
-
 
 def calc_letters_per_line(text, font, img_width):
     avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
