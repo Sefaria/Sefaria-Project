@@ -49,8 +49,6 @@ platforms = {
 
 }
 
-# Fallback `width` for textwrap when text is empty or font metrics are unusable.
-DEFAULT_LETTERS_PER_LINE = 40
 
 def smart_truncate(content, length=180, suffix='...'):
     if len(content) <= length:
@@ -60,16 +58,9 @@ def smart_truncate(content, length=180, suffix='...'):
 
 
 def calc_letters_per_line(text, font, img_width):
-    if not text:
-        return DEFAULT_LETTERS_PER_LINE
-    # getbbox(c) -> (left, top, right, bottom) in px; right - left is the glyph width (Pillow 10+; replaces getsize).
-    avg_char_width = sum(
-        bbox[2] - bbox[0] for bbox in (font.getbbox(c) for c in text)
-    ) / len(text)
-    if avg_char_width <= 0:
-        return DEFAULT_LETTERS_PER_LINE
-    max_char_count = int(img_width / avg_char_width)
-    return max(1, max_char_count)
+    avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
+    max_char_count = int(img_width / avg_char_width )
+    return max_char_count
 
 def cleanup_and_format_text(text, language):
     #removes html tags, nikkudot and taamim.
