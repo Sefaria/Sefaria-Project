@@ -49,6 +49,9 @@ platforms = {
 
 }
 
+# Fallback `width` for textwrap when text is empty or font metrics are unusable.
+DEFAULT_LETTERS_PER_LINE = 40
+
 def smart_truncate(content, length=180, suffix='...'):
     if len(content) <= length:
         return content
@@ -56,20 +59,15 @@ def smart_truncate(content, length=180, suffix='...'):
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
 
-def _text_width(font, text):
-    """Horizontal advance for `text` using Pillow 10+ API (replaces removed getsize)."""
-    if not text:
-        return 0
-    left, _top, right, _bottom = font.getbbox(text)
-    return right - left
-
-
 def calc_letters_per_line(text, font, img_width):
     if not text:
-        return 40
-    avg_char_width = sum(_text_width(font, char) for char in text) / len(text)
+        return DEFAULT_LETTERS_PER_LINE
+    # getbbox(c) -> (left, top, right, bottom) in px; right - left is the glyph width (Pillow 10+; replaces getsize).
+    avg_char_width = sum(
+        bbox[2] - bbox[0] for bbox in (font.getbbox(c) for c in text)
+    ) / len(text)
     if avg_char_width <= 0:
-        return 40
+        return DEFAULT_LETTERS_PER_LINE
     max_char_count = int(img_width / avg_char_width)
     return max(1, max_char_count)
 
