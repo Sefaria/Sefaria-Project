@@ -104,6 +104,7 @@ def cleanup_and_format_text(text, language):
 
     strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
     text = strip_cantillation_vowel_regex.sub('', text)
+    text = re.sub(r"\s+", " ", text).strip()
     text = smart_truncate(text)
     return text
 
