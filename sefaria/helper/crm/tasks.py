@@ -12,7 +12,7 @@ from sefaria.settings import CELERY_ENABLED
 logger = structlog.get_logger(__name__)
 
 CHATBOT_OPT_IN_WEBHOOK_URL = (
-    "https://sefariainc.my.salesforce-sites.com/services/apexrest/Streams/webhookflow"
+    "https://sefariainc--stage.sandbox.my.salesforce-sites.com/services/apexrest/Streams/webhookflow"
 )
 
 
