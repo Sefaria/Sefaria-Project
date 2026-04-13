@@ -4,6 +4,7 @@ from bidi.algorithm import get_display
 import re
 from django.http import HttpResponse
 import io
+import html as _html
 
 palette = { # [(bg), (font)]
     "Commentary": [(75, 113, 183), (255, 255, 255)],
@@ -59,11 +60,40 @@ def calc_letters_per_line(text, font, img_width):
     max_char_count = int(img_width / avg_char_width )
     return max_char_count
 
+
+def html_to_text_canonical(html):
+    """
+    Canonical HTML-to-text normalization matching Sefaria-Project `Sefaria.util.htmlToText`.
+
+    Spec: `docs/html-to-text-spec.md`
+    """
+    if not html:
+        return ""
+
+    # Remove literal newlines and tabs
+    html = html.replace("\n", "").replace("\t", "")
+
+    # Insert structural separators (case-sensitive, to match canonical behavior)
+    html = html.replace("</td>", "\t")
+    html = html.replace("</table>", "\n")
+    html = html.replace("</tr>", "\n")
+    html = html.replace("</p>", "\n")
+    html = html.replace("</div>", "\n")
+    html = html.replace("<br>", "\n")
+    html = re.sub(r"<br( )*/>", "\n", html)
+
+    # Strip tags (best-effort) and decode entities once, mirroring the DOMParser+textContent path.
+    text = re.sub(r"<[^>]+>", "", html)
+    text = _html.unescape(text)
+
+    # Collapse duplicate blank lines
+    text = re.sub(r"\n\s*\n", "\n", text)
+    return text
+
 def cleanup_and_format_text(text, language):
-    #removes html tags, nikkudot and taamim.
-    text = text.replace('<br>', ' ')
-    cleanr = re.compile('<.*?>')
-    text = re.sub(cleanr, '', text)
+    # Removes HTML tags/entities according to canonical web copy behavior,
+    # then removes nikkudot and taamim.
+    text = html_to_text_canonical(text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
 
