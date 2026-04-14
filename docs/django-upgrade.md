@@ -1,6 +1,15 @@
 # Django Upgrade: 1.11 → 5.2
 
-Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit with tests green (or diffed against baseline for data-dependent failures).
+> ⚠️ **STATUS: IN PROGRESS — NOT DONE.** This branch is a checkpoint, not a finished upgrade.
+> `manage.py check` passes and the app boots at every hop, but the pytest suite still has
+> ~28 failures + 9 errors that need triage before this is merge-ready. Most failures look
+> pre-existing (Strapi external dep, Mongo-seed-dependent model tests, `deepdiff` v7
+> test-helper shape changes) but that has **not** been validated against a clean
+> Django 2.2 baseline on the same Mongo state. See "Open questions" at the bottom —
+> this PR needs reviewer help to confirm which failures are regressions vs pre-existing
+> before it can ship. Treat as a work-in-progress spike, not a finished upgrade.
+
+Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit.
 
 ## Summary
 
