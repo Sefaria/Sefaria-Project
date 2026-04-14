@@ -128,7 +128,7 @@ geojson==2.5.0
     # via -r ./requirements.txt
 geopy==2.3.0
     # via -r ./requirements.txt
-gevent==20.12.0; sys_platform != 'darwin'
+gevent==24.2.1; sys_platform != 'darwin'
 google-analytics-data==0.9.0
 google-api-core[grpc]==1.27.0
     # via
