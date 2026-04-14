@@ -269,13 +269,22 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         cookies by browsers. When transitioning to domain-scoped cookies, we need to
         expire the old domain-less cookies.
 
-        Uses a workaround for Django's limitation of not supporting multiple cookies
-        with the same name (see https://code.djangoproject.com/ticket/10554):
-        adds an extra header via _headers with a unique internal key.
+        Works around Django's limitation of not supporting multiple cookies with the same
+        name (see https://code.djangoproject.com/ticket/10554) by storing the expiry
+        morsel under a unique internal key while setting the morsel's actual output key
+        to the real cookie name. Django's WSGI handler serializes cookies via
+        morsel.output(), which uses morsel._key (the real name), not the SimpleCookie
+        dict key.
         """
-        expire_value = f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/'
-        header_key = f'set-cookie-legacy-{cookie_name}'
-        response._headers[header_key] = ('Set-Cookie', expire_value)
+        unique_key = f'_legacy_expire_{cookie_name}'
+        response.cookies[unique_key] = ''
+        morsel = response.cookies[unique_key]
+        morsel._key = cookie_name  # output the real cookie name, not the unique key
+        morsel._coded_value = ''
+        morsel['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        morsel['max-age'] = '0'
+        morsel['path'] = '/'
+        # No 'domain' attribute — this targets the legacy domain-less cookie
 
     def process_response(self, request, response):
         """

@@ -408,9 +408,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # No legacy cookie headers should be added
-        assert 'set-cookie-legacy-sessionid' not in result._headers
-        assert 'set-cookie-legacy-csrftoken' not in result._headers
+        # No legacy expiry morsels should be added to response.cookies
+        assert '_legacy_expire_sessionid' not in result.cookies
+        assert '_legacy_expire_csrftoken' not in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -429,9 +429,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Legacy cookie headers should be added
-        assert 'set-cookie-legacy-sessionid' in result._headers
-        assert 'set-cookie-legacy-csrftoken' in result._headers
+        # Legacy expiry morsels should be in response.cookies under unique keys
+        assert '_legacy_expire_sessionid' in result.cookies
+        assert '_legacy_expire_csrftoken' in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -450,20 +450,18 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Check the Set-Cookie header format for CSRF token
-        header_name, header_value = result._headers['set-cookie-legacy-csrftoken']
-        assert header_name == 'Set-Cookie'
-        assert 'csrftoken=' in header_value
-        assert 'expires=Thu, 01 Jan 1970 00:00:00 GMT' in header_value
-        assert 'Max-Age=0' in header_value
-        assert 'Path=/' in header_value
+        # Check the legacy expiry morsel for CSRF token
+        csrf_morsel = result.cookies['_legacy_expire_csrftoken']
+        assert csrf_morsel._key == 'csrftoken'        # outputs real cookie name
+        assert csrf_morsel['expires'] == 'Thu, 01 Jan 1970 00:00:00 GMT'
+        assert csrf_morsel['max-age'] == '0'
+        assert csrf_morsel['path'] == '/'
         # Crucially, no Domain attribute
-        assert 'Domain=' not in header_value
+        assert csrf_morsel['domain'] == ''
 
-        # Check session cookie header
-        header_name, header_value = result._headers['set-cookie-legacy-sessionid']
-        assert header_name == 'Set-Cookie'
-        assert 'sessionid=' in header_value
+        # Check session cookie legacy morsel
+        session_morsel = result.cookies['_legacy_expire_sessionid']
+        assert session_morsel._key == 'sessionid'
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -482,9 +480,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # No legacy cookie headers should be added for unapproved domains
-        assert 'set-cookie-legacy-sessionid' not in result._headers
-        assert 'set-cookie-legacy-csrftoken' not in result._headers
+        # No legacy expiry morsels should be added for unapproved domains
+        assert '_legacy_expire_sessionid' not in result.cookies
+        assert '_legacy_expire_csrftoken' not in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -506,6 +504,6 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Only CSRF legacy header should be added
-        assert 'set-cookie-legacy-csrftoken' in result._headers
-        assert 'set-cookie-legacy-sessionid' not in result._headers
+        # Only CSRF legacy expiry morsel should be added
+        assert '_legacy_expire_csrftoken' in result.cookies
+        assert '_legacy_expire_sessionid' not in result.cookies
