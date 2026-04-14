@@ -10,11 +10,15 @@ The sanity test suite is organized into focused test files, each covering a spec
 
 ### Core Sanity Tests
 
-Located in the main `Sanity/` directory, these tests cover critical user-facing workflows.
+Located in the main `Sanity/` directory, these tests cover critical user-facing workflows and release-gate smoke scenarios across the Library and Voices modules.
 
-### Go Live Temp Tests
+### Cross-Module Redirect Tests
 
-Located in `Sanity/Go Live Temp/`, these tests were migrated from the `Misc/` directory specifically for launch day validation. They focus on redirect behavior and help center integration.
+Located directly in `Sanity/` (`cross-module-redirects.spec.ts`), these tests validate redirect behavior between Library and Voices and were originally drafted for launch-day validation.
+
+### Help Sheet Redirect Tests
+
+Located in `Misc/` (`help-sheet-redirects.spec.ts`), these tests validate that legacy help-sheet URLs redirect correctly to the new Zendesk Help Center. They run under the `chrome-misc` / `firefox-misc` / `safari-misc` Playwright projects rather than the `-sanity` projects.
 
 ---
 
@@ -245,13 +249,13 @@ Located in `Sanity/Go Live Temp/`, these tests were migrated from the `Misc/` di
 
 ---
 
-## Go Live Temp Tests
+## Redirect Suite
 
-### Go Live Temp/cross-module-redirects.spec.ts
+### cross-module-redirects.spec.ts
+
+**Location:** `Sanity/cross-module-redirects.spec.ts`
 
 **Purpose**: Validates URL redirect behavior between Library and Voices modules, ensuring legacy URLs redirect correctly and query parameters are preserved.
-
-**Note**: This file was migrated from `Misc/` directory for launch day validation.
 
 **Test Suites**:
 
@@ -305,11 +309,11 @@ Prevents infinite redirect loops and confirms module-specific content restrictio
 
 ---
 
-### Go Live Temp/help-sheet-redirects.spec.ts
+### help-sheet-redirects.spec.ts
+
+**Location:** `Misc/help-sheet-redirects.spec.ts` (runs under the `*-misc` Playwright projects, not the `*-sanity` projects)
 
 **Purpose**: Validates that legacy help sheet URLs redirect correctly to the new Zendesk Help Center, ensuring users can still access help documentation via old links.
-
-**Note**: This file was migrated from `Misc/` directory for launch day validation.
 
 **Test Suites**:
 
@@ -356,10 +360,14 @@ npx playwright test Sanity/sheet-workflow-sanity.spec.ts
 npx playwright test Sanity/search-sanity.spec.ts
 ```
 
-### Run Go Live Temp Tests
+### Run Redirect Suite
 
 ```bash
-npx playwright test "Sanity/Go Live Temp"
+# Cross-module redirects (under Sanity)
+npx playwright test Sanity/cross-module-redirects.spec.ts
+
+# Help sheet redirects (under Misc)
+npx playwright test Misc/help-sheet-redirects.spec.ts
 ```
 
 ### Run Specific Test by Name
