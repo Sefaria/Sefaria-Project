@@ -165,12 +165,12 @@ This pattern allows components to simply set a message string like `"✅ Updated
     |                                    |        ├── (partial) --> Show warning with failures
     |                                    |        └── (error) --> Show error message
     |                                    |
-    |                                    └── [MARK_FOR_DELETION]
+    |                                    └── [DELETE_VERSIONS]
     |                                              |
     |                                              v
     |                                         [CONFIRM_DIALOG]
     |                                              |
-    |                                              ├── (confirm) --> Add deletion note
+    |                                              ├── (confirm) --> Delete versions, refresh list
     |                                              └── (cancel) --> Return to editing
     |
     ├── (success, results = 0) --> [NO_RESULTS]
@@ -219,12 +219,8 @@ const FIELD_GROUPS = [
 ];
 ```
 
-#### 4. Soft Delete Implementation
-Versions are NOT deleted immediately. Instead, a note is added:
-```javascript
-const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}]`;
-// This note is searchable in MongoDB for cleanup scripts
-```
+#### 4. Delete Implementation
+Selected versions are permanently deleted via the bulk delete API. A confirmation dialog warns the user before proceeding. After successful deletion, the index list is refreshed automatically.
 
 ### API Interaction
 
@@ -356,5 +352,5 @@ const save = () => {
 BulkVersionEditor.jsx
   ├── imports: VERSION_FIELD_METADATA (fieldMetadata.js)
   ├── imports: ModToolsSection, IndexSelector, StatusMessage (shared/)
-  └── API: /api/version-indices, /api/version-bulk-edit
+  └── API: /api/version-indices, /api/version-bulk-edit, /api/version-bulk-delete
 ```

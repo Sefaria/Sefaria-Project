@@ -94,15 +94,10 @@ const HELP_CONTENT = (
       The field will be deleted from the database, not set to an empty value.
     </p>
 
-    <h3>Mark for Deletion</h3>
+    <h3>Deleting Versions</h3>
     <p>
-      The "Mark for Deletion" button does NOT immediately delete versions. Instead, it adds
-      a timestamped "[MARKED FOR DELETION]" note to <code>versionNotes</code>, flagging them for review.
-      This is a safety mechanism to prevent accidental data loss.
-    </p>
-    <p>
-      To complete the deletion after marking, contact a developer who can query the database
-      for versions with this note and remove them after verification.
+      The "Delete Versions" button <strong>permanently deletes</strong> all selected versions from the database.
+      This action cannot be undone. A confirmation dialog will appear before deletion proceeds.
     </p>
 
     <div className="warning">
@@ -120,7 +115,8 @@ const HELP_CONTENT = (
     <ul>
       <li>Adding license information to a publisher's versions</li>
       <li>Setting source URLs for versions missing attribution</li>
-      <li>Marking outdated versions for review before deletion</li>
+      <li>Renaming a versionTitle across many texts at once</li>
+      <li>Permanently deleting outdated or duplicate versions</li>
       <li>Updating priority to control which version displays first</li>
       <li>Adding purchase links for commercially available texts</li>
     </ul>
@@ -440,24 +436,43 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Mark selected versions for deletion (soft delete)
-   * Adds a note to versionNotes marking them for review
+   * Delete selected versions permanently
    */
-  const markForDeletion = async () => {
-    // Button only shows when pick.size > 0, but safety check anyway
+  const deleteVersions = async () => {
     if (!pick.size) return;
 
     setShowDeleteConfirm(false);
-    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Marking versions for deletion review...' });
+    setSaving(true);
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Deleting versions...' });
 
-    const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
+    try {
+      const payload = {
+        versionTitle: vtitle,
+        indices: Array.from(pick),
+      };
+      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-delete', null, payload);
+      const successCount = data.successes?.length || 0;
+      const failureCount = data.failures?.length || 0;
+      const total = successCount + failureCount;
 
-    await performBulkEdit(
-      { versionNotes: deletionNote },
-      (successCount) => `Marked ${successCount} versions for deletion review. A timestamped "[MARKED FOR DELETION]" note has been added to their versionNotes. To complete the deletion, contact a developer to query for and remove these versions from the database.`,
-      (successCount, total, failureList) => `Marked ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-      (failureCount, failureList) => `All ${failureCount} versions failed to be marked for deletion:\n${failureList}`
-    );
+      if (data.status === "ok") {
+        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Successfully deleted ${successCount} versions.` });
+        // Refresh the index list to reflect deletions
+        load();
+      } else if (data.status === "partial") {
+        const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        setMsg({ type: MESSAGE_TYPES.WARNING, message: `Deleted ${successCount}/${total} versions.\n\nFailed:\n${failureList}` });
+        load();
+      } else {
+        const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+        setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} deletions failed:\n${failureList}` });
+      }
+    } catch (error) {
+      const errorMsg = error.message || "Unknown error";
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${errorMsg}` });
+    } finally {
+      setSaving(false);
+    }
   };
 
   /**
@@ -793,10 +808,10 @@ const BulkVersionEditor = () => {
           {/* Delete confirmation dialog */}
           {showDeleteConfirm && (
             <div className="dangerBox">
-              <strong>Confirm Mark for Deletion</strong>
+              <strong>Confirm Permanent Deletion</strong>
               <p className="sectionDescription">
-                This will mark <strong>{pick.size}</strong> versions for deletion review by adding a note to their versionNotes field.
-                The versions will not be immediately deleted - they will be flagged for manual review.
+                This will <strong>permanently delete {pick.size} version{pick.size !== 1 ? 's' : ''}</strong> of "{vtitle}" from the database.
+                This action cannot be undone.
               </p>
               <p className="sectionDescription">
                 Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
@@ -805,10 +820,10 @@ const BulkVersionEditor = () => {
               <div className="actionRow">
                 <button
                   className="modtoolsButton danger"
-                  onClick={markForDeletion}
+                  onClick={deleteVersions}
                   disabled={saving}
                 >
-                  {saving ? <><span className="loadingSpinner" />Processing...</> : "Yes, Mark for Deletion"}
+                  {saving ? <><span className="loadingSpinner" />Deleting...</> : "Yes, Delete Permanently"}
                 </button>
                 <button
                   className="modtoolsButton secondary"
@@ -830,7 +845,7 @@ const BulkVersionEditor = () => {
                 disabled={saving}
                 type="button"
               >
-                Mark for Deletion
+                Delete Versions
               </button>
             </div>
           )}

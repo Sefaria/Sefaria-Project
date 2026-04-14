@@ -2550,10 +2550,10 @@ def flag_text_api(request, title, lang, version):
         if not vobj:
             return jsonResponse({"error": "Version not found."})
 
+        new_version_title = flags.pop("newVersionTitle", None)
+
         # Build updates dict for tracker function
         updates = {}
-        if flags.get("newVersionTitle"):
-            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
@@ -2561,8 +2561,23 @@ def flag_text_api(request, title, lang, version):
                 else:
                     updates[flag] = flags[flag]
 
+        # Validate and prepare rename if requested
+        if new_version_title is not None:
+            new_version_title, error = tracker.validate_version_title_change(new_version_title, version)
+            if error:
+                return jsonResponse({"error": error})
+            conflicts = tracker.check_version_title_conflicts(new_version_title, [title])
+            if conflicts:
+                return jsonResponse({
+                    "error": f'Cannot rename: a version titled "{new_version_title}" already exists for: {", ".join(conflicts)}'
+                })
+
         if updates:
             tracker.update_version_metadata(user_id, vobj, updates)
+
+        if new_version_title:
+            tracker.rename_version_title(user_id, vobj, new_version_title)
+
         return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:

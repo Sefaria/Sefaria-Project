@@ -1764,18 +1764,12 @@ def version_bulk_edit_api(request):
 
     # Validate newVersionTitle if provided
     if new_version_title is not None:
-        if not isinstance(new_version_title, str) or not new_version_title.strip():
-            return jsonResponse({"error": "newVersionTitle must be a non-empty string"}, status=400)
-        new_version_title = new_version_title.strip()
-        if new_version_title == version_title:
-            return jsonResponse({"error": "newVersionTitle must differ from current versionTitle"}, status=400)
+        new_version_title, error = tracker.validate_version_title_change(new_version_title, version_title)
+        if error:
+            return jsonResponse({"error": error}, status=400)
 
         # Pre-check for duplicates across ALL indices before modifying anything
-        conflicts = []
-        for index_title in indices:
-            existing = Version().load({"title": index_title, "versionTitle": new_version_title})
-            if existing:
-                conflicts.append(index_title)
+        conflicts = tracker.check_version_title_conflicts(new_version_title, indices)
         if conflicts:
             return jsonResponse({
                 "error": f'Cannot rename: a version titled "{new_version_title}" already exists for: {", ".join(conflicts)}'
@@ -1801,14 +1795,8 @@ def version_bulk_edit_api(request):
                 tracker.update_version_metadata(request.user.id, version, updates)
 
             # Phase 2: Rename versionTitle (after metadata updates)
-            # Version.save() fires attributeChange handlers via track_pkeys,
-            # cascading the rename to history, search, notifications, links, etc.
             if new_version_title:
-                old_dict = version.contents()
-                version.versionTitle = new_version_title
-                version.save()
-                model.log_update(request.user.id, model.Version, old_dict, version.contents(),
-                                 history_noun="version_title_change")
+                tracker.rename_version_title(request.user.id, version, new_version_title)
 
             successes.append(index_title)
 
@@ -1824,6 +1812,66 @@ def version_bulk_edit_api(request):
     }
     if new_version_title:
         result["newVersionTitle"] = new_version_title
+    return jsonResponse(result)
+
+
+@staff_member_required
+def version_bulk_delete_api(request):
+    """
+    Bulk delete Versions across multiple indices.
+
+    Request:
+      POST {"versionTitle": "...", "indices": [...]}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        indices = data["indices"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    from sefaria.history import record_version_deletion
+
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            version = Version().load({
+                "title": index_title,
+                "versionTitle": version_title,
+            })
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            lang = version.language
+            version.delete()
+            record_version_deletion(index_title, version_title, lang, request.user.id)
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
     return jsonResponse(result)
 
 

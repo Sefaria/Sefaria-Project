@@ -175,6 +175,44 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
     return version
 
 
+def validate_version_title_change(new_title, current_title):
+    """
+    Validate a proposed versionTitle rename.
+    Returns (cleaned_title, error_message). error_message is None on success.
+    """
+    if not isinstance(new_title, str) or not new_title.strip():
+        return None, "newVersionTitle must be a non-empty string"
+    cleaned = new_title.strip()
+    if cleaned == current_title:
+        return None, "newVersionTitle must differ from current versionTitle"
+    return cleaned, None
+
+
+def check_version_title_conflicts(new_title, index_titles):
+    """
+    Check whether any of the given indices already have a version with new_title.
+    Returns a list of conflicting index titles (empty if none).
+    """
+    conflicts = []
+    for index_title in index_titles:
+        if model.Version().load({"title": index_title, "versionTitle": new_title}):
+            conflicts.append(index_title)
+    return conflicts
+
+
+def rename_version_title(user, version, new_title, **kwargs):
+    """
+    Rename a version's versionTitle, triggering cascading updates via track_pkeys.
+    Cascades to history, search, notifications, links, topics, and user profiles.
+    """
+    old_dict = version.contents()
+    version.versionTitle = new_title
+    version.save()
+    model.log_update(user, model.Version, old_dict, version.contents(),
+                     history_noun="version_title_change", **kwargs)
+    return version
+
+
 def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:

@@ -88,8 +88,8 @@ Deletes links from CSV.
 - Endpoint: `POST /modtools/links` with `action: "DELETE"`
 
 **7. Bulk Edit Version Metadata**
-Edit metadata across multiple Version records.
-- Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`
+Edit metadata, rename, or permanently delete multiple Version records.
+- Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`, `POST /api/version-bulk-delete`
 
 ---
 
@@ -101,6 +101,7 @@ Edit metadata across multiple Version records.
 |----------|--------|---------|------|
 | `/api/version-indices` | GET | Find indices with matching version | None |
 | `/api/version-bulk-edit` | POST | Bulk update version metadata | Staff |
+| `/api/version-bulk-delete` | POST | Bulk delete versions | Staff |
 | `/api/check-index-dependencies/{title}` | GET | Check index dependencies | Staff |
 
 ### Version Bulk Edit
@@ -125,6 +126,22 @@ Edit metadata across multiple Version records.
 ```
 
 **Field Clearing**: Send `null` for a field to remove it entirely from MongoDB.
+
+**Renaming**: Include `newVersionTitle` to rename the versionTitle across all selected indices. The rename cascades via `track_pkeys` to history, search, links, topics, notifications, and user profiles.
+
+### Version Bulk Delete
+
+Permanently deletes Version records. Cannot be undone.
+
+**Request**:
+```json
+{
+  "versionTitle": "Kehati",
+  "indices": ["Mishnah Berakhot", "Mishnah Peah"]
+}
+```
+
+**Response**: same `status`/`successes`/`failures` shape as bulk edit.
 
 ---
 
