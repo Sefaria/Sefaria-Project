@@ -17,7 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -62,7 +62,7 @@ def annotate_user_links(sources):
 
     return sources
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from reader.views import menu_page
 
 @ensure_csrf_cookie

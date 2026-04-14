@@ -10,12 +10,12 @@ import structlog
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
-from captcha.fields import ReCaptchaField
-from captcha.widgets import ReCaptchaV2Checkbox
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG

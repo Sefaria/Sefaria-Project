@@ -14,13 +14,13 @@ from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.conf import settings
 from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout

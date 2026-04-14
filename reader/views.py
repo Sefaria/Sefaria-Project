@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from elasticsearch_dsl import Search
 from random import choice
 import json
@@ -32,7 +32,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
@@ -381,7 +381,7 @@ def user_credentials(request):
         return {"user_type": "session", "user_id": request.user.id}
     else:
         req_key = request.POST.get("apikey", None)
-        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
+        header_key = request.headers.get("x-api-key", None) #request.META["HTTP_AUTHORIZATION"]?
         key = req_key if req_key else header_key
         if not key:
             return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
@@ -1470,7 +1470,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next")
 
-    if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
+    if not next or not url_has_allowed_host_and_scheme(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
         next = "/"
 
     # Look up the target domain based on current module + target language

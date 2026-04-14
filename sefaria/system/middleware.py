@@ -64,7 +64,7 @@ class LocationSettingsMiddleware(MiddlewareMixin):
         Determines if the user should see diaspora content or Israeli.
     """
     def process_request(self, request):
-        loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+        loc = request.headers.get("cf-ipcountry", None)
         if not loc:
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
@@ -96,7 +96,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
+            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
             interface = 'english' if interface not in ('english', 'hebrew') else interface
@@ -109,7 +109,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
+            if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
                 target_domain = get_redirect_domain_for_language(request, interface)
@@ -138,7 +138,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         # TRANSLATION LANGUAGE PREFERENCE
         translation_language_preference = (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
-        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", None))
+        langs_in_country = get_lang_codes_for_territory(request.headers.get("cf-ipcountry", None))
         translation_language_preference_suggestion = None
         trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested", False)
         if translation_language_preference is None and not trans_lang_pref_suggested:

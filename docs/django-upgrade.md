@@ -8,8 +8,8 @@ Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit 
 |-----|--------|--------|--------|
 | 0 (baseline) | 1.11.* | 3.7 / 3.9 | `master` |
 | pre-existing | 2.2.28 | 3.9 | branch `feature/sc-39065/upgrade-to-django-2-x-on-mdl` |
-| **Hop 1** | **3.2.25** | **3.9** | **this branch** |
-| Hop 2 (planned) | 4.2.* | 3.11 | pending |
+| Hop 1 | 3.2.25 | 3.9 | done |
+| **Hop 2** | **4.2.20** | **3.11.9** | **this branch** |
 | Hop 3 (planned) | 5.2.* | 3.12 | pending |
 
 ## Approach
@@ -53,15 +53,53 @@ Unchanged: `django-admin-sortable==2.3`, `django-hosts==7.0.0`, `django-ipware==
 - **psycopg2 build**: on macOS (Apple Silicon), `pip install psycopg2` required `LDFLAGS=-L/opt/homebrew/opt/openssl@3/lib CPPFLAGS=-I/opt/homebrew/opt/openssl@3/include`. Consider switching to `psycopg2-binary` in a follow-up.
 - **`local_settings_ci.py` incomplete**: missing `CELERY_ENABLED` and `MONGO_REPLICASET_NAME`. `local_settings_example.py` is the working template — copy it to `sefaria/local_settings.py` for local dev.
 
-## Hop 2 — Django 3.2 → 4.2 (planned)
+## Hop 2 — Django 3.2 → 4.2 (Python 3.9 → 3.11)
 
-Key items:
-- Python bump to 3.11 (`.python-version`, `Dockerfile`)
-- `django==4.2.*`, DRF 3.15, `django-redis==5.4`, `django-anymail==10`, `django-webpack-loader==3`, simplejwt 5.3
-- Codemods: `ugettext*` → `gettext*` (9 call sites starting at `sefaria/settings.py:4`), `force_text` → `force_str`, `is_safe_url` → `url_has_allowed_host_and_scheme`, `render_to_response` → `render` (2 sites in `sefaria/system/decorators.py`)
-- Settings: set `USE_L10N = False` explicitly (default flipped in 4.0), audit `CSRF_TRUSTED_ORIGINS` (scheme required)
-- Templates: `{% load staticfiles %}` → `{% load static %}`
-- **`django_mobile` replacement** — unmaintained since 2015, no Django 4 support. Highest-risk item. Plan: reimplement mobile-flag detection on top of `django-user-agents` (already installed).
+### Pin bumps
+
+| Package | Hop 1 | Hop 2 | Reason |
+|---------|-------|-------|--------|
+| `django` | 3.2.25 | **4.2.20** | Target LTS |
+| `djangorestframework` | 3.14.0 | **3.15.2** | Django 4.2 compat |
+| `django-redis` | 5.2.0 | **5.4.0** | Django 4.2 compat |
+| `django-anymail` | 9.2 | **10.3** | Django 4.2 compat |
+| `django-debug-toolbar` | 3.8.1 | **4.4.6** | Django 4.2 compat |
+| `django-webpack-loader` | 1.8.1 | **3.1.1** | Django 4.2 compat |
+| `djangorestframework-simplejwt` | 5.2.2 | **5.3.1** | Django 4.2 compat |
+| `django-recaptcha` | 2.0.6 | **4.0.0** | Django 2.x cap; app renamed `captcha` → `django_recaptcha` |
+| `django-mobile` | 0.7.0 | **removed** | Unmaintained since 2015; only reference was a commented-out template loader in `settings.py` |
+| `cython` | 0.29.14 | **3.0.11** | Python 3.10+ broke `collections.Iterable` usage in old Cython |
+| `lxml` | 4.6.1 | **5.3.0** | Python 3.11 moved `longintrepr.h` |
+| `bleach` | 1.4.2 | **6.1.0** | Python 3.10+ compat; pulls in modern `html5lib` |
+| `html5lib` | 0.9999999 | **1.1** | Python 3.10+ compat (`collections.Mapping`) |
+| `psycopg2-binary` | 2.8.6 | **2.9.9** | Python 3.11 + macOS build fix |
+| `deepdiff` | 3.3.0 | **7.0.1** | Python 3.10+ compat (`collections.Mapping`) |
+
+### Code changes
+
+- **Codemods** via `django-upgrade --target-version 4.2`: rewrote 23 files. Key changes:
+  - `ugettext*` → `gettext*` (all translation call sites)
+  - `from django.conf.urls import url` → `from django.urls import re_path, include` (URLconfs)
+  - `is_safe_url` → `url_has_allowed_host_and_scheme` in `reader/views.py`, `sefaria/views.py`
+  - Dropped redundant `USE_L10N = True` (now default)
+- **`sefaria/model/abstract.py`** — `collections.Mapping` / `collections.Hashable` / `collections.Iterable` → `collections.abc.*` (Python 3.10 removal).
+- **`sefaria/model/abstract.py`** — `bleach.ALLOWED_TAGS` changed from list to frozenset in bleach 6.x; wrap in `list()` before concat.
+- **`sefaria/settings.py`** — `INSTALLED_APPS`: `'captcha'` → `'django_recaptcha'` (app rename in django-recaptcha 4.x). Removed commented-out `'django_mobile.loader.Loader'` template loader entry.
+- **`sefaria/forms.py`** — `from captcha.* ` → `from django_recaptcha.*` (package rename).
+
+### Test results
+
+- `python manage.py check` — clean (pre-existing recaptcha dev-key warning only).
+- `pytest` (full suite excl. `sefaria/helper/tests`, one deselected strapi test) — **517 passed, 27 failed, 8 skipped, 9 xfailed, 9 errors**, ~12min runtime.
+- New failures vs Hop 1 are mostly in `model/tests/webpage_test.py` (TypeError on `deepdiff` API changes in test-side comparison helpers — test-code incompatibility with deepdiff 7, not Django).
+- Mongo-seed-dependent failures from Hop 1 persist (same surface: `test_rename_category`, `test_index_title_change`, `Test_Category_Editor`).
+
+### Gotchas
+
+- `django-recaptcha` 4.0 **renamed its Django app**: `captcha` → `django_recaptcha`. Both `INSTALLED_APPS` and import paths change.
+- `bleach.ALLOWED_TAGS` is a `frozenset` in bleach ≥ 6 — `list + list` patterns need explicit `list()` cast.
+- `psycopg2` (non-binary) built from source against system openssl can fail with `SystemError: initialization of _psycopg raised unreported exception` at runtime on macOS. The project pins `psycopg2-binary` — make sure `psycopg2` itself isn't installed concurrently.
+- `django-upgrade` 1.30 codemod handled almost all deprecation edits automatically. Very high value tool for multi-hop upgrades.
 
 ## Hop 3 — Django 4.2 → 5.2 (planned)
 
