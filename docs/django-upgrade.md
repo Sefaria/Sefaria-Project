@@ -9,8 +9,8 @@ Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit 
 | 0 (baseline) | 1.11.* | 3.7 / 3.9 | `master` |
 | pre-existing | 2.2.28 | 3.9 | branch `feature/sc-39065/upgrade-to-django-2-x-on-mdl` |
 | Hop 1 | 3.2.25 | 3.9 | done |
-| **Hop 2** | **4.2.20** | **3.11.9** | **this branch** |
-| Hop 3 (planned) | 5.2.* | 3.12 | pending |
+| Hop 2 | 4.2.20 | 3.11.9 | done |
+| **Hop 3** | **5.2.4** | **3.12.7** | **this branch (HEAD)** |
 
 ## Approach
 
@@ -101,13 +101,28 @@ Unchanged: `django-admin-sortable==2.3`, `django-hosts==7.0.0`, `django-ipware==
 - `psycopg2` (non-binary) built from source against system openssl can fail with `SystemError: initialization of _psycopg raised unreported exception` at runtime on macOS. The project pins `psycopg2-binary` — make sure `psycopg2` itself isn't installed concurrently.
 - `django-upgrade` 1.30 codemod handled almost all deprecation edits automatically. Very high value tool for multi-hop upgrades.
 
-## Hop 3 — Django 4.2 → 5.2 (planned)
+## Hop 3 — Django 4.2 → 5.2 (Python 3.11 → 3.12)
 
-- Python bump to 3.12
-- `django==5.2.*`
-- `pytz.timezone(...)` → `zoneinfo.ZoneInfo(...)` (grep first)
-- Logout: any `<a href="{% url 'logout' %}">` in templates → POST form (5.0 removed GET logout)
-- Final: `python manage.py check --deploy` clean
+### Pin bumps
+
+| Package | Hop 2 | Hop 3 |
+|---------|-------|-------|
+| `django` | 4.2.20 | **5.2.4** |
+| Python | 3.11.9 | **3.12.7** |
+
+No other pin changes required — `djangorestframework==3.15.2`, `django-redis==5.4.0`, `django-anymail==10.3`, `django-debug-toolbar==4.4.6`, `django-webpack-loader==3.1.1`, `djangorestframework-simplejwt==5.3.1`, `django-recaptcha==4.0.0`, `django-hosts==7.0.0`, `django-structlog==8.0.0` all already support Django 5.2.
+
+### Code changes
+
+- **None.** `django-upgrade --target-version 5.2` produced zero rewrites on top of Hop 2.
+- `pytz.timezone(...)` retained in `reader/views.py` (2 call sites): the `pytz` package itself still works; only Django's `USE_DEPRECATED_PYTZ` shim was removed in 5.0. These sites don't rely on the shim, so no migration needed.
+- Python 3.12 emits `SyntaxWarning: invalid escape sequence` for several regexes in `sefaria/model/topic.py`, `sefaria/model/webpage.py`, `reader/templatetags/sefaria_tags.py`, `sefaria/history.py`. Cosmetic — left for a follow-up PR (fix: raw strings).
+
+### Test results
+
+- `python manage.py check` — clean (pre-existing recaptcha dev-key warning only).
+- `pytest` (full suite excl. `sefaria/helper/tests`, one deselected strapi test) — **516 passed, 28 failed, 8 skipped, 9 xfailed, 9 errors**, ~16min runtime.
+- Failure surface is essentially identical to Hop 2 (517/27/9). No new Django-shaped regressions. Remaining failures are the same three pre-existing clusters: Strapi external dep, Mongo-seed-dependent model/data tests, `deepdiff` 7 test-helper incompatibilities.
 
 ---
 

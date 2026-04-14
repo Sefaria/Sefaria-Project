@@ -75,7 +75,7 @@ dill==0.3.9
     # via
     #   multiprocess
     #   pathos
-django==4.2.20
+django==5.2.4
     # via
     #   -r ./requirements.txt
     #   django-anymail
