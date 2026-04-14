@@ -75,7 +75,7 @@ dill==0.3.9
     # via
     #   multiprocess
     #   pathos
-django==2.2.28
+django==3.2.25
     # via
     #   -r ./requirements.txt
     #   django-anymail
@@ -87,9 +87,9 @@ django==2.2.28
     #   djangorestframework
     #   djangorestframework-simplejwt
 django-admin-sortable==2.3
-django-anymail==8.6
+django-anymail==9.2
     # via -r ./requirements.txt
-django-debug-toolbar==2.2
+django-debug-toolbar==3.8.1
     # via -r ./requirements.txt
 django-hosts==7.0.0
 django-ipware==7.0.1
@@ -98,15 +98,15 @@ django-mobile==0.7.0
     # via -r ./requirements.txt
 django-recaptcha==2.0.6
     # via -r ./requirements.txt
-django-redis==4.11.0
+django-redis==5.2.0
     # via -r ./requirements.txt
-django-structlog==1.6.2
+django-structlog==5.1.0
     # via -r ./requirements.txt
 django-user-agents==0.4.0
     # via -r ./requirements.txt
-django-webpack-loader==1.4.1
+django-webpack-loader==1.8.1
     # via -r ./requirements.txt
-djangorestframework==3.13.1
+djangorestframework==3.14.0
     # via
     #   -r ./requirements.txt
     #   djangorestframework-simplejwt
