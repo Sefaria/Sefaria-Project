@@ -12,13 +12,13 @@ ENV DJANGO_PORT=80
 ENV NODEJS_PORT=3000
 ENV DEBUG=false
 
-RUN apt-get update -y && apt-get install -y npm varnish && apt-get clean
+RUN apt-get update -y && apt-get install -y git npm varnish && apt-get clean
 RUN mkdir -p /app/log /app/sefaria /log
 
 WORKDIR /app/
 # Copied separately to allow for caching of the `pip install` build step
 COPY requirements.txt /app/requirements.txt
-RUN pip3 install --no-cache-dir -r /app/requirements.txt
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 COPY package*.json /app/
 RUN npm install --unsafe-perm
