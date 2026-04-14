@@ -18,7 +18,6 @@ from sefaria.system.database import db
 class TestUserExperimentSettingsSync(TestCase):
     # pytest-django in this environment expects unittest classes to define this.
     databases = "__all__"
-    databases = "__all__"
 
     def setUp(self):
         token = uuid.uuid4().hex
@@ -72,7 +71,6 @@ class TestUserExperimentSettingsSync(TestCase):
 
 class UserExperimentSettingsSyncTests(TestUserExperimentSettingsSync):
     databases = "__all__"
-    databases = "__all__"
 
 
 def _make_csv_bytes(emails):
@@ -97,7 +95,6 @@ def _build_post_request(admin_user, csv_bytes):
 
 @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
 class TestUploadCsvView(TestCase):
-    databases = "__all__"
     databases = "__all__"
 
     def setUp(self):
