@@ -269,13 +269,31 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         cookies by browsers. When transitioning to domain-scoped cookies, we need to
         expire the old domain-less cookies.
 
-        Uses a workaround for Django's limitation of not supporting multiple cookies
-        with the same name (see https://code.djangoproject.com/ticket/10554):
-        adds an extra header via _headers with a unique internal key.
+        Because Django's SimpleCookie only holds one morsel per cookie name, we cannot
+        use response.cookies to send both the domain-scoped cookie and the domain-less
+        expiry simultaneously. Instead we accumulate raw Set-Cookie strings and patch
+        response.items() (the WSGI header interface) to yield them alongside the normal
+        headers and cookies. This preserves the domain-scoped cookie in response.cookies
+        while still sending the additional expiry header.
+
+        Compatible with Django 2.x through 6.x (does not rely on the removed _headers dict).
         """
-        expire_value = f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/'
-        header_key = f'set-cookie-legacy-{cookie_name}'
-        response._headers[header_key] = ('Set-Cookie', expire_value)
+        expire_value = (
+            f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; '
+            f'Max-Age=0; Path=/'
+        )
+        if not hasattr(response, '_legacy_cookie_headers'):
+            response._legacy_cookie_headers = []
+            _original_items = response.items
+
+            def _items_with_legacy():
+                yield from _original_items()
+                for v in response._legacy_cookie_headers:
+                    yield ('Set-Cookie', v)
+
+            response.items = _items_with_legacy
+
+        response._legacy_cookie_headers.append(expire_value)
 
     def process_response(self, request, response):
         """

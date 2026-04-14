@@ -429,9 +429,12 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Legacy cookie headers should be added
-        assert 'set-cookie-legacy-sessionid' in result._headers
-        assert 'set-cookie-legacy-csrftoken' in result._headers
+        # Legacy expiry headers should be present in items() (the WSGI header interface)
+        set_cookie_headers = [v for k, v in result.items() if k == 'Set-Cookie']
+        assert any('sessionid=' in h and 'Max-Age=0' in h and 'Domain=' not in h
+                   for h in set_cookie_headers)
+        assert any('csrftoken=' in h and 'Max-Age=0' in h and 'Domain=' not in h
+                   for h in set_cookie_headers)
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -450,20 +453,24 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Check the Set-Cookie header format for CSRF token
-        header_name, header_value = result._headers['set-cookie-legacy-csrftoken']
-        assert header_name == 'Set-Cookie'
-        assert 'csrftoken=' in header_value
-        assert 'expires=Thu, 01 Jan 1970 00:00:00 GMT' in header_value
-        assert 'Max-Age=0' in header_value
-        assert 'Path=/' in header_value
-        # Crucially, no Domain attribute
-        assert 'Domain=' not in header_value
+        # Domain-scoped cookies must still be in response.cookies with domain set
+        assert result.cookies['csrftoken']['domain'] == '.localsefaria.xyz'
+        assert result.cookies['sessionid']['domain'] == '.localsefaria.xyz'
 
-        # Check session cookie header
-        header_name, header_value = result._headers['set-cookie-legacy-sessionid']
-        assert header_name == 'Set-Cookie'
-        assert 'sessionid=' in header_value
+        # Legacy expiry headers must be in items() with no Domain and Max-Age=0
+        set_cookie_headers = [v for k, v in result.items() if k == 'Set-Cookie']
+        csrf_legacy = [h for h in set_cookie_headers
+                       if 'csrftoken=' in h and 'Max-Age=0' in h]
+        session_legacy = [h for h in set_cookie_headers
+                          if 'sessionid=' in h and 'Max-Age=0' in h]
+
+        assert len(csrf_legacy) == 1
+        assert 'Domain=' not in csrf_legacy[0]
+        assert 'Path=/' in csrf_legacy[0]
+        assert 'expires=Thu, 01 Jan 1970 00:00:00 GMT' in csrf_legacy[0]
+
+        assert len(session_legacy) == 1
+        assert 'Domain=' not in session_legacy[0]
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -482,9 +489,10 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # No legacy cookie headers should be added for unapproved domains
-        assert 'set-cookie-legacy-sessionid' not in result._headers
-        assert 'set-cookie-legacy-csrftoken' not in result._headers
+        # No legacy expiry headers should be present for unapproved domains
+        assert not hasattr(result, '_legacy_cookie_headers')
+        set_cookie_headers = [v for k, v in result.items() if k == 'Set-Cookie']
+        assert not any('Max-Age=0' in h for h in set_cookie_headers)
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -506,6 +514,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Only CSRF legacy header should be added
-        assert 'set-cookie-legacy-csrftoken' in result._headers
-        assert 'set-cookie-legacy-sessionid' not in result._headers
+        # Only CSRF legacy expiry should be present
+        set_cookie_headers = [v for k, v in result.items() if k == 'Set-Cookie']
+        assert any('csrftoken=' in h and 'Max-Age=0' in h and 'Domain=' not in h
+                   for h in set_cookie_headers)
+        assert not any('sessionid=' in h and 'Max-Age=0' in h
+                       for h in set_cookie_headers)
