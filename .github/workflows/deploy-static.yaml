@@ -265,3 +265,80 @@ jobs:
       environment: ${{ needs.detect.outputs.env }}
     secrets:
       INFRA_WORKFLOW_TOKEN: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
+
+  #######
+  # Manual promotion jobs — appear after deploy on push to master.
+  # Developers click "Review deployments" in the Actions UI to trigger.
+  # Requires GitHub environments "promote-preprod" and "promote-prod"
+  # configured with required reviewers in repo Settings → Environments.
+  #######
+  promote-to-preprod:
+    name: "Promote: master → preprod"
+    needs: [detect, trigger-deploy]
+    if: >
+      always() && !failure() && !cancelled() &&
+      needs.detect.outputs.env == 'staging'
+    runs-on: ubuntu-latest
+    environment: promote-preprod
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate changelog and create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build/ci/generate-promotion-pr.sh master preprod
+
+  promote-to-prod:
+    name: "Promote: preprod → prod"
+    needs: [detect, trigger-deploy]
+    if: >
+      always() && !failure() && !cancelled() &&
+      needs.detect.outputs.env == 'staging'
+    runs-on: ubuntu-latest
+    environment: promote-prod
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate changelog and create PR
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./build/ci/generate-promotion-pr.sh preprod prod
+
+      - name: Post to Slack
+        if: ${{ steps.create_pr.outputs.pr_url != 'already exists' && steps.create_pr.outputs.pr_url != 'no-changes' }}
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": { "type": "plain_text", "text": "Production Promotion PR Created" }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": "*Commits:* ${{ steps.create_pr.outputs.total }}" },
+                    { "type": "mrkdwn", "text": "*Features:* ${{ steps.create_pr.outputs.feat_count }}" },
+                    { "type": "mrkdwn", "text": "*Fixes:* ${{ steps.create_pr.outputs.fix_count }}" },
+                    { "type": "mrkdwn", "text": "*PR:* <${{ steps.create_pr.outputs.pr_url }}|View PR>" }
+                  ]
+                },
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": "_Triggered by ${{ github.actor }}_" }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
