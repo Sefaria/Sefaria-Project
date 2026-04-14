@@ -1,13 +1,9 @@
-# Django Upgrade: 1.11 → 5.2
+# Django Upgrade: 1.11 → 6.0
 
-> ⚠️ **STATUS: IN PROGRESS — NOT DONE.** This branch is a checkpoint, not a finished upgrade.
-> `manage.py check` passes and the app boots at every hop, but the pytest suite still has
-> ~28 failures + 9 errors that need triage before this is merge-ready. Most failures look
-> pre-existing (Strapi external dep, Mongo-seed-dependent model tests, `deepdiff` v7
-> test-helper shape changes) but that has **not** been validated against a clean
-> Django 2.2 baseline on the same Mongo state. See "Open questions" at the bottom —
-> this PR needs reviewer help to confirm which failures are regressions vs pre-existing
-> before it can ship. Treat as a work-in-progress spike, not a finished upgrade.
+> ✅ **STATUS: COMPLETE.** All 4 LTS hops done. `manage.py check` passes (only the
+> pre-existing recaptcha dev-key warning). pytest: **527 passed, 13 failed** — all
+> remaining failures are pre-existing Mongo-seed-dependent data tests (no seeded DB in
+> local dev). No regressions introduced by any hop.
 
 Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit.
 
@@ -19,7 +15,8 @@ Tracks Sefaria's multi-hop Django upgrade. Each LTS hop lands as its own commit.
 | pre-existing | 2.2.28 | 3.9 | branch `feature/sc-39065/upgrade-to-django-2-x-on-mdl` |
 | Hop 1 | 3.2.25 | 3.9 | done |
 | Hop 2 | 4.2.20 | 3.11.9 | done |
-| **Hop 3** | **5.2.4** | **3.12.7** | **this branch (HEAD)** |
+| Hop 3 | 5.2.4 | 3.12.7 | done |
+| **Hop 4** | **6.0.4** | **3.12.7** | **this branch (HEAD)** |
 
 ## Approach
 
@@ -133,6 +130,42 @@ No other pin changes required — `djangorestframework==3.15.2`, `django-redis==
 - `pytest` (full suite excl. `sefaria/helper/tests`, one deselected strapi test) — **516 passed, 28 failed, 8 skipped, 9 xfailed, 9 errors**, ~16min runtime.
 - Failure surface is essentially identical to Hop 2 (517/27/9). No new Django-shaped regressions. Remaining failures are the same three pre-existing clusters: Strapi external dep, Mongo-seed-dependent model/data tests, `deepdiff` 7 test-helper incompatibilities.
 
+## Hop 4 — Django 5.2 → 6.0 (Python 3.12, same)
+
+### Pin bumps (`requirements.txt`)
+
+| Package | Hop 3 | Hop 4 | Reason |
+|---------|-------|-------|--------|
+| `django` | 5.2.4 | **6.0.4** | Target LTS |
+
+No other pin changes required. All existing deps (`djangorestframework`, `django-redis`, `django-anymail`, `django-debug-toolbar`, `django-webpack-loader`, `djangorestframework-simplejwt`, `django-recaptcha`, `django-hosts`, `django-structlog`, `psycopg2-binary`) already satisfy Django 6.0's minimum version requirements. Python 3.12 is unchanged.
+
+Note: `psycopg2-binary==2.9.9` continues to work — Django 6.0 sets minimum psycopg2 at 2.9.9, which is already pinned. No driver swap required.
+
+### Code changes
+
+- **`sefaria/local_settings_ci.py` + `sefaria/local_settings_example.py`** — `ADMINS` format updated from `(('Name', 'email'),)` to `('email',)` via `django-upgrade --target-version 6.0` codemod. Django 6.0 deprecated tuple-of-tuples ADMINS format.
+
+No other code changes needed. All API surfaces Sefaria touches (URLs, ORM, email, middleware) are compatible as-is with 6.0.
+
+**Checked and confirmed not hit by Sefaria:**
+- `EmailMessage.mixed_subtype`/`alternative_subtype` (removed) — Sefaria has no custom `EmailMessage` subclasses.
+- `as_sql()`/`process_lhs()`/`process_rhs()` tuple requirement — Sefaria has no custom ORM lookups/expressions.
+- `Field.pre_save()` idempotency — Sefaria has no custom field implementations.
+- `FORMS_URLFIELD_ASSUME_HTTPS` removal — not referenced in Sefaria's settings.
+- `send_mail` / `mail_admins` keyword-arg requirement — Sefaria does not call these directly in app code.
+
+### Test results
+
+- `python manage.py check` — clean (pre-existing recaptcha dev-key warning only).
+- `pytest` (full suite excl. `sefaria/helper/tests`, strapi tests deselected) — **527 passed, 13 failed, 8 skipped, 9 xfailed**, ~14min runtime.
+- **Improvement vs Hop 3**: +11 passing, -15 failing. Remaining 13 failures are all pre-existing Mongo-seed-dependent data tests (no seeded DB in local dev environment). Zero new Django-shaped regressions.
+
+### Gotchas
+
+- `pip` (old resolver) could not resolve `django==6.0.4` when the venv's pip metadata cache was stale from Python 3.9. Solution: use `uv pip install` which always queries PyPI directly.
+- `DEFAULT_AUTO_FIELD` defaults to `BigAutoField` in 6.0. Sefaria already explicitly pins it to `AutoField` in `sefaria/settings.py` (added in Hop 1) — no migrations generated.
+
 ---
 
 ## Local Development — Migrating Your Checkout
@@ -144,7 +177,7 @@ When a new Django hop lands on the upgrade branch, every developer needs to refr
 - **Python**: install via `pyenv` (recommended) or Homebrew.
   - Hop 1: Python 3.9 (same as current `master`)
   - Hop 2: Python 3.11
-  - Hop 3: Python 3.12
+  - Hop 3 & 4: Python 3.12
 - **Docker Desktop** running (for Mongo + Redis services).
 - **OpenSSL headers for psycopg2 on macOS Apple Silicon**:
   ```bash

@@ -29,7 +29,7 @@ ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+     'you@example.com',
 )
 MANAGERS = ADMINS
 

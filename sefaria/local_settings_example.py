@@ -56,7 +56,7 @@ ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost
 
 
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+     'you@example.com',
 )
 ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
 
