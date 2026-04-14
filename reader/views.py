@@ -5140,7 +5140,7 @@ def application_health_api(request):
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
         try:
-            statusCode = urllib.request.urlopen(url).status
+            statusCode = urllib.request.urlopen(url, timeout=5).status
             return statusCode == 200
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
