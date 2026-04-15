@@ -143,6 +143,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Library Assistant (chatbot) tests — run on Library module with LA-whitelisted user
+    {
+      name: 'chrome-assistant',
+      testDir: './e2e-tests/assistant',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {

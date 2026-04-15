@@ -29,6 +29,12 @@ export const testAdminUser = {
     password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD ?? '',
 };
 
+export const testLAUser = {
+    // Whitelisted for the Library Assistant on www.sefaria.org.
+    email: process.env.PLAYWRIGHT_LA_USER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_LA_USER_PASSWORD ?? '',
+};
+
 export const AUTH_PATHS = {
     enAdminFile: `auth_english_admin.json`,
     heAdminFile: `auth_hebrew_admin.json`,
@@ -36,6 +42,7 @@ export const AUTH_PATHS = {
     heUserFile: `auth_hebrew_user.json`,
     heNoUserFile: `auth_hebrew_no_user.json`,
     enNoUserFile: `auth_english_no_user.json`,
+    enLAUserFile: `auth_english_la_user.json`,
 }
 
 export const BROWSER_SETTINGS = {
@@ -68,6 +75,11 @@ export const BROWSER_SETTINGS = {
         file: AUTH_PATHS.heNoUserFile,
         lang: LANGUAGES.HE,
         user: null,
+    },
+    enLAUser: {
+        file: AUTH_PATHS.enLAUserFile,
+        lang: LANGUAGES.EN,
+        user: testLAUser,
     },
 };
 

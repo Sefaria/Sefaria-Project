@@ -17,6 +17,7 @@ import { ModuleSidebarPage } from "./moduleSidebarPage"
 import { ProfilePage } from "./profilePage"
 import { EditProfilePage } from "./editProfilePage"
 import { AccountSettingsPage } from "./accountSettingsPage"
+import { LibraryAssistantPage } from "./libraryAssistantPage"
 
 
 export class PageManager {
@@ -37,6 +38,7 @@ export class PageManager {
     private readonly profilePage: ProfilePage
     private readonly editProfilePage: EditProfilePage
     private readonly accountSettingsPage: AccountSettingsPage
+    private readonly libraryAssistantPage: LibraryAssistantPage
 
 
 
@@ -58,6 +60,7 @@ export class PageManager {
         this.profilePage = new ProfilePage(page, language)
         this.editProfilePage = new EditProfilePage(page, language)
         this.accountSettingsPage = new AccountSettingsPage(page, language)
+        this.libraryAssistantPage = new LibraryAssistantPage(page, language)
 
     }
 
@@ -124,6 +127,10 @@ export class PageManager {
 
     onAccountSettingsPage() {
         return this.accountSettingsPage
+    }
+
+    onLibraryAssistant() {
+        return this.libraryAssistantPage
     }
 
 
