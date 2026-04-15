@@ -45,10 +45,6 @@ export class LibraryAssistantPage extends HelperBase {
     return this.page.getByRole('button', { name: 'Undock assistant' });
   }
 
-  private get menuBtn() {
-    return this.page.getByRole('button', { name: 'More options' });
-  }
-
   private get textarea() {
     return this.page.getByLabel('Prompt input');
   }
@@ -70,6 +66,16 @@ export class LibraryAssistantPage extends HelperBase {
   async waitForReady(): Promise<void> {
     await hideAllModalsAndPopups(this.page);
     await expect(this.host).toHaveCount(1, { timeout: t(15000) });
+  }
+
+  /**
+   * Assert the `<lc-chatbot>` element does not mount on the current page.
+   * Waits a short grace period so async injection doesn't produce a false pass,
+   * then asserts the element stays absent.
+   */
+  async expectNotPresent(graceMs = 5000): Promise<void> {
+    await this.page.waitForTimeout(t(graceMs));
+    await expect(this.host).toHaveCount(0);
   }
 
   async isPanelOpen(): Promise<boolean> {

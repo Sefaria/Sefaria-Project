@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -97,3 +97,39 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 });
+
+/**
+ * Negative-coverage: the LA must NOT appear outside its intended surface.
+ * These tests use separate entry helpers (voices URL, logged-out context) so
+ * they don't share `beforeEach` with the main suite.
+ */
+test.describe('Library Assistant — visibility boundaries', () => {
+  test('LA-NEG-001: Does not appear on voices.sefaria.org home (even when logged in as LA user)', async ({ context }) => {
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().expectNotPresent();
+  });
+
+  test('LA-NEG-002: Does not appear on a voices sheet page', async ({ context }) => {
+    const page = await goToPageWithUser(context, `${MODULE_URLS.EN.VOICES}/sheets/393695`, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().expectNotPresent();
+  });
+
+  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+    const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().expectNotPresent();
+  });
+
+  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+    const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().expectNotPresent();
+  });
+});
+
