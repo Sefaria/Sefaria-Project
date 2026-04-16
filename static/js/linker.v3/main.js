@@ -22,7 +22,7 @@ import pRetry, {AbortError} from 'p-retry';
         if (!ns.whitelistSelectors || ns.whitelistSelectors.length === 0) { return ""; }
         const whitelistElems = document.querySelectorAll(ns.whitelistSelectors.join(", "));
         return [].reduce.call(whitelistElems, (prev, curr) => {
-            const currCleaned = sanitizeElem(removeUnwantedElems(curr));
+            const currCleaned = sanitizeElem(removeUnwantedElems(curr.cloneNode(true)));
             if (currText.indexOf(currCleaned) > -1) { return prev; }  // assumption is this text was already included by Readability so no need to include again
             return prev + currCleaned;
         }, "");

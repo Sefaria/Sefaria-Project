@@ -1540,7 +1540,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "hasPassageChildren", "diburHamatchilRegexes", 'index_offsets_by_depth']
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'index_offsets_by_depth']
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
@@ -2337,6 +2337,17 @@ class AddressTalmud(AddressType):
             return re.search(cls.amud_patterns["he"], part) is None
         else:
             return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+        
+    @classmethod
+    def sections_lack_amud(cls, section:int, toSection:int) -> bool:
+        """
+        Given section and toSection integers, return whether together they represent a range that lacks amud.
+        For example, section=3 (daf 2b) and toSection=4 (daf 2b) represent a daf 2 which lacks amud.
+        :param section: 
+        :param toSection: 
+        :return: 
+        """
+        return section % 2 == 1 and toSection % 2 == 0 and toSection == section + 1
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
@@ -2769,7 +2780,7 @@ class AddressHalakhah(AddressInteger):
 
 class AddressSeif(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+)			# Seif spelled out, with a space after
             |(?:\u05e1(?:\u05e2\u05d9)?(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3]|\s+)?)?)	# or trie of first three letters followed by a quote of some sort
@@ -2779,7 +2790,7 @@ class AddressSeif(AddressInteger):
 
 class AddressSeifKatan(AddressInteger):
     section_patterns = {
-        "en": r"""(?:(?:[Ss][ae]if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "en": r"""(?:(?:[Ss][ae]['\u2018\u2019\u05f3]?if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+\u05e7\u05d8\u05df\s+)			# Seif katan spelled out with or without nikud
             |(?:\u05e1(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3])?)?\u05e7)(?:['\u2018\u2019\u05f3"\u05f4]['\u2018\u2019\u05f3]?|\s+)?	# or trie of first three letters followed by a quote of some sort

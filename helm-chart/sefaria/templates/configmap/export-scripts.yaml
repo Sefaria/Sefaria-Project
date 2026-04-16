@@ -1,0 +1,56 @@
+{{- if .Values.export.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: export-scripts-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-to-gcs.sh: |-
+    #!/usr/bin/env bash
+    set -uo pipefail
+    set -x
+
+    FAILED=0
+    TOTAL=0
+    > /tmp/failed-sources.log
+
+    shopt -s nullglob
+    for dir in /export/*/; do
+      dir_name=$(basename "$dir")
+      TOTAL=$((TOTAL + 1))
+      start=$(date +%s)
+      echo "--- Syncing ${dir_name} ---"
+      gcloud storage rsync -r --delete-unmatched-destination-objects \
+        "$dir" "gs://${BUCKET}/${dir_name}/" 2>&1 | tee "/tmp/upload-${dir_name}.log"
+      if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+        FAILED=$((FAILED + 1))
+        echo "[${dir_name}]" >> /tmp/failed-sources.log
+        grep -Ei 'error|FileNotFoundError|not found|crashed' "/tmp/upload-${dir_name}.log" \
+          >> /tmp/failed-sources.log || true
+      fi
+      echo "--- Done ${dir_name} ($(($(date +%s) - start))s) ---"
+    done
+
+    # Upload top-level files (table_of_contents.json, last_export.txt, etc.)
+    find /export -maxdepth 1 -type f | while read -r f; do
+      if ! gcloud storage cp "$f" "gs://${BUCKET}/$(basename "$f")"; then
+        FAILED=$((FAILED + 1))
+        echo "Failed to upload $f" >> /tmp/failed-sources.log
+      fi
+    done
+
+    if [ -s /tmp/failed-sources.log ]; then
+      echo ""
+      echo "===== FAILED SOURCES ====="
+      cat /tmp/failed-sources.log
+      echo "=========================="
+    fi
+
+    if [ "$FAILED" -gt 0 ]; then
+      echo "Upload completed: ${TOTAL} directories processed, ${FAILED} failure(s)"
+    else
+      echo "Upload complete: ${TOTAL} directories processed successfully"
+    fi
+{{- end }}

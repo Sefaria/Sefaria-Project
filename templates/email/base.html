@@ -17,7 +17,7 @@
 		{% blocktrans %}
             You're receiving this message because you have an account on
         {% endblocktrans %}
-            <a href="http://www.sefaria.org">www.sefaria.org</a>.
+            <a href="{{ domain_modules.library }}">{{ domain_modules.library }}</a>.
             <br>
         {% blocktrans with settings_url="/settings/account"|absolute_url %}
             To change your email settings, click <a href="{{ settings_url }}">here</a>

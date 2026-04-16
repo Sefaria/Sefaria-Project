@@ -2,6 +2,10 @@ name: Helm
 
 on:
   push:
+    branches-ignore:
+      - master
+      - prod
+      - preprod
     paths:
       - "helm-chart/**"
       - ".github/workflows/helm.yaml"

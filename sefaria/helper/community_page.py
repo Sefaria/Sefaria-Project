@@ -328,7 +328,7 @@ def sheets_with_content_by_category(cat, print_results=True):
         title = strip_tags(sheet["title"], remove_new_lines=True).strip()
         results.append([sheet["id"], title, ref])
         if print_results:
-          print("www.sefaria.org/sheets/{}\t{}\t{}".format(sheet["id"], title, ref))
+          print("sheets.sefaria.org/sheets/{}\t{}\t{}".format(sheet["id"], title, ref))
 
   print("\n\n{} Sheet with {}".format(len(sids), cat))
 
@@ -375,6 +375,6 @@ def sheets_by_parashah(print_results=True):
 
   if print_results:
     for result in results:
-      print("{}\t{}\twww.sefaria.org/sheets/{}\t{}\t{}".format(*result))
+      print("{}\t{}\tsheets.sefaria.org/sheets/{}\t{}\t{}".format(*result))
   else:
     return sheets

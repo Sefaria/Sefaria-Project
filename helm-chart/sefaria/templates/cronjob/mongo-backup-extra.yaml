@@ -1,0 +1,100 @@
+{{- if eq .Values.backup.mongo.extraBackupEnabled true }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-mongobackup-extra
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  concurrencyPolicy: Replace
+  schedule: "0 2 * * 0"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
+          affinity:
+            podAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - mongo
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: schedule-on-database-vm
+              operator: "Equal"
+              value: "true"
+              effect: "NoSchedule"
+            - key: mongo-replicaset
+              operator: "Equal"
+              value: "reserved"
+              effect: "NoSchedule"
+          initContainers:
+          - name: mongo-extra-dumper
+            image: mongo:{{ .Values.backup.mongo.version }}
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: create-extra-backup-dumps-script
+              mountPath: /scripts/create-extra-backup-dumps.sh
+              subPath: create-extra-backup-dumps.sh
+              readOnly: true
+            command: ["bash"]
+            args: ["-c", "/scripts/create-extra-backup-dumps.sh"]
+            resources:
+              requests:
+                ephemeral-storage: 40Gi
+              limits:
+                memory: "500Mi"
+          containers:
+          - name: extra-dump-uploader
+            image: google/cloud-sdk
+            volumeMounts:
+            - name: shared-volume
+              mountPath: /mongodumps/shared_volume
+            - name: upload-extra-backup-dumps-script
+              mountPath: /scripts/upload-extra-backup-dumps.sh
+              subPath: upload-extra-backup-dumps.sh
+              readOnly: true
+            env:
+            - name: PREFIX
+              value: {{ .Values.backup.mongo.prefix }}
+            - name: BUCKET
+              value: {{ .Values.backup.mongo.bucket }}
+            command: ["bash"]
+            args: ["-c", "/scripts/upload-extra-backup-dumps.sh"]
+            resources:
+              limits:
+                memory: "500Mi"
+          restartPolicy: OnFailure
+          volumes:
+          - name: create-extra-backup-dumps-script
+            configMap:
+              name: create-extra-backup-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: upload-extra-backup-dumps-script
+            configMap:
+              name: upload-extra-backup-dumps-{{ .Values.deployEnv }}
+              defaultMode: 0755
+          - name: shared-volume
+            emptyDir:
+              sizeLimit: 40Gi
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

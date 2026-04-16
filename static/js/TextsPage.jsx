@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, SidebarModules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
-import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   TextBlockLink,
@@ -45,7 +45,13 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
     return (
       <div className="navBlock withColorLine" style={style}>
-        <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
+        <a 
+          href={`/texts/${cat.category}`} 
+          className="navBlockTitle" 
+          data-cat={cat.category} 
+          onClick={openCat}
+          onKeyDown={(e) => Util.handleLinkSpaceKey(e, openCat)}
+        >
           <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
         </a>
         <div className="navBlockDescription">
@@ -72,7 +78,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
         <CategoryHeader type="cats" toggleButtonIDs={["subcategory", "reorder"]}>
             <h1><InterfaceText>Browse the Library</InterfaceText></h1>
         </CategoryHeader>
-      { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+      { Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
@@ -91,11 +97,9 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},
-    {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    {type: "Resources"}
   ];
 
-  const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
   return (
     <div className={classes} key="0">
@@ -112,7 +116,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
           </div>
           {!compare ? <NavSidebar sidebarModules={sidebarModules} /> : null}
         </div>
-        {footer}
       </div>
     </div>
   );

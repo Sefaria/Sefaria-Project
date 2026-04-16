@@ -1,7 +1,7 @@
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ request.LANGUAGE_CODE }}">
 <meta charset="UTF-8">
 <title>Compare</title>
 <head>
@@ -112,7 +112,7 @@
     {% autoescape off %}
       var JSON_PROPS = {{ JSON_PROPS }}
       var DJANGO_VARS = {
-            static_url: {{ STATIC_PREFIX }},
+            static_url: "{{ STATIC_PREFIX }}",
             props:    {{ propsJSON|default:"null" }},
 
         };

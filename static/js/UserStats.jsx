@@ -46,7 +46,7 @@ const UserStats = () => {
     let user_active;
     if (all_ready) {
         mode_user_data = user_data[modekeys[active_mode]];
-        user_active = (mode_user_data.textsRead > 2) || (mode_user_data.sheetsRead > 2) || (mode_user_data.sheetsThisPeriod > 1);
+        user_active = mode_user_data.textsRead > 2;
     }
     // let user_active = true;
     return (
@@ -74,7 +74,11 @@ const UserStatModeChooser = ({modes, activeMode, setMode}) => (
 
 const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
     <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
-         onClick  ={()=>setMode(thisMode)}>
+         onClick={()=>setMode(thisMode)}
+         role="button" 
+         tabIndex="0" 
+         aria-label={`Switch to ${thisMode} mode`}
+         aria-pressed={thisMode === activeMode}>
         <span>{Sefaria._(thisMode)}</span>
     </div>
 );
@@ -131,8 +135,6 @@ const UserDataBlock = ({user_data, site_data}) => (
         <UserDonutsBlock user_data={user_data} site_data={site_data}/>
         <UserCategoryBarchartBlock user_data={user_data} site_data={site_data}/>
         <YourFavoriteTextsBlock user_data={user_data} />
-        <YourFavoriteSheetsBlock user_data={user_data} />
-        <MostPopularSheetsBlock user_data={user_data} />
     </div>
 );
 
@@ -144,15 +146,13 @@ const OverallActivityBlock = ({user_data}) => (
             </h2>
             <div className="statcardRow">
                 <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
-                <StatCard icon_file="file-icon-black.svg" number={user_data.sheetsRead} name="Sheets Read"/>
-                <StatCard icon_file="plus-icon-black.svg" number={user_data.sheetsThisPeriod} name="Sheets Created"/>
             </div>
         </div>
 );
 
 const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
-        <img src={"static/img/" + icon_file}/>
+        <img src={"static/img/" + icon_file} alt={name}/>
         <div className="statcardValue">{number}</div>
         <div className="statcardLabel">{Sefaria._(name)}</div>
     </div>
@@ -190,34 +190,6 @@ const YourFavoriteTextsBlock = ({user_data}) => (
             </h2>
             <NBox n={3} content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
-        </div>
-    : null
-);
-const YourFavoriteSheetsBlock = ({user_data}) => (
-    user_data.mostViewedSheets.length ?
-        <div className="yourFavoriteSheetsBlock">
-            <h2>
-                <span className="int-en">Your Favorite Sheets</span>
-                <span className="int-he">דפי מקורות מועדפים</span>
-            </h2>
-            <div className="story">
-                <StorySheetList sheets={user_data.mostViewedSheets} compact={true} smallfonts={true}/>
-            </div>
-        </div>
-    : null
-);
-const MostPopularSheetsBlock = ({user_data}) => (
-    user_data.popularSheets.length ?
-        <div className="yourPopularSheetsBlock">
-            <h2>
-                <span className="int-en">Your Most Popular Sheets</span>
-                <span className="int-he">דפי מקורות פופולריים שלך</span>
-            </h2>
-            {user_data.popularSheets.map((sheet, i) => <div key={i}>
-                    <SimpleLinkedBlock classes="chapterText lowercase sheetLink" en={sheet.title} he={sheet.title} url={"/sheets/" + sheet.id}/>
-                    <SimpleInterfaceBlock classes="sheetViews smallText" en={sheet.views +" Views"} he={sheet.views + " צפיות"}/>
-                </div>
-            )}
         </div>
     : null
 );

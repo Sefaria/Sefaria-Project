@@ -4,6 +4,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import Component from 'react-class';
 import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
@@ -97,11 +98,6 @@ class TextRange extends Component {
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
-    }
-  }
   setData() {
     Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions, this.props.translationLanguagePreference, this.props.withContext).then(data => {
       this.setState({data: data});
@@ -139,9 +135,12 @@ class TextRange extends Component {
     this.conditionalPlaceSegmentNumbers();
     this.props.onTextLoad && this.props.onTextLoad(data.ref);
 
-    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
-    if (connectionsPanelRefElement.length > 0) {
-      connectionsPanelRefElement[0].scrollIntoView();
+    const filterRef = this.props.filterRef;
+    if (filterRef) {
+      const connectionsPanelRefElement = Array.from(
+        document.querySelectorAll("[data-ref]")
+      ).find((node) => node.getAttribute("data-ref") === filterRef);
+      connectionsPanelRefElement?.scrollIntoView();
     }
   }
   _prefetchLinksAndNotes(data) {
@@ -330,8 +329,6 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -396,7 +393,7 @@ class TextRange extends Component {
       </div>;
     } else { sidebarNum = null;}
     return (
-      <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
+      <div className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)} data-ref={ref}>
         {sidebarNum}
         {this.props.hideTitle ? null :
         (<div className="title">
@@ -500,6 +497,18 @@ class TextSegment extends Component {
     return x?.attr('data-ref') && x?.prop('tagName') === 'A';
   }
   handleClick(event) {
+    const mutcTarget = event.target.closest("a.mutc");
+    if (mutcTarget) {
+        const charRange = mutcTarget.getAttribute('data-range');
+        const contentSpan = mutcTarget.closest('.contentSpan');
+        const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
+        const key = `${this.props.sref}|${lang}|${charRange}`;
+        const spans = Sefaria._linkerOutputMap[key];
+        Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+    }
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
     const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
@@ -523,11 +532,6 @@ class TextSegment extends Component {
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
-    }
-  }
-  handleKeyPress(event) {
-    if (event.charCode == 13) {
-      this.handleClick(event);
     }
   }
   formatItag(lang, text) {
@@ -655,8 +659,9 @@ class TextSegment extends Component {
     }
     return (
       <div tabIndex="0"
-           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
-           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
+           data-ref={this.props.sref}
+           aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
@@ -690,4 +695,5 @@ TextSegment.propTypes = {
   navigatePanel: PropTypes.func,
 };
 
+export { TextSegment };
 export default TextRange;

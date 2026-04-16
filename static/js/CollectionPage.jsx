@@ -4,8 +4,8 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import Util from './sefaria/util';
 import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
 import {
   CategoryColorLine,
   DropdownModal,
@@ -124,7 +124,7 @@ class CollectionPage extends Component {
     filter = n(filter);
     
     //title and each topic in he and en
-    let filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
+    const filterableData  = sheet.topics.map(topic => [n(topic.en), n(topic.he), n(topic.asTyped)]).flat();
     filterableData.push(n(sheet.title.stripHtml()));
     
     //this may be confusing- in the exact case, "includes" is an array func and returns if any of the above match filter exactly, 
@@ -296,7 +296,6 @@ class CollectionPage extends Component {
             </div>
             <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
       </div>
     );
@@ -331,7 +330,7 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
       { isAdmin ? <EditCollectionButton slug={collection.slug} /> : null }
     </div> }
 
-    <a className="collectionLabel" href="/collections">
+    <a className="collectionLabel" href="/collections" data-target-module={Sefaria.VOICES_MODULE}>
       <InterfaceText>Collection</InterfaceText>
     </a>
 
@@ -351,8 +350,8 @@ const CollectionAbout = ({collection, isAdmin, toggleLanguage}) => (
 
 
 const EditCollectionButton = ({slug}) => (
-  <a className="button small white" href={`/collections/${slug}/settings`}>
-    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" /><InterfaceText>Edit</InterfaceText>
+  <a className="button small white" href={`/collections/${slug}/settings`} data-target-module={Sefaria.activeModule}>
+    <img className="buttonIcon" src="/static/icons/tools-write-note.svg" alt={Sefaria._("Edit collection")} /><InterfaceText>Edit</InterfaceText>
   </a>
 );
 
@@ -388,7 +387,7 @@ const CollectionContentsTab = ({collection, setFilter}) => {
             <InterfaceText text={tagGroup.label} />
           </div>}
           <ResponsiveNBox content={tagGroup.contents.map(tag => (
-            <a href={`/collections/${collection.slug}?tag=${tag}`} className="collectionContentsTag" onClick={(e) => {
+            <a href={`/collections/${collection.slug}?tag=${tag}`} data-target-module={Sefaria.VOICES_MODULE} className="collectionContentsTag" onClick={(e) => {
               e.preventDefault();
               setFilter(tag);}}>
               <InterfaceText>{tag}</InterfaceText>
@@ -451,7 +450,13 @@ class CollectionInvitationBox extends Component {
     return (<div className="collectionInvitationBox sans-serif">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
-                <div className="button small" onClick={this.onInviteClick}>
+                <div
+                  className="button small"
+                  role="button"
+                  tabIndex="0"
+                  onClick={this.onInviteClick}
+                  onKeyDown={(e) => Util.handleKeyboardClick(e, this.onInviteClick)}
+                >
                   <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>
@@ -520,7 +525,7 @@ class CollectionInvitationListing extends Component {
     return (
       <div className="collectionMemberListing">
         <div className="collectionMemberListingPic invitation">
-          <img src="/static/icons/mail.svg" />
+          <img src="/static/icons/mail.svg" alt={Sefaria._("Subscribe to newsletter")} />
         </div>
         <div className="collectionMemberListingText">
           <span className="collectionMemberListingName">

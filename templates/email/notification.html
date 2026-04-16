@@ -27,7 +27,7 @@
 
 	{% elif notification.type == "discuss" %}
 		{{ notification.content.adder|user_link|absolute_link }} {% trans "added a note to a" %}
-        <a href="https://www.sefaria.org{{ notification.content.discussion_path|url_safe }}">
+        <a href="{{ domain_modules.library }}{{ notification.content.discussion_path|url_safe }}">
             {% trans "discussion you follow" %}
         </a>.
 

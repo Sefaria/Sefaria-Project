@@ -1,6 +1,6 @@
 from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.helper.crm.crm_info_store import CrmInfoStore
-from sefaria import settings as sls
+from django.conf import settings as sls
 
 
 # todo: task queue, async

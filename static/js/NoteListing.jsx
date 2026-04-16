@@ -1,9 +1,8 @@
 import React  from 'react';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
-import { Note } from './Misc';
+import { Note, LoadingMessage } from './Misc';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
@@ -33,26 +32,36 @@ class NoteListing extends Component {
     const resolve = this.props.onDeleteNote || (()=>{});
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }
+  getNoteLink(ref) {
+    // This helper function returns the a tag linking to the given ref of the note.  When the URL is to a ref in the library, 
+    // returning the appropriate a tag is very simple, but when the ref is to a sheet, we need to modify the ref and set the data-target-module attribute to the voices module.
+    // If the ref is to a sheet, the ref will be something like "Sheet 3.4" but it needs to link to "/sheets/3.4" in the voices module.
+    let path, noteURL, module, params;
+    if (Sefaria.isSheetRef(ref)) {
+      module = Sefaria.VOICES_MODULE;
+      const parsedRef = Sefaria.parseRef(ref);
+      path = `/sheets/${parsedRef.sections.join('.')}`;
+    }
+    else {
+      module = Sefaria.LIBRARY_MODULE;
+      path = `/${ref}`;
+      params = {"with": "Notes"};  
+    }
+    noteURL = Sefaria.util.fullURL(path, module, params);
+    return <a className="noteRefTitle" href={noteURL} data-target-module={module}>
+            <span>{ref}</span>
+          </a>
+  }
   render() {
+    const noteLink = this.getNoteLink(this.props.data.ref);
     var data = this.props.data;
-    var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
-
     return (<div className="noteListing">
               <div className="actionButtons">
-                <img src="/static/icons/sheet.svg" onClick={this.showSheetModal} />
-                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} />
+                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("Delete note")} />
               </div>
-              <a href={url}>
-                {this.props.showText ?
-                  <TextRange sref={data.ref} /> :
-                  <span className="textRange placeholder">
-                    <span className="title">
-                      {data.ref}
-                    </span>
-                  </span> }
-              </a>
-              <Note text={data.text} />
-              {this.state.showSheetModal ?
+              {noteLink}
+              <span className="noteText"><Note text={data.text}/></span>
+              {this.state.showSheetModal &&
                 <div>
                   <AddToSourceSheetWindow
                     srefs={[data.ref]}
@@ -60,18 +69,23 @@ class NoteListing extends Component {
                     close={this.hideSheetModal} />
                   <div className="mask" onClick={this.hideSheetModal}></div>
                 </div>
-                : null }
-
+              }
             </div>);
   }
 }
 NoteListing.propTypes = {
   data:         PropTypes.object.isRequired,
-  showText:     PropTypes.bool,
   onDeleteNote: PropTypes.func,
 };
-NoteListing.defaultProps = {
-  showText: true
-};
+
+const NotesList = ({notes, onDeleteNote}) => {
+  return (
+    notes && notes.length ?
+      notes.map((item, i) => (
+        <NoteListing data={item} key={i} onDeleteNote={() => onDeleteNote(item._id)} />
+      ))
+    : <LoadingMessage message="You haven't written any notes yet." heMessage="טרם הוספת רשומות משלך" />)};
+
 
 export default NoteListing;
+export { NotesList };

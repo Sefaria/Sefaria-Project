@@ -3,6 +3,7 @@
 import pytest
 from sefaria.model import *
 from functools import reduce
+from sefaria.constants import model as constants
 
 
 def setup_module(module):
@@ -133,7 +134,7 @@ class Test_get_refs_in_text(object):
                  "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + b + " blah blah ", trefs, "")
-        res = reduce(lambda a, b: a + '<a class ="refLink" href="/{}" data-ref="{}">{}</a> blah blah '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        res = reduce(lambda a, b: a + f'<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a> blah blah ', list(zip(orefs, trefs)), "")
         wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
         assert wrapped == res
 
@@ -293,7 +294,7 @@ class Test_he_get_refs_in_text(object):
         trefs = ["דברים כג:ח-ט", 'שמות, כ"ד, יג-יד', 'במדבר, כ"ז, טו - כג', 'במדבר, כ"ז, טו -כ״ט כג', "דברים כ״ג ח-ט"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
-        res = reduce(lambda a, b: a + '(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        res = reduce(lambda a, b: a + f'(<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a>) בלה בלה ', list(zip(orefs, trefs)), "")
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
         assert wrapped == res
 
@@ -306,12 +307,12 @@ class Test_he_get_refs_in_text(object):
         trefs = ["סנהדרין ב, ב ו-ג, ב"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
-        res = reduce(lambda a, b: a + '(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        res = reduce(lambda a, b: a + f'(<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a>) בלה בלה ', list(zip(orefs, trefs)), "")
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
         assert wrapped != res and wrapped == st
 
     def test_already_wrapped_refs(self):
-        st = 'wick (<a class="refLink" data-ref="Jerusalem Talmud Shabbat 2:3:2" href="/Jerusalem_Talmud_Shabbat.2.3.2">Note 16</a>) and'
+        st = f'wick (<a class="refLink" data-ref="Jerusalem Talmud Shabbat 2:3:2" href="/Jerusalem_Talmud_Shabbat.2.3.2" data-target-module="{constants.LIBRARY_MODULE}">Note 16</a>) and'
         wrapped = library.get_wrapped_refs_string(st, lang="en")
         assert wrapped == st
 
@@ -526,25 +527,6 @@ class TestNamedEntityWrapping:
             }
         })
         return link
-
-    def test_get_wrapped_named_entities_string(self):
-        import re
-        text = "A blah. BBB yoyo and C"
-        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
-        wrapped = library.get_wrapped_named_entities_string(links, text)
-        wrapped_comp = """<a href="/topics/a" class="namedEntityLink" data-slug="a">A</a> blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
-        assert wrapped == wrapped_comp
-
-    def test_get_wrapped_named_entities_string_text_mismatch(self):
-        import re
-        text = "A blah. BBB yoyo and C"
-        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
-        links[0].charLevelData['startChar'] += 1  # manual offset to make text mismatch
-        links[0].charLevelData['endChar'] += 1
-        wrapped = library.get_wrapped_named_entities_string(links, text)
-        wrapped_comp = """A blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
-        assert wrapped == wrapped_comp
-
 
 def test_get_en_text_titles():
     txts = ['Avot', 'Avoth', 'Daniel', 'Dan', 'Dan.'] # u"Me'or Einayim, Vayera"

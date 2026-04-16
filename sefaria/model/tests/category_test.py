@@ -9,6 +9,7 @@ from sefaria import tracker
 import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
+from sefaria.model.text import TocSerializationOptions
 class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_new_terms(self):
@@ -239,6 +240,74 @@ class Test_Categories(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         assert len(base_json) == len(new_json)
 
+    @pytest.mark.django_db
+    def test_toc_serializes_authors(self):
+        title = "Test TOC Authors"
+        slug = "test-toc-authors"
+        author = AuthorTopic({
+            "slug": slug,
+            "titles": [
+                {"lang": "en", "text": "Test TOC Author", "primary": True},
+                {"lang": "he", "text": "מחבר בדיקת תוכן", "primary": True},
+            ],
+        })
+        index = Index({
+            "categories": ["Liturgy"],
+            "title": title,
+            "authors": [slug],
+            "schema": {
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": title,
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": "בדיקת מחברים בתוכן",
+                        "primary": True
+                    }
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": [
+                    "Section",
+                    "Line"
+                ],
+                "addressTypes": [
+                    "Integer",
+                    "Integer"
+                ],
+                "key": title
+            },
+        })
+
+        try:
+            author.save()
+            index.save()
+            library.rebuild_toc()
+
+            toc_node = library.get_toc_tree().lookup(index.categories, title)
+            serialized = toc_node.serialize()
+            assert "authors" not in serialized
+
+            serialized = toc_node.serialize(serialization_options=TocSerializationOptions(
+                include_first_section=False,
+                include_flags=False,
+                include_base_texts=True,
+                include_authors=True,
+            ))
+
+            assert serialized["authors"] == [{
+                "en": "Test TOC Author",
+                "he": "מחבר בדיקת תוכן",
+                "slug": slug,
+            }]
+        finally:
+            IndexSet({"title": title}).delete()
+            TopicSet({"slug": slug}).delete()
+            library.rebuild_toc()
+
 
 """
 Are these tests necessary anymore?
@@ -258,4 +327,3 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
-

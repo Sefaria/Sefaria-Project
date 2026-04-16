@@ -384,7 +384,7 @@ class LinkerIndexConverter:
         if getattr(self.index, 'dependence', None) == 'Commentary' and getattr(self.index, 'base_text_titles', None):
             if self.index.base_text_titles[0] == 'Shulchan Arukh, Even HaEzer':
                 outer_shape = 178
-            else:
+            elif not library.get_index(self.index.base_text_titles[0]).is_complex():
                 sn = StateNode(self.index.base_text_titles[0])
                 shape = sn.var('all', 'shape')
                 base_outer_shape = shape if isinstance(shape, int) else len(shape)

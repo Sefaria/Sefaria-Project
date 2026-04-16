@@ -44,8 +44,8 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
     return subcategoriesAndBooks.map((child, i) => {
         return <div id={`reorder-${i}`} className="reorderTool">
                     <div id="title">{displayOptions[displayType](child)}</div>
-                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
-                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)} alt={Sefaria._("Move up")} role="button" tabIndex="0"/>
+                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)} alt={Sefaria._("Move down")} role="button" tabIndex="0"/>
               </div>;
         })
 }
@@ -84,7 +84,7 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        Sefaria.adminEditorApiRequest(postURL, null, postCategoryData)
+        Sefaria.apiRequestWithBodyAndAlert(postURL, null, postCategoryData)
             .then(() => window.location.href = redirect)
             .finally(() => setSavingStatus(false));
     }
@@ -189,7 +189,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+        Sefaria.apiRequestWithBodyAndAlert(url, null, postCategoryData)
             .then(() => window.location.href = "/texts/"+fullPath)
             .finally(() => setSavingStatus(false));
     }
@@ -201,7 +201,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+        Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE")
             .then(() => window.location.href = `/texts`);
     }
     const primaryOptions = [

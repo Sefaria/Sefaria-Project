@@ -637,7 +637,7 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 ########
 
 PREFIXES = {
-	'ב', 'ד', 'ה', 'ו', 'ל', 'מ', 'ע',   # single letter
+    'כ', 'ש', 'ב', 'ד', 'ה', 'ו', 'ל', 'מ', 'ע',   # single letter
 	'דב', 'וב', 'וה', 'כד', 'מה', 'שב',  # double letter
 }  # careful of Ayin prefix...
 
@@ -667,7 +667,7 @@ def get_matches_with_prefixes(text, lang: str = None, matches_map: dict = None, 
         starti_inds += get_prefixless_inds(text)
     matches = []
     for starti in starti_inds:
-        if matches_map:
+        if matches_map is not None:
             matches += matches_map.get(text[starti:], [])
         else:
             matches += get_matches_func(text[starti:])

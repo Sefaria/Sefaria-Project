@@ -11,9 +11,11 @@ from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
 from django_topics.models import Topic as DjangoTopic
+from django_topics.utils import get_topic_pool_name_for_module
 import structlog
 from sefaria import tracker
 from sefaria.helper.descriptions import create_era_link
+from sefaria.constants.model import LIBRARY_MODULE
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -227,21 +229,26 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         link['description'] = getattr(topic, 'description', {})
     else:
         link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
+    link['shouldDisplay'] = topic.should_display()
+    link['pools'] = topic.get_pools()
     link['order'] = link.get('order', None) or {}
     link['order']['numSources'] = getattr(topic, 'numSources', 0)
     return link
 
 
 @django_cache(timeout=24 * 60 * 60)
-def get_all_topics(limit=1000, displayableOnly=True):
+def get_all_topics(limit=1000, displayableOnly=True, active_module=LIBRARY_MODULE):
     query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
-    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
+    topic_list = TopicSet(query, limit=limit, sort=[('numSources', -1)])
+    
+    # Get the actual pool name that should be used for this active_module
+    expected_pool_name = get_topic_pool_name_for_module(active_module)
+    
+    return [t for t in topic_list if expected_pool_name in t.get_pools()]
 
 @django_cache(timeout=24 * 60 * 60)
 def get_num_library_topics():
-    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool('library')
+    all_topics = DjangoTopic.objects.get_topic_slugs_by_pool(LIBRARY_MODULE)
     return len(all_topics)
 
 
@@ -315,6 +322,72 @@ def get_random_topic_source(topic:Topic) -> Optional[Ref]:
 
 def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
+
+
+def _serialize_author_index(index: Index, include_descriptions: bool = False) -> dict:
+    try:
+        url = f"/{Ref(index.title).url()}"
+    except InputError:
+        url = None
+    response = {
+        "title": index.title,
+        "heTitle": index.get_title("he"),
+        "categories": getattr(index, "categories", []),
+        "url": url,
+        "dependence": getattr(index, "dependence", None),
+    }
+    if include_descriptions:
+        description = {}
+        en_desc = getattr(index, "enShortDesc", None) or getattr(index, "enDesc", None)
+        he_desc = getattr(index, "heShortDesc", None) or getattr(index, "heDesc", None)
+        if en_desc:
+            description["en"] = en_desc
+        if he_desc:
+            description["he"] = he_desc
+        response["description"] = description
+    return response
+
+
+def _get_author_indexes_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
+    """
+    Return authored indexes payload.
+
+    Example (Rambam):
+    {"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary"}],"total":1}
+
+    If include_descriptions=True, each index adds:
+    "description": {"en": "...", "he": "..."}  # present keys only
+
+    If include_aggregations=True, payload adds:
+    "aggregations": [{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]
+    """
+    indexes = [_serialize_author_index(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
+    response = {
+        "indexes": indexes,
+        "total": len(indexes),
+    }
+    if include_aggregations:
+        response["aggregations"] = author_topic.get_aggregated_urls_for_authors_indexes()
+    return response
+
+
+def get_author_indexes(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
+    """Return author-indexes payload for `slug`, or `None` if slug is missing/non-author.
+    Optional flags: `include_aggregations`, `include_descriptions`.
+    Example: {"author":{"slug":"rambam","title":{"en":"Maimonides","he":"רמב\"ם"}},"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary","description":{"en":"...","he":"..."}}],"total":1,"aggregations":[{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]}
+    """
+    topic = Topic.init(slug)
+    if topic is None or not isinstance(topic, AuthorTopic):
+        return None
+    response = _get_author_indexes_from_topic(topic, include_aggregations=include_aggregations, include_descriptions=include_descriptions)
+    response["author"] = {
+        "slug": topic.slug,
+        "title": {
+            "en": topic.get_primary_title("en"),
+            "he": topic.get_primary_title("he"),
+        }
+    }
+    return response
 
 
 def recommend_topics(refs: list) -> list:

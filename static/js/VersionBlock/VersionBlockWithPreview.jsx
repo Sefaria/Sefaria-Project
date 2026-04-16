@@ -21,28 +21,32 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, false)}
               direction={version.direction || 'ltr'}
              />
-            <details>
-                <summary>
-                    <VersionTitleAndSelector
-                      version={version}
-                      currentRef={currentRef}
-                      currObjectVersions={currObjectVersions}
-                      openVersionInReader={openVersionInReader}
-                      isSelected={isSelected}
-                    />
-                </summary>
-                <div className='version-block-with-preview-details'>
-                    <VersionMetadata
-                        currentRef={currentRef}
-                        version={version}
-                    />
-                    <OpenConnectionTabButton
-                        srefs={srefs}
-                        openInTabCallback={openInTabCallback}
-                        openStrings={['Open Text', 'פתיחת טקסט']}
-                    />
-                </div>
-            </details>
+            <div className='version-with-preview-header-row'>
+                <details>
+                    <summary>
+                        <VersionTitleAndSelector
+                          version={version}
+                          currentRef={currentRef}
+                          currObjectVersions={currObjectVersions}
+                          openVersionInReader={openVersionInReader}
+                          isSelected={isSelected}
+                        />
+                    </summary>
+                    <div className='version-block-with-preview-details'>
+                        <VersionMetadata
+                            currentRef={currentRef}
+                            version={version}
+                        />
+                        <OpenConnectionTabButton
+                            srefs={srefs}
+                            openInTabCallback={openInTabCallback}
+                            openStrings={['Open Text', 'פתיחת טקסט']}
+                        />
+                    </div>
+                </details>
+            </div>
+            
+            
         </div>
     );
 }
