@@ -136,6 +136,8 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     )
     
     delete_and_save_new_links(asdict(msg))
+    # Temporarily disable disambiguator to speed up link processing
+    #
     # ambiguous_payloads = _load_recent_ambiguous_cases(linking_args)
     # for payload in ambiguous_payloads:
     #     result = disambiguate_ambiguous_ref(payload)
