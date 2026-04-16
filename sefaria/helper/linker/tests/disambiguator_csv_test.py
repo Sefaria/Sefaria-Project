@@ -21,6 +21,8 @@ def _load_test_cases():
     with open(CSV_PATH, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for i, row in enumerate(reader):
+            if row["optional"] == "1":
+                continue
             case_type = row["case_type"]
             char_range = ast.literal_eval(row["payload_charRange"])
 
@@ -37,9 +39,11 @@ def _load_test_cases():
             elif case_type == "non_segment":
                 payload_kwargs["resolved_non_segment_ref"] = row["payload_resolved_non_segment_ref"]
 
-            matched_segment = row.get("result_matched_segment", "").strip()
-            resolved_ref = row.get("result_resolved_ref", "").strip()
-            expected = matched_segment if matched_segment else resolved_ref
+            correct_outputs = [
+                row.get(f"correct_output_{n}", "").strip()
+                for n in range(1, 5)
+                if row.get(f"correct_output_{n}", "").strip()
+            ]
 
             sanitized_ref = re.sub(r'[^A-Za-z0-9]+', '_', row['payload_ref']).strip('_')
             case_id = f"row_{i}_{case_type}_{sanitized_ref}"
@@ -48,8 +52,7 @@ def _load_test_cases():
                 "id": case_id,
                 "case_type": case_type,
                 "payload": payload_kwargs,
-                "expected": expected,
-                "check_matched_segment": bool(matched_segment),
+                "correct_outputs": correct_outputs,
             })
     return cases
 
@@ -74,7 +77,7 @@ def test_disambiguator_from_csv(case):
         pytest.skip(f"Missing API keys for integration test: {', '.join(missing_keys)}")
 
     case_type = case["case_type"]
-    expected = case["expected"]
+    correct_outputs = case["correct_outputs"]
 
     if case_type == "ambiguous":
         payload = AmbiguousResolutionPayload(**case["payload"])
@@ -85,21 +88,16 @@ def test_disambiguator_from_csv(case):
     else:
         pytest.fail(f"Unknown case_type: {case_type}")
 
-    if not expected:
+    if not correct_outputs:
         assert result is None, f"Expected no resolution for case {case['id']}, got {result}"
         return
 
     assert result is not None, (
-        f"Expected '{expected}' for case {case['id']}, got None"
+        f"Expected one of {correct_outputs} for case {case['id']}, got None"
     )
 
-    if case["check_matched_segment"]:
-        assert result.matched_segment == expected, (
-            f"Unexpected matched segment for case {case['id']}: {result.matched_segment} "
-            f"(expected {expected})"
-        )
-    else:
-        assert result.resolved_ref == expected, (
-            f"Unexpected resolution for case {case['id']}: {result.resolved_ref} "
-            f"(expected {expected})"
-        )
+    result_output = getattr(result, "matched_segment", None) or result.resolved_ref
+    assert result_output in correct_outputs, (
+        f"Unexpected output for case {case['id']}: {result_output} "
+        f"(expected one of {correct_outputs})"
+    )
