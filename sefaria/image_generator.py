@@ -4,7 +4,7 @@ from bidi.algorithm import get_display
 import re
 from django.http import HttpResponse
 import io
-import html as _html
+from bs4 import BeautifulSoup
 
 palette = { # [(bg), (font)]
     "Commentary": [(75, 113, 183), (255, 255, 255)],
@@ -82,9 +82,8 @@ def html_to_text_canonical(html):
     html = html.replace("<br>", "\n")
     html = re.sub(r"<br( )*/>", "\n", html)
 
-    # Strip tags (best-effort) and decode entities once, mirroring the DOMParser+textContent path.
-    text = re.sub(r"<[^>]+>", "", html)
-    text = _html.unescape(text)
+    # Parse HTML and extract text, mirroring the JS DOMParser+textContent path.
+    text = BeautifulSoup(html, "html.parser").get_text()
 
     # Collapse duplicate blank lines
     text = re.sub(r"\n\s*\n", "\n", text)
