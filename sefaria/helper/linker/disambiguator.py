@@ -455,6 +455,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
          "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
          "- Include at least one 2-3 word query.\n"
          "- Do NOT copy words that appear inside <citation>...</citation>.\n"
+         "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
          "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'."
          )
     ])
