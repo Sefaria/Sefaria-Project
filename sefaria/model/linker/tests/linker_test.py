@@ -235,6 +235,8 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
+    [crrd(["#ובפ\"ק", "@דסוטה", "#ה'", "#א'"]), ("Sotah 5a",)],  # used to match Mishneh Torah Sotah instead of Bavli
+    [crrd(["#ובפ\"ק", "@דסוטה", "@ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah. Hey is marked as named part so it won't match anything including Bavli
 
     # Passage nodes
     [crrd(["@משנה", "@ביצה", "#יד:"]), ("Beitzah 14b:4", "Beitzah 14b:12", "Beitzah 14b:9")],
