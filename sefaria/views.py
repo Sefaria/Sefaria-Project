@@ -92,12 +92,20 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
+    http_method_names = ["get", "post", "options"]
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
             return resolve_url(next_page)
         return super().get_next_page()
+
+    def get(self, request, *args, **kwargs):
+        auth_logout(request)
+        next_page = self.get_next_page()
+        if next_page:
+            return HttpResponseRedirect(next_page)
+        return super().get(request, *args, **kwargs)
 
 
 class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
@@ -192,6 +200,66 @@ def register_api(request):
         return jsonResponse(token_dict)
 
     return jsonResponse(errors)
+
+
+@csrf_exempt
+@api_view(["POST"])
+def google_sso_callback(request):
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
+    from sso.models import SocialIdentity
+    from emailusernames.utils import create_user
+    from django.contrib.auth.models import User as AuthUser
+
+    credential = request.data.get("credential") or request.POST.get("credential")
+    if not credential:
+        return jsonResponse({"error": "Missing credential"}, status=400)
+
+    try:
+        payload = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            settings.GOOGLE_SSO_CLIENT_ID,
+        )
+    except Exception:
+        return jsonResponse({"error": "Google sign-in failed. Please try again."}, status=401)
+
+    sub = payload["sub"]
+    email = payload.get("email", "")
+    given_name = payload.get("given_name", "")
+    family_name = payload.get("family_name", "")
+
+    # Returning SSO user
+    try:
+        identity = SocialIdentity.objects.select_related("user").get(provider="google", uid=sub)
+        auth_login(request, identity.user, backend="emailusernames.backends.EmailAuthBackend")
+        return jsonResponse({"status": "ok", "is_new_user": False})
+    except SocialIdentity.DoesNotExist:
+        pass
+
+    # Email collision: existing password account, no linked Google identity
+    try:
+        existing_user = AuthUser.objects.get(email=email)
+        if not existing_user.social_identities.filter(provider="google").exists():
+            return jsonResponse({
+                "error": "An account with this email already exists. Sign in with your password, then link your Google account in Settings."
+            }, status=409)
+    except AuthUser.DoesNotExist:
+        pass
+
+    # New user — create Django User, SocialIdentity, and UserProfile
+    with transaction.atomic():
+        new_user = create_user(email, password=None)
+        new_user.first_name = given_name
+        new_user.last_name = family_name
+        new_user.save()
+        SocialIdentity.objects.create(provider="google", uid=sub, email=email, user=new_user)
+        p = UserProfile(id=new_user.id, user_registration=True)
+        p.assign_slug()
+        p.save()
+
+    auth_login(request, new_user, backend="emailusernames.backends.EmailAuthBackend")
+    return jsonResponse({"status": "ok", "is_new_user": True})
 
 
 def register(request):

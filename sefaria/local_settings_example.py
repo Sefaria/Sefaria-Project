@@ -184,6 +184,7 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 
 GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
+GOOGLE_SSO_CLIENT_ID = ''  # Google OAuth client ID for One Tap / Sign in with Google
 
 HOTJAR_ID = None
 

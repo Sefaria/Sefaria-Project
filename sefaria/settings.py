@@ -154,6 +154,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'reader',
+    'sso.apps.SSOConfig',
     'chatbot',
     'django.contrib.staticfiles',
     'django.contrib.humanize',

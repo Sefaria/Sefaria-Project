@@ -185,7 +185,35 @@
     </script>
 
     <!-- Unbounce Embed Code -->
-    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
+
+    {% if GOOGLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
+    <!-- Google One Tap -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <div id="g_id_onload"
+         data-client_id="{{ GOOGLE_SSO_CLIENT_ID }}"
+         data-callback="handleGoogleOneTapCredential"
+         data-auto_prompt="true"
+         data-cancel_on_tap_outside="false">
+    </div>
+    <script>
+      function handleGoogleOneTapCredential(response) {
+        fetch('/api/auth/google/callback', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({credential: response.credential}),
+        })
+        .then(function(r) { return r.json().then(function(data) { return {ok: r.ok, data: data}; }); })
+        .then(function(result) {
+          if (result.ok) {
+            window.location.reload();
+          } else {
+            console.error('Google SSO error:', result.data.error);
+          }
+        });
+      }
+    </script>
+    {% endif %}
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}

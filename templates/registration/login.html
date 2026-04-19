@@ -62,8 +62,49 @@
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="int-en">Create a new account</span>
                 <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
-
             </a>
+
+            {% if GOOGLE_SSO_CLIENT_ID %}
+            <div id="google-sso-section">
+                <div class="sso-divider">
+                    <span class="int-en">or</span>
+                    <span class="int-he">או</span>
+                </div>
+                <div id="google-signin-button"></div>
+                <div id="google-sso-error" style="display:none;" class="error"></div>
+            </div>
+            <script>
+              window.addEventListener('load', function() {
+                if (window.google && window.google.accounts) {
+                  google.accounts.id.initialize({
+                    client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
+                    callback: handleGoogleOneTapCredential,
+                  });
+                  google.accounts.id.renderButton(
+                    document.getElementById('google-signin-button'),
+                    {type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', width: 300}
+                  );
+                }
+              });
+              function handleGoogleOneTapCredential(response) {
+                fetch('/api/auth/google/callback', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({credential: response.credential}),
+                })
+                .then(function(r) { return r.json().then(function(data) { return {ok: r.ok, data: data}; }); })
+                .then(function(result) {
+                  if (result.ok) {
+                    window.location.href = '{{ next|default:"/" }}';
+                  } else {
+                    var el = document.getElementById('google-sso-error');
+                    el.textContent = result.data.error;
+                    el.style.display = 'block';
+                  }
+                });
+              }
+            </script>
+            {% endif %}
 	    </div>
     </div>
 {% endif %}

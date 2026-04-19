@@ -74,6 +74,10 @@ class SefariaNewUserForm(EmailUserCreationForm):
         email = self.cleaned_data["email"]
         if user_exists(email):
             user = get_user(email)
+            if user.social_identities.filter(provider="google").exists():
+                raise forms.ValidationError(
+                    _("This email is already registered via Google. Use Sign in with Google to access your account.")
+                )
             if not user.groups.filter(name=SEED_GROUP).exists():
                 raise forms.ValidationError(_("A user with that email already exists."))
         return email

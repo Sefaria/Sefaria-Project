@@ -69,6 +69,7 @@ def global_settings(request):
         "STRAPI_PORT":            STRAPI_PORT,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
         "GOOGLE_GTAG":            GOOGLE_GTAG,
+        "GOOGLE_SSO_CLIENT_ID":   GOOGLE_SSO_CLIENT_ID,
         "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
