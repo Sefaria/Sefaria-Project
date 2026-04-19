@@ -9,6 +9,7 @@ import os
 import re
 import requests
 from dataclasses import dataclass, field, asdict
+from functools import lru_cache
 from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
 
@@ -25,8 +26,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langsmith import traceable
 from sefaria.model.text import Ref
-from sefaria.utils.hebrew import strip_cantillation
 from sefaria.model.schema import AddressType
+from sefaria.helper.normalization import NormalizerComposer
 
 logger = structlog.get_logger(__name__)
 LANGSMITH_DEBUG_TAG = "test"
@@ -188,18 +189,50 @@ def _escape_template_braces(text: str) -> str:
     return text.replace('{', '{{').replace('}', '}}')
 
 
-def _strip_nikud(text: Optional[str]) -> Optional[str]:
-    """Remove cantillation and vowels (nikud) from Hebrew text."""
+@lru_cache(maxsize=2)
+def _get_normalizer(lang: str = 'he') -> NormalizerComposer:
+    """Build the same normalizer used by LinkerEntityRecognizer to reduce token usage."""
+    steps = ['unidecode', 'fn-marker', 'html', 'double-space']
+    if lang == 'he':
+        steps += ['maqaf', 'cantillation']
+    return NormalizerComposer(steps)
+
+
+def _normalize_for_llm(text: Optional[str], lang: str = 'he') -> Optional[str]:
+    """Normalize text for LLM prompts (removes cantillation, HTML, footnotes, etc.)."""
     if not text:
         return text
-    return strip_cantillation(text, strip_vowels=True)
+    return _get_normalizer(lang).normalize(text)
+
+
+def _normalize_citing_input(
+    citing_text: str,
+    char_range: List[int],
+    text_snippet: str,
+    lang: str = 'he',
+) -> Tuple[str, List[int], str]:
+    """Normalize the citing text and map charRange from original to normalized coordinates.
+
+    Uses NormalizerComposer.norm_to_unnorm_indices with reverse=True to map
+    unnormalized indices → normalized indices.
+    """
+    normalizer = _get_normalizer(lang)
+    mapped = normalizer.norm_to_unnorm_indices(
+        citing_text, [(char_range[0], char_range[1])], reverse=True,
+    )
+    norm_start, norm_end = mapped[0]
+    return (
+        normalizer.normalize(citing_text),
+        [norm_start, norm_end],
+        normalizer.normalize(text_snippet),
+    )
 
 
 def _format_base_block(base_ref: Optional[str], base_text: Optional[str]) -> str:
     """Build the 'Base text (...):\\n...' block used in multiple LLM prompts."""
     if not base_ref or not base_text:
         return ""
-    return f"Base text ({base_ref}):\n{_escape_template_braces(_strip_nikud(base_text))}\n\n"
+    return f"Base text ({base_ref}):\n{_escape_template_braces(_normalize_for_llm(base_text))}\n\n"
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
@@ -542,7 +575,7 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
 
     try:
         response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "citing": _escape_template_braces(marked_text),
             "base_block": base_block,
         })
         return getattr(response, 'content', '').strip()
@@ -560,7 +593,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 
     base_block = ""
     if base_ref and base_text:
-        base_block = f"Base text being commented on ({base_ref}):\n{_strip_nikud(base_text)}\n\n"
+        base_block = f"Base text being commented on ({base_ref}):\n{_normalize_for_llm(base_text)}\n\n"
 
     prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
@@ -588,8 +621,8 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 
     try:
         response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(_strip_nikud(marked_text)),
-            "context": _escape_template_braces(_strip_nikud(context_redacted)),
+            "citing": _escape_template_braces(marked_text),
+            "context": _escape_template_braces(context_redacted),
             "base_block": _escape_template_braces(base_block),
             "prior": _escape_template_braces(prior),
         })
@@ -652,11 +685,11 @@ def _llm_confirm_candidate(
 
     try:
         response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "citing": _escape_template_braces(marked_text),
             "base_block": base_block,
             "prior": _escape_template_braces(prior),
             "candidate_ref": candidate_ref,
-            "candidate_text": _escape_template_braces(_strip_nikud(candidate_text)),
+            "candidate_text": _escape_template_braces(_normalize_for_llm(candidate_text)),
         })
         content = getattr(response, 'content', '')
         verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
@@ -697,11 +730,11 @@ def _llm_choose_base_vs_commentary(
 
     try:
         response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "citing": _escape_template_braces(marked_text),
             "base_ref": base_ref,
-            "base_text": _escape_template_braces(_strip_nikud(base_text)),
+            "base_text": _escape_template_braces(_normalize_for_llm(base_text)),
             "commentary_ref": commentary_ref,
-            "commentary_text": _escape_template_braces(_strip_nikud(commentary_text)),
+            "commentary_text": _escape_template_braces(_normalize_for_llm(commentary_text)),
         })
         content = getattr(response, 'content', '')
         if re.search(r"\bBASE\b", content, re.IGNORECASE):
@@ -740,7 +773,7 @@ def _llm_choose_best_candidate(
         txt = _get_ref_text(cand.resolved_ref, lang=lang)
         preview = (txt or "").strip()
         if preview:
-            preview = strip_cantillation(preview, strip_vowels=True)
+            preview = _normalize_for_llm(preview)
         numbered.append(f"{i}) {cand.resolved_ref}\n{preview}")
         payloads.append((i, cand))
 
@@ -768,7 +801,7 @@ def _llm_choose_best_candidate(
 
     try:
         resp = (prompt | llm).invoke({
-            "citing": _escape_template_braces(_strip_nikud(marked_text)),
+            "citing": _escape_template_braces(marked_text),
             "candidates": _escape_template_braces("\n\n".join(numbered)),
         })
         content = getattr(resp, "content", "")
@@ -1149,10 +1182,15 @@ def disambiguate_non_segment_ref(
                 method='auto_single_segment',
             )
 
+        # Normalize citing text and map charRange to normalized coordinates
+        citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
+            citing_text_full, resolution_data.charRange, citing_text_snippet, citing_lang,
+        )
+
         # Case 2: 2-3 segments — LLM picks directly from text previews
         if len(segment_refs) in (2, 3):
             return _resolve_small_range(
-                segment_refs, citing_text_full, resolution_data.charRange, citing_text_snippet,
+                segment_refs, citing_text_norm, char_range_norm, text_snippet_norm,
             )
 
         # Case 3: Many segments — Hebrew only
@@ -1161,7 +1199,7 @@ def disambiguate_non_segment_ref(
             return None
 
         windowed_text, marked_text, windowed_span = _prepare_citing_context(
-            citing_text_full, resolution_data.charRange, citing_text_snippet,
+            citing_text_norm, char_range_norm, text_snippet_norm,
         )
 
         # Try Dicta
@@ -1180,10 +1218,10 @@ def disambiguate_non_segment_ref(
                 )
 
             if candidate:
-                base_ref, base_text = _get_commentary_base_context(citing_ref)
+                # Note: Dicta confirmation intentionally omits base context
+                # to avoid false positives on adjacent verses
                 ok, _ = _confirm_candidate(
                     candidate, marked_text, citing_lang,
-                    base_ref=base_ref, base_text=base_text,
                     auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
                 )
                 if ok:
@@ -1199,8 +1237,8 @@ def disambiguate_non_segment_ref(
 
         search_result = _fallback_search_pipeline(
             marked_citing_text=marked_text,
-            citing_text=citing_text_full,
-            span={'charRange': resolution_data.charRange, 'text': citing_text_snippet},
+            citing_text=citing_text_norm,
+            span={'charRange': char_range_norm, 'text': text_snippet_norm},
             non_segment_ref=non_segment_ref_str,
             citing_ref=citing_ref,
             lang=citing_lang,
@@ -1246,7 +1284,7 @@ def _resolve_small_range(
             candidates.append({
                 'index': i,
                 'resolved_ref': seg_ref.normal(),
-                'preview': _strip_nikud(seg_text),
+                'preview': _normalize_for_llm(seg_text),
             })
 
     if not candidates:
@@ -1322,6 +1360,11 @@ def disambiguate_ambiguous_ref(
             logger.warning(f"Could not get text for citing ref: {citing_ref}")
             return None
 
+        # Normalize citing text and map charRange to normalized coordinates
+        citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
+            citing_text_full, resolution_data.charRange, citing_text_snippet, citing_lang,
+        )
+
         # Normalize candidates
         valid_candidates = []
         for ref_str in ambiguous_refs:
@@ -1337,11 +1380,8 @@ def disambiguate_ambiguous_ref(
 
         logger.info(f"Valid candidates: {[c['ref'] for c in valid_candidates]}")
 
-        _, marked_text, _ = _prepare_citing_context(
-            citing_text_full, resolution_data.charRange, citing_text_snippet,
-        )
-        windowed_text, _, _ = _prepare_citing_context(
-            citing_text_full, resolution_data.charRange, citing_text_snippet,
+        windowed_text, marked_text, _ = _prepare_citing_context(
+            citing_text_norm, char_range_norm, text_snippet_norm,
         )
 
         base_ref, base_text = _get_commentary_base_context(citing_ref)
