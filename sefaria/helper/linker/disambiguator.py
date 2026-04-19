@@ -28,6 +28,7 @@ from sefaria.utils.hebrew import strip_cantillation
 from sefaria.model.schema import AddressType
 
 logger = structlog.get_logger(__name__)
+LANGSMITH_DEBUG_TAG = "test"
 
 
 class DictaAPIError(RuntimeError):
@@ -83,7 +84,7 @@ WINDOW_WORDS = 120
 
 def _get_llm():
     """Get configured primary LLM instance."""
-    model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
@@ -93,7 +94,7 @@ def _get_llm():
 
 def _get_confirmation_llm():
     """Get LLM instance used for prior formation and candidate confirmation."""
-    model = os.getenv("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-5-20250929")
+    model = os.getenv("ANTHROPIC_CONFIRM_MODEL", "claude-sonnet-4-6")
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
@@ -219,7 +220,7 @@ def _mark_citation(text: str, span: dict) -> str:
     return f"{before}{open_tag}{citation_text}</citation>{after}"
 
 
-@traceable(run_type="tool", name="query_dicta", tags=["anti_talmud_no_book"])
+@traceable(run_type="tool", name="query_dicta", tags=[LANGSMITH_DEBUG_TAG])
 def _query_dicta(
     query_text: str,
     target_ref: str,
@@ -316,7 +317,7 @@ def _normalize_dicta_url_to_ref(url: str) -> Optional[str]:
         return None
 
 
-@traceable(run_type="tool", name="query_sefaria_search", tags=["anti_talmud_no_book"])
+@traceable(run_type="tool", name="query_sefaria_search", tags=[LANGSMITH_DEBUG_TAG])
 def _query_sefaria_search(query_text: str, target_ref: str, slop: int = 20) -> List[Dict[str, Any]]:
     """Query Sefaria search API for matching segments."""
     try:
@@ -424,10 +425,10 @@ def _path_regex_for_ref(ref_str: str) -> Optional[str]:
         return None
 
 
-@traceable(run_type="llm", name="llm_form_search_query", tags=["anti_talmud_no_book"])
+@traceable(run_type="llm", name="llm_form_search_query", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
-    llm = _get_confirmation_llm()
+    llm = _get_keyword_llm()
 
     # Create context with citation redacted
     context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
@@ -494,7 +495,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
         return []
 
 
-@traceable(run_type="llm", name="llm_confirm_candidate", tags=["anti_talmud_no_book"])
+@traceable(run_type="llm", name="llm_confirm_candidate", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text: str,
                           base_ref: str = None, base_text: str = None) -> Tuple[bool, str]:
     """Use LLM to confirm if a candidate is the correct resolution, using a prior."""
@@ -546,7 +547,7 @@ def _llm_confirm_candidate(marked_text: str, candidate_ref: str, candidate_text:
         return False, str(e)
 
 
-@traceable(run_type="llm", name="llm_choose_base_vs_commentary", tags=["anti_talmud_no_book"])
+@traceable(run_type="llm", name="llm_choose_base_vs_commentary", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_choose_base_vs_commentary(
     marked_text: str,
     base_ref: str,
@@ -595,7 +596,7 @@ def _llm_choose_base_vs_commentary(
         return None
 
 
-@traceable(run_type="llm", name="llm_form_prior", tags=["anti_talmud_no_book"])
+@traceable(run_type="llm", name="llm_form_prior", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
     """Use LLM to form a prior about what the target segment should contain."""
     llm = _get_confirmation_llm()
@@ -617,7 +618,7 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
             "{base_block}"
             "Describe what the target segment should be about, key themes or phrases to expect, "
             "and any constraints implied by the citation. Keep it concise and concrete.\n"
-            "Return 3-6 bullet points."
+            "Return 2-3 bullet points."
         ),
     ])
 
@@ -633,7 +634,7 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
         logger.warning(f"LLM prior formation failed: {e}")
         return ""
 
-@traceable(run_type="llm", name="llm_choose_best_candidate", tags=["anti_talmud_no_book"])
+@traceable(run_type="llm", name="llm_choose_best_candidate", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_choose_best_candidate(
     marked_text: str,
     candidates: List[Dict[str, Any]],
@@ -918,7 +919,7 @@ def _fallback_search_pipeline(
     return chosen
 
 
-@traceable(run_type="chain", name="disambiguate_non_segment_ref", tags=["anti_talmud_no_book"])
+@traceable(run_type="chain", name="disambiguate_non_segment_ref", tags=[LANGSMITH_DEBUG_TAG])
 def disambiguate_non_segment_ref(
     resolution_data: NonSegmentResolutionPayload,
 ) -> Optional[NonSegmentResolutionResult]:
@@ -1148,7 +1149,7 @@ def disambiguate_non_segment_ref(
         return None
 
 
-@traceable(run_type="chain", name="disambiguate_ambiguous_ref", tags=["anti_talmud_no_book"])
+@traceable(run_type="chain", name="disambiguate_ambiguous_ref", tags=[LANGSMITH_DEBUG_TAG])
 def disambiguate_ambiguous_ref(
     resolution_data: AmbiguousResolutionPayload,
 ) -> Optional[AmbiguousResolutionResult]:
@@ -1471,7 +1472,7 @@ def _try_dicta_for_candidates(
     return deduped_matches[0]
 
 
-@traceable(run_type="tool", name="query_dicta_raw", tags=["anti_talmud_no_book"])
+@traceable(run_type="tool", name="query_dicta_raw", tags=[LANGSMITH_DEBUG_TAG])
 def _query_dicta_raw(
     query_text: str,
 ) -> List[Dict[str, Any]]:
@@ -1648,7 +1649,7 @@ def _try_search_for_candidates(marked_text: str, candidates: List[Dict[str, Any]
     return deduped_matches[0]
 
 
-@traceable(run_type="tool", name="query_sefaria_search_raw", tags=["anti_talmud_no_book"])
+@traceable(run_type="tool", name="query_sefaria_search_raw", tags=[LANGSMITH_DEBUG_TAG])
 def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[str, Any]]:
     """Query Sefaria search without filtering by target ref."""
     bool_query = {
@@ -1706,7 +1707,7 @@ def _query_sefaria_search_raw(query_text: str, slop: int = 10) -> Optional[Dict[
     return None
 
 
-@traceable(run_type="tool", name="query_sefaria_search_with_books", tags=["anti_talmud_no_book"])
+@traceable(run_type="tool", name="query_sefaria_search_with_books", tags=[LANGSMITH_DEBUG_TAG])
 def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]] = None, slop: int = 10) -> List[Dict[str, Any]]:
     """Query Sefaria search with optional filtering by list of books."""
     bool_query = {
@@ -1769,3 +1770,11 @@ def _query_sefaria_search_with_books(query_text: str, books: Optional[List[str]]
             continue
 
     return matches
+
+"""
+steps
+- change tag
+- change code to new experiment
+- restart celery
+- run dispatch_library_links_disambiguator_tasks
+"""
