@@ -30,7 +30,7 @@ from sefaria.model.schema import AddressType
 from sefaria.helper.normalization import NormalizerComposer
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens1"
 
 
 # ---------------------------------------------------------------------------
@@ -940,23 +940,6 @@ def _fallback_search_pipeline(
             _llm_form_search_query(marked_citing_text, base_ref=base_ref, base_text=base_text) or [],
             label="(base-seeded)",
         )
-
-    # C) Expanded window queries
-    if not candidates:
-        logger.info("Stage C: Expanded window queries")
-        expanded_words = max(WINDOW_WORDS * 2, WINDOW_WORDS + 1)
-        expanded_window, expanded_span = _window_around_span(citing_text, span, expanded_words)
-        expanded_marked = _mark_citation(expanded_window, expanded_span)
-
-        run_queries(_llm_form_search_query(expanded_marked) or [], label="(expanded text-only)")
-
-        # D) Expanded base-seeded queries
-        if base_text:
-            logger.info("Stage D: Expanded base-seeded queries")
-            run_queries(
-                _llm_form_search_query(expanded_marked, base_ref=base_ref, base_text=base_text) or [],
-                label="(expanded base-seeded)",
-            )
 
     if not candidates:
         logger.info("No candidates found in search pipeline")
