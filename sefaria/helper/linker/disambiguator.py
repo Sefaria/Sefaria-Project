@@ -554,9 +554,9 @@ def _path_filters_for_books(books: List[str]) -> List[str]:
 # LLM-powered steps
 # ---------------------------------------------------------------------------
 
-@traceable(run_type="llm", name="llm_form_prior", tags=[LANGSMITH_DEBUG_TAG])
-def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
-    """Use LLM to form a prior about what the target segment should contain."""
+@lru_cache(maxsize=4)
+def _llm_form_prior_cached(marked_text: str, base_ref: Optional[str] = None, base_text: Optional[str] = None) -> str:
+    """Cached inner implementation of _llm_form_prior."""
     llm = _get_llm("prior")
     base_block = _format_base_block(base_ref, base_text)
 
@@ -586,6 +586,12 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
     except Exception as e:
         logger.warning(f"LLM prior formation failed: {e}")
         return ""
+
+
+@traceable(run_type="llm", name="llm_form_prior", tags=[LANGSMITH_DEBUG_TAG])
+def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = None) -> str:
+    """Use LLM to form a prior about what the target segment should contain."""
+    return _llm_form_prior_cached(marked_text, base_ref, base_text)
 
 
 @traceable(run_type="llm", name="llm_form_search_query", tags=[LANGSMITH_DEBUG_TAG])
