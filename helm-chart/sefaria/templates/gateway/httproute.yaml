@@ -27,6 +27,15 @@ spec:
     {{- end }}
     {{- end }}
   rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/texts/
+      timeouts:
+        request: 2m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
