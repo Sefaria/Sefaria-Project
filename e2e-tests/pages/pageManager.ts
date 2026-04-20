@@ -4,7 +4,6 @@ import {LANGUAGES} from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
 import { TopicsPage } from "./topicsPage"
-import { CommunityPage } from "./communityPage"
 import { DonatePage } from "./donatePage"
 import { LoginPage } from "./loginPage"
 import { SignUpPage } from "./signupPage"
@@ -18,7 +17,6 @@ export class PageManager{
     private readonly banner: Banner
     private readonly textsPage: TextsPage
     private readonly topicsPage: TopicsPage
-    private readonly communityPage: CommunityPage
     private readonly donatePage: DonatePage
     private readonly loginPage: LoginPage
     private readonly signupPage: SignUpPage
@@ -33,7 +31,6 @@ export class PageManager{
         this.banner = new Banner(page, language)
         this.textsPage = new TextsPage(page, language)
         this.topicsPage = new TopicsPage(page, language)
-        this.communityPage = new CommunityPage(page, language)
         this.donatePage = new DonatePage(page, language)
         this.loginPage = new LoginPage(page, language)
         this.signupPage = new SignUpPage(page, language)
@@ -54,10 +51,6 @@ export class PageManager{
 
     onTopicsPage(){
         return this.topicsPage
-    }
-
-    onCommunityPage(){
-        return this.communityPage
     }
 
     onDonatePage(){
