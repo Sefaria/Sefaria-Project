@@ -28,9 +28,12 @@ from langsmith import traceable
 from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
 from sefaria.helper.normalization import NormalizerComposer
+from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test_reduced_tokens2"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens8"
+_MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
+
 
 
 # ---------------------------------------------------------------------------
@@ -757,6 +760,94 @@ def _llm_choose_base_vs_commentary(
         return None
 
 
+def _get_prefixless_forms(word: str) -> set:
+    """Return the word itself plus all prefix-stripped forms."""
+    forms = {word}
+    for start_idx in get_prefixless_inds(word):
+        stripped = word[start_idx:]
+        if len(stripped) >= 2:
+            forms.add(stripped)
+    return forms
+
+
+def _strip_imot_qria(word: str) -> Optional[str]:
+    """Remove אמות קריאה (vav and yud used as vowel letters) from a word."""
+    stripped = word.replace('ו', '').replace('י', '')
+    if len(stripped) >= 2:
+        return stripped
+    return None
+
+
+def _bag_of_words_score(citation_text: str, candidate_text: str) -> int:
+    """Score a candidate by counting overlapping token occurrences with the citation.
+
+    Hebrew prefixes are stripped so that e.g. "והתורה" can match "תורה".
+    אמות קריאה (vav and yud) are also removed to handle spelling variations.
+    Repeated words contribute to the score each time they appear.
+    """
+    if not citation_text or not candidate_text:
+        return 0
+
+    def _normalize_tokens(words):
+        """Expand each word into all prefix-stripped + imot-qria-stripped forms."""
+        normalized = []
+        for w in words:
+            forms = _get_prefixless_forms(w)
+            # Also add imot qria stripped variants
+            extra = set()
+            for f in forms:
+                stripped = _strip_imot_qria(f)
+                if stripped:
+                    extra.add(stripped)
+            forms.update(extra)
+            normalized.append(forms)
+        return normalized
+
+    cite_words = citation_text.split()
+    cand_words = candidate_text.split()
+
+    # Build a multiset (Counter) of all normalized forms from the candidate
+    cand_form_counts: Dict[str, int] = {}
+    for forms in _normalize_tokens(cand_words):
+        for f in forms:
+            cand_form_counts[f] = cand_form_counts.get(f, 0) + 1
+
+    # For each citation token, find the best matching form and consume one count
+    score = 0
+    for forms in _normalize_tokens(cite_words):
+        for f in forms:
+            if cand_form_counts.get(f, 0) > 0:
+                cand_form_counts[f] -= 1
+                score += 1
+                break
+
+    return score
+
+
+def _rank_candidates_by_bow(
+    marked_text: str,
+    candidates: List[Candidate],
+    lang: Optional[str] = None,
+) -> List[Candidate]:
+    """Reduce candidates to top _MAX_LLM_CANDIDATES using bag-of-words overlap with citation text."""
+    scored: List[Tuple[int, Candidate]] = []
+    for cand in candidates:
+        if cand.highlight:
+            preview = cand.highlight
+        else:
+            preview = _get_ref_text(cand.resolved_ref, lang=lang) or ""
+        score = _bag_of_words_score(marked_text, preview)
+        scored.append((score, cand))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    top = [cand for _, cand in scored[:_MAX_LLM_CANDIDATES]]
+    logger.info(
+        f"BoW filtering: {len(candidates)} candidates -> top {len(top)} "
+        f"(scores: {[s for s, _ in scored[:_MAX_LLM_CANDIDATES]]})"
+    )
+    return top
+
+
 @traceable(run_type="llm", name="llm_choose_best_candidate", tags=[LANGSMITH_DEBUG_TAG])
 def _llm_choose_best_candidate(
     marked_text: str,
@@ -774,6 +865,10 @@ def _llm_choose_best_candidate(
         return None
     if len(deduped) == 1:
         return deduped[0]
+
+    # When too many candidates, use bag-of-words to narrow down before sending to LLM
+    if len(deduped) > _MAX_LLM_CANDIDATES:
+        deduped = _rank_candidates_by_bow(marked_text, deduped, lang=lang)
 
     # Build numbered candidate list with text previews
     numbered: List[str] = []
