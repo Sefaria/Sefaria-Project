@@ -745,7 +745,7 @@ const JoinTheCommunity = ({wide}) => {
         <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
       </div>
       <div>
-        <a className="button small" href="/community">
+        <a className="button small" href={`${Sefaria.getModuleURL(Sefaria.VOICES_MODULE).origin}/`}>
           <img src="/static/icons/community-black.svg" alt={Sefaria._("make a sheet icon")} />
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
