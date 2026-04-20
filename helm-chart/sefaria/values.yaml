@@ -479,3 +479,6 @@ instrumentation:
   enabled: false
   otelEndpoint: ""
   jaegerEndpoint: ""
+
+datadog:
+  enabled: false

@@ -37,6 +37,16 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: nginx
         releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Values.datadog.enabled }}
+        tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
+        tags.datadoghq.com/service: "nginx"
+        tags.datadoghq.com/version: {{ .Values.nginx.containerImage.tag | quote }}
+        admission.datadoghq.com/enabled: "true"
+        {{- end }}
+      {{- if .Values.datadog.enabled }}
+      annotations:
+        ad.datadoghq.com/nginx.logs: '[{"source":"nginx","service":"{{ .Values.deployEnv }}-nginx"}]'
+      {{- end }}
     spec:
       affinity:
         podAntiAffinity:
