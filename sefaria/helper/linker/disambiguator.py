@@ -30,7 +30,7 @@ from sefaria.model.schema import AddressType
 from sefaria.helper.normalization import NormalizerComposer
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test_reduced_tokens1"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens2"
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +113,7 @@ class Candidate:
     # Only used in ambiguous flow: the top-level candidate ref that contains resolved_ref
     parent_ref: Optional[str] = None
     llm_choice_reason: Optional[str] = None
+    highlight: Optional[str] = None
 
     def resolution_phrase(self) -> Optional[str]:
         """Extract a key phrase used to resolve this candidate."""
@@ -489,12 +490,15 @@ def _parse_search_hits(
                 continue
             if target_oref and not target_oref.contains(cand_oref):
                 continue
+            highlight_fragments = (entry.get('highlight') or {}).get('naive_lemmatizer') or []
+            highlight = " ... ".join(highlight_fragments) if highlight_fragments else None
             candidates.append(Candidate(
                 resolved_ref=normalized,
                 source='sefaria_search',
                 query=query_text,
                 queries=[query_text] if query_text else [],
                 raw=entry,
+                highlight=highlight,
             ))
         except Exception:
             continue
@@ -770,10 +774,11 @@ def _llm_choose_best_candidate(
     payloads: List[Tuple[int, Candidate]] = []
 
     for i, cand in enumerate(deduped, 1):
-        txt = _get_ref_text(cand.resolved_ref, lang=lang)
-        preview = (txt or "").strip()
-        if preview:
-            preview = _normalize_for_llm(preview)
+        if cand.highlight:
+            preview = _normalize_for_llm(cand.highlight)
+        else:
+            txt = _get_ref_text(cand.resolved_ref, lang=lang)
+            preview = _normalize_for_llm((txt or "").strip()) if txt else ""
         numbered.append(f"{i}) {cand.resolved_ref}\n{preview}")
         payloads.append((i, cand))
 
