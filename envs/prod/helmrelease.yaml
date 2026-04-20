@@ -230,6 +230,8 @@ spec:
       enabled: false
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"
       jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+    datadog:
+      enabled: true
     localSettings:
       DEBUG: false
       OFFLINE: false
