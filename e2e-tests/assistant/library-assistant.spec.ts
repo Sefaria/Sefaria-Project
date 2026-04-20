@@ -96,6 +96,103 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().expectInputDisabledDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
   });
+
+  test('UX-036: Thinking indicator appears immediately after sending a message', async () => {
+    test.setTimeout(t(90000));
+    await pm.onLibraryAssistant().ensureOpen();
+    await pm.onLibraryAssistant().typeMessage('Say hello briefly');
+    await pm.onLibraryAssistant().sendViaEnter();
+    // The thinking bubble should appear almost immediately
+    await pm.onLibraryAssistant().expectThinkingVisible();
+    // Wait for the full response — thinking bubble should disappear
+    await pm.onLibraryAssistant().waitForResponse();
+    await pm.onLibraryAssistant().expectThinkingGone();
+  });
+});
+
+/**
+ * Header More-options menu (UX-057, UX-058, UX-059, UX-060).
+ * Each test opens the panel, ensures it is floating, then exercises the menu.
+ */
+test.describe('Library Assistant — header menu', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().waitForReady();
+    await pm.onLibraryAssistant().ensureOpen();
+  });
+
+  test('UX-057: More-options menu opens with the four expected items', async () => {
+    await pm.onLibraryAssistant().openHeaderMenu();
+    await pm.onLibraryAssistant().expectMenuVisible();
+    await pm.onLibraryAssistant().expectMenuItemTexts([
+      'Restart conversation',
+      'Give feedback',
+      'Help',
+      'Opt-out in Settings',
+    ]);
+  });
+
+  test('UX-058: Clicking outside the menu closes it', async () => {
+    await pm.onLibraryAssistant().openHeaderMenu();
+    await pm.onLibraryAssistant().clickOutsideMenu();
+    await pm.onLibraryAssistant().expectMenuHidden();
+  });
+
+  test('UX-059: Pressing Escape closes the menu', async () => {
+    // FIXME: The <lc-chatbot> component does not currently attach a keydown
+    // handler for Escape on the menu dropdown or its items, so the menu stays
+    // open after Escape is pressed. This test is marked fixme until the
+    // component implements Escape-to-close per the UX-059 spec.
+    test.fixme(true, 'Component does not yet handle Escape to close the header menu');
+    await pm.onLibraryAssistant().openHeaderMenu();
+    await pm.onLibraryAssistant().closeMenuWithEscape();
+    await pm.onLibraryAssistant().expectMenuHidden();
+  });
+
+  test('UX-060: Restart conversation clears all messages and shows empty state', async () => {
+    test.setTimeout(t(90000));
+    // Send a message so there is something to clear
+    await pm.onLibraryAssistant().typeMessage('Hello for restart test');
+    await pm.onLibraryAssistant().sendViaEnter();
+    await pm.onLibraryAssistant().expectUserMessageShown('Hello for restart test');
+    await pm.onLibraryAssistant().waitForResponse();
+    // Restart conversation
+    await pm.onLibraryAssistant().openHeaderMenu();
+    await pm.onLibraryAssistant().clickRestartConversation();
+    // Empty state should appear; no user messages should remain
+    await pm.onLibraryAssistant().expectEmptyState();
+    await pm.onLibraryAssistant().expectNoUserMessages();
+    // Textarea should be focused and re-enabled
+    const textarea = page.getByLabel('Prompt input');
+    await expect(textarea).toBeEnabled({ timeout: t(5000) });
+  });
+});
+
+/**
+ * Responsive viewport — UX-085.
+ * The Library Assistant must not render at mobile widths (375 px).
+ * This test uses the LA user so we can confirm the suppression happens even
+ * for a whitelisted user, not just for logged-out / non-whitelisted users.
+ */
+test.describe('Library Assistant — responsive', () => {
+  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
+    // Navigate and wait for the component to mount at desktop size first
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onLibraryAssistant().waitForReady();
+
+    // Resize to a typical mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+
+    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
+    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+  });
 });
 
 /**

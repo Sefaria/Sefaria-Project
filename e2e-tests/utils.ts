@@ -136,7 +136,7 @@ export const hideAllModalsAndPopups = async (page: Page) => {
     '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
     'small.popover-button.accessible-touch-target', '#bannerMessageClose', '.cookiesNotification',
     'button[data-active-module="voices"].popover-button', '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.cookiesNotification > span.int-en > div',
-    'button.popover-button:has-text("Got it!")',
+    'button.popover-button:has-text("Got it!")', '.ub-emb-iframe-wrapper .ub-emb-visible'
   ];
   for (const s of selectors) {
     try {

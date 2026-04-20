@@ -61,6 +61,30 @@ export class LibraryAssistantPage extends HelperBase {
     return this.page.locator('.thinking-content');
   }
 
+  private get moreOptionsBtn() {
+    return this.page.getByRole('button', { name: 'More options' });
+  }
+
+  /** The dropdown `role="menu"` rendered inside `.menu-container` when open. */
+  private get menuDropdown() {
+    return this.page.getByRole('menu');
+  }
+
+  /** All `role="menuitem"` elements inside the open dropdown. */
+  private get menuItems() {
+    return this.page.getByRole('menuitem');
+  }
+
+  /** The `.empty-state` div visible when there are no conversation messages. */
+  private get emptyState() {
+    return this.page.locator('.empty-state');
+  }
+
+  /** The messages log container (role="log"). */
+  private get messagesLog() {
+    return this.page.getByRole('log', { name: 'Chat messages' });
+  }
+
   // --- High-level waits / state helpers ---
 
   async waitForReady(): Promise<void> {
@@ -193,5 +217,75 @@ export class LibraryAssistantPage extends HelperBase {
   // Wait for response → textarea re-enables
   async waitForResponse(timeoutMs = 60000): Promise<void> {
     await expect(this.textarea).toBeEnabled({ timeout: t(timeoutMs) });
+  }
+
+  // UX-036: thinking indicator appears while awaiting a response
+  async expectThinkingVisible(): Promise<void> {
+    await expect(this.thinkingIndicator).toBeVisible({ timeout: t(10000) });
+    await expect(this.thinkingIndicator).toContainText('Thinking', { timeout: t(5000) });
+  }
+
+  async expectThinkingGone(): Promise<void> {
+    await expect(this.thinkingIndicator).toBeHidden({ timeout: t(60000) });
+  }
+
+  // UX-057 / UX-058 / UX-059: header More-options menu
+  async openHeaderMenu(): Promise<void> {
+    await expect(this.moreOptionsBtn).toBeVisible({ timeout: t(5000) });
+    await this.moreOptionsBtn.click();
+    await expect(this.menuDropdown).toBeVisible({ timeout: t(3000) });
+  }
+
+  async expectMenuVisible(): Promise<void> {
+    await expect(this.menuDropdown).toBeVisible({ timeout: t(3000) });
+  }
+
+  async expectMenuHidden(): Promise<void> {
+    await expect(this.menuDropdown).toBeHidden({ timeout: t(3000) });
+  }
+
+  /**
+   * Assert the menu has the expected number of items and their visible text
+   * matches (substring) each string in `texts`, in order.
+   */
+  async expectMenuItemTexts(texts: string[]): Promise<void> {
+    await expect(this.menuItems).toHaveCount(texts.length, { timeout: t(5000) });
+    for (let i = 0; i < texts.length; i++) {
+      await expect(this.menuItems.nth(i)).toContainText(texts[i], { timeout: t(3000) });
+    }
+  }
+
+  /** Close the open menu by pressing Escape. */
+  async closeMenuWithEscape(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+    await this.expectMenuHidden();
+  }
+
+  /**
+   * Close the open menu by clicking outside it (in the messages log area).
+   * Avoids clicking header buttons that would trigger other actions.
+   */
+  async clickOutsideMenu(): Promise<void> {
+    await this.messagesLog.click({ position: { x: 50, y: 50 } });
+    await this.expectMenuHidden();
+  }
+
+  // UX-060: restart conversation
+  /**
+   * Click "Restart conversation" inside the already-open menu.
+   * The menu must already be open (call `openHeaderMenu()` first).
+   */
+  async clickRestartConversation(): Promise<void> {
+    await this.menuDropdown.getByRole('menuitem', { name: 'Restart convo' }).click();
+  }
+
+  /** Assert the empty-state welcome panel is visible (no conversation messages). */
+  async expectEmptyState(): Promise<void> {
+    await expect(this.emptyState).toBeVisible({ timeout: t(5000) });
+  }
+
+  /** Assert there are no user-sent message bubbles in the log. */
+  async expectNoUserMessages(): Promise<void> {
+    await expect(this.userMessages).toHaveCount(0, { timeout: t(5000) });
   }
 }
