@@ -2,8 +2,7 @@ from functools import wraps, partial
 from typing import Any
 
 from django.http import HttpResponse, Http404
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from sefaria.client.util import jsonResponse
 import sefaria.system.exceptions as exps
@@ -62,8 +61,8 @@ def catch_error_as_http(func):
             raise
         except Exception as e:
             logger.exception("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
-            return render_to_response(args[0], 'static/generic.html',
-                             {"content": "There was an error processing your request: {}".format(str(e))})
+            return render(args[0], 'static/generic.html',
+                          {"content": "There was an error processing your request: {}".format(str(e))})
         return result
     return wrapper
 

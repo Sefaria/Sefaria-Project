@@ -1,4 +1,5 @@
-from django.conf.urls import url, include
+from django.urls import re_path
+from django.conf.urls import url
 from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
 import reader.views as reader_views
@@ -272,7 +273,7 @@ shared_patterns = [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    url(fr'^{ADMIN_PATH}/?', include(admin.site.urls)),
+    re_path(r'{ADMIN_PATH}/?', admin.site.urls),
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
@@ -287,7 +288,8 @@ shared_patterns += [
 # Keep admin accessible
 maintenance_patterns = [
     url(r'^admin/reset/cache', sefaria_views.reset_cache),
-    url(r'^admin/?', include(admin.site.urls)),
+    re_path(r'admin/?', admin.site.urls),
+    re_path(r'{ADMIN_PATH}/?', admin.site.urls),
     url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     url(r'^health-check/?$', reader_views.application_health_api),
     url(r'^healthz-rollout/?$', reader_views.rollout_health_api),

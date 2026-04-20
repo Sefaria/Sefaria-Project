@@ -54,6 +54,17 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: django
         releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Values.datadog.enabled }}
+        tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
+        tags.datadoghq.com/service: "web"
+        tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
+        admission.datadoghq.com/enabled: "true"
+        {{- end }}
+      {{- if .Values.datadog.enabled }}
+      annotations:
+        ad.datadoghq.com/web.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-web"}]'
+        admission.datadoghq.com/python-lib.version: "v4.7.1"
+      {{- end }}
     spec:
       affinity:
         podAntiAffinity:
@@ -91,6 +102,10 @@ spec:
             value: "{{ .Values.deployEnv }}"
           - name: STACK_COMPONENT
             value: web
+          {{- if .Values.datadog.enabled }}
+          - name: DD_LOGS_INJECTION
+            value: "true"
+          {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST

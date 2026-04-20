@@ -1467,14 +1467,16 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = ({ displayText }) => {
+const AiInfoTooltip = ({ displayText, variant, size }) => {
   const [showMessage, setShowMessage] = useState(false);
+  const iconSrc = `/static/icons/ai-star-${variant}-${size}.svg`;
+  const altKey = variant === "solid" ? "AI generated" : "AI assisted";
   const aiInfoIcon = (
       <img
           className="ai-info-icon"
           data-anl-event="ai_marker_hover:mouseover"
-          src="/static/icons/ai-info.svg"
-          alt={Sefaria._("AI Info Icon")} onMouseEnter={() => setShowMessage(true)}
+          src={iconSrc}
+          alt={Sefaria._(altKey)} onMouseEnter={() => setShowMessage(true)}
           onMouseLeave={() => setShowMessage(false)}
       />
     );
@@ -1511,11 +1513,15 @@ const AiInfoTooltip = ({ displayText }) => {
 AiInfoTooltip.propTypes = {
   enText: PropTypes.string,
   heText: PropTypes.string,
+  variant: PropTypes.oneOf(["solid", "outline"]),
+  size: PropTypes.oneOf([18, 24]),
 };
 
 AiInfoTooltip.defaultProps = {
   enText: 'Some of the text on this page has been AI generated.',
   heText: 'חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.',
+  variant: "solid",
+  size: 24,
 };
 
 class FollowButton extends Component {
