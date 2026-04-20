@@ -362,6 +362,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.81.2-preprod.1.tgz
     version: 0.81.2-preprod.1
   - apiVersion: v2
+    appVersion: v6.86.1-prod.4
+    created: "2026-04-20T11:27:57.222067299Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6e41170f4ddf1f4d222440ea56606ec01f8f5fbab9ae4421566da5e25df0ee02
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.81.2-fixsc-43508-text-edit-timeout-prod.1.tgz
+    version: 0.81.2-fixsc-43508-text-edit-timeout-prod.1
+  - apiVersion: v2
     appVersion: v6.86.0
     created: "2026-03-25T13:19:29.460502045Z"
     description: Chart to deploy complete Sefaria environment
@@ -15300,4 +15315,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-04-20T11:08:36.348831324Z"
+generated: "2026-04-20T11:27:57.219014984Z"
