@@ -64,8 +64,6 @@ def calc_letters_per_line(text, font, img_width):
 def html_to_text_canonical(html):
     """
     Canonical HTML-to-text normalization matching Sefaria-Project `Sefaria.util.htmlToText`.
-
-    Spec: `docs/html-to-text-spec.md`
     """
     if not html:
         return ""
