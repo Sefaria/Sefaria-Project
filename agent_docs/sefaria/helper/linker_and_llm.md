@@ -56,8 +56,8 @@ This module resolves two types of problematic references:
   2. Saves debug data to `LinkerOutput`.
   3. Creates/replaces a `MarkedUpTextChunk` with citation spans.
   4. Calls `delete_and_save_new_links()` to sync Link records.
-  5. Loads and resolves ambiguous cases via `disambiguate_ambiguous_ref()`.
-  6. Loads and resolves non-segment cases via `disambiguate_non_segment_ref()`.
+  5. ~~Loads and resolves ambiguous cases via `disambiguate_ambiguous_ref()`.~~ **Currently commented out** ("Temporarily disable disambiguator to speed up link processing", commit 8f079ea).
+  6. ~~Loads and resolves non-segment cases via `disambiguate_non_segment_ref()`.~~ **Currently commented out** (same commit).
 
 - **`LinkingArgs`** -- Dataclass: `ref`, `text`, `lang`, `vtitle`, optional `user_id` and `kwargs`.
 - **`DeleteAndSaveLinksMsg`** -- Message format for the link-sync step.
@@ -98,7 +98,7 @@ This module resolves two types of problematic references:
 
 3. **Perek and parasha refs are treated as non-segment even when technically segment-level.** The `_is_non_segment_or_perek_ref` function checks against cached sets (`get_talmud_perek_ref_set`, `get_parasha_ref_set` from `helper/text.py`) because these refs represent structural units that typically need segment-level disambiguation.
 
-4. **The linking pipeline is a Celery chain**, not a single task. `link_segment_with_worker` runs linking, saves MUTC, syncs links, and then runs disambiguation -- all in sequence within one task. Disambiguation results are applied immediately (not queued separately).
+4. **The linking pipeline is a Celery chain**, not a single task. `link_segment_with_worker` runs linking, saves MUTC, and syncs links in sequence within one task. Disambiguation was designed to run in the same task immediately afterward (results applied in-line, not queued separately), but the disambiguation steps are **currently commented out** in `tasks.py` for performance. The disambiguator module and all helper functions still exist; only the call sites are disabled.
 
 5. **LangSmith tracing is configured at module import time** in disambiguator.py via environment variables. The `@traceable` decorator from `langsmith` is used on all LLM-calling functions.
 

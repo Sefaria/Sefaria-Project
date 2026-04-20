@@ -106,6 +106,10 @@ git diff --name-only "$STAMP"..HEAD -- sefaria/ reader/ static/js/ api/ \
 
 Each changed path maps to a doc via the navigation table above. If a changed file's behavior, signature, or relationships shifted in ways the doc claims otherwise, update the doc.
 
+**Expect most diffs to produce no doc updates.** These docs live at a summary level — internal refinements, small bug fixes, new helper methods, and UI tweaks usually don't invalidate anything. Focus on: pipeline shape changes, disabled/removed features, new public entry points, changed collection/field names, shifted module boundaries. If you review a changed file and conclude no update is needed, that's the common case — not a sign you missed something.
+
+**When a doc claim rests on a specific commit** (e.g. a feature that was disabled, a workaround added for a known bug), cite the short SHA inline: *"Currently commented out (commit `8f079ea`)."* This gives the next agent a direct pointer to the reasoning without forcing them to `git blame` the source.
+
 ### When to update the stamp
 
 Bump `commit=` and `date=` in `agent_docs/.stamp` (and update `note=` with a one-line summary) after:

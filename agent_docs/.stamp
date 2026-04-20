@@ -7,6 +7,6 @@
 #
 # Format: one key=value per line. Keep machine-readable.
 
-commit=d7b3db1e39b39b199a4fe52fe25ad3b6d0ba5309
-date=2026-04-14
-note=Initial full-tree audit. Covers agent_docs/model, agent_docs/sefaria, agent_docs/reader, agent_docs/frontend, agent_docs/apps, agent_docs/scripts.md, and AGENTS.md.
+commit=dbf5a96949263e03d800c5dbd9ba41878d044bef
+date=2026-04-20
+note=Re-audit after pulling latest. Marked disambiguation pipeline as temporarily disabled in linker_and_llm.md (commit 8f079ea). Ref_resolver multi-part ordering fix, calendar API lang param fix, and AI-icon swap reviewed — no doc changes required at summary level.
