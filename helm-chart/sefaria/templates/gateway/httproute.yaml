@@ -33,6 +33,7 @@ spec:
             value: /api/texts/
       timeouts:
         request: 2m
+        backendRequest: 90s
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
