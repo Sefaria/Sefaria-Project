@@ -3438,6 +3438,13 @@ class Ref(object, metaclass=RefCacheType):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
+    def get_subrefs_count(self, state_ja=None):
+        """Number of subrefs in the ref."""
+        if self.index_node.is_virtual:
+            return len(self.text().text)
+        ja = state_ja or self.get_state_ja()
+        return ja.sub_array_length([i - 1 for i in self.sections])
+
     def as_ranged_segment_ref(self):
         """
         Expresses a section level (or higher) Ref as a ranged ref at segment level.
@@ -3652,12 +3659,9 @@ class Ref(object, metaclass=RefCacheType):
             r = r.prev_section_ref(vstate=vstate)
             if not r:
                 return None
-            if self.index_node.is_virtual:
-                return r.all_subrefs()[-1]
+            last_index = r.get_subrefs_count(self.get_state_ja(vstate=vstate))
             d = r._core_dict()
-            ja = self.get_state_ja(vstate=vstate)
-            newSections = r.sections + [ja.sub_array_length([i - 1 for i in r.sections])]
-            d["sections"] = d["toSections"] = newSections
+            d["sections"] = d["toSections"] = r.sections + [last_index]
             return Ref(_obj=d)
 
     def next_segment_ref(self, vstate=None):
@@ -3672,19 +3676,9 @@ class Ref(object, metaclass=RefCacheType):
         r = self.ending_ref()
         if not r.is_segment_level():
             return r
-        if self.index_node.is_virtual:
-            section_ref = self.context_ref()
-            siblings = section_ref.all_subrefs()
-            curr_index = siblings.index(self)
-            if len(siblings) == curr_index + 1:
-                next_section = section_ref.next_section_ref(vstate=vstate)
-                return next_section.all_subrefs()[0] if next_section else None
-            else:
-                return siblings[curr_index+1]
-        sectionRef = r.section_ref()
-        ja = self.get_state_ja(vstate=vstate)
-        sectionLength = ja.sub_array_length([i - 1 for i in sectionRef.sections])
-        if r.sections[-1] < sectionLength:
+        section_ref = r.section_ref()
+        section_length = section_ref.get_subrefs_count(self.get_state_ja(vstate=vstate))
+        if r.sections[-1] < section_length:
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
             return Ref(_obj=d)
@@ -3755,6 +3749,8 @@ class Ref(object, metaclass=RefCacheType):
         :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        if self.index_node.is_virtual:
+            return
         if vstate:
             return vstate.state_node(self.index_node).ja(lang)
         #TODO: also does not work with complex texts...
@@ -3951,11 +3947,7 @@ class Ref(object, metaclass=RefCacheType):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        if self.index_node.is_virtual:
-            size = len(self.text().text)
-            return self.subrefs(size)
-        state_ja = state_ja or self.get_state_ja(lang)
-        size = state_ja.sub_array_length([i - 1 for i in self.sections])
+        size = self.get_subrefs_count(state_ja or self.get_state_ja(lang))
         if size is None:
             size = 0
         return self.subrefs(size)
