@@ -1,0 +1,12 @@
+# Sefaria agent_docs freshness stamp
+#
+# The commit SHA below is the state of the repo at which the docs in
+# AGENTS.md + agent_docs/ were last audited. To check whether the docs
+# need updating, diff source paths since this commit. See AGENTS.md
+# ("Keeping These Docs Fresh") for the procedure.
+#
+# Format: one key=value per line. Keep machine-readable.
+
+commit=d7b3db1e39b39b199a4fe52fe25ad3b6d0ba5309
+date=2026-04-14
+note=Initial full-tree audit. Covers agent_docs/model, agent_docs/sefaria, agent_docs/reader, agent_docs/frontend, agent_docs/apps, agent_docs/scripts.md, and AGENTS.md.
