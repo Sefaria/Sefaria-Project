@@ -402,8 +402,8 @@ return (
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
-            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE && 
-                <AiInfoTooltip displayText="Some of the text on this page has been AI generated."/>
+            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE &&
+                <AiInfoTooltip displayText="Some of the text on this page has been AI generated." variant="outline" size={24}/>
             }
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
