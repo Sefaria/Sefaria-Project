@@ -1,0 +1,121 @@
+name: "Manual Promotion"
+
+# Trigger manually from the Actions tab when you want to promote between environments.
+# Creates a promotion PR with changelog (and AI summary for prod).
+#
+# Promotion paths:
+#   master  → preprod  (staging → pre-production)
+#   preprod → prod     (pre-production → production)
+#
+# After the PR is created and reviewed, merge it normally.
+# The promotion-gate.yaml check enforces that only valid source branches can merge.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Source branch"
+        required: true
+        type: choice
+        options:
+          - master
+          - preprod
+      target:
+        description: "Target branch"
+        required: true
+        type: choice
+        options:
+          - preprod
+          - prod
+
+jobs:
+  promote:
+    name: "Promote: ${{ github.event.inputs.source }} → ${{ github.event.inputs.target }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate promotion path
+        env:
+          SOURCE: ${{ github.event.inputs.source }}
+          TARGET: ${{ github.event.inputs.target }}
+        run: |
+          if [[ "$SOURCE" == "master" && "$TARGET" == "preprod" ]]; then
+            echo "✅ Valid: master → preprod"
+          elif [[ "$SOURCE" == "preprod" && "$TARGET" == "prod" ]]; then
+            echo "✅ Valid: preprod → prod"
+          else
+            echo "❌ Invalid path: $SOURCE → $TARGET"
+            echo "Allowed: master→preprod, preprod→prod"
+            exit 1
+          fi
+
+      - name: Generate changelog and create PR
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        env:
+          SOURCE: ${{ github.event.inputs.source }}
+          TARGET: ${{ github.event.inputs.target }}
+        run: ./build/ci/generate-promotion-pr.sh "$SOURCE" "$TARGET"
+
+      - name: Post to Slack (prod only)
+        if: >
+          github.event.inputs.target == 'prod' &&
+          steps.create_pr.outputs.pr_url != 'already exists' &&
+          steps.create_pr.outputs.pr_url != 'no-changes'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": { "type": "plain_text", "text": "Production Promotion PR Created" }
+                },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": ${{ toJson(format('*Summary:* {0}', steps.create_pr.outputs.ai_summary)) }} }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": ${{ toJson(format('*Commits:* {0}', steps.create_pr.outputs.total)) }} },
+                    { "type": "mrkdwn", "text": ${{ toJson(format('*Features:* {0}', steps.create_pr.outputs.feat_count)) }} },
+                    { "type": "mrkdwn", "text": ${{ toJson(format('*Fixes:* {0}', steps.create_pr.outputs.fix_count)) }} },
+                    { "type": "mrkdwn", "text": ${{ toJson(format('*PR:* <{0}|View PR>', steps.create_pr.outputs.pr_url)) }} }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": ${{ toJson(format('*Rollback to:* app=`{0}`, chart=`{1}`', steps.create_pr.outputs.prev_app, steps.create_pr.outputs.prev_chart)) }} }
+                  ]
+                },
+                { "type": "divider" },
+                {
+                  "type": "section",
+                  "text": { "type": "mrkdwn", "text": ${{ toJson(format('_Triggered by {0}_', github.actor)) }} }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+
+      - name: Summary
+        if: steps.create_pr.outputs.pr_url != 'no-changes'
+        run: |
+          echo "✅ PR created: ${{ steps.create_pr.outputs.pr_url }}"
+          echo "   Commits: ${{ steps.create_pr.outputs.total }}"
+          echo "   Features: ${{ steps.create_pr.outputs.feat_count }} | Fixes: ${{ steps.create_pr.outputs.fix_count }}"
+          echo "   Rollback ref: app=${{ steps.create_pr.outputs.prev_app }}, chart=${{ steps.create_pr.outputs.prev_chart }}"
+
+      - name: No changes
+        if: steps.create_pr.outputs.pr_url == 'no-changes'
+        run: echo "⚠️ No commits between ${{ github.event.inputs.source }} and ${{ github.event.inputs.target }} — nothing to promote."
