@@ -364,7 +364,7 @@ def hok_leyisrael(datetime_obj, diaspora=True):
         parasha = parasha.split('-')[0]
         if parasha == 'Shmini Atzeret':
             parasha = "V'Zot HaBerachah"
-        parasha_term = Term().load({'category': 'Torah Portions', 'titles': {'$elemMatch': {'text': parasha}}})
+        parasha_term = Term().load({'category': 'Torah Portions', 'name': parasha})
         if not parasha_term:
             parasha_term = get_hok_parasha(datetime_obj + datetime.timedelta(7), diaspora=diaspora)
         return parasha_term
