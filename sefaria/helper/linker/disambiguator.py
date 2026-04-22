@@ -23,6 +23,7 @@ from sefaria.settings import SEARCH_URL
 
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langsmith import traceable
 from sefaria.model.text import Ref
@@ -31,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test_reduced_tokens8"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens29"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 
@@ -179,11 +180,16 @@ def _get_llm(role: str = "default"):
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY environment variable is required")
         return ChatOpenAI(model=model, temperature=0, max_tokens=1024, api_key=api_key)
-
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
-    return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+    elif provider == "anthropic":
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
+        return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+    elif provider == "google":
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise RuntimeError("GOOGLE_API_KEY environment variable is required")
+        return ChatGoogleGenerativeAI(model=model, temperature=0, max_tokens=1024, api_key=api_key, thinking_level="low")
 
 
 def _escape_template_braces(text: str) -> str:
@@ -602,8 +608,6 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
     """Use LLM to generate search queries from marked citing text."""
     llm = _get_llm("keyword")
 
-    context_redacted = re.sub(r'<citation>.*?</citation>', '[REDACTED]', marked_text, flags=re.DOTALL)
-
     base_block = ""
     if base_ref and base_text:
         base_block = f"Base text being commented on ({base_ref}):\n{_normalize_for_llm(base_text)}\n\n"
@@ -614,10 +618,10 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
         ("system", "You extract concise search phrases that are likely to appear verbatim in the target text."),
         ("human",
          "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
-         "Context with citation redacted:\n{context}\n\n"
+         # "Context with citation redacted:\n{context}\n\n"
          "{base_block}"
          "Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
-         "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
+         "Return 3-4 short lexical search queries (<=6 words each), taken from surrounding context "
          "outside the citation span.\n"
          "- Prefer phrases that you expect to appear verbatim in the target text.\n"
          "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
@@ -628,14 +632,13 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
          "- Include at least one 2-3 word query.\n"
          "- Do NOT copy words that appear inside <citation>...</citation>.\n"
          "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
-         "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'."
+         "Strict output: one per line, numbered 1) ... through 4) ... or a single line 'NONE'."
          )
     ])
 
     try:
         response = (prompt | llm).invoke({
             "citing": _escape_template_braces(marked_text),
-            "context": _escape_template_braces(context_redacted),
             "base_block": _escape_template_braces(base_block),
             "prior": _escape_template_braces(prior),
         })
