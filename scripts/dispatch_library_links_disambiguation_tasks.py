@@ -17,6 +17,8 @@ django.setup()
 
 from collections import defaultdict
 import argparse
+import json
+import os
 from tqdm import tqdm
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
@@ -31,6 +33,38 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
 DEBUG_LIMIT = 2000 # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6139  # Seed for reproducible random sampling
+
+DEBUG_CACHE_DIR = os.path.join(os.path.dirname(__file__), "debug_cache")
+
+
+def _debug_cached_sample(cache_name: str, query: dict, collection, limit: int) -> list:
+    """
+    In debug mode, load a cached sample from disk if available.
+    Otherwise, run the MongoDB $sample aggregation, save results to disk, and return them.
+    """
+    os.makedirs(DEBUG_CACHE_DIR, exist_ok=True)
+    cache_path = os.path.join(DEBUG_CACHE_DIR, f"{cache_name}.json")
+
+    if os.path.exists(cache_path):
+        print(f"  Loading cached sample from {cache_path}")
+        with open(cache_path, "r") as f:
+            return json.load(f)
+
+    print(f"  No cache found. Sampling from MongoDB...")
+    pipeline = [
+        {"$match": query},
+        {"$sample": {"size": limit}},
+    ]
+    docs = list(collection.aggregate(pipeline))
+    # ObjectId is not JSON-serializable; convert _id to string
+    for doc in docs:
+        if "_id" in doc:
+            doc["_id"] = str(doc["_id"])
+
+    with open(cache_path, "w") as f:
+        json.dump(docs, f)
+    print(f"  Saved {len(docs)} docs to {cache_path}")
+    return docs
 
 
 
@@ -83,18 +117,13 @@ def find_ambiguous_resolutions():
 
     # Use db cursor directly for efficiency
     if DEBUG_MODE:
-        # Use aggregation pipeline for random sampling with seed
-        pipeline = [
-            {"$match": query},
-            {"$sample": {"size": DEBUG_LIMIT}}
-        ]
-        cursor = db.linker_output.aggregate(pipeline)
+        docs = _debug_cached_sample("ambiguous", query, db.linker_output, DEBUG_LIMIT)
     else:
-        cursor = db.linker_output.find(query)
+        docs = db.linker_output.find(query)
 
     ambiguous_groups = []
 
-    for raw_linker_output in cursor:
+    for raw_linker_output in docs:
         # Group spans by charRange within this LinkerOutput
         char_range_groups = defaultdict(list)
 
@@ -174,18 +203,13 @@ def find_non_segment_level_resolutions():
 
     # Use db cursor directly for efficiency
     if DEBUG_MODE:
-        # Use aggregation pipeline for random sampling with seed
-        pipeline = [
-            {"$match": query},
-            {"$sample": {"size": DEBUG_LIMIT}}
-        ]
-        cursor = db.linker_output.aggregate(pipeline)
+        docs = _debug_cached_sample("non_segment", query, db.linker_output, DEBUG_LIMIT)
     else:
-        cursor = db.linker_output.find(query)
+        docs = db.linker_output.find(query)
 
     non_segment_resolutions = []
 
-    for raw_linker_output in cursor:
+    for raw_linker_output in docs:
         for span in raw_linker_output.get('spans', []):
             # Only look at successful citation resolutions
             if (span.get('type') != 'citation' or

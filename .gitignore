@@ -155,3 +155,4 @@ env/*
 dump/*
 .env
 static_collected/*
+scripts/debug_cache/
