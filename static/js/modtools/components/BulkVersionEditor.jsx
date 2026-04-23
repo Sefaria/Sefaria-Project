@@ -89,11 +89,15 @@ const HELP_CONTENT = (
       The field will be deleted from the database, not set to an empty value.
     </p>
 
-    <h3>Mark for Deletion</h3>
+    <h3>Delete Versions</h3>
     <p>
-      The "Mark for Deletion" button does NOT immediately delete versions. Instead, it adds
-      a timestamped note to <code>versionNotes</code> flagging the version for manual review.
-      This is a safety mechanism to prevent accidental data loss.
+      The "Delete Versions" button <strong>permanently deletes</strong> the selected versions
+      from the database. The underlying text content, version metadata, and associated records
+      (notifications, search index entries, etc.) are all removed. <strong>This action cannot be undone.</strong>
+    </p>
+    <p>
+      To protect against accidental deletion, a confirmation dialog requires you to retype the
+      exact version title before the delete button becomes active.
     </p>
 
     <div className="warning">
@@ -111,7 +115,7 @@ const HELP_CONTENT = (
     <ul>
       <li>Adding license information to a publisher's versions</li>
       <li>Setting source URLs for versions missing attribution</li>
-      <li>Marking outdated versions for review before deletion</li>
+      <li>Deleting outdated or duplicate versions in bulk</li>
       <li>Updating priority to control which version displays first</li>
       <li>Adding purchase links for commercially available texts</li>
     </ul>
@@ -205,6 +209,7 @@ const BulkVersionEditor = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   /**
    * Clear search and reset state
@@ -217,6 +222,8 @@ const BulkVersionEditor = () => {
     setFieldsToClear(new Set());
     setMsg("");
     setSearched(false);
+    setShowDeleteConfirm(false);
+    setDeleteConfirmText("");
   }, []);
 
   /**
@@ -318,24 +325,25 @@ const BulkVersionEditor = () => {
   }, []);
 
   /**
-   * Perform bulk edit API call and handle response
-   * @param {Object} updatesToApply - The updates object to send to the API
+   * Perform a bulk API call (edit or delete) and handle response
+   * @param {string} url - API endpoint to POST to
+   * @param {Object} extraPayload - Extra payload fields (e.g., updates, language)
    * @param {Function} getSuccessMsg - Function that takes successCount and returns success message
    * @param {Function} getPartialMsg - Function that takes successCount, total, failureList and returns partial success message
    * @param {Function} getErrorMsg - Function that takes failureCount, failureList and returns error message
    * @param {Function} onSuccess - Optional callback to run on successful completion
    */
-  const performBulkEdit = async (updatesToApply, getSuccessMsg, getPartialMsg, getErrorMsg, onSuccess) => {
+  const performBulkEdit = async (url, extraPayload, getSuccessMsg, getPartialMsg, getErrorMsg, onSuccess) => {
     setSaving(true);
 
     try {
       const payload = {
         versionTitle: vtitle,
         indices: Array.from(pick),
-        updates: updatesToApply
+        ...extraPayload
       };
 
-      const data = await Sefaria.apiRequestWithBody('/api/version-bulk-edit', null, payload);
+      const data = await Sefaria.apiRequestWithBody(url, null, payload);
       const successCount = data.successes?.length || 0;
       const failureCount = data.failures?.length || 0;
       const total = successCount + failureCount;
@@ -386,7 +394,8 @@ const BulkVersionEditor = () => {
     });
 
     await performBulkEdit(
-      processedUpdates,
+      '/api/version-bulk-edit',
+      { updates: processedUpdates },
       (successCount) => `Successfully updated ${successCount} versions`,
       (successCount, total, failureList) => `Updated ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
       (failureCount, failureList) => `All ${failureCount} updates failed:\n${failureList}`,
@@ -399,23 +408,31 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Mark selected versions for deletion (soft delete)
-   * Adds a note to versionNotes marking them for review
+   * Permanently delete selected versions via the bulk delete API.
+   * This is a hard delete - versions are removed from the database and cannot be recovered.
    */
-  const markForDeletion = async () => {
-    // Button only shows when pick.size > 0, but safety check anyway
+  const deleteVersions = async () => {
     if (!pick.size) return;
 
     setShowDeleteConfirm(false);
-    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Marking versions for deletion review...' });
+    setDeleteConfirmText("");
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Deleting versions...' });
 
-    const deletionNote = `[MARKED FOR DELETION - ${new Date().toISOString().split('T')[0]}] This version has been marked for deletion review.`;
+    const extraPayload = lang ? { language: lang } : {};
 
     await performBulkEdit(
-      { versionNotes: deletionNote },
-      (successCount) => `Marked ${successCount} versions for deletion review. They can be found by searching for "[MARKED FOR DELETION" in version notes.`,
-      (successCount, total, failureList) => `Marked ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-      (failureCount, failureList) => `All ${failureCount} versions failed to be marked for deletion:\n${failureList}`
+      '/api/version-bulk-delete',
+      extraPayload,
+      (successCount) => `Successfully deleted ${successCount} versions`,
+      (successCount, total, failureList) => `Deleted ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+      (failureCount, failureList) => `All ${failureCount} deletions failed:\n${failureList}`,
+      () => {
+        // After a successful delete, the underlying Version documents are gone.
+        // Clear selection and indices so the user doesn't try to act on stale data.
+        setPick(new Set());
+        setIndices([]);
+        setSearched(false);
+      }
     );
   };
 
@@ -692,26 +709,40 @@ const BulkVersionEditor = () => {
           {/* Delete confirmation dialog */}
           {showDeleteConfirm && (
             <div className="dangerBox">
-              <strong>Confirm Mark for Deletion</strong>
+              <strong>Permanently Delete Versions</strong>
               <p className="sectionDescription">
-                This will mark <strong>{pick.size}</strong> versions for deletion review by adding a note to their versionNotes field.
-                The versions will not be immediately deleted - they will be flagged for manual review.
+                This will <strong>permanently delete {pick.size}</strong> version{pick.size === 1 ? '' : 's'} from the database.
+                The underlying text content, version metadata, and associated records will be removed. <strong>This action cannot be undone.</strong>
               </p>
               <p className="sectionDescription">
                 Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
                 {pick.size > 5 && ` and ${pick.size - 5} more...`}
               </p>
+              <p className="sectionDescription">
+                To confirm, type the version title <code>{vtitle}</code> below:
+              </p>
+              <input
+                className="dlVersionSelect"
+                type="text"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder={vtitle}
+                disabled={saving}
+              />
               <div className="actionRow">
                 <button
                   className="modtoolsButton danger"
-                  onClick={markForDeletion}
-                  disabled={saving}
+                  onClick={deleteVersions}
+                  disabled={saving || deleteConfirmText !== vtitle}
                 >
-                  {saving ? <><span className="loadingSpinner" />Processing...</> : "Yes, Mark for Deletion"}
+                  {saving ? <><span className="loadingSpinner" />Deleting...</> : "Yes, Delete Versions"}
                 </button>
                 <button
                   className="modtoolsButton secondary"
-                  onClick={() => setShowDeleteConfirm(false)}
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText("");
+                  }}
                   disabled={saving}
                 >
                   Cancel
@@ -729,7 +760,7 @@ const BulkVersionEditor = () => {
                 disabled={saving}
                 type="button"
               >
-                Mark for Deletion
+                Delete Versions
               </button>
             </div>
           )}

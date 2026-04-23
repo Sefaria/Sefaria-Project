@@ -324,6 +324,189 @@ class TestVersionBulkEditAPI:
         v.delete()
 
 
+class TestVersionBulkDeleteAPI:
+    """Tests for /api/version-bulk-delete endpoint."""
+
+    @pytest.mark.django_db
+    def test_bulk_delete_requires_staff(self, regular_client):
+        """Non-staff users should be denied access."""
+        response = regular_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({
+                'versionTitle': 'Test',
+                'indices': ['Genesis'],
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code in [302, 403]
+
+    @pytest.mark.django_db
+    def test_bulk_delete_requires_post(self, staff_client):
+        """GET requests should be rejected."""
+        response = staff_client.get('/api/version-bulk-delete')
+        assert response.status_code == 400
+
+    @pytest.mark.django_db
+    def test_bulk_delete_missing_version_title(self, staff_client):
+        """Missing versionTitle should return 400."""
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({'indices': ['Genesis']}),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_bulk_delete_missing_indices(self, staff_client):
+        """Missing indices should return 400."""
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({'versionTitle': 'Test'}),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_bulk_delete_empty_indices(self, staff_client):
+        """Empty indices array should return 400."""
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({
+                'versionTitle': 'Test',
+                'indices': [],
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'empty' in data['error'].lower()
+
+    @pytest.mark.django_db
+    def test_bulk_delete_reports_failure_for_missing_version(self, staff_client):
+        """Should report failures for indices without a matching version."""
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({
+                'versionTitle': 'NonexistentVersion12345',
+                'indices': ['Genesis'],
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'status' in data
+        assert 'successes' in data
+        assert 'failures' in data
+        assert data['status'] == 'error'
+        assert len(data['failures']) == 1
+        assert data['failures'][0]['index'] == 'Genesis'
+
+    @pytest.mark.django_db
+    def test_bulk_delete_hard_deletes_version_and_records_history(self, staff_client):
+        """Successful delete should remove the Version and write a 'delete text' history record."""
+        from sefaria.model import Version
+        from sefaria.system.database import db
+
+        test_version = Version({
+            'versionTitle': 'TestVersionForBulkDelete',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        test_version.save()
+
+        # Verify version exists before delete
+        v = Version().load({
+            'versionTitle': 'TestVersionForBulkDelete',
+            'title': 'Genesis',
+        })
+        assert v is not None
+
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({
+                'versionTitle': 'TestVersionForBulkDelete',
+                'indices': ['Genesis'],
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+        assert data['successes'] == ['Genesis']
+        assert data['failures'] == []
+
+        # Version should be gone
+        v = Version().load({
+            'versionTitle': 'TestVersionForBulkDelete',
+            'title': 'Genesis',
+        })
+        assert v is None, "Version should have been deleted"
+
+        # History record should exist
+        history_record = db.history.find_one({
+            'title': 'Genesis',
+            'version': 'TestVersionForBulkDelete',
+            'rev_type': 'delete text',
+        })
+        assert history_record is not None, "delete text history record should have been written"
+
+        # Cleanup history record we just asserted on
+        db.history.delete_one({'_id': history_record['_id']})
+
+    @pytest.mark.django_db
+    def test_bulk_delete_partial_success(self, staff_client):
+        """Mix of real + bogus indices should yield partial status with both successes and failures."""
+        from sefaria.model import Version
+        from sefaria.system.database import db
+
+        test_version = Version({
+            'versionTitle': 'TestVersionForPartialDelete',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        test_version.save()
+
+        response = staff_client.post(
+            '/api/version-bulk-delete',
+            data=json.dumps({
+                'versionTitle': 'TestVersionForPartialDelete',
+                'indices': ['Genesis', 'NonexistentBook12345'],
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'partial'
+        assert data['successes'] == ['Genesis']
+        assert len(data['failures']) == 1
+        assert data['failures'][0]['index'] == 'NonexistentBook12345'
+
+        # Verify the real version was actually deleted
+        v = Version().load({
+            'versionTitle': 'TestVersionForPartialDelete',
+            'title': 'Genesis',
+        })
+        assert v is None
+
+        # Cleanup history record from the successful delete
+        db.history.delete_many({
+            'title': 'Genesis',
+            'version': 'TestVersionForPartialDelete',
+            'rev_type': 'delete text',
+        })
+
+
 class TestCheckIndexDependenciesAPI:
     """Tests for /api/check-index-dependencies endpoint."""
 

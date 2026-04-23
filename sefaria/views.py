@@ -77,7 +77,9 @@ from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, Sefa
 from remote_config import remoteConfigCache
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_linked, invalidate_counts, invalidate_all
+
+from sefaria.history import record_version_deletion
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -1773,6 +1775,76 @@ def version_bulk_edit_api(request):
             failures.append({"index": index_title, "error": error_msg})
 
     # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
+
+
+@staff_member_required
+def version_bulk_delete_api(request):
+    """
+    Bulk delete Versions (hard delete) for multiple indices that share a versionTitle.
+
+    Request:
+      POST {"versionTitle": "...", "indices": [...], "language": "he" (optional)}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        indices = data["indices"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    language = data.get("language")
+
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            load_query = {"title": index_title, "versionTitle": version_title}
+            if language:
+                load_query["language"] = language
+            version = Version().load(load_query)
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            # Capture language before delete since it's needed for history + varnish
+            lang = version.language
+            version.delete()
+            record_version_deletion(index_title, version_title, lang, request.user.id)
+
+            if USE_VARNISH:
+                try:
+                    oref = Ref(index_title)
+                    invalidate_linked(oref)
+                    invalidate_ref(oref, lang, version_title)
+                except Exception as e:
+                    logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
+
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
     result = {
         "status": "ok" if not failures else "partial" if successes else "error",
         "successes": successes,

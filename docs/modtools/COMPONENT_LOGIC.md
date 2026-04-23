@@ -244,6 +244,18 @@ Body: { versionTitle, language, indices: [...], updates: {...} }
 Response: { status: "ok"|"partial"|"error", count, total, successes, failures }
 ```
 
+**Delete Versions** (hard delete):
+```
+POST /api/version-bulk-delete
+Body: { versionTitle, language (optional), indices: [...] }
+Response: { status: "ok"|"partial"|"error", successes, failures }
+```
+Performs a real `Version.delete()` per index, which triggers the cascade-delete listeners
+(notifications, search index, version_state, etc.) and records `rev_type: "delete text"`
+in `db.history`. The frontend requires the user to retype the exact `versionTitle` before
+enabling the delete button. Both API calls share the same `performBulkEdit` helper in the
+component.
+
 ---
 
 ## BulkIndexEditor
@@ -575,7 +587,7 @@ const save = () => {
 BulkVersionEditor.jsx
   ├── imports: VERSION_FIELD_METADATA (fieldMetadata.js)
   ├── imports: ModToolsSection, IndexSelector, StatusMessage (shared/)
-  └── API: /api/version-indices, /api/version-bulk-edit
+  └── API: /api/version-indices, /api/version-bulk-edit, /api/version-bulk-delete
 
 BulkIndexEditor.jsx
   ├── imports: INDEX_FIELD_METADATA (fieldMetadata.js)
