@@ -107,6 +107,8 @@ spec:
             value: "true"
           - name: DD_PROFILING_ENABLED
             value: "true"
+          - name: DD_RUNTIME_METRICS_ENABLED
+            value: "true"
           {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
