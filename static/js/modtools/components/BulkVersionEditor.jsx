@@ -491,7 +491,7 @@ const BulkVersionEditor = () => {
 
         {isRequired ? (
           <div className="clearFieldOption requiredFieldNote">
-            This field is required on every Version and cannot be cleared.
+            This field is required on every Version and cannot be cleared.  However, you don't need to specify a value for it.
           </div>
         ) : (
           <div className="clearFieldOption">
