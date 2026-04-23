@@ -1,3 +1,5 @@
+import re
+
 from django.urls import re_path
 from django.conf.urls import url
 from django.contrib import admin
@@ -78,6 +80,7 @@ shared_patterns = [
     url(r'^api/versions/?$', reader_views.complete_version_api),
     url(r'^api/version-indices$', sefaria_views.version_indices_api),
     url(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
+    url(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
@@ -275,7 +278,6 @@ shared_patterns = [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    re_path(r'{ADMIN_PATH}/?', admin.site.urls),
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
@@ -291,7 +293,7 @@ shared_patterns += [
 maintenance_patterns = [
     url(r'^admin/reset/cache', sefaria_views.reset_cache),
     re_path(r'admin/?', admin.site.urls),
-    re_path(r'{ADMIN_PATH}/?', admin.site.urls),
+    re_path(r'^' + re.escape(ADMIN_PATH) + r'/?', admin.site.urls),
     url(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     url(r'^health-check/?$', reader_views.application_health_api),
     url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
