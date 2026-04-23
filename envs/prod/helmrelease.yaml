@@ -232,6 +232,8 @@ spec:
       jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
     datadog:
       enabled: true
+      profiling:
+        enabled: true
     localSettings:
       DEBUG: false
       OFFLINE: false
