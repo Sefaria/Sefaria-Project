@@ -105,6 +105,8 @@ spec:
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
+          - name: DD_PROFILING_ENABLED
+            value: "true"
           {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
