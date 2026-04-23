@@ -31,7 +31,7 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 # Global flag for debug mode
 DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 2000 # Number of random examples to fetch in debug mode
+DEBUG_LIMIT = 100 # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6139  # Seed for reproducible random sampling
 
 DEBUG_CACHE_DIR = os.path.join(os.path.dirname(__file__), "debug_cache")
@@ -43,7 +43,7 @@ def _debug_cached_sample(cache_name: str, query: dict, collection, limit: int) -
     Otherwise, run the MongoDB $sample aggregation, save results to disk, and return them.
     """
     os.makedirs(DEBUG_CACHE_DIR, exist_ok=True)
-    cache_path = os.path.join(DEBUG_CACHE_DIR, f"{cache_name}.json")
+    cache_path = os.path.join(DEBUG_CACHE_DIR, f"{cache_name}_{limit}.json")
 
     if os.path.exists(cache_path):
         print(f"  Loading cached sample from {cache_path}")
