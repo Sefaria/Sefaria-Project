@@ -35,3 +35,132 @@
     </div>
 </div>
 {% endblock %}
+
+{% block js %}
+<script>
+(function registrationAnalytics() {
+    // Tracks the 4 GA4 funnel events for the registration form:
+    // form_start (first field focus), form_submit (submit click),
+    // form_submit_result (success/failure via AJAX), form_end (page leave).
+    // flow_id ties all 4 events to the same page visit; from comes from ?from= on the URL.
+    const flowId    = crypto.randomUUID();
+    const fromParam = new URLSearchParams(window.location.search).get('from') || undefined;
+    const form      = document.getElementById('register-form');
+
+    const BASE_PARAMS = {
+        project:      'site_registration',
+        feature_name: 'site_registration_form',
+        flow_id:      flowId,
+        from:         fromParam,
+    };
+
+    function getFilledFields() {
+        const filled = ['email', 'first_name', 'last_name', 'password1'].filter(f => {
+            const el = document.getElementById('id_' + f);
+            return el && el.value.length > 0;
+        });
+        return filled.length ? filled.join('|') : null;
+    }
+
+    function fireFormSubmitResult(status, error) {
+        gtag('event', 'form_submit_result', { ...BASE_PARAMS, status, text: getFilledFields(), ...(error && { error }) });
+    }
+
+    function displayErrors(errors) {
+        form.querySelectorAll('.errorlist').forEach(el => el.remove());
+        Object.entries(errors).forEach(([field, message]) => {
+            const ul = document.createElement('ul');
+            ul.className = 'errorlist' + (field === '__all__' ? ' nonfield' : '');
+            const li = document.createElement('li');
+            li.textContent = message;
+            ul.appendChild(li);
+            if (field === '__all__') {
+                form.prepend(ul);
+            } else {
+                document.getElementById('id_' + field)?.closest('p')?.prepend(ul);
+            }
+        });
+    }
+
+    // form_start — fires once on first focus of any input
+    const onFirstFocus = () => {
+        gtag('event', 'form_start', BASE_PARAMS);
+        form.querySelectorAll('input').forEach(input => input.removeEventListener('focus', onFirstFocus));
+    };
+    form.querySelectorAll('input').forEach(input => input.addEventListener('focus', onFirstFocus));
+
+    // form_submit — fires on any submit button click, decoupled from the AJAX path
+    // Also resets the browser validation flag so each attempt is tracked independently
+    let browserValidationFailed = false;
+    form.querySelector('[type="submit"]').addEventListener('click', () => {
+        browserValidationFailed = false;
+        gtag('event', 'form_submit', { ...BASE_PARAMS, text: getFilledFields() });
+    });
+
+    // form_submit_result:failure — browser validation blocked the submit
+    // `invalid` fires per-field; the flag collapses multiple fields into one event per attempt
+    form.addEventListener('invalid', () => {
+        if (!browserValidationFailed) {
+            browserValidationFailed = true;
+            fireFormSubmitResult('failure', 'browser_validation');
+        }
+    }, true); // capture phase: `invalid` doesn't bubble
+
+    // AJAX submission + form_submit_result
+    let registrationStatus = 'failure';
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        formData.append('noredirect', '1');
+
+        fetch(form.action, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.redirect) {
+                    registrationStatus = 'success';
+                    fireFormSubmitResult('success');
+                    window.location.href = data.redirect;
+                } else {
+                    const errorSummary = Object.entries(data).map(([k, v]) => `${k}: ${v}`).join(' | ');
+                    fireFormSubmitResult('failure', errorSummary);
+                    displayErrors(data);
+                }
+            })
+            .catch(() => {
+                // Network or JSON parse error — fall back to a standard form submission
+                form.submit();
+            });
+    });
+
+    // form_end — fires when user navigates away (React SPA or full-page)
+    // Guard: multiple listeners (pushstate, popstate, beforeunload) could fire on the same navigation
+    let formEndFired = false;
+    function fireFormEnd() {
+        if (formEndFired) { return; }
+        formEndFired = true;
+        // transport_type: 'beacon' ensures the request is sent even as the page unloads
+        gtag('event', 'form_end', { ...BASE_PARAMS, status: registrationStatus, text: getFilledFields(), transport_type: 'beacon' });
+        history.pushState = originalPushState;
+        window.removeEventListener('pushstate', fireFormEnd);
+        window.removeEventListener('popstate', fireFormEnd);
+        window.removeEventListener('beforeunload', fireFormEnd);
+    }
+
+    // React Router uses history.pushState for client-side navigation.
+    // We dispatch a custom 'pushstate' event to avoid putting logic directly in the patched function.
+    const originalPushState = history.pushState;
+    history.pushState = function(...args) {
+        const result = originalPushState.apply(this, args);
+        window.dispatchEvent(new Event('pushstate'));
+        return result;
+    };
+    window.addEventListener('pushstate', fireFormEnd);
+    window.addEventListener('popstate', fireFormEnd);
+
+    // Full-page navigation and tab close
+    window.addEventListener('beforeunload', fireFormEnd);
+})();
+</script>
+{% endblock %}
