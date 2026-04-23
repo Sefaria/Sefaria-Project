@@ -166,6 +166,13 @@ const isValidUrl = (string) => {
 const URL_FIELDS = ['versionSource', 'purchaseInformationURL', 'purchaseInformationImage'];
 
 /**
+ * Fields that are required on a Version record and therefore cannot be cleared.
+ * Mirrors Version.required_attrs in sefaria/model/text.py (only fields editable
+ * via this tool are listed here).
+ */
+const REQUIRED_FIELDS = new Set(['versionSource', 'isSource', 'isPrimary', 'direction']);
+
+/**
  * Validate a field value and return error message if invalid
  * Only validates URL fields - returns null for all other fields
  */
@@ -421,12 +428,14 @@ const BulkVersionEditor = () => {
     const value = updates[fieldName] || "";
     const error = validationErrors[fieldName];
     const hasError = !!error;
-    const isClearing = fieldsToClear.has(fieldName);
+    const isRequired = REQUIRED_FIELDS.has(fieldName);
+    const isClearing = !isRequired && fieldsToClear.has(fieldName);
 
     return (
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
         <label>
           {meta.label}:
+          {isRequired && <span className="requiredFieldLabel">Required</span>}
         </label>
 
         {meta.help && (
@@ -481,18 +490,20 @@ const BulkVersionEditor = () => {
           <div className="fieldError">{error}</div>
         )}
 
-        <div className="clearFieldOption">
-          <label>
-            <input
-              type="checkbox"
-              checked={isClearing}
-              onChange={e => handleClearToggle(fieldName, e.target.checked)}
-            />
-            <span className="clearFieldLabel">
-              Clear this field
-            </span>
-          </label>
-        </div>
+        {!isRequired && (
+          <div className="clearFieldOption">
+            <label>
+              <input
+                type="checkbox"
+                checked={isClearing}
+                onChange={e => handleClearToggle(fieldName, e.target.checked)}
+              />
+              <span className="clearFieldLabel">
+                Clear this field
+              </span>
+            </label>
+          </div>
+        )}
       </div>
     );
   };
