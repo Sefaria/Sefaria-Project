@@ -152,25 +152,30 @@
     // form_end — fires when user navigates away (React SPA or full-page)
     // Guard: multiple listeners (pushstate, popstate, beforeunload) could fire on the same navigation
     let formEndFired = false;
+
+    // React Router uses history.pushState for client-side navigation.
+    // We dispatch a custom 'pushstate' event to avoid putting logic directly in the patched function.
+    const originalPushState = history.pushState;
+    const patchedPushState = function(...args) {
+        const result = originalPushState.apply(this, args);
+        window.dispatchEvent(new Event('pushstate'));
+        return result;
+    };
+    history.pushState = patchedPushState;
+
     function fireFormEnd() {
         if (formEndFired) { return; }
         formEndFired = true;
         // transport_type: 'beacon' ensures the request is sent even as the page unloads
         fireEvent('form_end', { status: registrationStatus, transport_type: 'beacon' });
-        history.pushState = originalPushState;
+        // Only restore if no other script has patched pushState after us;
+        // if they have, leave their patch in place — our listener is removed so the
+        // dispatched 'pushstate' event becomes harmless.
+        if (history.pushState === patchedPushState) { history.pushState = originalPushState; }
         window.removeEventListener('pushstate', fireFormEnd);
         window.removeEventListener('popstate', fireFormEnd);
         window.removeEventListener('beforeunload', fireFormEnd);
     }
-
-    // React Router uses history.pushState for client-side navigation.
-    // We dispatch a custom 'pushstate' event to avoid putting logic directly in the patched function.
-    const originalPushState = history.pushState;
-    history.pushState = function(...args) {
-        const result = originalPushState.apply(this, args);
-        window.dispatchEvent(new Event('pushstate'));
-        return result;
-    };
     window.addEventListener('pushstate', fireFormEnd);
     window.addEventListener('popstate', fireFormEnd);
 
