@@ -98,6 +98,10 @@ spec:
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
+          {{- if .Values.datadog.profiling.enabled }}
+          - name: DD_PROFILING_ENABLED
+            value: "true"
+          {{- end }}
           {{- end }}
           {{- with .Values.gpuServer }}
           - name: GPU_SERVER_HOST
