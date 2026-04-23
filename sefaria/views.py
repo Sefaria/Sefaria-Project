@@ -1784,6 +1784,95 @@ def version_bulk_edit_api(request):
 
 
 @staff_member_required
+def version_bulk_rename_api(request):
+    """
+    Bulk rename Version.versionTitle for multiple indices.
+
+    Request:
+      POST {"versionTitle": "...", "newVersionTitle": "...", "indices": [...], "language": "he" (optional)}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        new_version_title = data["newVersionTitle"]
+        indices = data["indices"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    if not isinstance(new_version_title, str):
+        return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
+
+    new_version_title = new_version_title.strip()
+    if not new_version_title:
+        return jsonResponse({"error": "newVersionTitle may not be empty"}, status=400)
+
+    if isinstance(version_title, str) and version_title.strip() == new_version_title:
+        return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
+
+    language = data.get("language")
+
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            load_query = {"title": index_title, "versionTitle": version_title}
+            if language:
+                load_query["language"] = language
+            version = Version().load(load_query)
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            collision_query = {"title": index_title, "versionTitle": new_version_title}
+            if language:
+                collision_query["language"] = language
+            existing = Version().load(collision_query)
+            if existing and getattr(existing, "_id", None) != getattr(version, "_id", None):
+                failures.append({"index": index_title, "error": f'Version "{new_version_title}" already exists'})
+                continue
+
+            # Capture language before updating since it's needed for varnish invalidation
+            lang = version.language
+            tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
+
+            if USE_VARNISH:
+                try:
+                    oref = Ref(index_title)
+                    invalidate_linked(oref)
+                    invalidate_ref(oref, lang, version_title)
+                    invalidate_ref(oref, lang, new_version_title)
+                except Exception as e:
+                    logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
+
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
+
+
+@staff_member_required
 def version_bulk_delete_api(request):
     """
     Bulk delete Versions (hard delete) for multiple indices that share a versionTitle.
