@@ -278,6 +278,7 @@ shared_patterns = [
     url(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     url(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     url(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
+    re_path(r'^' + re.escape(ADMIN_PATH) + r'/?', admin.site.urls),
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     url(r'^api/async/(?P<task_id>.+)$', sefaria_views.async_task_status_api),
