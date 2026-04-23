@@ -62,8 +62,19 @@
         return filled.length ? filled.join('|') : null;
     }
 
+    /**
+     * Safe wrapper around gtag(). Merges BASE_PARAMS and text automatically.
+     * GA can be undefined when blocked by an ad blocker or a content policy. Without this
+     * guard, a thrown exception in the success branch would prevent window.location.href
+     * from running, leaving the user stuck after account creation.
+     */
+    function fireEvent(name, extraParams) {
+        if (typeof gtag !== 'function') { return; }
+        gtag('event', name, { ...BASE_PARAMS, text: getFilledFields(), ...extraParams });
+    }
+
     function fireFormSubmitResult(status, error) {
-        gtag('event', 'form_submit_result', { ...BASE_PARAMS, status, text: getFilledFields(), ...(error && { error }) });
+        fireEvent('form_submit_result', { status, ...(error && { error }) });
     }
 
     function displayErrors(errors) {
@@ -84,7 +95,7 @@
 
     // form_start — fires once on first focus of any input
     const onFirstFocus = () => {
-        gtag('event', 'form_start', BASE_PARAMS);
+        fireEvent('form_start');
         form.querySelectorAll('input').forEach(input => input.removeEventListener('focus', onFirstFocus));
     };
     form.querySelectorAll('input').forEach(input => input.addEventListener('focus', onFirstFocus));
@@ -94,7 +105,7 @@
     let browserValidationFailed = false;
     form.querySelector('[type="submit"]').addEventListener('click', () => {
         browserValidationFailed = false;
-        gtag('event', 'form_submit', { ...BASE_PARAMS, text: getFilledFields() });
+        fireEvent('form_submit');
     });
 
     // form_submit_result:failure — browser validation blocked the submit
@@ -141,7 +152,7 @@
         if (formEndFired) { return; }
         formEndFired = true;
         // transport_type: 'beacon' ensures the request is sent even as the page unloads
-        gtag('event', 'form_end', { ...BASE_PARAMS, status: registrationStatus, text: getFilledFields(), transport_type: 'beacon' });
+        fireEvent('form_end', { status: registrationStatus, transport_type: 'beacon' });
         history.pushState = originalPushState;
         window.removeEventListener('pushstate', fireFormEnd);
         window.removeEventListener('popstate', fireFormEnd);
