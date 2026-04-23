@@ -100,12 +100,16 @@
     };
     form.querySelectorAll('input').forEach(input => input.addEventListener('focus', onFirstFocus));
 
-    // form_submit — fires on any submit button click, decoupled from the AJAX path
+    // form_submit — fires on submit button click or Enter key in a single-line input
     // Also resets the browser validation flag so each attempt is tracked independently
     let browserValidationFailed = false;
-    form.querySelector('[type="submit"]').addEventListener('click', () => {
+    function onSubmitAttempt() {
         browserValidationFailed = false;
         fireEvent('form_submit');
+    }
+    form.querySelector('[type="submit"]').addEventListener('click', onSubmitAttempt);
+    form.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT') { onSubmitAttempt(); }
     });
 
     // form_submit_result:failure — browser validation blocked the submit
