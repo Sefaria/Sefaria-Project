@@ -363,6 +363,21 @@ entries:
     version: 0.82.0-fixmongo-backup.1
   - apiVersion: v2
     appVersion: v6.87.0-prod.1
+    created: "2026-04-23T14:20:47.772557287Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 7494a0f45dda37721a4d3f9ecfa7a5210142b9e173c60cc506139498bf5abc23
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.82.0-featdd-profiling-enable.2.tgz
+    version: 0.82.0-featdd-profiling-enable.2
+  - apiVersion: v2
+    appVersion: v6.87.0-prod.1
     created: "2026-04-23T14:09:28.127570861Z"
     description: Chart to deploy complete Sefaria environment
     digest: b71fa5194752d37ce3fad42ebdc022bc7b4c70509263354d6c53274968cda52d
@@ -15540,4 +15555,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-04-23T14:09:28.124339613Z"
+generated: "2026-04-23T14:20:47.769980789Z"
