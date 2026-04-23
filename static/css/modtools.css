@@ -956,19 +956,11 @@
   line-height: 1.5;
 }
 
-.modTools .requiredFieldLabel {
-  display: inline-block;
-  margin-left: var(--mt-space-sm);
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #a33;
-  background: #fbe9e9;
-  border: 1px solid #f0cccc;
-  border-radius: var(--mt-radius-sm, 3px);
-  vertical-align: middle;
+.modTools .requiredFieldNote {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--mt-text-muted);
+  line-height: 1.4;
 }
 
 /* Field group sections */

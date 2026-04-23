@@ -435,7 +435,6 @@ const BulkVersionEditor = () => {
       <div key={fieldName} className={`fieldGroup ${hasError ? 'hasError' : ''}`}>
         <label>
           {meta.label}:
-          {isRequired && <span className="requiredFieldLabel">Required</span>}
         </label>
 
         {meta.help && (
@@ -490,7 +489,11 @@ const BulkVersionEditor = () => {
           <div className="fieldError">{error}</div>
         )}
 
-        {!isRequired && (
+        {isRequired ? (
+          <div className="clearFieldOption requiredFieldNote">
+            This field is required on every Version and cannot be cleared.
+          </div>
+        ) : (
           <div className="clearFieldOption">
             <label>
               <input
