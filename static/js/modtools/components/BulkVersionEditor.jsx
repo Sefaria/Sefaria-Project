@@ -52,7 +52,7 @@ const HELP_CONTENT = (
     <h3>Available Fields</h3>
     <p>
       <strong>Note:</strong> The version title you searched for is used to identify which versions to update.
-      To rename a version, edit it individually (not in bulk).
+      To rename a version title across many texts, use the Rename action at the bottom of this tool.
     </p>
     <table className="field-table">
       <thead>
@@ -208,6 +208,9 @@ const BulkVersionEditor = () => {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showRenameConfirm, setShowRenameConfirm] = useState(false);
+  const [renameNewTitle, setRenameNewTitle] = useState("");
+  const [renameConfirmText, setRenameConfirmText] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
@@ -222,6 +225,9 @@ const BulkVersionEditor = () => {
     setFieldsToClear(new Set());
     setMsg("");
     setSearched(false);
+    setShowRenameConfirm(false);
+    setRenameNewTitle("");
+    setRenameConfirmText("");
     setShowDeleteConfirm(false);
     setDeleteConfirmText("");
   }, []);
@@ -229,8 +235,9 @@ const BulkVersionEditor = () => {
   /**
    * Load indices that have versions matching the search criteria
    */
-  const load = async () => {
-    if (!vtitle.trim()) {
+  const load = async (overrideVtitle = null) => {
+    const vtitleToLoad = (overrideVtitle ?? vtitle).trim();
+    if (!vtitleToLoad) {
       setMsg({ type: MESSAGE_TYPES.WARNING, message: 'Please enter a version title' });
       return;
     }
@@ -239,7 +246,7 @@ const BulkVersionEditor = () => {
     setSearched(true);
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Loading indices...' });
 
-    const urlParams = { versionTitle: vtitle };
+    const urlParams = { versionTitle: vtitleToLoad };
     if (lang) {
       urlParams.language = lang;
     }
@@ -437,6 +444,39 @@ const BulkVersionEditor = () => {
   };
 
   /**
+   * Rename versionTitle across selected indices via the bulk rename API.
+   * On full success, refresh results using the new title.
+   */
+  const renameVersions = async () => {
+    if (!pick.size) return;
+
+    const newTitleTrimmed = renameNewTitle.trim();
+    if (!newTitleTrimmed || newTitleTrimmed === vtitle.trim()) return;
+
+    setShowRenameConfirm(false);
+    setRenameConfirmText("");
+    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Renaming versions...' });
+
+    const extraPayload = {
+      newVersionTitle: newTitleTrimmed,
+      ...(lang ? { language: lang } : {})
+    };
+
+    await performBulkEdit(
+      '/api/version-bulk-rename',
+      extraPayload,
+      (successCount) => `Successfully renamed ${successCount} versions`,
+      (successCount, total, failureList) => `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+      (failureCount, failureList) => `All ${failureCount} renames failed:\n${failureList}`,
+      () => {
+        setRenameNewTitle("");
+        setVtitle(newTitleTrimmed);
+        load(newTitleTrimmed);
+      }
+    );
+  };
+
+  /**
    * Render a field input based on its metadata
    * All fields in FIELD_GROUPS are guaranteed to have metadata in VERSION_FIELD_METADATA
    */
@@ -585,7 +625,7 @@ const BulkVersionEditor = () => {
         />
         <button
           className="modtoolsButton"
-          onClick={load}
+          onClick={() => load()}
           disabled={loading || !vtitle.trim()}
         >
           {loading ? <><span className="loadingSpinner" />Searching...</> : "Search"}
@@ -702,6 +742,84 @@ const BulkVersionEditor = () => {
               )}
             </button>
           </div>
+
+          {/* Rename section - separate action */}
+          <div className="deleteSectionSeparator" />
+
+          {showRenameConfirm && (
+            <div className="dangerBox">
+              <strong>Rename Version Title</strong>
+              <p className="sectionDescription">
+                This will rename the version title from <code>{vtitle}</code> to a new title for the
+                <strong> {pick.size}</strong> selected text{pick.size === 1 ? '' : 's'}. This action is applied immediately and cannot be undone.
+              </p>
+              <p className="sectionDescription">
+                Affected texts: {Array.from(pick).slice(0, 5).join(", ")}
+                {pick.size > 5 && ` and ${pick.size - 5} more...`}
+              </p>
+
+              <p className="sectionDescription">
+                New version title:
+              </p>
+              <input
+                className="dlVersionSelect"
+                type="text"
+                value={renameNewTitle}
+                onChange={e => setRenameNewTitle(e.target.value)}
+                placeholder="Enter new version title"
+                disabled={saving}
+              />
+
+              <p className="sectionDescription">
+                To confirm, type the current version title <code>{vtitle}</code> below:
+              </p>
+              <input
+                className="dlVersionSelect"
+                type="text"
+                value={renameConfirmText}
+                onChange={e => setRenameConfirmText(e.target.value)}
+                placeholder={vtitle}
+                disabled={saving}
+              />
+              <div className="actionRow">
+                <button
+                  className="modtoolsButton danger"
+                  onClick={renameVersions}
+                  disabled={
+                    saving ||
+                    renameConfirmText !== vtitle ||
+                    !renameNewTitle.trim() ||
+                    renameNewTitle.trim() === vtitle.trim()
+                  }
+                >
+                  {saving ? <><span className="loadingSpinner" />Renaming...</> : "Yes, Rename Versions"}
+                </button>
+                <button
+                  className="modtoolsButton secondary"
+                  onClick={() => {
+                    setShowRenameConfirm(false);
+                    setRenameConfirmText("");
+                  }}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!showRenameConfirm && (
+            <div className="actionRow">
+              <button
+                className="modtoolsButton"
+                onClick={() => setShowRenameConfirm(true)}
+                disabled={saving}
+                type="button"
+              >
+                Rename Version Title
+              </button>
+            </div>
+          )}
 
           {/* Delete section - separated at bottom */}
           <div className="deleteSectionSeparator" />

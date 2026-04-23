@@ -256,6 +256,16 @@ in `db.history`. The frontend requires the user to retype the exact `versionTitl
 enabling the delete button. Both API calls share the same `performBulkEdit` helper in the
 component.
 
+**Rename Version Title**:
+```
+POST /api/version-bulk-rename
+Body: { versionTitle, newVersionTitle, language (optional), indices: [...] }
+Response: { status: "ok"|"partial"|"error", successes, failures }
+```
+Renames `Version.versionTitle` per selected index. On full success, the frontend updates the
+search field to the new title and reloads results. On partial success, the cohort is split and
+the user can search for the new title to see which texts were renamed.
+
 ---
 
 ## BulkIndexEditor
