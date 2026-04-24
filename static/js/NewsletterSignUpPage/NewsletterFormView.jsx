@@ -142,6 +142,7 @@ export default function NewsletterFormView({
             </h3>
             {/* Error placed outside flex row so both inputs stay aligned */}
             <InlineError fieldName="firstName" errors={fieldErrors} />
+            <InlineError fieldName="lastName" errors={fieldErrors} />
             <div className="nameFieldsRow">
               <div className="formField firstNameField">
                 <input
@@ -164,12 +165,15 @@ export default function NewsletterFormView({
                 <input
                   id="lastName"
                   type="text"
-                  placeholder={Sefaria._("Last Name (Optional)")}
+                  placeholder={Sefaria._("Last Name")}
                   value={formData.lastName}
                   onChange={(e) => onLastNameChange(e.target.value)}
+                  onBlur={() => onFieldBlur && onFieldBlur("lastName")}
                   disabled={isSubmitting}
-                  aria-label={Sefaria._("Last Name (Optional)")}
-                  aria-required="false"
+                  aria-label={Sefaria._("Last Name")}
+                  aria-invalid={!!fieldErrors.lastName}
+                  aria-describedby={fieldErrors.lastName ? "lastName-error" : undefined}
+                  className={fieldErrors.lastName ? "hasError" : ""}
                   data-anl-event="form_interaction:inputStart"
                   data-anl-form_name="newsletter_signup"
                 />

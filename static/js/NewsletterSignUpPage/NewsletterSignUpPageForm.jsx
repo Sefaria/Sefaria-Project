@@ -292,6 +292,12 @@ export default function NewsletterSignUpPageForm() {
         }
         return null;
       },
+      lastName: () => {
+        if (!formStatus.isLoggedIn && !formData.lastName.trim()) {
+          return BILINGUAL_TEXT.ENTER_LAST_NAME;
+        }
+        return null;
+      },
       email: () => {
         if (!formData.email.trim()) {
           return BILINGUAL_TEXT.ENTER_EMAIL;
@@ -476,6 +482,11 @@ export default function NewsletterSignUpPageForm() {
     // First name (logged-out only)
     if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
       errors.firstName = BILINGUAL_TEXT.ENTER_FIRST_NAME;
+    }
+
+    // Last name (logged-out only)
+    if (!formStatus.isLoggedIn && !formData.lastName.trim()) {
+      errors.lastName = BILINGUAL_TEXT.ENTER_LAST_NAME;
     }
 
     // Email

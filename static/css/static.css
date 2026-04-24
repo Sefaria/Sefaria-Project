@@ -3741,6 +3741,21 @@ form.globalUpdateForm + div.notificationsList {
   background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-he.png");
 }
 
+@media screen and (max-width: 700px) {
+  .staticPage .staticPageHeader.newsletter {
+    min-height: 415px;
+    box-sizing: border-box;
+  }
+
+  .interface-english .staticPage .staticPageHeader.newsletter {
+    background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-en-mobile.png");
+  }
+
+  .interface-hebrew .staticPage .staticPageHeader.newsletter {
+    background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-he-mobile.png");
+  }
+}
+
 .staticPage .feature .featureIframe {
   display: flex;
   align-items: center;

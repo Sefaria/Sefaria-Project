@@ -153,6 +153,15 @@ describe('NewsletterFormView', () => {
       expect(html).toContain(BILINGUAL_TEXT.VALID_EMAIL.en);
     });
 
+    it('renders last name error with correct message', () => {
+      const html = renderView({
+        hasAttemptedSubmit: true,
+        fieldErrors: { lastName: BILINGUAL_TEXT.ENTER_LAST_NAME },
+      });
+
+      expect(html).toContain(BILINGUAL_TEXT.ENTER_LAST_NAME.en);
+    });
+
     it('does not render error when fieldErrors is empty', () => {
       const html = renderView({
         hasAttemptedSubmit: false,
@@ -243,6 +252,13 @@ describe('NewsletterFormView', () => {
       });
 
       expect(html).not.toContain('newsletterErrorSummary');
+    });
+
+    it('renders last name field without the optional caption', () => {
+      const html = renderView();
+
+      expect(html).toContain('placeholder="Last Name"');
+      expect(html).not.toContain('Last Name (Optional)');
     });
   });
 

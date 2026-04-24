@@ -50,7 +50,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     // Verify input fields exist (first name, last name, email, confirm email)
     const inputs = page.locator('form input[type="text"], form input[type="email"]');
     const inputCount = await inputs.count();
-    expect(inputCount).toBeGreaterThanOrEqual(3); // At least first name, email, and confirm email
+    expect(inputCount).toBeGreaterThanOrEqual(4);
 
     // Verify newsletter checkboxes exist (should be 6)
     const checkboxes = page.locator('form input[type="checkbox"]');
@@ -68,7 +68,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
 
-    // Fill last name (optional)
+    // Fill last name
     const lastNameInput = page.locator('input#lastName');
     if (await lastNameInput.isVisible()) {
       await lastNameInput.fill('Doe');
@@ -101,6 +101,10 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('Jane');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // Fill email and confirm email
     const emailInputs = page.locator('input[type="email"]');
@@ -158,7 +162,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
 
-    // Fill last name (optional)
+    // Fill last name
     const lastNameInput = page.locator('input#lastName');
     if (await lastNameInput.isVisible()) {
       await lastNameInput.fill('Doe');
@@ -315,19 +319,21 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     // Should list multiple errors in the summary
     const errorItems = page.locator('.errorSummaryList li');
     const errorCount = await errorItems.count();
-    expect(errorCount).toBeGreaterThanOrEqual(3); // firstName, email, newsletters at minimum
+    expect(errorCount).toBe(4);
 
     // Should have inline errors above fields
     const inlineErrors = page.locator('.inlineFieldError');
     const inlineCount = await inlineErrors.count();
-    expect(inlineCount).toBeGreaterThanOrEqual(3);
+    expect(inlineCount).toBe(4);
 
     // Verify specific errors are shown
     const firstNameError = page.locator('#firstName-error');
+    const lastNameError = page.locator('#lastName-error');
     const emailError = page.locator('#email-error');
     const newslettersError = page.locator('#newsletters-error');
 
     await expect(firstNameError).toBeVisible();
+    await expect(lastNameError).toBeVisible();
     await expect(emailError).toBeVisible();
     await expect(newslettersError).toBeVisible();
   });
@@ -382,7 +388,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
 
     // Count initial errors
     const initialErrorCount = await page.locator('.errorSummaryList li').count();
-    expect(initialErrorCount).toBeGreaterThanOrEqual(3);
+    expect(initialErrorCount).toBe(4);
 
     // Fix first name
     await page.locator('input#firstName').fill('John');
@@ -438,6 +444,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   test('should validate email format and show appropriate error', async ({ page }) => {
     // Fill invalid email
     await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
     await page.locator('input#email').fill('not-an-email');
     await page.locator('input#confirmEmail').fill('not-an-email');
 
@@ -458,6 +465,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   test('should show mismatched email error when emails do not match', async ({ page }) => {
     // Fill form with mismatched emails
     await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
     await page.locator('input#email').fill('john@example.com');
     await page.locator('input#confirmEmail').fill('jane@example.com');
 
@@ -494,6 +502,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
 
     // Fill remaining required fields and re-submit to trigger fresh validation
     await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
     const emailInputs = page.locator('input[type="email"]');
     await emailInputs.nth(0).fill('john@example.com');
     await emailInputs.nth(1).fill('john@example.com');

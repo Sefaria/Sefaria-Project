@@ -3,10 +3,11 @@
  *
  * Tests all form validation rules and error handling:
  * 1. First name validation (required for logged-out users)
- * 2. Email validation (format checking)
- * 3. Newsletter selection (at least one required)
- * 4. Error message display and clearing
- * 5. Form state after validation errors
+ * 2. Last name validation (required for logged-out users)
+ * 3. Email validation (format checking)
+ * 4. Newsletter selection (at least one required)
+ * 5. Error message display and clearing
+ * 6. Form state after validation errors
  *
  * Error UI structure (multi-error system):
  * - .newsletterErrorSummary  — top-level summary banner (focused on error)
@@ -66,10 +67,49 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await expect(firstNameError).toBeVisible();
   });
 
+  test('should show error when trying to submit without last name', async ({ page }) => {
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Leave last name empty
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('test@example.com');
+    await emailInputs.nth(1).fill('test@example.com');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Try to submit without last name
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for error to appear
+    await page.waitForTimeout(500);
+
+    // Check for error summary at the top
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
+
+    // Check the summary contains a last name error
+    const summaryText = await errorSummary.textContent();
+    expect(summaryText.toLowerCase()).toContain('last name');
+
+    // Check inline error on the last name field
+    const lastNameError = page.locator('#lastName-error');
+    await expect(lastNameError).toBeVisible();
+  });
+
   test('should show error when trying to submit without email', async ({ page }) => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // Leave email empty
     // Select a newsletter
@@ -100,6 +140,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // Fill with invalid email in both fields
     const emailInputs = page.locator('input[type="email"]');
@@ -139,6 +183,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
 
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
+
     // Fill email and confirm email
     const emailInputs = page.locator('input[type="email"]');
     await emailInputs.nth(0).fill('john@example.com');
@@ -170,6 +218,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
+
+    // Fill last name so email is the only remaining field error
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // Leave email empty and try to submit
     const emailInputs = page.locator('input[type="email"]');
@@ -227,6 +279,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
       const firstNameInput = page.locator('input#firstName');
       await firstNameInput.fill('John');
 
+      // Fill last name
+      const lastNameInput = page.locator('input#lastName');
+      await lastNameInput.fill('Doe');
+
       // Fill email and confirm email with same valid email
       const emailInputs = page.locator('input[type="email"]');
       await emailInputs.nth(0).fill(email);
@@ -279,6 +335,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
       const firstNameInput = page.locator('input#firstName');
       await firstNameInput.fill('John');
 
+      // Fill last name
+      const lastNameInput = page.locator('input#lastName');
+      await lastNameInput.fill('Doe');
+
       // Fill email and confirm email with same invalid email
       const emailInputs = page.locator('input[type="email"]');
       await emailInputs.nth(0).fill(email);
@@ -312,6 +372,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // First attempt with invalid email
     const emailInputs = page.locator('input[type="email"]');
@@ -394,6 +458,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
 
     // Fill email and confirm email with DIFFERENT values
     const emailInputs = page.locator('input[type="email"]');

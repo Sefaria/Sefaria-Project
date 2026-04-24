@@ -67,8 +67,8 @@ const MockAPI = {
     const { firstName, lastName, email, newsletters } = data;
     await simulateNetworkDelay();
 
-    if (!firstName || !email) {
-      throw new Error("First name and email are required.");
+    if (!firstName || !lastName || !email) {
+      throw new Error("First name, last name, and email are required.");
     }
 
     const selectedNewsletterKeys = Object.entries(newsletters)

@@ -31,6 +31,11 @@ test.describe('Newsletter Signup - Accessibility', () => {
     const firstNameAriaLabel = await firstNameInput.getAttribute('aria-label');
     expect(firstNameAriaLabel).toBeTruthy();
 
+    // Check last name input has aria-label
+    const lastNameInput = page.locator('input#lastName');
+    const lastNameAriaLabel = await lastNameInput.getAttribute('aria-label');
+    expect(lastNameAriaLabel).toBeTruthy();
+
     // Check email input has aria-label
     const emailInput = page.locator('input#email');
     const emailAriaLabel = await emailInput.getAttribute('aria-label');
@@ -177,6 +182,9 @@ test.describe('Newsletter Signup - Accessibility', () => {
     // Error summary should exist and be visible
     const errorSummary = page.locator('.newsletterErrorSummary');
     const isVisible = await errorSummary.isVisible().catch(() => false);
+    const lastNameError = page.locator('#lastName-error');
+
+    await expect(lastNameError).toBeVisible();
 
     if (isVisible) {
       // Error should be readable text

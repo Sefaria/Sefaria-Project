@@ -213,6 +213,10 @@ export const BILINGUAL_TEXT = {
     en: 'Please enter your first name.',
     he: 'אנא הזן את שמך הפרטי.',
   },
+  ENTER_LAST_NAME: {
+    en: 'Please enter your last name.',
+    he: 'אנא הזן את שם המשפחה שלך.',
+  },
   ENTER_EMAIL: {
     en: 'Please enter your email address.',
     he: 'אנא הזן את כתובת הדוא"ל שלך.',

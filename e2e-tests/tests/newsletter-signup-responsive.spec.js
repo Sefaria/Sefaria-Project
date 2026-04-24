@@ -244,6 +244,12 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         const firstNameInput = page.locator('input#firstName');
         await firstNameInput.fill('John');
 
+        // Fill last name
+        const lastNameInput = page.locator('input#lastName');
+        if (await lastNameInput.isVisible()) {
+          await lastNameInput.fill('Doe');
+        }
+
         // Fill email and confirm email
         const emailInputs = page.locator('input[type="email"]');
         if (await emailInputs.count() >= 2) {

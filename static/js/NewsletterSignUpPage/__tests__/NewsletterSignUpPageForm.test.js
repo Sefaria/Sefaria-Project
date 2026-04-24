@@ -192,15 +192,16 @@ describe('NewsletterSignUpPageForm', () => {
   // ---------- Suite 2: Validation — logged-out submit with empty form ----------
 
   describe('Validation — logged-out submit with empty form', () => {
-    it('produces errors for firstName, email, and newsletters (confirmEmail matches when both empty)', async () => {
+    it('produces errors for firstName, lastName, email, and newsletters (confirmEmail matches when both empty)', async () => {
       renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       const errors = lastFormViewProps.fieldErrors;
       // When both email and confirmEmail are '', they match → no mismatch error.
-      // Only 3 fields fail: firstName (empty), email (empty), newsletters (none selected).
-      expect(Object.keys(errors)).toHaveLength(3);
+      // Only 4 fields fail: firstName, lastName, email, newsletters.
+      expect(Object.keys(errors)).toHaveLength(4);
       expect(errors).toHaveProperty('firstName');
+      expect(errors).toHaveProperty('lastName');
       expect(errors).toHaveProperty('email');
       expect(errors).toHaveProperty('newsletters');
       expect(errors).not.toHaveProperty('confirmEmail');
@@ -237,6 +238,7 @@ describe('NewsletterSignUpPageForm', () => {
       // Start with a valid baseline
       const valid = {
         firstName: 'Ada',
+        lastName: 'Lovelace',
         email: 'ada@example.com',
         confirmEmail: 'ada@example.com',
         newsletter: 'sefaria_news',
@@ -245,6 +247,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       // Apply field values through the handler props
       act(() => { lastFormViewProps.onFirstNameChange(merged.firstName); });
+      act(() => { lastFormViewProps.onLastNameChange(merged.lastName); });
       act(() => { lastFormViewProps.onEmailChange(merged.email); });
       act(() => { lastFormViewProps.onConfirmEmailChange(merged.confirmEmail); });
       if (merged.newsletter) {
@@ -258,6 +261,11 @@ describe('NewsletterSignUpPageForm', () => {
     it('missing first name → ENTER_FIRST_NAME', async () => {
       const errors = await submitWithOverrides({ firstName: '' });
       expect(errors.firstName).toBe(BILINGUAL_TEXT.ENTER_FIRST_NAME);
+    });
+
+    it('missing last name → ENTER_LAST_NAME', async () => {
+      const errors = await submitWithOverrides({ lastName: '' });
+      expect(errors.lastName).toBe(BILINGUAL_TEXT.ENTER_LAST_NAME);
     });
 
     it('invalid email format → VALID_EMAIL', async () => {
@@ -341,6 +349,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       // Fill valid form
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
+      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
       act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
@@ -389,6 +398,7 @@ describe('NewsletterSignUpPageForm', () => {
       renderForm();
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
+      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
       act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
@@ -408,6 +418,7 @@ describe('NewsletterSignUpPageForm', () => {
       renderForm();
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
+      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
       act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
