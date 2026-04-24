@@ -63,16 +63,20 @@
     }
 
     #aboutPage .ai-symbol-list {
-        margin: 8px 0 0 1.25em;
-        padding-left: 1.25em;
+        list-style: none;
+        margin: 8px 0 0 0;
+        padding-inline-start: 20px;
     }
 
-    #aboutPage .ai-symbol-list li.ai-symbol-outlined::marker {
-        content: "✧ ";
+    #aboutPage .ai-symbol-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
     }
 
-    #aboutPage .ai-symbol-list li.ai-symbol-filled::marker {
-        content: "✦ ";
+    #aboutPage .ai-symbol-bullet {
+        flex: 0 0 auto;
+        line-height: 1.5;
     }
 
     .interface-hebrew #aboutPage * {
@@ -122,7 +126,7 @@
                 <h1 class="aboutHeader"><span class="">Sefaria and AI: New Pathways Into Primary Texts</span></h1>
             </header>
             <section class="about section">
-                <iframe src="https://www.youtube.com/embed/3ar0DetxpvE?si=0OtpHIty19pTbzFq" title="Sefaria AI Video"
+                <iframe src="https://www.youtube.com/embed/5wHksRw7V68?si=0OtpHIty19pTbzFq" title="Sefaria AI Video"
                     class="aboutPlayer" frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -199,10 +203,8 @@
                             transparent about where, when, why, and how AI is used on Sefaria. We currently use two icons to
                             designate AI-generated content:
                             <ul class="ai-symbol-list">
-                                <li class="ai-symbol-outlined">The outlined star indicates AI-assisted content that has
-                                    undergone human review.</li>
-                                <li class="ai-symbol-filled">The filled-in star indicates fully AI-generated content without
-                                    human review.</li>
+                                <li><span class="ai-symbol-bullet" aria-hidden="true">✧</span><span>The outlined star indicates AI-assisted content that has undergone human review.</span></li>
+                                <li><span class="ai-symbol-bullet" aria-hidden="true">✦</span><span>The filled-in star indicates fully AI-generated content without human review.</span></li>
                             </ul>
                         </span>
                     </li>
