@@ -616,11 +616,20 @@ def export_all():
 # Row 4: Version Source
 
 
+def _sorted_segment_refs(refs):
+    return sorted(refs, key=lambda tref: Ref(tref).order_id())
+
+
+def _walk_version_segments(version, action, schema, he_tref):
+    version.walk_thru_contents(action, schema=schema, heTref=he_tref)
+
+
 def export_version_csv(index, version_list):
     assert isinstance(index, AbstractIndex)
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 
+    version_list = list(version_list)
     csv.field_size_limit(sys.maxsize)
 
     output = io.BytesIO()
@@ -633,28 +642,20 @@ def export_version_csv(index, version_list):
     writer.writerow(["Version Source"] + [v.versionSource for v in version_list])
     writer.writerow(["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    seg_vers = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for i, version in enumerate(version_list):
+        def action(segment_text, en_tref, _he_tref, _version):
+            if en_tref not in seg_vers:
+                seg_vers[en_tref] = [""] * len(version_list)
+            seg_vers[en_tref][i] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        _walk_version_segments(version, action, schema, he_tref)
 
-        # populate each version
-        for version in version_list:
-            section = section_ref.text(vtitle=version.versionTitle, lang=version.language).text
-            for ref in segment_refs:
-                if ref.sections[-1] > len(section):
-                    seg_vers[ref.normal()] += [""]
-                else:
-                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    for tref in _sorted_segment_refs(seg_vers):
+        writer.writerow([tref] + seg_vers[tref])
 
     return output.getvalue()
 
@@ -675,27 +676,23 @@ def export_merged_csv(index, lang=None):
     writer.writerow(["Version Source"] + ["-"])
     writer.writerow(["Version Notes"] + ["-"])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    versions = VersionSet({"title": index.title, "language": lang})
+    versions = [v for v in versions if not v.is_copyrighted()]
+    seg_vers = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for version in versions:
+        def action(segment_text, en_tref, _he_tref, _version):
+            if en_tref not in seg_vers:
+                seg_vers[en_tref] = ""
+            if not seg_vers[en_tref]:
+                seg_vers[en_tref] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        _walk_version_segments(version, action, schema, he_tref)
 
-        # populate each version
-        section = section_ref.text(lang=lang, exclude_copyrighted=True).text
-        for ref in segment_refs:
-            if ref.sections[-1] > len(section):
-                seg_vers[ref.normal()] += [""]
-            else:
-                seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    for tref in _sorted_segment_refs(seg_vers):
+        writer.writerow([tref, seg_vers[tref]])
 
     return output.getvalue()
 
