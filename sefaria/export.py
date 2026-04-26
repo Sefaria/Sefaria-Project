@@ -617,10 +617,12 @@ def export_all():
 
 
 def _sorted_segment_refs(refs):
+    """Sort walked segment refs into canonical textual order for stable CSV output."""
     return sorted(refs, key=lambda tref: Ref(tref).order_id())
 
 
 def _walk_version_segments(version, action, schema, he_tref):
+    """Traverse a fully loaded version once, emitting each segment without per-section DB reads."""
     version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
 
@@ -644,16 +646,19 @@ def export_version_csv(index, version_list):
 
     schema = index.schema
     he_tref = index.get_title("he")
+    # Build rows directly from walked segment refs instead of enumerating sections from vstate.
     seg_vers = {}
 
     for i, version in enumerate(version_list):
         def action(segment_text, en_tref, _he_tref, _version):
+            """Populate one column per version while preserving blanks for missing segments."""
             if en_tref not in seg_vers:
                 seg_vers[en_tref] = [""] * len(version_list)
             seg_vers[en_tref][i] = segment_text
 
         _walk_version_segments(version, action, schema, he_tref)
 
+    # Walk order is per-version; re-sort once so output stays in normal textual order.
     for tref in _sorted_segment_refs(seg_vers):
         writer.writerow([tref] + seg_vers[tref])
 
@@ -678,12 +683,14 @@ def export_merged_csv(index, lang=None):
 
     schema = index.schema
     he_tref = index.get_title("he")
+    # Load candidate versions once, then merge segment-by-segment in memory.
     versions = VersionSet({"title": index.title, "language": lang})
     versions = [v for v in versions if not v.is_copyrighted()]
     seg_vers = {}
 
     for version in versions:
         def action(segment_text, en_tref, _he_tref, _version):
+            """Mimic merged-text precedence by keeping the first non-empty segment encountered."""
             if en_tref not in seg_vers:
                 seg_vers[en_tref] = ""
             if not seg_vers[en_tref]:
@@ -691,6 +698,7 @@ def export_merged_csv(index, lang=None):
 
         _walk_version_segments(version, action, schema, he_tref)
 
+    # Emit merged rows in canonical ref order to match previous CSV shape.
     for tref in _sorted_segment_refs(seg_vers):
         writer.writerow([tref, seg_vers[tref]])
 
