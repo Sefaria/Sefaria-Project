@@ -80,8 +80,8 @@ def html_to_text_canonical(html):
     html = html.replace("<br>", "\n")
     html = re.sub(r"<br( )*/>", "\n", html)
 
-    # Parse HTML and extract text, mirroring the JS DOMParser+textContent path.
-    text = BeautifulSoup(html, "html.parser").get_text()
+    # Parse HTML and extract text via BeautifulSoup, which mirrors the JS DOMParser+textContent path in Sefaria-Project `Sefaria.util.htmlToText`.
+    text = BeautifulSoup(html, "lxml").get_text()
 
     # Collapse duplicate blank lines
     text = re.sub(r"\n\s*\n", "\n", text)
