@@ -27,7 +27,6 @@ djangorestframework @ https://github.com/encode/django-rest-framework/archive/3.
 djangorestframework_simplejwt==3.3.0
 django-hosts==7.0.0
 dnspython~=2.5.0
-ddtrace==4.7.1
 elasticsearch==8.8.2
 geojson==2.5.0
 geopy==2.3.0
