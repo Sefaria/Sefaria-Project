@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.81.2-prod.2"
+      version: "0.82.0-prod.1"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -230,6 +230,8 @@ spec:
       enabled: false
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"
       jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+    datadog:
+      enabled: true
     localSettings:
       DEBUG: false
       OFFLINE: false
