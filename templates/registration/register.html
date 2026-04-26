@@ -64,13 +64,16 @@
 
     /**
      * Safe wrapper around gtag(). Merges BASE_PARAMS and text automatically.
-     * GA can be undefined when blocked by an ad blocker or a content policy. Without this
-     * guard, a thrown exception in the success branch would prevent window.location.href
+     * Uses transport_type: 'beacon' for all events — GA defaults to XHR and batches events
+     * during normal page activity, so events fired just before navigation get dropped.
+     * Beacon forces immediate per-event dispatch regardless of page state.
+     * GA can be undefined when blocked by an ad blocker or a content policy. Without the
+     * typeof guard, a thrown exception in the success branch would prevent window.location.href
      * from running, leaving the user stuck after account creation.
      */
     function fireEvent(name, extraParams) {
         if (typeof gtag !== 'function') { return; }
-        gtag('event', name, { ...BASE_PARAMS, text: getFilledFields(), ...extraParams });
+        gtag('event', name, { ...BASE_PARAMS, text: getFilledFields(), transport_type: 'beacon', ...extraParams });
     }
 
     function fireFormSubmitResult(status, error) {
@@ -166,8 +169,7 @@
     function fireFormEnd() {
         if (formEndFired) { return; }
         formEndFired = true;
-        // transport_type: 'beacon' ensures the request is sent even as the page unloads
-        fireEvent('form_end', { status: registrationStatus, transport_type: 'beacon' });
+        fireEvent('form_end', { status: registrationStatus });
         // Only restore if no other script has patched pushState after us;
         // if they have, leave their patch in place — our listener is removed so the
         // dispatched 'pushstate' event becomes harmless.
