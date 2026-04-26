@@ -39,9 +39,6 @@ data:
         {{- if .Values.instrumentation.enabled }}
         from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
         {{- end }}
-        {{- if .Values.datadog.enabled }}
-        import ddtrace.profiling.auto  # Profiler threads die on fork; reimport restarts them in each worker
-        {{- end }}
 
     def on_starting(server):
         from reader.startup import init_library_cache
