@@ -32,6 +32,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.0-featdatadog-profiling.1.tgz
     version: 0.85.0-featdatadog-profiling.1
   - apiVersion: v2
+    appVersion: v6.92.1
+    created: "2026-04-26T13:55:02.646179054Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 1f82d37524779b846883c3d4e5c368d2b8ba71f1b594e29d1fc1c7ff8ef269d5
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.84.2-choredjango-upgrade-to-5-2-from-master.1.tgz
+    version: 0.84.2-choredjango-upgrade-to-5-2-from-master.1
+  - apiVersion: v2
     appVersion: v6.92.0
     created: "2026-04-23T08:23:19.419717927Z"
     description: Chart to deploy complete Sefaria environment
@@ -15645,4 +15660,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-04-26T12:53:39.826205927Z"
+generated: "2026-04-26T13:55:02.64366799Z"
