@@ -26,7 +26,7 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 
 # ---- params (edit these) ----
-INPUT_REF_OR_URL = "Imrei Binah, Part IV; Chikrei Lev 1:9"
+INPUT_REF_OR_URL = "Ritva on Yoma 15b:5"
 BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 # -----------------------------
 
