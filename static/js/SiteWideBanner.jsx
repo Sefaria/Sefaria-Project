@@ -90,7 +90,7 @@ SiteWideBanner.propTypes = {
 
 const CHATBOT_BANNER_MAIN_TEXT = "Try Sefaria's new Library Assistant [Experimental]";
 const CHATBOT_BANNER_SECONDARY_TEXT = "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.";
-const CHATBOT_BANNER_LEARN_MORE_URL = "https://voices.sefaria.org/sheets/719776";
+const CHATBOT_BANNER_LEARN_MORE_URL = "https://help.sefaria.org/hc/en-us/articles/26006423836828";
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
@@ -112,7 +112,7 @@ const ChatbotExperimentBanner = () => {
   };
 
   const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
+  if (!isLoggedIn) { // Temp! will be removed/replaced in the next phase
     return null;
   }
   const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -140,4 +140,4 @@ const ChatbotExperimentBanner = () => {
   );
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner, };
+export { SiteWideBanner, ChatbotExperimentBanner };
