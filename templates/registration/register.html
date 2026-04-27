@@ -173,7 +173,9 @@
         // Only restore if no other script has patched pushState after us;
         // if they have, leave their patch in place — our listener is removed so the
         // dispatched 'pushstate' event becomes harmless.
-        if (history.pushState === patchedPushState) { history.pushState = originalPushState; }
+        if (history.pushState === patchedPushState) {
+            history.pushState = originalPushState;
+        }
         window.removeEventListener('pushstate', fireFormEnd);
         window.removeEventListener('popstate', fireFormEnd);
         window.removeEventListener('beforeunload', fireFormEnd);
