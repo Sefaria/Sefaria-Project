@@ -62,13 +62,13 @@ test.describe('Library Assistant — English', () => {
 
   test('UX-023: Send button is enabled when the input has text', async () => {
     await pm.onLibraryAssistant().ensureOpen();
-    await pm.onLibraryAssistant().typeMessage('hello');
+    await pm.onLibraryAssistant().typeMessage('<AUTO TEST> hello');
     await pm.onLibraryAssistant().expectSendEnabled();
   });
 
   test('UX-024: Pressing Enter sends the typed message', async () => {
     test.setTimeout(t(90000));
-    const prompt = 'Say hi in one short word';
+    const prompt = '<AUTO TEST> Say hi in one short word';
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage(prompt);
     await pm.onLibraryAssistant().sendViaEnter();
@@ -79,7 +79,7 @@ test.describe('Library Assistant — English', () => {
 
   test('UX-026: Clicking the send button sends the typed message', async () => {
     test.setTimeout(t(90000));
-    const prompt = 'Say hello in one short word';
+    const prompt = '<AUTO TEST> Say hello in one short word';
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage(prompt);
     await pm.onLibraryAssistant().sendViaButton();
@@ -91,7 +91,7 @@ test.describe('Library Assistant — English', () => {
   test('UX-027: Input and send button are disabled while awaiting a response', async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
-    await pm.onLibraryAssistant().typeMessage('Give me a short greeting');
+    await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
     await pm.onLibraryAssistant().sendViaEnter();
     await pm.onLibraryAssistant().expectInputDisabledDuringSend();
     await pm.onLibraryAssistant().waitForResponse();
@@ -100,7 +100,7 @@ test.describe('Library Assistant — English', () => {
   test('UX-036: Thinking indicator appears immediately after sending a message', async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
-    await pm.onLibraryAssistant().typeMessage('Say hello briefly');
+    await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Say hello briefly');
     await pm.onLibraryAssistant().sendViaEnter();
     // The thinking bubble should appear almost immediately
     await pm.onLibraryAssistant().expectThinkingVisible();
@@ -148,7 +148,7 @@ test.describe('Library Assistant — header menu', () => {
     // handler for Escape on the menu dropdown or its items, so the menu stays
     // open after Escape is pressed. This test is marked fixme until the
     // component implements Escape-to-close per the UX-059 spec.
-    test.fixme(true, 'Component does not yet handle Escape to close the header menu');
+    test.fixme(true, 'Component does not yet handle Escape to close the header menu (Might not be a product feature)');
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().closeMenuWithEscape();
     await pm.onLibraryAssistant().expectMenuHidden();
@@ -157,9 +157,9 @@ test.describe('Library Assistant — header menu', () => {
   test('UX-060: Restart conversation clears all messages and shows empty state', async () => {
     test.setTimeout(t(90000));
     // Send a message so there is something to clear
-    await pm.onLibraryAssistant().typeMessage('Hello for restart test');
+    await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Hello for restart test');
     await pm.onLibraryAssistant().sendViaEnter();
-    await pm.onLibraryAssistant().expectUserMessageShown('Hello for restart test');
+    await pm.onLibraryAssistant().expectUserMessageShown('<AUTO TEST> Hello for restart test');
     await pm.onLibraryAssistant().waitForResponse();
     // Restart conversation
     await pm.onLibraryAssistant().openHeaderMenu();
@@ -200,6 +200,8 @@ test.describe('Library Assistant — responsive', () => {
  * These tests use separate entry helpers (voices URL, logged-out context) so
  * they don't share `beforeEach` with the main suite.
  */
+
+// TO-DO: write so other pages like settings should not have the LA either when logged in. 
 test.describe('Library Assistant — visibility boundaries', () => {
   test('LA-NEG-001: Does not appear on voices.sefaria.org home (even when logged in as LA user)', async ({ context }) => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enLAUser);
