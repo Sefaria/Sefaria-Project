@@ -24,7 +24,7 @@ from sefaria.settings import SEARCH_URL
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 from langsmith import traceable
 from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
@@ -32,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test_reduced_tokens29"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens33"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 
@@ -95,9 +95,9 @@ WINDOW_WORDS = 120
 
 # LLM role → (env_var_for_model, default_model, provider)
 _LLM_CONFIGS: Dict[str, Tuple[str, str, str]] = {
-    "default":      ("ANTHROPIC_MODEL",         "claude-sonnet-4-6",  "anthropic"),
-    "confirmation": ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",  "anthropic"),
-    "prior":        ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",  "anthropic"),
+    "default":      ("ANTHROPIC_MODEL",         "claude-sonnet-4-5",  "anthropic"),
+    "confirmation": ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-5",  "anthropic"),
+    "prior":        ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-5",  "anthropic"),
     "keyword":      ("LLM_KEYWORD_MODEL",        "gpt-4o-mini",        "openai"),
 }
 
@@ -192,11 +192,12 @@ def _get_llm(role: str = "default"):
         return ChatGoogleGenerativeAI(model=model, temperature=0, max_tokens=1024, api_key=api_key, thinking_level="low")
 
 
-def _escape_template_braces(text: str) -> str:
-    """Escape curly braces so ChatPromptTemplate doesn't interpret them as variables."""
-    if not text:
-        return text
-    return text.replace('{', '{{').replace('}', '}}')
+def _system_content(instruction: str, base_block: str) -> list:
+    content = []
+    if base_block:
+        content.append({"type": "text", "text": base_block, "cache_control": {"type": "ephemeral"}})
+    content.append({"type": "text", "text": instruction})
+    return content
 
 
 @lru_cache(maxsize=2)
@@ -242,7 +243,7 @@ def _format_base_block(base_ref: Optional[str], base_text: Optional[str]) -> str
     """Build the 'Base text (...):\\n...' block used in multiple LLM prompts."""
     if not base_ref or not base_text:
         return ""
-    return f"Base text ({base_ref}):\n{_escape_template_braces(_normalize_for_llm(base_text))}\n\n"
+    return f"Base text ({base_ref}):\n{_normalize_for_llm(base_text)}\n\n"
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
@@ -569,28 +570,26 @@ def _llm_form_prior_cached(marked_text: str, base_ref: Optional[str] = None, bas
     llm = _get_llm("prior")
     base_block = _format_base_block(base_ref, base_text)
 
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
+    prompt = [
+        SystemMessage(content=_system_content(
             "You form a prior expectation about what the target text likely contains, "
-            "based only on the citing passage and any base text. Do NOT guess a specific ref."
-        ),
-        (
-            "human",
-            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
-            "{citing}\n\n"
-            "{base_block}"
-            "Describe what the target segment should be about, key themes or phrases to expect, "
-            "and any constraints implied by the citation. Keep it concise and concrete.\n"
-            "Return 2-3 bullet points."
-        ),
-    ])
+            "based only on the citing passage and any base text. Do NOT guess a specific ref.",
+            base_block,
+        )),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text": f"Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+                        f"{marked_text}\n\n"
+                        "Describe what the target segment should be about, key themes or phrases to expect, "
+                        "and any constraints implied by the citation. Keep it concise and concrete.\n"
+                        "Return 2-3 bullet points.",
+            }
+        ]),
+    ]
 
     try:
-        response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(marked_text),
-            "base_block": base_block,
-        })
+        response = llm.invoke(prompt)
         return getattr(response, 'content', '').strip()
     except Exception as e:
         logger.warning(f"LLM prior formation failed: {e}")
@@ -614,34 +613,34 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
 
     prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "You extract concise search phrases that are likely to appear verbatim in the target text."),
-        ("human",
-         "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
-         # "Context with citation redacted:\n{context}\n\n"
-         "{base_block}"
-         "Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
-         "Return 3-4 short lexical search queries (<=6 words each), taken from surrounding context "
-         "outside the citation span.\n"
-         "- Prefer phrases that you expect to appear verbatim in the target text.\n"
-         "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
-         "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
-         "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
-         "- Prefer specific/rare tokens over generic ones.\n"
-         "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
-         "- Include at least one 2-3 word query.\n"
-         "- Do NOT copy words that appear inside <citation>...</citation>.\n"
-         "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
-         "Strict output: one per line, numbered 1) ... through 4) ... or a single line 'NONE'."
-         )
-    ])
+    prompt = [
+        SystemMessage(content=_system_content(
+            "You extract concise search phrases that are likely to appear verbatim in the target text.",
+            base_block,
+        )),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text": f"Citing passage (citation wrapped in <citation ...></citation>):\n{marked_text}\n\n"
+                        f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
+                        "Return 3-4 short lexical search queries (<=6 words each), taken from surrounding context "
+                        "outside the citation span.\n"
+                        "- Prefer phrases that you expect to appear verbatim in the target text.\n"
+                        "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
+                        "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
+                        "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
+                        "- Prefer specific/rare tokens over generic ones.\n"
+                        "- Include at least one single-word query (preferably a distinctive Hebrew noun).\n"
+                        "- Include at least one 2-3 word query.\n"
+                        "- Do NOT copy words that appear inside <citation>...</citation>.\n"
+                        "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
+                        "Strict output: one per line, numbered 1) ... through 4) ... or a single line 'NONE'.",
+            }
+        ]),
+    ]
 
     try:
-        response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(marked_text),
-            "base_block": _escape_template_braces(base_block),
-            "prior": _escape_template_braces(prior),
-        })
+        response = llm.invoke(prompt)
         content = getattr(response, 'content', '')
 
         if content.strip().upper() == 'NONE':
@@ -676,37 +675,34 @@ def _llm_confirm_candidate(
     llm = _get_llm("confirmation")
     prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
     base_block = _format_base_block(base_ref, base_text)
-
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
+    citing = marked_text
+    candidate_text_normalized = _normalize_for_llm(candidate_text)
+    prompt = [
+        SystemMessage(content=_system_content(
             "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific target segment. "
-            "Be strict in your evaluation."
-        ),
-        (
-            "human",
-            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
-            "{citing}\n\n"
-            "{base_block}"
-            "Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
-            "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
-            "Candidate segment text:\n{candidate_text}\n\n"
-            "Determine whether the citing passage is actually referring to this candidate segment.\n"
-            "If base text is provided, consider whether the commentary is discussing that base passage.\n\n"
-            "Answer in exactly two lines (no preamble):\n"
-            "Reason: <brief rationale>\n"
-            "Verdict: YES or NO",
-        ),
-    ])
+            "Be strict in your evaluation.",
+            base_block,
+        )),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text":
+                    f"Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+                    f"{citing}\n\n"
+                    f"Prior expectations (formed without seeing the candidate):\n{prior}\n\n"
+                    f"Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
+                    f"Candidate segment text:\n{candidate_text_normalized}\n\n"
+                    "Determine whether the citing passage is actually referring to this candidate segment.\n"
+                    "If base text is provided, consider whether the commentary is discussing that base passage.\n\n"
+                    "Answer in exactly two lines (no preamble):\n"
+                    "Reason: <brief rationale>\n"
+                    "Verdict: YES or NO",
+            }
+        ])
+    ]
 
     try:
-        response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(marked_text),
-            "base_block": base_block,
-            "prior": _escape_template_braces(prior),
-            "candidate_ref": candidate_ref,
-            "candidate_text": _escape_template_braces(_normalize_for_llm(candidate_text)),
-        })
+        response = llm.invoke(prompt)
         content = getattr(response, 'content', '')
         verdict = "YES" if re.search(r'\bYES\b', content, re.IGNORECASE) else "NO"
         return verdict == "YES", content
@@ -726,32 +722,27 @@ def _llm_choose_base_vs_commentary(
     """Choose whether the citation refers to the base text or the commentary."""
     llm = _get_llm("default")
 
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            "You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
-            "Be strict and choose the most likely target."
-        ),
-        (
-            "human",
-            "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
-            "{citing}\n\n"
-            "Option A (Base text): {base_ref}\n{base_text}\n\n"
-            "Option B (Commentary): {commentary_ref}\n{commentary_text}\n\n"
-            "Which is more likely being referred to? Answer in exactly two lines:\n"
-            "Reason: <brief rationale>\n"
-            "Choice: BASE or COMMENTARY",
-        ),
-    ])
+    base_text_normalized = _normalize_for_llm(base_text)
+    commentary_text_normalized = _normalize_for_llm(commentary_text)
+    prompt = [
+        SystemMessage(content="You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
+                              "Be strict and choose the most likely target."),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text": f"Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+                        f"{marked_text}\n\n"
+                        f"Option A (Base text): {base_ref}\n{base_text_normalized}\n\n"
+                        f"Option B (Commentary): {commentary_ref}\n{commentary_text_normalized}\n\n"
+                        "Which is more likely being referred to? Answer in exactly two lines:\n"
+                        "Reason: <brief rationale>\n"
+                        "Choice: BASE or COMMENTARY",
+            }
+        ]),
+    ]
 
     try:
-        response = (prompt | llm).invoke({
-            "citing": _escape_template_braces(marked_text),
-            "base_ref": base_ref,
-            "base_text": _escape_template_braces(_normalize_for_llm(base_text)),
-            "commentary_ref": commentary_ref,
-            "commentary_text": _escape_template_braces(_normalize_for_llm(commentary_text)),
-        })
+        response = llm.invoke(prompt)
         content = getattr(response, 'content', '')
         if re.search(r"\bBASE\b", content, re.IGNORECASE):
             return "BASE"
@@ -888,31 +879,30 @@ def _llm_choose_best_candidate(
 
     base_block = _format_base_block(base_ref, base_text)
 
+    candidates_text = "\n\n".join(numbered)
     llm = _get_llm("default")
-    prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
+    prompt = [
+        SystemMessage(content=_system_content(
             "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
-            "You must respond with an actual number, not a placeholder or variable."
-        ),
-        (
-            "human",
-            "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
-            f"{base_block}"
-            "Candidate refs:\n{candidates}\n\n"
-            "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
-            "Output format (replace with actual content, do NOT use placeholders):\n"
-            "Reason: Your brief explanation here\n"
-            "Choice: 1\n\n"
-            "Now provide your answer:"
-        ),
-    ])
+            "You must respond with an actual number, not a placeholder or variable.",
+            base_block,
+        )),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text": f"Citing passage (citation wrapped in <citation ...></citation>):\n{marked_text}\n\n"
+                        f"Candidate refs:\n{candidates_text}\n\n"
+                        "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+                        "Output format (replace with actual content, do NOT use placeholders):\n"
+                        "Reason: Your brief explanation here\n"
+                        "Choice: 1\n\n"
+                        "Now provide your answer:",
+            }
+        ]),
+    ]
 
     try:
-        resp = (prompt | llm).invoke({
-            "citing": _escape_template_braces(marked_text),
-            "candidates": _escape_template_braces("\n\n".join(numbered)),
-        })
+        resp = llm.invoke(prompt)
         content = getattr(resp, "content", "")
     except Exception as exc:
         logger.warning(f"LLM choose-best failed: {exc}")
@@ -953,6 +943,9 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
         if not base_titles:
             return None, None
 
+        if len(base_titles) > 1:
+            # can't be sure what the correct base title is
+            return None, None
         base_title = base_titles[0]
         section_ref = citing_oref.section_ref()
         for sec, addr_type in zip(section_ref.sections, section_ref.index_node.addressTypes):
@@ -960,6 +953,9 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
             base_title += f" {address}"
 
         base_ref = Ref(base_title).normal()
+        if Ref(base_title).is_book_level():
+            # book level is too high
+            return None, None
         base_text = _get_ref_text(base_ref, lang="he") or _get_ref_text(base_ref, lang="en")
         return base_ref, base_text
     except Exception:
@@ -1387,18 +1383,22 @@ def _resolve_small_range(
 
     llm = _get_llm("default")
     candidate_list = "\n\n".join([
-        f"{c['index']}) {c['resolved_ref']}\n   {_escape_template_braces(c['preview'])}"
+        f"{c['index']}) {c['resolved_ref']}\n   {c['preview']}"
         for c in candidates
     ])
-    escaped_marked_text = _escape_template_braces(marked_text)
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "Choose the segment being cited."),
-        ("human", f"Citing text:\n{escaped_marked_text}\n\nSegments:\n{candidate_list}\n\n"
-                  "Format: Reason: <explanation>\nChoice: <number>"),
-    ])
+    prompt = [
+        SystemMessage(content="Choose the segment being cited."),
+        HumanMessage(content=[
+            {
+                "type": "text",
+                "text": f"Citing text:\n{marked_text}\n\nSegments:\n{candidate_list}\n\n"
+                        "Format: Reason: <explanation>\nChoice: <number>",
+            }
+        ]),
+    ]
 
-    response = (prompt | llm).invoke({})
+    response = llm.invoke(prompt)
     content = getattr(response, "content", "")
 
     match = re.search(r"choice\s*:\s*(\d+)", content, re.IGNORECASE)
