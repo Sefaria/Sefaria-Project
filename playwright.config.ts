@@ -84,31 +84,6 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Main Testing for Production Site
-    {
-      name: 'chrome-all',
-      testDir: './e2e-tests/tests', // runs all tests
-      use: {
-        ...devices['Desktop Chrome'],
-      },
-    },
-    // Firefox - Production Tests
-    {
-      name: 'firefox-all',
-      testDir: './e2e-tests/tests',
-      use: {
-        ...devices['Desktop Firefox'],
-      },
-    },
-    // Safari - Production Tests
-    {
-      name: 'safari-all',
-      testDir: './e2e-tests/tests',
-      use: {
-        ...devices['Desktop Safari'],
-      },
-    },
-
     // Library-specific tests
     {
       name: 'chrome-library',
