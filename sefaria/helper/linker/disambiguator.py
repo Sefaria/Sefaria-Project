@@ -943,6 +943,48 @@ def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None)
         if not base_titles or len(base_titles) > 1:
             return None
         base_title = base_titles[0]
+        base_oref = Ref(base_title)
+        if base_oref.index.is_complex() and citing_oref.index.is_complex():
+            # make sure names of nodes match recursively from one below root to leaf
+            node_path = []
+            n = citing_oref.index_node
+            while n.parent is not None:
+                node_path.insert(0, n)
+                n = n.parent
+            base_node = base_oref.index.nodes
+            for citing_node in node_path:
+                en_title = citing_node.primary_title("en")
+                base_node = next((c for c in base_node.children if c.primary_title("en") == en_title), None)
+                if base_node is None:
+                    return None
+            # Append matched non-default node titles to base_title
+            path_node = base_node
+            base_path = []
+            while path_node.parent is not None:
+                base_path.insert(0, path_node)
+                path_node = path_node.parent
+            for node in base_path:
+                if not getattr(node, 'default', False):
+                    base_title += f", {node.primary_title('en')}"
+            # Navigate to content leaf (follow default/first child through any SchemaNodes)
+            content_node = base_node
+            while content_node.has_children():
+                content_node = next(
+                    (c for c in content_node.children if getattr(c, 'default', False)),
+                    content_node.children[0]
+                )
+            # Build ref at section level of the base leaf (one above segment)
+            section_ref = section_ref or citing_oref.section_ref()
+            for sec, addr_type in zip(section_ref.sections, content_node.addressTypes[:-1]):
+                address = AddressType.to_str_by_address_type(addr_type, "en", sec)
+                base_title += f" {address}"
+            base_ref = Ref(base_title).normal()
+            if Ref(base_title).is_book_level():
+                return None
+            return base_ref
+        elif base_oref.index.is_complex() ^ citing_oref.index.is_complex():
+            # one complex and one isn't
+            return None
         section_ref = section_ref or citing_oref.section_ref()
         for sec, addr_type in zip(section_ref.sections, section_ref.index_node.addressTypes):
             address = AddressType.to_str_by_address_type(addr_type, "en", sec)
