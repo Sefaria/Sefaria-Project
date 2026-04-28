@@ -145,8 +145,9 @@ Note: `psycopg2-binary==2.9.9` continues to work — Django 6.0 sets minimum psy
 ### Code changes
 
 - **`sefaria/local_settings_ci.py` + `sefaria/local_settings_example.py`** — `ADMINS` format updated from `(('Name', 'email'),)` to `('email',)` via `django-upgrade --target-version 6.0` codemod. Django 6.0 deprecated tuple-of-tuples ADMINS format.
-
-No other code changes needed. All API surfaces Sefaria touches (URLs, ORM, email, middleware) are compatible as-is with 6.0.
+- **`sefaria/views.py`** — `CustomLogoutView` now declares `http_method_names = ["get", "post", "options"]` and adds a `get()` method that delegates to `post()`. Django ≥ 5.0 made `LogoutView` POST-only, but every Sefaria entry point (`Header.jsx` dropdown, mobile menu, `Sefaria.getLogoutUrl()` in `sefaria.js`) is a plain `<a href="/logout?next=...">`. Routing GET through the same handler keeps existing links working without a frontend refactor; the trade-off (logout via GET is technically not RESTful) is accepted given the link surface.
+- **`reader/views.py`** — `make_sheet_panel_dict` now coerces `sheet_id = str(sheet_id)` at the top. The `path('sheets/<int:sheet_id>', ...)` URL converter passes an `int`, which the existing `if "." in sheet_id:` substring check could not handle, raising `TypeError: argument of type 'int' is not iterable` on every sheet view. The coercion preserves the existing `"<id>.<node>"` form while being safe for ints.
+- **`sefaria/sheets.py`** — `bleach_text` migrated to bleach 6.x's CSS sanitizer API. Bleach 6.0 removed the `styles=` kwarg from `bleach.clean()`; we now build a `CSSSanitizer(allowed_css_properties=ok_sheet_styles)` and pass it via `css_sanitizer=`. Without this, every `POST /api/sheets/` (sheet save) crashed with `TypeError: clean() got an unexpected keyword argument 'styles'`. Added import: `from bleach.css_sanitizer import CSSSanitizer`.
 
 **Checked and confirmed not hit by Sefaria:**
 - `EmailMessage.mixed_subtype`/`alternative_subtype` (removed) — Sefaria has no custom `EmailMessage` subclasses.
@@ -165,6 +166,9 @@ No other code changes needed. All API surfaces Sefaria touches (URLs, ORM, email
 
 - `pip` (old resolver) could not resolve `django==6.0.4` when the venv's pip metadata cache was stale from Python 3.9. Solution: use `uv pip install` which always queries PyPI directly.
 - `DEFAULT_AUTO_FIELD` defaults to `BigAutoField` in 6.0. Sefaria already explicitly pins it to `AutoField` in `sefaria/settings.py` (added in Hop 1) — no migrations generated.
+- **Bleach 6.x `css_sanitizer` requires `tinycss2`.** It is an optional bleach extra (`bleach[css]`), not a hard dep. If you import `bleach.css_sanitizer` without `tinycss2` installed, you get `ModuleNotFoundError: No module named 'tinycss2'` at app startup. We pin `tinycss2` explicitly so this isn't latent.
+- **Django runserver `--skip-checks`** is useful in local dev: `django-recaptcha` 4.0 escalates the dev-key warning to an error during `manage.py check`, blocking server startup. Either set `SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']` in `local_settings.py` or pass `--skip-checks` to `runserver`.
+- **django-hosts host regex includes the port**, derived from `urlparse(DOMAIN_MODULES[lang][module]).netloc`. For local dev you must hit `http://voices.localhost:8000/` (or the port matching your `local_settings_example.py`), otherwise the `/sheets/...` routes 404 because the request is matched against `urls_library` instead of `urls_sheets`.
 
 ---
 
@@ -247,7 +251,7 @@ uv pip install -r requirements.txt
 
 Nothing user-visible in Hop 1. Later hops will introduce:
 
-- **Hop 3 (Django 5.0+)**: `LogoutView` no longer accepts GET — any `<a>` logout links must become `<form method="post">`. Check front-end before cutover.
+- **Hop 3 (Django 5.0+)**: `LogoutView` no longer accepts GET. We chose to keep the GET-based `<a href="/logout?next=...">` flow by overriding `CustomLogoutView.http_method_names` and adding a `get()` that delegates to `post()` — see Hop 4 *Code changes*. If a future change wants strict POST-only logout, the frontend (`Header.jsx` dropdown, mobile menu, `Sefaria.getLogoutUrl()` in `sefaria.js`) needs a form submission.
 - **Hop 2 (Django 4.0)**: `USE_L10N` default flipped to `True`. We pin it to `False` explicitly to preserve current date/number formatting. If at any point you want locale-aware formatting in templates, remove that override.
 
 ## Open questions
