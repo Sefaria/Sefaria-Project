@@ -37,11 +37,11 @@
         height: 315px;
     }
 
-    .SheetSource.segment, ol, ul {
+    .SheetSource.segment, ol {
         font-size: 16px;
     }
 
-    #aboutPage p:has(+ ol), #aboutPage p:has(+ ul) {
+    #aboutPage p:has(+ ol) {
         margin-bottom: 15px;
     }
 
@@ -53,30 +53,8 @@
         margin-bottom: 5px;
     }
 
-    ol, ul {
+    ol {
         margin-bottom: 25px;
-    }
-
-    .ai-use {
-        font-weight: bold;
-        text-decoration: underline;
-    }
-
-    #aboutPage .ai-symbol-list {
-        list-style: none;
-        margin: 8px 0 0 0;
-        padding-inline-start: 20px;
-    }
-
-    #aboutPage .ai-symbol-list li {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    #aboutPage .ai-symbol-bullet {
-        flex: 0 0 auto;
-        line-height: 1.5;
     }
 
     .interface-hebrew #aboutPage * {
@@ -89,29 +67,9 @@
         direction: ltr;
     }
 
-    .interface-hebrew #aboutPage .boxedSheetItem .SheetSource .he,
-    .interface-hebrew #aboutPage .boxedSheetItem .SheetSource .he * {
-        text-align: right;
-        direction: rtl;
-    }
-
     .sheetItem .SheetSource.segment, .sheetItem .SheetSource .ref {
         cursor: auto;
         pointer-events: auto;
-    }
-
-    #aboutPage .ai-quote-source,
-    #aboutPage .ai-quote-source * {
-        -webkit-user-select: text;
-        user-select: text;
-    }
-
-    #aboutPage .ai-quote-source .sourceContentText {
-        cursor: text;
-    }
-
-    #aboutPage .ai-quote-source ::selection {
-        background-color: #D2DCFF;
     }
 
 {% endblock %}
@@ -123,41 +81,26 @@
     <main id="aboutPage" class="biReady container static">
         <div class="inner">
             <header>
-                <h1 class="aboutHeader"><span class="">Sefaria and AI: New Pathways Into Primary Texts</span></h1>
+                <h1 class="aboutHeader"><span class="">AI on Sefaria</span></h1>
             </header>
             <section class="about section">
-                <iframe src="https://www.youtube.com/embed/5wHksRw7V68?si=0OtpHIty19pTbzFq" title="Sefaria AI Video"
-                    class="aboutPlayer" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <iframe src="https://www.youtube.com/embed/3ar0DetxpvE?si=0OtpHIty19pTbzFq"
+                title="Sefaria AI Video" class="aboutPlayer"
+                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 <p class="first">
                     <span class="">
-                        Sefaria was founded to maximize Torah’s impact in the digital age by making the Jewish library free,
-                        open, and interactive.
-                        Since our inception, we have leveraged the best available technologies to expand access to and
-                        deepen engagement with Jewish texts.
-                        Our founders’ foresight in making Jewish texts machine-readable continues to enable Sefaria, and
-                        others, to harness technological advancements such as artificial intelligence (AI), particularly
-                        large language models (LLMs).
+                        Sefaria’s mission is to take the People of the Book into the digital age, 
+                        and it is our responsibility to explore how to best leverage technologies to create new ways to access, search, discover, and understand Jewish texts.
+                        Our founders’ foresight in making Jewish texts machine-readable continues to enable Sefaria —
+                        and others — to take advantage of technological advancements such as artificial intelligence
+                        (AI) and, specifically, large language models (LLMs).
                     </span>
-                </p>
-                <p>
-                    <span class="">
-                        Today, AI offers a powerful new set of tools that can accelerate research, support developers, and
-                        expand access.
-                        At the same time, generative AI, which is one branch of AI, can produce confident-sounding
-                        inaccuracies or overlook nuance, context, and the layered meanings embedded in Jewish texts.
-                        Our approach is grounded in a clear commitment to use AI to <b>guide people to primary sources and
-                            deepen their understanding of them.</b>
-                    </span>
-                </p>
                 <div class="boxedSheetItem">
                     <div class="sheetItem">
-                        <div class="SheetSource segment ai-quote-source" style="border-inline-start-color: var(--mishnah-blue);">
+                        <div class="SheetSource segment" style="border-inline-start-color: var(--mishnah-blue);">
                             <div class="en">
                                 <div class="ref" style="margin-bottom: 5px">
-                                    <a style="user-select: auto; pointer-events: auto; cursor: pointer"
-                                        href="/Pirkei_Avot.1.1">Pirkei Avot 1:1</a>
+                                    <a style="user-select: auto; pointer-events: auto; cursor: pointer" href="/Pirkei_Avot.1.1">Pirkei Avot 1:1</a>
                                 </div>
                                 <div class="sourceContentText">
                                     <div style="position: relative; outline: none; overflow-wrap: break-word;">
@@ -168,225 +111,135 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="he">
-                                <div class="ref" style="margin-bottom: 5px">
-                                    <a style="user-select: auto; pointer-events: auto; cursor: pointer"
-                                        href="/Pirkei_Avot.1.1">פרקי אבות א׳:א׳</a>
-                                </div>
-                                <div class="sourceContentText">
-                                    <div style="position: relative; outline: none; overflow-wrap: break-word;">
-                                        משֶׁה קִבֵּל תּוֹרָה מִסִּינַי, וּמְסָרָהּ לִיהוֹשֻׁעַ, וִיהוֹשֻׁעַ לִזְקֵנִים, וּזְקֵנִים לִנְבִיאִים,
-                                        וּנְבִיאִים מְסָרוּהָ לְאַנְשֵׁי כְנֶסֶת הַגְּדוֹלָה. הֵם אָמְרוּ שְׁלשָׁה דְבָרִים, הֱווּ מְתוּנִים בַּדִּין,
-                                        וְהַעֲמִידוּ תַלְמִידִים הַרְבֵּה, וַעֲשׂוּ סְיָג לַתּוֹרָה:
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-    
+
                     </div>
                 </div>
                 </p>
                 <p>
                     <span class="">
-                        Sefaria is part of a long and storied history of transmitting Jewish tradition, holding sacred the
-                        texts in our library.
-                        As we experiment with and introduce AI-generated content into the Sefaria Library, we are committing
-                        to specific guardrails that effectively serve as a fence around the Torah.
-                        For Sefaria’s use of AI, we have prioritized accuracy, transparency, and empowering learners to
-                        explore and interpret texts on their own.
+                        Sefaria is part of this long and storied history of transmitting Jewish tradition, holding
+                        sacred the texts in our library.
+                        As we experiment with and introduce AI-generated content to the Sefaria library, we are
+                        committed to specific guardrails, effectively making a fence around the Torah.
+                        We have established the following guidelines for Sefaria’s use of AI:
+
                     </span>
                 </p>
                 <ol>
                     <li>
                         <span class="">
-                            <b>Transparency, always:</b> We will clearly label AI-powered content and experiences, and be
-                            transparent about where, when, why, and how AI is used on Sefaria. We currently use two icons to
-                            designate AI-generated content:
-                            <ul class="ai-symbol-list">
-                                <li><span class="ai-symbol-bullet" aria-hidden="true">✧</span><span>The outlined star indicates AI-assisted content that has undergone human review.</span></li>
-                                <li><span class="ai-symbol-bullet" aria-hidden="true">✦</span><span>The filled-in star indicates fully AI-generated content without human review.</span></li>
-                            </ul>
+                            <b>Transparency:</b> Sefaria will always be transparent about how, where, why, and when AI is
+                            being used. This includes clearly marking pages with an AI icon when they include AI-generated
+                            content. We currently use two icons to designate AI-generated content.
+                            <span style="display: flex; justify-content: center; align-items: center; gap: 20px; margin: 3px auto;">
+                                <img src="/static/icons/ai-info.svg"
+                                    style="width: 100px; height: auto;" alt="AI-generated content icon" />
+                                <img src="/static/icons/ai-assisted.svg"
+                                    style="width: 100px; height: auto;" alt="AI-assisted content icon" />
+                            </span>
                         </span>
                     </li>
                     <li>
                         <span class="">
-                            <b>Citations-first approach:</b> Sefaria’s AI experiences, like the Library Assistant, are built
-                            to keep learners anchored in the texts. AI content will always cite and direct learners to
-                            sources within the Library.
+                            <b>Learning First:</b> AI content on Sefaria will aim to act as a learning resource and not as a
+                            replacement for your rabbis, halakhic advisors, or teachers.
                         </span>
                     </li>
                     <li>
                         <span class="">
-                            <b>Supported Learning:</b> Sefaria’s use of AI is intended to be a learning support, not a
-                            replacement for rabbis, educators, or other trusted guides. In practice, that means we will not
-                            use AI to provide halakhic (Jewish legal) rulings or personal advice.
+                            <b>Continued Evaluation:</b> Sefaria will continually monitor new technologies and our use of
+                            them to ensure we serve our users in the best possible way.
                         </span>
                     </li>
                     <li>
                         <span class="">
-                            <b>Multivocality without editorializing:</b> Many Jewish texts and commentaries provide
-                            differing perspectives and can even disagree. Sefaria’s approach to AI is designed to preserve
-                            that tradition, helping to surface multiple approaches. It is not meant to determine a single
-                            “right” answer, declare a definitive conclusion, or teach a single perspective.
+                        <b>Feedback:</b> Sefaria is proactively soliciting user feedback regarding AI-generated content.
+                        Users are invited to provide corrections and feedback using a dedicated <a
+                            href="https://sefaria.formstack.com/forms/ai_feedback_form?utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">AI
+                            feedback form</a>.
                         </span>
-                    </li>
-                    <li>
-                        <span class="">
-                            <b>Feedback and continual evaluation:</b> We will continually monitor and improve our AI
-                            features, actively seek user feedback, and make it easy to flag issues so our team can review
-                            and refine system behaviors.
                     </li>
                 </ol>
+                <p>
+                    <span class="">
+                        In addition, Sefaria agrees to adhere to the <a href="https://www.romecall.org/the-call/">Rome
+                            Call for Artificial Intelligence Ethics</a>, which has been adopted by organizations around
+                        the world, such as the Chief Rabbinate of Israel, Yeshiva University (among other academic
+                        institutions), the Rabbinical Alliance of America, and major corporations like Microsoft,
+                        Google, IBM, and Cisco.
+                    </span>
+                </p>
             </section>
             <header>
                 <h1>
-                    <span class="">Our AI Approach</span>
+                    <span class="">AI on Topic Pages</span>
                 </h1>
             </header>
             <section class="section">
                 <p>
                     <span class="">
-                        As new tools have emerged and evolved, the Jewish world has always wrestled with how to use them
-                        thoughtfully.
-                        The history of Jewish texts is a testament to the constant evolution of technology, all of which
-                        have played their part in making learning possible — from manuscripts to printing presses to digital
-                        libraries.
-                        Today, Sefaria is engaging AI with the same seriousness, taking a design-driven approach: testing,
-                        learning, and refining.
-                        We carefully experiment, gather user feedback, and build only what supports learning, while
-                        preserving the integrity and sanctity of the texts.
-                        This commitment translates into three clear priorities:
+                        You will now find AI-generated content on approximately 1,000 of our 5,000 Topic pages. These
+                        pages are marked with an AI symbol (AI) on the top right corner.
                     </span>
                 </p>
-                <ul>
-                    <li>
-                        <span class="">
-                            <b>Lower barries to entry:</b> Support learners of all backgrounds in finding relevant primary
-                            sources in a language they understand, even if they don’t know what book to open or what
-                            keywords to search.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="">
-                            <b>Protect the integrity of the tradition:</b> As people increasingly ask AI systems for Torah,
-                            Sefaria wants the underlying citations, context, and textual provenance to remain reliable and
-                            checkable — title to verse.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="">
-                            <b>Honor the full range of voices in our tradition:</b> Jewish texts preserve debate across
-                            centuries. Our goal is to help users encounter that richness by surfacing multiple perspectives
-                            from across the library in response to contemporary questions.
-                        </span>
-                    </li>
-                    </ol>
+                <p>
+                    <span class="">
+                        On each page, users will find a series of sources (individual selections of texts from the
+                        library) related to the topic. These sources have been curated by AI to provide a broad
+                        selection of relevant and important sources. Each source includes an AI-generated heading and
+                        introduction to make it more digestible to learners of all backgrounds. Editors have given some
+                        level of review to both of these elements to ensure accuracy and relevance. Many AI-generated
+                        Topic pages also include an overview paragraph written by our learning team.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        The basis for this AI work was developed by Sefaria’s learning team, which includes seasoned
+                        scholars, editors, and translators, in collaboration with a team of engineers dedicated to this
+                        specific project.
+                        After developing the framework for these pages, our learning team created detailed criteria and
+                        prompts for an AI algorithm to reproduce their content creation process.
+                        Of the 15,500 source introductions on AI-generated pages, 14,000 were reviewed and edited by
+                        Sefaria team members.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        Should you encounter anything that seems amiss, we encourage you to let us know by filling out
+                        this <a
+                            href="https://sefaria.formstack.com/forms/ai_feedback_form?utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">short
+                            feedback form</a>.
+                        Your feedback is crucial to our ongoing efforts to ensure accuracy and uphold our commitment to
+                        quality on Sefaria.
+                    </span>
+                </p>
+                <header>
+                    <h2>
+                        <span class="">ANATOMY OF AN AI-GENERATED TOPIC PAGE</span>
+                    </h2>
+                </header>
+                <p>
+                    <span class="">
+                        <img src="/static/img/ai-landing-page/anatomy-of-a-topic-page.png" alt="Anatomy of a Topic Page"
+                            style="max-width: 100%; height: auto;" />
+                    </span>
+                </p>
             </section>
             <header>
                 <h1>
-                    <span class="">AI Uses on Sefaria</span>
+                    <span class="">AI-Assisted Translation</span>
                 </h1>
             </header>
             <section class="section">
                 <p>
-                <header>
-                    <span class="ai-use">LLM-Powered Linking</span>
-                </header>
-                </p>
-                <p>
                     <span class="">
-                        With the help of LLMs, Sefaria automatically identifies textual citations and links them to original
-                        sources in the Library in two ways:
-                    </span>
-                </p>
-                <ol>
-                    <li>
-                        <span class="">
-                            Interlinked texts within the Library: When reading texts on Sefaria, users can explore millions
-                            of intertextual links as clickable citations or as related texts in the Resource Panel.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="">
-                            <a href="https://www.sefaria.org/linker">The Sefaria Linker</a>: With a free JavaScript plugin,
-                            external websites can automatically make textual references link back to the original source on
-                            Sefaria. The Sefaria Linker is used by hundreds of websites and blogs, including resources like
-                            My Jewish Learning, Times of Israel, and the Orthodox Union.
-                        </span>
-                    </li>
-                </ol>
-                <p>
-                <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/583830?lang=bi">Topics on
-                            Sefaria</a></span>
-                </header>
-                </p>
-                <p>
-                    <span class="">
-                        Topics on Sefaria aggregates sources from Jewish texts thematically, helping users discover sources
-                        and gain context on key ideas. Of our 5,000+ Topic pages, 1,000 feature an enhanced format that
-                        includes AI-assisted source curation, headings, and introductions. AI-enhanced pages follow a
-                        Sefaria-created editorial framework and have been reviewed by our team.
+                        Translations are an important component of the Sefaria Library, making Jewish texts — the collective inheritance of the Jewish people — more discoverable and accessible. With AI, we've identified an opportunity to increase translation availability.
                     </span>
                 </p>
                 <p>
-                <header>
-                    <span class="ai-use"><a
-                            href="https://help.sefaria.org/hc/en-us/articles/22287153920668-How-to-Use-the-Pirkei-Avot-Learning-Guide">Pirkei
-                            Avot Learning Guide</a></span>
-                </header>
-                </p>
-                <p>
                     <span class="">
-                        The Pirkei Avot Learning Guide is a supplemental tool for exploring Pirkei Avot, a third-century
-                        compilation of rabbinic teachings and ethical maxims. An interactive interface allows users to view
-                        pre-written questions and answers about the text, summarized from classic commentaries on Pirkei
-                        Avot by an AI model and then reviewed by the Sefaria team.
-                    </span>
-                </p>
-                <p>
-                <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/721795?lang=bi">Relevance-Based Sheet
-                            Sorting</a></span>
-                </header>
-                </p>
-                <p>
-                    <span class="">
-                        In the Sefaria Library, users can use the Resource Panel to locate user-created Sheets from Voices
-                        on Sefaria that relate to a selected passage of text. When viewing Sheets related to a specific
-                        passage from the Library, users then have the option to sort Sheets by relevance — a feature that
-                        utilizes large language models (LLMs) to assess the content's relevance to the passage at hand.
-                        Alternatively, results can be sorted in two non-AI powered ways: by number of views or by
-                        publication date.
-                    </span>
-                </p>
-                <p>
-                <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/708436?lang=bi">AI-Assisted
-                            Translation</a></span>
-                </header>
-                </p>
-                <p>
-                    <span class="">
-                        Since 2023, our team of text specialists has experimented with translation using various AI models,
-                        assessing for accuracy and fidelity to the original text. In 2026, we released our first AI-assisted
-                        translation: an English translation of the Kli Yakar Torah commentary, which was originally
-                        translated by Claude 3.7 and then underwent a comprehensive, six-month editing process led by
-                        Sefaria Translation and Research Specialist Francis Nataf.
-                    </span>
-                </p>
-                <p>
-                <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/719776?lang=bi">Library
-                            Assistant</a></span>
-                </header>
-                </p>
-                <p>
-                    <span class="">
-                        Sefaria’s Library Assistant is an experimental AI-powered chatbot for discovering and exploring
-                        texts in the Sefaria Library. Built upon Claude technology, it uses Sefaria data to provide cited,
-                        linked responses to Torah-based questions — with the built-in guardrails and sensitivities that our
-                        sacred textual tradition deserve.
+                        Since 2023, our team of text specialists has experimented with translation using various AI models, assessing for accuracy and fidelity to the original text. As of early 2026, we have released our first AI-assisted translation: an English translation of the Kli Yakar Torah commentary, which was originally translated by Claude 3.7 and then underwent a comprehensive, six-month editing process led by Sefaria Translation and Research Specialist Francis Nataf. The editing process included meticulous review of every word of the translation, comparing it to the original Hebrew. Inaccurate words or passages were retranslated, and additional work was done to improve stylistic consistency across the text. The translation is marked with the star-shaped AI symbol (✧) to indicate that there was AI involvement in its production.
                     </span>
                 </p>
             </section>
@@ -398,43 +251,110 @@
             <section class="section">
                 <p>
                     <span class="">
-                        Sefaria’s relationship with artificial intelligence (AI) began long before today’s chatbots. From
-                        the start, our founders made a core bet: build a free, open, machine-readable Jewish library so that
-                        Jewish texts can be searched, linked, reused, and studied at digital scale. Establishing that
-                        foundation meant using early AI tools, including optical character recognition (OCR) to digitize
-                        texts, followed by careful human review — an approach that reflects Sefaria’s emphasis on quality,
-                        trust, and usability.
+                        As leaders at the intersection of Torah and technology, Sefaria will continue exploring
+                        cutting-edge developments, keeping you informed of our progress. Below are two projects we’re
+                        currently working on; other projects remain in stealth mode.
+                    </span>
+                </p>
+                <header>
+                    <h2>
+                        <span class="">PUBLIC BETA: PIRKEI AVOT LEARNING GUIDE</span>
+                    </h2>
+                </header>
+                <p>
+                    <span class="">
+                        Sefaria’s experimental Pirkei Avot Learning Guide aims to make this popular text more accessible
+                        to learners of all levels. Sefaria’s engineering and learning teams leveraged AI to create this
+                        interactive learning tool.
                     </span>
                 </p>
                 <p>
                     <span class="">
-                        As the Library grew, we used AI to strengthen one of Sefaria’s most important experiences: helping
-                        learners see how Jewish texts connect to one another. Large-language model (LLM) technology allowed
-                        us to continually increase interlinking between related texts, and for external websites to
-                        automatically create clickable citations when referencing Jewish sources in the Sefaria Library. In
-                        2020, we launched Topics, a major LLM-enabled update that made it easier for users to discover
-                        sources by theme. In recent years, we have also added clearly labeled, editor-reviewed AI-written
-                        material on some Topic pages — always with a “learning first” approach so that AI supports study,
-                        rather than replacing teachers or trusted guidance.
+                        The Guide summarizes the various commentaries on Pirkei Avot from the Sefaria library,
+                        presenting them through an interactive interface. When learners click on any teaching in Pirkei
+                        Avot, they are presented with a selection of questions. The interface allows users to explore
+                        these questions, providing summarized answers drawn from the commentaries along with links to
+                        the commentary in the library. To build this feature, each mishnah (section of the text) and its
+                        associated commentaries were input into Google’s Gemini AI model. A prompt was used to identify
+                        questions that were a matter of discussion or debate among the commentaries, and to generate
+                        summaries of each answer.
                     </span>
                 </p>
                 <p>
                     <span class="">
-                        In 2023, we began testing AI-assisted translation, with expert human review, so that more of the
-                        Library can be available in English. That same year, we started exploring what an AI-powered
-                        Sefaria-style learning assistant could look like After a multi-year testing phase, we built the
-                        Sefaria Library Assistant in 2025, and launched it in Spring 2026. As these tools evolve, we’ll keep
-                        researching carefully and using AI in ways that deepen access, strengthen trust, and invite more
-                        people into the ongoing conversation of Torah.
+                        Recognizing that even AI-generated content benefits from editorial review, we took all of the
+                        output from Gemini and fed it to Claude Opus 3, an AI model developed by Anthropic. We asked
+                        Claude to review each commentary alongside the questions and summaries generated by Gemini and
+                        judge them on two scales — relevance of the answer to the question, and accuracy of the summary
+                        of the commentary, giving each of them a score of one to 10. While all of the content received
+                        some level of human review, our learning team was able to use these scores to identify content
+                        that needed an especially close look. Anything with a score of five or below received another
+                        review to ensure both accuracy and accessibility for learners.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        <a
+                            href="https://www.sefaria.org/Pirkei_Avot.1.1?lang=bi&with=Guide&lang2=en&utm_source=sefaria&utm_medium=landing+page&utm_campaign=ai">Visit the Learning Guide</a>.
                     </span>
                 </p>
             </section>
-            <section>
+            <section class="section">
+                <header>
+                    <h2>
+                        <span class="">AI ON VOICES</span>
+                    </h2>
+                </header>
                 <p>
-                    <br />
                     <span class="">
-                        If you have additional questions about Sefaria’s use of AI, please email us at <a
-                            href="mailto:hello@sefaria.org">hello@sefaria.org</a>.
+                        In the Sefaria Library, users can use the Resource Panel to locate user-created Sheets from Voices on
+                        Sefaria that relate to a selected passage of text. When viewing Sheets related to a specific passage from
+                        the Library, users then have the option to sort Sheets by relevance — a feature that utilizes large language
+                        models (LLMs) to assess the content's relevance to the passage at hand. Alternatively, results can be sorted
+                        in two non-AI powered ways: by number of views or by publication date.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        We took on this project to better support users in finding the content they're looking for. When learners
+                        look for Sheets through the Library's Resource Panel, they are looking for Sheets related to a particular
+                        passage of text; therefore, we recognized that ranking results based on the actual content of the
+                        Sheets — rather than view count or publication date — would be a more effective way for users to locate the most
+                        meaningful content for their purposes.
+                    </span>
+                </p>
+                <p>
+                    <span class="">
+                        Our experimental solution uses the following criteria to determine a Sheet's relevance:
+                    </span>
+                </p>
+                <ol>
+                    <li>
+                        <span class="">
+                            Is that exact citation present in the Sheet?
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                            How central is that citation to the overall content of the Sheet?
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                            Besides the textual source, what other content did the Sheet creator include? The volume and nature of
+                            the other content is used to determine a creativity score.
+                        </span>
+                    </li>
+                    <li>
+                        <span class="">
+                            How engaging and closely related to the passage at hand is the title?
+                        </span>
+                    </li>
+                </ol>
+                <p>
+                    <span class="">
+                        Ultimately, this feature will help users more quickly and effectively find user-created content to aid in
+                        their exploration of original sources.
                     </span>
                 </p>
             </section>
