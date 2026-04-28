@@ -578,6 +578,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
 
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
+    sheet_id = str(sheet_id)
     highlighted_node = None
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])

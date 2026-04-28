@@ -12,6 +12,7 @@ import structlog
 import regex
 import dateutil.parser
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from datetime import datetime, timedelta
 from functools import wraps
 from bson.son import SON
@@ -632,7 +633,8 @@ def bleach_text(text):
 
     ok_sheet_styles = ['color', 'background-color', 'text-align']
 
-    return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
+    css_sanitizer = CSSSanitizer(allowed_css_properties=ok_sheet_styles)
+    return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, css_sanitizer=css_sanitizer, strip=True)
 
 
 def clean_source(source):
