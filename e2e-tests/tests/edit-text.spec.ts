@@ -1,7 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-const TRANSPARENT = "rgba(0, 0, 0, 0)";
 const EDIT_URL = "/edit/Genesis.1";
+
+const isTransparent = (color: string): boolean => {
+  if (color === "transparent") return true;
+  return color.replace(/\s/g, "") === "rgba(0,0,0,0)";
+};
 
 test.describe("edit_text page CSS rendering", () => {
 
@@ -19,16 +23,21 @@ test.describe("edit_text page CSS rendering", () => {
     await page.goto(EDIT_URL);
     await page.waitForLoadState("load");
 
-    const bgColor = await page.evaluate(() => {
+    await page.evaluate(() => {
       const editButtons = document.getElementById("editButtons");
       if (editButtons) editButtons.style.display = "block";
-      const save = document.getElementById("addVersionSave");
-      return save ? getComputedStyle(save).backgroundColor : null;
     });
-    expect(bgColor).not.toBe(TRANSPARENT);
+
+    const saveButton = page.locator("#addVersionSave");
+    await expect(saveButton).toBeAttached();
+
+    const bgColor = await saveButton.evaluate(el =>
+      getComputedStyle(el).backgroundColor
+    );
+    expect(isTransparent(bgColor)).toBe(false);
   });
 
-  test("Save button text is visible", async ({ page }) => {
+  test("Save button has correct text", async ({ page }) => {
     await page.goto(EDIT_URL);
     await page.waitForLoadState("load");
 
@@ -37,7 +46,9 @@ test.describe("edit_text page CSS rendering", () => {
       if (el) el.style.display = "block";
     });
 
-    await expect(page.locator("#addVersionSave")).toContainText("Save");
+    const saveButton = page.locator("#addVersionSave");
+    await expect(saveButton).toBeAttached();
+    await expect(saveButton).toContainText("Save");
   });
 
   test("Add a New Text modal: Cancel button has a non-transparent background", async ({ page }) => {
@@ -52,7 +63,7 @@ test.describe("edit_text page CSS rendering", () => {
     const bgColor = await page.locator("#newTextCancel").evaluate(el =>
       getComputedStyle(el).backgroundColor
     );
-    expect(bgColor).not.toBe(TRANSPARENT);
+    expect(isTransparent(bgColor)).toBe(false);
   });
 
   test("Add a New Text modal: Add button has a non-transparent background when active", async ({ page }) => {
@@ -62,7 +73,6 @@ test.describe("edit_text page CSS rendering", () => {
     await page.evaluate(() => {
       const el = document.getElementById("newTextModal");
       if (el) el.style.display = "block";
-      // Simulate the JS activating the Add button after a valid ref is entered
       const ok = document.getElementById("newTextOK");
       if (ok) ok.classList.remove("inactive");
     });
@@ -70,7 +80,7 @@ test.describe("edit_text page CSS rendering", () => {
     const bgColor = await page.locator("#newTextOK").evaluate(el =>
       getComputedStyle(el).backgroundColor
     );
-    expect(bgColor).not.toBe(TRANSPARENT);
+    expect(isTransparent(bgColor)).toBe(false);
   });
 
 });
