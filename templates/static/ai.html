@@ -114,6 +114,11 @@
         background-color: #D2DCFF;
     }
 
+    #aboutPage .ai-learn-more {
+        display: block;
+        padding-top: 0.5em;
+    }
+
 {% endblock %}
 {% block content %}
 <div class="superAbout">
@@ -157,7 +162,7 @@
                             <div class="en">
                                 <div class="ref" style="margin-bottom: 5px">
                                     <a style="user-select: auto; pointer-events: auto; cursor: pointer"
-                                        href="/Pirkei_Avot.1.1">Pirkei Avot 1:1</a>
+                                        href="/Pirkei_Avot.1.1" target="_blank">Pirkei Avot 1:1</a>
                                 </div>
                                 <div class="sourceContentText">
                                     <div style="position: relative; outline: none; overflow-wrap: break-word;">
@@ -171,7 +176,7 @@
                             <div class="he">
                                 <div class="ref" style="margin-bottom: 5px">
                                     <a style="user-select: auto; pointer-events: auto; cursor: pointer"
-                                        href="/Pirkei_Avot.1.1">פרקי אבות א׳:א׳</a>
+                                        href="/Pirkei_Avot.1.1" target="_blank">פרקי אבות א׳:א׳</a>
                                 </div>
                                 <div class="sourceContentText">
                                     <div style="position: relative; outline: none; overflow-wrap: break-word;">
@@ -302,13 +307,13 @@
                 <ol>
                     <li>
                         <span class="">
-                            Interlinked texts within the Library: When reading texts on Sefaria, users can explore millions
+                            <a href="https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts-in-the-Sefaria-Library" target="_blank">Interlinked texts within the Library</a>: When reading texts on Sefaria, users can explore millions
                             of intertextual links as clickable citations or as related texts in the Resource Panel.
                         </span>
                     </li>
                     <li>
                         <span class="">
-                            <a href="https://www.sefaria.org/linker">The Sefaria Linker</a>: With a free JavaScript plugin,
+                            <a href="https://www.sefaria.org/linker" target="_blank">The Sefaria Linker</a>: With a free JavaScript plugin,
                             external websites can automatically make textual references link back to the original source on
                             Sefaria. The Sefaria Linker is used by hundreds of websites and blogs, including resources like
                             My Jewish Learning, Times of Israel, and the Orthodox Union.
@@ -317,7 +322,7 @@
                 </ol>
                 <p>
                 <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/583830?lang=bi">Topics on
+                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/583830?lang=bi" target="_blank">Topics on
                             Sefaria</a></span>
                 </header>
                 </p>
@@ -327,12 +332,13 @@
                         and gain context on key ideas. Of our 5,000+ Topic pages, 1,000 feature an enhanced format that
                         includes AI-assisted source curation, headings, and introductions. AI-enhanced pages follow a
                         Sefaria-created editorial framework and have been reviewed by our team.
+                        <a href="https://voices.sefaria.org/sheets/583830?lang=bi" target="_blank" class="ai-learn-more">Learn more >></a>
                     </span>
                 </p>
                 <p>
                 <header>
                     <span class="ai-use"><a
-                            href="https://help.sefaria.org/hc/en-us/articles/22287153920668-How-to-Use-the-Pirkei-Avot-Learning-Guide">Pirkei
+                            href="https://help.sefaria.org/hc/en-us/articles/22287153920668-How-to-Use-the-Pirkei-Avot-Learning-Guide" target="_blank">Pirkei
                             Avot Learning Guide</a></span>
                 </header>
                 </p>
@@ -342,11 +348,12 @@
                         compilation of rabbinic teachings and ethical maxims. An interactive interface allows users to view
                         pre-written questions and answers about the text, summarized from classic commentaries on Pirkei
                         Avot by an AI model and then reviewed by the Sefaria team.
+                        <a href="https://help.sefaria.org/hc/en-us/articles/22287153920668-How-to-Use-the-Pirkei-Avot-Learning-Guide" target="_blank" class="ai-learn-more">Learn more >></a>
                     </span>
                 </p>
                 <p>
                 <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/721795?lang=bi">Relevance-Based Sheet
+                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/721795?lang=bi" target="_blank">Relevance-Based Sheet
                             Sorting</a></span>
                 </header>
                 </p>
@@ -358,11 +365,12 @@
                         utilizes large language models (LLMs) to assess the content's relevance to the passage at hand.
                         Alternatively, results can be sorted in two non-AI powered ways: by number of views or by
                         publication date.
+                        <a href="https://voices.sefaria.org/sheets/721795?lang=bi" target="_blank" class="ai-learn-more">Learn more >></a>
                     </span>
                 </p>
                 <p>
                 <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/708436?lang=bi">AI-Assisted
+                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/708436?lang=bi" target="_blank">AI-Assisted
                             Translation</a></span>
                 </header>
                 </p>
@@ -373,11 +381,12 @@
                         translation: an English translation of the Kli Yakar Torah commentary, which was originally
                         translated by Claude 3.7 and then underwent a comprehensive, six-month editing process led by
                         Sefaria Translation and Research Specialist Francis Nataf.
+                        <a href="https://voices.sefaria.org/sheets/708436?lang=bi" target="_blank" class="ai-learn-more">Learn more >></a>
                     </span>
                 </p>
                 <p>
                 <header>
-                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/719776?lang=bi">Library
+                    <span class="ai-use"><a href="https://voices.sefaria.org/sheets/719776?lang=bi" target="_blank">Library
                             Assistant</a></span>
                 </header>
                 </p>
@@ -387,6 +396,7 @@
                         texts in the Sefaria Library. Built upon Claude technology, it uses Sefaria data to provide cited,
                         linked responses to Torah-based questions — with the built-in guardrails and sensitivities that our
                         sacred textual tradition deserve.
+                        <a href="https://voices.sefaria.org/sheets/719776?lang=bi" target="_blank" class="ai-learn-more">Learn more >></a>
                     </span>
                 </p>
             </section>
@@ -433,8 +443,8 @@
                 <p>
                     <br />
                     <span class="">
-                        If you have additional questions about Sefaria’s use of AI, please email us at <a
-                            href="mailto:hello@sefaria.org">hello@sefaria.org</a>.
+                        <b>If you have additional questions about Sefaria’s use of AI, please email us at <a
+                            href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</b>
                     </span>
                 </p>
             </section>
