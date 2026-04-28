@@ -32,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "test_reduced_tokens33"
+LANGSMITH_DEBUG_TAG = "test_reduced_tokens34"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 
@@ -623,7 +623,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
                 "type": "text",
                 "text": f"Citing passage (citation wrapped in <citation ...></citation>):\n{marked_text}\n\n"
                         f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
-                        "Return 3-4 short lexical search queries (<=6 words each), taken from surrounding context "
+                        "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
                         "outside the citation span.\n"
                         "- Prefer phrases that you expect to appear verbatim in the target text.\n"
                         "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
@@ -634,7 +634,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
                         "- Include at least one 2-3 word query.\n"
                         "- Do NOT copy words that appear inside <citation>...</citation>.\n"
                         "- You may slightly alter spelling of keywords to more standard spelling (e.g. text says ירושלם you can change to ירושלים). HOWEVER, when you do, still include the original spelling as a separate query, because the target may use that exact non-standard spelling.\n"
-                        "Strict output: one per line, numbered 1) ... through 4) ... or a single line 'NONE'.",
+                        "Strict output: one per line, numbered 1) ... through 6) ... or a single line 'NONE'.",
             }
         ]),
     ]
@@ -880,6 +880,7 @@ def _llm_choose_best_candidate(
     base_block = _format_base_block(base_ref, base_text)
 
     candidates_text = "\n\n".join(numbered)
+    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
     llm = _get_llm("default")
     prompt = [
         SystemMessage(content=_system_content(
@@ -891,6 +892,7 @@ def _llm_choose_best_candidate(
             {
                 "type": "text",
                 "text": f"Citing passage (citation wrapped in <citation ...></citation>):\n{marked_text}\n\n"
+                        f"Prior expectations about the target (formed without seeing it):\n{prior}\n\n"
                         f"Candidate refs:\n{candidates_text}\n\n"
                         "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
                         "Output format (replace with actual content, do NOT use placeholders):\n"
@@ -932,22 +934,16 @@ def _llm_choose_best_candidate(
 # ---------------------------------------------------------------------------
 # Shared pipeline helpers
 # ---------------------------------------------------------------------------
-
-def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
-    """Get the base text context if citing ref is a commentary."""
+def _get_commentary_base_ref(citing_ref: Optional[str], section_ref: Ref = None) -> Optional[str]:
     if not citing_ref:
-        return None, None
+        return None
     try:
         citing_oref = Ref(citing_ref)
         base_titles = getattr(citing_oref.index, "base_text_titles", []) or []
-        if not base_titles:
-            return None, None
-
-        if len(base_titles) > 1:
-            # can't be sure what the correct base title is
-            return None, None
+        if not base_titles or len(base_titles) > 1:
+            return None
         base_title = base_titles[0]
-        section_ref = citing_oref.section_ref()
+        section_ref = section_ref or citing_oref.section_ref()
         for sec, addr_type in zip(section_ref.sections, section_ref.index_node.addressTypes):
             address = AddressType.to_str_by_address_type(addr_type, "en", sec)
             base_title += f" {address}"
@@ -955,7 +951,16 @@ def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[st
         base_ref = Ref(base_title).normal()
         if Ref(base_title).is_book_level():
             # book level is too high
-            return None, None
+            return None
+        return base_ref
+    except Exception:
+        return None
+
+
+def _get_commentary_base_context(citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    """Get the base text context if citing ref is a commentary."""
+    try:
+        base_ref = _get_commentary_base_ref(citing_ref)
         base_text = _get_ref_text(base_ref, lang="he") or _get_ref_text(base_ref, lang="en")
         return base_ref, base_text
     except Exception:
