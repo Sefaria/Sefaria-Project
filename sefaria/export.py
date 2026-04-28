@@ -616,16 +616,6 @@ def export_all():
 # Row 4: Version Source
 
 
-def _sorted_segment_refs(refs):
-    """Sort walked segment refs into canonical textual order for stable CSV output."""
-    return sorted(refs, key=lambda tref: Ref(tref).order_id())
-
-
-def _walk_version_segments(version, action, schema, he_tref):
-    """Traverse a fully loaded version once, emitting each segment without per-section DB reads."""
-    version.walk_thru_contents(action, schema=schema, heTref=he_tref)
-
-
 def export_version_csv(index, version_list):
     assert isinstance(index, AbstractIndex)
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
@@ -656,10 +646,11 @@ def export_version_csv(index, version_list):
                 segment_rows[en_tref] = [""] * len(version_list)
             segment_rows[en_tref][i] = segment_text
 
-        _walk_version_segments(version, action, schema, he_tref)
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
     # Walk order is per-version; re-sort once so output stays in normal textual order.
-    for tref in _sorted_segment_refs(segment_rows):
+    for tref in sorted(segment_rows, key=lambda tref: Ref(tref).order_id()):
         writer.writerow([tref] + segment_rows[tref])
 
     return output.getvalue()
@@ -696,10 +687,11 @@ def export_merged_csv(index, lang=None):
             if not merged_segments[en_tref]:
                 merged_segments[en_tref] = segment_text
 
-        _walk_version_segments(version, action, schema, he_tref)
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
     # Emit merged rows in canonical ref order to match previous CSV shape.
-    for tref in _sorted_segment_refs(merged_segments):
+    for tref in sorted(merged_segments, key=lambda tref: Ref(tref).order_id()):
         writer.writerow([tref, merged_segments[tref]])
 
     return output.getvalue()
