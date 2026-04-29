@@ -33,7 +33,7 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 # Global flag for debug mode
 DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 20000  # Number of random examples to fetch in debug mode
+DEBUG_LIMIT = 5000  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6139   # Seed for reproducible random sampling
 
 DEBUG_CACHE_DIR = os.path.join(os.path.dirname(__file__), "debug_cache")

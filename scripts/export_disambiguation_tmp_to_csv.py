@@ -84,7 +84,7 @@ def _get_llm():
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
-        _llm = ChatAnthropic(model="claude-sonnet-4-6", temperature=0, max_tokens=1024, api_key=api_key)
+        _llm = ChatAnthropic(model="claude-sonnet-4-6", temperature=0, api_key=api_key)
     return _llm
 
 
@@ -231,7 +231,7 @@ def main():
                         help="Number of threads for parallel text fetching (default: 30)")
     args = parser.parse_args()
 
-    docs = list(db.linker_disambiguation_tmp.find({"type": "mutc"}))
+    docs = list(db.linker_disambiguation_tmp.find({"type": "mutc"}))[:1000]
     print(f"Loaded {len(docs)} docs.", file=sys.stderr)
 
     # Collect all unique refs that will need text fetched
