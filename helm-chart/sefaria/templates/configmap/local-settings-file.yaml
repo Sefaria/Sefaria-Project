@@ -35,6 +35,7 @@ data:
     varnishHost = os.getenv("VARNISH_HOST")
 
     ALLOWED_HOSTS = ["*"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
     DEBUG = os.getenv("DEBUG").lower() == "true"
     OFFLINE = os.getenv("OFFLINE").lower() == "true"

@@ -26,6 +26,8 @@ billiard<5.0,>=4.2.1
     # via celery
 bleach==6.1.0
     # via -r ./requirements.txt
+tinycss2==1.5.1
+    # via bleach[css]  # required by bleach.css_sanitizer (sefaria/sheets.py)
 boto3==1.16.6
     # via -r ./requirements.txt
 botocore==1.19.63

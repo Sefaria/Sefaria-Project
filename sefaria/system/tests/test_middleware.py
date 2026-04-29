@@ -507,3 +507,71 @@ class TestLegacyCookieExpiration:
         # Only CSRF legacy expiry morsel should be added
         assert '_legacy_expire_csrftoken' in result.cookies
         assert '_legacy_expire_sessionid' not in result.cookies
+
+
+# ============================================================================
+# CSRF TRUSTED ORIGINS TESTS
+# ============================================================================
+
+class TestCsrfTrustedOrigins:
+    """Tests that CSRF_TRUSTED_ORIGINS allows POST requests from sefaria.org subdomains.
+
+    Uses secure=True so Django performs HTTPS origin/referer checking, which is
+    when CSRF_TRUSTED_ORIGINS applies (Django 4+ behavior).
+    """
+
+    def _make_csrf_middleware(self):
+        from django.middleware.csrf import CsrfViewMiddleware
+        return CsrfViewMiddleware(get_response=lambda r: HttpResponse())
+
+    def _post_request(self, host, origin, referer=None):
+        """Create a secure POST request with Origin and Referer headers."""
+        referer = referer or f'https://{host}/login/'
+        return RequestFactory().post(
+            '/login/',
+            secure=True,
+            HTTP_HOST=host,
+            HTTP_ORIGIN=origin,
+            HTTP_REFERER=referer,
+        )
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_cauldron_origin_is_trusted(self):
+        """POST from a cauldron subdomain should pass CSRF origin check."""
+        middleware = self._make_csrf_middleware()
+        request = self._post_request(
+            host='www.django6.cauldron.sefaria.org',
+            origin='https://www.django6.cauldron.sefaria.org',
+        )
+        result = middleware.process_view(request, lambda r: None, [], {})
+        assert result is None or result.status_code != 403, \
+            "Cauldron origin should be trusted but was rejected"
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_untrusted_origin_is_rejected(self):
+        """POST from an unknown external origin should fail CSRF origin check."""
+        middleware = self._make_csrf_middleware()
+        request = self._post_request(
+            host='www.django6.cauldron.sefaria.org',
+            origin='https://evil.example.com',
+            referer='https://evil.example.com/login/',
+        )
+        result = middleware.process_view(request, lambda r: None, [], {})
+        assert result is not None and result.status_code == 403, \
+            "External origin should be rejected by CSRF middleware"
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_sefaria_org_subdomains_are_trusted(self):
+        """Various sefaria.org subdomains should all be trusted."""
+        trusted_origins = [
+            ('www.sefaria.org', 'https://www.sefaria.org'),
+            ('voices.sefaria.org', 'https://voices.sefaria.org'),
+            ('www.django6.cauldron.sefaria.org', 'https://www.django6.cauldron.sefaria.org'),
+            ('staging.cauldron.sefaria.org', 'https://staging.cauldron.sefaria.org'),
+        ]
+        for host, origin in trusted_origins:
+            middleware = self._make_csrf_middleware()
+            request = self._post_request(host=host, origin=origin)
+            result = middleware.process_view(request, lambda r: None, [], {})
+            assert result is None or result.status_code != 403, \
+                f"Origin {origin} should be trusted but was rejected"

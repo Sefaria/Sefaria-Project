@@ -53,7 +53,7 @@ DOMAIN_MODULES = {
     }
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
-
+CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
 ADMINS = (
      'you@example.com',

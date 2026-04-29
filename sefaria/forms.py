@@ -67,8 +67,8 @@ class SefariaNewUserForm(EmailUserCreationForm):
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
         del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
-        self.fields.keyOrder.append("subscribe_educator")
+        order = ["email", "first_name", "last_name", "password1", "captcha", "subscribe_educator"]
+        self.fields = {k: self.fields[k] for k in order if k in self.fields}
 
     def clean_email(self):
         email = self.cleaned_data["email"]

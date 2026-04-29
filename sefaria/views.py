@@ -94,6 +94,11 @@ class CustomLoginView(StaticViewMixin, LoginView):
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
 
+    def get(self, request, *args, **kwargs):
+        # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
+        # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
+        return self.post(request, *args, **kwargs)
+
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
