@@ -277,7 +277,7 @@ shared_patterns = [
     re_path(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     re_path(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     re_path(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
-    path(f'{ADMIN_PATH}/', admin.site.urls),
+    re_path(f'{ADMIN_PATH}/?', admin.site.urls),
     re_path(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     re_path(r'^api/remote-config/?$', remote_config_views.remote_config_values, name="remote_config_api"),
     path('api/async/<path:task_id>', sefaria_views.async_task_status_api),
@@ -293,7 +293,7 @@ shared_patterns += [
 maintenance_patterns = [
     re_path(r'^admin/reset/cache', sefaria_views.reset_cache),
     re_path(r'admin/?', admin.site.urls),
-    path(f'{ADMIN_PATH}/', admin.site.urls),
+    re_path(f'{ADMIN_PATH}/?', admin.site.urls),
     re_path(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),

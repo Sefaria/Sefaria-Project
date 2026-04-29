@@ -99,9 +99,19 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({credential: response.credential}),
                       })
-                      .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+                      .then(function(r) {
+                        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+                      })
                       .then(function(result) {
-                        if (result.ok) { handleSSOSuccess(); } else { handleSSOError(result.data.error); }
+                        if (result.ok) {
+                          handleSSOSuccess();
+                        } else {
+                          handleSSOError((result.data && result.data.error) || 'Sign in failed. Please try again.');
+                        }
+                      })
+                      .catch(function(err) {
+                        console.error('Google SSO error:', err);
+                        handleSSOError('Sign in failed. Please try again.');
                       });
                     },
                   });
@@ -141,13 +151,24 @@
                       email: user.email || '',
                     }),
                   })
-                  .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+                  .then(function(r) {
+                    return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+                  })
                   .then(function(result) {
-                    if (result.ok) { handleSSOSuccess(); } else { handleSSOError(result.data.error); }
+                    if (result.ok) {
+                      handleSSOSuccess();
+                    } else {
+                      handleSSOError((result.data && result.data.error) || 'Sign in failed. Please try again.');
+                    }
+                  })
+                  .catch(function(err) {
+                    console.error('Apple SSO error:', err);
+                    handleSSOError('Sign in failed. Please try again.');
                   });
                 });
 
-                document.addEventListener('AppleIDSignInOnFailure', function() {
+                document.addEventListener('AppleIDSignInOnFailure', function(event) {
+                  console.error('AppleIDSignInOnFailure:', event.detail);
                   handleSSOError('Apple sign-in failed. Please try again.');
                 });
               })();

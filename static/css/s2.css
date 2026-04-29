@@ -15840,4 +15840,11 @@ span.ref-link-color-3 {color: blue}
   direction: rtl;
 }
 
+#appleid-signin {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  height: 68px;
+}
+
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
