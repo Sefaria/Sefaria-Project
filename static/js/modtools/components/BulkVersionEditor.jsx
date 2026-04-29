@@ -208,6 +208,8 @@ const BulkVersionEditor = () => {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showRenameConfirm, setShowRenameConfirm] = useState(false);
   const [renameNewTitle, setRenameNewTitle] = useState("");
   const [renameConfirmText, setRenameConfirmText] = useState("");
@@ -228,6 +230,8 @@ const BulkVersionEditor = () => {
     setShowRenameConfirm(false);
     setRenameNewTitle("");
     setRenameConfirmText("");
+    setRenaming(false);
+    setDeleting(false);
     setShowDeleteConfirm(false);
     setDeleteConfirmText("");
   }, []);
@@ -427,20 +431,24 @@ const BulkVersionEditor = () => {
 
     const extraPayload = lang ? { language: lang } : {};
 
-    await performBulkEdit(
-      '/api/version-bulk-delete',
-      extraPayload,
-      (successCount) => `Successfully deleted ${successCount} versions`,
-      (successCount, total, failureList) => `Deleted ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-      (failureCount, failureList) => `All ${failureCount} deletions failed:\n${failureList}`,
-      () => {
-        // After a successful delete, the underlying Version documents are gone.
-        // Clear selection and indices so the user doesn't try to act on stale data.
-        setPick(new Set());
-        setIndices([]);
-        setSearched(false);
-      }
-    );
+    try {
+      await performBulkEdit(
+        '/api/version-bulk-delete',
+        extraPayload,
+        (successCount) => `Successfully deleted ${successCount} versions`,
+        (successCount, total, failureList) => `Deleted ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+        (failureCount, failureList) => `All ${failureCount} deletions failed:\n${failureList}`,
+        () => {
+          // After a successful delete, the underlying Version documents are gone.
+          // Clear selection and indices so the user doesn't try to act on stale data.
+          setPick(new Set());
+          setIndices([]);
+          setSearched(false);
+        }
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   /**
@@ -455,6 +463,7 @@ const BulkVersionEditor = () => {
 
     setShowRenameConfirm(false);
     setRenameConfirmText("");
+    setRenaming(true);
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Renaming versions...' });
 
     const extraPayload = {
@@ -462,18 +471,22 @@ const BulkVersionEditor = () => {
       ...(lang ? { language: lang } : {})
     };
 
-    await performBulkEdit(
-      '/api/version-bulk-rename',
-      extraPayload,
-      (successCount) => `Successfully renamed ${successCount} versions`,
-      (successCount, total, failureList) => `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-      (failureCount, failureList) => `All ${failureCount} renames failed:\n${failureList}`,
-      () => {
-        setRenameNewTitle("");
-        setVtitle(newTitleTrimmed);
-        load(newTitleTrimmed);
-      }
-    );
+    try {
+      await performBulkEdit(
+        '/api/version-bulk-rename',
+        extraPayload,
+        (successCount) => `Successfully renamed ${successCount} versions`,
+        (successCount, total, failureList) => `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
+        (failureCount, failureList) => `All ${failureCount} renames failed:\n${failureList}`,
+        () => {
+          setRenameNewTitle("");
+          setVtitle(newTitleTrimmed);
+          load(newTitleTrimmed);
+        }
+      );
+    } finally {
+      setRenaming(false);
+    }
   };
 
   /**
@@ -548,7 +561,7 @@ const BulkVersionEditor = () => {
 
         {isRequired ? (
           <div className="clearFieldOption requiredFieldNote">
-            This field is required on every Version and cannot be cleared.  However, you don't need to specify a value for it.
+            This field is required on every Version and cannot be cleared.  However, you don't need to specify a new value.
           </div>
         ) : (
           <div className="clearFieldOption">
@@ -736,7 +749,9 @@ const BulkVersionEditor = () => {
               disabled={isButtonDisabled}
             >
               {saving ? (
-                <><span className="loadingSpinner" />Saving...</>
+                (!renaming && !deleting)
+                  ? <><span className="loadingSpinner" />Saving...</>
+                  : `Save Changes`
               ) : (
                 `Save Changes`
               )}
@@ -748,9 +763,9 @@ const BulkVersionEditor = () => {
 
           {showRenameConfirm && (
             <div className="dangerBox">
-              <strong>Rename Version Title</strong>
+              <strong>Rename Version (i.e. Change Version Title)</strong>
               <p className="sectionDescription">
-                This will rename the version title from <code>{vtitle}</code> to a new title for the
+                This action will ONLY change the version title. It will NOT change the version source, license, or any other metadata. If confirmed, this action will change the version title from <code>{vtitle}</code> to a new title for the
                 <strong> {pick.size}</strong> selected text{pick.size === 1 ? '' : 's'}. This action is applied immediately and cannot be undone.
               </p>
               <p className="sectionDescription">
@@ -792,7 +807,7 @@ const BulkVersionEditor = () => {
                     renameNewTitle.trim() === vtitle.trim()
                   }
                 >
-                  {saving ? <><span className="loadingSpinner" />Renaming...</> : "Yes, Rename Versions"}
+                  Yes, Rename Versions
                 </button>
                 <button
                   className="modtoolsButton secondary"
@@ -816,7 +831,7 @@ const BulkVersionEditor = () => {
                 disabled={saving}
                 type="button"
               >
-                Rename Version Title
+                {renaming ? <><span className="loadingSpinner" />Renaming...</> : "Rename Version (i.e. Change Version Title)"}
               </button>
             </div>
           )}
@@ -853,7 +868,7 @@ const BulkVersionEditor = () => {
                   onClick={deleteVersions}
                   disabled={saving || deleteConfirmText !== vtitle}
                 >
-                  {saving ? <><span className="loadingSpinner" />Deleting...</> : "Yes, Delete Versions"}
+                  {deleting ? <><span className="loadingSpinner" />Deleting...</> : "Yes, Delete Versions"}
                 </button>
                 <button
                   className="modtoolsButton secondary"
