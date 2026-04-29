@@ -1154,6 +1154,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
+        "page":           page,
     })
 
 

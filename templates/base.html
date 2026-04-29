@@ -119,6 +119,9 @@
     <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    {% if page == 'modtools' %}
+    <link rel="stylesheet" href="{% static 'css/modtools.css' %}">
+    {% endif %}
     <!-- Specific styling to correct behavior of Unbounce banners -->
     <link rel="stylesheet" href="{% static 'css/unbounce-banner.css' %}">
 

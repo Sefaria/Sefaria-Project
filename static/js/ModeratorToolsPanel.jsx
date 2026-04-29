@@ -23,9 +23,6 @@
  */
 import Sefaria from './sefaria/sefaria';
 
-// Import modtools styles
-// import '../css/modtools.css';
-
 // Import tool components
 import BulkDownloadText from './modtools/components/BulkDownloadText';
 import BulkUploadCSV from './modtools/components/BulkUploadCSV';
