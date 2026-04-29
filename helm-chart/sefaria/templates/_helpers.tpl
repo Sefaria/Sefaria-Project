@@ -169,6 +169,29 @@ tasks: {{ .Values.deployEnv }}-tasks
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}
 {{- end }}
 
+{{/*
+Node affinity to avoid preemptible/spot GKE nodes.
+Renders a nodeAffinity block from .Values.nonPreemptibleNodeAffinity.
+Usage inside an existing affinity: block:
+  {{- include "sefaria.nonPreemptibleNodeAffinity" . | nindent <N> }}
+Usage when no affinity: block exists yet (wraps in affinity:):
+  {{- include "sefaria.nonPreemptibleAffinityBlock" . | nindent <N> }}
+*/}}
+{{- define "sefaria.nonPreemptibleNodeAffinity" -}}
+{{- with .Values.nonPreemptibleNodeAffinity }}
+nodeAffinity:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end -}}
+
+{{- define "sefaria.nonPreemptibleAffinityBlock" -}}
+{{- with .Values.nonPreemptibleNodeAffinity }}
+affinity:
+  nodeAffinity:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+{{- end -}}
+
 {{- define "config.domainModules" }}
 {{- $map := dict -}}
 {{- $deployEnv := .Values.deployEnv -}}
