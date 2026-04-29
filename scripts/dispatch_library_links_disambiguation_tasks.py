@@ -132,7 +132,7 @@ def find_all_resolutions():
         # --- Ambiguous payloads: group spans by charRange ---
         char_range_groups = defaultdict(list)
         for span in spans:
-            if span.get('type') == 'citation' and span.get('ambiguous', False) and not span.get('llm_ambiguous_option_valid'):
+            if span.get('type') == 'citation' and span.get('ambiguous', False) and span.get('llm_ambiguous_option_valid') is None:
                 char_range_groups[tuple(span['charRange'])].append(span)
 
         for char_range, amb_spans in char_range_groups.items():
@@ -167,6 +167,8 @@ def find_all_resolutions():
             if span.get('type') != 'citation' or span.get('failed', False):
                 continue
             if span.get('ambiguous', False) and not span.get('llm_ambiguous_option_valid'):
+                continue
+            if span.get('llm_resolved_ref_non_segment'):
                 continue
 
             ref_str = span.get('ref')
