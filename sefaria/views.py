@@ -205,61 +205,112 @@ def register_api(request):
 @csrf_exempt
 @api_view(["POST"])
 def google_sso_callback(request):
-    from google.oauth2 import id_token
-    from google.auth.transport import requests as google_requests
-    from sso.models import SocialIdentity
-    from emailusernames.utils import create_user
-    from django.contrib.auth.models import User as AuthUser
+    from sso.providers.google import verify_token
+    from sso.service import SocialAuthService, EmailCollisionError
 
     credential = request.data.get("credential") or request.POST.get("credential")
     if not credential:
         return jsonResponse({"error": "Missing credential"}, status=400)
 
     try:
-        payload = id_token.verify_oauth2_token(
-            credential,
-            google_requests.Request(),
-            settings.GOOGLE_SSO_CLIENT_ID,
-        )
+        payload = verify_token(credential)
     except Exception:
         return jsonResponse({"error": "Google sign-in failed. Please try again."}, status=401)
 
-    sub = payload["sub"]
-    email = payload.get("email", "")
-    given_name = payload.get("given_name", "")
-    family_name = payload.get("family_name", "")
-
-    # Returning SSO user
     try:
-        identity = SocialIdentity.objects.select_related("user").get(provider="google", uid=sub)
-        auth_login(request, identity.user, backend="emailusernames.backends.EmailAuthBackend")
-        return jsonResponse({"status": "ok", "is_new_user": False})
-    except SocialIdentity.DoesNotExist:
-        pass
+        user, is_new_user = SocialAuthService.get_or_create_social_user(
+            provider="google",
+            uid=payload["sub"],
+            email=payload["email"],
+            first_name=payload["given_name"],
+            last_name=payload["family_name"],
+            request=request,
+        )
+    except EmailCollisionError:
+        return jsonResponse({
+            "error": "An account with this email already exists. Sign in with your password, then connect Google in Settings → Login Methods."
+        }, status=409)
 
-    # Email collision: existing password account, no linked Google identity
+    auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
+    return jsonResponse({"status": "ok", "is_new_user": is_new_user})
+
+
+@csrf_exempt
+@api_view(["POST"])
+def apple_sso_callback(request):
+    from sso.providers.apple import verify_token
+    from sso.service import SocialAuthService, EmailCollisionError
+
+    id_token = request.data.get("id_token") or request.POST.get("id_token")
+    if not id_token:
+        return jsonResponse({"error": "Missing id_token"}, status=400)
+
     try:
-        existing_user = AuthUser.objects.get(email=email)
-        if not existing_user.social_identities.filter(provider="google").exists():
-            return jsonResponse({
-                "error": "An account with this email already exists. Sign in with your password, then link your Google account in Settings."
-            }, status=409)
-    except AuthUser.DoesNotExist:
-        pass
+        payload = verify_token(id_token)
+    except Exception:
+        return jsonResponse({"error": "Apple sign-in failed. Please try again."}, status=401)
 
-    # New user — create Django User, SocialIdentity, and UserProfile
-    with transaction.atomic():
-        new_user = create_user(email, password=None)
-        new_user.first_name = given_name
-        new_user.last_name = family_name
-        new_user.save()
-        SocialIdentity.objects.create(provider="google", uid=sub, email=email, user=new_user)
-        p = UserProfile(id=new_user.id, user_registration=True)
-        p.assign_slug()
-        p.save()
+    first_name = request.data.get("first_name", "")
+    last_name = request.data.get("last_name", "")
 
-    auth_login(request, new_user, backend="emailusernames.backends.EmailAuthBackend")
-    return jsonResponse({"status": "ok", "is_new_user": True})
+    try:
+        user, is_new_user = SocialAuthService.get_or_create_social_user(
+            provider="apple",
+            uid=payload["sub"],
+            email=payload["email"],
+            first_name=first_name,
+            last_name=last_name,
+            request=request,
+        )
+    except EmailCollisionError:
+        return jsonResponse({
+            "error": "An account with this email already exists. Sign in with your password, then connect Apple in Settings → Login Methods."
+        }, status=409)
+
+    auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
+    return jsonResponse({"status": "ok", "is_new_user": is_new_user})
+
+
+@login_required
+@api_view(["POST"])
+def link_social_provider(request, provider):
+    from sso.service import SocialAuthService, AlreadyLinkedError
+
+    if provider not in {"google", "apple"}:
+        return jsonResponse({"error": "Unknown provider"}, status=400)
+
+    try:
+        if provider == "google":
+            from sso.providers.google import verify_token
+            payload = verify_token(request.data.get("credential", ""))
+        else:
+            from sso.providers.apple import verify_token
+            payload = verify_token(request.data.get("id_token", ""))
+    except Exception:
+        return jsonResponse({"error": "Token verification failed"}, status=401)
+
+    try:
+        SocialAuthService.link_provider(request.user, provider, payload["sub"], payload["email"])
+    except AlreadyLinkedError:
+        return jsonResponse({"error": "This account is already linked to another Sefaria account."}, status=409)
+
+    return jsonResponse({"status": "ok"})
+
+
+@login_required
+@api_view(["DELETE"])
+def unlink_social_provider(request, provider):
+    from sso.service import SocialAuthService, LastLoginMethodError
+
+    if provider not in {"google", "apple"}:
+        return jsonResponse({"error": "Unknown provider"}, status=400)
+
+    try:
+        SocialAuthService.unlink_provider(request.user, provider)
+    except LastLoginMethodError:
+        return jsonResponse({"error": "Set a password before removing your only login method."}, status=409)
+
+    return jsonResponse({"status": "ok"})
 
 
 def register(request):

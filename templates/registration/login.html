@@ -64,21 +64,46 @@
                 <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
             </a>
 
-            {% if GOOGLE_SSO_CLIENT_ID %}
-            <div id="google-sso-section">
+            {% if GOOGLE_SSO_CLIENT_ID or APPLE_SSO_CLIENT_ID %}
+            <div id="sso-section">
                 <div class="sso-divider">
                     <span class="int-en">or</span>
                     <span class="int-he">או</span>
                 </div>
+                {% if GOOGLE_SSO_CLIENT_ID %}
                 <div id="google-signin-button"></div>
-                <div id="google-sso-error" style="display:none;" class="error"></div>
+                {% endif %}
+                {% if APPLE_SSO_CLIENT_ID %}
+                <div id="appleid-signin" data-color="black" data-border="true" data-type="sign in"></div>
+                {% endif %}
+                <div id="sso-error" style="display:none;" class="error"></div>
             </div>
             <script>
+              function handleSSOError(msg) {
+                var el = document.getElementById('sso-error');
+                el.textContent = msg;
+                el.style.display = 'block';
+              }
+              function handleSSOSuccess() {
+                window.location.href = '{{ next|default:"/" }}';
+              }
+
+              {% if GOOGLE_SSO_CLIENT_ID %}
               window.addEventListener('load', function() {
                 if (window.google && window.google.accounts) {
                   google.accounts.id.initialize({
                     client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
-                    callback: handleGoogleOneTapCredential,
+                    callback: function(response) {
+                      fetch('/api/auth/google/callback', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({credential: response.credential}),
+                      })
+                      .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+                      .then(function(result) {
+                        if (result.ok) { handleSSOSuccess(); } else { handleSSOError(result.data.error); }
+                      });
+                    },
                   });
                   google.accounts.id.renderButton(
                     document.getElementById('google-signin-button'),
@@ -86,23 +111,47 @@
                   );
                 }
               });
-              function handleGoogleOneTapCredential(response) {
-                fetch('/api/auth/google/callback', {
-                  method: 'POST',
-                  headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({credential: response.credential}),
-                })
-                .then(function(r) { return r.json().then(function(data) { return {ok: r.ok, data: data}; }); })
-                .then(function(result) {
-                  if (result.ok) {
-                    window.location.href = '{{ next|default:"/" }}';
-                  } else {
-                    var el = document.getElementById('google-sso-error');
-                    el.textContent = result.data.error;
-                    el.style.display = 'block';
-                  }
+              {% endif %}
+
+              {% if APPLE_SSO_CLIENT_ID %}
+              (function() {
+                var appleScript = document.createElement('script');
+                appleScript.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+                appleScript.onload = function() {
+                  AppleID.auth.init({
+                    clientId: '{{ APPLE_SSO_CLIENT_ID }}',
+                    scope: 'name email',
+                    redirectURI: window.location.origin + '/login',
+                    usePopup: true,
+                  });
+                };
+                document.head.appendChild(appleScript);
+
+                document.addEventListener('AppleIDSignInOnSuccess', function(event) {
+                  var auth = event.detail.authorization;
+                  var user = event.detail.user || {};
+                  var name = user.name || {};
+                  fetch('/api/auth/apple/callback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                      id_token: auth.id_token,
+                      first_name: name.firstName || '',
+                      last_name: name.lastName || '',
+                      email: user.email || '',
+                    }),
+                  })
+                  .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+                  .then(function(result) {
+                    if (result.ok) { handleSSOSuccess(); } else { handleSSOError(result.data.error); }
+                  });
                 });
-              }
+
+                document.addEventListener('AppleIDSignInOnFailure', function() {
+                  handleSSOError('Apple sign-in failed. Please try again.');
+                });
+              })();
+              {% endif %}
             </script>
             {% endif %}
 	    </div>

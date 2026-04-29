@@ -147,6 +147,45 @@
             <span id="email-edit-errors"></span>
         </div>
     </div>
+    <div id="login-methods" class="section">
+        <label class="control-elem">
+            <span class="int-en">Login Methods</span>
+            <span class="int-he">שיטות כניסה</span>
+        </label>
+        <div class="form-section">
+            <span class="int-en">Password:
+                {% if has_usable_password %}Connected{% else %}Not set — <a href="/password/change/">Set a password</a>{% endif %}
+            </span>
+        </div>
+        {% if GOOGLE_SSO_CLIENT_ID %}
+        <div class="form-section" id="login-methods-google">
+            <span class="int-en">Google: {% if "google" in connected_providers %}Connected{% else %}Not connected{% endif %}</span>
+            {% if "google" in connected_providers %}
+            <button type="button" class="button small blue" id="disconnect-google-btn"
+                {% if not has_usable_password and connected_providers|length == 1 %}disabled title="Set a password before removing your only login method"{% endif %}>
+                <span class="int-en">Disconnect</span>
+            </button>
+            {% else %}
+            <div id="connect-google-button"></div>
+            {% endif %}
+            <span id="login-methods-google-msg" class="error" style="display:none"></span>
+        </div>
+        {% endif %}
+        {% if APPLE_SSO_CLIENT_ID %}
+        <div class="form-section" id="login-methods-apple">
+            <span class="int-en">Apple: {% if "apple" in connected_providers %}Connected{% else %}Not connected{% endif %}</span>
+            {% if "apple" in connected_providers %}
+            <button type="button" class="button small blue" id="disconnect-apple-btn"
+                {% if not has_usable_password and connected_providers|length == 1 %}disabled title="Set a password before removing your only login method"{% endif %}>
+                <span class="int-en">Disconnect</span>
+            </button>
+            {% else %}
+            <div id="appleid-connect-signin" data-color="black" data-border="true" data-type="continue"></div>
+            {% endif %}
+            <span id="login-methods-apple-msg" class="error" style="display:none"></span>
+        </div>
+        {% endif %}
+    </div>
     <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
         <label class="control-elem">
                 <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
@@ -320,4 +359,112 @@
 			});
 		});
 	</script>
+
+{% if GOOGLE_SSO_CLIENT_ID or APPLE_SSO_CLIENT_ID %}
+<script>
+function getCsrfToken() {
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+{% if GOOGLE_SSO_CLIENT_ID %}
+(function() {
+    var connectBtn = document.getElementById('connect-google-button');
+    var disconnectBtn = document.getElementById('disconnect-google-btn');
+    var msg = document.getElementById('login-methods-google-msg');
+
+    function showError(text) { if (msg) { msg.textContent = text; msg.style.display = 'block'; } }
+
+    if (connectBtn) {
+        var gsiScript = document.createElement('script');
+        gsiScript.src = 'https://accounts.google.com/gsi/client';
+        gsiScript.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
+                callback: function(response) {
+                    fetch('/api/auth/link/google', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+                        body: JSON.stringify({credential: response.credential}),
+                    }).then(function(r) { return r.json(); }).then(function(data) {
+                        if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
+                    });
+                },
+            });
+            google.accounts.id.renderButton(connectBtn, {type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', width: 250});
+        };
+        document.head.appendChild(gsiScript);
+    }
+
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', function() {
+            fetch('/api/auth/unlink/google', {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCsrfToken()},
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
+            });
+        });
+    }
+})();
+{% endif %}
+
+{% if APPLE_SSO_CLIENT_ID %}
+(function() {
+    var connectBtn = document.getElementById('appleid-connect-signin');
+    var disconnectBtn = document.getElementById('disconnect-apple-btn');
+    var msg = document.getElementById('login-methods-apple-msg');
+
+    function showError(text) { if (msg) { msg.textContent = text; msg.style.display = 'block'; } }
+
+    if (connectBtn) {
+        var appleScript = document.createElement('script');
+        appleScript.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
+        appleScript.onload = function() {
+            AppleID.auth.init({
+                clientId: '{{ APPLE_SSO_CLIENT_ID }}',
+                scope: 'name email',
+                redirectURI: window.location.origin + '/settings/account',
+                usePopup: true,
+            });
+        };
+        document.head.appendChild(appleScript);
+
+        document.addEventListener('AppleIDSignInOnSuccess', function(event) {
+            var auth = event.detail.authorization;
+            var user = event.detail.user || {};
+            var name = user.name || {};
+            fetch('/api/auth/link/apple', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+                body: JSON.stringify({
+                    id_token: auth.id_token,
+                    first_name: name.firstName || '',
+                    last_name: name.lastName || '',
+                    email: user.email || '',
+                }),
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
+            });
+        });
+
+        document.addEventListener('AppleIDSignInOnFailure', function(event) {
+            showError('Apple sign-in failed. Please try again.');
+        });
+    }
+
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', function() {
+            fetch('/api/auth/unlink/apple', {
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCsrfToken()},
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
+            });
+        });
+    }
+})();
+{% endif %}
+</script>
+{% endif %}
 {% endblock %}
