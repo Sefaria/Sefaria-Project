@@ -106,6 +106,7 @@ function BulkUploadCSV() {
       const data = await response.json();
 
       if (data.status === "ok") {
+        console.log("Bulk CSV upload succeeded", { fileCount: files.length, fileNames: files.map(f => f.name), data });
         setUploading(false);
         setUploadMessage(data.message);
         setUploadError(null);
@@ -114,11 +115,13 @@ function BulkUploadCSV() {
           formRef.current.reset();
         }
       } else {
+        console.error("Bulk CSV upload failed", { fileCount: files.length, fileNames: files.map(f => f.name), responseStatus: response.status, data });
         setUploadError("Error - " + data.error);
         setUploading(false);
         setUploadMessage(data.message);
       }
     } catch (err) {
+      console.error("Bulk CSV upload request threw an error", { fileCount: files.length, fileNames: files.map(f => f.name), error: err });
       setUploadError("Error - " + err.toString());
       setUploading(false);
       setUploadMessage(null);

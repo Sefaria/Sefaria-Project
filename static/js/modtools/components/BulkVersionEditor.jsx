@@ -360,17 +360,21 @@ const BulkVersionEditor = () => {
       const total = successCount + failureCount;
 
       if (data.status === "ok") {
+        console.log("Bulk edit succeeded", { url, successCount, total, payload, data });
         setMsg({ type: MESSAGE_TYPES.SUCCESS, message: getSuccessMsg(successCount) });
         if (onSuccess) onSuccess();
       } else if (data.status === "partial") {
         const failureList = data.failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        console.warn("Bulk edit partially succeeded", { url, successCount, failureCount, total, failures: data.failures, payload, data });
         setMsg({ type: MESSAGE_TYPES.WARNING, message: getPartialMsg(successCount, total, failureList) });
       } else {
         const failureList = data.failures?.map(f => `• ${f.index}: ${f.error}`).join("\n") || "Unknown error";
+        console.error("Bulk edit failed", { url, failureCount, total, failures: data.failures, payload, data });
         setMsg({ type: MESSAGE_TYPES.ERROR, message: getErrorMsg(failureCount, failureList) });
       }
     } catch (error) {
       const errorMsg = error.message || "Unknown error";
+      console.error("Bulk edit request threw an error", { url, payload: { versionTitle: vtitle, indices: Array.from(pick), ...extraPayload }, error });
       setMsg({ type: MESSAGE_TYPES.ERROR, message: `Error: ${errorMsg}` });
     } finally {
       setSaving(false);
