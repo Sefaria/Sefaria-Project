@@ -47,6 +47,46 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/version-
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/text-upload
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /modtools/
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /download/bulk/
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
