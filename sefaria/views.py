@@ -9,7 +9,7 @@ import requests
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Any
 from dataclasses import asdict
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
 from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
@@ -198,30 +198,29 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next = request.GET.get('next', '')
+    next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
-            if "noredirect" in request.POST:
-                return HttpResponse("ok")
-            elif "new?assignment=" in request.POST.get("next",""):
-                next = request.POST.get("next", "")
-                return HttpResponseRedirect(next)
+            if "new?assignment=" in request.POST.get("next", ""):
+                next_url = request.POST.get("next", "")
             else:
-                next = request.POST.get("next", "/")
-                if "?" in next:
-                    next += "&welcome=to-sefaria"
-                else:
-                    next += "?welcome=to-sefaria"
-                return HttpResponseRedirect(next)
+                next_url = request.POST.get("next", "/")
+                parsed = urlparse(next_url)
+                next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if "noredirect" in request.POST:
+                return jsonResponse({"redirect": next_url})
+            return HttpResponseRedirect(next_url)
+        elif "noredirect" in request.POST:
+            return jsonResponse(errors)
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
 
 
 def maintenance_message(request):
