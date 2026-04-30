@@ -78,6 +78,7 @@ class NonSegmentResolutionResult:
     resolved_ref: Optional[str] = None
     method: Optional[str] = None
     llm_resolved_phrase: Optional[str] = None
+    rejected_ref: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -1449,6 +1450,8 @@ def disambiguate_non_segment_ref(
             citing_text_norm, char_range_norm, text_snippet_norm,
         )
 
+        rejected_ref = None
+
         # Try Dicta
         logger.info("Querying Dicta API...")
         dicta_candidates = _query_dicta(windowed_text, target_ref=non_segment_ref_str)
@@ -1486,7 +1489,9 @@ def disambiguate_non_segment_ref(
                         resolved_ref=candidate.resolved_ref,
                         method='dicta_auto_approved' if citing_ref.startswith("Metzudat Zion") else 'dicta_llm_confirmed',
                         llm_resolved_phrase=candidate.resolution_phrase(),
+                        rejected_ref=rejected_ref,
                     )
+                rejected_ref = candidate.resolved_ref
 
         # Fallback: Sefaria search pipeline
         logger.info("Falling back to Sefaria search pipeline...")
@@ -1515,10 +1520,12 @@ def disambiguate_non_segment_ref(
                     resolved_ref=search_result.resolved_ref,
                     method='search_auto_approved' if citing_ref.startswith("Metzudat Zion") else 'search_llm_confirmed',
                     llm_resolved_phrase=search_result.resolution_phrase(),
+                    rejected_ref=rejected_ref,
                 )
+            rejected_ref = search_result.resolved_ref
 
         logger.info("No resolution found via Dicta or Search")
-        return None
+        return NonSegmentResolutionResult(rejected_ref=rejected_ref) if rejected_ref else None
 
     except DictaAPIError:
         raise
