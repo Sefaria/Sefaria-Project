@@ -131,8 +131,8 @@ const updateStorageState = async (storageState: StorageState, key: string, value
 export const hideAllModalsAndPopups = async (page: Page) => {
   const selectors = [
     '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
-    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
-    '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close',
+    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close', '#interruptingMessageBox #interruptingMessageClose',
+    '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close','.siteWideBannerContent .siteWideBannerClose',
     '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
     'small.popover-button.accessible-touch-target', '#bannerMessageClose', '.cookiesNotification',
     'button[data-active-module="voices"].popover-button', '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.cookiesNotification > span.int-en > div',
@@ -273,6 +273,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     await page.context().addCookies(storageState.cookies);
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(1500));
     await hideAllModalsAndPopups(page);
   } else {
     const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -282,6 +283,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     }
     await page.context().addCookies(storageCookies);
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(1500));
     await hideAllModalsAndPopups(page);
   }
 
@@ -312,6 +314,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     await page.context().addCookies(storageState.cookies);
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(1500));
     // await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
     return page;
@@ -330,6 +333,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
   await changeLanguage(page, language);
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(t(1500));
   await hideAllModalsAndPopups(page);
   return page;
 }

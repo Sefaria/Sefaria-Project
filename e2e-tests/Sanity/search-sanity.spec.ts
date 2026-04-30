@@ -21,8 +21,7 @@ test.describe('Search Sanity Tests', () => {
   test('Sanity 9a: Library - Click search suggestion and arrive at destination', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
-    const pm = new PageManager(page, LANGUAGES.EN);
-
+    
     // Type in search to trigger suggestions
     const searchBox = page.getByRole('banner').getByRole('combobox', { name: /search/i });
     await searchBox.fill('abraham');
@@ -49,14 +48,15 @@ test.describe('Search Sanity Tests', () => {
   test('Sanity 9b: Library - Submit search and get results', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
-    const pm = new PageManager(page, LANGUAGES.EN);
-
+    
     // Type search term and submit
     const searchBox = page.getByRole('banner').getByRole('combobox', { name: /search/i });
+    await hideAllModalsAndPopups(page);
     await searchBox.fill('avraham');
     await searchBox.press('Enter');
 
     // Wait for search results page
+    await page.waitForTimeout(t(1000));
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
 

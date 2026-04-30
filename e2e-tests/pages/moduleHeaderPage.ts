@@ -96,9 +96,6 @@ export class ModuleHeaderPage extends HelperBase {
     const icon = this.header.locator(iconSelector);
     await icon.waitFor({ state: 'visible', timeout: t(8000) });
     await icon.click();
-    // Wait for any dropdown options to appear (tolerant to different dropdown implementations)
-    const possibleOptions = this.page.locator(`${MODULE_SELECTORS.DROPDOWN_OPTION}, ${MODULE_SELECTORS.MODULE_DROPDOWN_OPTIONS}`);
-    await possibleOptions.first().waitFor({ state: 'visible', timeout: t(5000) }).catch(() => { });
   }
 
   async selectDropdownOption(optionText: string, openNewTab = false, _dropdownContext?: string): Promise<any> {
@@ -112,10 +109,10 @@ export class ModuleHeaderPage extends HelperBase {
         // fallback to UI click if URL strategy fails
       }
     }
-
-    const dropdownContainer = this.page.locator(MODULE_SELECTORS.DROPDOWN);
+    // Removed as it was causing flakiness and the dropdown should already be open from the calling function
+    // const dropdownContainer = this.page.locator(MODULE_SELECTORS.DROPDOWN);
     // Wait for dropdown container (if present) and the option to be visible
-    await dropdownContainer.first().waitFor({ state: 'visible', timeout: t(5000) }).catch(() => { });
+    // await dropdownContainer.first().waitFor({ state: 'visible', timeout: t(5000) }).catch(() => { });
     const option = this.page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
     await option.waitFor({ state: 'visible', timeout: t(10000) });
 
@@ -124,7 +121,7 @@ export class ModuleHeaderPage extends HelperBase {
         this.page.context().waitForEvent('page'),
         option.click()
       ]);
-      await newPage.waitForLoadState('networkidle');
+      // await newPage.waitForLoadState('networkidle');
       return newPage;
     }
 

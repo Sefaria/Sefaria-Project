@@ -27,10 +27,12 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   test('Sanity 1: User can login successfully', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
-
+    
     // Navigate to login page
+    await hideAllModalsAndPopups(page);
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Log in');
 
@@ -58,6 +60,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
 
     // Navigate to profile via user menu
     await openHeaderDropdown(page, 'user');
@@ -129,7 +132,8 @@ test.describe.serial('User Flow Sanity Tests', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-
+    await hideAllModalsAndPopups(page);
+    
     // Navigate to account settings via user menu
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Account Settings');
@@ -192,21 +196,25 @@ test.describe.serial('User Flow Sanity Tests', () => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-
+    await hideAllModalsAndPopups(page);
+    
     // Navigate to Voices
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
+    await hideAllModalsAndPopups(page);
     const voicesPage = await pm.onModuleHeader().selectDropdownOption('Voices', true);
     await expect(voicesPage!).toHaveURL(new RegExp(MODULE_URLS.EN.VOICES));
     await voicesPage!.close();
 
     // Navigate to Developers
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
+    await hideAllModalsAndPopups(page);
     const developersPage = await pm.onModuleHeader().selectDropdownOption('Developers', true);
     await expect(developersPage!).toHaveURL(EXTERNAL_URLS.DEVELOPERS);
     await developersPage!.close();
 
     // Navigate to More from Sefaria
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
+    await hideAllModalsAndPopups(page);
     const productsPage = await pm.onModuleHeader().selectDropdownOption('More from Sefaria ›', true);
     await expect(productsPage!).toHaveURL(/\/products$/);
     await productsPage!.close();
@@ -224,14 +232,14 @@ test.describe.serial('User Flow Sanity Tests', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
     await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-
+    await hideAllModalsAndPopups(page);
+    
     // Verify logged in
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
-    // wait 1000ms
     await page.waitForTimeout(t(1000));
     // Perform logout
-    await page.waitForLoadState('networkidle');
-    await pm.onModuleHeader().logout();
+    await openHeaderDropdown(page, 'user');
+    await selectDropdownOption(page, 'Log out');
     await page.waitForLoadState('networkidle');
     await hideAllModalsAndPopups(page);
 

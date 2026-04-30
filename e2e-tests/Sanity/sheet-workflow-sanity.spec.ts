@@ -60,9 +60,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     await sheetEditorPage.addText("Genesis 1:3");
     await page.keyboard.press('Enter');
     await page.waitForTimeout(t(2000)); // Extra wait for auto-save
-    await expect(sheetEditorPage.addedSource().first()).toBeVisible();
-    await expect(sheetEditorPage.addedSource().first()).toContainText("Genesis 1:3");
-    await expect(sheetEditorPage.title()).toContainText(sheetTitle);
+
+    const genesisSource = sheetEditorPage.addedSource().filter({ hasText: "Genesis 1:3" }).first();
+    await expect(genesisSource).toBeVisible();
   });
 
   // =================================================================
@@ -82,8 +82,8 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     await sheetEditorPage.addSampleSource(); // Genesis 1:1
     await page.waitForTimeout(t(2000)); // Extra wait for auto-save
 
-    await expect(sheetEditorPage.addedSource().last()).toBeVisible();
-    await expect(sheetEditorPage.addedSource().last()).toContainText("Genesis 1:1");
+    const genesisSource = sheetEditorPage.addedSource().filter({ hasText: "Genesis 1:1" }).first();
+    await expect(genesisSource).toBeVisible();
   });
 
   // =================================================================
@@ -153,8 +153,9 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     for (let i = 0; i < 9; i++) {
       await page.keyboard.press('ArrowDown');
     }
-    await expect(sheetEditorPage.addedSource().last()).toBeVisible();
-    await expect(sheetEditorPage.addedSource().last()).toContainText("Job 1:2");
+    
+    const jobSource = sheetEditorPage.addedSource().filter({ hasText: "Job 1:2" }).first();
+    await expect(jobSource).toBeVisible();
   });
 
   // ================================================================

@@ -75,8 +75,8 @@ export class AccountSettingsPage extends HelperBase {
   }
 
   async saveSettings() {
-    // Click the first save button (there are multiple)
-    await this.saveButtons.first().click();
+    // Click the last save button (there are multiple)
+    await this.saveButtons.last().click();
 
     // Wait for alert dialog to appear and handle it
     this.page.once('dialog', async dialog => {
