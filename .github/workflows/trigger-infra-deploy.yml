@@ -27,6 +27,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Verify token was supplied
+        env:
+          TOKEN: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "TOKEN IS EMPTY"
+          else
+            echo "TOKEN IS SET (length: ${#TOKEN})"
+          fi
       - name: Resolve environment and validate tag
         id: setup
         run: |

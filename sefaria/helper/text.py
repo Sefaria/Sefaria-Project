@@ -396,7 +396,7 @@ def make_versions_csv():
         "method",
     ]
     writer.writerow(fields)
-    vs = VersionSet()
+    vs = VersionSet(proj={f: 1 for f in fields})
     for v in vs:
         writer.writerow([str(getattr(v, f, "")).encode("utf-8") for f in fields])
 

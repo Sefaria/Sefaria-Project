@@ -324,6 +324,72 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
 
 
+def _serialize_author_index(index: Index, include_descriptions: bool = False) -> dict:
+    try:
+        url = f"/{Ref(index.title).url()}"
+    except InputError:
+        url = None
+    response = {
+        "title": index.title,
+        "heTitle": index.get_title("he"),
+        "categories": getattr(index, "categories", []),
+        "url": url,
+        "dependence": getattr(index, "dependence", None),
+    }
+    if include_descriptions:
+        description = {}
+        en_desc = getattr(index, "enShortDesc", None) or getattr(index, "enDesc", None)
+        he_desc = getattr(index, "heShortDesc", None) or getattr(index, "heDesc", None)
+        if en_desc:
+            description["en"] = en_desc
+        if he_desc:
+            description["he"] = he_desc
+        response["description"] = description
+    return response
+
+
+def _get_author_indexes_from_topic(author_topic: AuthorTopic, include_aggregations: bool = False, include_descriptions: bool = False) -> dict:
+    """
+    Return authored indexes payload.
+
+    Example (Rambam):
+    {"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary"}],"total":1}
+
+    If include_descriptions=True, each index adds:
+    "description": {"en": "...", "he": "..."}  # present keys only
+
+    If include_aggregations=True, payload adds:
+    "aggregations": [{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]
+    """
+    indexes = [_serialize_author_index(index, include_descriptions=include_descriptions) for index in author_topic.get_authored_indexes()]
+    response = {
+        "indexes": indexes,
+        "total": len(indexes),
+    }
+    if include_aggregations:
+        response["aggregations"] = author_topic.get_aggregated_urls_for_authors_indexes()
+    return response
+
+
+def get_author_indexes(slug: str, include_aggregations: bool = False, include_descriptions: bool = False) -> Optional[dict]:
+    """Return author-indexes payload for `slug`, or `None` if slug is missing/non-author.
+    Optional flags: `include_aggregations`, `include_descriptions`.
+    Example: {"author":{"slug":"rambam","title":{"en":"Maimonides","he":"רמב\"ם"}},"indexes":[{"title":"Rambam on Mishnah Berakhot","heTitle":"...","categories":["Mishnah","Rishonim on Mishnah","Rambam","Seder Zeraim"],"url":"/Rambam_on_Mishnah_Berakhot","dependence":"Commentary","description":{"en":"...","he":"..."}}],"total":1,"aggregations":[{"url":"/Mishneh_Torah","title":{"en":"Mishneh Torah","he":"משנה תורה"},"description":{"en":"...","he":"..."}}]}
+    """
+    topic = Topic.init(slug)
+    if topic is None or not isinstance(topic, AuthorTopic):
+        return None
+    response = _get_author_indexes_from_topic(topic, include_aggregations=include_aggregations, include_descriptions=include_descriptions)
+    response["author"] = {
+        "slug": topic.slug,
+        "title": {
+            "en": topic.get_primary_title("en"),
+            "he": topic.get_primary_title("he"),
+        }
+    }
+    return response
+
+
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
     seg_refs = []

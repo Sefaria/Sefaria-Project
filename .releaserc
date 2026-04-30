@@ -4,7 +4,9 @@ plugins: [
     "releaseRules": [
       {"type": "static", "release": "patch"},
       {"type": "chore", "release": "patch"},
-      {"type": "helm", "release": false}
+      {"type": "ci", "release": "patch"},
+      {"type": "helm", "release": false},
+      {"type": "deploy", "release": "patch"}
     ]
   }],
   ['@semantic-release/release-notes-generator', {
@@ -35,5 +37,6 @@ plugins: [
 branches: [
   {"name": "master"},
   {"name": "beta", "prerelease": "next"},
-  {"name": "preprod", "prerelease": "preprod"}
+  {"name": "preprod", "prerelease": "preprod"},
+  {"name": "prod", "prerelease": "prod"}
 ]

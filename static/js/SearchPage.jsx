@@ -88,6 +88,8 @@ class SearchPage extends Component {
                     </h1>
                     {showAiBadge && <AiInfoTooltip
                       displayText={aiBadgeText}
+                      variant="solid"
+                      size={24}
                     />}
                   </div>
                   <div className="searchTopMatter">

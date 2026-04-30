@@ -5,6 +5,7 @@ body {
 .leftButtons,
 .rightButtons,
 .loadingMessage,
+.skip-link,
 .fa,
 .linkCount,
 .linkCountDot,
@@ -22,6 +23,10 @@ body {
 .editorAddInterface,
 .readerOptionsPanel,
 details {
+  display: none !important;
+}
+
+a.sefaria-common-button.skip-link {
   display: none !important;
 }
 #s2 {
