@@ -32,46 +32,8 @@ from sefaria.helper.normalization import NormalizerComposer
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens26"
+LANGSMITH_DEBUG_TAG = "reduced_tokens28"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
-VERIFICATION_EXAMPLES = """Here are examples to guide your verdict:
-
-Example 1 — citation is a book title, not a quote:
-Citing: ...ולכן נוהגים לומר <citation>תהלים</citation> בכל יום, כי דוד המלך כתב...
-Matched text: אשרי האיש אשר לא הלך
-Candidate (Psalms 1:1): אשרי האיש אשר לא הלך בעצת רשעים
-→ NO. The <citation> marks only the book name 'Psalms.' The matched text appears in the surrounding prose, not as a quote from this verse.
-
-Example 2 — citation is a Talmud folio reference, no inline quote follows:
-Citing: ...וכן פסקו הראשונים כדאיתא <citation>בשבת דף קיח</citation> ע"א, ולכן אסור לעשות כן...
-Matched text: כל המענג את השבת נותנים לו נחלה בלי מצרים
-Candidate (Shabbat 118a:7): כל המענג את השבת נותנים לו נחלה בלי מצרים
-→ NO. The <citation> is only a folio reference and the surrounding text continues with the author's own words — no words from the candidate are actually quoted. The similarity is because both discuss the same law. Contrast with Example 4, where the folio reference is immediately followed by a direct quote.
-
-Example 3 — incidental similarity because both texts quote the same biblical verse:
-Citing: ...שנאמר <citation>ואהבת לרעך כמוך</citation> ומזה למדנו...
-Matched text: ואהבת לרעך כמוך
-Candidate (Shabbat 31a:6): עד דאתא גיורא. אמר לו: כל התורה כולה... ואהבת לרעך כמוך
-→ NO. The author is quoting the biblical verse (Leviticus 19:18) directly. The Talmud candidate happens to also quote it, but the citation is to the Bible, not to this Talmudic passage.
-
-Example 4 — folio reference followed by an inline quote (YES):
-Citing: ...כדאמרינן <citation>בגיטין נז</citation> ע"א: נעץ סכין בכותל ונפל על התינוק והרגו...
-Matched text: נעץ סכין בכותל
-Candidate (Gittin 57a:3): נעץ סכין בכותל ונפל על התינוק והרגו
-→ YES. Although <citation> marks only the folio reference, the words immediately after it directly quote the candidate. A folio reference followed by an inline quote is a genuine citation even when the tag covers only the reference marker.
-
-Example 5 — citation names the book itself as the object being read, not a specific verse:
-Citing: ...ומעשה שהיו יושבין וקורין <citation>בספר בראשית</citation> ובאו לפרשת המילה ונתגיירו...
-Matched text: ונמלתם את בשר ערלתכם
-Candidate (Genesis 17:11): ונמלתם את בשר ערלתכם והיה לאות ברית
-→ NO. The <citation> span is "in the book of Genesis" — they were reading the book generally and happened upon the circumcision section. The citation is to the book as a whole, not to this verse. The matched text reflects topical overlap (circumcision), not a direct quote.
-
-Example 6 — folio reference followed by a paraphrase (YES):
-Citing: ...ודאמרינן בהרואה <citation>ברכות דף נד.</citation> דמברך על כלים חדשים כתב רב שרירא גאון...
-Matched text: כלים חדשים; מברך על כלים חדשים
-Candidate (Berakhot 54a:3): בנה בית חדש וקנה כלים חדשים אומר ברוך... שהחיינו
-→ YES. The folio reference is followed by a paraphrase of the candidate's ruling ("one blesses on new vessels"). A paraphrase that accurately captures the candidate's content is sufficient — verbatim quotation is not required."""
-
 
 # ---------------------------------------------------------------------------
 # Public payload / result dataclasses (stable API — used by tasks.py & tests)
@@ -466,6 +428,25 @@ def _parse_dicta_results(raw_results: List[dict], target_oref: Optional[Ref] = N
     return candidates
 
 
+def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "Candidate") -> Optional[int]:
+    """
+    Return the minimum character distance between the citation and the Dicta-matched
+    phrase within the windowed text, or None if the phrase cannot be located.
+    Uses the first 20 chars of the resolution phrase as a search key.
+    """
+    phrase = candidate.resolution_phrase()
+    if not phrase:
+        return None
+    key = phrase[:20].strip()
+    if not key:
+        return None
+    pos = windowed_text.find(key)
+    if pos == -1:
+        return None
+    c_start, c_end = windowed_span.get('charRange', [0, 0])
+    return min(abs(pos + len(phrase) - c_start), abs(pos - c_end))
+
+
 @traceable(run_type="tool", name="query_dicta", tags=[LANGSMITH_DEBUG_TAG])
 def _query_dicta(query_text: str, target_ref: str = None) -> List[Candidate]:
     """Query Dicta parallels API, optionally filtering by target ref."""
@@ -719,18 +700,14 @@ def _llm_confirm_candidate(
     base_block = _format_base_block(base_ref, base_text)
     candidate_text_normalized = _normalize_for_llm(candidate_text)
 
-    # Build system content: examples first (static → best cache hit rate), then
-    # base_block (dynamic but reused across segments of the same source), then instruction.
-    system_content = [
-        {"type": "text", "text": VERIFICATION_EXAMPLES, "cache_control": {"type": "ephemeral"}},
-    ]
+    system_content = []
     if base_block:
         system_content.append({"type": "text", "text": base_block, "cache_control": {"type": "ephemeral"}})
     system_content.append({
         "type": "text",
         "text": (
             "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific "
-            "target segment. Be strict in your evaluation."
+            "target segment. Be strict in your evaluation. There's an edge case where the citation is to a whole book and it's referring to reading that book (as opposed to quoting a specific passage from the book). In this case, reject."
         ),
     })
 
@@ -1145,7 +1122,6 @@ def _verify_high_score(
 
     prompt = [
         SystemMessage(content=[
-            {"type": "text", "text": VERIFICATION_EXAMPLES},
             {
                 "type": "text",
                 "text": (
@@ -1157,7 +1133,6 @@ def _verify_high_score(
                     "from the candidate text; (2) cases where the citation appears to be to a different text "
                     "entirely and the similarity is incidental."
                 ),
-                "cache_control": {"type": "ephemeral"},
             },
         ]),
         HumanMessage(content=_fmt_question(marked_text, matched_text, candidate_ref, candidate_text_normalized)),
@@ -1491,17 +1466,15 @@ def disambiguate_non_segment_ref(
 
             if candidate:
                 if candidate.score is not None and candidate.score >= 8:
-                    logger.info(f"Dicta score {candidate.score} >= 8, running Gemini verification")
-                    candidate_text = _get_candidate_text_for_confirmation(candidate.resolved_ref, citing_lang)
-                    ok, _ = _verify_high_score(marked_text, candidate.resolved_ref, candidate_text, matched_text=candidate.resolution_phrase())
-                    if ok:
+                    dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
+                    if dist is not None and dist <= 60:
+                        logger.info(f"Dicta score {candidate.score} >= 8, phrase distance {dist} <= 60, auto verification")
                         return NonSegmentResolutionResult(
                             resolved_ref=candidate.resolved_ref,
                             method='dicta_high_score',
                             llm_resolved_phrase=candidate.resolution_phrase(),
                         )
-                    logger.info(f"Gemini rejected high-score candidate {candidate.resolved_ref}, falling through to LLM confirmation")
-                    return None
+                    logger.info(f"Dicta score {candidate.score} >= 8 but phrase distance {dist} > 60, falling through to LLM")
                 # Note: Dicta confirmation intentionally omits base context
                 # to avoid false positives on adjacent verses
                 ok, _ = _confirm_candidate(
