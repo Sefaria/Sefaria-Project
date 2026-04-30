@@ -17,6 +17,7 @@ spec:
   template:
     spec:
       serviceAccount: {{ .Values.restore.serviceAccount }}
+      {{- include "sefaria.nonPreemptibleAffinityBlock" . | nindent 6 }}
       volumes:
         - name: shared-volume
           emptyDir:
