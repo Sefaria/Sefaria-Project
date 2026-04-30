@@ -103,9 +103,18 @@ function BulkUploadCSV() {
         body: formData
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      const contentType = response.headers.get("content-type") || "";
 
-      if (data.status === "ok") {
+      let data = null;
+      let parseError = null;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        parseError = e;
+      }
+
+      if (data && data.status === "ok") {
         console.log("Bulk CSV upload succeeded", { fileCount: files.length, fileNames: files.map(f => f.name), data });
         setUploading(false);
         setUploadMessage(data.message);
@@ -114,11 +123,26 @@ function BulkUploadCSV() {
         if (formRef.current) {
           formRef.current.reset();
         }
-      } else {
+      } else if (data) {
         console.error("Bulk CSV upload failed", { fileCount: files.length, fileNames: files.map(f => f.name), responseStatus: response.status, data });
         setUploadError("Error - " + data.error);
         setUploading(false);
         setUploadMessage(data.message);
+      } else {
+        console.error("Bulk CSV upload returned non-JSON response", {
+          fileCount: files.length,
+          fileNames: files.map(f => f.name),
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          contentType,
+          parseError,
+          responseBody: responseText,
+        });
+        console.error("Bulk CSV upload raw response body:\n" + responseText);
+
+        setUploadError(`Error - HTTP ${response.status} ${response.statusText}. See browser console for full response body.`);
+        setUploading(false);
+        setUploadMessage(null);
       }
     } catch (err) {
       console.error("Bulk CSV upload request threw an error", { fileCount: files.length, fileNames: files.map(f => f.name), error: err });
