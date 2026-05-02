@@ -32,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens28"
+LANGSMITH_DEBUG_TAG = "reduced_tokens31"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 # ---------------------------------------------------------------------------
@@ -749,12 +749,13 @@ def _llm_choose_base_vs_commentary(
     base_text: str,
     commentary_ref: str,
     commentary_text: str,
+    lang: str = 'he',
 ) -> Optional[str]:
     """Choose whether the citation refers to the base text or the commentary."""
     llm = _get_llm("default")
 
-    base_text_normalized = _normalize_for_llm(base_text)
-    commentary_text_normalized = _normalize_for_llm(commentary_text)
+    base_text_normalized = _normalize_for_llm(base_text, lang)
+    commentary_text_normalized = _normalize_for_llm(commentary_text, lang)
     prompt = [
         SystemMessage(content="You decide whether a citation is referring to the base text itself or to a commentary on that base text. "
                               "Be strict and choose the most likely target."),
@@ -1768,7 +1769,7 @@ def _resolve_base_vs_commentary(
         return None
 
     choice = _llm_choose_base_vs_commentary(
-        marked_text, base_cand["ref"], base_text_full, comm_cand["ref"], comm_text_full,
+        marked_text, base_cand["ref"], base_text_full, comm_cand["ref"], comm_text_full, lang=citing_lang,
     )
 
     if choice == "BASE":
