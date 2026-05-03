@@ -1527,9 +1527,10 @@ def disambiguate_non_segment_ref(
                     citation_is_section_level = False
                 score = candidate.score or 0
                 dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
-                if False:
-                # if (citation_is_section_level and score >= 6) or (not citation_is_section_level and score >= 8):
-                    logger.info(f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}")
+                # rule determined by analyzing 3,000 Dicta queries
+                if (citation_is_section_level and score >= 8 and dist is not None and dist <= 10) \
+                        or (score >= 15 and dist is not None and dist <= 5):
+                    logger.info(f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}, dist={dist}")
                     return NonSegmentResolutionResult(
                         resolved_ref=candidate.resolved_ref,
                         method='dicta_high_score',
