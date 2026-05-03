@@ -27,6 +27,7 @@ spec:
                       values:
                       - mongo
                   topologyKey: kubernetes.io/hostname
+            {{- include "sefaria.nonPreemptibleNodeAffinity" . | nindent 12 }}
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"

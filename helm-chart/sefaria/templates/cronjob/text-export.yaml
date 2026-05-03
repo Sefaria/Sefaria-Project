@@ -25,7 +25,7 @@ spec:
                   path: local_settings.py
           - name: shared-volume
             emptyDir:
-              sizeLimit: 50Gi
+              sizeLimit: 40Gi
           - name: export-scripts
             configMap:
               name: export-scripts-{{ .Values.deployEnv }}
@@ -62,7 +62,7 @@ spec:
             args: ["-c", "/app/run /app/scripts/export_all.py"]
             resources:
               requests:
-                ephemeral-storage: 50Gi
+                ephemeral-storage: 40Gi
                 memory: "4Gi"
                 cpu: "1000m"
               limits:
