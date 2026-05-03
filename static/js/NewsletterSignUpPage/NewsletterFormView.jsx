@@ -68,7 +68,7 @@ export default function NewsletterFormView({
     >
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
-        <h2 className="newsletterFormTitle">
+        <h2 className="newsletterFormTitle" ref={errorSummaryRef}>
           <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_TITLE : BILINGUAL_TEXT.SUBSCRIBE_TITLE} />
         </h2>
         <p className="newsletterFormSubtitle">
@@ -107,14 +107,12 @@ export default function NewsletterFormView({
             </span>
           </div>
         )}
-        {/* ERROR SUMMARY - Focus target for accessibility */}
+        {/* ERROR SUMMARY - Announced via role="alert" for screen readers */}
         {hasFieldErrors && (
           <div
-            ref={errorSummaryRef}
             className="newsletterErrorSummary"
             role="alert"
             aria-live="assertive"
-            tabIndex={-1}
             data-anl-event="form_error:displayed"
             data-anl-engagement_type="error"
           >
@@ -125,7 +123,7 @@ export default function NewsletterFormView({
             <ul className="errorSummaryList">
               {Object.entries(fieldErrors).map(([field, message]) => (
                 <li key={field}>
-                  <a href={`#${field}`} className="errorSummaryLink">
+                  <a href={`#${field}-error`} className="errorSummaryLink">
                     <InterfaceText text={message} />
                   </a>
                 </li>

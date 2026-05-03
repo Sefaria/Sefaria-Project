@@ -115,6 +115,7 @@ const NewsletterSignUpPageForm = require('../NewsletterSignUpPageForm').default;
 // ============================================================================
 
 let container;
+let stageChangeSpy;
 
 beforeEach(() => {
   container = document.createElement('div');
@@ -126,6 +127,7 @@ beforeEach(() => {
 
   lastFormViewProps = {};
   lastConfirmationViewProps = {};
+  stageChangeSpy = jest.fn();
 
   jest.clearAllMocks();
 });
@@ -137,9 +139,9 @@ afterEach(() => {
 });
 
 /** Render (or re-render) the form and flush effects. */
-const renderForm = () => {
+const renderForm = (props = {}) => {
   act(() => {
-    ReactDOM.render(React.createElement(NewsletterSignUpPageForm), container);
+    ReactDOM.render(React.createElement(NewsletterSignUpPageForm, props), container);
   });
 };
 
@@ -186,6 +188,12 @@ describe('NewsletterSignUpPageForm', () => {
       renderForm();
 
       expect(lastFormViewProps.hasAttemptedSubmit).toBe(false);
+    });
+
+    it('notifies parent of initial NEWSLETTER_SELECTION stage', () => {
+      renderForm({ onStageChange: stageChangeSpy });
+
+      expect(stageChangeSpy).toHaveBeenCalledWith(STAGE.NEWSLETTER_SELECTION);
     });
   });
 
@@ -387,6 +395,21 @@ describe('NewsletterSignUpPageForm', () => {
         newsletters: { sefaria_news: true },
       });
     });
+
+    it('notifies parent when stage changes to CONFIRMATION', async () => {
+      renderForm({ onStageChange: stageChangeSpy });
+
+      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
+      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
+      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { await lastFormViewProps.onSubmit(); });
+      await flushPromises();
+
+      expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.CONFIRMATION);
+    });
   });
 
   // ---------- Suite 6: Submit flow — API error ----------
@@ -474,6 +497,25 @@ describe('NewsletterSignUpPageForm', () => {
       // Should go straight to confirmation without calling API
       expect(updatePreferences).not.toHaveBeenCalled();
       expect(lastConfirmationViewProps.formStatus.currentStage).toBe(STAGE.CONFIRMATION);
+    });
+  });
+
+  describe('Final success stage notifications', () => {
+    it('notifies parent when skipping learning level moves to SUCCESS', async () => {
+      renderForm({ onStageChange: stageChangeSpy });
+
+      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
+      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
+      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { await lastFormViewProps.onSubmit(); });
+      await flushPromises();
+      await act(async () => { lastConfirmationViewProps.onSkip(); });
+      await flushPromises();
+
+      expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.SUCCESS);
     });
   });
 });

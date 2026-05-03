@@ -16,11 +16,40 @@
    ============================================ */
 
 .newsletterSignUpPageForm {
-  width: 100%;
-  max-width: 600px;
+  --newsletter-option-width: 380px;
+  --newsletter-cta-width: 380px;
+  --newsletter-cta-height: 70px;
+  width: 800px;
+  max-width: 90%;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 0;
   box-sizing: border-box;
+}
+
+/* Loading state — spinner + text, centered */
+.newsletterLoadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 0;
+}
+
+.newsletterLoadingState .lds-ring {
+  width: 56px;
+  height: 56px;
+}
+
+.newsletterLoadingState .lds-ring div {
+  width: 38px;
+  height: 38px;
+  margin: 9px;
+  border-width: 8px;
+}
+
+.newsletterLoadingState .loadingMessage {
+  font-size: 18px;
 }
 
 /* Base view styling with fade animation */
@@ -29,6 +58,7 @@
 .learningLevelView,
 .successView {
   width: 100%;
+  max-width: 760px;
   animation: fadeIn 0.3s ease-in;
 }
 
@@ -68,6 +98,7 @@
   margin: 0 0 15px 0;
   font-family: var(--english-sans-serif-font-family);
   line-height: 1.3;
+  scroll-margin-top: 4.5rem;
 }
 
 .newsletterConfirmationView .confirmationTitle,
@@ -324,6 +355,7 @@
   margin-bottom: 6px;
   font-weight: 500;
   font-family: var(--english-sans-serif-font-family);
+  scroll-margin-top: 4.5rem;
 }
 
 .interface-hebrew .newsletterFormView .inlineFieldError {
@@ -519,6 +551,7 @@
 .newsletterFormView .submitButton,
 .newsletterConfirmationView .continueButton,
 .learningLevelView .saveButton,
+.newsletterConfirmationView .embeddedLearningLevel .saveButton,
 .successView .homepageLink {
   width: 200px;
   min-width: 200px;
@@ -526,9 +559,10 @@
   height: 50px;
   border: none;
   border-radius: 6px;
-  font-size: var(--sans-serif-body-font-size);
-  font-weight: 500;
+  font-size: 22px;
+  font-weight: 400;
   font-family: var(--english-sans-serif-font-family);
+  text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
@@ -540,6 +574,7 @@
 .interface-hebrew .newsletterFormView .submitButton,
 .interface-hebrew .newsletterConfirmationView .continueButton,
 .interface-hebrew .learningLevelView .saveButton,
+.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .saveButton,
 .interface-hebrew .successView .homepageLink {
   font-family: var(--hebrew-sans-serif-font-family);
 }
@@ -548,6 +583,7 @@
 .newsletterFormView .submitButton,
 .newsletterConfirmationView .continueButton,
 .learningLevelView .saveButton,
+.newsletterConfirmationView .embeddedLearningLevel .saveButton,
 .successView .homepageLink {
   background-color: var(--sefaria-blue);
   color: white;
@@ -556,19 +592,22 @@
 .newsletterFormView .submitButton:hover:not(:disabled),
 .newsletterConfirmationView .continueButton:hover,
 .learningLevelView .saveButton:hover:not(:disabled),
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:hover:not(:disabled),
 .successView .homepageLink:hover {
   background-color: #0f2647;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
 .newsletterFormView .submitButton:active:not(:disabled),
-.learningLevelView .saveButton:active:not(:disabled) {
+.learningLevelView .saveButton:active:not(:disabled),
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:active:not(:disabled) {
   transform: translateY(1px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .newsletterFormView .submitButton:disabled,
-.learningLevelView .saveButton:disabled {
+.learningLevelView .saveButton:disabled,
+.newsletterConfirmationView .embeddedLearningLevel .saveButton:disabled {
   background-color: var(--light-grey);
   color: var(--medium-grey);
   cursor: not-allowed;
@@ -600,6 +639,43 @@
   display: flex;
   gap: 15px;
   justify-content: flex-start;
+}
+
+.newsletterFormView .newsletterCheckboxes .selectableOptionWrapper {
+  min-height: 70px;
+}
+
+.newsletterFormView .submitButton,
+.newsletterConfirmationView .embeddedLearningLevel .saveButton,
+.successView .homepageLink {
+  width: var(--newsletter-cta-width);
+  min-width: var(--newsletter-cta-width);
+  height: var(--newsletter-cta-height);
+}
+
+.successView .homepageLink {
+  width: auto;
+  min-width: unset;
+  max-width: max-content;
+  padding-left: 40px;
+  padding-right: 40px;
+  display: inline-flex;
+}
+
+@media (min-width: 863px) {
+  .newsletterFormView {
+    max-width: 776px;
+  }
+
+  .newsletterFormView .newsletterCheckboxes {
+    grid-template-columns: repeat(2, 380px);
+    justify-content: space-between;
+  }
+
+  .newsletterFormView .newsletterCheckboxes .selectableOptionWrapper {
+    width: var(--newsletter-option-width);
+    height: var(--newsletter-cta-height);
+  }
 }
 
 /* Finished section styling */
@@ -705,7 +781,11 @@
 }
 
 .newsletterConfirmationView .skipLink {
-  color: var(--select-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--sefaria-blue);
   text-decoration: none;
   cursor: pointer;
   font-weight: 500;
@@ -807,8 +887,7 @@
   .newsletterFormView .submitButton,
   .newsletterConfirmationView .continueButton,
   .learningLevelView .saveButton,
-  .learningLevelView .skipButton,
-  .successView .homepageLink {
+  .learningLevelView .skipButton {
     width: 100%;
     min-width: unset;
   }
@@ -837,8 +916,7 @@
   .newsletterFormView .submitButton,
   .newsletterConfirmationView .continueButton,
   .learningLevelView .saveButton,
-  .learningLevelView .skipButton,
-  .successView .homepageLink {
+  .learningLevelView .skipButton {
     width: 100%;
     min-width: unset;
   }
@@ -951,86 +1029,8 @@
   flex-direction: row-reverse;
 }
 
-/* Submit button - same width as newsletter form submit button */
 .newsletterConfirmationView .embeddedLearningLevel .saveButton {
-  width: 200px;
-  min-width: 200px;
-  padding: 12px 40px;
-  height: 50px;
-  border: none;
-  border-radius: 6px;
-  font-size: var(--sans-serif-body-font-size);
-  font-weight: 500;
-  font-family: var(--english-sans-serif-font-family);
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--sefaria-blue);
-  color: white;
   flex-shrink: 0;
-}
-
-.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .saveButton {
-  font-family: var(--hebrew-sans-serif-font-family);
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .saveButton:hover:not(:disabled) {
-  background-color: #0f2647;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .saveButton:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .saveButton:disabled {
-  background-color: var(--light-grey);
-  color: var(--medium-grey);
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Skip prompt text - positioned to the right of button */
-.newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
-  text-align: left;
-  font-size: var(--sans-serif-body-font-size);
-  color: var(--dark-grey);
-  margin: 0;
-  font-family: var(--english-sans-serif-font-family);
-  line-height: 1.6;
-}
-
-.interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
-  font-family: var(--hebrew-sans-serif-font-family);
-  font-size: 122%;
-  text-align: right;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .skipLink {
-  color: var(--select-blue);
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: 500;
-  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .skipLink:hover {
-  text-decoration: underline;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  color: var(--medium-grey);
-  pointer-events: none;
-}
-
-.newsletterConfirmationView .embeddedLearningLevel .skipLink.disabled:hover {
-  text-decoration: none;
 }
 
 /* Mobile responsive for embedded learning level */
@@ -1059,6 +1059,11 @@
   .newsletterConfirmationView .embeddedLearningLevel .saveButton {
     width: 100%;
     min-width: unset;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+    width: 100%;
+    text-align: center;
   }
 }
 

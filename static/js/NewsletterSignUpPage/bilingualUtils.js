@@ -29,8 +29,8 @@ export const BILINGUAL_TEXT = {
 
   // Subtitle/description
   SUBSCRIBE_SUBTITLE: {
-    en: 'You can now log into your Sefaria account on the mobile app to sync your reading history and saved texts on your mobile device.',
-    he: 'כעת תוכל להתחבר לחשבון Sefaria שלך באפליקציה הניידת כדי לסנכרן את היסטוריית הקריאה והטקסטים השמורים שלך במכשיר הנייד שלך.',
+    en: 'Let us know how we can best contact you and what you would like to hear from us!',
+    he: 'ספרו לנו איך נוכל ליצור אתכם קשר בצורה הטובה ביותר ומה תרצו לשמוע מאיתנו!',
   },
   MANAGE_SUBTITLE: {
     en: 'Choose which newsletters you\'d like to receive.',
@@ -62,6 +62,14 @@ export const BILINGUAL_TEXT = {
   FINISHED_SECTION: {
     en: 'Finished?',
     he: 'סיימת?',
+  },
+  EMAIL_EXAMPLES_HEADER: {
+    en: 'Learn about our weekly study emails...',
+    he: 'למדו על הדואר השבועי שלנו שעוזר לכם להעמיק בטקסטים.',
+  },
+  TESTIMONIALS_HEADER: {
+    en: 'What the people are saying about our emails...',
+    he: 'תגובות לאימיילים של ספריא...',
   },
 
   // Button text
@@ -135,7 +143,7 @@ export const BILINGUAL_TEXT = {
   },
   LEARNING_LEVEL_SUBTITLE: {
     en: 'To make sure we send you the most relevant content, please let us know your learning level. Help us get to know you better.',
-    he: 'כדי לוודא שאנו שולחים לך את התוכן הרלוונטי ביותר, אנא הודע לנו את רמת הלמידה שלך. עזור לנו להכיר אותך טוב יותר.',
+    he: 'כדי לוודא שנשלח לכם את התוכן הרלוונטי ביותר, אנא ספרו לנו מהי רמת הלמידה שלכם. עזרו לנו להכיר אתכם טוב יותר.',
   },
   LEARNING_LEVEL_HEADER: {
     en: 'In terms of your ability to study Jewish texts, select the statement below that best describes you:',
@@ -200,8 +208,8 @@ export const BILINGUAL_TEXT = {
     he: 'לא',
   },
   ADMIN_EMAILS_NOTE: {
-    en: 'Note: You will still receive administrative emails regarding your account and donations.',
-    he: 'הערה: עדיין תקבלו הודעות מנהליות בנוגע לחשבון שלכם ולתרומות.',
+    en: 'Note: Even if you unsubscribe, you will still receive administrative emails regarding your account and donations.',
+    he: 'הערה: גם לאחר ביטול הרישום לדיוור תמשיכו לקבל הודעות דוא"ל אדמיניסטרטיביות בנוגע לחשבונכם ולתרומות שלכם.',
   },
 
   // Validation errors

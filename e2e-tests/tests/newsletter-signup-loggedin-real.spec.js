@@ -23,6 +23,30 @@ import { test, expect } from '@playwright/test';
 // The email of the authenticated user, read from env vars
 const USER_EMAIL = process.env.PLAYWRIGHT_USER_EMAIL || '';
 
+const supplementalContentTexts = [
+  'Weekly Parashah Study Companion',
+  'Timeless Topics',
+  'What the people are saying',
+];
+
+const footerButtonTexts = [
+  'Donate',
+  'Leave a Testimonial',
+  'Claim Your Letter in the Torah',
+];
+
+const expectSupplementalContentHidden = async (page) => {
+  for (const text of supplementalContentTexts) {
+    await expect(page.locator(`text=${text}`).first()).toHaveCount(0);
+  }
+};
+
+const expectFooterVisible = async (page) => {
+  for (const text of footerButtonTexts) {
+    await expect(page.locator(`text=${text}`).first()).toBeVisible();
+  }
+};
+
 test.describe('Newsletter Signup - Real Authenticated Flow', () => {
 
   test.beforeEach(async ({ page }) => {
@@ -74,6 +98,7 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     // Button should say "Update Preferences" (not "Subscribe")
     const updateButton = page.locator('button:has-text("Update Preferences")').first();
     await expect(updateButton).toBeVisible();
+    await expectFooterVisible(page);
   });
 
   test('should show "Manage Your Subscriptions" title', async ({ page }) => {
@@ -219,8 +244,10 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // With real auth, the API call should succeed and navigate to confirmation
-    const thankYou = page.locator('text=Thank you');
-    await expect(thankYou).toBeVisible({ timeout: 10000 });
+    const confirmationView = page.locator('.newsletterConfirmationView');
+    await expect(confirmationView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should complete full flow: select → confirm → learning level → success', async ({ page }) => {
@@ -237,8 +264,10 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Stage 2: Confirmation with embedded learning level
-    const thankYou = page.locator('text=Thank you');
-    await expect(thankYou).toBeVisible({ timeout: 10000 });
+    const confirmationView = page.locator('.newsletterConfirmationView');
+    await expect(confirmationView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
 
     // Learning level options should be embedded in the confirmation view
     const learningLevelOptions = page.locator('.embeddedLearningLevel .selectableOptionLabel');
@@ -256,13 +285,14 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
 
     // Submit learning level
     const saveButton = page.locator('.embeddedLearningLevel button:has-text("Submit")');
-    if (await saveButton.isVisible().catch(() => false)) {
-      await saveButton.click();
+    await expect(saveButton).toBeVisible();
+    await saveButton.click();
 
-      // Stage 3: Should reach success view
-      const allSet = page.locator('text=All set');
-      await expect(allSet).toBeVisible({ timeout: 10000 });
-    }
+    // Stage 3: Should reach success view
+    const successView = page.locator('.successView');
+    await expect(successView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should skip learning level and reach success', async ({ page }) => {
@@ -278,18 +308,21 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Stage 2: Confirmation view
-    const thankYou = page.locator('text=Thank you');
-    await expect(thankYou).toBeVisible({ timeout: 10000 });
+    const confirmationView = page.locator('.newsletterConfirmationView');
+    await expect(confirmationView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
 
     // Click "skip this step" link
     const skipLink = page.locator('a.skipLink').first();
-    if (await skipLink.isVisible().catch(() => false)) {
-      await skipLink.click();
+    await expect(skipLink).toBeVisible();
+    await skipLink.click();
 
-      // Stage 3: Success view
-      const allSet = page.locator('text=All set');
-      await expect(allSet).toBeVisible({ timeout: 10000 });
-    }
+    // Stage 3: Success view
+    const successView = page.locator('.successView');
+    await expect(successView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should submit with no newsletters selected', async ({ page }) => {
@@ -309,8 +342,10 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Should navigate to confirmation (no validation error)
-    const thankYou = page.locator('text=Thank you');
-    await expect(thankYou).toBeVisible({ timeout: 10000 });
+    const confirmationView = page.locator('.newsletterConfirmationView');
+    await expect(confirmationView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should submit with No selected (opt out of all marketing emails)', async ({ page }) => {
@@ -327,8 +362,10 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Should navigate to confirmation (opting out is a valid path)
-    const thankYou = page.locator('text=Thank you');
-    await expect(thankYou).toBeVisible({ timeout: 10000 });
+    const confirmationView = page.locator('.newsletterConfirmationView');
+    await expect(confirmationView).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should show pre-existing subscriptions as checked', async ({ page }) => {

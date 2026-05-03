@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
 import { FORM_STATUS, STAGE } from './constants';
 import { BILINGUAL_TEXT } from './bilingualUtils';
-import { LoadingMessage } from '../Misc';
+import { LoadingMessage, LoadingRing } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
 import SuccessView from './SuccessView';
@@ -95,7 +95,7 @@ const LEARNING_LEVELS = [
  * - Routes between different views based on current stage
  * - Handles API calls with mocked endpoints
  */
-export default function NewsletterSignUpPageForm() {
+export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== FORM DATA STATE ==========
   const [formData, setFormData] = useState({
     firstName: '',
@@ -234,6 +234,10 @@ export default function NewsletterSignUpPageForm() {
     });
   }, [formData.selectedNewsletters, validationState.hasAttemptedSubmit, formStatus.isLoggedIn]);
 
+  useEffect(() => {
+    onStageChange?.(formStatus.currentStage);
+  }, [formStatus.currentStage, onStageChange]);
+
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
 
@@ -360,10 +364,9 @@ export default function NewsletterSignUpPageForm() {
         errorMessage: null, // Clear old single-error message, we use fieldErrors now
       }));
 
-      // Focus the error summary for accessibility
-      // Use setTimeout to ensure the DOM has updated
+      // Scroll form title into view; error summary announces itself via role="alert"
       setTimeout(() => {
-        errorSummaryRef.current?.focus();
+        errorSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 0);
       return;
     }
@@ -553,7 +556,10 @@ export default function NewsletterSignUpPageForm() {
   return (
     <div className="newsletterSignUpPageForm">
       {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && newslettersLoading && (
-        <LoadingMessage />
+        <div className="newsletterLoadingState">
+          <LoadingRing />
+          <LoadingMessage />
+        </div>
       )}
 
       {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && !newslettersLoading && (

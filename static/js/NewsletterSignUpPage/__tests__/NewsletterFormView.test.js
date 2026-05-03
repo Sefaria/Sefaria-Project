@@ -232,8 +232,8 @@ describe('NewsletterFormView', () => {
         },
       });
 
-      expect(html).toContain('href="#firstName"');
-      expect(html).toContain('href="#email"');
+      expect(html).toContain('href="#firstName-error"');
+      expect(html).toContain('href="#email-error"');
     });
 
     it('does not render error summary when no errors', () => {

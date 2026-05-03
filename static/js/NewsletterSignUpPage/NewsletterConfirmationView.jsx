@@ -219,22 +219,17 @@ export default function NewsletterConfirmationView({
             {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
             <p className="skipPrompt">
               <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />{" "}
-              <a
-                href="#"
+              <button
+                type="button"
                 className={`skipLink${isSubmitting ? " disabled" : ""}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!isSubmitting) {
-                    onSkip();
-                  }
-                }}
-                aria-disabled={isSubmitting}
+                onClick={onSkip}
+                disabled={isSubmitting}
                 data-anl-event="learning_level_action:click"
                 data-anl-action="skip_learning_level"
                 data-anl-form_name="learning_level_survey"
               >
                 <InterfaceText text={BILINGUAL_TEXT.SKIP_THIS_STEP} />
-              </a>{" "}
+              </button>{" "}
               <InterfaceText text={BILINGUAL_TEXT.AND_GO_TO_HOMEPAGE} />
             </p>
           </div>

@@ -10,6 +10,79 @@
 
 import { test, expect } from '@playwright/test';
 
+const supplementalContentTexts = [
+  'Weekly Parashah Study Companion',
+  'Timeless Topics',
+  'What the people are saying',
+];
+
+const footerButtonTexts = [
+  'Donate',
+  'Leave a Testimonial',
+  'Claim Your Letter in the Torah',
+];
+
+const englishInitialContractTexts = [
+  'Stay Connected',
+  'Sign Up for Emails',
+  'Let us know how we can best contact you and what you would like to hear from us!',
+  'Name',
+  'Contact',
+  'Select the lists you wish to subscribe to:',
+  'Finished?',
+  'Learn about our weekly study emails...',
+  'Weekly Parashah Study Companion',
+  'Timeless Topics',
+  'What the people are saying about our emails...',
+];
+
+const hebrewFooterButtonTexts = [
+  'לתרומה',
+  'כתבו המלצה',
+  'הוסיפו את האות שלכם בתורה',
+];
+
+const iframeSrcs = [
+  '/static/files/email-examples/weekly-parashah-bereshit-email-example.html',
+  '/static/files/email-examples/topics-silence-email-example.html',
+];
+
+const expectSupplementalContentHidden = async (page) => {
+  for (const text of supplementalContentTexts) {
+    await expect(page.locator(`text=${text}`).first()).toHaveCount(0);
+  }
+};
+
+const expectFooterVisible = async (page) => {
+  for (const text of footerButtonTexts) {
+    await expect(page.locator(`text=${text}`).first()).toBeVisible();
+  }
+};
+
+const expectEmailExampleIframesVisible = async (page) => {
+  const iframes = page.locator('.featureIframeEmbed');
+
+  await expect(iframes).toHaveCount(2);
+  for (let i = 0; i < iframeSrcs.length; i++) {
+    await expect(iframes.nth(i)).toHaveAttribute('src', iframeSrcs[i]);
+  }
+};
+
+const expectHebrewFooterVisible = async (page) => {
+  for (const text of hebrewFooterButtonTexts) {
+    await expect(page.locator(`text=${text}`).first()).toBeVisible();
+  }
+};
+
+const submitLoggedOutNewsletterForm = async (page, email) => {
+  await page.locator('input#firstName').fill('Jane');
+  await page.locator('input#lastName').fill('Doe');
+  await page.locator('input#email').fill(email);
+  await page.locator('input#confirmEmail').fill(email);
+  await page.locator('label.selectableOptionLabel').nth(0).click();
+  await page.locator('button:has-text("Submit")').first().click();
+};
+
 // Configure test settings
 test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   // Before each test, navigate to the newsletter page
@@ -61,6 +134,52 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     const submitButton = page.locator('button:has-text("Submit")').first();
     await expect(submitButton).toBeVisible();
     await expect(submitButton).toBeEnabled();
+    await expectFooterVisible(page);
+  });
+
+  test('should match English initial page contract', async ({ page }) => {
+    await expect(page.locator('body')).toHaveClass(/interface-english/);
+    await expect(page.locator('.newsletterFormView')).toBeVisible();
+    await expect(page.locator('.newsletterConfirmationView')).toHaveCount(0);
+    await expect(page.locator('.successView')).toHaveCount(0);
+
+    for (const text of englishInitialContractTexts) {
+      await expect(page.locator(`text=${text}`).first()).toBeVisible();
+    }
+
+    await expect(page.locator('#firstName')).toHaveAttribute('placeholder', 'First Name');
+    await expect(page.locator('#lastName')).toHaveAttribute('placeholder', 'Last Name');
+    await expect(page.locator('text=Last Name (Optional)').first()).toHaveCount(0);
+    await expect(page.locator('#email')).toHaveAttribute('placeholder', 'Email Address');
+    await expect(page.locator('#confirmEmail')).toHaveAttribute('placeholder', 'Confirm Email Address');
+
+    const newsletterOptions = page.locator('label.selectableOptionLabel');
+    expect(await newsletterOptions.count()).toBeGreaterThanOrEqual(5);
+
+    await expectEmailExampleIframesVisible(page);
+    await expectFooterVisible(page);
+  });
+
+  test('should render email example iframes in English interface only', async ({ page }) => {
+    await expectEmailExampleIframesVisible(page);
+  });
+
+  test('should hide email examples but keep testimonials and footer in Hebrew interface', async ({ page }) => {
+    await page.context().addCookies([{
+      name: 'interfaceLang',
+      value: 'hebrew',
+      url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
+    }]);
+    await page.goto('/newsletter');
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+
+    await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
+    await expect(page.locator('text=Learn about our weekly study emails').first()).toHaveCount(0);
+    await expect(page.locator('text=Weekly Parashah Study Companion').first()).toHaveCount(0);
+    await expect(page.locator('text=Timeless Topics').first()).toHaveCount(0);
+    await expect(page.locator('.featureIframeEmbed')).toHaveCount(0);
+    await expect(page.locator('text=תגובות לאימיילים של ספריא').first()).toBeVisible();
+    await expectHebrewFooterVisible(page);
   });
 
   test('should fill form and submit successfully', async ({ page }) => {
@@ -121,18 +240,19 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     // Wait for page to transition
     await page.waitForTimeout(2000);
 
-    // Check if we see confirmation text
-    const pageText = await page.textContent('body');
-
-    // Should see either success message or still be on form
-    const isConfirmation = pageText.includes('confirmation') || pageText.includes('sent') || pageText.includes('confirm') || pageText.includes('Thank you');
+    // Should see either confirmation, success, or still be on form
+    const isConfirmation = await page.locator('.newsletterConfirmationView').isVisible().catch(() => false);
+    const isSuccess = await page.locator('.successView').isVisible().catch(() => false);
     const isStillForm = await page.locator('form').isVisible();
 
     // Pass if either condition is true (test is flexible)
-    expect(isConfirmation || isStillForm).toBeTruthy();
+    expect(isConfirmation || isSuccess || isStillForm).toBeTruthy();
 
     // Verify learning level options are visible on confirmation page (embedded)
     if (isConfirmation) {
+      await expectSupplementalContentHidden(page);
+      await expectFooterVisible(page);
+
       // Learning level options should now be embedded in confirmation view
       const learningLevelOptions = page.locator('.embeddedLearningLevel .selectableOptionLabel');
       const optionCount = await learningLevelOptions.count();
@@ -147,14 +267,40 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
       const hasSaveButton = await saveButton.isVisible().catch(() => false);
 
       // "skip this step" link should be present
-      const skipLink = page.locator('a.skipLink');
+      const skipLink = page.locator('button.skipLink');
       const hasSkipLink = await skipLink.isVisible().catch(() => false);
 
       // Verify "Tell us about your learning level" button does NOT exist (removed)
       const oldContinueButton = page.locator('button:has-text("Tell us about your learning level")');
       const hasOldButton = await oldContinueButton.isVisible().catch(() => false);
       expect(hasOldButton).toBe(false);
+
+      if (hasSkipLink) {
+        await skipLink.click();
+
+        const successView = page.locator('.successView');
+        await expect(successView).toBeVisible();
+
+        await expectSupplementalContentHidden(page);
+        await expectFooterVisible(page);
+      }
     }
+  });
+
+  test('should keep footer visible on logged-out success view', async ({ page }) => {
+    const email = `newsletter-success-${Date.now()}@example.com`;
+
+    await submitLoggedOutNewsletterForm(page, email);
+
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible();
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
+
+    await page.locator('button.skipLink').click();
+
+    await expect(page.locator('.successView')).toBeVisible();
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
   });
 
   test('should handle form with all fields populated', async ({ page }) => {
