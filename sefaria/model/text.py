@@ -5141,17 +5141,11 @@ class Library(object):
         return self._toc
 
     def get_toc_with_authors(self, rebuild=False):
-        serialization_options = TocSerializationOptions(
-            include_first_section=False,
-            include_flags=False,
-            include_base_texts=True,
-            include_authors=True,
-        )
         if rebuild or not self._toc_with_authors:
             if not rebuild:
                 self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
             if rebuild or not self._toc_with_authors:
-                self._toc_with_authors = self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
+                self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
                 scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
                 self.set_last_cached_time()
         return self._toc_with_authors
