@@ -28,7 +28,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langsmith import traceable
 from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
-from sefaria.helper.normalization import NormalizerComposer
+from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
@@ -201,9 +201,20 @@ def _system_content(instruction: str, base_block: str) -> list:
 
 
 @lru_cache(maxsize=2)
-def _get_normalizer(lang: str = 'he') -> NormalizerComposer:
+def _citation_is_in_footnote(citing_text: str, char_range: Tuple[int, int]) -> bool:
+    """Return True if the citation span falls inside a footnote block."""
+    footnote_normalizer = NormalizerFactory.get('footnote')
+    for (fn_start, fn_end), _ in footnote_normalizer.find_text_to_remove(citing_text):
+        if fn_start <= char_range[0] and char_range[1] <= fn_end:
+            return True
+    return False
+
+
+def _get_normalizer(lang: str = 'he', strip_footnotes: bool = False) -> NormalizerComposer:
     """Build the same normalizer used by LinkerEntityRecognizer to reduce token usage."""
     steps = ['unidecode', 'fn-marker', 'html', 'double-space']
+    if strip_footnotes:
+        steps = ['footnote'] + steps
     if lang == 'he':
         steps += ['maqaf', 'cantillation']
     return NormalizerComposer(steps)
@@ -224,10 +235,13 @@ def _normalize_citing_input(
 ) -> Tuple[str, List[int], str]:
     """Normalize the citing text and map charRange from original to normalized coordinates.
 
+    If the citation is outside footnotes, strips footnote blocks so they don't inflate
+    phrase-distance calculations. If inside a footnote, footnotes are preserved.
     Uses NormalizerComposer.norm_to_unnorm_indices with reverse=True to map
     unnormalized indices → normalized indices.
     """
-    normalizer = _get_normalizer(lang)
+    strip_footnotes = not _citation_is_in_footnote(citing_text, tuple(char_range))
+    normalizer = _get_normalizer(lang, strip_footnotes=strip_footnotes)
     mapped = normalizer.norm_to_unnorm_indices(
         citing_text, [(char_range[0], char_range[1])], reverse=True,
     )
