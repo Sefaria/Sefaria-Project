@@ -357,18 +357,8 @@ class Test_Categories(object):
 
             default_toc = library.get_toc(rebuild=True)
             default_toc_cached = library.get_toc()
-            authors_toc = library.get_toc(serialization_options=TocSerializationOptions(
-                include_first_section=False,
-                include_flags=False,
-                include_base_texts=True,
-                include_authors=True,
-            ))
-            authors_toc_cached = library.get_toc(serialization_options=TocSerializationOptions(
-                include_first_section=False,
-                include_flags=False,
-                include_base_texts=True,
-                include_authors=True,
-            ))
+            authors_toc = library.get_toc_with_authors()
+            authors_toc_cached = library.get_toc_with_authors()
 
             assert default_toc is default_toc_cached
             assert authors_toc is authors_toc_cached
