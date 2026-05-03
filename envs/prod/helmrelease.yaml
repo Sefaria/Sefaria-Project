@@ -121,7 +121,7 @@ spec:
         limits:
           memory: "6Gi"
           cpu: "1000m"
-      replicaCount: 12
+      replicaCount: 6
       redis:
         url: ""
         port: "26379"
