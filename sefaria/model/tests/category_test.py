@@ -308,6 +308,91 @@ class Test_Categories(object):
             TopicSet({"slug": slug}).delete()
             library.rebuild_toc()
 
+    @pytest.mark.django_db
+    def test_toc_with_authors_uses_separate_cache(self):
+        title = "Test TOC Author Cache"
+        slug = "test-toc-author-cache"
+        author = AuthorTopic({
+            "slug": slug,
+            "titles": [
+                {"lang": "en", "text": "Test TOC Cache Author", "primary": True},
+                {"lang": "he", "text": "מחבר בדיקת מטמון", "primary": True},
+            ],
+        })
+        index = Index({
+            "categories": ["Liturgy"],
+            "title": title,
+            "authors": [slug],
+            "schema": {
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": title,
+                        "primary": True
+                    },
+                    {
+                        "lang": "he",
+                        "text": "בדיקת מטמון מחברים",
+                        "primary": True
+                    }
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": [
+                    "Section",
+                    "Line"
+                ],
+                "addressTypes": [
+                    "Integer",
+                    "Integer"
+                ],
+                "key": title
+            },
+        })
+
+        try:
+            author.save()
+            index.save()
+            library.rebuild_toc()
+
+            default_toc = library.get_toc(rebuild=True)
+            default_toc_cached = library.get_toc()
+            authors_toc = library.get_toc(serialization_options=TocSerializationOptions(
+                include_first_section=False,
+                include_flags=False,
+                include_base_texts=True,
+                include_authors=True,
+            ))
+            authors_toc_cached = library.get_toc(serialization_options=TocSerializationOptions(
+                include_first_section=False,
+                include_flags=False,
+                include_base_texts=True,
+                include_authors=True,
+            ))
+
+            assert default_toc is default_toc_cached
+            assert authors_toc is authors_toc_cached
+            assert default_toc is not authors_toc
+
+            toc_node = library.get_toc_tree().lookup(index.categories, title)
+            serialized_default = toc_node.serialize()
+            serialized_with_authors = toc_node.serialize(serialization_options=TocSerializationOptions(
+                include_first_section=False,
+                include_flags=False,
+                include_base_texts=True,
+                include_authors=True,
+            ))
+            assert "authors" not in serialized_default
+            assert serialized_with_authors["authors"] == [{
+                "en": "Test TOC Cache Author",
+                "he": "מחבר בדיקת מטמון",
+                "slug": slug,
+            }]
+        finally:
+            IndexSet({"title": title}).delete()
+            TopicSet({"slug": slug}).delete()
+            library.rebuild_toc()
+
 
 """
 Are these tests necessary anymore?

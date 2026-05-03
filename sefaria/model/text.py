@@ -4971,6 +4971,7 @@ class Library(object):
 
         # Table of Contents
         self._toc = None
+        self._toc_with_authors = None
         self._toc_json = None
         self._toc_tree = None
         self._topic_toc = None
@@ -5066,6 +5067,8 @@ class Library(object):
         """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
+        self._toc_with_authors = None
+        scache.delete_shared_cache_elem('toc_with_authors')
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
@@ -5121,7 +5124,17 @@ class Library(object):
             include_base_texts=True,
             include_authors=False,
         )
+        authors_serialization_options = dataclasses.replace(default_serialization_options, include_authors=True)
         serialization_options = serialization_options or default_serialization_options
+        if serialization_options == authors_serialization_options:
+            if rebuild or not self._toc_with_authors:
+                if not rebuild:
+                    self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
+                if rebuild or not self._toc_with_authors:
+                    self._toc_with_authors = self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
+                    scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
+                    self.set_last_cached_time()
+            return self._toc_with_authors
         if serialization_options != default_serialization_options:
             if rebuild:
                 self.get_toc_tree(rebuild=True)
