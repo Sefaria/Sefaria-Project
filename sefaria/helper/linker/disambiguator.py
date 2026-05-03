@@ -8,6 +8,7 @@ import structlog
 import os
 import re
 import requests
+import Levenshtein
 from dataclasses import dataclass, field, asdict
 from functools import lru_cache
 from typing import Dict, Any, Optional, List, Tuple
@@ -106,6 +107,34 @@ _LLM_CONFIGS: Dict[str, Tuple[str, str, str]] = {
 # Candidate dataclass — replaces loose Dict[str, Any] throughout
 # ---------------------------------------------------------------------------
 
+def _best_substring_by_levenshtein(long_text: str, target: str) -> str:
+    """Find the substring of long_text with minimum Levenshtein distance to target.
+
+    Normalizes both strings (strips nikkud/cantillation) before comparing so that
+    window size is based on content length, not diacritic count. The window found
+    in normalized space is then mapped back to original positions so the returned
+    string is always a true substring of long_text.
+    """
+    normalizer = _get_normalizer(lang='he')
+    norm_long = normalizer.normalize(long_text)
+    norm_target = normalizer.normalize(target)
+
+    target_len = len(norm_target)
+    if target_len == 0 or target_len >= len(norm_long):
+        return long_text
+
+    best_start, best_dist = 0, float('inf')
+    for i in range(len(norm_long) - target_len + 1):
+        dist = Levenshtein.distance(norm_long[i:i + target_len], norm_target)
+        if dist < best_dist:
+            best_dist, best_start = dist, i
+
+    orig_start, orig_end = normalizer.norm_to_unnorm_indices(
+        long_text, [(best_start, best_start + target_len)]
+    )[0]
+    return long_text[orig_start:orig_end]
+
+
 @dataclass
 class Candidate:
     resolved_ref: str
@@ -132,7 +161,10 @@ class Candidate:
             raw = raw["raw"]
         if isinstance(raw, dict):
             base_matched = raw.get("baseMatchedText")
+            comp_matched = raw.get("compMatchedText")
             if base_matched:
+                if comp_matched:
+                    return _best_substring_by_levenshtein(base_matched, comp_matched)
                 return base_matched
         return None
 
@@ -184,7 +216,7 @@ def _get_llm(role: str = "default"):
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
-        return ChatAnthropic(model=model, temperature=0, max_tokens=1024, api_key=api_key)
+        return ChatAnthropic(model=model, max_tokens=1024, api_key=api_key)
     elif provider == "google":
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
@@ -459,7 +491,13 @@ def _dicta_phrase_distance(windowed_text: str, windowed_span: dict, candidate: "
     if pos == -1:
         return None
     c_start, c_end = windowed_span.get('charRange', [0, 0])
-    return min(abs(pos + len(phrase) - c_start), abs(pos - c_end))
+    phrase_start = pos
+    phrase_end = pos + len(phrase)
+    if phrase_end <= c_start:
+        return c_start - phrase_end
+    if c_end <= phrase_start:
+        return phrase_start - c_end
+    return 0
 
 
 @traceable(run_type="tool", name="query_dicta", tags=[LANGSMITH_DEBUG_TAG])
@@ -1483,16 +1521,20 @@ def disambiguate_non_segment_ref(
                 )
 
             if candidate:
-                if candidate.score is not None and candidate.score >= 8:
-                    dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
-                    if dist is not None and dist <= 60:
-                        logger.info(f"Dicta score {candidate.score} >= 8, phrase distance {dist} <= 60, auto verification")
-                        return NonSegmentResolutionResult(
-                            resolved_ref=candidate.resolved_ref,
-                            method='dicta_high_score',
-                            llm_resolved_phrase=candidate.resolution_phrase(),
-                        )
-                    logger.info(f"Dicta score {candidate.score} >= 8 but phrase distance {dist} > 60, falling through to LLM")
+                try:
+                    citation_is_section_level = Ref(non_segment_ref_str).is_section_level()
+                except Exception:
+                    citation_is_section_level = False
+                score = candidate.score or 0
+                dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
+                if False:
+                # if (citation_is_section_level and score >= 6) or (not citation_is_section_level and score >= 8):
+                    logger.info(f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}")
+                    return NonSegmentResolutionResult(
+                        resolved_ref=candidate.resolved_ref,
+                        method='dicta_high_score',
+                        llm_resolved_phrase=candidate.resolution_phrase(),
+                    )
                 # Note: Dicta confirmation intentionally omits base context
                 # to avoid false positives on adjacent verses
                 ok, _ = _confirm_candidate(
