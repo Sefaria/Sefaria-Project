@@ -33,7 +33,7 @@ from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens31"
+LANGSMITH_DEBUG_TAG = "reduced_tokens33"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 # ---------------------------------------------------------------------------
@@ -1528,7 +1528,7 @@ def disambiguate_non_segment_ref(
                 score = candidate.score or 0
                 dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
                 # rule determined by analyzing 3,000 Dicta queries
-                if (citation_is_section_level and score >= 8 and dist is not None and dist <= 10) \
+                if (citation_is_section_level and score >= 5 and dist is not None and dist <= 10) \
                         or (score >= 15 and dist is not None and dist <= 5):
                     logger.info(f"Dicta auto-accepted: section_level={citation_is_section_level}, score={score}, dist={dist}")
                     return NonSegmentResolutionResult(
