@@ -108,6 +108,21 @@ entries:
     version: 0.85.0-featdatadog-profiling.1
   - apiVersion: v2
     appVersion: v6.94.2-preprod.1
+    created: "2026-05-03T08:33:53.861457696Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 3ba258408d129680f41a9150bb02fcaefec74d8f28a029cb0562110475d28d45
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.84.3-reduce-tasks-replicas-to-6.1.tgz
+    version: 0.84.3-reduce-tasks-replicas-to-6.1
+  - apiVersion: v2
+    appVersion: v6.94.2-preprod.1
     created: "2026-05-03T07:42:08.612238352Z"
     description: Chart to deploy complete Sefaria environment
     digest: 765eaebb55dabcb94fbcde6b663c35929239222f55ab15e65a2d0de825f097db
@@ -15840,4 +15855,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-05-03T07:42:08.609661465Z"
+generated: "2026-05-03T08:33:53.858163903Z"
