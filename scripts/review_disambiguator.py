@@ -26,7 +26,8 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 
 # ---- params (edit these) ----
-INPUT_REF_OR_URL = "Shorshei HaYam on Mishneh Torah, Woman Suspected of Infidelity 3:22:1"
+INPUT_REF_OR_URL = "Midrash Tanchuma, Vayechi 14:1"
+VERSION_TITLE = "Tsel Midrash Tanchuma"
 BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 # -----------------------------
 
@@ -58,8 +59,11 @@ def _sefaria_url(base_url: str, tref: str) -> str:
     return _add_debug_param(f"{base_url}/{Ref(tref).url()}")
 
 
-def _load_linker_outputs_for_ref(tref: str):
-    return list(db.linker_output.find({"ref": tref}))
+def _load_linker_outputs_for_ref(tref: str, vtitle=None):
+    query = {"ref": tref}
+    if vtitle:
+        query.update({"versionTitle": vtitle})
+    return list(db.linker_output.find(query))
 
 
 def _ambiguous_payloads_for_output(raw_linker_output):
@@ -158,7 +162,7 @@ def main():
 
     print(f"Ref: {tref}")
     print(f"Base URL: {base_url}")
-    outputs = _load_linker_outputs_for_ref(tref)
+    outputs = _load_linker_outputs_for_ref(tref, VERSION_TITLE)
     print(f"LinkerOutput records: {len(outputs)}")
 
     for raw in outputs:

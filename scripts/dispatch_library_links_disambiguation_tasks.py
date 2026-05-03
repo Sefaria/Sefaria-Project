@@ -18,6 +18,7 @@ django.setup()
 from collections import defaultdict
 import argparse
 import json
+import random
 import os
 from tqdm import tqdm
 from sefaria.system.exceptions import InputError
@@ -32,8 +33,8 @@ from sefaria.helper.linker.disambiguator import (
 from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 # Global flag for debug mode
-DEBUG_MODE = True  # True = sample a small random subset; False = process all matching LinkerOutput docs
-DEBUG_LIMIT = 5000  # Number of random examples to fetch in debug mode
+DEBUG_MODE = False  # True = sample a small random subset; False = process all matching LinkerOutput docs
+DEBUG_LIMIT = 3000  # Number of random examples to fetch in debug mode
 DEBUG_SEED = 6139   # Seed for reproducible random sampling
 
 DEBUG_CACHE_DIR = os.path.join(os.path.dirname(__file__), "debug_cache")
@@ -233,9 +234,12 @@ def main():
     groups = find_all_resolutions()
 
     # Flatten groups into an ordered list, keeping each base-text group contiguous
-    all_payloads = [payload for payloads in groups.values() for payload in payloads]
+    payloads_list = list(groups.values())
+    random.shuffle(payloads_list)
+    all_payloads = [payload for payloads in payloads_list for payload in payloads]
     total = len(all_payloads)
     dispatch_list = all_payloads[args.start:] if args.start else all_payloads
+    dispatch_list = dispatch_list[:5000]
 
     print(f"Dispatching {len(dispatch_list)} tasks (skipping first {args.start})...")
     try:

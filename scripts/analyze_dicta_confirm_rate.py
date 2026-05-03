@@ -14,6 +14,7 @@ For each sampled non-segment payload that reaches the Dicta + confirm path:
 Run via:
     ./run scripts/analyze_dicta_confirm_rate.py
     ./run scripts/analyze_dicta_confirm_rate.py --sample 300 --output results.csv
+    ./run scripts/analyze_dicta_confirm_rate.py --reconfirm-rejected --input results.csv --output opus_reconfirm.csv
 """
 
 import django
@@ -23,7 +24,6 @@ import argparse
 import csv
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict
 from typing import Optional
 
 import structlog
@@ -35,9 +35,12 @@ from sefaria.helper.linker.disambiguator import (
     NonSegmentResolutionPayload,
     _query_dicta,
     _confirm_candidate,
+    _dicta_phrase_distance,
     _get_ref_text,
     _prepare_citing_context,
     _normalize_citing_input,
+    _llm_confirm_candidate,
+    _get_candidate_text_for_confirmation,
     _llm_choose_best_candidate,
     _get_commentary_base_context,
 )
@@ -54,10 +57,14 @@ CSV_FIELDS = [
     "num_segments",
     "num_dicta_candidates",
     "candidate_ref",
+    "citation_is_section_level",
     "dicta_score",
+    "phrase_distance",
     "candidate_text_words",
+    "confirm_method",
     "confirmed",
 ]
+RECONFIRM_FIELDS = CSV_FIELDS + ["opus_confirmed", "opus_reason"]
 
 
 def _sample_non_segment_payloads(n: int) -> list[NonSegmentResolutionPayload]:
@@ -132,7 +139,7 @@ def _process_payload(payload: NonSegmentResolutionPayload) -> Optional[dict]:
         citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
             citing_text_full, payload.charRange, payload.text, citing_lang,
         )
-        windowed_text, marked_text, _ = _prepare_citing_context(
+        windowed_text, marked_text, windowed_span = _prepare_citing_context(
             citing_text_norm, char_range_norm, text_snippet_norm,
         )
 
@@ -157,10 +164,17 @@ def _process_payload(payload: NonSegmentResolutionPayload) -> Optional[dict]:
         candidate_text = _get_ref_text(candidate.resolved_ref, citing_lang) or ""
         word_count = len(candidate_text.split())
 
+        try:
+            citation_is_section_level = Ref(non_segment_ref_str).is_section_level()
+        except Exception:
+            citation_is_section_level = None
+
+        dist = _dicta_phrase_distance(windowed_text, windowed_span, candidate)
         ok, _ = _confirm_candidate(
             candidate, marked_text, citing_lang,
             auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
         )
+        confirm_method = "auto_approved" if citing_ref.startswith("Metzudat Zion") else "llm"
 
         return {
             "citing_ref": citing_ref,
@@ -168,13 +182,91 @@ def _process_payload(payload: NonSegmentResolutionPayload) -> Optional[dict]:
             "num_segments": num_segments,
             "num_dicta_candidates": num_dicta,
             "candidate_ref": candidate.resolved_ref,
+            "citation_is_section_level": citation_is_section_level,
             "dicta_score": candidate.score,
+            "phrase_distance": dist,
             "candidate_text_words": word_count,
+            "confirm_method": confirm_method,
             "confirmed": "yes" if ok else "no",
         }
     except Exception as e:
         logger.warning(f"Error processing payload {payload.ref}: {e}")
         return None
+
+
+def _fetch_marked_text_for_row(row: dict) -> Optional[str]:
+    """Re-fetch the citing text from linker_output and reconstruct marked_text."""
+    citing_ref = row["citing_ref"]
+    non_segment_ref = row["non_segment_ref"]
+
+    doc = db.linker_output.find_one({
+        "ref": citing_ref,
+        "language": "he",
+        "spans": {"$elemMatch": {"ref": non_segment_ref}},
+    })
+    if not doc:
+        return None
+
+    span = next((s for s in doc.get("spans", []) if s.get("ref") == non_segment_ref), None)
+    if not span:
+        return None
+
+    citing_text_full = _get_ref_text(citing_ref, "he", doc.get("versionTitle"))
+    if not citing_text_full:
+        return None
+
+    char_range = span.get("charRange", [0, 0])
+    text_snippet = span.get("text", "")
+    citing_text_norm, char_range_norm, text_snippet_norm = _normalize_citing_input(
+        citing_text_full, char_range, text_snippet, "he",
+    )
+    _, marked_text, _ = _prepare_citing_context(citing_text_norm, char_range_norm, text_snippet_norm)
+    return marked_text
+
+
+def _reconfirm_row(row: dict) -> dict:
+    """Re-run confirmation on a rejected row using Opus 4.7."""
+    result = dict(row)
+    try:
+        marked_text = _fetch_marked_text_for_row(row)
+        if not marked_text:
+            result["opus_confirmed"] = "error"
+            result["opus_reason"] = "could not reconstruct marked_text"
+            return result
+
+        candidate_text = _get_candidate_text_for_confirmation(row["candidate_ref"], "he")
+        ok, reason = _llm_confirm_candidate(marked_text, row["candidate_ref"], candidate_text)
+        result["opus_confirmed"] = "yes" if ok else "no"
+        result["opus_reason"] = reason
+    except Exception as e:
+        result["opus_confirmed"] = "error"
+        result["opus_reason"] = str(e)
+    return result
+
+
+def _run_reconfirm(input_csv: str, output_csv: str):
+    """Re-run Opus 4.7 confirmation on all LLM-rejected rows from a prior analysis CSV."""
+    import pandas as pd
+    df = pd.read_csv(input_csv)
+    rejected = df[(df["confirm_method"] == "llm") & (df["confirmed"] == "no")]
+    print(f"{len(rejected)} rejected rows to re-confirm with Opus 4.7...")
+
+    os.environ["ANTHROPIC_CONFIRM_MODEL"] = "claude-opus-4-7"
+
+    rows = []
+    with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
+        futures = {executor.submit(_reconfirm_row, row): row for _, row in rejected.iterrows()}
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Re-confirming"):
+            rows.append(future.result())
+
+    opus_yes = sum(1 for r in rows if r.get("opus_confirmed") == "yes")
+    print(f"\nOpus confirmed: {opus_yes}/{len(rows)} previously-rejected rows ({100*opus_yes//max(len(rows),1)}%)")
+
+    with open(output_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=RECONFIRM_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"Saved to {output_csv}")
 
 
 def main():
@@ -183,7 +275,17 @@ def main():
                         help=f"Number of payloads to sample (default: {DEFAULT_SAMPLE})")
     parser.add_argument("--output", default=DEFAULT_OUTPUT,
                         help=f"Output CSV path (default: {DEFAULT_OUTPUT})")
+    parser.add_argument("--reconfirm-rejected", action="store_true",
+                        help="Re-run Opus 4.7 confirmation on rejected rows from --input CSV")
+    parser.add_argument("--input", default=None,
+                        help="Input CSV for --reconfirm-rejected mode")
     args = parser.parse_args()
+
+    if args.reconfirm_rejected:
+        if not args.input:
+            parser.error("--reconfirm-rejected requires --input <csv>")
+        _run_reconfirm(args.input, args.output)
+        return
 
     print(f"Sampling {args.sample} non-segment payloads (Hebrew, >3 segments)...")
     payloads = _sample_non_segment_payloads(args.sample)
@@ -204,7 +306,11 @@ def main():
         return
 
     confirmed_count = sum(1 for r in rows if r["confirmed"] == "yes")
+    high_score_count = sum(1 for r in rows if r["confirm_method"] == "high_score")
+    llm_count = sum(1 for r in rows if r["confirm_method"] == "llm")
     print(f"Confirmed: {confirmed_count}/{len(rows)} ({100*confirmed_count//len(rows)}%)")
+    print(f"  via high_score (no LLM): {high_score_count}")
+    print(f"  via LLM: {llm_count}")
 
     with open(args.output, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
