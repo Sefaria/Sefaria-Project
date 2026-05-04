@@ -99,9 +99,13 @@ def update_index_title(self, uid: int, attrs: dict, raw: bool, method) -> dict:
     user history, topic links, manuscripts, marked-up chunks, cache, TOC)
     runs in the Celery worker rather than blocking the request.
     """
+    from sefaria.system.progress_context import set_progress_reporter, reset_progress_reporter
     old_title = attrs.get("oldTitle")
     new_title = attrs.get("title")
     logger.info("update_index_title:start", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id)
+    token = set_progress_reporter(
+        lambda step: self.update_state(state='PROGRESS', meta={'step': step})
+    )
     try:
         index_obj = tracker.update(uid, Index, attrs, raw=raw, method=method)
         logger.info("update_index_title:complete", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id)
@@ -109,3 +113,5 @@ def update_index_title(self, uid: int, attrs: dict, raw: bool, method) -> dict:
     except Exception as e:
         logger.error("update_index_title:failed", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id, error=str(e))
         raise
+    finally:
+        reset_progress_reporter(token)

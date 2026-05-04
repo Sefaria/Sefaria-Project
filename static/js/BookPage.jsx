@@ -1080,6 +1080,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [categories, setCategories] = useState(index.current.categories);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("");
   const [sections, setSections] = useState(index.current.sectionNames);
   const [enDesc, setEnDesc] = useState(index.current?.enDesc || "");
   const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
@@ -1234,8 +1235,11 @@ const EditTextInfo = function({initTitle, close}) {
       });
 
     function pollIndexTitleTask(taskId, newTitle) {
-      alert("Title change queued (task " + taskId + "). Processing in the background — this page will reload when complete.");
-      Sefaria.pollTask(taskId)
+      const savingMessageSuffix = " (Page will automatically refresh when complete. It will still complete even you navigate away from this page although you won't be able to track progress.)";
+      setSavingMessage("Title change queued — processing in background..." + savingMessageSuffix);
+      Sefaria.pollTask(taskId, {
+        onProgress(meta) { setSavingMessage((meta.step || "Processing...") + savingMessageSuffix); },
+      })
         .then(result => {
           const finalTitle = (result && result.title) ? result.title : newTitle;
           alert("Title change complete.");
@@ -1394,7 +1398,7 @@ const EditTextInfo = function({initTitle, close}) {
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
-          {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          {savingStatus ? <div className="collectionsWidget">{savingMessage || "Saving text information..."}</div> : null}
           <div id="newIndex">
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">

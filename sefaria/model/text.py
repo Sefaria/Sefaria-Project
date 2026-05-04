@@ -6,6 +6,7 @@ text.py
 import time
 import structlog
 import dataclasses
+from sefaria.system.progress_context import report_progress
 from functools import reduce, partial
 from typing import Optional, Union
 
@@ -6419,7 +6420,7 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.save()
 
 def process_index_title_change_in_sheets(indx, **kwargs):
-    print("Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new']))
 
     regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
                 for pattern in Ref(kwargs["new"]).regex(as_list=True)]

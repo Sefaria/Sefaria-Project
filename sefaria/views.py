@@ -723,8 +723,15 @@ def reset_websites_data(request):
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
+    try:
+        index = model.library.get_index(title)
+    except BookNameError:
+        # The title may have been renamed in a Celery worker whose cache update
+        # hasn't propagated to this web-server process yet. Load fresh from DB.
+        index = model.Index().load({"title": title})
+        if index is None:
+            return HttpResponseRedirect("/?m=Title-Not-Found")
 
-    index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 

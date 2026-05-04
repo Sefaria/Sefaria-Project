@@ -3515,7 +3515,7 @@ _media: {},
    * @param {number} [interval=3000] ms between polls
    * @returns {Promise}
    */
-  pollTask(taskId, { interval = 3000 } = {}) {
+  pollTask(taskId, { interval = 3000, onProgress } = {}) {
     return new Promise((resolve, reject) => {
       const handle = setInterval(async () => {
         try {
@@ -3528,7 +3528,10 @@ _media: {},
             return;
           }
           const data = await resp.json();
-          if (!data.ready) { return; }
+          if (!data.ready) {
+            if (onProgress && data.meta) onProgress(data.meta);
+            return;
+          }
           clearInterval(handle);
           if (data.error) {
             reject(new Error(data.error));
