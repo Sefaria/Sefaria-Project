@@ -974,7 +974,7 @@
   background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-he.png");
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 768px) {
   #NewsletterInner .staticPage .staticPageHeader.newsletter {
     min-height: 415px;
     box-sizing: border-box;
@@ -987,6 +987,15 @@
 
   .interface-hebrew .staticPage .staticPageHeader.newsletter {
     background-image: url("/static/img/newsletter-signup-page/newsletter-signup-page-header-he-mobile.png");
+  }
+
+  #NewsletterInner .staticPage .feature .featureIframe {
+    width: 350px;
+    margin: 30px auto 0;
+  }
+
+  #NewsletterInner .staticPage .feature .featureIframe .featureIframeEmbed {
+    max-width: 350px;
   }
 }
 
@@ -1031,20 +1040,8 @@
 @media screen and (max-width: 856px) {
   #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .staticPageBlockInner.flexContainer {
     flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper,
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper .button {
-    width: 257px;
-    max-width: 257px;
-  }
-}
-
-@media screen and (max-width: 540px) {
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .staticPageBlockInner.flexContainer {
     align-items: stretch;
+    gap: 16px;
   }
 
   #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper,
@@ -1054,17 +1051,7 @@
   }
 }
 
-@media screen and (max-width: 699px) {
-  #NewsletterInner .staticPage .feature .featureIframe {
-    width: 350px;
-  }
-
-  #NewsletterInner .staticPage .feature .featureIframe .featureIframeEmbed {
-    max-width: 350px;
-  }
-}
-
-@media screen and (max-width: 620px) {
+@media screen and (max-width: 440px) {
   #NewsletterInner .staticPage .feature .featureText,
   #NewsletterInner .staticPage .feature .featureIframe {
     width: 100%;
