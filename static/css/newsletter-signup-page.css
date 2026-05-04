@@ -74,7 +74,7 @@
    HEADERS & TITLES (Extend existing typography)
    ============================================ */
 
-.newsletterFormView .newsletterFormHeader {
+.newsletterFormHeader {
   text-align: start;
   margin-bottom: 40px;
 }
@@ -85,7 +85,7 @@
   margin-bottom: 40px;
 }
 
-.newsletterFormView .newsletterFormTitle {
+.newsletterFormTitle {
   font-size: var(--sans-serif-h2-font-size);
   font-weight: 500;
   color: var(--dark-grey);
@@ -104,7 +104,7 @@
   font-family: var(--english-sans-serif-font-family);
   line-height: 1.3;
 }
-.newsletterFormView .newsletterFormSubtitle,
+.newsletterFormSubtitle,
 .newsletterConfirmationView .confirmationMessage {
   font-size: var(--sans-serif-body-font-size);
   color: var(--dark-grey);
@@ -126,7 +126,7 @@
 }
 
 /* Section headers - left aligned by default */
-.newsletterFormView .sectionHeader {
+.sectionHeader {
   font-size: var(--sans-serif-h3-font-size);
   font-weight: 500;
   color: var(--dark-grey);
@@ -135,26 +135,19 @@
   text-align: start;
 }
 /* Name section - side by side fields */
-.newsletterFormView .nameFieldsRow {
+.nameFieldsRow {
   display: flex;
   gap: 16px;
 }
 
-.newsletterFormView .nameFieldsRow .formField {
+.nameFieldsRow .formField {
   flex: 1;
   margin-bottom: 0;
 }
 
 /* Mobile: stack name fields vertically */
-@media (max-width: 768px) {
-  .newsletterFormView .nameFieldsRow {
-    flex-direction: column;
-    gap: 20px;
-  }
-}
-
 /* Base form field container */
-.newsletterFormView .formField {
+.formField {
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
@@ -194,7 +187,7 @@
 }
 
 /* Logged-in user email display */
-.newsletterFormView .newsletterEmailInfo {
+.newsletterEmailInfo {
   background-color: var(--lightest-grey);
   padding: 15px 20px;
   border-radius: 6px;
@@ -204,7 +197,7 @@
   color: var(--dark-grey);
   font-family: var(--english-sans-serif-font-family);
 }
-.newsletterFormView .newsletterEmailInfo strong {
+.newsletterEmailInfo strong {
   color: var(--darkest-grey);
   font-weight: 600;
 }
@@ -214,7 +207,7 @@
    ============================================ */
 
 /* Extend .subscribeErrorMessage for form errors */
-.newsletterFormView .newsletterErrorMessage {
+.newsletterErrorMessage {
   background-color: #f2dede;
   border: 1px solid #eed3d7;
   color: #b94a48;
@@ -226,7 +219,7 @@
   gap: 10px;
   font-family: var(--english-sans-serif-font-family);
 }
-.newsletterFormView .newsletterErrorMessage .errorIcon {
+.newsletterErrorMessage .errorIcon {
   font-size: 20px;
   flex-shrink: 0;
 }
@@ -235,7 +228,7 @@
    ERROR SUMMARY - Multi-error display at top of form
    ============================================ */
 
-.newsletterFormView .newsletterErrorSummary {
+.newsletterErrorSummary {
   background-color: #fef2f2;
   border: 2px solid #dc2626;
   border-radius: 8px;
@@ -243,12 +236,12 @@
   margin-bottom: 24px;
 }
 
-.newsletterFormView .newsletterErrorSummary:focus {
+.newsletterErrorSummary:focus {
   outline: 2px solid #dc2626;
   outline-offset: 2px;
 }
 
-.newsletterFormView .errorSummaryTitle {
+.errorSummaryTitle {
   color: #dc2626;
   font-size: 16px;
   font-weight: 600;
@@ -258,23 +251,23 @@
   gap: 8px;
   font-family: var(--english-sans-serif-font-family);
 }
-.newsletterFormView .errorSummaryList {
+.errorSummaryList {
   margin: 0;
   padding-inline-start: 24px;
   list-style-type: disc;
 }
 
-.newsletterFormView .errorSummaryList li {
+.errorSummaryList li {
   color: #dc2626;
   margin-bottom: 4px;
   font-family: var(--english-sans-serif-font-family);
 }
-.newsletterFormView .errorSummaryLink {
+.errorSummaryLink {
   color: #dc2626;
   text-decoration: underline;
 }
 
-.newsletterFormView .errorSummaryLink:hover {
+.errorSummaryLink:hover {
   text-decoration: none;
 }
 
@@ -282,7 +275,7 @@
    INLINE FIELD ERRORS - Above each invalid field
    ============================================ */
 
-.newsletterFormView .inlineFieldError {
+.inlineFieldError {
   color: #dc2626;
   font-size: 14px;
   margin-bottom: 6px;
@@ -313,7 +306,7 @@
 }
 
 /* Newsletter section error state */
-.newsletterFormView .newsletterCheckboxes.hasError {
+.newsletterCheckboxes.hasError {
   border: 2px solid #dc2626;
   border-radius: 8px;
   padding: 12px;
@@ -325,7 +318,7 @@
 }
 
 /* Extra spacing for newsletter inline error */
-.newsletterFormView .newsletterSelectionSection > .inlineFieldError {
+.newsletterSelectionSection > .inlineFieldError {
   margin-bottom: 12px;
 }
 
@@ -333,14 +326,14 @@
    NEWSLETTER SELECTION SECTION
    ============================================ */
 
-.newsletterFormView .newsletterSelectionSection {
+.newsletterSelectionSection {
   margin: 0;
   padding: 0;
   border-top: none;
   border-bottom: none;
 }
 
-.newsletterFormView .newsletterSelectionSection .sectionHeader {
+.newsletterSelectionSection .sectionHeader {
   margin-bottom: 20px;
 }
 
@@ -445,7 +438,7 @@
    NEWSLETTER CHECKBOX CONTAINER (grid layout)
    ============================================ */
 
-.newsletterFormView .newsletterCheckboxes {
+.newsletterCheckboxes {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   column-gap: 16px;
@@ -453,12 +446,6 @@
 }
 
 /* Mobile: single column layout */
-@media (max-width: 768px) {
-  .newsletterFormView .newsletterCheckboxes {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ============================================
    BUTTONS - Extend .button with .newsletter modifier
    ============================================ */
@@ -508,14 +495,14 @@
 }
 
 /* Form actions container - start aligned (works for both LTR and RTL) */
-.newsletterFormView .formActions {
+.formActions {
   margin: 0;
   display: flex;
   gap: 15px;
   justify-content: flex-start;
 }
 
-.newsletterFormView .newsletterCheckboxes .selectableOptionWrapper {
+.newsletterCheckboxes .selectableOptionWrapper {
   min-height: 70px;
 }
 
@@ -529,7 +516,7 @@
 }
 
 /* Finished section styling */
-.newsletterFormView .finishedSection {
+.finishedSection {
   margin-top: 30px;
   padding-top: 30px;
   border-top: 1px solid var(--lighter-grey);
@@ -645,12 +632,12 @@
    PRIVACY NOTE
    ============================================ */
 
-.newsletterFormView .privacyNote {
+.privacyNote {
   text-align: center;
   margin-top: 20px;
 }
 
-.newsletterFormView .privacyNote .small {
+.privacyNote .small {
   font-size: 13px;
   color: var(--dark-grey);
   margin: 0;
@@ -661,56 +648,19 @@
    RESPONSIVE DESIGN
    ============================================ */
 
-@media (max-width: 768px) {
-  .newsletterSignUpPageForm {
-    padding: 20px;
-  }
-
-  .newsletterFormView .newsletterFormTitle,
-  .newsletterConfirmationView .confirmationTitle,
-  .successView .successTitle {
-    font-size: var(--sans-serif-h3-font-size);
-  }
-
-  .newsletterFormView .sectionHeader {
-    font-size: var(--sans-serif-h3-font-size);
-  }
-
-  /* 16px font on inputs prevents iOS zoom */
-  .newsletterFormView input[type="text"],
-  .newsletterFormView input[type="email"] {
-    font-size: 16px;
-  }
-
-  /* Full width buttons on mobile */
-  .newsletterFormView .submitButton {
-    width: 100%;
-    min-width: unset;
-  }
-
-  .newsletterFormView .formSection {
-    margin-bottom: 25px;
-  }
-
-  .newsletterFormView .finishedSection {
-    margin-top: 25px;
-    padding-top: 25px;
-  }
-}
-
 /* Hebrew typography overrides (consolidated) */
-.interface-hebrew .newsletterFormView .newsletterFormTitle,
+.interface-hebrew .newsletterFormTitle,
 .interface-hebrew .newsletterConfirmationView .confirmationTitle,
 .interface-hebrew .successView .successTitle,
-.interface-hebrew .newsletterFormView .newsletterFormSubtitle,
+.interface-hebrew .newsletterFormSubtitle,
 .interface-hebrew .newsletterConfirmationView .confirmationMessage,
-.interface-hebrew .newsletterFormView .sectionHeader,
-.interface-hebrew .newsletterFormView .newsletterEmailInfo,
+.interface-hebrew .sectionHeader,
+.interface-hebrew .newsletterEmailInfo,
 .interface-hebrew .selectableOptionLabel,
 .interface-hebrew .newsletterConfirmationView .selectedList,
 .interface-hebrew .newsletterConfirmationView .skipPrompt,
 .interface-hebrew .successView .successMessage,
-.interface-hebrew .newsletterFormView .privacyNote .small,
+.interface-hebrew .privacyNote .small,
 .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelHeader {
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 122%;
@@ -718,10 +668,10 @@
 
 .interface-hebrew .newsletterFormView input[type="text"],
 .interface-hebrew .newsletterFormView input[type="email"],
-.interface-hebrew .newsletterFormView .newsletterErrorMessage,
-.interface-hebrew .newsletterFormView .errorSummaryTitle,
-.interface-hebrew .newsletterFormView .errorSummaryList li,
-.interface-hebrew .newsletterFormView .inlineFieldError,
+.interface-hebrew .newsletterErrorMessage,
+.interface-hebrew .errorSummaryTitle,
+.interface-hebrew .errorSummaryList li,
+.interface-hebrew .inlineFieldError,
 .interface-hebrew .newsletterFormView .submitButton,
 .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .saveButton,
 .interface-hebrew .successView .homepageLink,
@@ -741,7 +691,7 @@
   direction: rtl;
 }
 
-.interface-hebrew .newsletterFormView .formField label {
+.interface-hebrew .formField label {
   flex-direction: row-reverse;
   justify-content: flex-end;
 }
@@ -824,39 +774,6 @@
 }
 
 /* Mobile responsive for embedded learning level */
-@media (max-width: 768px) {
-  .newsletterConfirmationView .embeddedLearningLevel {
-    margin-top: 30px;
-    padding-top: 25px;
-  }
-
-  .newsletterConfirmationView .embeddedLearningLevel .selectableOptionLabel {
-    padding: 12px;
-  }
-
-  /* Stack button and skip text on mobile */
-  .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-  .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
-    flex-direction: column;
-    align-items: flex-end;
-  }
-
-  .newsletterConfirmationView .embeddedLearningLevel .saveButton {
-    width: 100%;
-    min-width: unset;
-  }
-
-  .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
-    width: 100%;
-    text-align: center;
-  }
-}
-
 /* ============================================
    MARKETING EMAIL TOGGLE (Logged-in users only)
    Uses existing ToggleSet component with blueStyle
@@ -942,6 +859,84 @@
 .successView a:focus-visible {
   outline: 3px solid var(--select-blue);
   outline-offset: 2px;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .nameFieldsRow {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .newsletterCheckboxes {
+    grid-template-columns: 1fr;
+  }
+
+  .newsletterSignUpPageForm {
+    padding: 20px;
+  }
+
+  .newsletterFormTitle,
+  .newsletterConfirmationView .confirmationTitle,
+  .successView .successTitle {
+    font-size: var(--sans-serif-h3-font-size);
+  }
+
+  .sectionHeader {
+    font-size: var(--sans-serif-h3-font-size);
+  }
+
+  /* 16px font on inputs prevents iOS zoom */
+  .newsletterFormView input[type="text"],
+  .newsletterFormView input[type="email"] {
+    font-size: 16px;
+  }
+
+  /* Full width buttons on mobile */
+  .newsletterFormView .submitButton {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .newsletterFormView .formSection {
+    margin-bottom: 25px;
+  }
+
+  .finishedSection {
+    margin-top: 25px;
+    padding-top: 25px;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel {
+    margin-top: 30px;
+    padding-top: 25px;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .selectableOptionLabel {
+    padding: 12px;
+  }
+
+  /* Stack button and skip text on mobile */
+  .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .interface-hebrew .newsletterConfirmationView .embeddedLearningLevel .learningLevelActions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .saveButton {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .newsletterConfirmationView .embeddedLearningLevel .skipPrompt {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* Reduced motion preference */
