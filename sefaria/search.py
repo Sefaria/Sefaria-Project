@@ -191,7 +191,7 @@ def index_sheet(index_name, id):
             "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, id=id, body=doc)
+        es_client.create(index=index_name, id=id, document=doc)
         return True
     except Exception as e:
         # Error indexing - skip silently, will be tracked as failed
@@ -403,7 +403,7 @@ def put_text_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(body=text_mapping, index=index_name)
+    index_client.put_mapping(index=index_name, properties=text_mapping['properties'])
 
 
 def put_sheet_mapping(index_name):
@@ -469,7 +469,7 @@ def put_sheet_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(body=sheet_mapping, index=index_name)
+    index_client.put_mapping(index=index_name, properties=sheet_mapping['properties'])
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -776,7 +776,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, doc, id=id)
+        es_client.index(index=index_name, id=id, document=doc)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
