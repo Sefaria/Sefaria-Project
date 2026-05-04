@@ -471,15 +471,22 @@ const BulkVersionEditor = () => {
     setRenameConfirmText("");
     setRenaming(true);
     setSaving(true);
-    setMsg({ type: MESSAGE_TYPES.INFO, message: 'Renaming versions...' });
 
     const url = '/api/version-rename';
     const indicesToRename = Array.from(pick);
+    const total = indicesToRename.length;
     const successes = [];
     const failures = [];
 
+    const progressMessage = (i, currentIndexTitle) =>
+      `Renaming "${currentIndexTitle}" (${i + 1} of ${total})... ` +
+      `${successes.length} succeeded, ${failures.length} failed so far.`;
+
     try {
-      for (const indexTitle of indicesToRename) {
+      for (let i = 0; i < indicesToRename.length; i++) {
+        const indexTitle = indicesToRename[i];
+        setMsg({ type: MESSAGE_TYPES.INFO, message: progressMessage(i, indexTitle) });
+
         const payload = {
           versionTitle: vtitle,
           newVersionTitle: newTitleTrimmed,
@@ -496,7 +503,6 @@ const BulkVersionEditor = () => {
 
       const successCount = successes.length;
       const failureCount = failures.length;
-      const total = successCount + failureCount;
 
       if (failureCount === 0) {
         console.log("Rename succeeded", { url, successCount, total, successes });
@@ -616,8 +622,9 @@ const BulkVersionEditor = () => {
 
   // Compute validation state message (shown proactively, not on click)
   const getValidationState = () => {
-    // Don't show validation messages while saving or if there's an active result message
-    if (saving) return null;
+    // While saving, only show in-progress INFO updates (e.g. per-index rename progress).
+    // Validation warnings are suppressed mid-operation.
+    if (saving) return msg && msg.type === MESSAGE_TYPES.INFO ? msg : null;
     if (msg && (msg.type === MESSAGE_TYPES.SUCCESS || msg.type === MESSAGE_TYPES.ERROR)) return msg;
 
     // Show validation warnings proactively
