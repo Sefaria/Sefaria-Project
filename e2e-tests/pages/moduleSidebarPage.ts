@@ -227,8 +227,8 @@ export class ModuleSidebarPage extends HelperBase {
    */
   async verifyStandardFooterLinks() {
     const specs: FooterLinkSpec[] = [
-      { name: 'About', href: /modularization\.cauldron/, opensNewTab: false },
-      { name: 'Help', href: /help\.sefaria\.org|modularization\.cauldron/, opensNewTab: true },
+      { name: 'About', href: /sefaria\.org/, opensNewTab: false },
+      { name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true },
       { name: 'Contact Us', href: /^mailto:/, isMailto: true, opensNewTab: true },
       { name: 'Newsletter', href: /newsletter/, opensNewTab: false },
       { name: 'Blog', href: /blog\.sefaria\.org|sefaria\.org\.il/, opensNewTab: true },

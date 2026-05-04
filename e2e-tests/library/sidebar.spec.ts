@@ -66,34 +66,20 @@ test.describe('Library Module Sidebar Tests', () => {
   test('MOD-S006: Library - About link loads in same tab', async () => {
     // About should load in same tab to modularization cauldron
     await hideAllModalsAndPopups(page);
-    await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /modularization\.cauldron/, opensNewTab: false });
-    await expect(page).toHaveURL(/modularization\.cauldron/);
+    await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /sefaria\.org/, opensNewTab: false });
+    await expect(page).toHaveURL(/sefaria\.org/);
   });
 
   test('MOD-S007: Library - Help link href and behavior (Zendesk)', async () => {
     await hideAllModalsAndPopups(page);
-    // First verify the href is to either Zendesk or the modularization help proxy
-    await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.sefaria\.org|modularization\.cauldron/, opensNewTab: true });
+    // First verify the href is to the Zendesk
+    await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true });
 
-    // Click and handle either new tab or same tab
-    const link = pm.onModuleSidebar().getFooterLinkByText('Help');
-    const target = await link.getAttribute('target');
-    if (target === '_blank') {
-      const [newPage] = await Promise.all([
-        page.context().waitForEvent('page'),
-        link.click(),
-      ]);
-      await newPage.waitForLoadState('domcontentloaded');
-      const url = newPage.url();
-      expect(url).toMatch(/help\.sefaria\.org|modularization\.cauldron/);
-      await newPage.close();
-    } else {
-      // Same tab
-      const navigation = page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => null);
-      await link.click();
-      await navigation;
-      expect(page.url()).toMatch(/help\.sefaria\.org|modularization\.cauldron/);
-    }
+    // Click the help link and verify it opens in a new tab with the correct URL
+    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true });
+    await expect(newPage!).toHaveURL(/help\.sefaria\.org/);
+    await newPage!.close();
+    
   });
 
   test('MOD-S008: Library - Contact Us is a mailto link', async () => {
