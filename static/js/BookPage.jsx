@@ -1218,10 +1218,12 @@ const EditTextInfo = function({initTitle, close}) {
       url += "?update=1";
     }
     toggleInProgress();
-    $.post(url,  {"json": postJSON}, function(data) {
+    $.post(url,  {"json": postJSON}, function(data, textStatus, xhr) {
       if (data.error) {
         toggleInProgress();
         alert(data.error);
+      } else if (xhr.status === 202 && data.task_id) {
+        pollIndexTitleTask(data.task_id, enTitle);
       } else {
         alert("Text information saved.");
         window.location.href = "/admin/reset/"+index.current.title;
@@ -1230,6 +1232,22 @@ const EditTextInfo = function({initTitle, close}) {
         alert("Unfortunately, there may have been an error saving this text information.");
         window.location.href = "/admin/reset/"+index.current.title;  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
       });
+
+    function pollIndexTitleTask(taskId, newTitle) {
+      alert("Title change queued (task " + taskId + "). Processing in the background — this page will reload when complete.");
+      Sefaria.pollTask(taskId)
+        .then(result => {
+          const finalTitle = (result && result.title) ? result.title : newTitle;
+          alert("Title change complete.");
+          window.location.href = "/admin/reset/" + finalTitle;
+        })
+        .catch(err => {
+          toggleInProgress();
+          alert(err.isNetworkError
+            ? "Could not check task status. Please confirm with an admin whether the rename completed."
+            : "Title change failed: " + err.message);
+        });
+    }
   };
   const validateThenSave = async function () {
     const valid = await validate();

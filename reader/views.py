@@ -67,7 +67,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL
+    CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -1929,6 +1929,18 @@ def index_api(request, title, raw=False):
         return None, None
 
     def index_post(request, uid, j, method, raw):
+        is_title_change = bool(j.get("oldTitle") and j.get("oldTitle") != j.get("title"))
+        if is_title_change and CELERY_ENABLED:
+            from sefaria.helper.texts.tasks import update_index_title
+            from sefaria.celery_setup.config import CeleryQueue
+            async_result = update_index_title.apply_async(
+                args=(uid, j, raw, method),
+                queue=CeleryQueue.TASKS.value,
+            )
+            logger.info("index_api:title_change_enqueued",
+                        old_title=j["oldTitle"], new_title=j.get("title"),
+                        uid=uid, task_id=async_result.id)
+            return jsonResponse({"task_id": async_result.id}, status=202)
         func = tracker.update if 'update' in j else tracker.add
         return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 

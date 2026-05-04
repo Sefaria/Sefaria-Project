@@ -849,15 +849,31 @@
 
         var postJSON = JSON.stringify(index);
         var title = index["title"].replace(/ /g, "_");
+        var isTitleChange = "oldTitle" in index;
 
         var message = "Saving text information...";
-        if ("oldTitle" in index) {
+        if (isTitleChange) {
             message += "<br><br>(processing title changes may take some time)"
         }
         sjs.alert.saving(message);
-        $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+        $.post("/api/index/" + title,  {"json": postJSON}, function(data, textStatus, xhr) {
             if (data.error) {
                 sjs.alert.message(data.error);
+            } else if (xhr.status === 202 && data.task_id) {
+                sjs.alert.message("Title change queued (task " + data.task_id + "). Processing in the background...");
+                Sefaria.pollTask(data.task_id)
+                    .then(function() {
+                        sjs.alert.message("Title change complete.");
+                        var params = getUrlVars();
+                        if ("after" in params) {
+                            window.location = params["after"];
+                        }
+                    })
+                    .catch(function(err) {
+                        sjs.alert.message(err.isNetworkError
+                            ? "Could not check task status. Please confirm with an admin whether the rename completed."
+                            : "Title change failed: " + err.message);
+                    });
             } else {
                 sjs.alert.message("Text information saved.");
                 var params = getUrlVars();
