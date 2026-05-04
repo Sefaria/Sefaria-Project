@@ -141,7 +141,9 @@ export const hideAllModalsAndPopups = async (page: Page) => {
   for (const s of selectors) {
     try {
       const el = page.locator(s);
-      if (await el.isVisible({ timeout: t(1500) })) await el.click();
+      if (await el.isVisible({ timeout: t(1500) })) {
+        await el.click({ timeout: t(2000) }).catch(() => {});
+      }
     } catch (e) { console.log(e); }
   }
   // await page.evaluate(() => {

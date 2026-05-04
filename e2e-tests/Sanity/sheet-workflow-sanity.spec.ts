@@ -16,7 +16,7 @@ import { SheetEditorPage } from '../pages/sheetEditorPage';
 
 let sheetUrl: string;
 let sheetTitle: string;
-
+// Test is serial because it relies on shared state (the sheet created in the first test)
 test.describe.serial('Sheet Workflow Sanity Tests', () => {
 
   // =================================================================

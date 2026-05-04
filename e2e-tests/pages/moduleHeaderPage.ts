@@ -31,9 +31,12 @@ export class ModuleHeaderPage extends HelperBase {
   }
 
   async clickAndVerifyNewTab(linkName: string, expectedUrl: RegExp) {
+    const trigger = this.header.getByRole('link', { name: linkName })
+      .or(this.header.getByRole('button', { name: linkName }));
+    await expect(trigger).toBeVisible();
     const [newPage] = await Promise.all([
-      this.page.context().waitForEvent('page'),
-      this.header.getByRole('link', { name: linkName }).click()
+      this.page.context().waitForEvent('page', { timeout: t(15000) }),
+      trigger.click({ modifiers: ['ControlOrMeta'] }),
     ]);
     await expect(newPage).toHaveURL(expectedUrl);
     await newPage.close();
@@ -150,9 +153,7 @@ export class ModuleHeaderPage extends HelperBase {
     await this.page.goto(loginUrl);
     await this.page.waitForLoadState('networkidle');
     // Ensure any overlays are dismissed on the login page before interacting with the form
-    try {
-      await hideAllModalsAndPopups(this.page);
-    } catch (e) { }
+    await hideAllModalsAndPopups(this.page);
 
     await this.page.getByPlaceholder('Email Address').fill(credentials.email);
     await this.page.getByPlaceholder('Password').fill(credentials.password);
@@ -175,11 +176,11 @@ export class ModuleHeaderPage extends HelperBase {
 
   async logout() {
     if (!(await this.isLoggedIn())) {
-      // console.log('User is not logged in, skipping logout');
+      console.log('User is not logged in, skipping logout');
       return;
     }
     // console.log('User is logged in, proceeding with logout');
-    const userProfile = this.header.locator('.profile-img');
+    const userProfile = this.header.locator('.default-profile-img');
     let userMenuClicked = false;
 
     if (await userProfile.isVisible()) {
