@@ -155,7 +155,7 @@ def _process_payload(payload: NonSegmentResolutionPayload) -> Optional[dict]:
             base_ref_temp, base_text_temp = _get_commentary_base_context(citing_ref)
             candidate = _llm_choose_best_candidate(
                 marked_text, dicta_candidates,
-                base_ref=base_ref_temp, base_text=base_text_temp, lang=citing_lang,
+                base_ref=base_ref_temp, base_text=base_text_temp, lang=citing_lang, citing_ref=citing_ref,
             )
 
         if not candidate:
@@ -235,7 +235,9 @@ def _reconfirm_row(row: dict) -> dict:
             return result
 
         candidate_text = _get_candidate_text_for_confirmation(row["candidate_ref"], "he")
-        ok, reason = _llm_confirm_candidate(marked_text, row["candidate_ref"], candidate_text)
+        ok, reason = _llm_confirm_candidate(
+            marked_text, row["candidate_ref"], candidate_text, citing_ref=row["citing_ref"],
+        )
         result["opus_confirmed"] = "yes" if ok else "no"
         result["opus_reason"] = reason
     except Exception as e:
