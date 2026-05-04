@@ -1843,7 +1843,17 @@ def version_rename_api(request):
 
         # Capture language before updating since it's needed for varnish invalidation
         lang = version.language
-        tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
+        try:
+            tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
+        except Exception:
+            logger.exception(
+                "version_rename_api: tracker.update_version_metadata failed",
+                index=index_title,
+                versionTitle=version_title,
+                newVersionTitle=new_version_title,
+                language=language,
+            )
+            raise
 
         if USE_VARNISH:
             try:
@@ -1857,6 +1867,13 @@ def version_rename_api(request):
         return jsonResponse({"status": "ok"})
 
     except Exception as e:
+        logger.exception(
+            "version_rename_api failed",
+            index=index_title,
+            versionTitle=version_title,
+            newVersionTitle=new_version_title,
+            language=language,
+        )
         error_msg = str(e) if str(e) else type(e).__name__
         return jsonResponse({"error": error_msg}, status=500)
 
