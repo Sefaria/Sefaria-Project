@@ -776,7 +776,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, doc, id=id)
+        es_client.index(index=index_name, document=doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
