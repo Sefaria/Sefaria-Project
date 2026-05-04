@@ -4,11 +4,17 @@
  * Accepts CSV files with text content and creates/updates Version records.
  * Multiple files can be uploaded at once.
  *
+ * Multi-format CSVs (one file containing rows for many books) are split
+ * client-side into one single-index CSV per book before upload, so each
+ * POST to `/api/text-upload` is bounded to a single book and the user
+ * sees real per-book progress instead of one long-running request.
+ *
  * Backend endpoint: POST /api/text-upload
  */
 import React, { useState, useRef } from 'react';
 import Cookies from 'js-cookie';
 import ModToolsSection from './shared/ModToolsSection';
+import { splitCsvByIndex } from '../utils';
 
 /**
  * Help content for Bulk Upload CSV
@@ -25,7 +31,7 @@ const HELP_CONTENT = (
     <ol>
       <li><strong>Prepare CSV:</strong> Create CSV file(s) with the correct column format.</li>
       <li><strong>Select files:</strong> Choose one or more CSV files to upload.</li>
-      <li><strong>Upload:</strong> Submit to create or update Version records.</li>
+      <li><strong>Upload:</strong> Submit to create or update Version records. Multi-book CSVs are split per book in the browser and uploaded one book at a time.</li>
     </ol>
 
     <h3>CSV Format</h3>
@@ -71,6 +77,70 @@ const HELP_CONTENT = (
   </>
 );
 
+const readFileAsText = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error(`Failed to read ${file.name}`));
+    reader.readAsText(file);
+  });
+
+const buildJobs = async (files) => {
+  const jobs = [];
+  const unresolvedRefs = [];
+  const fileErrors = [];
+
+  for (const file of files) {
+    let text;
+    try {
+      text = await readFileAsText(file);
+    } catch (err) {
+      fileErrors.push({ file: file.name, error: err.message || String(err) });
+      continue;
+    }
+    const split = splitCsvByIndex(text, file.name);
+    if (split.error) {
+      fileErrors.push({ file: file.name, error: split.error });
+      continue;
+    }
+    for (const job of split.jobs) {
+      jobs.push({ ...job, sourceFile: file.name });
+    }
+    for (const u of split.unresolvedRefs) {
+      unresolvedRefs.push({ ...u, file: file.name });
+    }
+  }
+
+  return { jobs, unresolvedRefs, fileErrors };
+};
+
+const postJob = async (job) => {
+  const formData = new FormData();
+  formData.append('texts[]', job.csvBlob, job.filename);
+  formData.append('defer_toc_refresh', '1');
+
+  const response = await fetch('/api/text-upload', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': Cookies.get('csrftoken') },
+    credentials: 'same-origin',
+    body: formData,
+  });
+
+  const responseText = await response.text();
+  let data = null;
+  try {
+    data = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(
+      `HTTP ${response.status} ${response.statusText} - non-JSON response (see console)`,
+    );
+  }
+  if (!data || data.status !== 'ok') {
+    throw new Error(data?.error || `HTTP ${response.status} ${response.statusText}`);
+  }
+  return data;
+};
+
 function BulkUploadCSV() {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -85,70 +155,125 @@ function BulkUploadCSV() {
   const uploadFiles = async (event) => {
     event.preventDefault();
     setUploading(true);
-    setUploadMessage("Uploading...");
+    setUploadMessage('Reading files...');
     setUploadError(null);
 
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('texts[]', files[i], files[i].name);
+    const { jobs, unresolvedRefs, fileErrors } = await buildJobs(files);
+
+    if (fileErrors.length > 0) {
+      console.error('Bulk CSV upload: file read/parse errors', fileErrors);
     }
 
-    try {
-      const response = await fetch('/api/text-upload', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': Cookies.get('csrftoken')
-        },
-        credentials: 'same-origin',
-        body: formData
-      });
-
-      const responseText = await response.text();
-      const contentType = response.headers.get("content-type") || "";
-
-      let data = null;
-      let parseError = null;
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        parseError = e;
-      }
-
-      if (data && data.status === "ok") {
-        console.log("Bulk CSV upload succeeded", { fileCount: files.length, fileNames: files.map(f => f.name), data });
-        setUploading(false);
-        setUploadMessage(data.message);
-        setUploadError(null);
-        setFiles([]);
-        if (formRef.current) {
-          formRef.current.reset();
-        }
-      } else if (data) {
-        console.error("Bulk CSV upload failed", { fileCount: files.length, fileNames: files.map(f => f.name), responseStatus: response.status, data });
-        setUploadError("Error - " + data.error);
-        setUploading(false);
-        setUploadMessage(data.message);
-      } else {
-        console.error("Bulk CSV upload returned non-JSON response", {
-          fileCount: files.length,
-          fileNames: files.map(f => f.name),
-          responseStatus: response.status,
-          responseStatusText: response.statusText,
-          contentType,
-          parseError,
-          responseBody: responseText,
-        });
-        console.error("Bulk CSV upload raw response body:\n" + responseText);
-
-        setUploadError(`Error - HTTP ${response.status} ${response.statusText}. See browser console for full response body.`);
-        setUploading(false);
-        setUploadMessage(null);
-      }
-    } catch (err) {
-      console.error("Bulk CSV upload request threw an error", { fileCount: files.length, fileNames: files.map(f => f.name), error: err });
-      setUploadError("Error - " + err.toString());
+    if (jobs.length === 0) {
+      const fileErrText = fileErrors
+        .map((f) => `${f.file}: ${f.error}`)
+        .join('; ');
       setUploading(false);
       setUploadMessage(null);
+      setUploadError(
+        fileErrText
+          ? `No uploadable indices found. ${fileErrText}`
+          : 'No uploadable indices found in selected files.',
+      );
+      return;
+    }
+
+    const succeeded = [];
+    const failed = [];
+
+    for (let i = 0; i < jobs.length; i++) {
+      const job = jobs[i];
+      setUploadMessage(`Uploading ${i + 1}/${jobs.length}: ${job.idxTitle}`);
+      try {
+        await postJob(job);
+        succeeded.push(job.idxTitle);
+        console.log('Bulk CSV upload succeeded for index', {
+          index: i + 1,
+          total: jobs.length,
+          idxTitle: job.idxTitle,
+          sourceFile: job.sourceFile,
+          rowCount: job.rowCount,
+        });
+      } catch (err) {
+        failed.push({ idxTitle: job.idxTitle, error: err.message || String(err) });
+        console.error('Bulk CSV upload failed for index', {
+          index: i + 1,
+          total: jobs.length,
+          idxTitle: job.idxTitle,
+          sourceFile: job.sourceFile,
+          error: err,
+        });
+      }
+    }
+
+    let tocRebuildError = null;
+    if (succeeded.length > 0) {
+      setUploadMessage(`Refreshing table of contents (${succeeded.length} books uploaded)...`);
+      try {
+        const tocResp = await fetch('/admin/reset/toc', {
+          method: 'GET',
+          credentials: 'same-origin',
+        });
+        if (!tocResp.ok) {
+          tocRebuildError = `HTTP ${tocResp.status} ${tocResp.statusText}`;
+        }
+      } catch (err) {
+        tocRebuildError = err.message || String(err);
+      }
+      if (tocRebuildError) {
+        console.error('Bulk CSV upload: ToC rebuild failed', tocRebuildError);
+      }
+    }
+
+    const summaryParts = [
+      `Uploaded ${succeeded.length}/${jobs.length} indices`,
+    ];
+    if (failed.length > 0) {
+      summaryParts.push(
+        `${failed.length} failed: ${failed
+          .map((f) => `${f.idxTitle} (${f.error})`)
+          .join('; ')}`,
+      );
+    }
+    if (unresolvedRefs.length > 0) {
+      const sample = unresolvedRefs
+        .slice(0, 5)
+        .map((u) => u.ref)
+        .join(', ');
+      const more = unresolvedRefs.length > 5 ? `, +${unresolvedRefs.length - 5} more` : '';
+      summaryParts.push(`Skipped ${unresolvedRefs.length} unresolved refs (${sample}${more})`);
+      console.warn('Bulk CSV upload: unresolved refs', unresolvedRefs);
+    }
+    if (fileErrors.length > 0) {
+      summaryParts.push(
+        `File errors: ${fileErrors.map((f) => `${f.file} (${f.error})`).join('; ')}`,
+      );
+    }
+    if (tocRebuildError) {
+      summaryParts.push(
+        `ToC rebuild failed (${tocRebuildError}). Trigger /admin/reset/toc manually.`,
+      );
+    }
+
+    const message = summaryParts.join(' | ');
+    setUploading(false);
+
+    const cleanRun =
+      failed.length === 0 && fileErrors.length === 0 && !tocRebuildError;
+    if (cleanRun) {
+      setUploadMessage(message);
+      setUploadError(null);
+      setFiles([]);
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+    } else {
+      setUploadMessage(succeeded.length > 0 ? message : null);
+      setUploadError(
+        succeeded.length > 0
+          ? `Some indices failed - ${failed.length} of ${jobs.length}${tocRebuildError ? ' (ToC rebuild also failed)' : ''}`
+          : message,
+      );
     }
   };
 

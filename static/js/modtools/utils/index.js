@@ -5,3 +5,4 @@
  */
 
 export { default as stripHtmlTags } from './stripHtmlTags';
+export { default as splitCsvByIndex } from './splitCsvByIndex';

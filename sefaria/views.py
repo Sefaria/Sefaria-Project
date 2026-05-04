@@ -1660,11 +1660,12 @@ def text_upload_api(request):
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     from sefaria.export import import_versions_from_stream
+    skip_toc_refresh = request.POST.get('defer_toc_refresh', '').lower() in ('1', 'true', 'yes')
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            import_versions_from_stream(f, [1], request.user.id)
+            import_versions_from_stream(f, [1], request.user.id, skip_toc_refresh=skip_toc_refresh)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})

@@ -73,6 +73,8 @@ Downloads versions matching title/version patterns.
 **2. Bulk Upload CSV**
 Uploads text content from CSV files.
 - Endpoint: `POST /api/text-upload`
+- Multi-book CSVs (those whose first row begins with `Version Title` instead of `Index Title`) are split per book in the browser via `Sefaria.parseRef` and uploaded one book at a time, so each request is bounded to a single index.
+- Each per-book upload is sent with `defer_toc_refresh=1`, which threads `skip_toc_refresh=True` down to `library.recount_index_in_toc` so it still refreshes the per-index `VersionState` and in-memory ToC node but skips the inner `library.rebuild_toc` (which re-serializes the full ToC and rebuilds the topic ToC from MongoDB). Once all books are uploaded the client fires a single `GET /admin/reset/toc` to do the full ToC and topic ToC rebuild once for the whole batch.
 
 **3. Workflowy Outline Upload**
 Imports text structure from OPML files.
