@@ -235,8 +235,8 @@ def main():
 
     # Flatten groups into an ordered list, keeping each base-text group contiguous
     payloads_list = list(groups.values())
-    random.shuffle(payloads_list)
     all_payloads = [payload for payloads in payloads_list for payload in payloads]
+    random.shuffle(all_payloads)
     total = len(all_payloads)
     dispatch_list = all_payloads[args.start:] if args.start else all_payloads
     dispatch_list = dispatch_list[:5000]
