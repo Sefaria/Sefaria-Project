@@ -3,6 +3,10 @@ REF_CACHE_LIMIT_KEY = "feature.text.ref_cache_limit"
 ENABLE_WEBPAGES = "feature.webpages.enable"
 CLIENT_REMOTE_CONFIG_JSON = "feature.client.remote_config_json"
 EXPIRE_LEGACY_COOKIES = "feature.cookies.expire_legacy"
+SENTRY_CONFIG_JSON = "feature.sentry.config"
 
 # Chatbot configuration
 CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
+CHATBOT_MAX_PROMPTS = "feature.chatbot.max_prompts"
+SHOW_JOIN_CHATBOT_BANNER = "feature.client.show_join_chatbot_banner"
+CHATBOT_WELCOME_MESSAGES = "feature.chatbot.welcome_messages"

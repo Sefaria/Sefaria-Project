@@ -2,6 +2,9 @@
 import re
 
 import structlog
+
+from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+
 logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
@@ -158,13 +161,15 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True, with_sheet_links=False):
+def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
     If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
+    If `categories` is provided, only include links whose derived client-facing category matches.
     """
     links = []
+    categories = set(categories) if categories else None
     oref = Ref(tref)
     nRef = oref.normal()
     lenRef = len(nRef)
@@ -195,7 +200,11 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             node_depth = getattr(source_ref.index_node, "depth", None)
             if node_depth is None or len(source_ref.sections) + 1 < node_depth:
                 continue
-
+            
+            if link.refs[pos] in get_talmud_perek_ref_set() or link.refs[pos] in get_parasha_ref_set():
+                # don't return links to perek level talmud or parasha refs even though they are technically segment level.
+                continue
+                
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
@@ -311,5 +320,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
         sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links
+
+    if categories is not None:
+        links = [link for link in links if link["category"] in categories]
 
     return links

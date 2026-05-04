@@ -37,6 +37,7 @@ ehthumbs.db
 Icon[\r]
 Thumbs.db
 .idea
+.instance
 
 # Apache Config #
 #################
@@ -87,6 +88,7 @@ CLAUDE.md
 #  Virtualenv Files #
 #####################
 venv/
+.venv*
 .python-version
 .node-version
 

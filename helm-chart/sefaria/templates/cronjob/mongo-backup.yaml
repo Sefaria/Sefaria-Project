@@ -27,6 +27,7 @@ spec:
                       values:
                       - mongo
                   topologyKey: kubernetes.io/hostname
+            {{- include "sefaria.nonPreemptibleNodeAffinity" . | nindent 12 }}
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"
@@ -58,6 +59,8 @@ spec:
             command: ["bash"]
             args: ["-c", "/scripts/create-dumps.sh"]
             resources:
+              requests:
+                ephemeral-storage: 40Gi
               limits:
                 memory: "500Mi"
           containers:
@@ -98,7 +101,8 @@ spec:
               name: upload-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: shared-volume
-            emptyDir: {}
+            emptyDir:
+              sizeLimit: 40Gi
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}

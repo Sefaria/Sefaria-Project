@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: rambi-update
-            image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
@@ -27,7 +27,7 @@ spec:
               value: "True"
             - name: DISABLE_AUTOCOMPLETER
               value: "True"
-            - name: GPU_SERVER
+            - name: GPU_SERVER_HOST
               value: {{ .Values.gpuServer }}
             envFrom:
             - secretRef:
