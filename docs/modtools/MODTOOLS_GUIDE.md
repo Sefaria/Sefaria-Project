@@ -94,7 +94,7 @@ Deletes links from CSV.
 
 **7. Bulk Edit Version Metadata**
 Edit metadata across multiple Version records, or permanently delete selected versions.
-- Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`, `POST /api/version-bulk-rename`, `POST /api/version-bulk-delete`
+- Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`, `POST /api/version-rename`, `POST /api/version-bulk-delete`
 
 ### Disabled Tools (Backend APIs Remain Functional)
 
@@ -112,7 +112,7 @@ Edit metadata across multiple Version records, or permanently delete selected ve
 |----------|--------|---------|------|
 | `/api/version-indices` | GET | Find indices with matching version | None |
 | `/api/version-bulk-edit` | POST | Bulk update version metadata | Staff |
-| `/api/version-bulk-rename` | POST | Bulk rename `versionTitle` across indices | Staff |
+| `/api/version-rename` | POST | Rename `versionTitle` for a single index (called per-index by the client to rename across many indices) | Staff |
 | `/api/version-bulk-delete` | POST | Bulk hard-delete versions | Staff |
 | `/api/check-index-dependencies/{title}` | GET | Check index dependencies | Staff |
 

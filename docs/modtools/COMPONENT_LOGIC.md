@@ -258,13 +258,17 @@ component.
 
 **Rename Version Title**:
 ```
-POST /api/version-bulk-rename
-Body: { versionTitle, newVersionTitle, language (optional), indices: [...] }
-Response: { status: "ok"|"partial"|"error", successes, failures }
+POST /api/version-rename
+Body: { versionTitle, newVersionTitle, language (optional), index }
+Response (success): 200 { status: "ok" }
+Response (failure): non-200 { error: "..." }
 ```
-Renames `Version.versionTitle` per selected index. On full success, the frontend updates the
-search field to the new title and reloads results. On partial success, the cohort is split and
-the user can search for the new title to see which texts were renamed.
+The `/api/version-rename` endpoint operates on a single `(index, versionTitle)` pair. To rename
+a `versionTitle` across many indices the frontend iterates over the selected indices in
+`renameVersions` and calls this endpoint once per index, aggregating per-index successes and
+failures into the same `{successes, failures}` shape used by the bulk APIs. On full success the
+frontend updates the search field to the new title and reloads results. On partial success the
+cohort is split and the user can search for the new title to see which texts were renamed.
 
 ---
 

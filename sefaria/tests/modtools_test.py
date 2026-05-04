@@ -507,35 +507,35 @@ class TestVersionBulkDeleteAPI:
         })
 
 
-class TestVersionBulkRenameAPI:
-    """Tests for /api/version-bulk-rename endpoint."""
+class TestVersionRenameAPI:
+    """Tests for /api/version-rename endpoint (single-index rename)."""
 
     @pytest.mark.django_db
-    def test_bulk_rename_requires_staff(self, regular_client):
+    def test_rename_requires_staff(self, regular_client):
         """Non-staff users should be denied access."""
         response = regular_client.post(
-            '/api/version-bulk-rename',
+            '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'Test',
                 'newVersionTitle': 'Test2',
-                'indices': ['Genesis'],
+                'index': 'Genesis',
             }),
             content_type='application/json'
         )
         assert response.status_code in [302, 403]
 
     @pytest.mark.django_db
-    def test_bulk_rename_requires_post(self, staff_client):
+    def test_rename_requires_post(self, staff_client):
         """GET requests should be rejected."""
-        response = staff_client.get('/api/version-bulk-rename')
+        response = staff_client.get('/api/version-rename')
         assert response.status_code == 400
 
     @pytest.mark.django_db
-    def test_bulk_rename_missing_fields(self, staff_client):
+    def test_rename_missing_fields(self, staff_client):
         """Missing required fields should return 400."""
         response = staff_client.post(
-            '/api/version-bulk-rename',
-            data=json.dumps({'indices': ['Genesis']}),
+            '/api/version-rename',
+            data=json.dumps({'index': 'Genesis'}),
             content_type='application/json'
         )
         assert response.status_code == 400
@@ -543,14 +543,14 @@ class TestVersionBulkRenameAPI:
         assert 'error' in data
 
     @pytest.mark.django_db
-    def test_bulk_rename_empty_indices(self, staff_client):
-        """Empty indices array should return 400."""
+    def test_rename_empty_new_title(self, staff_client):
+        """Empty newVersionTitle should return 400."""
         response = staff_client.post(
-            '/api/version-bulk-rename',
+            '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'Test',
-                'newVersionTitle': 'Test2',
-                'indices': [],
+                'newVersionTitle': '   ',
+                'index': 'Genesis',
             }),
             content_type='application/json'
         )
@@ -560,12 +560,44 @@ class TestVersionBulkRenameAPI:
         assert 'empty' in data['error'].lower()
 
     @pytest.mark.django_db
-    def test_bulk_rename_success(self, staff_client):
+    def test_rename_same_title_rejected(self, staff_client):
+        """newVersionTitle equal to versionTitle should return 400."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'SameTitle',
+                'newVersionTitle': 'SameTitle',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_rename_missing_version_returns_404(self, staff_client):
+        """If the version doesn't exist for the given index, return 404."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'NonexistentVersionForRename',
+                'newVersionTitle': 'NonexistentVersionForRename_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 404
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_rename_success(self, staff_client):
         """Successful rename should change Version.versionTitle."""
         from sefaria.model import Version
 
         test_version = Version({
-            'versionTitle': 'TestVersionForBulkRename',
+            'versionTitle': 'TestVersionForRename',
             'language': 'en',
             'title': 'Genesis',
             'chapter': [],
@@ -574,11 +606,11 @@ class TestVersionBulkRenameAPI:
         test_version.save()
 
         response = staff_client.post(
-            '/api/version-bulk-rename',
+            '/api/version-rename',
             data=json.dumps({
-                'versionTitle': 'TestVersionForBulkRename',
-                'newVersionTitle': 'TestVersionForBulkRename_New',
-                'indices': ['Genesis'],
+                'versionTitle': 'TestVersionForRename',
+                'newVersionTitle': 'TestVersionForRename_New',
+                'index': 'Genesis',
             }),
             content_type='application/json'
         )
@@ -586,20 +618,18 @@ class TestVersionBulkRenameAPI:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['status'] == 'ok'
-        assert data['successes'] == ['Genesis']
-        assert data['failures'] == []
 
-        v_old = Version().load({'versionTitle': 'TestVersionForBulkRename', 'title': 'Genesis'})
+        v_old = Version().load({'versionTitle': 'TestVersionForRename', 'title': 'Genesis'})
         assert v_old is None
-        v_new = Version().load({'versionTitle': 'TestVersionForBulkRename_New', 'title': 'Genesis'})
+        v_new = Version().load({'versionTitle': 'TestVersionForRename_New', 'title': 'Genesis'})
         assert v_new is not None
 
         # Cleanup
         v_new.delete()
 
     @pytest.mark.django_db
-    def test_bulk_rename_collision_fails(self, staff_client):
-        """If a version with the new title already exists, that index should fail."""
+    def test_rename_collision_fails(self, staff_client):
+        """If a version with the new title already exists, the request should fail."""
         from sefaria.model import Version
 
         v1 = Version({
@@ -620,21 +650,19 @@ class TestVersionBulkRenameAPI:
         v2.save()
 
         response = staff_client.post(
-            '/api/version-bulk-rename',
+            '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionForRenameCollision_Old',
                 'newVersionTitle': 'TestVersionForRenameCollision_New',
-                'indices': ['Genesis'],
+                'index': 'Genesis',
             }),
             content_type='application/json'
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 409
         data = json.loads(response.content)
-        assert data['status'] == 'error'
-        assert data['successes'] == []
-        assert len(data['failures']) == 1
-        assert data['failures'][0]['index'] == 'Genesis'
+        assert 'error' in data
+        assert 'already exists' in data['error']
 
         # Ensure both versions still exist
         assert Version().load({'versionTitle': 'TestVersionForRenameCollision_Old', 'title': 'Genesis'}) is not None
@@ -645,7 +673,7 @@ class TestVersionBulkRenameAPI:
         v2.delete()
 
     @pytest.mark.django_db
-    def test_bulk_rename_with_language_parameter(self, staff_client):
+    def test_rename_with_language_parameter(self, staff_client):
         """Language parameter should be accepted and used to load the version when provided."""
         from sefaria.model import Version
 
@@ -659,12 +687,12 @@ class TestVersionBulkRenameAPI:
         test_version.save()
 
         response = staff_client.post(
-            '/api/version-bulk-rename',
+            '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionRenameLang',
                 'newVersionTitle': 'TestVersionRenameLang_New',
                 'language': 'he',
-                'indices': ['Genesis'],
+                'index': 'Genesis',
             }),
             content_type='application/json'
         )

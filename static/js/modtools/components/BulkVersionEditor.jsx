@@ -456,8 +456,10 @@ const BulkVersionEditor = () => {
   };
 
   /**
-   * Rename versionTitle across selected indices via the bulk rename API.
-   * On full success, refresh results using the new title.
+   * Rename versionTitle across selected indices by calling the per-index
+   * `/api/version-rename` endpoint once per selected index. Successes and
+   * failures are aggregated client-side and reported with the same UI shape
+   * as the bulk APIs. On full success, refresh results using the new title.
    */
   const renameVersions = async () => {
     if (!pick.size) return;
@@ -468,27 +470,51 @@ const BulkVersionEditor = () => {
     setShowRenameConfirm(false);
     setRenameConfirmText("");
     setRenaming(true);
+    setSaving(true);
     setMsg({ type: MESSAGE_TYPES.INFO, message: 'Renaming versions...' });
 
-    const extraPayload = {
-      newVersionTitle: newTitleTrimmed,
-      ...(lang ? { language: lang } : {})
-    };
+    const url = '/api/version-rename';
+    const indicesToRename = Array.from(pick);
+    const successes = [];
+    const failures = [];
 
     try {
-      await performBulkEdit(
-        '/api/version-bulk-rename',
-        extraPayload,
-        (successCount) => `Successfully renamed ${successCount} versions`,
-        (successCount, total, failureList) => `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}`,
-        (failureCount, failureList) => `All ${failureCount} renames failed:\n${failureList}`,
-        () => {
-          setRenameNewTitle("");
-          setVtitle(newTitleTrimmed);
-          load(newTitleTrimmed);
+      for (const indexTitle of indicesToRename) {
+        const payload = {
+          versionTitle: vtitle,
+          newVersionTitle: newTitleTrimmed,
+          index: indexTitle,
+          ...(lang ? { language: lang } : {})
+        };
+        try {
+          await Sefaria.apiRequestWithBody(url, null, payload);
+          successes.push(indexTitle);
+        } catch (error) {
+          failures.push({ index: indexTitle, error: error.message || "Unknown error" });
         }
-      );
+      }
+
+      const successCount = successes.length;
+      const failureCount = failures.length;
+      const total = successCount + failureCount;
+
+      if (failureCount === 0) {
+        console.log("Rename succeeded", { url, successCount, total, successes });
+        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Successfully renamed ${successCount} versions` });
+        setRenameNewTitle("");
+        setVtitle(newTitleTrimmed);
+        load(newTitleTrimmed);
+      } else if (successCount > 0) {
+        const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        console.warn("Rename partially succeeded", { url, successCount, failureCount, total, failures });
+        setMsg({ type: MESSAGE_TYPES.WARNING, message: `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}` });
+      } else {
+        const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
+        console.error("Rename failed", { url, failureCount, total, failures });
+        setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} renames failed:\n${failureList}` });
+      }
     } finally {
+      setSaving(false);
       setRenaming(false);
     }
   };

@@ -1785,15 +1785,20 @@ def version_bulk_edit_api(request):
 
 
 @staff_member_required
-def version_bulk_rename_api(request):
+def version_rename_api(request):
     """
-    Bulk rename Version.versionTitle for multiple indices.
+    Rename Version.versionTitle for a single index.
 
     Request:
-      POST {"versionTitle": "...", "newVersionTitle": "...", "indices": [...], "language": "he" (optional)}
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
 
     Response:
-      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+      Success: 200 {"status": "ok"}
+      Failure: non-200 {"error": "..."}
+
+    Callers that need to rename a versionTitle across many indices should iterate
+    client-side and call this endpoint once per index, aggregating per-index
+    successes and failures.
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -1806,12 +1811,9 @@ def version_bulk_rename_api(request):
     try:
         version_title = data["versionTitle"]
         new_version_title = data["newVersionTitle"]
-        indices = data["indices"]
+        index_title = data["index"]
     except KeyError as e:
         return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
-
-    if not indices:
-        return jsonResponse({"error": "indices may not be empty"}, status=400)
 
     if not isinstance(new_version_title, str):
         return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
@@ -1825,52 +1827,39 @@ def version_bulk_rename_api(request):
 
     language = data.get("language")
 
-    successes = []
-    failures = []
+    try:
+        load_query = {"title": index_title, "versionTitle": version_title}
+        if language:
+            load_query["language"] = language
+        version = Version().load(load_query)
+        if not version:
+            return jsonResponse({"error": f'No Version "{version_title}" found'}, status=404)
 
-    for index_title in indices:
-        try:
-            load_query = {"title": index_title, "versionTitle": version_title}
-            if language:
-                load_query["language"] = language
-            version = Version().load(load_query)
-            if not version:
-                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
-                continue
+        collision_query = {"title": index_title, "versionTitle": new_version_title}
+        if language:
+            collision_query["language"] = language
+        existing = Version().load(collision_query)
+        if existing and getattr(existing, "_id", None) != getattr(version, "_id", None):
+            return jsonResponse({"error": f'Version "{new_version_title}" already exists'}, status=409)
 
-            collision_query = {"title": index_title, "versionTitle": new_version_title}
-            if language:
-                collision_query["language"] = language
-            existing = Version().load(collision_query)
-            if existing and getattr(existing, "_id", None) != getattr(version, "_id", None):
-                failures.append({"index": index_title, "error": f'Version "{new_version_title}" already exists'})
-                continue
+        # Capture language before updating since it's needed for varnish invalidation
+        lang = version.language
+        tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
 
-            # Capture language before updating since it's needed for varnish invalidation
-            lang = version.language
-            tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
+        if USE_VARNISH:
+            try:
+                oref = Ref(index_title)
+                invalidate_linked(oref)
+                invalidate_ref(oref, lang, version_title)
+                invalidate_ref(oref, lang, new_version_title)
+            except Exception as e:
+                logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
 
-            if USE_VARNISH:
-                try:
-                    oref = Ref(index_title)
-                    invalidate_linked(oref)
-                    invalidate_ref(oref, lang, version_title)
-                    invalidate_ref(oref, lang, new_version_title)
-                except Exception as e:
-                    logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
+        return jsonResponse({"status": "ok"})
 
-            successes.append(index_title)
-
-        except Exception as e:
-            error_msg = str(e) if str(e) else type(e).__name__
-            failures.append({"index": index_title, "error": error_msg})
-
-    result = {
-        "status": "ok" if not failures else "partial" if successes else "error",
-        "successes": successes,
-        "failures": failures
-    }
-    return jsonResponse(result)
+    except Exception as e:
+        error_msg = str(e) if str(e) else type(e).__name__
+        return jsonResponse({"error": error_msg}, status=500)
 
 
 @staff_member_required
