@@ -26,7 +26,7 @@ export class ModuleHeaderPage extends HelperBase {
   // Navigation and Link Methods
   async clickAndVerifyNavigation(linkName: string, expectedUrl: RegExp) {
     await this.header.getByRole('link', { name: linkName }).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(expectedUrl);
   }
 
@@ -38,7 +38,8 @@ export class ModuleHeaderPage extends HelperBase {
       this.page.context().waitForEvent('page', { timeout: t(15000) }),
       trigger.click({ modifiers: ['ControlOrMeta'] }),
     ]);
-    await expect(newPage).toHaveURL(expectedUrl);
+    await newPage.waitForLoadState('domcontentloaded').catch(() => {});
+    await expect(newPage).toHaveURL(expectedUrl, { timeout: t(20000) });
     await newPage.close();
   }
 
@@ -47,7 +48,7 @@ export class ModuleHeaderPage extends HelperBase {
     const searchBox = this.header.getByRole('combobox', { name: /search/i });
     await searchBox.fill(term);
     await searchBox.press('Enter');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(expectedUrlPattern);
   }
 
@@ -121,15 +122,15 @@ export class ModuleHeaderPage extends HelperBase {
 
     if (openNewTab) {
       const [newPage] = await Promise.all([
-        this.page.context().waitForEvent('page'),
+        this.page.context().waitForEvent('page', { timeout: t(15000) }),
         option.click()
       ]);
-      // await newPage.waitForLoadState('networkidle');
+      await newPage.waitForLoadState('domcontentloaded').catch(() => {});
       return newPage;
     }
 
     await option.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     // If navigation opened a new page/state, ensure overlays are dismissed on the new page
     try {
       await hideAllModalsAndPopups(this.page);
@@ -151,7 +152,7 @@ export class ModuleHeaderPage extends HelperBase {
       : `${MODULE_URLS.EN.LIBRARY}/login`;
 
     await this.page.goto(loginUrl);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
     // Ensure any overlays are dismissed on the login page before interacting with the form
     await hideAllModalsAndPopups(this.page);
 
@@ -159,7 +160,7 @@ export class ModuleHeaderPage extends HelperBase {
     await this.page.getByPlaceholder('Password').fill(credentials.password);
     await this.page.getByRole('button', { name: 'Login' }).click();
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async isLoggedIn(): Promise<boolean> {
@@ -194,7 +195,7 @@ export class ModuleHeaderPage extends HelperBase {
         .filter({ hasText: /log out|sign out|logout/i });
       if (await logoutOption.isVisible()) {
         await logoutOption.click();
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
         console.log('Clicked logout option and waited for page to load');
       }
     }

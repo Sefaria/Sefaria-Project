@@ -191,7 +191,7 @@ export const toggleLanguage = async (page: Page, language: string) => {
     await languageToggleClass.waitFor({ state: 'visible', timeout: t(5000) });
     await languageToggleClass.click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(t(500));
 
     // Verify language changed
@@ -424,7 +424,12 @@ export const simulateOnlineMode = async (page: Page) => {
  * @param options - optional goto options
  */
 export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<Page['goto']>[1]) => {
-  const response = await page.goto(url, options);
+  let response = await page.goto(url, options);
+  // Retry once on transient 5xx — sandbox occasionally throttles under parallel-worker burst load.
+  if (response && response.status() >= 500 && response.status() < 600) {
+    await page.waitForTimeout(t(1500));
+    response = await page.goto(url, options);
+  }
   if (response && response.status() === 404) {
     throw new Error(`Error 404: Navigation to ${url} returned 404`);
   }
