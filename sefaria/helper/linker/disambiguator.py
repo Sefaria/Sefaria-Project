@@ -33,7 +33,7 @@ from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens33"
+LANGSMITH_DEBUG_TAG = "reduced_tokens36"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 # ---------------------------------------------------------------------------
@@ -654,7 +654,9 @@ def _llm_form_prior_cached(marked_text: str, base_ref: Optional[str] = None, bas
                 "text": f"Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
                         f"{marked_text}\n\n"
                         "Describe what the target segment should be about, key themes or phrases to expect, "
-                        "and any constraints implied by the citation. Keep it concise and concrete.\n"
+                        "and any constraints implied by the citation. If base text is provided, summarize only "
+                        "the parts of that base text that are relevant for resolving the citation, especially focusing on key phrases from the base text that may be relevant. Keep it concise "
+                        "and concrete.\n"
                         "Look out for edge cases like:\n"
                         "- citation is about a whole book and isn't referencing a particular part in the book\n"
                         "- citation is discussing a chapter as a whole and not a particular place in the chapter\n"
@@ -679,21 +681,20 @@ def _llm_form_prior(marked_text: str, base_ref: str = None, base_text: str = Non
 
 
 @traceable(run_type="llm", name="llm_form_search_query", tags=[LANGSMITH_DEBUG_TAG])
-def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: str = None) -> List[str]:
+def _llm_form_search_query(
+    marked_text: str,
+    base_ref: str = None,
+    base_text: str = None,
+    prior: Optional[str] = None,
+) -> List[str]:
     """Use LLM to generate search queries from marked citing text."""
     llm = _get_llm("keyword")
 
-    base_block = ""
-    if base_ref and base_text:
-        base_block = f"Base text being commented on ({base_ref}):\n{_normalize_for_llm(base_text)}\n\n"
-
-    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
+    if prior is None:
+        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
     prompt = [
-        SystemMessage(content=_system_content(
-            "You extract concise search phrases that are likely to appear verbatim in the target text.",
-            base_block,
-        )),
+        SystemMessage(content="You extract concise search phrases that are likely to appear verbatim in the target text."),
         HumanMessage(content=[
             {
                 "type": "text",
@@ -702,7 +703,7 @@ def _llm_form_search_query(marked_text: str, base_ref: str = None, base_text: st
                         "Return 5-6 short lexical search queries (<=6 words each), taken from surrounding context "
                         "outside the citation span.\n"
                         "- Prefer phrases that you expect to appear verbatim in the target text.\n"
-                        "- If base text is provided, prefer keywords that appear verbatim in the base text.\n"
+                        "- If the prior includes base-text clues, prefer keywords that appear in those clues.\n"
                         "- If the context contains distinctive Hebrew content words (especially nouns), prefer them verbatim.\n"
                         "- Do NOT translate Hebrew into English. Avoid paraphrases.\n"
                         "- Prefer specific/rare tokens over generic ones.\n"
@@ -746,26 +747,19 @@ def _llm_confirm_candidate(
     candidate_text: str,
     base_ref: str = None,
     base_text: str = None,
+    prior: Optional[str] = None,
 ) -> Tuple[bool, str]:
     """Use LLM to confirm if a candidate is the correct resolution."""
     llm = _get_llm("confirmation")
-    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
-    base_block = _format_base_block(base_ref, base_text)
+    if prior is None:
+        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
     candidate_text_normalized = _normalize_for_llm(candidate_text)
 
-    system_content = []
-    if base_block:
-        system_content.append({"type": "text", "text": base_block, "cache_control": {"type": "ephemeral"}})
-    system_content.append({
-        "type": "text",
-        "text": (
+    prompt = [
+        SystemMessage(content=(
             "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific "
             "target segment. Be strict in your evaluation. There's an edge case where the citation is to a whole book and it's referring to reading that book (as opposed to quoting a specific passage from the book). In this case, reject."
-        ),
-    })
-
-    prompt = [
-        SystemMessage(content=system_content),
+        )),
         HumanMessage(content=[
             {
                 "type": "text",
@@ -776,7 +770,7 @@ def _llm_confirm_candidate(
                     f"Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
                     f"Candidate segment text:\n{candidate_text_normalized}\n\n"
                     "Determine whether the citing passage is actually referring to this candidate segment.\n"
-                    "If base text is provided, consider whether the commentary is discussing that base passage.\n\n"
+                    "If the prior includes base-text context, consider whether the commentary is discussing that base passage.\n\n"
                     "Answer in exactly two lines (no preamble):\n"
                     "Reason: <brief rationale>\n"
                     "Verdict: YES or NO",
@@ -933,6 +927,7 @@ def _llm_choose_best_candidate(
     base_ref: Optional[str] = None,
     base_text: Optional[str] = None,
     lang: Optional[str] = None,
+    prior: Optional[str] = None,
 ) -> Optional[Candidate]:
     """Use LLM to choose the best candidate from multiple options."""
     if not candidates:
@@ -961,16 +956,15 @@ def _llm_choose_best_candidate(
         numbered.append(f"{i}) {cand.resolved_ref}\n{preview}")
         payloads.append((i, cand))
 
-    base_block = _format_base_block(base_ref, base_text)
-
     candidates_text = "\n\n".join(numbered)
-    prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
+    if prior is None:
+        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
     llm = _get_llm("default")
     prompt = [
-        SystemMessage(content=_system_content(
+        SystemMessage(content=(
             "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
-            "You must respond with an actual number, not a placeholder or variable.",
-            base_block,
+            "Use the prior as compact context, including any relevant base-text summary it contains. "
+            "You must respond with an actual number, not a placeholder or variable."
         )),
         HumanMessage(content=[
             {
@@ -1122,6 +1116,7 @@ def _confirm_candidate(
     base_text: Optional[str] = None,
     auto_approve_prefix: Optional[str] = None,
     citing_ref: Optional[str] = None,
+    prior: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
     """Confirm a candidate with LLM, with optional auto-approve for specific citing refs.
 
@@ -1133,7 +1128,10 @@ def _confirm_candidate(
         return True, None
 
     candidate_text = _get_candidate_text_for_confirmation(resolved_ref, lang)
-    ok, reason = _llm_confirm_candidate(marked_text, resolved_ref, candidate_text, base_ref, base_text)
+    ok, reason = _llm_confirm_candidate(
+        marked_text, resolved_ref, candidate_text,
+        base_ref=base_ref, base_text=base_text, prior=prior,
+    )
     if ok:
         logger.info(f"Candidate {resolved_ref} confirmed by LLM")
     else:
@@ -1212,6 +1210,7 @@ def _fallback_search_pipeline(
     vtitle: Optional[str] = None,
     base_ref: Optional[str] = None,
     base_text: Optional[str] = None,
+    prior: Optional[str] = None,
 ) -> Optional[Candidate]:
     """
     Multi-stage search pipeline with LLM-generated queries.
@@ -1224,6 +1223,8 @@ def _fallback_search_pipeline(
     """
     searched: set = set()
     candidates: List[Candidate] = []
+    if prior is None:
+        prior = _llm_form_prior(marked_citing_text, base_ref=base_ref, base_text=base_text)
 
     def run_queries(queries: List[str], label: str) -> None:
         for q in queries:
@@ -1249,13 +1250,13 @@ def _fallback_search_pipeline(
 
     # A) Normal window queries
     logger.info("Stage A: Normal window text-only queries")
-    run_queries(_llm_form_search_query(marked_citing_text) or [], label="(text-only)")
+    run_queries(_llm_form_search_query(marked_citing_text, prior=prior) or [], label="(text-only)")
 
     # B) Base-text seeded queries
     if base_text:
         logger.info("Stage B: Base-text seeded queries")
         run_queries(
-            _llm_form_search_query(marked_citing_text, base_ref=base_ref, base_text=base_text) or [],
+            _llm_form_search_query(marked_citing_text, base_ref=base_ref, prior=prior) or [],
             label="(base-seeded)",
         )
 
@@ -1271,7 +1272,10 @@ def _fallback_search_pipeline(
         return deduped[0]
 
     logger.info(f"Multiple candidates ({len(deduped)}), using LLM to choose best")
-    chosen = _llm_choose_best_candidate(marked_citing_text, deduped, base_ref=base_ref, base_text=base_text, lang=lang)
+    chosen = _llm_choose_best_candidate(
+        marked_citing_text, deduped,
+        base_ref=base_ref, lang=lang, prior=prior,
+    )
 
     if chosen:
         logger.info(f"LLM chose {chosen.resolved_ref} from {len(deduped)} candidates")
@@ -1317,6 +1321,7 @@ def _try_dicta_for_candidates(
     lang: Optional[str] = None,
     base_ref: Optional[str] = None,
     base_text: Optional[str] = None,
+    prior: Optional[str] = None,
 ) -> Optional[Candidate]:
     """Query Dicta and check if any results match the ambiguous candidates."""
     dicta_results = _query_dicta(query_text)  # no target filter — match against candidate list
@@ -1350,7 +1355,10 @@ def _try_dicta_for_candidates(
 
     if marked_text:
         logger.info(f"Dicta found {len(deduped)} unique segments, using LLM to choose best")
-        chosen = _llm_choose_best_candidate(marked_text, deduped, base_ref=base_ref, base_text=base_text, lang=lang)
+        chosen = _llm_choose_best_candidate(
+            marked_text, deduped,
+            base_ref=base_ref, lang=lang, prior=prior,
+        )
         if chosen:
             return chosen
 
@@ -1364,9 +1372,12 @@ def _try_search_for_candidates(
     lang: str,
     base_ref: str = None,
     base_text: str = None,
+    prior: Optional[str] = None,
 ) -> Optional[Candidate]:
     """Generate search queries and check if results match ambiguous candidates."""
-    queries = _llm_form_search_query(marked_text, base_ref, base_text)
+    if prior is None:
+        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
+    queries = _llm_form_search_query(marked_text, base_ref=base_ref, prior=prior)
     if not queries:
         logger.info("Could not generate search queries")
         return None
@@ -1426,7 +1437,10 @@ def _try_search_for_candidates(
         return deduped[0]
 
     logger.info(f"Search found {len(deduped)} unique segments, using LLM to choose best")
-    chosen = _llm_choose_best_candidate(marked_text, deduped, base_ref=base_ref, base_text=base_text, lang=lang)
+    chosen = _llm_choose_best_candidate(
+        marked_text, deduped,
+        base_ref=base_ref, lang=lang, prior=prior,
+    )
     if chosen:
         return chosen
 
@@ -1504,6 +1518,8 @@ def disambiguate_non_segment_ref(
         )
 
         rejected_ref = None
+        base_ref, base_text = _get_commentary_base_context(citing_ref)
+        search_prior: Optional[str] = None
 
         # Try Dicta
         logger.info("Querying Dicta API...")
@@ -1514,10 +1530,10 @@ def disambiguate_non_segment_ref(
             if len(dicta_candidates) == 1:
                 candidate = dicta_candidates[0]
             else:
-                base_ref_temp, base_text_temp = _get_commentary_base_context(citing_ref)
+                search_prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
                 candidate = _llm_choose_best_candidate(
                     marked_text, dicta_candidates,
-                    base_ref=base_ref_temp, base_text=base_text_temp, lang=citing_lang,
+                    base_ref=base_ref, lang=citing_lang, prior=search_prior,
                 )
 
             if candidate:
@@ -1553,7 +1569,8 @@ def disambiguate_non_segment_ref(
 
         # Fallback: Sefaria search pipeline
         logger.info("Falling back to Sefaria search pipeline...")
-        base_ref, base_text = _get_commentary_base_context(citing_ref)
+        if search_prior is None:
+            search_prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
 
         search_result = _fallback_search_pipeline(
             marked_citing_text=marked_text,
@@ -1565,13 +1582,15 @@ def disambiguate_non_segment_ref(
             vtitle=vtitle,
             base_ref=base_ref,
             base_text=base_text,
+            prior=search_prior,
         )
 
         if search_result:
             ok, _ = _confirm_candidate(
                 search_result, marked_text, citing_lang,
-                base_ref=base_ref, base_text=base_text,
+                base_ref=base_ref,
                 auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
+                prior=search_prior,
             )
             if ok:
                 return NonSegmentResolutionResult(
@@ -1720,27 +1739,31 @@ def disambiguate_ambiguous_ref(
             if result:
                 return result
 
+        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text)
+
         # Step 1: Try Dicta
         logger.info("Trying Dicta to find match among ambiguous candidates...")
         dicta_match = _try_dicta_for_candidates(
             windowed_text, valid_candidates,
-            marked_text=marked_text, lang=citing_lang, base_ref=base_ref, base_text=base_text,
+            marked_text=marked_text, lang=citing_lang, base_ref=base_ref, prior=prior,
         )
 
         if dicta_match:
             result = _confirm_ambiguous_candidate(
-                dicta_match, marked_text, citing_lang, base_ref, base_text, method='dicta_llm_confirmed',
+                dicta_match, marked_text, citing_lang, base_ref, method='dicta_llm_confirmed', prior=prior,
             )
             if result:
                 return result
 
         # Step 2: Try Sefaria search
         logger.info("Trying Sefaria search to find match among ambiguous candidates...")
-        search_match = _try_search_for_candidates(marked_text, valid_candidates, citing_lang, base_ref, base_text)
+        search_match = _try_search_for_candidates(
+            marked_text, valid_candidates, citing_lang, base_ref, prior=prior,
+        )
 
         if search_match:
             result = _confirm_ambiguous_candidate(
-                search_match, marked_text, citing_lang, base_ref, base_text, method='search_llm_confirmed',
+                search_match, marked_text, citing_lang, base_ref, method='search_llm_confirmed', prior=prior,
             )
             if result:
                 return result
@@ -1760,8 +1783,8 @@ def _confirm_ambiguous_candidate(
     marked_text: str,
     lang: str,
     base_ref: Optional[str],
-    base_text: Optional[str],
     method: str,
+    prior: Optional[str] = None,
 ) -> Optional[AmbiguousResolutionResult]:
     """Confirm an ambiguous candidate with LLM, returning a result or None."""
     match_ref = candidate.resolved_ref
@@ -1769,7 +1792,10 @@ def _confirm_ambiguous_candidate(
     logger.info(f"Found match: {parent_ref} -> {match_ref}, confirming with LLM...")
 
     candidate_text = _get_candidate_text_for_confirmation(match_ref, lang)
-    ok, reason = _llm_confirm_candidate(marked_text, match_ref, candidate_text, base_ref, base_text)
+    ok, reason = _llm_confirm_candidate(
+        marked_text, match_ref, candidate_text,
+        base_ref=base_ref, prior=prior,
+    )
 
     if ok:
         logger.info(f"LLM confirmed match: {match_ref}")
