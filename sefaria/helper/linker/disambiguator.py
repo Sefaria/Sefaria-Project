@@ -24,7 +24,6 @@ from sefaria.settings import SEARCH_URL
 
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langsmith import traceable
 from sefaria.model.text import Ref
@@ -33,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens38"
+LANGSMITH_DEBUG_TAG = "reduced_tokens41"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 # ---------------------------------------------------------------------------
@@ -217,11 +216,6 @@ def _get_llm(role: str = "default"):
         if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY environment variable is required")
         return ChatAnthropic(model=model, max_tokens=1024, api_key=api_key)
-    elif provider == "google":
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            raise RuntimeError("GOOGLE_API_KEY environment variable is required")
-        return ChatGoogleGenerativeAI(model=model, temperature=0, max_tokens=1024, api_key=api_key, thinking_level="low")
 
 
 def _system_content(instruction: str, base_block: str) -> list:
@@ -1235,15 +1229,6 @@ def _fallback_search_pipeline(
     base_text: Optional[str] = None,
     prior: Optional[str] = None,
 ) -> Optional[Candidate]:
-    """
-    Multi-stage search pipeline with LLM-generated queries.
-
-    Stages:
-    A) Normal window queries (text-only)
-    B) Base-text seeded queries (if base_text available)
-    C) Expanded window queries (if no candidates yet)
-    D) Expanded base-seeded queries (if base_text available and no candidates)
-    """
     searched: set = set()
     candidates: List[Candidate] = []
     if prior is None:
@@ -1551,7 +1536,6 @@ def disambiguate_non_segment_ref(
 
         rejected_ref = None
         base_ref, base_text = _get_commentary_base_context(citing_ref)
-        search_prior: Optional[str] = None
 
         # Try Dicta
         logger.info("Querying Dicta API...")
@@ -1562,12 +1546,9 @@ def disambiguate_non_segment_ref(
             if len(dicta_candidates) == 1:
                 candidate = dicta_candidates[0]
             else:
-                search_prior = _llm_form_prior(
-                    marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref,
-                )
                 candidate = _llm_choose_best_candidate(
                     marked_text, dicta_candidates,
-                    base_ref=base_ref, lang=citing_lang, prior=search_prior, citing_ref=citing_ref,
+                    base_ref=base_ref, lang=citing_lang, citing_ref=citing_ref,
                 )
 
             if candidate:
@@ -1603,11 +1584,6 @@ def disambiguate_non_segment_ref(
 
         # Fallback: Sefaria search pipeline
         logger.info("Falling back to Sefaria search pipeline...")
-        if search_prior is None:
-            search_prior = _llm_form_prior(
-                marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref,
-            )
-
         search_result = _fallback_search_pipeline(
             marked_citing_text=marked_text,
             citing_text=citing_text_norm,
@@ -1618,7 +1594,6 @@ def disambiguate_non_segment_ref(
             vtitle=vtitle,
             base_ref=base_ref,
             base_text=base_text,
-            prior=search_prior,
         )
 
         if search_result:
@@ -1626,7 +1601,6 @@ def disambiguate_non_segment_ref(
                 search_result, marked_text, citing_lang,
                 base_ref=base_ref,
                 auto_approve_prefix="Metzudat Zion", citing_ref=citing_ref,
-                prior=search_prior,
             )
             if ok:
                 return NonSegmentResolutionResult(
@@ -1776,19 +1750,17 @@ def disambiguate_ambiguous_ref(
             if result:
                 return result
 
-        prior = _llm_form_prior(marked_text, base_ref=base_ref, base_text=base_text, citing_ref=citing_ref)
-
         # Step 1: Try Dicta
         logger.info("Trying Dicta to find match among ambiguous candidates...")
         dicta_match = _try_dicta_for_candidates(
             windowed_text, valid_candidates,
-            marked_text=marked_text, lang=citing_lang, base_ref=base_ref, prior=prior, citing_ref=citing_ref,
+            marked_text=marked_text, lang=citing_lang, base_ref=base_ref, citing_ref=citing_ref,
         )
 
         if dicta_match:
             result = _confirm_ambiguous_candidate(
                 dicta_match, marked_text, citing_lang, base_ref,
-                method='dicta_llm_confirmed', prior=prior, citing_ref=citing_ref,
+                method='dicta_llm_confirmed', citing_ref=citing_ref,
             )
             if result:
                 return result
@@ -1796,13 +1768,13 @@ def disambiguate_ambiguous_ref(
         # Step 2: Try Sefaria search
         logger.info("Trying Sefaria search to find match among ambiguous candidates...")
         search_match = _try_search_for_candidates(
-            marked_text, valid_candidates, citing_lang, base_ref, prior=prior, citing_ref=citing_ref,
+            marked_text, valid_candidates, citing_lang, base_ref, citing_ref=citing_ref,
         )
 
         if search_match:
             result = _confirm_ambiguous_candidate(
                 search_match, marked_text, citing_lang, base_ref,
-                method='search_llm_confirmed', prior=prior, citing_ref=citing_ref,
+                method='search_llm_confirmed', citing_ref=citing_ref,
             )
             if result:
                 return result
