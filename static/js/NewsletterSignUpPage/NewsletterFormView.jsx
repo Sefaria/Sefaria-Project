@@ -20,17 +20,36 @@ import { FORM_STATUS } from "./constants";
  * - Full bilingual support (English/Hebrew) with minimal JSX duplication
  * - Responsive layout
  */
-/**
- * InlineError - Displays field-specific error above an input
- * Only renders if the field has an error
- */
 function InlineError({ fieldName, errors }) {
   const error = errors[fieldName];
   if (!error) return null;
-
   return (
     <div className="inlineFieldError" id={`${fieldName}-error`} role="alert">
       <InterfaceText text={error} />
+    </div>
+  );
+}
+
+function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled, fieldErrors, showError = true }) {
+  const error = fieldErrors[id];
+  return (
+    <div className="formField">
+      {showError && <InlineError fieldName={id} errors={fieldErrors} />}
+      <input
+        id={id}
+        type={type}
+        placeholder={Sefaria._(label)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={() => onBlur && onBlur(id)}
+        disabled={disabled}
+        aria-label={Sefaria._(label)}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className={error ? "hasError" : ""}
+        data-anl-event="form_interaction:inputStart"
+        data-anl-form_name="newsletter_signup"
+      />
     </div>
   );
 }
@@ -138,44 +157,16 @@ export default function NewsletterFormView({
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.NAME_SECTION} />
             </h3>
-            {/* Error placed outside flex row so both inputs stay aligned */}
+            {/* Errors hoisted outside flex row so both inputs stay aligned */}
             <InlineError fieldName="firstName" errors={fieldErrors} />
             <InlineError fieldName="lastName" errors={fieldErrors} />
             <div className="nameFieldsRow">
-              <div className="formField">
-                <input
-                  id="firstName"
-                  type="text"
-                  placeholder={Sefaria._("First Name")}
-                  value={formData.firstName}
-                  onChange={(e) => onFirstNameChange(e.target.value)}
-                  onBlur={() => onFieldBlur && onFieldBlur("firstName")}
-                  disabled={isSubmitting}
-                  aria-label={Sefaria._("First Name")}
-                  aria-invalid={!!fieldErrors.firstName}
-                  aria-describedby={fieldErrors.firstName ? "firstName-error" : undefined}
-                  className={fieldErrors.firstName ? "hasError" : ""}
-                  data-anl-event="form_interaction:inputStart"
-                  data-anl-form_name="newsletter_signup"
-                />
-              </div>
-              <div className="formField">
-                <input
-                  id="lastName"
-                  type="text"
-                  placeholder={Sefaria._("Last Name")}
-                  value={formData.lastName}
-                  onChange={(e) => onLastNameChange(e.target.value)}
-                  onBlur={() => onFieldBlur && onFieldBlur("lastName")}
-                  disabled={isSubmitting}
-                  aria-label={Sefaria._("Last Name")}
-                  aria-invalid={!!fieldErrors.lastName}
-                  aria-describedby={fieldErrors.lastName ? "lastName-error" : undefined}
-                  className={fieldErrors.lastName ? "hasError" : ""}
-                  data-anl-event="form_interaction:inputStart"
-                  data-anl-form_name="newsletter_signup"
-                />
-              </div>
+              <FormInput id="firstName" label="First Name" value={formData.firstName}
+                onChange={onFirstNameChange} onBlur={onFieldBlur}
+                disabled={isSubmitting} fieldErrors={fieldErrors} showError={false} />
+              <FormInput id="lastName" label="Last Name" value={formData.lastName}
+                onChange={onLastNameChange} onBlur={onFieldBlur}
+                disabled={isSubmitting} fieldErrors={fieldErrors} showError={false} />
             </div>
           </div>
         )}
@@ -186,42 +177,12 @@ export default function NewsletterFormView({
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
-            <div className="formField">
-              <InlineError fieldName="email" errors={fieldErrors} />
-              <input
-                id="email"
-                type="email"
-                placeholder={Sefaria._("Email Address")}
-                value={formData.email}
-                onChange={(e) => onEmailChange(e.target.value)}
-                onBlur={() => onFieldBlur && onFieldBlur("email")}
-                disabled={isSubmitting}
-                aria-label={Sefaria._("Email Address")}
-                aria-invalid={!!fieldErrors.email}
-                aria-describedby={fieldErrors.email ? "email-error" : undefined}
-                className={fieldErrors.email ? "hasError" : ""}
-                data-anl-event="form_interaction:inputStart"
-                data-anl-form_name="newsletter_signup"
-              />
-            </div>
-            <div className="formField">
-              <InlineError fieldName="confirmEmail" errors={fieldErrors} />
-              <input
-                id="confirmEmail"
-                type="email"
-                placeholder={Sefaria._("Confirm Email Address")}
-                value={formData.confirmEmail}
-                onChange={(e) => onConfirmEmailChange(e.target.value)}
-                onBlur={() => onFieldBlur && onFieldBlur("confirmEmail")}
-                disabled={isSubmitting}
-                aria-label={Sefaria._("Confirm Email Address")}
-                aria-invalid={!!fieldErrors.confirmEmail}
-                aria-describedby={fieldErrors.confirmEmail ? "confirmEmail-error" : undefined}
-                className={fieldErrors.confirmEmail ? "hasError" : ""}
-                data-anl-event="form_interaction:inputStart"
-                data-anl-form_name="newsletter_signup"
-              />
-            </div>
+            <FormInput id="email" type="email" label="Email Address" value={formData.email}
+              onChange={onEmailChange} onBlur={onFieldBlur}
+              disabled={isSubmitting} fieldErrors={fieldErrors} />
+            <FormInput id="confirmEmail" type="email" label="Confirm Email Address" value={formData.confirmEmail}
+              onChange={onConfirmEmailChange} onBlur={onFieldBlur}
+              disabled={isSubmitting} fieldErrors={fieldErrors} />
           </div>
         )}
 
