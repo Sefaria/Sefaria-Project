@@ -134,7 +134,7 @@ export default function NewsletterFormView({
 
         {/* NAME SECTION (hidden for logged-in users) */}
         {!isLoggedIn && (
-          <div className="formSection nameSection">
+          <div className="formSection">
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.NAME_SECTION} />
             </h3>
@@ -142,7 +142,7 @@ export default function NewsletterFormView({
             <InlineError fieldName="firstName" errors={fieldErrors} />
             <InlineError fieldName="lastName" errors={fieldErrors} />
             <div className="nameFieldsRow">
-              <div className="formField firstNameField">
+              <div className="formField">
                 <input
                   id="firstName"
                   type="text"
@@ -159,7 +159,7 @@ export default function NewsletterFormView({
                   data-anl-form_name="newsletter_signup"
                 />
               </div>
-              <div className="formField lastNameField">
+              <div className="formField">
                 <input
                   id="lastName"
                   type="text"
@@ -182,11 +182,11 @@ export default function NewsletterFormView({
 
         {/* CONTACT SECTION (hidden for logged-in users) */}
         {!isLoggedIn && (
-          <div className="formSection contactSection">
+          <div className="formSection">
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
-            <div className="formField emailField">
+            <div className="formField">
               <InlineError fieldName="email" errors={fieldErrors} />
               <input
                 id="email"
@@ -204,7 +204,7 @@ export default function NewsletterFormView({
                 data-anl-form_name="newsletter_signup"
               />
             </div>
-            <div className="formField confirmEmailField">
+            <div className="formField">
               <InlineError fieldName="confirmEmail" errors={fieldErrors} />
               <input
                 id="confirmEmail"

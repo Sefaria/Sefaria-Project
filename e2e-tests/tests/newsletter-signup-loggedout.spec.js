@@ -484,17 +484,24 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     await expect(newslettersError).toBeVisible();
   });
 
-  test('should focus error summary on validation failure for accessibility', async ({ page }) => {
+  test('should announce errors and scroll to form title on validation failure for accessibility', async ({ page }) => {
     // Submit empty form
     const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
-    // Wait for validation and focus management
+    // Wait for validation and scroll
     await page.waitForTimeout(500);
 
-    // Error summary should be focused (for screen reader users)
+    // Error summary uses role="alert" + aria-live for screen reader announcement
+    // (replaced the old focus-the-summary pattern; tabIndex/focus removed in favor of scrollIntoView on h2)
     const errorSummary = page.locator('.newsletterErrorSummary');
-    await expect(errorSummary).toBeFocused();
+    await expect(errorSummary).toBeVisible();
+    await expect(errorSummary).toHaveAttribute('role', 'alert');
+    await expect(errorSummary).toHaveAttribute('aria-live', 'assertive');
+
+    // Form title is scrolled into viewport so the user lands at the top of the form
+    const formTitle = page.locator('h2.newsletterFormTitle');
+    await expect(formTitle).toBeInViewport();
   });
 
   test('should clear inline error when field is fixed and loses focus', async ({ page }) => {
@@ -575,14 +582,18 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     await page.waitForTimeout(500);
 
     // Click the email error link in the summary
-    const emailErrorLink = page.locator('.errorSummaryLink[href="#email"]');
+    // (links target the inline error caption above the input, so the user has the error context)
+    const emailErrorLink = page.locator('.errorSummaryLink[href="#email-error"]');
     await emailErrorLink.click();
 
-    // Email input should now be focused (due to href="#email" navigation)
-    // Note: This works because the input has id="email"
+    // Wait for scroll
     await page.waitForTimeout(100);
 
-    // The email input should be scrolled into view and potentially focused
+    // The error caption should be scrolled into view (anchored target)
+    const emailErrorCaption = page.locator('#email-error');
+    await expect(emailErrorCaption).toBeInViewport();
+
+    // The email input is directly below and also visible
     const emailInput = page.locator('input#email');
     await expect(emailInput).toBeInViewport();
   });
