@@ -317,7 +317,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(t(1500));
-    // await page.waitForLoadState('networkidle');
+    // await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     return page;
   }
@@ -511,7 +511,7 @@ export const selectDropdownOption = async (
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
     // Wait for potential logged-out icon or profile pic to load (whichever appears first)
-    await page.waitForLoadState('networkidle', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
+    await page.waitForLoadState('domcontentloaded', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
 
     // Check if logged-out icon is visible
     const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
@@ -550,7 +550,7 @@ export const logout = async (page: Page) => {
 
   await logoutOption.waitFor({ state: 'visible', timeout: t(5000) });
   await logoutOption.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 };
 
 /**
@@ -575,7 +575,7 @@ export const createNewSheet = async (page: Page): Promise<string> => {
   }
 
   await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await hideAllModalsAndPopups(page);
 
   const currentUrl = page.url();

@@ -36,7 +36,7 @@ test.describe('Search Sanity Tests', () => {
     await topicSuggestion.click();
 
     // Wait for navigation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we arrived at a topic page
     expect(page.url()).toMatch(/topic|abraham/i);
@@ -57,7 +57,7 @@ test.describe('Search Sanity Tests', () => {
 
     // Wait for search results page
     await page.waitForTimeout(t(1000));
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify we're on search results page
@@ -116,7 +116,7 @@ test.describe('Search Sanity Tests', () => {
     await suggestion.click();
 
     // Wait for navigation
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Verify we arrived at a topic/author page
     expect(page.url()).toMatch(/topic|profile|rashi/i);
@@ -136,7 +136,7 @@ test.describe('Search Sanity Tests', () => {
     await searchBox.press('Enter');
 
     // Wait for search results page
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify we're on search results page

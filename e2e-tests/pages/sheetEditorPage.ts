@@ -419,7 +419,6 @@ export class SheetEditorPage extends HelperBase {
     const publishButton = this.page.locator('button')
       .filter({ hasText: /publish/i }).last();
     await publishButton.click();
-    await this.page.waitForLoadState('domcontentloaded');
     // Assert error saying please add a ... doesnt appear
     await expect(this.page.getByText('Please add a')).not.toBeVisible();
     await expect(this.page.getByText('Something went wrong. Try refreshing the page.')).not.toBeVisible();
@@ -444,7 +443,6 @@ export class SheetEditorPage extends HelperBase {
 
     const unpublishOption = this.page.getByText('Unpublish');
     await unpublishOption.click();
-    await this.page.waitForLoadState('domcontentloaded');
     // Assert that the popup Success! appears
     await expect(this.page.getByText('Success!')).toBeVisible();
   }
@@ -496,7 +494,7 @@ export class SheetEditorPage extends HelperBase {
     await dialog.accept();
     await this.page.waitForTimeout(t(500));
 
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
 

@@ -59,7 +59,7 @@ export class ProfilePage extends HelperBase {
   // Actions
   async clickEditProfile() {
     await this.editProfileButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async verifyProfileArtifacts(expectedData: {

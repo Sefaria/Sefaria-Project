@@ -109,7 +109,7 @@ export class SourceTextPage extends HelperBase {
         // Click final "Add to Sheet" button to confirm
         const addButton2 = this.page.getByText('Add to Sheet')
         await addButton2.click();
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
         await expect(this.page.getByText(`has been added to ${sheetTitle}`)).toBeVisible();
     }
 

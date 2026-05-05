@@ -28,7 +28,7 @@ test.describe('Help Sheet to Zendesk Redirects - English', () => {
 
       // Navigate to the sheet URL
       const response = await page.goto(testUrl, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
         timeout: t(30000)
       });
 
@@ -76,7 +76,7 @@ test.describe('Help Sheet to Zendesk Redirects - Hebrew', () => {
 
       // Navigate to the sheet URL
       const response = await page.goto(testUrl, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
         timeout: t(30000)
       });
 

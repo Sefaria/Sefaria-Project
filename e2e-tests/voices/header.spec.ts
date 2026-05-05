@@ -77,7 +77,7 @@ test.describe('Voices Module Header Tests - English', () => {
     }
 
     await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     await pm.onModuleHeader().closeGuideOverlay();
 
@@ -103,12 +103,8 @@ test.describe('Voices Module Header Tests - English', () => {
         await dialog.accept();
       });
 
-      const navigationPromise = page.waitForURL(/\/profile\//, { timeout: t(15000) });
       await deleteOption.click();
-      await navigationPromise;
-      await page.waitForLoadState('networkidle');
-
-      expect(page.url()).toMatch(/\/profile\//);
+      await expect(page).toHaveURL(/\/profile\//, { timeout: t(15000) });
     }
 
     await pm.onModuleHeader().logout();

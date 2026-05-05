@@ -30,7 +30,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     // Create sheet by clicking the Create button in header
     await page.getByRole('button', { name: 'Create' }).first().click();
     await page.waitForURL(/\/sheets\/\d+/);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Wait for sheet editor to load (using modularized selector)
@@ -51,7 +51,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   // =================================================================
   test('Sanity 8b: Give sheet a title', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
@@ -70,7 +70,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   // =================================================================
   test('Sanity 8c: Add source using text lookup in Voices', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     // We're in Voices module (sheet was created there)
     // Add source via text lookup
@@ -91,7 +91,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   // =================================================================
   test('Sanity 8d: Add image to sheet', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
@@ -114,7 +114,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   // =================================================================
   test('Sanity 8e: Add YouTube video to sheet', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
@@ -139,7 +139,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   test('Sanity 8f: Add source from Library reader to sheet', async ({ context }) => {
     // Navigate to Library reader
     const page = await goToPageWithUser(context, '/Job.1.2?lang=bi&with=all&lang2=en', BROWSER_SETTINGS.enUser);
-    // await page.waitForLoadState('networkidle');
+    // await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -147,7 +147,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
 
     // Verify added (navigate back to sheet)
     await page.goto(sheetUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     for (let i = 0; i < 9; i++) {
@@ -180,7 +180,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     await page.mouse.up();
 
     // Verify published (Unpublish option should appear in menu)
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     await sheetEditorPage.openOptionsMenu();
     await expect(page.getByText('Unpublish')).toBeVisible();
@@ -196,7 +196,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
     await sheetEditorPage.unpublishSheet();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Close menu by pressing mouse on top of the screen
     await page.mouse.move(0, 0);
     await page.mouse.down();
@@ -234,7 +234,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
   // =================================================================
   test('Sanity 8j: Delete sheet', async ({ context }) => {
     const page = await goToPageWithUser(context, sheetUrl, BROWSER_SETTINGS.enUser);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);

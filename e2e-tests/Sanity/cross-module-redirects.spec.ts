@@ -12,7 +12,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Settings Profile Redirect', async ({ page }) => {
     // Navigate to settings/profile on library module
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/settings/profile`);
     // Verify redirect occurred to voices module
@@ -24,7 +24,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Community Page Redirect', async ({ page }) => {
     // Navigate to community on library module
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/community`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/community`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/community`);
 
@@ -35,7 +35,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Collections Redirect', async ({ page }) => {
     // Navigate to collections on library module and capture response
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections`, { waitUntil: 'domcontentloaded' });
 
     // Verify we didn't get a 404 (or similar) and that redirect occurred to voices collections
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/collections`);
@@ -46,7 +46,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Collections Redirect - Specific collection - Ignore Query Params', async ({ page }) => {
     // Navigate to specific collection on library module
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections/-midrash-calendar`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections/-midrash-calendar`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/collections/-midrash-calendar`);
     // Verify redirect occurred to voices with same path
@@ -56,7 +56,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
   // Probably Redundant with the below test
   test('Profile Redirect ', async ({ page }) => {
     // Navigate to profile without user (logged in, so should redirect to user's profile)
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/profile`);
     // Verify redirect occurred to voices profile
@@ -69,7 +69,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Profile Redirect - With User', async ({ page }) => {
     // Navigate to specific user profile on library module
-    const respone = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile/qa-automation`, { waitUntil: 'networkidle' });
+    const respone = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile/qa-automation`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(respone?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/profile/qa-tester`);
 
@@ -82,7 +82,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Sheets Redirect - Get Started Page', async ({ page }) => {
     // Navigate to sheets base URL on library module
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/sheets`);
     // Verify redirect occurred to voices getstarted page
@@ -92,7 +92,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
 
   test('Sheets Redirect - Specific Sheet ID', async ({ page }) => {
     // Navigate to specific sheet on library module
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets/510219`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets/510219`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/sheets/510219`);
     // Verify redirect occurred to voices with same sheet ID
@@ -110,7 +110,7 @@ test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Pres
 
   test('Query Parameters Preserved', async ({ page }) => {
     // Navigate with query parameters
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile?tab=notifications&test=123`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile?tab=notifications&test=123`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/settings/profile?tab=notifications&test=123`);
     // Verify redirect occurred with query parameters preserved
@@ -127,7 +127,7 @@ test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Pres
 
   test('Collections Query Parameters Preserved', async ({ page }) => {
     // Navigate with query parameters
-    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections?sort=recent`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections?sort=recent`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.LIBRARY}/collections?sort=recent`);
     // Verify redirect occurred with query parameters
@@ -153,7 +153,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
       }
     });
 
-    await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile`, { waitUntil: 'domcontentloaded' });
 
     // Verify 301 permanent redirect status
     expect(redirectStatusCode).toBe(301);
@@ -169,7 +169,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
       }
     });
 
-    await page.goto(`${MODULE_URLS.EN.LIBRARY}/community`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.LIBRARY}/community`, { waitUntil: 'domcontentloaded' });
 
     // Verify 301 permanent redirect status
     expect(redirectStatusCode).toBe(301);
@@ -187,7 +187,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
 
   test('No Redirect When Already on Voices - Settings Profile', async ({ page }) => {
     // Navigate to settings/profile already on voices module
-    const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/profile`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
     assertStatusNotError(response?.status() ?? 0, [404, 500, 502, 503, 504], `${MODULE_URLS.EN.VOICES}/settings/profile`);
     // Verify we stayed on voices (no redirect loop)
@@ -198,7 +198,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
 
   test('No Redirect When Already on Voices - Home', async ({ page }) => {
     // Navigate to voices home
-    await page.goto(`${MODULE_URLS.EN.VOICES}`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.VOICES}`, { waitUntil: 'domcontentloaded' });
     await hideAllModalsAndPopups(page);
 
     // Verify we stayed on voices home (no redirect)
@@ -208,7 +208,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
 
   test('No Redirect When Already on Voices - Get Started Page', async ({ page }) => {
     // Navigate to sheets on voices module
-    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets`, { waitUntil: 'domcontentloaded' });
 
     // Verify we stayed on voices (no redirect)
     const finalUrl = page.url();
@@ -217,7 +217,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
 
   test('No Redirect When Already on Voices - Specific Sheet', async ({ page }) => {
     // Navigate to specific sheet on voices module
-    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/510219`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/510219`, { waitUntil: 'domcontentloaded' });
 
     // Verify sheet loads without redirect
     const finalUrl = page.url();
@@ -226,7 +226,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
 
   test('Settings Account Returns 404 on Voices', async ({ page }) => {
     // Navigate to settings/account (should 404 per CSV line 12)
-    const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/account`, { waitUntil: 'networkidle' });
+    const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/account`, { waitUntil: 'domcontentloaded' });
 
     // Verify 404 status
     expect(response?.status()).toBe(404);

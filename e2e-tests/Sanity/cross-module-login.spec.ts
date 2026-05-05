@@ -25,7 +25,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await loginPage.loginAs(testUser);
 
     // Wait for login to complete and profile pic to appear
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Explicitly wait for profile pic to ensure login completed
@@ -61,7 +61,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     const voicesPage = await selectDropdownOption(page, 'Voices', true);
 
     // Wait for Voices to load
-    await voicesPage!.waitForLoadState('networkidle');
+    await voicesPage!.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesPage!);
 
     // Verify user is on Voices
@@ -136,7 +136,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await selectDropdownOption(libraryTab1, 'Log in');
     const pm1 = new PageManager(libraryTab1, LANGUAGES.EN);
     await pm1.onLoginPage().loginAs(testUser);
-    await libraryTab1.waitForLoadState('networkidle');
+    await libraryTab1.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryTab1);
 
     // Verify first tab is logged in
@@ -144,7 +144,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Try to navigate to login on second tab
     await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
-    await libraryTab2.waitForLoadState('networkidle');
+    await libraryTab2.waitForLoadState('domcontentloaded');
 
     // Verify error message appears
     const errorText = libraryTab2.locator('text=/You are already logged in as/i');
@@ -173,7 +173,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await selectDropdownOption(voicesTab1, 'Log in');
     const pm2 = new PageManager(voicesTab1, LANGUAGES.EN);
     await pm2.onLoginPage().loginAs(testUser);
-    await voicesTab1.waitForLoadState('networkidle');
+    await voicesTab1.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesTab1);
 
     // Verify first tab is logged in
@@ -181,7 +181,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Try to navigate to login on second tab
     await voicesTab2.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
-    await voicesTab2.waitForLoadState('networkidle');
+    await voicesTab2.waitForLoadState('domcontentloaded');
 
     // Verify error message appears
     const errorTextVoices = voicesTab2.locator('text=/You are already logged in as/i');
@@ -211,7 +211,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await selectDropdownOption(libraryTab, 'Log in');
     const pm1 = new PageManager(libraryTab, LANGUAGES.EN);
     await pm1.onLoginPage().loginAs(testUser);
-    await libraryTab.waitForLoadState('networkidle');
+    await libraryTab.waitForLoadState('domcontentloaded');
 
     await hideAllModalsAndPopups(libraryTab);
     // Wait for profile pic to appear (indicates login success)
@@ -222,7 +222,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Try to navigate to login on Voices tab
     await voicesTab.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
-    await voicesTab.waitForLoadState('networkidle');
+    await voicesTab.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesTab);
 
     // Verify error message appears
@@ -263,7 +263,7 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Try to navigate to login on Library tab
     await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
-    await libraryTab2.waitForLoadState('networkidle');
+    await libraryTab2.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryTab2);
 
     // Verify error message appears
@@ -285,7 +285,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     // Navigate to a sheet link (simulating external navigation like from Google)
     // Using a known public sheet
     await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/510219`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify navigation to Voices module with sheet
@@ -315,7 +315,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     // Navigate to a text link (simulating external navigation like from Google)
     // Using a known text
     await page.goto(`${MODULE_URLS.EN.LIBRARY}/Genesis.1`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify navigation to Library module with text

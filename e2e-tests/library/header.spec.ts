@@ -69,7 +69,6 @@ test.describe('Library Module Header Tests - English', () => {
     const logo = page.getByRole('banner').locator(config.logo);
     await expect(logo).toBeVisible();
     await logo.click();
-    await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(new RegExp(`${config.url}(/texts)?`));
   });

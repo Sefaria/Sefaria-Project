@@ -41,7 +41,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     await loginPage.loginAs(testUser);
 
     // Wait for login to complete and profile pic to appear
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Explicitly wait for profile pic to ensure login completed
@@ -93,7 +93,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Navigate directly to edit profile page (/settings/profile redirects to Voices)
-    await page.goto(`${MODULE_URLS.EN.VOICES}/settings/profile`, { waitUntil: 'networkidle' });
+    await page.goto(`${MODULE_URLS.EN.VOICES}/settings/profile`, { waitUntil: 'domcontentloaded' });
     await hideAllModalsAndPopups(page);
 
     // Verify edit profile page loaded
@@ -116,7 +116,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     }).catch(() => { });
     // Save profile changes
     await editProfilePage.saveProfile();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify we're back on profile page (#main is hidden, check .content instead)
@@ -173,7 +173,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
 
     // Switch to Hebrew (uses dropdown with cookie fallback)
     await changeLanguage(page, LANGUAGES.HE);
-    await page.reload({ waitUntil: 'networkidle' }); // Reload to apply cookie
+    await page.reload({ waitUntil: 'domcontentloaded' }); // Reload to apply cookie
     await hideAllModalsAndPopups(page);
 
     // Verify language changed to Hebrew
@@ -182,7 +182,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
 
     // Switch back to English (uses dropdown with cookie fallback)
     await changeLanguage(page, LANGUAGES.EN);
-    await page.reload({ waitUntil: 'networkidle' }); // Reload to apply cookie
+    await page.reload({ waitUntil: 'domcontentloaded' }); // Reload to apply cookie
     await hideAllModalsAndPopups(page);
 
     // Verify back to English
@@ -240,7 +240,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
     // Perform logout
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Log out');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     // Verify user is logged out

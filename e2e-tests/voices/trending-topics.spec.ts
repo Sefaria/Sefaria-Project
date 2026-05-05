@@ -37,7 +37,7 @@ async function createAndPublishSheetWithTopic(
 
   // Navigate to sheet editor
   await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await hideAllModalsAndPopups(page);
   await pm.onModuleHeader().closeGuideOverlay();
 
@@ -90,7 +90,7 @@ async function createAndPublishSheetWithTopic(
   const publishModalButton = page.locator('button').filter({ hasText: /publish/i }).last();
   await publishModalButton.click();
 
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(t(1000));
   await hideAllModalsAndPopups(page);
 }
@@ -135,7 +135,7 @@ test.describe('Voices Module - Trending Topics', () => {
     // First, navigate to the admin reset URL (may redirect to backstage login if not authenticated)
     const adminResetUrl = `${MODULE_URLS.EN.LIBRARY}/admin/reset/api/sheets/trending-tags`;
     await page.goto(adminResetUrl);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Check if we're on the backstage login page
     const emailInput = page.locator('input[name="email"]');
@@ -154,7 +154,7 @@ test.describe('Voices Module - Trending Topics', () => {
 
       const submitButton = page.locator('input[type="submit"]');
       await submitButton.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(t(2000));
     } else {
       // Already authenticated, just wait for the reset to complete
@@ -164,7 +164,7 @@ test.describe('Voices Module - Trending Topics', () => {
     // Navigate to Voices > Topics and verify topic appears in Trending Topics sidebar
     await pm.onModuleHeader().logout();
     await page.goto(`${MODULE_URLS.EN.VOICES}/topics`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 
     const trendingTopicsModule = pm.onModuleSidebar().getModuleByHeading('Trending Topics');

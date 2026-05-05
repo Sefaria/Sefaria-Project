@@ -26,7 +26,6 @@ export class ModuleHeaderPage extends HelperBase {
   // Navigation and Link Methods
   async clickAndVerifyNavigation(linkName: string, expectedUrl: RegExp) {
     await this.header.getByRole('link', { name: linkName }).click();
-    await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(expectedUrl);
   }
 
@@ -48,7 +47,6 @@ export class ModuleHeaderPage extends HelperBase {
     const searchBox = this.header.getByRole('combobox', { name: /search/i });
     await searchBox.fill(term);
     await searchBox.press('Enter');
-    await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(expectedUrlPattern);
   }
 

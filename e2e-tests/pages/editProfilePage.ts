@@ -101,12 +101,12 @@ export class EditProfilePage extends HelperBase {
 
   async saveProfile() {
     await this.saveButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async cancel() {
     await this.cancelButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async verifyPageLoaded() {
