@@ -746,7 +746,7 @@ const JoinTheCommunity = ({wide}) => {
       </div>
       <div>
         <a className="button small" href={`${Sefaria.getModuleURL(Sefaria.VOICES_MODULE).origin}/`}>
-          <img src="/static/icons/community-black.svg" alt={Sefaria._("make a sheet icon")} />
+          <img src="/static/icons/community-black.svg" alt={Sefaria._("community")} />
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>
