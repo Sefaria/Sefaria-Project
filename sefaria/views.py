@@ -102,7 +102,17 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
-            return resolve_url(next_page)
+            # Validate ?next= against the request host before redirecting. Django's stock
+            # LogoutView.get_next_page does this; this override previously skipped it,
+            # which combined with GET-based logout would let a crafted /logout?next=...
+            # link bounce a user to an attacker-controlled domain (open redirect).
+            url_is_safe = url_has_allowed_host_and_scheme(
+                url=next_page,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+            if url_is_safe:
+                return resolve_url(next_page)
         return super().get_next_page()
 
 
