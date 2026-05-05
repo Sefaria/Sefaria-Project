@@ -66,9 +66,10 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
-        del self.fields['password2']
-        order = ["email", "first_name", "last_name", "password1", "captcha", "subscribe_educator"]
-        self.fields = {k: self.fields[k] for k in order if k in self.fields}
+        self.fields.pop('password2', None)
+        # order_fields preserves any field not listed (placed at the end) and goes through
+        # Django's form internals — safer than reassigning self.fields to a new dict.
+        self.order_fields(["email", "first_name", "last_name", "password1", "captcha", "subscribe_educator"])
 
     def clean_email(self):
         email = self.cleaned_data["email"]
