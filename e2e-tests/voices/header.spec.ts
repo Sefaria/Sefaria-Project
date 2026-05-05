@@ -65,16 +65,9 @@ test.describe('Voices Module Header Tests - English', () => {
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
 
     const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
-    const createLink = page.getByRole('banner').getByRole('link', { name: /create/i });
 
     const initialUrl = page.url();
-    const hasNestedLink = await createLink.count() > 0;
-
-    if (hasNestedLink) {
-      await createLink.click();
-    } else {
-      await createButton.click();
-    }
+    await createButton.click();
 
     await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
     await page.waitForLoadState('domcontentloaded');

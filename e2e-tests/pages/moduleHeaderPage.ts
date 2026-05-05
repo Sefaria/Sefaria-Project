@@ -175,7 +175,7 @@ export class ModuleHeaderPage extends HelperBase {
 
   async logout() {
     if (!(await this.isLoggedIn())) {
-      console.log('User is not logged in, skipping logout');
+      // console.log('User is not logged in, skipping logout');
       return;
     }
     // console.log('User is logged in, proceeding with logout');

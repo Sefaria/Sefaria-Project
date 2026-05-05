@@ -5,11 +5,16 @@
  *   - Verify topic appears in Trending Topics sidebar section
  */
 
+// MOVED TO ARCHIVED TESTS:
+// This is because it can change data and requires superuser credentials
+// Thus, it really should only be used on local environments and not run in CI
+
+
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, t } from '../globals';
-import { PageManager } from '../pages/pageManager';
-import { MODULE_URLS, VALID_TOPICS } from '../constants';
+import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { LANGUAGES, t } from '../../globals';
+import { PageManager } from '../../pages/pageManager';
+import { MODULE_URLS, VALID_TOPICS } from '../../constants';
 
 // Get random display name from VALID_TOPICS constant
 function getRandomTopic(): string {

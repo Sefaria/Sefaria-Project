@@ -316,7 +316,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     await page.context().addCookies(storageState.cookies);
 
     await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(t(1500));
+    await page.waitForTimeout(t(2000));
     // await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     return page;
@@ -335,7 +335,7 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
   await changeLanguage(page, language);
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(t(1500));
+  await page.waitForTimeout(t(2000));
   await hideAllModalsAndPopups(page);
   return page;
 }
@@ -469,6 +469,7 @@ export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'mod
   }
 
   await button.waitFor({ state: 'visible', timeout: t(5000) });
+  await hideAllModalsAndPopups(page);
   await button.click();
 
   // Wait for dropdown to appear (use .open to avoid strict mode violation with multiple dropdowns)
@@ -518,7 +519,7 @@ export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
     const isLoggedOut = await loggedOutIcon.isVisible({ timeout: t(2000) });
     if (isLoggedOut) {
       // log that logged out icon is visible for debugging purposes
-      console.log(`User is not logged in (logged-out icon visible)`);
+      // console.log(`User is not logged in (logged-out icon visible)`);
       return false;
     }
 
@@ -540,7 +541,7 @@ export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
  */
 export const logout = async (page: Page) => {
   if (!(await isUserLoggedIn(page))) {
-    console.log('User is not logged in, skipping logout. Check if test was supposed to be logged in or not.');
+    // console.log('User is not logged in, skipping logout. Check if test was supposed to be logged in or not.');
     return;
   }
 

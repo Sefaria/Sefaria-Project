@@ -75,6 +75,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(profileImg).toBeVisible();
 
     // Verify user menu has logged in options
+    await hideAllModalsAndPopups(voicesPage!);
     await openHeaderDropdown(voicesPage!, 'user');
     const logoutOption = voicesPage!.locator('.dropdownLinks-menu a', { hasText: 'Log out' });
     await expect(logoutOption).toBeVisible();
@@ -109,6 +110,7 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(profileImg).toBeVisible();
 
     // Verify user menu has logged in options
+    await hideAllModalsAndPopups(libraryPage!);
     await openHeaderDropdown(libraryPage!, 'user');
     const logoutOption = libraryPage!.locator('.dropdownLinks-menu a', { hasText: 'Log out' });
     await expect(logoutOption).toBeVisible();
