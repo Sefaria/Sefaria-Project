@@ -1,184 +1,234 @@
 /**
- * Jest Unit Tests: newsletterApi - marketingOptOut flag behavior
+ * Jest Unit Tests: newsletterApi — Real API implementation
  *
- * Tests the marketingOptOut intent flag added to the updatePreferences API.
- *
- * Key: The flag is informational, NOT for validation.
- * All scenarios should succeed for logged-in users (updatePreferences).
+ * Verifies that each named export calls fetch with the correct
+ * method, endpoint, and request body, and handles success/error
+ * responses properly.
  */
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: (key) => store[key] || null,
-    setItem: (key, value) => { store[key] = String(value); },
-    removeItem: (key) => { delete store[key]; },
-    clear: () => { store = {}; },
-  };
-})();
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+// Mock js-cookie so CSRF token header is predictable in tests
+jest.mock('js-cookie', () => ({ get: () => 'test-csrf-token' }));
 
-// Mock fetch for RealAPI tests
+// Mock fetch globally
 global.fetch = jest.fn();
 
-// Import after mocks are set up
-const NewsletterAPI = require('../newsletterApi').default;
+// Import named exports after mocks are set up
+const {
+  subscribeNewsletter,
+  updatePreferences,
+  fetchUserSubscriptions,
+  getNewsletterLists,
+  updateLearningLevel,
+} = require('../newsletterApi');
 
-describe('MockAPI.updatePreferences with marketingOptOut flag', () => {
-  beforeEach(() => {
-    // Set mock mode
-    localStorage.setItem('_use_mock_api', 'true');
-    jest.clearAllMocks();
-  });
+// ============================================================================
+// Helpers
+// ============================================================================
 
-  afterEach(() => {
-    localStorage.removeItem('_use_mock_api');
-  });
+const mockFetchOk = (body) =>
+  Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
 
-  it('succeeds with marketingOptOut=true and empty newsletters', async () => {
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      {},
-      { marketingOptOut: true }
+const mockFetchFail = (error) =>
+  Promise.resolve({ ok: false, json: () => Promise.resolve({ error }) });
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+// ============================================================================
+// subscribeNewsletter
+// ============================================================================
+
+describe('subscribeNewsletter', () => {
+  const payload = { firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', newsletters: { sefaria_news: true } };
+
+  it('calls fetch with POST to /api/newsletter/subscribe', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await subscribeNewsletter(payload);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/newsletter/subscribe',
+      expect.objectContaining({ method: 'POST' })
     );
-
-    expect(result.success).toBe(true);
-    expect(result.subscribedNewsletters).toEqual([]);
-    expect(result.marketingOptOut).toBe(true);
-    expect(result.message).toContain('opted out');
   });
 
-  it('succeeds with marketingOptOut=false and empty newsletters', async () => {
-    // User manually unchecked all newsletters (not an explicit opt-out)
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      {},
-      { marketingOptOut: false }
-    );
+  it('sends the full payload as JSON body', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    expect(result.success).toBe(true);
-    expect(result.subscribedNewsletters).toEqual([]);
-    expect(result.marketingOptOut).toBe(false);
+    await subscribeNewsletter(payload);
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body)).toEqual(payload);
   });
 
-  it('succeeds with no options and empty newsletters (defaults to marketingOptOut=false)', async () => {
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      {}
-    );
+  it('returns parsed response on success', async () => {
+    const body = { success: true, email: 'ada@example.com' };
+    global.fetch.mockReturnValue(mockFetchOk(body));
 
-    expect(result.success).toBe(true);
-    expect(result.marketingOptOut).toBe(false);
+    const result = await subscribeNewsletter(payload);
+
+    expect(result).toEqual(body);
   });
 
-  it('succeeds with newsletters selected and marketingOptOut=true (flag is informational)', async () => {
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      { sefaria_news: true, text_updates: false },
-      { marketingOptOut: true }
-    );
+  it('throws server error message on non-ok response', async () => {
+    global.fetch.mockReturnValue(mockFetchFail('Email already subscribed'));
 
-    expect(result.success).toBe(true);
-    expect(result.subscribedNewsletters).toContain('sefaria_news');
-    expect(result.subscribedNewsletters).not.toContain('text_updates');
+    await expect(subscribeNewsletter(payload)).rejects.toThrow('Email already subscribed');
   });
 
-  it('succeeds with newsletters selected and marketingOptOut=false', async () => {
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      { sefaria_news: true },
-      { marketingOptOut: false }
-    );
+  it('throws fallback message when error field is absent', async () => {
+    global.fetch.mockReturnValue(Promise.resolve({ ok: false, json: () => Promise.resolve({}) }));
 
-    expect(result.success).toBe(true);
-    expect(result.subscribedNewsletters).toContain('sefaria_news');
-  });
-
-  it('includes marketingOptOut in response', async () => {
-    const result = await NewsletterAPI.updatePreferences(
-      'user@example.com',
-      { sefaria_news: true },
-      { marketingOptOut: true }
-    );
-
-    expect(result).toHaveProperty('marketingOptOut', true);
-  });
-
-  it('throws error when email is missing', async () => {
-    await expect(
-      NewsletterAPI.updatePreferences('', {}, { marketingOptOut: true })
-    ).rejects.toThrow('Email is required');
+    await expect(subscribeNewsletter(payload)).rejects.toThrow('Failed to subscribe');
   });
 });
 
-describe('subscribeNewsletter does not accept marketingOptOut', () => {
-  beforeEach(() => {
-    localStorage.setItem('_use_mock_api', 'true');
+// ============================================================================
+// updatePreferences
+// ============================================================================
+
+describe('updatePreferences', () => {
+  it('calls fetch with POST to /api/newsletter/preferences', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updatePreferences('user@example.com', { sefaria_news: true });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/newsletter/preferences',
+      expect.objectContaining({ method: 'POST' })
+    );
   });
 
-  afterEach(() => {
-    localStorage.removeItem('_use_mock_api');
+  it('includes marketingOptOut=true in request body when passed', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updatePreferences('user@example.com', { sefaria_news: true }, { marketingOptOut: true });
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body).marketingOptOut).toBe(true);
   });
 
-  it('requires at least one newsletter for logged-out users', async () => {
-    // subscribeNewsletter is for logged-out users only
-    // It should still require at least one newsletter
-    await expect(
-      NewsletterAPI.subscribeNewsletter({
-        firstName: 'Test',
-        lastName: 'User',
-        email: 'test@example.com',
-        newsletters: {},
-      })
-    ).rejects.toThrow('Please select at least one newsletter');
+  it('defaults marketingOptOut to false when options omitted', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updatePreferences('user@example.com', {});
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body).marketingOptOut).toBe(false);
   });
 
-  it('succeeds with at least one newsletter selected', async () => {
-    const result = await NewsletterAPI.subscribeNewsletter({
-      firstName: 'Test',
-      lastName: 'User',
-      email: 'test@example.com',
-      newsletters: { sefaria_news: true },
-    });
+  it('includes CSRF token in X-CSRFToken header', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    expect(result.success).toBe(true);
-    expect(result.subscribedNewsletters).toContain('sefaria_news');
-    // No marketingOptOut in response (only for updatePreferences)
-    expect(result.marketingOptOut).toBeUndefined();
+    await updatePreferences('user@example.com', {});
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
+  });
+
+  it('throws server error message on non-ok response', async () => {
+    global.fetch.mockReturnValue(mockFetchFail('Unauthorized'));
+
+    await expect(updatePreferences('user@example.com', {})).rejects.toThrow('Unauthorized');
   });
 });
 
-describe('API mode switching', () => {
-  it('uses mock API when _use_mock_api is true', () => {
-    localStorage.setItem('_use_mock_api', 'true');
-    expect(NewsletterAPI.isMockMode()).toBe(true);
+// ============================================================================
+// fetchUserSubscriptions
+// ============================================================================
+
+describe('fetchUserSubscriptions', () => {
+  it('calls fetch with GET to /api/newsletter/subscriptions', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true, subscribedNewsletters: [] }));
+
+    await fetchUserSubscriptions('user@example.com');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/newsletter/subscriptions',
+      expect.objectContaining({ method: 'GET' })
+    );
   });
 
-  it('uses real API when _use_mock_api is false', () => {
-    localStorage.setItem('_use_mock_api', 'false');
-    expect(NewsletterAPI.isMockMode()).toBe(false);
+  it('returns parsed subscription response', async () => {
+    const body = { success: true, subscribedNewsletters: ['sefaria_news'], wantsMarketingEmails: true };
+    global.fetch.mockReturnValue(mockFetchOk(body));
+
+    const result = await fetchUserSubscriptions('user@example.com');
+
+    expect(result).toEqual(body);
+  });
+
+  it('throws on non-ok response', async () => {
+    global.fetch.mockReturnValue(mockFetchFail('Unauthorized'));
+
+    await expect(fetchUserSubscriptions('user@example.com')).rejects.toThrow('Unauthorized');
   });
 });
 
-describe('MockAPI.fetchUserSubscriptions', () => {
-  beforeEach(() => {
-    localStorage.setItem('_use_mock_api', 'true');
+// ============================================================================
+// getNewsletterLists
+// ============================================================================
+
+describe('getNewsletterLists', () => {
+  it('calls fetch with GET to /api/newsletter/lists', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ newsletters: [] }));
+
+    await getNewsletterLists();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/newsletter/lists',
+      expect.objectContaining({ method: 'GET' })
+    );
   });
 
-  afterEach(() => {
-    localStorage.removeItem('_use_mock_api');
+  it('returns parsed newsletters list', async () => {
+    const body = { newsletters: [{ stringid: 'sefaria_news', displayName: 'Sefaria News', icon: 'news.svg' }] };
+    global.fetch.mockReturnValue(mockFetchOk(body));
+
+    const result = await getNewsletterLists();
+
+    expect(result.newsletters).toHaveLength(1);
+    expect(result.newsletters[0].stringid).toBe('sefaria_news');
   });
 
-  it('returns wantsMarketingEmails in response', async () => {
-    const result = await NewsletterAPI.fetchUserSubscriptions('user@example.com');
-    expect(result.success).toBe(true);
-    expect(result).toHaveProperty('wantsMarketingEmails', true);
+  it('throws on non-ok response', async () => {
+    global.fetch.mockReturnValue(mockFetchFail('Service unavailable'));
+
+    await expect(getNewsletterLists()).rejects.toThrow('Service unavailable');
+  });
+});
+
+// ============================================================================
+// updateLearningLevel
+// ============================================================================
+
+describe('updateLearningLevel', () => {
+  it('calls fetch with POST to /api/newsletter/learning-level', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updateLearningLevel('user@example.com', 3);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/newsletter/learning-level',
+      expect.objectContaining({ method: 'POST' })
+    );
   });
 
-  it('returns subscribedNewsletters array', async () => {
-    const result = await NewsletterAPI.fetchUserSubscriptions('user@example.com');
-    expect(Array.isArray(result.subscribedNewsletters)).toBe(true);
-    expect(result.subscribedNewsletters.length).toBeGreaterThan(0);
+  it('sends email and learningLevel in JSON body', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updateLearningLevel('user@example.com', 3);
+
+    const [, options] = global.fetch.mock.calls[0];
+    const body = JSON.parse(options.body);
+    expect(body.email).toBe('user@example.com');
+    expect(body.learningLevel).toBe(3);
+  });
+
+  it('throws on non-ok response', async () => {
+    global.fetch.mockReturnValue(mockFetchFail('Invalid level'));
+
+    await expect(updateLearningLevel('user@example.com', 0)).rejects.toThrow('Invalid level');
   });
 });

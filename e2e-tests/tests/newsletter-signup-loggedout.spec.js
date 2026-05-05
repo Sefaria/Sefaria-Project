@@ -171,7 +171,8 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
       url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
     }]);
     await page.goto('/newsletter');
-    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    // Wait for Hebrew class to be applied (React reads the cookie and adds the class)
+    await page.waitForSelector('body.interface-hebrew', { timeout: 15000 });
 
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
     await expect(page.locator('text=Learn about our weekly study emails').first()).toHaveCount(0);

@@ -53,7 +53,7 @@ jest.mock('../newsletterApi', () => {
 
   return {
     __esModule: true,
-    default: { isMockMode: () => true },
+    default: {},
     subscribeNewsletter: sub,
     updatePreferences: upd,
     updateLearningLevel: lvl,
@@ -105,6 +105,7 @@ jest.mock('../SuccessView', () => {
 
 jest.mock('../../Misc', () => ({
   LoadingMessage: () => null,
+  LoadingRing: () => null,
 }));
 
 // --- Import the component under test AFTER all mocks ---
@@ -138,11 +139,12 @@ afterEach(() => {
   container = null;
 });
 
-/** Render (or re-render) the form and flush effects. */
-const renderForm = (props = {}) => {
+/** Render (or re-render) the form and flush all pending promises. */
+const renderForm = async (props = {}) => {
   act(() => {
     ReactDOM.render(React.createElement(NewsletterSignUpPageForm, props), container);
   });
+  await flushPromises();
 };
 
 /** Flush a microtask (resolved promise) inside act(). */
@@ -158,21 +160,21 @@ describe('NewsletterSignUpPageForm', () => {
   // ---------- Suite 1: Initial state ----------
 
   describe('Initial state (logged-out)', () => {
-    it('starts with IDLE status and NEWSLETTER_SELECTION stage', () => {
-      renderForm();
+    it('starts with IDLE status and NEWSLETTER_SELECTION stage', async () => {
+      await renderForm();
 
       expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.IDLE);
       expect(lastFormViewProps.formStatus.currentStage).toBe(STAGE.NEWSLETTER_SELECTION);
     });
 
-    it('starts with empty fieldErrors', () => {
-      renderForm();
+    it('starts with empty fieldErrors', async () => {
+      await renderForm();
 
       expect(lastFormViewProps.fieldErrors).toEqual({});
     });
 
-    it('starts with default formData values', () => {
-      renderForm();
+    it('starts with default formData values', async () => {
+      await renderForm();
 
       const fd = lastFormViewProps.formData;
       expect(fd.firstName).toBe('');
@@ -184,14 +186,14 @@ describe('NewsletterSignUpPageForm', () => {
       expect(fd.wantsMarketingEmails).toBe(true);
     });
 
-    it('hasAttemptedSubmit starts as false', () => {
-      renderForm();
+    it('hasAttemptedSubmit starts as false', async () => {
+      await renderForm();
 
       expect(lastFormViewProps.hasAttemptedSubmit).toBe(false);
     });
 
-    it('notifies parent of initial NEWSLETTER_SELECTION stage', () => {
-      renderForm({ onStageChange: stageChangeSpy });
+    it('notifies parent of initial NEWSLETTER_SELECTION stage', async () => {
+      await renderForm({ onStageChange: stageChangeSpy });
 
       expect(stageChangeSpy).toHaveBeenCalledWith(STAGE.NEWSLETTER_SELECTION);
     });
@@ -201,7 +203,7 @@ describe('NewsletterSignUpPageForm', () => {
 
   describe('Validation — logged-out submit with empty form', () => {
     it('produces errors for firstName, lastName, email, and newsletters (confirmEmail matches when both empty)', async () => {
-      renderForm();
+      await renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       const errors = lastFormViewProps.fieldErrors;
@@ -216,7 +218,7 @@ describe('NewsletterSignUpPageForm', () => {
     });
 
     it('each error is a bilingual {en, he} object', async () => {
-      renderForm();
+      await renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       const errors = lastFormViewProps.fieldErrors;
@@ -229,7 +231,7 @@ describe('NewsletterSignUpPageForm', () => {
     });
 
     it('sets formStatus.status to ERROR', async () => {
-      renderForm();
+      await renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
@@ -241,7 +243,7 @@ describe('NewsletterSignUpPageForm', () => {
   describe('Validation — individual field errors', () => {
     /** Helper: fill form, override specific fields, then submit. */
     const submitWithOverrides = async (overrides = {}) => {
-      renderForm();
+      await renderForm();
 
       // Start with a valid baseline
       const valid = {
@@ -304,7 +306,7 @@ describe('NewsletterSignUpPageForm', () => {
 
   describe('Newsletter revalidation useEffect (stale-closure bug fix)', () => {
     it('clears newsletter error when a newsletter is toggled on', async () => {
-      renderForm();
+      await renderForm();
 
       // Submit empty form → newsletter error appears
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -318,7 +320,7 @@ describe('NewsletterSignUpPageForm', () => {
     });
 
     it('restores newsletter error when all newsletters are toggled off', async () => {
-      renderForm();
+      await renderForm();
 
       // Submit empty → error
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -333,8 +335,8 @@ describe('NewsletterSignUpPageForm', () => {
       expect(lastFormViewProps.fieldErrors.newsletters).toBe(BILINGUAL_TEXT.SELECT_NEWSLETTER);
     });
 
-    it('does not run revalidation before submit has been attempted', () => {
-      renderForm();
+    it('does not run revalidation before submit has been attempted', async () => {
+      await renderForm();
 
       // Toggle without submitting first
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
@@ -353,7 +355,7 @@ describe('NewsletterSignUpPageForm', () => {
         () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 0))
       );
 
-      renderForm();
+      await renderForm();
 
       // Fill valid form
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
@@ -378,7 +380,7 @@ describe('NewsletterSignUpPageForm', () => {
     });
 
     it('calls subscribeNewsletter with correct args', async () => {
-      renderForm();
+      await renderForm();
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
       act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
@@ -397,7 +399,7 @@ describe('NewsletterSignUpPageForm', () => {
     });
 
     it('notifies parent when stage changes to CONFIRMATION', async () => {
-      renderForm({ onStageChange: stageChangeSpy });
+      await renderForm({ onStageChange: stageChangeSpy });
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
       act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
@@ -418,7 +420,7 @@ describe('NewsletterSignUpPageForm', () => {
     it('sets ERROR status with bilingual errorMessage on rejection', async () => {
       subscribeNewsletter.mockRejectedValueOnce(new Error('Server unavailable'));
 
-      renderForm();
+      await renderForm();
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
       act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
@@ -438,7 +440,7 @@ describe('NewsletterSignUpPageForm', () => {
     it('uses GENERIC_ERROR when error has no message', async () => {
       subscribeNewsletter.mockRejectedValueOnce(new Error());
 
-      renderForm();
+      await renderForm();
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
       act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
@@ -459,8 +461,7 @@ describe('NewsletterSignUpPageForm', () => {
       Sefaria._uid = 1;
       Sefaria._email = 'user@example.com';
 
-      renderForm();
-      await flushPromises(); // let init useEffect settle
+      await renderForm();
 
       // Submit with no newsletters and no other errors (email is pre-filled)
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -487,8 +488,7 @@ describe('NewsletterSignUpPageForm', () => {
         learningLevel: null,
       });
 
-      renderForm();
-      await flushPromises(); // let init useEffect + fetchUserSubscriptions settle
+      await renderForm();
 
       // formData should now have sefaria_news pre-selected and email pre-filled
       // Submit without changing anything
@@ -502,7 +502,7 @@ describe('NewsletterSignUpPageForm', () => {
 
   describe('Final success stage notifications', () => {
     it('notifies parent when skipping learning level moves to SUCCESS', async () => {
-      renderForm({ onStageChange: stageChangeSpy });
+      await renderForm({ onStageChange: stageChangeSpy });
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
       act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });

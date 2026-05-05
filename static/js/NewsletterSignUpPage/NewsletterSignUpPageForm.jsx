@@ -6,7 +6,7 @@ import { LoadingMessage, LoadingRing } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
 import SuccessView from './SuccessView';
-import NewsletterAPI, { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
+import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
 
 /**
  * NewsletterSignUpPageForm - Main container component
@@ -49,7 +49,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   // ========== DYNAMIC NEWSLETTER LIST ==========
   const [newsletters, setNewsletters] = useState(NEWSLETTERS);
-  const [newslettersLoading, setNewslettersLoading] = useState(!NewsletterAPI.isMockMode());
+  const [newslettersLoading, setNewslettersLoading] = useState(true);
 
   // Ref for focusing error summary on validation failure (accessibility)
   const errorSummaryRef = useRef(null);
@@ -63,80 +63,71 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
-    // Fetch newsletter list dynamically from AC API (real mode only)
-    if (!NewsletterAPI.isMockMode()) {
+    const isLoggedIn = !!Sefaria._uid;
+    const userEmail = isLoggedIn ? Sefaria._email : null;
+
+    setFormStatus(prev => ({ ...prev, isLoggedIn, userEmail }));
+    if (isLoggedIn) {
+      setFormData(prev => ({ ...prev, email: userEmail }));
+    }
+
+    // Build promises array; both fetches run in parallel.
+    // Each promise catches internally so Promise.all never rejects — the
+    // loader always clears even when one API call fails.
+    const promises = [
       getNewsletterLists()
         .then(response => {
           if (response.newsletters) {
-            const mapped = response.newsletters.map(nl => ({
+            setNewsletters(response.newsletters.map(nl => ({
               key: nl.stringid,
               labelKey: nl.displayName,
               icon: nl.icon,
-            }));
-            setNewsletters(mapped);
+            })));
           }
         })
         .catch(error => {
           console.error('Failed to fetch newsletter lists, using defaults:', error);
-        })
-        .finally(() => {
-          setNewslettersLoading(false);
-        });
-    }
+        }),
+    ];
 
-    // Check if user is logged in via Sefaria global object
-    const isLoggedIn = !!Sefaria._uid;
-    const userEmail = isLoggedIn ? Sefaria._email : null;
-
-    setFormStatus(prev => ({
-      ...prev,
-      isLoggedIn,
-      userEmail,
-    }));
-
-    // If logged in, pre-fill email and fetch current subscriptions
     if (isLoggedIn) {
-      setFormData(prev => ({
-        ...prev,
-        email: userEmail,
-      }));
+      promises.push(
+        fetchUserSubscriptions(userEmail)
+          .then(response => {
+            if (response.success && response.subscribedNewsletters) {
+              const selectedNewsletters = {};
+              response.subscribedNewsletters.forEach(key => {
+                selectedNewsletters[key] = true;
+              });
 
-      // Fetch user's current subscriptions from the API
-      fetchUserSubscriptions(userEmail)
-        .then(response => {
-          if (response.success && response.subscribedNewsletters) {
-            // Convert array of newsletter keys to object mapping
-            const selectedNewsletters = {};
-            response.subscribedNewsletters.forEach(key => {
-              selectedNewsletters[key] = true;
-            });
+              // Stale opt-out detection: if backend says opted-out but user has
+              // active managed subscriptions (re-subscribed via another channel),
+              // show as opted-in. The MongoDB value is NOT corrected until user submits.
+              const backendWantsMarketing = response.wantsMarketingEmails ?? true;
+              const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
+              const effectiveWantsMarketing = !backendWantsMarketing && hasActiveManagedSubscription
+                ? true
+                : backendWantsMarketing;
 
-            // Stale opt-out detection: if backend says opted-out but user has
-            // active managed subscriptions (re-subscribed via another channel),
-            // show as opted-in. The MongoDB value is NOT corrected until user submits.
-            const backendWantsMarketing = response.wantsMarketingEmails ?? true;
-            const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
-            const effectiveWantsMarketing = !backendWantsMarketing && hasActiveManagedSubscription
-              ? true
-              : backendWantsMarketing;
+              initialSubscriptionsRef.current = { ...selectedNewsletters };
+              initialWantsMarketingRef.current = effectiveWantsMarketing;
 
-            // Snapshot the initial state for diff computation on submit
-            initialSubscriptionsRef.current = { ...selectedNewsletters };
-            initialWantsMarketingRef.current = effectiveWantsMarketing;
-
-            setFormData(prev => ({
-              ...prev,
-              selectedNewsletters,
-              wantsMarketingEmails: effectiveWantsMarketing,
-              learningLevel: response.learningLevel ?? null,
-            }));
-          }
-        })
-        .catch(error => {
-          // Log error but don't break the form
-          console.error('Failed to fetch user subscriptions:', error);
-        });
+              setFormData(prev => ({
+                ...prev,
+                selectedNewsletters,
+                wantsMarketingEmails: effectiveWantsMarketing,
+                learningLevel: response.learningLevel ?? null,
+              }));
+            }
+          })
+          .catch(error => {
+            console.error('Failed to fetch user subscriptions:', error);
+          })
+      );
     }
+
+    // Gate: form only renders after ALL required data arrives
+    Promise.all(promises).finally(() => setNewslettersLoading(false));
   }, []);
 
   // Revalidate newsletter selection reactively after submit has been attempted.
