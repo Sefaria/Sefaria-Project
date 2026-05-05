@@ -49,8 +49,8 @@ All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at 
 | `GET /api/sheets/user/{user_id}` | List a user's public sheets. | Split path; user_id recipe; public-only caveat |
 | `GET /api/sheets/user/{user_id}/{sort_by}/{limiter}/{offset}` | Same, paginated and sorted. | Same as above |
 | `GET /api/v2/sheets/bulk/{sheet_id_list}` | Fetch many sheets at once via piped ID list. | sheet_id recipe |
-| `GET /api/sheets/trending-tags/` | Currently trending sheet tags. | — |
-| `GET /api/sheets/tag-list/` | All sheet tags, sorted by count. | — |
+| `GET /api/sheets/trending-tags` | Currently trending sheet tags. | — |
+| `GET /api/sheets/tag-list` | All sheet tags, sorted by count. | — |
 | `GET /api/sheets/tag-list/{sort_by}` | All sheet tags with chosen sort order. | — |
 | `GET /api/sheets/tag-list/user/{user_id}` | Tags used on a specific user's sheets. | user_id recipe |
 | `GET /api/sheets/ref/{ref}` | Public sheets that cite a given ref. | — |
