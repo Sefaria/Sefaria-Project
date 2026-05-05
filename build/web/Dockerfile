@@ -12,7 +12,11 @@ ENV DJANGO_PORT=80
 ENV NODEJS_PORT=3000
 ENV DEBUG=false
 
-RUN apt-get update -y && apt-get install -y git npm varnish && apt-get clean
+# gcc/libc6-dev/libpq-dev needed to build C-extensions (datrie, lxml, gevent, psycopg2)
+# from source on Python 3.12 when no wheels are available. Mirrors the main Dockerfile.
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends git npm varnish gcc libc6-dev libpq-dev \
+    && apt-get clean
 RUN mkdir -p /app/log /app/sefaria /log
 
 WORKDIR /app/
