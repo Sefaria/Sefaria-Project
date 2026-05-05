@@ -24,6 +24,7 @@
   margin: 0 auto;
   padding: 40px 0;
   box-sizing: border-box;
+  scroll-margin-top: 3.75rem;
 }
 
 /* Loading state — spinner + text, centered */
@@ -59,6 +60,7 @@
   width: 100%;
   max-width: 760px;
   animation: fadeIn 0.3s ease-in;
+  scroll-margin-top: 3.75rem;
 }
 
 @keyframes fadeIn {

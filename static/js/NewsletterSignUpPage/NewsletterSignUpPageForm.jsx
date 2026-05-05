@@ -130,6 +130,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   // Ref for focusing error summary on validation failure (accessibility)
   const errorSummaryRef = useRef(null);
+  // Ref for scrolling to top of form section on stage transition
+  const containerRef = useRef(null);
 
   // Baseline snapshots for computing subscription diffs (logged-in users only).
   // Refs because these are write-once values that never drive rendering.
@@ -237,6 +239,13 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   useEffect(() => {
     onStageChange?.(formStatus.currentStage);
   }, [formStatus.currentStage, onStageChange]);
+
+  // Scroll to top of form section when transitioning to confirmation or success
+  useEffect(() => {
+    if (formStatus.currentStage !== STAGE.NEWSLETTER_SELECTION) {
+      containerRef.current?.scrollIntoView?.({ behavior: 'instant', block: 'start' });
+    }
+  }, [formStatus.currentStage]);
 
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
@@ -554,7 +563,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   };
 
   return (
-    <div className="newsletterSignUpPageForm">
+    <div className="newsletterSignUpPageForm" ref={containerRef}>
       {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && newslettersLoading && (
         <div className="newsletterLoadingState">
           <LoadingRing />
