@@ -58,8 +58,8 @@ spec:
             type: Exact
             value: /api/version-bulk-delete
       timeouts:
-        request: 10m
-        backendRequest: 10m
+        request: 5m
+        backendRequest: 5m
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
@@ -68,8 +68,8 @@ spec:
             type: PathPrefix
             value: /api/text-upload
       timeouts:
-        request: 10m
-        backendRequest: 10m
+        request: 5m
+        backendRequest: 5m
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
@@ -80,8 +80,8 @@ spec:
             type: PathPrefix
             value: /modtools/
       timeouts:
-        request: 10m
-        backendRequest: 10m
+        request: 5m
+        backendRequest: 5m
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
