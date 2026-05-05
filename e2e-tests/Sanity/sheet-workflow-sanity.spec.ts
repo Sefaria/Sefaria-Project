@@ -214,6 +214,7 @@ test.describe.serial('Sheet Workflow Sanity Tests', () => {
     await hideAllModalsAndPopups(page);
 
     const sheetEditorPage = new SheetEditorPage(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
     const collectionName = `Test Collection ${Date.now()}`;
     await sheetEditorPage.createAndAddToCollection(collectionName);
 
