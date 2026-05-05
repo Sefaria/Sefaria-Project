@@ -17,7 +17,7 @@ A complete inventory of every Sefaria API endpoint and the decision on whether t
 | Skipped — auth flow (login / register / JWT) | 4 |
 | Skipped — forms / telemetry / subscribe | 5 |
 | Skipped — duplicates or version-status helpers | ~12 |
-| Skipped — broken / unreliable | 2 |
+| Skipped — broken / unreliable | 3 |
 | **Total** | **~152** |
 
 (Counts use ~ because a few endpoints serve multiple regex patterns; the totals jiggle by 1–3 depending on how you count.)
@@ -35,11 +35,11 @@ An endpoint is skipped from public documentation if any of the following apply:
 
 When a future engineer adds a new endpoint, the rubric above is the contract: if it fits a skip bucket, it stays out of `openAPI.json` unless we explicitly revisit.
 
-## In scope — newly documented (31 endpoints)
+## In scope — newly documented (29 endpoints)
 
 All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at `voices.sefaria.org`, but their API endpoints live at `www.sefaria.org` like everything else.
 
-### Sheets (12)
+### Sheets (13)
 
 | Endpoint | Description | Notes |
 |---|---|---|
@@ -74,17 +74,17 @@ All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at 
 
 (`GET /api/texts/parashat_hashavua` was originally in scope but moved to "broken / unreliable" — see below — after consistent 504s during capture on 2026-05-05.)
 
-### Index (6, including Authors fold-in)
+### Index (7, including Authors fold-in)
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/index/titles/` | All index titles. |
+| `GET /api/index/titles` | All index titles. |
 | `GET /api/index/{title}` | Index metadata. |
 | `GET /api/v2/index/{title}` | v2 index metadata. |
 | `GET /api/counts/{title}` | Word/segment counts for a title. |
 | `GET /api/counts/links/{cat1}/{cat2}` | Link counts between two categories. |
 | `GET /api/counts/words/{title}/{version}/{language}` | Word counts for a specific version. |
-| `GET /api/authors/{author_slug}/indexes/` | List of indexes by an author. (author_slug lookup recipe.) |
+| `GET /api/authors/{author_slug}/indexes` | List of indexes by an author. (author_slug lookup recipe.) |
 
 ### Related (1)
 
@@ -96,8 +96,8 @@ All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at 
 
 | Endpoint | Description | Notes |
 |---|---|---|
-| `GET /api/calendars/topics/parasha/` | Topic info for current parasha. | — |
-| `GET /api/calendars/topics/holiday/` | Topic info for current holiday. | Returns 404 when no holiday is active; example uses a fixed canonical holiday date |
+| `GET /api/calendars/topics/parasha` | Topic info for current parasha. | — |
+| `GET /api/calendars/topics/holiday` | Topic info for current holiday. | Returns 404 when no holiday is active; example uses a fixed canonical holiday date |
 
 ### Misc (1, including Profile fold-in)
 
@@ -232,13 +232,13 @@ Endpoints group into the following sidebar folders (= OpenAPI `tags`):
 
 | Tag | Endpoint count | Net change |
 |---|---|---|
-| Text | 8 | +3 |
-| Index | 11 | +7 (incl. Authors fold-in) |
+| Text | 9 | +2 |
+| Index | 10 | +7 (incl. Authors fold-in) |
 | Related | 5 | +1 |
 | Calendars | 4 | +2 |
 | Lexicon | 3 | unchanged |
 | Topic | 5 | unchanged |
 | Term | 1 | unchanged |
-| Sheets *(new)* | 12 | +12 |
+| Sheets *(new)* | 13 | +13 |
 | Collections *(new)* | 3 | +3 |
 | Misc | 7 | +1 (Profile fold-in) |
