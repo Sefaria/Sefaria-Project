@@ -86,16 +86,22 @@ def _get_base_text_ref_for_grouping(ref_str: str):
     return _get_commentary_base_ref(ref_str)
 
 
-def find_all_resolutions():
+def find_all_resolutions(debug_parent_ref=None):
     """
     Find all LinkerOutput records needing disambiguation (ambiguous or non-segment),
     and group payloads by base text ref so that tasks sharing a cached prompt are
     dispatched together within the 5-minute TTL.
 
+    Args:
+        debug_parent_ref: optional Ref; when set, only process citing refs that are
+            equal to or contained within this ref.
+
     Returns:
         dict mapping base_text_ref -> list of AmbiguousResolutionPayload | NonSegmentResolutionPayload
     """
     print("Loading LinkerOutputs needing disambiguation...")
+    if debug_parent_ref is not None:
+        print(f"DEBUG REF: Limiting to refs equal to or contained in '{debug_parent_ref.normal()}'")
     if DEBUG_MODE:
         print(f"DEBUG MODE: Fetching {DEBUG_LIMIT} random examples with seed {DEBUG_SEED}")
 
@@ -144,24 +150,34 @@ def find_all_resolutions():
                 r = s.get('ref')
                 if not r:
                     continue
-                if r not in ambiguous_refs:
-                    ambiguous_refs.append(r)
                 try:
                     normalized_refs.add(Ref(r).normal())
                 except Exception:
                     normalized_refs.add(r)
 
+            has_match_to_parent_ref = False
             if len(normalized_refs) > 1:
-                groups[base_ref].append(AmbiguousResolutionPayload(
-                    ref=citing_ref,
-                    versionTitle=raw_doc['versionTitle'],
-                    language=raw_doc['language'],
-                    charRange=list(char_range),
-                    text=text,
-                    ambiguous_refs=ambiguous_refs,
-                ))
-                total_ambiguous += 1
-                progress.set_postfix(ambiguous=total_ambiguous, non_segment=total_non_segment, refresh=False)
+                if debug_parent_ref is not None:
+                    for tref in normalized_refs:
+                        try:
+                            oref = Ref(tref)
+                            if debug_parent_ref.contains(oref) or oref == debug_parent_ref:
+                                has_match_to_parent_ref = True
+                                break
+                        except Exception:
+                            continue
+
+                if not debug_parent_ref or has_match_to_parent_ref:
+                    groups[base_ref].append(AmbiguousResolutionPayload(
+                        ref=citing_ref,
+                        versionTitle=raw_doc['versionTitle'],
+                        language=raw_doc['language'],
+                        charRange=list(char_range),
+                        text=text,
+                        ambiguous_refs=list(normalized_refs),
+                    ))
+                    total_ambiguous += 1
+                    progress.set_postfix(ambiguous=total_ambiguous, non_segment=total_non_segment, refresh=False)
 
         # --- Non-segment payloads ---
         for span in spans:
@@ -177,6 +193,13 @@ def find_all_resolutions():
                 ref_str = span.get('llm_resolved_ref_ambiguous') or ref_str
             if not ref_str:
                 continue
+            if debug_parent_ref is not None:
+                try:
+                    r = Ref(ref_str)
+                    if not (debug_parent_ref.contains(r) or r == debug_parent_ref):
+                        continue
+                except Exception:
+                    continue
 
             if _is_non_segment_or_perek_ref(ref_str):
                 try:
@@ -214,7 +237,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--start", type=int, default=0,
                         help="Number of individual payloads to skip before dispatching")
+    parser.add_argument("--debug-ref", type=str, default=None,
+                        help="Filter to citing refs equal to or contained within this ref")
     args = parser.parse_args()
+
+    debug_parent_ref = None
+    if args.debug_ref:
+        try:
+            debug_parent_ref = Ref(args.debug_ref)
+        except InputError:
+            print(f"ERROR: Could not parse --debug-ref '{args.debug_ref}'")
+            return
 
     print("Starting Library Links Disambiguation Tasks Dispatcher")
     if DEBUG_MODE:
@@ -231,15 +264,13 @@ def main():
         print("=" * 80 + "\n")
         return
 
-    groups = find_all_resolutions()
+    groups = find_all_resolutions(debug_parent_ref=debug_parent_ref)
 
     # Flatten groups into an ordered list, keeping each base-text group contiguous
     payloads_list = list(groups.values())
     all_payloads = [payload for payloads in payloads_list for payload in payloads]
-    random.shuffle(all_payloads)
     total = len(all_payloads)
     dispatch_list = all_payloads[args.start:] if args.start else all_payloads
-    dispatch_list = dispatch_list[:5000]
 
     print(f"Dispatching {len(dispatch_list)} tasks (skipping first {args.start})...")
     try:

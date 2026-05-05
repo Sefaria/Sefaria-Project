@@ -32,7 +32,7 @@ from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
-LANGSMITH_DEBUG_TAG = "reduced_tokens41"
+LANGSMITH_DEBUG_TAG = "reduced_tokens42"
 _MAX_LLM_CANDIDATES = 25  # deliberately high because scoring method is quite crude. the idea is just to bound the number of possibilities.
 
 # ---------------------------------------------------------------------------
