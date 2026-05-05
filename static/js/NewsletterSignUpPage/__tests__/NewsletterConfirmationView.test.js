@@ -81,7 +81,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: false,
         selectedNewsletters: { sefaria_news: true, educator_resources: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources, Educator Resources',
         subscriptionDiffs: null,
       });
 
@@ -93,7 +92,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: false,
         selectedNewsletters: { sefaria_news: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources',
         subscriptionDiffs: null,
       });
 
@@ -104,7 +102,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: false,
         selectedNewsletters: { sefaria_news: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources',
         subscriptionDiffs: null,
       });
 
@@ -115,7 +112,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: false,
         selectedNewsletters: {},
-        selectedNewsletterLabels: '',
         subscriptionDiffs: null,
       });
 
@@ -128,7 +124,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true, educator_resources: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources, Educator Resources',
         subscriptionDiffs: {
           added: ['Educator Resources'],
           removed: [],
@@ -143,7 +138,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true, educator_resources: true },
-        selectedNewsletterLabels: 'all',
         subscriptionDiffs: {
           added: ['Educator Resources'],
           removed: [],
@@ -159,7 +153,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources',
         subscriptionDiffs: {
           added: [],
           removed: ['Educator Resources'],
@@ -174,7 +167,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: {},
-        selectedNewsletterLabels: '',
         subscriptionDiffs: {
           added: [],
           removed: ['Sefaria News & Resources'],
@@ -190,7 +182,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { educator_resources: true },
-        selectedNewsletterLabels: 'Educator Resources',
         subscriptionDiffs: {
           added: ['Educator Resources'],
           removed: ['Sefaria News & Resources'],
@@ -209,7 +200,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources',
         subscriptionDiffs: {
           added: [],
           removed: [],
@@ -224,7 +214,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true },
-        selectedNewsletterLabels: 'Sefaria News & Resources',
         subscriptionDiffs: {
           added: [],
           removed: [],
@@ -242,7 +231,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: {},
-        selectedNewsletterLabels: '',
         subscriptionDiffs: {
           added: [],
           removed: [],
@@ -257,7 +245,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: {},
-        selectedNewsletterLabels: '',
         subscriptionDiffs: {
           added: [],
           removed: [],
@@ -272,7 +259,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { educator_resources: true },
-        selectedNewsletterLabels: 'Educator Resources',
         subscriptionDiffs: {
           added: ['Educator Resources'],
           removed: [],
@@ -291,7 +277,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { sefaria_news: true, educator_resources: true, parashah_series: true },
-        selectedNewsletterLabels: 'all',
         subscriptionDiffs: {
           added: ['Sefaria News & Resources', 'Educator Resources', 'Weekly Parashah Study Series'],
           removed: [],
@@ -305,7 +290,6 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: {},
-        selectedNewsletterLabels: '',
         subscriptionDiffs: {
           added: [],
           removed: ['Sefaria News & Resources', 'Educator Resources'],

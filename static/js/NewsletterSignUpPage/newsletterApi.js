@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { NEWSLETTERS } from './constants';
 
 /**
  * Newsletter API Module - Dual Mode (Mock/Real)
@@ -185,54 +186,13 @@ const MockAPI = {
    */
   getNewsletterLists: async () => {
     await simulateNetworkDelay();
-
     console.log("✓ Fetching newsletter lists (MOCKED)");
-
     return {
-      newsletters: [
-        {
-          id: "1",
-          stringid: "sefaria_news",
-          displayName: "Sefaria News & Resources",
-          icon: "news-and-resources.svg",
-          language: "english",
-        },
-        {
-          id: "2",
-          stringid: "educator_resources",
-          displayName: "Educator Resources",
-          icon: "educator-resources.svg",
-          language: "english",
-        },
-        {
-          id: "3",
-          stringid: "text_updates",
-          displayName: "New Text Updates",
-          icon: "new-text-release-updates.svg",
-          language: "english",
-        },
-        {
-          id: "4",
-          stringid: "parashah_series",
-          displayName: "Weekly Parashah Study Series",
-          icon: "weekly-study-guide.svg",
-          language: "english",
-        },
-        {
-          id: "5",
-          stringid: "tech_updates",
-          displayName: "Technology and Developer Updates",
-          icon: "technology-updates.svg",
-          language: "english",
-        },
-        {
-          id: "6",
-          stringid: "timeless_topics",
-          displayName: "Timeless Topics",
-          icon: "timeless-topics.svg",
-          language: "english",
-        },
-      ],
+      newsletters: NEWSLETTERS.map(nl => ({
+        stringid: nl.key,
+        displayName: nl.labelKey,
+        icon: nl.icon,
+      })),
     };
   },
 };

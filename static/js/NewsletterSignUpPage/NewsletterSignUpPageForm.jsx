@@ -1,89 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sefaria from '../sefaria/sefaria';
-import { FORM_STATUS, STAGE } from './constants';
+import { FORM_STATUS, STAGE, NEWSLETTERS, LEARNING_LEVELS } from './constants';
 import { BILINGUAL_TEXT } from './bilingualUtils';
 import { LoadingMessage, LoadingRing } from '../Misc';
 import NewsletterFormView from './NewsletterFormView';
 import NewsletterConfirmationView from './NewsletterConfirmationView';
 import SuccessView from './SuccessView';
 import NewsletterAPI, { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
-
-/**
- * NEWSLETTER CONFIGURATION
- * Defines available newsletters with metadata and icons
- * Labels are translatable using Sefaria._()
- */
-const NEWSLETTERS = [
-  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources', icon: 'news-and-resources.svg' },
-  { key: 'educator_resources', labelKey: 'Educator Resources', icon: 'educator-resources.svg' },
-  { key: 'text_updates', labelKey: 'New Text Updates', icon: 'new-text-release-updates.svg' },
-  { key: 'parashah_series', labelKey: 'Weekly Parashah Study Series', icon: 'weekly-study-guide.svg' },
-  { key: 'tech_updates', labelKey: 'Technology and Developer Updates', icon: 'technology-updates.svg' },
-  { key: 'timeless_topics', labelKey: 'Timeless Topics', icon: 'timeless-topics.svg' },
-];
-
-/**
- * LEARNING LEVELS
- * Defines the learning level options presented to users
- * Each level has bilingual label and description
- */
-const LEARNING_LEVELS = [
-  {
-    value: 1,
-    label: {
-      en: 'Newcomer',
-      he: 'מתחיל',
-    },
-    description: {
-      en: 'I need significant guidance and translation to navigate and study the texts in the Jewish library.',
-      he: 'אני צריך הנחיה משמעותית ותרגום כדי לנווט ללמוד טקסטים בספרייה היהודית.',
-    },
-  },
-  {
-    value: 2,
-    label: {
-      en: 'Beginner',
-      he: 'חדש',
-    },
-    description: {
-      en: 'I need translation and contextual information to navigate and study the Jewish library.',
-      he: 'אני צריך תרגום ומידע הקשרי כדי לנווט ללמוד את הספרייה היהודית.',
-    },
-  },
-  {
-    value: 3,
-    label: {
-      en: 'Intermediate',
-      he: 'ביניים',
-    },
-    description: {
-      en: 'I can navigate the library but need translation and/or context for meaningful study.',
-      he: 'אני יכול לנווט בספרייה אך אני צריך תרגום ו/או הקשר ללימוד משמעותי.',
-    },
-  },
-  {
-    value: 4,
-    label: {
-      en: 'Advanced',
-      he: 'מתקדם',
-    },
-    description: {
-      en: 'I can easily navigate the Jewish library but benefit from translation and/or context in some cases.',
-      he: 'אני יכול לנווט בקלות בספרייה היהודית אך מקבל תועלת מתרגום ו/או הקשר במקרים מסוימים.',
-    },
-  },
-  {
-    value: 5,
-    label: {
-      en: 'Expert',
-      he: 'מומחה',
-    },
-    description: {
-      en: 'I can easily study the texts of the Jewish library independently in their original language.',
-      he: 'אני יכול בקלות ללמוד את הטקסטים של הספרייה היהודית באופן עצמאי בשפתם המקורית.',
-    },
-  },
-];
 
 /**
  * NewsletterSignUpPageForm - Main container component
@@ -473,14 +396,6 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     }
   };
 
-  const handleSkipLearningLevel = () => {
-    // Go directly to success view without saving learning level
-    setFormStatus(prev => ({
-      ...prev,
-      currentStage: STAGE.SUCCESS,
-    }));
-  };
-
   // ========== VALIDATION ==========
 
   /**
@@ -552,16 +467,6 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   // ========== RENDER: View routing based on current stage ==========
 
-  const getSelectedNewsletterLabels = () => {
-    return Object.entries(formData.selectedNewsletters)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([key]) => {
-        const newsletter = newsletters.find(n => n.key === key);
-        return newsletter ? Sefaria._(newsletter.labelKey) : key;
-      })
-      .join(', ');
-  };
-
   return (
     <div className="newsletterSignUpPageForm" ref={containerRef}>
       {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && newslettersLoading && (
@@ -576,8 +481,6 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           formData={formData}
           formStatus={formStatus}
           newsletters={newsletters}
-          isLoggedIn={formStatus.isLoggedIn}
-          userEmail={formStatus.userEmail}
           fieldErrors={validationState.fieldErrors}
           hasAttemptedSubmit={validationState.hasAttemptedSubmit}
           errorSummaryRef={errorSummaryRef}
@@ -597,13 +500,12 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           email={formData.email}
           selectedNewsletters={formData.selectedNewsletters}
           newsletters={newsletters}
-          selectedNewsletterLabels={getSelectedNewsletterLabels()}
           formStatus={formStatus}
           selectedLevel={formData.learningLevel}
           learningLevels={LEARNING_LEVELS}
           onLevelSelect={handleLearningLevelSelect}
           onSave={handleLearningLevelSubmit}
-          onSkip={handleSkipLearningLevel}
+          onSkip={() => handleLearningLevelSubmit(false)}
           isLoggedIn={formStatus.isLoggedIn}
           subscriptionDiffs={formStatus.isLoggedIn ? getSubscriptionDiffs() : null}
           marketingOptOut={!formData.wantsMarketingEmails}

@@ -3115,23 +3115,21 @@ const ProductsPage = memo(() => {
 });
 
 
-const HeaderForNewsletterPage = () => {
-  var enTitle="Stay Connected"
-  var enText="Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria."
-  var heText="הרשמו לרשימת התפוצה שלנו כדי לקבל משאבי לימוד ולהתעדכן במה שקורה בספריא."
-  var heTitle="הישארו מחוברים"
-  return <div className="staticPageHeader newsletter">
+const HeaderForNewsletterPage = () => (
+  <div className="staticPageHeader newsletter">
     <div className="staticPageBlockInner flexContainer">
       <div className="staticPageHeaderTextBox newsletter">
         <h1>
-          <span className="int-en">{enTitle}</span>
-          <span className="int-he">{heTitle}</span>
+          <span className="int-en">{BILINGUAL_TEXT.HERO_TITLE.en}</span>
+          <span className="int-he">{BILINGUAL_TEXT.HERO_TITLE.he}</span>
         </h1>
-        <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+        <SimpleInterfaceBlock classes="staticPageHeaderText"
+          en={BILINGUAL_TEXT.HERO_DESCRIPTION.en}
+          he={BILINGUAL_TEXT.HERO_DESCRIPTION.he} />
       </div>
     </div>
   </div>
-};
+);
 
 const EnhancedFeature = ({enTitle, enText, enImg, enImgAlt, borderColor, link, iframeSrc}) => (
     <div className="feature">

@@ -17,6 +17,16 @@
  * Keeps translations in one place for easy maintenance
  */
 export const BILINGUAL_TEXT = {
+  // Hero section (page header above the form)
+  HERO_TITLE: {
+    en: 'Stay Connected',
+    he: 'הישארו מחוברים',
+  },
+  HERO_DESCRIPTION: {
+    en: 'Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria.',
+    he: 'הרשמו לרשימת התפוצה שלנו כדי לקבל משאבי לימוד ולהתעדכן במה שקורה בספריא.',
+  },
+
   // Header text
   SUBSCRIBE_TITLE: {
     en: 'Sign Up for Emails',
@@ -85,10 +95,6 @@ export const BILINGUAL_TEXT = {
     en: 'Subscribe',
     he: 'הרשמו',
   },
-  SUBSCRIBING: {
-    en: 'Subscribing...',
-    he: 'הרשמה...',
-  },
   UPDATE_PREFERENCES: {
     en: 'Update Preferences',
     he: 'עדכנו העדפות',
@@ -137,29 +143,9 @@ export const BILINGUAL_TEXT = {
   },
 
   // Learning level
-  HELP_TAILOR_CONTENT: {
-    en: 'Help us tailor your content',
-    he: 'עזור לנו להתאים את התוכן שלך',
-  },
-  LEARNING_LEVEL_SUBTITLE: {
-    en: 'To make sure we send you the most relevant content, please let us know your learning level. Help us get to know you better.',
-    he: 'כדי לוודא שנשלח לכם את התוכן הרלוונטי ביותר, אנא ספרו לנו מהי רמת הלמידה שלכם. עזרו לנו להכיר אתכם טוב יותר.',
-  },
   LEARNING_LEVEL_HEADER: {
     en: 'In terms of your ability to study Jewish texts, select the statement below that best describes you:',
     he: 'מבחינת היכולת שלך ללמוד טקסטים יהודיים, בחר את ההיגד למטה שמתאר אותך בצורה הטובה ביותר:',
-  },
-  SAVE_MY_LEVEL: {
-    en: 'Save my level',
-    he: 'שמור את הרמה שלי',
-  },
-  SAVING: {
-    en: 'Saving...',
-    he: 'שמירה...',
-  },
-  SKIP_TO_HOMEPAGE: {
-    en: 'No thanks, take me to the homepage',
-    he: 'לא תודה, קח אותי לדף הבית',
   },
   OR_PREFIX: {
     en: 'Or',

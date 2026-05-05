@@ -87,16 +87,7 @@
   margin-bottom: 40px;
 }
 
-.newsletterFormTitle {
-  font-size: var(--sans-serif-h2-font-size);
-  font-weight: 500;
-  color: var(--dark-grey);
-  margin: 0 0 15px 0;
-  font-family: var(--english-sans-serif-font-family);
-  line-height: 1.3;
-  scroll-margin-top: 4.5rem;
-}
-
+.newsletterFormTitle,
 .newsletterConfirmationView .confirmationTitle,
 .successView .successTitle {
   font-size: var(--sans-serif-h2-font-size);
@@ -105,6 +96,9 @@
   margin: 0 0 15px 0;
   font-family: var(--english-sans-serif-font-family);
   line-height: 1.3;
+}
+.newsletterFormTitle {
+  scroll-margin-top: 4.5rem;
 }
 .newsletterFormSubtitle,
 .newsletterConfirmationView .confirmationMessage {
@@ -159,15 +153,16 @@
 .newsletterFormView input[type="text"],
 .newsletterFormView input[type="email"] {
   padding: 12px 20px;
-  border: 1px solid var(--light-grey);
+  border: 1px solid transparent;
   border-radius: 6px;
   font-size: var(--sans-serif-body-font-size);
   font-family: var(--english-sans-serif-font-family);
   color: var(--darkest-grey);
   box-sizing: border-box;
   width: 100%;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease;
   margin: 0; /* Override .newsletterInput margin */
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px;
 }
 .newsletterFormView input[type="text"]::placeholder,
 .newsletterFormView input[type="email"]::placeholder {
@@ -178,7 +173,7 @@
 .newsletterFormView input[type="email"]:focus {
   outline: none;
   border-color: var(--select-blue);
-  box-shadow: 0 0 0 3px rgba(11, 113, 231, 0.1);
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px, 0 0 0 3px rgba(11, 113, 231, 0.1);
 }
 
 .newsletterFormView input[type="text"]:disabled,
@@ -253,9 +248,13 @@
   gap: 8px;
   font-family: var(--english-sans-serif-font-family);
 }
+.errorSummaryTitle .errorIcon {
+  flex: 0 0 20px;
+  text-align: center;
+}
 .errorSummaryList {
   margin: 0;
-  padding-inline-start: 24px;
+  padding-inline-start: 28px; /* 20px icon + 8px gap */
   list-style-type: disc;
 }
 
@@ -271,6 +270,10 @@
 
 .errorSummaryLink:hover {
   text-decoration: none;
+}
+
+span.errorIcon {
+  transform: translateY(-0.125em);
 }
 
 /* ============================================
@@ -420,10 +423,7 @@
   transition: background-color 0.2s ease;
 }
 
-.selectableOptionLabel.selected .selectableOptionIcon {
-  background-color: #999999;
-}
-
+.selectableOptionLabel.selected .selectableOptionIcon,
 .selectableOptionLabel:hover .selectableOptionIcon {
   background-color: #999999;
 }
@@ -517,8 +517,9 @@
   display: inline-flex;
 }
 
-/* Finished section styling */
-.finishedSection {
+/* Section dividers — top border + spacing */
+.finishedSection,
+.marketingEmailToggleSection {
   margin-top: 30px;
   padding-top: 30px;
   border-top: 1px solid var(--lighter-grey);
@@ -781,24 +782,12 @@
    Uses existing ToggleSet component with blueStyle
    ============================================ */
 
-.marketingEmailToggleSection {
-  margin-top: 30px;
-  padding-top: 30px;
-  border-top: 1px solid var(--lighter-grey);
-}
-
 .marketingEmailToggleLabel {
   font-size: var(--sans-serif-body-font-size);
   font-weight: 500;
   color: var(--darkest-grey);
   margin-bottom: 15px;
   font-family: var(--english-sans-serif-font-family);
-}
-
-.interface-hebrew .marketingEmailToggleLabel {
-  font-family: var(--hebrew-sans-serif-font-family);
-  font-size: 122%;
-  text-align: right;
 }
 
 /* Wrapper for the toggle - handles disabled state */
@@ -830,6 +819,7 @@
   line-height: 1.4;
 }
 
+.interface-hebrew .marketingEmailToggleLabel,
 .interface-hebrew .marketingEmailNote {
   font-family: var(--hebrew-sans-serif-font-family);
   font-size: 122%;
@@ -861,6 +851,11 @@
 .successView a:focus-visible {
   outline: 3px solid var(--select-blue);
   outline-offset: 2px;
+}
+
+/* Testimonial separators */
+.gridBoxRow:not(:last-child) .staticPageUserQuote {
+  border-bottom: 1px solid #CCCCCC;
 }
 
 /* Mobile layout */

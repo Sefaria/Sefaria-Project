@@ -97,8 +97,6 @@ const baseProps = {
     successMessage: null,
   },
   newsletters: NEWSLETTERS,
-  isLoggedIn: false,
-  userEmail: null,
   fieldErrors: {},
   hasAttemptedSubmit: false,
   errorSummaryRef: { current: null },

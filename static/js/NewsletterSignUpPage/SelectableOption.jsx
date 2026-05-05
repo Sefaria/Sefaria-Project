@@ -52,12 +52,9 @@ export default function SelectableOption({
     checked: isSelected,
     onChange,
     disabled,
+    ...(type === "radio" && { name, value }),
     ...analyticsAttributes,
   };
-  if (type === "radio") {
-    inputProps.name = name;
-    inputProps.value = value;
-  }
 
   return (
     <div className="selectableOptionWrapper">

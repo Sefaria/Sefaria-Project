@@ -1,4 +1,5 @@
 import React from "react";
+import Sefaria from "../sefaria/sefaria";
 import { InterfaceText, LoadingMessage } from "../Misc";
 import SelectableOption from "./SelectableOption";
 import { BILINGUAL_TEXT } from "./bilingualUtils";
@@ -20,7 +21,6 @@ import { FORM_STATUS } from "./constants";
 export default function NewsletterConfirmationView({
   email,
   selectedNewsletters,
-  selectedNewsletterLabels,
   newsletters = [],
   formStatus,
   selectedLevel,
@@ -56,6 +56,14 @@ export default function NewsletterConfirmationView({
       : selectedNewsletters[generalNewsletter.key]);
 
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
+
+  const selectedNewsletterLabels = Object.entries(selectedNewsletters)
+    .filter(([_, isSelected]) => isSelected)
+    .map(([key]) => {
+      const nl = newsletters.find(n => n.key === key);
+      return nl ? Sefaria._(nl.labelKey) : key;
+    })
+    .join(', ');
 
   return (
     <div

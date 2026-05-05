@@ -30,11 +30,10 @@ function InlineError({ fieldName, errors }) {
   );
 }
 
-function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled, fieldErrors, showError = true }) {
+function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled, fieldErrors }) {
   const error = fieldErrors[id];
   return (
     <div className="formField">
-      {showError && <InlineError fieldName={id} errors={fieldErrors} />}
       <input
         id={id}
         type={type}
@@ -58,8 +57,6 @@ export default function NewsletterFormView({
   formData,
   formStatus,
   newsletters,
-  isLoggedIn,
-  userEmail,
   fieldErrors = {}, // Per-field validation errors
   hasAttemptedSubmit = false, // Whether user has tried to submit
   errorSummaryRef, // Ref for focusing error summary
@@ -72,6 +69,7 @@ export default function NewsletterFormView({
   onFieldBlur, // Handler for field blur validation
   onSubmit,
 }) {
+  const { isLoggedIn, userEmail } = formStatus;
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
   const hasFieldErrors = hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
   const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
@@ -163,10 +161,10 @@ export default function NewsletterFormView({
             <div className="nameFieldsRow">
               <FormInput id="firstName" label="First Name" value={formData.firstName}
                 onChange={onFirstNameChange} onBlur={onFieldBlur}
-                disabled={isSubmitting} fieldErrors={fieldErrors} showError={false} />
+                disabled={isSubmitting} fieldErrors={fieldErrors} />
               <FormInput id="lastName" label="Last Name" value={formData.lastName}
                 onChange={onLastNameChange} onBlur={onFieldBlur}
-                disabled={isSubmitting} fieldErrors={fieldErrors} showError={false} />
+                disabled={isSubmitting} fieldErrors={fieldErrors} />
             </div>
           </div>
         )}
@@ -177,9 +175,11 @@ export default function NewsletterFormView({
             <h3 className="sectionHeader">
               <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
+            <InlineError fieldName="email" errors={fieldErrors} />
             <FormInput id="email" type="email" label="Email Address" value={formData.email}
               onChange={onEmailChange} onBlur={onFieldBlur}
               disabled={isSubmitting} fieldErrors={fieldErrors} />
+            <InlineError fieldName="confirmEmail" errors={fieldErrors} />
             <FormInput id="confirmEmail" type="email" label="Confirm Email Address" value={formData.confirmEmail}
               onChange={onConfirmEmailChange} onBlur={onFieldBlur}
               disabled={isSubmitting} fieldErrors={fieldErrors} />

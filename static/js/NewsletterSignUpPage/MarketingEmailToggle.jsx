@@ -38,7 +38,7 @@ export default function MarketingEmailToggle({ wantsMarketingEmails, onToggle, d
   ];
 
   // Handle toggle change - convert string value to boolean
-  const handleSetOption = (setName, optionName) => {
+  const handleSetOption = (_, optionName) => {
     if (!disabled) {
       onToggle(optionName === "yes");
     }
