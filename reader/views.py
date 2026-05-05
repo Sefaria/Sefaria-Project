@@ -3214,12 +3214,15 @@ def background_data_api(request):
     API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
+    language = request.GET.get("locale", 'english')
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
+
     data = {}
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
+        data["followRecommendations"] = profile.follow_recommendations(lang=language)
     else:
-        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
+        data["followRecommendations"] = general_follow_recommendations(lang=language)
 
     return jsonResponse(data)
 
