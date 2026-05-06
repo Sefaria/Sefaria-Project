@@ -622,8 +622,8 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 	he = _normalize_hebrew_punctuation(he)
 	other_he = _normalize_hebrew_punctuation(other_he)
 
-	he_words = he.strip().split()
-	other_words = other_he.strip().split()
+	he_words = he.split()
+	other_words = other_he.split()
 	he_abbrs = get_all_abbrs(he_words, other_words)
 	other_abbrs = get_all_abbrs(other_words, he_words)
 
