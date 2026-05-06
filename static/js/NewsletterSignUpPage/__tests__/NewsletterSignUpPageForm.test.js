@@ -15,7 +15,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import { FORM_STATUS, STAGE } from '../constants';
+import { FORM_STATUS, STAGE, NEWSLETTERS } from '../constants';
 import { BILINGUAL_TEXT } from '../bilingualUtils';
 
 // ============================================================================
@@ -66,6 +66,7 @@ const {
   subscribeNewsletter,
   updatePreferences,
   fetchUserSubscriptions,
+  getNewsletterLists,
 } = require('../newsletterApi');
 
 // --- Child view components: capture props on every render ---
@@ -517,5 +518,89 @@ describe('NewsletterSignUpPageForm', () => {
 
       expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.SUCCESS);
     });
+  });
+});
+
+// ============================================================================
+// Suite 9: getNewsletterLists failure → falls back to NEWSLETTERS constant
+// ============================================================================
+
+describe('Suite 9: getNewsletterLists failure falls back to NEWSLETTERS constant', () => {
+  beforeEach(() => {
+    getNewsletterLists.mockReturnValueOnce(Promise.reject(new Error('Service down')));
+  });
+
+  it('still renders the form after lists API failure', async () => {
+    await renderForm();
+    expect(lastFormViewProps.newsletters).toBeDefined();
+  });
+
+  it('uses NEWSLETTERS constant as fallback when lists API rejects', async () => {
+    await renderForm();
+    // Catch fires without calling setNewsletters — state stays at useState(NEWSLETTERS)
+    expect(lastFormViewProps.newsletters).toEqual(NEWSLETTERS);
+  });
+});
+
+// ============================================================================
+// Suite 10: fetchUserSubscriptions failure — logged-in form still renders
+// ============================================================================
+
+describe('Suite 10: fetchUserSubscriptions failure — form still renders for logged-in users', () => {
+  beforeEach(() => {
+    Sefaria._uid = 1;
+    Sefaria._email = 'user@example.com';
+    fetchUserSubscriptions.mockReturnValueOnce(Promise.reject(new Error('Unauthorized')));
+  });
+  afterEach(() => {
+    Sefaria._uid = 0;
+    Sefaria._email = null;
+  });
+
+  it('renders the form even when subscriptions API fails', async () => {
+    await renderForm();
+    expect(lastFormViewProps.formData).toBeDefined();
+  });
+
+  it('selectedNewsletters defaults to empty object on subscriptions failure', async () => {
+    await renderForm();
+    expect(lastFormViewProps.formData.selectedNewsletters).toEqual({});
+  });
+});
+
+// ============================================================================
+// Suite 11: Stale opt-out detection
+// ============================================================================
+
+describe('Suite 11: stale opt-out detection', () => {
+  beforeEach(() => {
+    Sefaria._uid = 1;
+    Sefaria._email = 'user@example.com';
+  });
+  afterEach(() => {
+    Sefaria._uid = 0;
+    Sefaria._email = null;
+  });
+
+  it('corrects wantsMarketingEmails to true when opted-out but has active subscriptions', async () => {
+    fetchUserSubscriptions.mockReturnValueOnce(Promise.resolve({
+      success: true,
+      subscribedNewsletters: ['sefaria_news'],
+      wantsMarketingEmails: false,
+      learningLevel: null,
+    }));
+    await renderForm();
+    expect(lastFormViewProps.formData.wantsMarketingEmails).toBe(true);
+  });
+
+  it('preserves wantsMarketingEmails=false when opted-out and no active subscriptions', async () => {
+    fetchUserSubscriptions.mockReturnValueOnce(Promise.resolve({
+      success: true,
+      subscribedNewsletters: [],
+      wantsMarketingEmails: false,
+      learningLevel: null,
+    }));
+    await renderForm();
+    expect(lastFormViewProps.formData.wantsMarketingEmails).toBe(false);
   });
 });

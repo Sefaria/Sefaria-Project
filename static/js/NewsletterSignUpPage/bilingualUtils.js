@@ -171,7 +171,7 @@ export const BILINGUAL_TEXT = {
   },
   RETURN_TO_SEFARIA: {
     en: 'Return to Sefaria',
-    he: 'חזור ל-Sefaria',
+    he: 'חזור לספריא',
   },
 
   // Privacy

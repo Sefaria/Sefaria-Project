@@ -672,3 +672,59 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     await expect(newslettersError).not.toBeVisible();
   });
 });
+
+// ============================================================================
+// Full flow: newsletter selection → learning level → success
+// Route interception must happen before page.goto, so this lives in its own
+// describe block with its own navigation rather than using the shared beforeEach.
+// ============================================================================
+
+test.describe('Newsletter Signup - Learning Level Flow', () => {
+  test('completing learning level selection shows success view', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.addInitScript(() => {
+      document.cookie = 'cookiesNotificationAccepted=1; path=/; max-age=31536000';
+    });
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'sefaria_news', displayName: 'Sefaria News & Resources', icon: 'news-and-resources.svg' },
+      ] } })
+    );
+    await page.route('**/api/newsletter/subscribe', (route) =>
+      route.fulfill({ json: { success: true } })
+    );
+    await page.route('**/api/newsletter/learning-level', (route) =>
+      route.fulfill({ json: { success: true } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.waitForSelector('.selectableOptionLabel', { timeout: 10000 });
+
+    // Fill required fields
+    await page.locator('input#firstName').fill('Ada');
+    await page.locator('input#lastName').fill('Lovelace');
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('ada@example.com');
+    await emailInputs.nth(1).fill('ada@example.com');
+
+    // Select the newsletter
+    await page.locator('label.selectableOptionLabel').first().click();
+
+    // Submit newsletter form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForSelector('.newsletterConfirmationView', { timeout: 10000 });
+
+    // Select first learning level option
+    await page.locator('.learningLevelOptions label.selectableOptionLabel').first().click();
+
+    // Save learning level
+    await page.locator('.saveButton').click();
+
+    // Success view should appear
+    await page.waitForSelector('.successView', { timeout: 10000 });
+    await expect(page.locator('.successView')).toContainText('All set!');
+  });
+});
