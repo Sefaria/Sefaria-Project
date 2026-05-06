@@ -14,7 +14,7 @@ import pymongo
 from collections import defaultdict
 import time as pytime
 
-from elastic_transport import TransportError
+from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -26,7 +26,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from sefaria.helper.search import get_elasticsearch_client_for_indexer
+from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
@@ -50,8 +50,13 @@ setup_logging(False)
 # Set up logger for this module
 logger = logging.getLogger(__name__)
 
-es_client = get_elasticsearch_client_for_indexer()
+es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
+# Separate client for the bulk-indexing path only (longer timeouts, retries
+# on connection failures). Must NOT replace `es_client` because online
+# deletion paths (delete_text, delete_version, delete_sheet) share that
+# module global and would inherit indexer-scale timeouts.
+_indexer_es_client = get_elasticsearch_client_for_indexer()
 
 # Constants for retry logic and progress logging
 MAX_RETRY_ATTEMPTS = 200
@@ -545,14 +550,16 @@ class TextIndexer(object):
         if not cls._bulk_actions:
             return 0
         try:
-            bulk(es_client, cls._bulk_actions, stats_only=True,
+            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
                  raise_on_error=False, request_timeout=120)
+            cls._bulk_actions = []
             return 0
-        except TransportError as e:
-            # Catch only transport-level failures (ConnectionTimeout,
-            # ConnectionError, serialization errors). Programming errors
-            # (TypeError, KeyError, etc.) must still propagate so we don't
-            # silently continue a fundamentally broken indexer.
+        except (ESConnectionError, ConnectionTimeout) as e:
+            # Only absorb connection-level failures. ConnectionTimeout and
+            # ConnectionError are siblings under TransportError in
+            # elastic_transport (NOT parent/child), so both must be listed
+            # explicitly. Programming errors, SerializationError, and
+            # API-level errors (mapping/auth/404) propagate to fail fast.
             logger.warning(
                 f"Bulk indexing failed: {type(e).__name__}: {e}; "
                 f"continuing with next index"
