@@ -261,6 +261,15 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         } else {
           delete newErrors[fieldName];
         }
+        // confirmEmail validity depends on email — re-evaluate it whenever email changes
+        if (fieldName === 'email') {
+          const confirmError = fieldValidators.confirmEmail();
+          if (confirmError) {
+            newErrors.confirmEmail = confirmError;
+          } else {
+            delete newErrors.confirmEmail;
+          }
+        }
         return { ...prev, fieldErrors: newErrors };
       });
     }
@@ -349,11 +358,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   const handleLearningLevelSubmit = async (shouldSave) => {
     if (!shouldSave) {
-      // User clicked "No thanks" - go straight to success
-      setFormStatus(prev => ({
-        ...prev,
-        currentStage: STAGE.SUCCESS,
-      }));
+      // User clicked "No thanks" - go straight to the home page
+      window.location.href = '/';
       return;
     }
 

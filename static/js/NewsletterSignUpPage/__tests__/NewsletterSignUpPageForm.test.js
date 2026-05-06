@@ -301,6 +301,20 @@ describe('NewsletterSignUpPageForm', () => {
       const errors = await submitWithOverrides({});
       expect(errors).toEqual({});
     });
+
+    it('blurring email clears stale confirmEmail mismatch error when emails now match', async () => {
+      // Submit with mismatched emails → hasAttemptedSubmit=true, confirmEmail error set
+      await submitWithOverrides({ email: 'ada@example.com', confirmEmail: 'different@example.com' });
+      expect(lastFormViewProps.fieldErrors.confirmEmail).toBe(BILINGUAL_TEXT.EMAILS_MISMATCH);
+
+      // User fixes email to match the already-typed confirmEmail value
+      act(() => { lastFormViewProps.onEmailChange('different@example.com'); });
+
+      // Blurring email should re-evaluate confirmEmail in the same state update
+      act(() => { lastFormViewProps.onFieldBlur('email'); });
+
+      expect(lastFormViewProps.fieldErrors.confirmEmail).toBeUndefined();
+    });
   });
 
   // ---------- Suite 4: Newsletter revalidation useEffect ----------
