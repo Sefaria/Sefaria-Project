@@ -8,6 +8,16 @@ releaseImageTag:
 
 sandbox: "false"
 
+# Shared node affinity applied to all long-running mongo jobs (backup, restore, sync).
+# Prevents scheduling on preemptible GKE nodes that Google can reclaim mid-run.
+# Set to {} in environment values to allow any node pool.
+nonPreemptibleNodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cloud.google.com/gke-preemptible
+            operator: DoesNotExist
+
 # This value sets the name of the environment and it's associated objects. Some
 # suggestions for the values are prod/dev/test
 deployEnv: "dev"
@@ -25,7 +35,7 @@ rollouts:
 
 # enabling this feature creates an ephemeral database image prepopulated with test data
 # It is intended for use within the sefaria automated testing environment
-# For development environments
+# For development environments:
 # - install mongo using an upstream chart
 # - enable restore
 # - populate the settings with the appropriate connection details
@@ -49,6 +59,7 @@ restore:
 backup:
   mongo:
     enabled: false
+    extraBackupEnabled: false
     prefix: ""
     public: true
     bucket: sefaria-mongo-backup
@@ -65,6 +76,12 @@ backup:
     enabled: false
     serviceAccount: database-backup-write
     bucket: sefaria-sitemaps
+
+export:
+  enabled: false
+  bucket: sefaria-export
+  schedule: "0 3 1 * *"
+  serviceAccount: text-export-write
 
 # PostgreSQL configuration - can be overridden per environment
 postgres:
@@ -267,14 +284,15 @@ domains:
         - profile
 
 ingress:
-  enabled: true
+  enabled: false
 
 gateway:
-  enabled: false
+  enabled: true
   className: envoy
+  alpnProtocols:
+    - http/1.1
   annotations:
     cert-manager.io/cluster-issuer: ingress-ca
-  clientIPHeader: X-Forwarded-For
 
 nginx:
   containerImage:
@@ -461,3 +479,6 @@ instrumentation:
   enabled: false
   otelEndpoint: ""
   jaegerEndpoint: ""
+
+datadog:
+  enabled: false

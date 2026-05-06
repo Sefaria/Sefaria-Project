@@ -1,0 +1,33 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: {{ .Values.deployEnv }}
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+  lua:
+    - type: Inline
+      inline: |
+        function extract_client_ip(request_handle)
+          local cf_ip = request_handle:headers():get("CF-Connecting-IP")
+          local xff = request_handle:headers():get("X-Forwarded-For")
+          if cf_ip and cf_ip ~= "" then
+            return cf_ip
+          elseif xff and xff ~= "" then
+            return xff
+          end
+          return nil
+        end
+
+        function envoy_on_request(request_handle)
+          local client_ip = extract_client_ip(request_handle)
+          if client_ip then
+            request_handle:headers():add("X-Original-Forwarded-For", client_ip)
+          end
+        end
+{{- end }}

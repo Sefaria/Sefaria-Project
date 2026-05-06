@@ -9,7 +9,7 @@ import requests
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Any
 from dataclasses import asdict
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
 from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
@@ -63,6 +63,7 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
@@ -197,30 +198,29 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next = request.GET.get('next', '')
+    next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
-            if "noredirect" in request.POST:
-                return HttpResponse("ok")
-            elif "new?assignment=" in request.POST.get("next",""):
-                next = request.POST.get("next", "")
-                return HttpResponseRedirect(next)
+            if "new?assignment=" in request.POST.get("next", ""):
+                next_url = request.POST.get("next", "")
             else:
-                next = request.POST.get("next", "/")
-                if "?" in next:
-                    next += "&welcome=to-sefaria"
-                else:
-                    next += "?welcome=to-sefaria"
-                return HttpResponseRedirect(next)
+                next_url = request.POST.get("next", "/")
+                parsed = urlparse(next_url)
+                next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if "noredirect" in request.POST:
+                return jsonResponse({"redirect": next_url})
+            return HttpResponseRedirect(next_url)
+        elif "noredirect" in request.POST:
+            return jsonResponse(errors)
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
 
 
 def maintenance_message(request):
@@ -488,7 +488,7 @@ def async_task_status_api(request, task_id: str):
 @api_view(["GET"])
 def websites_api(request, domain):
     cb = request.GET.get("callback", None)
-    domain = WebPage.normalize_url(domain)
+    domain = normalize_webpage_url(domain)
     website = WebSite().load({"domains": domain})
     if website is None:
         return jsonResponse({"error": f"no website found with domain: '{domain}'"})
@@ -504,7 +504,7 @@ def linker_data_api(request, titles):
             res["error"] = title_regex.pop("error")
         res["regexes"] = title_regex
         url = request.GET.get("url", "")
-        domain = WebPage.domain_for_url(WebPage.normalize_url(url))
+        domain = webpage_domain_for_url(normalize_webpage_url(url))
 
         website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
                                                          # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py

@@ -42,6 +42,17 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: celery
         releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Values.datadog.enabled }}
+        tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
+        tags.datadoghq.com/service: "tasks"
+        tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
+        admission.datadoghq.com/enabled: "true"
+        {{- end }}
+      {{- if .Values.datadog.enabled }}
+      annotations:
+        ad.datadoghq.com/tasks.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-tasks"}]'
+        admission.datadoghq.com/python-lib.version: "v4.7.1"
+      {{- end }}
     spec:
       affinity:
         podAntiAffinity:
@@ -84,6 +95,10 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
+          {{- if .Values.datadog.enabled }}
+          - name: DD_LOGS_INJECTION
+            value: "true"
+          {{- end }}
           {{- with .Values.gpuServer }}
           - name: GPU_SERVER_HOST
             value: "{{ . }}"

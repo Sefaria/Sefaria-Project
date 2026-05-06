@@ -19,6 +19,7 @@ spec:
             cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         spec:
           serviceAccount: {{ .Values.restore.serviceAccount }}
+          {{- include "sefaria.nonPreemptibleAffinityBlock" . | nindent 10 }}
           volumes:
             - name: shared-volume
               emptyDir: {}

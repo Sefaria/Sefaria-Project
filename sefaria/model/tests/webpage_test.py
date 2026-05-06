@@ -1,6 +1,7 @@
 import pytest
 from sefaria.model import *
 from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
+from sefaria.helper.webpages import normalize_url
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError
 
@@ -171,8 +172,8 @@ def test_page_wout_description(create_web_page_wout_desc):
 
 def test_get_webpages_for_ref_filters_whitelisted(whitelisted_webpage, non_whitelisted_webpage):
 	results = get_webpages_for_ref("Genesis 1:1")
-	normalized_whitelisted_url = WebPage.normalize_url(whitelisted_webpage["url"])
-	normalized_non_whitelisted_url = WebPage.normalize_url(non_whitelisted_webpage["url"])
+	normalized_whitelisted_url = normalize_url(whitelisted_webpage["url"])
+	normalized_non_whitelisted_url = normalize_url(non_whitelisted_webpage["url"])
 	urls = {result["url"] for result in results}
 	assert normalized_whitelisted_url in urls
 	assert normalized_non_whitelisted_url not in urls

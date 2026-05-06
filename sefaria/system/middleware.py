@@ -1,4 +1,5 @@
-import sys 
+import resource
+import sys
 import tempfile
 import cProfile
 import pstats
@@ -348,6 +349,31 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class MaxRSSMiddleware:
+    """
+    Samples maxrss at the start and end of each request and binds the delta
+    to structlog so it appears in the request_finished log.
+
+    Must be placed after django_structlog's RequestMiddleware in MIDDLEWARE
+    so it runs inside structlog's threadlocal context.
+    """
+    # On macOS, ru_maxrss is in bytes; on Linux it's in KB.
+    _maxrss_divisor = 1024 if sys.platform == 'darwin' else 1
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        maxrss_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        response = self.get_response(request)
+        maxrss_after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        logger.bind(
+            maxrss_delta_kb=(maxrss_after - maxrss_before) // self._maxrss_divisor,
+            maxrss_kb=maxrss_after // self._maxrss_divisor,
+        )
         return response
 
 

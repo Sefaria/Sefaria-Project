@@ -845,6 +845,39 @@ class ResolvedRefPruner:
             if part in part_match.parts:
                 return not part_match.can_match_out_of_order
         return False
+    
+    @staticmethod
+    def non_named_part_matched_node_with_other_part_out_of_order(match: ResolvedRef) -> bool:
+        """
+        Returns True if an order-enforced part within a multi-part RefPartsAndNodeMatch has appears in a different order in the input than in the match.
+
+        Order is enforced for a part unless it is NAMED (or context) AND has more than 2 alphanumeric
+        characters. NAMED/context parts with 2 or fewer word chars are treated as ambiguous and
+        also have their order enforced.
+
+        For each such part, checks that the adjacent parts in the match (prev/next) also
+        appear before/after it in the original input. Returns True on the first violation found.
+        """
+        parts_to_match = match.raw_entity.parts_to_match
+        for part_match in match.ref_part_and_node_matches:
+            if len(part_match.parts) <= 1:
+                continue
+            for ipart, part in enumerate(part_match.parts):
+                # heuristic: if part has 2 or fewer chars it should be considered more ambiguous and order should be enforced
+                num_word_chars = sum(c.isalnum() for c in part.text)
+                if num_word_chars > 2 and (part.type == RefPartType.NAMED or part.is_context):
+                    continue
+                try:
+                    input_index = parts_to_match.index(part)
+                except ValueError:
+                    continue
+                prev_in_match = part_match.parts[ipart - 1] if ipart > 0 else None
+                next_in_match = part_match.parts[ipart + 1] if ipart + 1 < len(part_match.parts) else None
+                if prev_in_match in parts_to_match and parts_to_match.index(prev_in_match) >= input_index:
+                    return True
+                if next_in_match in parts_to_match and parts_to_match.index(next_in_match) <= input_index:
+                    return True
+        return False
 
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
@@ -856,6 +889,8 @@ class ResolvedRefPruner:
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
             return False
         if ResolvedRefPruner.is_single_part_that_cant_match_out_of_order(match):
+            return False
+        if ResolvedRefPruner.non_named_part_matched_node_with_other_part_out_of_order(match):
             return False
 
         return True

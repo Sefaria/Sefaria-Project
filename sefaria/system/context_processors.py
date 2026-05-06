@@ -3,10 +3,11 @@
 """
 Djagno Context Processors, for decorating all HTTP requests with common data.
 """
+import time
 import json
 from functools import wraps
 
-from reader.models import UserExperimentSettings, user_has_experiments
+from reader.models import user_has_experiments
 from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -122,13 +123,18 @@ def _chatbot_script_url_and_type(chatbot_version):
         if not is_int(chatbot_version):
             return None, None
         return (
-            f"https://{chatbot_version}.ai-client.coolifydev.sefaria.org/lc-chatbot.umd.cjs",
+            f"https://{chatbot_version}.ai-server.coolifydev.sefaria.org/static/js/lc-chatbot.umd.cjs?rand={int(time.time())}",
             None,
         )
     if settings.CHATBOT_USE_LOCAL_SCRIPT:
         return ("http://localhost:5173/src/main.js", "module")
+    
+    if settings.CHATBOT_API_BASE_URL:
+        chatbot_base = settings.CHATBOT_API_BASE_URL.replace("/api", "")
+    else:
+        chatbot_base = "https://chat-dev.sefaria.org"
     return (
-        "https://chat-dev.sefaria.org/static/js/lc-chatbot.umd.cjs",
+        f"{chatbot_base}/static/js/lc-chatbot.umd.cjs",
         None,
     )
 
@@ -143,6 +149,16 @@ def _is_user_in_experiment(request):
 @user_only
 def chatbot_user_token(request):
     chatbot_version = request.GET.get("chatbot_version", "").strip()
+    # if chatbot_version add it to cookies so it can be used in subsequent requests
+    if chatbot_version:
+        if chatbot_version == "clear":
+            if "chatbot_version" in request.session:
+                del request.session["chatbot_version"]
+        else:
+            request.session["chatbot_version"] = chatbot_version
+    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
+    elif "chatbot_version" in request.session:
+        chatbot_version = request.session["chatbot_version"]
 
     if not _is_user_in_experiment(request):
         return {

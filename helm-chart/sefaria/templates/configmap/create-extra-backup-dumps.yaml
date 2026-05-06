@@ -1,0 +1,80 @@
+{{- if .Values.backup.mongo.extraBackupEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-extra-backup-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  create-extra-backup-dumps.sh: |-
+    #!/usr/bin/env bash
+    set -eo pipefail
+
+    {{- if .Values.restore.dynamicName }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
+
+    if [[ -z "${MONGO_HOST:-}" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    URI="mongodb://"
+
+    if [[ -n "${SEFARIA_DB_USER:-}" ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ -n "${SEFARIA_DB_PASSWORD:-}" ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+    fi
+
+    URI="${URI}${MONGO_HOST}/?ssl=false"
+
+    if [[ -n "${SEFARIA_DB_USER:-}" ]]; then
+      URI="${URI}&authSource=admin"
+    fi
+
+    if [[ -n "${MONGO_REPLICASET_NAME:-}" ]]; then
+      URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    DATADIR="/mongodumps/shared_volume"
+
+    echo "Dumping history collection"
+    until mongodump --uri="$URI" -v -d "$DATABASE" \
+      --collection=history \
+      -o "${DATADIR}/dump"
+    do
+      echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
+      sleep 5
+    done
+
+    echo "Dumping linker_output collection"
+    until mongodump --uri="$URI" -v -d "$DATABASE" \
+      --collection=linker_output \
+      -o "${DATADIR}/dump"
+    do
+      echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
+      sleep 5
+    done
+
+    echo "Dumping webpages_text collection"
+    until mongodump --uri="$URI" -v -d "$DATABASE" \
+      --collection=webpages_text \
+      -o "${DATADIR}/dump"
+    do
+      echo "mongodump failed, retrying in 5s..."
+      rm -rf "${DATADIR}/dump"
+      sleep 5
+    done
+
+    echo "${DATABASE}" > "${DATADIR}/db_name.txt"
+
+    echo "dump complete - upload should start"
+{{- end }}

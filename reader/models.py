@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
+from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
+
 
 class UserExperimentSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="experiment_settings")
@@ -23,9 +25,19 @@ def _get_user_experiments(user):
 
 
 def _set_user_experiments(user, value):
-    settings, _ = UserExperimentSettings.objects.get_or_create(user=user)
-    settings.experiments = bool(value)
+    experiments_enabled = bool(value)
+    settings, created = UserExperimentSettings.objects.get_or_create(user=user)
+    changed = created or (experiments_enabled != settings.experiments)
+    settings.experiments = experiments_enabled
     settings.save(update_fields=["experiments"])
+
+    from sefaria.model.user_profile import UserProfile
+    profile = UserProfile(id=user.id)
+    profile.experiments = experiments_enabled
+    profile.save()
+
+    if changed:
+        dispatch_chatbot_opt_in_webhook(user.email, experiments_enabled)
 
 
 if not hasattr(User, "experiments"):
@@ -35,4 +47,4 @@ if not hasattr(User, "experiments"):
 def user_has_experiments(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    return UserExperimentSettings.objects.filter(user=user, experiments=True).exists()
+    return UserExperimentSettings.objects.filter(user=user).exists()
