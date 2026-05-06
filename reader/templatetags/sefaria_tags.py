@@ -18,7 +18,7 @@ from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.templatetags.static import static as django_static
 from django.contrib.staticfiles import finders
 from django.utils.functional import SimpleLazyObject
