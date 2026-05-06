@@ -14,6 +14,7 @@ import pymongo
 from collections import defaultdict
 import time as pytime
 
+from elastic_transport import TransportError
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -547,7 +548,11 @@ class TextIndexer(object):
             bulk(es_client, cls._bulk_actions, stats_only=True,
                  raise_on_error=False, request_timeout=120)
             return 0
-        except Exception as e:
+        except TransportError as e:
+            # Catch only transport-level failures (ConnectionTimeout,
+            # ConnectionError, serialization errors). Programming errors
+            # (TypeError, KeyError, etc.) must still propagate so we don't
+            # silently continue a fundamentally broken indexer.
             logger.warning(
                 f"Bulk indexing failed: {type(e).__name__}: {e}; "
                 f"continuing with next index"

@@ -1,17 +1,20 @@
 """
-Regression test for sc-43948.
+Regression tests for sc-43948.
 
 Bug: a single `elastic_transport.ConnectionTimeout` mid-run was abandoning
 the entire ~6h Elasticsearch full-reindex job — every book queued after
 the timeout was skipped, and the prior books that DID flush successfully
 weren't aliased to the live index.
 
-This test drives `TextIndexer.index_all` with three books, makes the second
-book's bulk flush raise `ConnectionTimeout`, and asserts that:
-  * the third book is still flushed (run did not abort)
-  * only the failed book is recorded in `_failed_versions`
-  * the failure is attributed to `ConnectionTimeout`
+The integration test below drives `TextIndexer.index_all` with three books,
+makes the second book's bulk flush raise `ConnectionTimeout`, and asserts
+that the third book is still flushed and only the failed book is recorded.
+
+The second test pins down the catch boundary: programming errors (e.g.
+`TypeError`) must NOT be swallowed — only transport-level exceptions are
+absorbed by the resilience layer.
 """
+import pytest
 from elastic_transport import ConnectionTimeout
 
 from sefaria.search import TextIndexer
@@ -112,3 +115,25 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
     assert fail["title"] == "BookB"
     assert fail["error_type"] == "ConnectionTimeout"
     assert "Bulk write failed:" in fail["error"]
+
+
+def test_flush_bulk_actions_propagates_non_transport_errors(monkeypatch):
+    """The resilience layer must only absorb transport-level failures.
+    A `TypeError` (or any other programming error) must propagate so a
+    fundamentally broken indexer fails fast instead of silently marking
+    every book as failed for hours."""
+    TextIndexer._failed_versions = []
+    TextIndexer._bulk_actions = [{"_op_type": "index", "_id": "x"}]
+
+    def boom(*args, **kwargs):
+        raise TypeError("not a transport error")
+
+    monkeypatch.setattr("sefaria.search.bulk", boom)
+
+    versions = [_FakeVersion("BookA", "v1", "en")]
+    with pytest.raises(TypeError, match="not a transport error"):
+        TextIndexer._flush_bulk_actions(versions)
+
+    assert TextIndexer._failed_versions == [], (
+        "non-transport errors must not be recorded as bulk-write failures"
+    )
