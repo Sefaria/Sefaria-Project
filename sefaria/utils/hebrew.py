@@ -601,14 +601,21 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	return abbrevs
 
 
+def _strip_hebrew_punctuation(s: str) -> str:
+	return regex.sub(r'\p{P}', '', s)
+
+
 def hebrew_starts_with(he: str, other_he: str) -> False:
 	"""
 	does `he` start with `other_he`?
 	includes possible abbreviation expansion
 	TODO. in future may include fuzzy matching
 	"""
-	he_words = he.split()
-	other_words = other_he.split()
+	he = _strip_hebrew_punctuation(he)
+	other_he = _strip_hebrew_punctuation(other_he)
+
+	he_words = he.strip().split()
+	other_words = other_he.strip().split()
 	he_abbrs = get_all_abbrs(he_words, other_words)
 	other_abbrs = get_all_abbrs(other_words, he_words)
 
