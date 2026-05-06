@@ -9,7 +9,7 @@ from django.http import HttpResponse
 def webhook_auth_or_staff_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        auth_header = request.headers.get("authorization")
 
         if not auth_header or not auth_header.startswith("Basic "):
             return staff_member_required(view_func, login_url='/login')(request, *args, **kwargs)
