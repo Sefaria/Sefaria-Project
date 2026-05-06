@@ -601,8 +601,16 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	return abbrevs
 
 
-def _strip_hebrew_punctuation(s: str) -> str:
-	return regex.sub(r'\p{P}', '', s)
+_INWORD_HYPHENS = r'[-—–־]'  # ASCII hyphen, em dash, en dash, maqaf
+
+
+def _normalize_hebrew_punctuation(s: str) -> str:
+	# Hyphens between two non-space chars split a compound word into parts
+	s = regex.sub(r'(?<=\S)' + _INWORD_HYPHENS + r'(?=\S)', ' ', s)
+	# Strip leading/trailing punctuation from each whitespace-delimited token,
+	# leaving internal punctuation (e.g. gershayim in abbreviations) intact
+	words = [regex.sub(r'^\p{P}+|\p{P}+$', '', w) for w in s.split()]
+	return ' '.join(w for w in words if w)
 
 
 def hebrew_starts_with(he: str, other_he: str) -> False:
@@ -611,8 +619,8 @@ def hebrew_starts_with(he: str, other_he: str) -> False:
 	includes possible abbreviation expansion
 	TODO. in future may include fuzzy matching
 	"""
-	he = _strip_hebrew_punctuation(he)
-	other_he = _strip_hebrew_punctuation(other_he)
+	he = _normalize_hebrew_punctuation(he)
+	other_he = _normalize_hebrew_punctuation(other_he)
 
 	he_words = he.strip().split()
 	other_words = other_he.strip().split()
