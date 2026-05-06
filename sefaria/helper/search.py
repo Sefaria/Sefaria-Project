@@ -149,6 +149,31 @@ def make_filter(type, agg_type, agg_key):
 
 
 def get_elasticsearch_client():
+    """Default ES client for the user-facing search path.
+
+    Kept lean intentionally: callers in reader/views.py override
+    request_timeout per-query, and we don't want client-level retries
+    on the request path (a single timeout should surface immediately,
+    not amplify into N×timeout perceived latency).
+    """
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL
     return Elasticsearch(SEARCH_URL)
+
+
+def get_elasticsearch_client_for_indexer():
+    """ES client configured for long-running bulk indexing (reindex cronjob).
+
+    The default 10s request_timeout was insufficient for bulk writes under
+    GC pressure on the prod ES cluster, and `retry_on_timeout=False` caused
+    a single transport blip to abandon multi-hour runs (sc-43948). This
+    factory must NOT be used on the online request path.
+    """
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=60,
+        retry_on_timeout=True,
+        max_retries=3,
+    )
