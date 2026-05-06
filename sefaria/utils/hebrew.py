@@ -14,6 +14,7 @@ import math
 from typing import List, Callable
 import itertools
 from sefaria.system.decorators import memoized
+from sefaria.helper.normalization import NormalizerFactory
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -583,7 +584,11 @@ class Abbrev:
 
 
 def is_abbr(word):
-	return re.search(r'[^"״]["״][^"״]', word) is not None
+	if re.search(r'[^"]["][^"]', word):
+		return True
+	if re.search(r"[א-ת]'$", word):
+		return True
+	return False
 
 
 def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
@@ -601,15 +606,25 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	return abbrevs
 
 
-_INWORD_HYPHENS = r'[-—–־]'  # ASCII hyphen, em dash, en dash, maqaf
+_unidecode = NormalizerFactory.get("unidecode")
 
 
-def _normalize_hebrew_punctuation(s: str) -> str:
-	# Hyphens between two non-space chars split a compound word into parts
-	s = regex.sub(r'(?<=\S)' + _INWORD_HYPHENS + r'(?=\S)', ' ', s)
-	# Strip leading/trailing punctuation from each whitespace-delimited token,
-	# leaving internal punctuation (e.g. gershayim in abbreviations) intact
-	words = [regex.sub(r'^\p{P}+|\p{P}+$', '', w) for w in s.split()]
+def _strip_word_edges(w):
+	"""
+	Strip all non-word chars at the start and end of `w` excluding single quote which can indicate an abbreviation at the end of a word.
+	:param w: 
+	:return: 
+	"""
+	return re.sub(r'^\W+|[^\w\']+$', '', w)
+
+
+def _normalize_hebrew_punctuation(s):
+	s = _unidecode.normalize(s.strip())
+	s = re.sub(r'(?<=\S)[\-\u2014\u2013\u05be](?=\S)', ' ', s)
+	# strip matching quotes on the edge of the string
+	if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
+		s = s[1:-1]
+	words = [_strip_word_edges(w) for w in s.split()]
 	return ' '.join(w for w in words if w)
 
 
