@@ -2483,7 +2483,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
-                  interface-lang={this.props.interfaceLang}
+                  interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
               </main>
