@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.7-slim
+FROM python:3.12-slim-bookworm
 
 # Set the working directory to /app
 WORKDIR /app
@@ -7,11 +7,8 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install psycopg2 dependencies
-RUN apt-get update && apt-get install -y libpq-dev
-
-# Install gcc
-RUN apt-get update && apt-get install -y gcc
+# Install system dependencies (git needed for pip git+ packages, gcc for compiled deps)
+RUN apt-get update && apt-get install -y --no-install-recommends git gcc libc6-dev libpq-dev && apt-get clean
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt

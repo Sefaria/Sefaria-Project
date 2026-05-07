@@ -14,6 +14,7 @@ import math
 from typing import List, Callable
 import itertools
 from sefaria.system.decorators import memoized
+from sefaria.helper.normalization import NormalizerFactory
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -583,7 +584,11 @@ class Abbrev:
 
 
 def is_abbr(word):
-	return re.search(r'[^"״]["״][^"״]', word) is not None
+	if re.search(r'\w"\w', word):
+		return True
+	if re.search(r"\w'$", word):
+		return True
+	return False
 
 
 def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
@@ -601,12 +606,36 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	return abbrevs
 
 
+_unidecode = NormalizerFactory.get("unidecode")
+
+_INWORD_HYPHENS = '[-—–־]'  # ASCII hyphen, em dash, en dash, Hebrew maqaf
+
+
+def _strip_word_edges(w):
+	"""
+	Strip all non-word chars at the start and end of `w` excluding single quote which can indicate an abbreviation at the end of a word.
+	:param w: 
+	:return: 
+	"""
+	return re.sub(r"^\W+|[^\w']+$", '', w)
+
+
+def _normalize_hebrew_punctuation(s):
+	s = _unidecode.normalize(s)
+	s = re.sub(r'(?<=\w)' + _INWORD_HYPHENS + r'(?=\w)', ' ', s)
+	words = [_strip_word_edges(w) for w in s.split()]
+	return ' '.join(w for w in words if w)
+
+
 def hebrew_starts_with(he: str, other_he: str) -> False:
 	"""
 	does `he` start with `other_he`?
 	includes possible abbreviation expansion
 	TODO. in future may include fuzzy matching
 	"""
+	he = _normalize_hebrew_punctuation(he)
+	other_he = _normalize_hebrew_punctuation(other_he)
+
 	he_words = he.split()
 	other_words = other_he.split()
 	he_abbrs = get_all_abbrs(he_words, other_words)
