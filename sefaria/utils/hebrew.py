@@ -584,9 +584,9 @@ class Abbrev:
 
 
 def is_abbr(word):
-	if re.search(r'[^"]["][^"]', word):
+	if re.search(r'\w"\w', word):
 		return True
-	if re.search(r"[א-ת]'$", word):
+	if re.search(r"\w'$", word):
 		return True
 	return False
 
@@ -608,6 +608,8 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 
 _unidecode = NormalizerFactory.get("unidecode")
 
+_INWORD_HYPHENS = '[-—–־]'  # ASCII hyphen, em dash, en dash, Hebrew maqaf
+
 
 def _strip_word_edges(w):
 	"""
@@ -615,15 +617,12 @@ def _strip_word_edges(w):
 	:param w: 
 	:return: 
 	"""
-	return re.sub(r'^\W+|[^\w\']+$', '', w)
+	return re.sub(r"^\W+|[^\w']+$", '', w)
 
 
 def _normalize_hebrew_punctuation(s):
-	s = _unidecode.normalize(s.strip())
-	s = re.sub(r'(?<=\S)[\-\u2014\u2013\u05be](?=\S)', ' ', s)
-	# strip matching quotes on the edge of the string
-	if len(s) >= 2 and s[0] == s[-1] and s[0] in ('"', "'"):
-		s = s[1:-1]
+	s = _unidecode.normalize(s)
+	s = re.sub(r'(?<=\w)' + _INWORD_HYPHENS + r'(?=\w)', ' ', s)
 	words = [_strip_word_edges(w) for w in s.split()]
 	return ' '.join(w for w in words if w)
 
