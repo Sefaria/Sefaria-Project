@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria's Supporters" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria's Supporters" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria gratefully acknowledges the following donors whose generosity and leadership are making Sefaria possible." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria gratefully acknowledges the following donors whose generosity and leadership are making Sefaria possible." %}{% endmeta_desc %}{% endblock %}
 
 
 {% block content %}
