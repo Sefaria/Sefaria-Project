@@ -28,7 +28,7 @@ class SocialAuthService:
 
     @staticmethod
     def get_or_create_social_user(provider, uid, email, first_name, last_name, request):
-        """Returns (user, is_new_user). Raises EmailCollisionError if email matches a non-SSO account."""
+        """Returns (user, is_new_user). Raises EmailCollisionError if email exists but (provider, uid) is unknown."""
         try:
             identity = SocialIdentity.objects.select_related("user").get(provider=provider, uid=uid)
             return identity.user, False
@@ -36,9 +36,7 @@ class SocialAuthService:
             pass
 
         if user_exists(email):
-            existing_user = get_user(email)
-            if not existing_user.social_identities.exists():
-                raise EmailCollisionError()
+            raise EmailCollisionError()
 
         with transaction.atomic():
             new_user = create_user(email, password=None)

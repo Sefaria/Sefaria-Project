@@ -180,7 +180,7 @@
                 <span class="int-en">Disconnect</span>
             </button>
             {% else %}
-            <div id="appleid-connect-signin" data-color="black" data-border="true" data-type="continue"></div>
+            <div id="appleid-signin" data-color="black" data-border="true" data-type="continue"></div>
             {% endif %}
             <span id="login-methods-apple-msg" class="error" style="display:none"></span>
         </div>
@@ -388,7 +388,7 @@ function getCsrfToken() {
                         body: JSON.stringify({credential: response.credential}),
                     }).then(function(r) { return r.json(); }).then(function(data) {
                         if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
-                    });
+                    }).catch(function() { showError('Google sign-in failed. Please try again.'); });
                 },
             });
             google.accounts.id.renderButton(connectBtn, {type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', width: 250});
@@ -403,7 +403,7 @@ function getCsrfToken() {
                 headers: {'X-CSRFToken': getCsrfToken()},
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
-            });
+            }).catch(function() { showError('Failed to disconnect Google. Please try again.'); });
         });
     }
 })();
@@ -445,7 +445,7 @@ function getCsrfToken() {
                 }),
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
-            });
+            }).catch(function() { showError('Apple sign-in failed. Please try again.'); });
         });
 
         document.addEventListener('AppleIDSignInOnFailure', function(event) {
@@ -460,7 +460,7 @@ function getCsrfToken() {
                 headers: {'X-CSRFToken': getCsrfToken()},
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.status === 'ok') { location.reload(); } else { showError(data.error); }
-            });
+            }).catch(function() { showError('Failed to disconnect Apple. Please try again.'); });
         });
     }
 })();
