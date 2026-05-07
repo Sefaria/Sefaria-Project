@@ -49,16 +49,16 @@
       "description": "Operations related to retrieving Term data (a Sefaria Term is a shared title node)"
     },
     {
-      "name": "Misc",
-      "description": "Miscellaneous API endpoints"
-    },
-    {
       "name": "Sheets",
       "description": "Operations related to Sefaria source sheets"
     },
     {
       "name": "Collections",
       "description": "Operations related to Sefaria collections — curated groups of source sheets"
+    },
+    {
+      "name": "Misc",
+      "description": "Miscellaneous API endpoints"
     }
   ],
   "paths": {
@@ -5785,7 +5785,7 @@
         "parameters": [
           {
             "name": "sheet_id",
-            "description": "The numeric ID of the sheet. To find a sheet's ID, open the sheet on `voices.sefaria.org` and copy the number from the URL — for example, `https://voices.sefaria.org/sheets/643492` has a sheet ID of `643492`. The API call itself is made to `www.sefaria.org`.",
+            "description": "Numeric sheet ID. Find it in the sheet URL: `https://www.sefaria.org/sheets/{sheet_id}`.",
             "schema": {
               "type": "integer"
             },
@@ -6242,10 +6242,16 @@
             "name": "author_slug",
             "description": "The author's topic slug. To find a slug: search for the author on `https://www.sefaria.org`, open their topic page, and copy the last segment of the URL — for example, `https://www.sefaria.org/topics/rashi` has an author slug of `rashi`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "rashi"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Rashi": {
+                "value": "rashi"
+              }
+            }
           }
         ],
         "responses": {
@@ -7316,47 +7322,6 @@
         "description": "Returns the list of indexes (works) attributed to a given Sefaria author."
       }
     },
-    "/api/sheets/{sheet_id}/likers": {
-      "summary": "Sheet Likers",
-      "description": "Returns the list of users who have liked a sheet.",
-      "get": {
-        "operationId": "get-sheet-likers",
-        "tags": [
-          "Sheets"
-        ],
-        "parameters": [
-          {
-            "name": "sheet_id",
-            "description": "The numeric ID of the sheet. To find a sheet's ID, open the sheet on `voices.sefaria.org` and copy the number from the URL — for example, `https://voices.sefaria.org/sheets/643492` has a sheet ID of `643492`. The API call itself is made to `www.sefaria.org`.",
-            "schema": {
-              "type": "integer"
-            },
-            "in": "path",
-            "required": true
-          }
-        ],
-        "description": "Returns the list of users who have liked a sheet.",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SheetLikersJSON"
-                },
-                "examples": {
-                  "Sheet 643492": {
-                    "value": {
-                      "likers": []
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        }
-      }
-    },
     "/api/sheets/modified/{sheet_id}/{timestamp}": {
       "summary": "Sheet Modified Check",
       "description": "Returns the full sheet if it has been modified since the given timestamp; otherwise returns an empty/unchanged response. Useful for clients that cache sheets.",
@@ -7368,7 +7333,7 @@
         "parameters": [
           {
             "name": "sheet_id",
-            "description": "The numeric ID of the sheet. To find a sheet's ID, open the sheet on `voices.sefaria.org` and copy the number from the URL — for example, `https://voices.sefaria.org/sheets/643492` has a sheet ID of `643492`. The API call itself is made to `www.sefaria.org`.",
+            "description": "Numeric sheet ID. Find it in the sheet URL: `https://www.sefaria.org/sheets/{sheet_id}`.",
             "schema": {
               "type": "integer"
             },
@@ -7379,10 +7344,16 @@
             "name": "timestamp",
             "description": "An ISO-8601 timestamp. The sheet is returned only if its `dateModified` is more recent than this value.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "2024-01-01T00:00:00"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Example timestamp": {
+                "value": "2024-01-01T00:00:00"
+              }
+            }
           }
         ],
         "description": "Returns the full sheet if it has been modified since the given timestamp; otherwise returns an empty/unchanged response. Useful for clients that cache sheets.",
@@ -7658,7 +7629,7 @@
         }
       }
     },
-    "/api/sheets/user/{user_id}/": {
+    "/api/sheets/user/{user_id}": {
       "summary": "User's Sheets",
       "description": "Returns a user's public sheets. For anonymous callers, only public sheets are returned. An authenticated user requesting their own user_id additionally sees their private sheets.",
       "get": {
@@ -7669,7 +7640,7 @@
         "parameters": [
           {
             "name": "user_id",
-            "description": "The numeric Sefaria user ID. To find a user_id, open the user's profile page (e.g. `https://voices.sefaria.org/profile/user-slug`), then call `GET /api/profile/{slug}` with the slug from the URL — the response contains the numeric `id`.",
+            "description": "Numeric user ID. To find it, call `GET /api/profile/{slug}` with the user's profile slug and read the `id` field from the response.",
             "schema": {
               "type": "integer"
             },
@@ -8763,7 +8734,7 @@
         "parameters": [
           {
             "name": "user_id",
-            "description": "The numeric Sefaria user ID. To find a user_id, open the user's profile page (e.g. `https://voices.sefaria.org/profile/user-slug`), then call `GET /api/profile/{slug}` with the slug from the URL — the response contains the numeric `id`.",
+            "description": "Numeric user ID. To find it, call `GET /api/profile/{slug}` with the user's profile slug and read the `id` field from the response.",
             "schema": {
               "type": "integer"
             },
@@ -8778,28 +8749,46 @@
               "enum": [
                 "date",
                 "views"
-              ]
+              ],
+              "default": "date"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "By date": {
+                "value": "date"
+              }
+            }
           },
           {
             "name": "limiter",
             "description": "Maximum number of sheets to return.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 10
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "First 10": {
+                "value": 10
+              }
+            }
           },
           {
             "name": "offset",
             "description": "Offset into the result set, used for pagination.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 0
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "First page": {
+                "value": 0
+              }
+            }
           }
         ],
         "description": "Returns a user's public sheets, paginated and sorted. Same response shape as the unparameterized variant.",
@@ -8999,7 +8988,7 @@
         "parameters": [
           {
             "name": "sheet_id_list",
-            "description": "Pipe-delimited list of sheet IDs, e.g. `643492|643493`. Each ID is the numeric segment from the sheet's URL on `voices.sefaria.org`.",
+            "description": "Pipe-delimited list of numeric sheet IDs. Find each ID in its sheet URL: `https://www.sefaria.org/sheets/{sheet_id}`.",
             "schema": {
               "type": "string"
             },
@@ -9169,10 +9158,16 @@
               "enum": [
                 "count",
                 "alpha"
-              ]
+              ],
+              "default": "count"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "By count": {
+                "value": "count"
+              }
+            }
           }
         ],
         "description": "Returns all sheet tags with their usage counts, sorted by the given key.",
@@ -9290,7 +9285,7 @@
         "parameters": [
           {
             "name": "user_id",
-            "description": "The numeric Sefaria user ID. To find a user_id, open the user's profile page (e.g. `https://voices.sefaria.org/profile/user-slug`), then call `GET /api/profile/{slug}` with the slug from the URL — the response contains the numeric `id`.",
+            "description": "Numeric user ID. To find it, call `GET /api/profile/{slug}` with the user's profile slug and read the `id` field from the response.",
             "schema": {
               "type": "integer"
             },
@@ -9748,10 +9743,16 @@
             "name": "ref",
             "description": "Sefaria ref, e.g. `Genesis.1.1`. Use dots for section separators in the URL.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis.1.1"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis 1:1": {
+                "value": "Genesis.1.1"
+              }
+            }
           }
         ],
         "description": "Returns public sheets that cite the given Sefaria ref.",
@@ -10115,19 +10116,31 @@
             "name": "limiter",
             "description": "Maximum number of sheets to return.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 10
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "First 10": {
+                "value": 10
+              }
+            }
           },
           {
             "name": "offset",
             "description": "Offset into the result set, used for pagination.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 0
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "First page": {
+                "value": 0
+              }
+            }
           }
         ],
         "description": "Returns a paginated list of all public sheets.",
@@ -10430,17 +10443,23 @@
       "get": {
         "operationId": "get-aliyot-by-parasha",
         "tags": [
-          "Sheets"
+          "Calendars"
         ],
         "parameters": [
           {
             "name": "parasha",
             "description": "Parasha name in transliteration, e.g. `Bereshit`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Bereshit"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Bereshit": {
+                "value": "Bereshit"
+              }
+            }
           }
         ],
         "description": "Returns the seven aliyot ranges for a given parasha. Used by the source sheet builder when seeding a sheet from a weekly reading.",
@@ -10552,10 +10571,16 @@
             "name": "slug",
             "description": "URL slug for the collection, e.g. `parshawisdom`. The slug appears in the collection's URL on Sefaria.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "parshawisdom"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Example collection": {
+                "value": "parshawisdom"
+              }
+            }
           }
         ],
         "description": "Returns the full content of a single collection, including its member sheets. For unauthenticated callers, only publicly-listed collections are accessible.",
@@ -11029,7 +11054,7 @@
         "parameters": [
           {
             "name": "user_id",
-            "description": "The numeric Sefaria user ID. To find a user_id, open the user's profile page (e.g. `https://voices.sefaria.org/profile/user-slug`), then call `GET /api/profile/{slug}` with the slug from the URL — the response contains the numeric `id`.",
+            "description": "Numeric user ID. To find it, call `GET /api/profile/{slug}` with the user's profile slug and read the `id` field from the response.",
             "schema": {
               "type": "integer"
             },
@@ -11159,7 +11184,7 @@
     },
     "/api/bulktext/{refs}": {
       "summary": "Bulk Text",
-      "description": "Returns the English and Hebrew text plus version metadata for many refs at once. The path parameter is a pipe-delimited list of refs.",
+      "description": "Returns the English and Hebrew text plus metadata such as the language, ref for the url, etc. for many refs at once. The path parameter is a pipe-delimited list of refs.",
       "get": {
         "operationId": "get-bulktext",
         "tags": [
@@ -11168,15 +11193,21 @@
         "parameters": [
           {
             "name": "refs",
-            "description": "Pipe-delimited list of Sefaria refs, e.g. `Genesis.1.1|Exodus.1.1`. Use dots for section separators.",
+            "description": "Pipe-delimited list of Sefaria refs. Use dots for section separators, e.g. `Genesis.1.1|Exodus.1.1`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis.1.1|Exodus.1.1"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis 1:1 and Exodus 1:1": {
+                "value": "Genesis.1.1|Exodus.1.1"
+              }
+            }
           }
         ],
-        "description": "Returns the English and Hebrew text plus version metadata for many refs at once. The path parameter is a pipe-delimited list of refs.",
+        "description": "Returns the English and Hebrew text plus metadata such as the language, ref for the url, etc. for many refs at once. The path parameter is a pipe-delimited list of refs.",
         "responses": {
           "200": {
             "content": {
@@ -11215,7 +11246,7 @@
     },
     "/api/passages/{refs}": {
       "summary": "Passages",
-      "description": "Maps each requested ref to the canonical passage that contains it (e.g. a single verse mapped to its three-verse parasha-style passage).",
+      "description": "Maps each requested ref to the canonical passage that contains it. Particularly useful for Talmud sugyot — a single amud ref is mapped to the full sugya boundary. Also works for Tanakh, where a verse maps to its parasha-style passage. Pass a pipe-delimited list of refs.",
       "get": {
         "operationId": "get-passages",
         "tags": [
@@ -11224,15 +11255,21 @@
         "parameters": [
           {
             "name": "refs",
-            "description": "Pipe-delimited list of Sefaria refs, e.g. `Genesis.1.1`.",
+            "description": "A Sefaria ref from Tanakh, Mishnah or Talmud.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis.1.1"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis 1:1": {
+                "value": "Genesis.1.1"
+              }
+            }
           }
         ],
-        "description": "Maps each requested ref to the canonical passage that contains it (e.g. a single verse mapped to its three-verse parasha-style passage).",
+        "description": "Maps each requested ref to the canonical passage that contains it. Particularly useful for Talmud sugyot — a single amud ref is mapped to the full sugya boundary. Also works for Tanakh, where a verse maps to its parasha-style passage. Pass a pipe-delimited list of refs.",
         "responses": {
           "200": {
             "content": {
@@ -11308,10 +11345,16 @@
             "name": "title",
             "description": "The index title, e.g. `Genesis`. Use the canonical English title; check `GET /api/index/titles` for valid values.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis": {
+                "value": "Genesis"
+              }
+            }
           }
         ],
         "description": "Returns metadata for a single index (work) by title — categories, schema (text structure), authors, descriptive copy, and ordering hints.",
@@ -12458,10 +12501,16 @@
             "name": "title",
             "description": "The index title, e.g. `Genesis`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis": {
+                "value": "Genesis"
+              }
+            }
           }
         ],
         "description": "Same as `GET /api/index/{title}`. Returns metadata for a single index (work) by title.",
@@ -13608,10 +13657,16 @@
             "name": "title",
             "description": "The index title, e.g. `Genesis`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis": {
+                "value": "Genesis"
+              }
+            }
           }
         ],
         "description": "Returns word and segment counts for a text, broken down by language.",
@@ -18629,19 +18684,31 @@
             "name": "cat1",
             "description": "First Sefaria category, e.g. `Tanakh`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Tanakh"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Tanakh": {
+                "value": "Tanakh"
+              }
+            }
           },
           {
             "name": "cat2",
             "description": "Second Sefaria category, e.g. `Bavli`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Bavli"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Bavli": {
+                "value": "Bavli"
+              }
+            }
           }
         ],
         "description": "Returns the number of links between every book in `cat1` and every book in `cat2`. Returns an error response if no links exist between the requested category pair.",
@@ -18720,7 +18787,7 @@
     },
     "/api/counts/words/{title}/{version}/{language}": {
       "summary": "Word Count for Version",
-      "description": "Returns the word count for a specific text version.",
+      "description": "Returns the word count for a specific text version. Example: title=`Genesis`, version=`Miqra according to the Masorah`, language=`he`.",
       "get": {
         "operationId": "get-counts-words",
         "tags": [
@@ -18731,31 +18798,49 @@
             "name": "title",
             "description": "The index title, e.g. `Genesis`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Genesis"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Genesis": {
+                "value": "Genesis"
+              }
+            }
           },
           {
             "name": "version",
-            "description": "The version title. URL-encode any special characters.",
+            "description": "The version title. Use `GET /api/texts/versions/{index}` to list available versions for a given text. URL-encode any special characters.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Miqra according to the Masorah"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Miqra according to the Masorah": {
+                "value": "Miqra according to the Masorah"
+              }
+            }
           },
           {
             "name": "language",
             "description": "The version language code, e.g. `en` or `he`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "he"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Hebrew": {
+                "value": "he"
+              }
+            }
           }
         ],
-        "description": "Returns the word count for a specific text version.",
+        "description": "Returns the word count for a specific text version. Example: title=`Genesis`, version=`Miqra according to the Masorah`, language=`he`.",
         "responses": {
           "200": {
             "content": {
@@ -18764,9 +18849,9 @@
                   "$ref": "#/components/schemas/CountsWordsJSON"
                 },
                 "examples": {
-                  "JPS 1917 Genesis (en)": {
+                  "Miqra according to the Masorah (Genesis, he)": {
                     "value": {
-                      "wordCount": 38340
+                      "wordCount": 20621
                     }
                   }
                 }
@@ -18790,10 +18875,16 @@
             "name": "ref",
             "description": "Sefaria ref, e.g. `Genesis.1.1`.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "default": "Mishnah_Peah.2.1"
             },
             "in": "path",
-            "required": true
+            "required": true,
+            "examples": {
+              "Mishnah Peah 2:1": {
+                "value": "Mishnah_Peah.2.1"
+              }
+            }
           }
         ],
         "description": "Returns a summary of all links targeting a ref, grouped by category, with per-book breakdowns.",
@@ -18808,476 +18899,25 @@
                   }
                 },
                 "examples": {
-                  "Genesis 1:1 link summary": {
+                  "Mishnah Peah 2:1": {
                     "value": [
                       {
                         "name": "Commentary",
-                        "count": 1431,
+                        "count": 133,
                         "books": {
-                          "Rashbam on Genesis": 1,
-                          "Ramban on Genesis": 4,
-                          "Sforno on Genesis": 6,
-                          "Kli Yakar on Genesis": 10,
-                          "Ibn Ezra on Genesis": 10,
-                          "Shadal on Genesis": 3,
-                          "Kitzur Ba'al HaTurim on Genesis": 1,
-                          "Or HaChaim on Genesis": 64,
-                          "Radak on Genesis": 6,
-                          "Haamek Davar on Genesis": 2,
-                          "Meshekh Chokhmah, Bereshit": 1,
-                          "Penei David, Genesis, Bereshit": 5,
-                          "Tur HaArokh, Genesis": 1,
-                          "Minchat Shai on Torah, Genesis": 3,
-                          "Mizrachi, Genesis": 25,
-                          "Rabbeinu Bahya, Bereshit": 7,
-                          "Malbim on Genesis": 2,
-                          "HaKtav VeHaKabalah, Genesis": 5,
-                          "Torah Temimah on Torah, Genesis": 9,
-                          "Riva on Torah, Genesis": 2,
-                          "Siftei Chakhamim, Genesis": 20,
-                          "Ralbag Beur HaMilot on Torah, Genesis": 1,
-                          "Tzror HaMor on Torah, Genesis": 4,
-                          "Ralbag on Torah, Genesis": 8,
-                          "Recanati on the Torah, Bereshit": 1,
-                          "Rosh on Torah, Genesis": 3,
-                          "Nachal Kedumim on Torah, Genesis": 6,
-                          "Yeriot Shlomo on Torah, Genesis": 6,
-                          "Toledot Yitzchak on Torah, Genesis": 3,
-                          "Minei Targuma on Torah, Genesis": 1,
-                          "Paaneach Raza, Bereshit": 31,
-                          "Gur Aryeh on Bereishit": 19,
-                          "Rav Hirsch on Torah, Genesis": 6,
-                          "Maskil LeDavid, Genesis": 5,
-                          "Tzror HaMor on Torah, Exodus": 1,
-                          "The Five Books of Moses, by Everett Fox, Genesis, Part I; The Primeval History": 3,
-                          "The Five Books of Moses, by Everett Fox, Genesis, Part I; The Primeval History, God as Creator": 2,
-                          "The Five Books of Moses, by Everett Fox, Genesis, On the Book of Genesis and Its Structure": 2,
-                          "Magen Avraham": 1,
-                          "Saadia Gaon on Genesis": 3,
-                          "Hadar Zekenim on Torah, Genesis": 7,
-                          "Reggio on Torah, Genesis": 3,
-                          "Netinah LaGer, Genesis": 2,
-                          "Levush HaOrah, Genesis": 6,
-                          "Rashi on Genesis": 3,
-                          "Steinsaltz on Genesis": 1,
-                          "Tze'enah Ure'enah, Bereshit": 1,
-                          "Pardes Yosef, Genesis": 12,
-                          "Nachalat Ya'akov, Genesis": 4,
-                          "Mechokekei Yehudah; Karnei Ohr, Genesis": 40,
-                          "Mechokekei Yehudah; Yahel Ohr, Genesis": 115,
-                          "The Torah; A Women's Commentary, Genesis": 9,
-                          "The Kehot Chumash; A Chasidic Commentary, Genesis": 13,
-                          "Siftei Kohen on Torah, Genesis": 14,
-                          "Ramban on Leviticus": 3,
-                          "Metzudat Zion on Isaiah": 5,
-                          "Malbim Beur Hamilot on Isaiah": 1,
-                          "Metzudat Zion on Jeremiah": 2,
-                          "Metzudat David on Psalms": 1,
-                          "Rabbeinu Bahya, Devarim": 6,
-                          "Rashi on Bava Kamma": 1,
-                          "Rashi on Berakhot": 1,
-                          "Rash MiShantz on Mishnah Kelim": 1,
-                          "Steinsaltz on Megillah": 3,
-                          "Steinsaltz on Taanit": 1,
-                          "Minchat Ani on Pesach Haggadah, Nirtzah, Chad Gadya": 1,
-                          "Or HaChaim on Numbers": 3,
-                          "Rashba on Megillah": 4,
-                          "Rereading the Rabbis; A Woman's Voice, 6 Procreation": 2,
-                          "Ran on Kiddushin": 1,
-                          "Rif Chullin": 1,
-                          "The Five Books of Moses, by Everett Fox, Exodus, Part I; The Deliverance Narrative": 1,
-                          "The Five Books of Moses, by Everett Fox, Exodus, Part III; The Meeting and Covenant At Sinai, The Meeting and the Covenant": 1,
-                          "The Five Books of Moses, by Everett Fox, Leviticus, On the Book of Leviticus and Its Structure": 2,
-                          "The Five Books of Moses, by Everett Fox, Leviticus, Part II; Ritual Pollution and Purification": 1,
-                          "Ohr LaYesharim on Jerusalem Talmud Chagigah": 3,
-                          "Ohr LaYesharim on Jerusalem Talmud Megillah": 3,
-                          "Ohr LaYesharim on Jerusalem Talmud Rosh Hashanah": 1,
-                          "Karati Bekhol Lev, Shmini": 1,
-                          "Reggio on Torah, Leviticus": 2,
-                          "Judaism's Life Changing Ideas; A Weekly Reading of the Jewish Bible, Noah; The Trace of God": 4,
-                          "I Believe; A Weekly Reading of the Jewish Bible, Bereshit; The Genesis of Love": 5,
-                          "I Believe; A Weekly Reading of the Jewish Bible, Kedoshim; Made with Love": 2,
-                          "I Believe; A Weekly Reading of the Jewish Bible, Naso; The Ethic of Love": 1,
-                          "Megalleh Amukkot on Torah, Vayechi": 1,
-                          "Megalleh Amukkot on Torah, Vayigash": 1,
-                          "Lessons in Leadership; A Weekly Reading of the Jewish Bible, Metzora; How to Praise": 1,
-                          "Sulam on Zohar, Introduction": 19,
-                          "Megalleh Amukkot on Torah, Lech Lecha": 1,
-                          "Megalleh Amukkot on Torah, Vayishlach": 2,
-                          "Megalleh Amukkot on Torah, Vayetzei": 2,
-                          "Megalleh Amukkot on Torah, Vayeshev": 3,
-                          "The Torah; A Women's Commentary, Leviticus": 2,
-                          "The Torah; A Women's Commentary, Contemporary Reflection, Bereshit": 5,
-                          "The Torah; A Women's Commentary, Contemporary Reflection, Noach": 3,
-                          "The Torah; A Women's Commentary, Contemporary Reflection, Tazria": 1,
-                          "The Torah; A Women's Commentary, Numbers": 2,
-                          "The Torah; A Women's Commentary, Deuteronomy": 1,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Bamidbar": 1,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Bereshit": 7,
-                          "The Torah; A Women's Commentary, Exodus": 4,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Kedoshim": 1,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Noach": 1,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Pekudei": 1,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Vayikra": 2,
-                          "The Torah; A Women's Commentary, Postbiblical Interpretations, Bereshit": 1,
-                          "The Torah; A Women's Commentary, Postbiblical Interpretations, Tetzaveh": 1,
-                          "The Torah; A Women's Commentary, Women and Interpretation of the Torah": 1,
-                          "Rashi on Taanit": 2,
-                          "Ikar Tosafot Yom Tov on Mishnah Pesachim": 1,
-                          "Ikar Tosafot Yom Tov on Mishnah Taanit": 1,
-                          "Sforno on Exodus": 1,
-                          "Kitzur Ba'al HaTurim on Exodus": 1,
-                          "Ibn Ezra on Exodus": 8,
-                          "Kli Yakar on Leviticus": 1,
-                          "Metzudat Zion on Psalms": 1,
-                          "Ralbag on Proverbs": 2,
-                          "Ibn Ezra on Psalms": 3,
-                          "Mishnah Berurah": 1,
-                          "Tosafot on Taanit": 2,
-                          "Haamek Davar on Genesis, Kidmat Ha'Emek": 1,
-                          "Haamek Davar on Exodus": 2,
-                          "Haamek Davar on Leviticus": 1,
-                          "Rashi on Shabbat": 1,
-                          "Kli Yakar on Deuteronomy": 1,
-                          "Haamek Davar on Deuteronomy": 2,
-                          "Rashba on Berakhot": 1,
-                          "Kinaat Sofrim on Sefer HaMitzvot, Shorashim": 1,
-                          "Rabbeinu Yonah on Pirkei Avot": 1,
-                          "Tosafot Yom Tov on Mishnah Pesachim": 1,
-                          "Tosafot Yom Tov on Mishnah Shabbat": 1,
-                          "Rabbeinu Bahya, Shemot": 12,
-                          "Rabbeinu Bahya, Vayikra": 3,
-                          "Rabbeinu Bahya, Bamidbar": 5,
-                          "Ralbag Esther, Benefits": 1,
-                          "Yachin on Pirkei Avot": 1,
-                          "Ra'avad on Sefer Yetzirah, Introduction, The Fifty Gates of Understanding": 2,
-                          "Ra'avad on Sefer Yetzirah": 1,
-                          "Ritva on Taanit": 2,
-                          "Minchat Shai on Judges": 1,
-                          "Minchat Shai on Jeremiah": 1,
-                          "Minchat Shai on Ezekiel": 2,
-                          "Minchat Shai on Hosea": 1,
-                          "Minchat Shai on Psalms": 1,
-                          "Minchat Shai on Job": 1,
-                          "Minchat Shai on Daniel": 1,
-                          "Minchat Shai on I Chronicles": 1,
-                          "Minchat Shai on Torah, Exodus": 2,
-                          "Minchat Shai on Torah, Leviticus": 1,
-                          "Minchat Shai on Torah, Numbers": 3,
-                          "Minchat Shai on Torah, Deuteronomy": 2,
-                          "Ibn Ezra on Deuteronomy": 3,
-                          "Tosafot Rid on Megillah Second Recension": 1,
-                          "Melekhet Shelomoh on Mishnah Taanit": 1,
-                          "Mizrachi, Numbers": 2,
-                          "Mizrachi, Deuteronomy": 3,
-                          "Ibn Ezra on Isaiah": 5,
-                          "Mizrachi, Exodus": 6,
-                          "Mizrachi, Leviticus": 1,
-                          "HaKtav VeHaKabalah, Leviticus": 1,
-                          "Steinsaltz on Sukkah": 1,
-                          "Steinsaltz on Rosh Hashanah": 1,
-                          "Steinsaltz on Chagigah": 3,
-                          "Steinsaltz on Bava Kamma": 1,
-                          "Redeeming Relevance; Genesis": 1,
-                          "Masat Moshe on Esther": 1,
-                          "Riva on Torah, Numbers": 1,
-                          "Siftei Chakhamim, Exodus": 2,
-                          "Siftei Chakhamim, Leviticus": 1,
-                          "Tevat Gome, Sh'lach": 1,
-                          "Malbim on Job": 1,
-                          "Ralbag Beur HaMilot on Torah, Exodus": 1,
-                          "Ralbag Beur HaMilot on Torah, Leviticus": 5,
-                          "Ralbag Beur HaMilot on Torah, Deuteronomy": 1,
-                          "Kaf HaChayim on Shulchan Arukh, Orach Chayim": 1,
-                          "Radak on Psalms": 1,
-                          "Or HaChaim on Deuteronomy": 1,
-                          "Mekhir Yayin on Esther": 1,
-                          "Petach Einayim on Shabbat": 1,
-                          "Ralbag on Torah, Exodus": 3,
-                          "Ralbag on Torah, Leviticus": 3,
-                          "Machatzit HaShekel on Orach Chayim": 1,
-                          "Haflaah on Ketubot": 1,
-                          "Naftali Seva Ratzon on Pesach Haggadah, Karpas": 1,
-                          "Recanati on the Torah, Vayera": 2,
-                          "Recanati on the Torah, Toldot": 2,
-                          "Recanati on the Torah, Vayigash": 1,
-                          "Recanati on the Torah, Shemot": 2,
-                          "Recanati on the Torah, Beshalach": 2,
-                          "Recanati on the Torah, Ki Tisa": 1,
-                          "Recanati on the Torah, Achrei Mot": 1,
-                          "Recanati on the Torah, Emor": 1,
-                          "Recanati on the Torah, Eikev": 2,
-                          "Recanati on the Torah, Ki Teitzei": 2,
-                          "Recanati on the Torah, Index, Bereshit": 1,
-                          "Steinsaltz on Arakhin": 1,
-                          "Steinsaltz on Tamid": 1,
-                          "Notes and Corrections on Midrash Lekach Tov, Exodus": 1,
-                          "Rosh David, Bereshit": 1,
-                          "Haamek Sheilah on Sheiltot d'Rav Achai Gaon, Kidmat HaEmek, Part II": 1,
-                          "Haamek Sheilah on Sheiltot d'Rav Achai Gaon, Kidmat HaEmek, Part III": 1,
-                          "Kisse Rahamim on Tractate Soferim": 1,
-                          "Rosh David, Emor": 1,
-                          "Tzror HaMor on Torah, Leviticus": 2,
-                          "Tzror HaMor on Torah, Numbers": 3,
-                          "Tzror HaMor on Torah, Deuteronomy": 1,
-                          "Romemot El on Psalms": 1,
-                          "Yein Levanon on Avot": 2,
-                          "Haamek Davar on Exodus, Introduction to Exodus": 1,
-                          "Nachalat Avot on Avot": 5,
-                          "Machzor Vitry, Laws of Sefer Torah": 1,
-                          "Reshimot Shiurim on Berakhot": 1,
-                          "Peirush Hafla'ah on Pesach Haggadah, Magid, Rabban Gamliel's Three Things": 1,
-                          "Ramban on Exodus": 2,
-                          "Malbim on Psalms": 1,
-                          "Malbim on Jeremiah": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Derekh Chayim, Kol Yisrael; The Opening Mishna": 2,
-                          "Notes by Rabbi Yehoshua Hartman on Derekh Chayim": 44,
-                          "Rashi on Bereshit Rabbah": 1,
-                          "Matnot Kehunah on Bereshit Rabbah": 1,
-                          "Perush Maharzu on Bamidbar Rabbah": 1,
-                          "Matnot Kehunah on Vayikra Rabbah": 1,
-                          "Matnot Kehunah on Devarim Rabbah": 1,
-                          "Matnot Kehunah on Bamidbar Rabbah": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah, Well 4": 12,
-                          "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah, Well 5": 3,
-                          "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah, Well 6": 4,
-                          "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah, Well 7": 1,
-                          "Ohr Chadash": 3,
-                          "Notes by Rabbi Yehoshua Hartman on Ohr Chadash, Introduction": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Ohr Chadash": 14,
-                          "Notes by Rabbi Yehoshua Hartman on Ner Mitzvah, Volume I": 1,
-                          "Reshimot Shiurim on Sukkah": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem, Introduction to Gevurot Hashem": 2,
-                          "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem, Second Introduction to Gevurot Hashem": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem, Third Introduction to Gevurot Hashem": 3,
-                          "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem": 90,
-                          "Notes by Rabbi Yehoshua Hartman on Netivot Olam, Netiv Hatorah": 11,
-                          "Ohev Ger, Part II, Introduction": 1,
-                          "Ohev Ger, Additions, Variants According to Bologna 1482 Edition": 1,
-                          "Rereading the Rabbis; A Woman's Voice, Introduction": 1,
-                          "Meiri on Taanit": 1,
-                          "Rav Hirsch on Torah, Exodus": 1,
-                          "Ibn Ezra on Genesis, Introduction": 1,
-                          "Shiltei HaGiborim on Megillah": 1,
-                          "Mishnat Eretz Yisrael on Mishnah Chagigah": 1,
-                          "Mishnat Eretz Yisrael on Mishnah Megillah": 1,
-                          "Mishnat Eretz Yisrael on Mishnah Taanit": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Tiferet Yisrael": 12,
-                          "Korban HaEdah on Jerusalem Talmud Taanit": 2,
-                          "Korban HaEdah on Jerusalem Talmud Megillah": 1,
-                          "Penei Moshe on Jerusalem Talmud Taanit": 3,
-                          "Gur Aryeh on Shemot": 2,
-                          "Gur Aryeh on Bamidbar": 1,
-                          "Gur Aryeh on Devarim": 1,
-                          "Ohr LaYesharim on Jerusalem Talmud Berakhot": 3,
-                          "Ohr LaYesharim on Jerusalem Talmud Taanit": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Netzach Yisrael": 8,
-                          "Karati Bekhol Lev, Bereshit": 2,
-                          "Karati Bekhol Lev, Bo": 1,
-                          "Hadar Zekenim on Torah, Numbers": 1,
-                          "Sources and References on Torah Ohr, Bereshit": 1,
-                          "Sources and References on Torah Ohr, Miketz": 1,
-                          "Sources and References on Torah Ohr, Mishpatim": 1,
-                          "Sources and References on Torah Ohr, Vayigash": 1,
-                          "Sulam on Zohar, Noach": 1,
-                          "Mikdash Melekh on Zohar": 9,
-                          "Mikdash Melekh, RaMaZ Commentary on Zohar": 8,
-                          "Reggio on Torah, Deuteronomy": 1,
-                          "Mishnat Eretz Yisrael on Mishnah Keritot": 1,
-                          "Mishnat Eretz Yisrael on Mishnah Sanhedrin": 1,
-                          "Ketem Paz on Zohar": 6,
-                          "Ohr HaChammah on Zohar, Preface": 1,
-                          "Ohr HaChammah on Zohar": 30,
-                          "Mishnat Eretz Yisrael on Pirkei Avot": 1,
-                          "Levush HaOrah, Introduction": 1,
-                          "Ohel Ya'akov on Torah, Yitro": 1,
-                          "Ohel Ya'akov on Torah, Tazria": 1,
-                          "Ohel Ya'akov on Torah, Kedoshim": 1,
-                          "Ohel Ya'akov on Torah, Chukat": 1,
-                          "Ohel Ya'akov on Torah, Emor": 1,
-                          "Ohel Ya'akov on Torah, Shoftim": 1,
-                          "Ohel Ya'akov on Torah, Vaetchanan": 1,
-                          "Notes by Rabbi Yehoshua Hartman on Derush al HaTorah, Introduction": 2,
-                          "Notes by Rabbi Yehoshua Hartman on Derush al HaTorah": 8,
-                          "Notes by Rabbi Yehoshua Hartman on Derashat Shabbat HaGadol": 12,
-                          "Pirkei Moshe on Avot": 1,
-                          "Yahel Ohr on Zohar": 72,
-                          "Yahel Ohr on Zohar, Addenda": 3,
-                          "Steinsaltz on Isaiah": 1,
-                          "Steinsaltz on Mishneh Torah, Prayer and the Priestly Blessing": 1,
-                          "Judaism's Life Changing Ideas; A Weekly Reading of the Jewish Bible, Shemini; When Weakness Becomes Strength": 1,
-                          "Studies in Spirituality; A Weekly Reading of the Jewish Bible, Tazria Metzora; The Power of Shame": 1,
-                          "Studies in Spirituality; A Weekly Reading of the Jewish Bible, Bemidbar; The Sound of Silence": 1,
-                          "Studies in Spirituality; A Weekly Reading of the Jewish Bible, Ekev; The Spirituality of Listening": 1,
-                          "Tze'enah Ure'enah, Ki Tavo": 1,
-                          "Megalleh Amukkot on Torah, Shemot": 1,
-                          "Megalleh Amukkot on Torah, Vaera": 2,
-                          "Megalleh Amukkot on Torah, Bo": 2,
-                          "Megalleh Amukkot on Torah, Shmini": 3,
-                          "Megalleh Amukkot on Torah, Kedoshim": 1,
-                          "Megalleh Amukkot on Torah, Korach": 2,
-                          "Megalleh Amukkot on Torah, Bechukotai": 1,
-                          "Megalleh Amukkot on Torah, Sh'lach": 2,
-                          "Megalleh Amukkot on Torah, Balak": 1,
-                          "Megalleh Amukkot on Torah, Shoftim": 1,
-                          "Megalleh Amukkot on Torah, Nitzavim": 1,
-                          "Sirilio on Jerusalem Talmud Kilayim": 1,
-                          "Mechokekei Yehudah; Karnei Ohr, Exodus": 1,
-                          "Mechokekei Yehudah; Yahel Ohr, Introduction": 3,
-                          "Mechokekei Yehudah; Yahel Ohr, Exodus": 10,
-                          "The Torah; A Women's Commentary, Parashah Introductions, Shemot": 1,
-                          "Judaism's Life Changing Ideas; A Weekly Reading of the Jewish Bible, Pekudei; Making Space": 1,
-                          "I Believe; A Weekly Reading of the Jewish Bible, Haazinu; The Arc of the Moral Universe": 1,
-                          "Or HaChaim on Exodus": 1,
-                          "Peri Megadim on Orach Chayim, Eshel Avraham": 1,
-                          "Rashi on Proverbs": 2,
-                          "Od Yosef Chai; Derashot, Bereshit": 1,
-                          "Od Yosef Chai; Derashot, Tetzaveh": 1,
-                          "Od Yosef Chai; Derashot, Ki Tisa": 1,
-                          "The Kehot Chumash; A Chasidic Commentary, Parashah Overviews, Bereshit": 1,
-                          "The Kehot Chumash; A Chasidic Commentary, Parashah Overviews, Bamidbar": 1,
-                          "The Kehot Chumash; A Chasidic Commentary, Exodus": 1,
-                          "Keli Chemdah on Torah, Author's Introduction to Genesis and Exodus": 1,
-                          "Marot HaTzoveot on Joshua": 1,
-                          "Siftei Kohen on Torah, Exodus": 6,
-                          "Siftei Kohen on Torah, Numbers": 1,
-                          "Siftei Kohen on Torah, Deuteronomy": 4,
-                          "Kli Yakar on Exodus": 1,
-                          "Minchat Ani on Torah, Bereshit": 1,
-                          "Sulam on Zohar, Bereshit II": 1,
-                          "Ba'al HaTurim on Genesis": 3,
-                          "Da'at Zekenim on Genesis": 2,
-                          "Abarbanel on Torah, Genesis": 2,
-                          "Bekhor Shor, Genesis": 1,
-                          "Chizkuni, Genesis": 6,
-                          "Avi Ezer, Genesis": 3,
-                          "Chomat Anakh on Torah, Genesis": 1,
-                          "Bartenura on Torah, Genesis": 4,
-                          "Aderet Eliyahu, Genesis": 15,
-                          "Birkat Asher on Torah, Genesis": 6,
-                          "Aderet Eliyahu (Rabbi Yosef Chaim), Bereshit": 1,
-                          "Chanukat HaTorah": 1,
-                          "Chatam Sofer on Torah, Bereshit": 2,
-                          "Em LaMikra, Genesis": 10,
-                          "Alshekh on Torah, Genesis": 1,
-                          "Cassuto on Genesis, From Adam to Noah": 3,
-                          "Divrei David on Rashi, Genesis": 7,
-                          "Buber footnotes on Midrash Mishlei": 1,
-                          "Daf Shevui to Megillah": 1,
-                          "Chizkuni, Exodus": 1,
-                          "Bartenura on Torah, Deuteronomy": 1,
-                          "Birkat Asher on Torah, Exodus": 1,
-                          "Ben Yehoyada on Shabbat": 2,
-                          "Ben Yehoyada on Eruvin": 1,
-                          "Ben Yehoyada on Yoma": 1,
-                          "Ben Yehoyada on Sukkah": 3,
-                          "Ben Yehoyada on Megillah": 1,
-                          "Ben Yehoyada on Taanit": 1,
-                          "Benayahu on Eruvin": 1,
-                          "Benayahu on Yoma": 1,
-                          "Benayahu on Megillah": 1,
-                          "Ben Yehoyada on Kiddushin": 1,
-                          "Ben Yehoyada on Sanhedrin": 2,
-                          "Ben Yehoyada on Chullin": 1,
-                          "Ben Yehoyada on Avodah Zarah": 1,
-                          "Ben Yehoyada on Menachot": 1,
-                          "Derekh Chayyim": 12,
-                          "Commentary on Selected Paragraphs of Arpilei Tohar": 1,
-                          "Birkat Asher on Torah, Deuteronomy": 1,
-                          "Ezra ben Solomon on Song of Songs": 1,
-                          "Eretz Chemdah, Bereshit": 1,
-                          "Cassuto on Genesis, From Noah to Abraham": 1,
-                          "Covenant and Conversation; Genesis; The Book of the Beginnings, Bereshit, The Book of Teaching": 1,
-                          "Covenant and Conversation; Genesis; The Book of the Beginnings, Noach, Drama in Four Acts": 1
+                          "Tosefot Yom Tov on Mishnah Peah": 7,
+                          "Rambam on Mishnah Peah": 8,
+                          "Rash MiShantz on Mishnah Peah": 9,
+                          "Bartenura on Mishnah Peah": 11,
+                          "Yachin on Mishnah Peah": 13,
+                          "Melekhet Shelomoh on Mishnah Peah": 6
                         }
                       },
                       {
                         "name": "Midrash",
-                        "count": 172,
+                        "count": 1,
                         "books": {
-                          "Legends of the Jews": 2,
-                          "Midrash Aggadah, Genesis": 13,
-                          "Midrash Lekach Tov, Genesis": 36,
-                          "Midrash Lekach Tov, Numbers": 1,
-                          "Midrash Lekach Tov, Deuteronomy": 2,
-                          "Yalkut Shimoni on Torah": 8,
-                          "Otzar Midrashim, Midrash Lekach Tov": 1,
-                          "Ruth Rabbah": 1,
-                          "Sifrei Devarim": 1,
-                          "Shemot Rabbah": 10,
-                          "Vayikra Rabbah": 11,
-                          "Tanna DeBei Eliyahu Rabbah": 2,
-                          "Mekhilta DeRabbi Shimon Ben Yochai": 1,
-                          "Pirkei DeRabbi Eliezer": 3,
-                          "Tanna DeBei Eliyahu Zuta, Additions to Seder Eliyahu Zuta, Pirkei DeRabbi Eliezer": 1,
-                          "Yalkut Shimoni on Nach": 1,
-                          "Midrash Tehillim": 4,
-                          "Otzar Midrashim, Midrash Hagadol": 1,
-                          "Otzar Midrashim, R' Nechunya Ben HaKanah": 1,
-                          "Otzar Midrashim, Sefer Tagin ('Crowns')": 3,
-                          "Otzar Midrashim, Seventy Names of Metatron": 1,
-                          "Otzar Midrashim, Midrash on the Ten Commandments": 1,
-                          "Midrash Tanchuma, Chayei Sara": 1,
-                          "Midrash Tanchuma, Shemot": 1,
-                          "Midrash Tanchuma, Vaera": 1,
-                          "Midrash Tanchuma, Bereshit": 3,
-                          "Midrash Tanchuma, Tetzaveh": 1,
-                          "Midrash Tanchuma, Pekudei": 1,
-                          "Midrash Tanchuma, Nasso": 1,
-                          "Shir HaShirim Rabbah": 1,
-                          "Kohelet Rabbah": 1,
-                          "Ruth Rabbah, Petichta": 1,
-                          "Midrash Tanchuma Buber, Bereshit": 12,
-                          "Midrash Tanchuma Buber, Shemot": 1,
-                          "Midrash Tanchuma Buber, Vaera": 1,
-                          "Midrash Tanchuma Buber, Yitro": 1,
-                          "Midrash Lekach Tov, Exodus": 1,
-                          "Pesikta DeRav Kahana": 2,
-                          "Midrash Yelamdenu, Selections from Yalkut Talmud Torah": 1,
-                          "Mekhilta DeRabbi Yishmael, Tractate Pischa": 2,
-                          "Mekhilta DeRabbi Yishmael, Tractate Shirah": 1,
-                          "Bereshit Rabbah": 21,
-                          "Eikhah Rabbah, Petichta": 1,
-                          "Ein Yaakov, Khagigah": 2,
-                          "Ein Yaakov (Glick Edition), Sukkah": 1,
-                          "Ein Yaakov (Glick Edition), Khagigah": 2,
-                          "Ein Yaakov (Glick Edition), Megillah": 1,
-                          "Bamidbar Rabbah": 2,
-                          "Devarim Rabbah": 1,
-                          "Bereshit Rabbati, Parashat Bereshit": 2
-                        }
-                      },
-                      {
-                        "name": "Tanakh",
-                        "count": 256,
-                        "books": {
-                          "Psalms": 2,
-                          "Genesis": 248,
-                          "Proverbs": 1,
-                          "Jeremiah": 1,
-                          "Lessons in Leadership; Hebrew Edition, Kedoshim; From Priest to People": 2,
-                          "Lessons in Leadership; Hebrew Edition, Naso; Pursuing Peace": 1,
-                          "Deuteronomy": 1
-                        }
-                      },
-                      {
-                        "name": "Mishnah",
-                        "count": 6,
-                        "books": {
-                          "Mishnah Chagigah": 1,
-                          "Mishnah Ta'anit": 2,
-                          "Mishnah Megillah": 3
-                        }
-                      },
-                      {
-                        "name": "Targum",
-                        "count": 5,
-                        "books": {
-                          "Targum Jonathan on Genesis": 1,
-                          "Targum Neofiti": 1,
-                          "Onkelos Genesis": 1,
-                          "Targum Jerusalem, Genesis": 1,
-                          "Tafsir Rasag, Genesis": 1
+                          "Sifra, Kedoshim, Chapter 2": 1
                         }
                       }
                     ]
@@ -19387,13 +19027,14 @@
           },
           {
             "name": "lang",
-            "description": "Interface language. Defaults to `en`.",
+            "description": "Interface language for returned text fields. Defaults to `en`. Must be passed explicitly — the endpoint does not infer a default from the request.",
             "schema": {
               "type": "string",
               "enum": [
                 "en",
                 "he"
-              ]
+              ],
+              "default": "en"
             },
             "in": "query",
             "required": false
@@ -19589,7 +19230,7 @@
         "parameters": [
           {
             "name": "slug",
-            "description": "Profile URL slug, e.g. `sefaria`. Found in the user's profile URL on Sefaria.",
+            "description": "Profile URL slug. Found in the profile URL: `https://www.sefaria.org/profile/{slug}`. For example, the profile at `https://www.sefaria.org/profile/brett-lockspeiser` has slug `brett-lockspeiser`.",
             "schema": {
               "type": "string"
             },
@@ -25736,11 +25377,6 @@
             "description": "the Sefaria User ID of the sheet's owner.",
             "type": "integer"
           },
-          "_id": {
-            "description": "The unique `id` for the source sheet.",
-            "type": "string",
-            "nullable": true
-          },
           "id": {
             "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Sefaria](sefaria.org) at [sefaria.org/sheets/1](sefaria.org/sheets/1).",
             "type": "string"
@@ -28092,10 +27728,6 @@
             "description": "Numeric `id` of the sheet — the same value that appears in the sheet's URL on `voices.sefaria.org`.",
             "type": "integer"
           },
-          "_id": {
-            "description": "Internal MongoDB identifier for the sheet.",
-            "type": "string"
-          },
           "title": {
             "description": "Title of the source sheet.",
             "type": "string"
@@ -28577,31 +28209,6 @@
           }
         }
       },
-      "SheetLikersJSON": {
-        "title": "Root Type for SheetLikersJSON",
-        "description": "List of users who have liked a sheet.",
-        "type": "object",
-        "properties": {
-          "likers": {
-            "description": "List of users who liked the sheet.",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "url": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
       "BulkSheetEntryJSON": {
         "title": "Root Type for BulkSheetEntryJSON",
         "description": "Lightweight summary of a single sheet returned by the bulk endpoint.",
@@ -28693,7 +28300,7 @@
       },
       "BulktextJSON": {
         "title": "Root Type for BulktextJSON",
-        "description": "A map keyed by Sefaria ref. Each entry contains the ref's English and Hebrew text plus version metadata. The exact key set matches the requested refs.",
+        "description": "A map keyed by Sefaria ref. Each entry contains the ref's English and Hebrew text plus metadata such as the language, ref for the url, etc. The exact key set matches the requested refs.",
         "type": "object",
         "additionalProperties": {
           "type": "object"
@@ -28701,7 +28308,7 @@
       },
       "PassagesJSON": {
         "title": "Root Type for PassagesJSON",
-        "description": "A map keyed by the requested Sefaria ref. Each value is the canonical passage ref containing it (e.g. a verse mapped to its three-verse passage).",
+        "description": "A map keyed by the requested Sefaria ref. Each value is the canonical passage ref that contains it — for Tanakh a parasha-style passage, for Mishnah a chapter passage, for Talmud a full sugya boundary.",
         "type": "object",
         "additionalProperties": {
           "$ref": "#/components/schemas/ref"
@@ -28788,17 +28395,47 @@
       },
       "CountsJSON": {
         "title": "Root Type for CountsJSON",
-        "description": "Word and segment counts for a text, broken down by language.",
+        "description": "Availability and coverage data for a text, broken down by language. `_all` covers all languages combined; `_he` and `_en` are language-specific. Each language bucket contains availability bitmaps (`availableTexts`), word/segment counts (`availableCounts`), and coverage statistics (`percentAvailable`, `completenessPercent`, `textComplete`, `sparseness`).",
         "type": "object",
         "properties": {
           "_all": {
-            "type": "object"
+            "description": "Coverage across all languages: `availableTexts` (per-chapter availability arrays) and `shape` (structural shape of the text).",
+            "type": "object",
+            "properties": {
+              "availableTexts": {
+                "description": "Nested arrays indicating which segments have text, one array per chapter.",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "shape": {
+                "description": "Structural shape of the text (chapter/verse counts).",
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "_he": {
-            "type": "object"
+            "description": "Hebrew-language coverage statistics.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CountsLangJSON"
+              }
+            ]
           },
           "_en": {
-            "type": "object"
+            "description": "English-language coverage statistics.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CountsLangJSON"
+              }
+            ]
           }
         }
       },
@@ -28954,6 +28591,50 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "CountsLangJSON": {
+        "title": "CountsLangJSON",
+        "description": "Per-language coverage statistics for a text.",
+        "type": "object",
+        "properties": {
+          "availableTexts": {
+            "description": "Nested arrays indicating which segments have text in this language.",
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          "availableCounts": {
+            "description": "Word and segment counts by unit (e.g. chapters, verses).",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "percentAvailable": {
+            "description": "Percentage of segments that have text in this language.",
+            "type": "number"
+          },
+          "completenessPercent": {
+            "description": "Completeness score as a percentage.",
+            "type": "number"
+          },
+          "textComplete": {
+            "description": "Whether the text is considered complete in this language.",
+            "type": "boolean"
+          },
+          "sparseness": {
+            "description": "Sparseness level (0 = dense, higher = more gaps).",
+            "type": "integer"
+          },
+          "percentAvailableInvalid": {
+            "description": "True when the percentAvailable figure could not be calculated.",
+            "type": "boolean"
           }
         }
       }

@@ -10,7 +10,7 @@ A complete inventory of every Sefaria API endpoint and the decision on whether t
 | Bucket | Count |
 |---|---|
 | Already documented in `openAPI.json` | 30 |
-| Newly added in the 2026-05 documentation pass | 29 |
+| Newly added in the 2026-05 documentation pass | 28 |
 | Skipped — login-required (per-user data) | ~38 |
 | Skipped — staff-only (admin / moderation) | ~22 |
 | Skipped — internal infrastructure | ~8 |
@@ -39,12 +39,11 @@ When a future engineer adds a new endpoint, the rubric above is the contract: if
 
 All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at `voices.sefaria.org`, but their API endpoints live at `www.sefaria.org` like everything else.
 
-### Sheets (13)
+### Sheets (11)
 
 | Endpoint | Description | Notes |
 |---|---|---|
 | `GET /api/sheets/{sheet_id}` | Fetch a single sheet by ID. | sheet_id lookup recipe |
-| `GET /api/sheets/{sheet_id}/likers` | List users who have liked a sheet. | sheet_id lookup recipe |
 | `GET /api/sheets/modified/{sheet_id}/{timestamp}` | Check whether a sheet has been modified since a timestamp. | sheet_id lookup recipe |
 | `GET /api/sheets/user/{user_id}` | List a user's public sheets. | Split path; user_id recipe; public-only caveat |
 | `GET /api/sheets/user/{user_id}/{sort_by}/{limiter}/{offset}` | Same, paginated and sorted. | Same as above |
@@ -55,7 +54,6 @@ All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at 
 | `GET /api/sheets/tag-list/user/{user_id}` | Tags used on a specific user's sheets. | user_id recipe |
 | `GET /api/sheets/ref/{ref}` | Public sheets that cite a given ref. | — |
 | `GET /api/sheets/all-sheets/{limiter}/{offset}` | Paginated list of all public sheets. | — |
-| `GET /api/sheets/{parasha}/get_aliyot` | Aliyot ranges for a parasha (sheet builder helper). | — |
 
 ### Collections (3)
 
@@ -92,12 +90,13 @@ All endpoints are served from `https://www.sefaria.org`. Sheets are *viewed* at 
 |---|---|
 | `GET /api/link-summary/{ref}` | Summary of links by category. |
 
-### Calendars (2)
+### Calendars (3)
 
 | Endpoint | Description | Notes |
 |---|---|---|
 | `GET /api/calendars/topics/parasha` | Topic info for current parasha. | — |
 | `GET /api/calendars/topics/holiday` | Topic info for current holiday. | Returns 404 when no holiday is active; example uses a fixed canonical holiday date |
+| `GET /api/sheets/{parasha}/get_aliyot` | Aliyot ranges for a parasha. | Moved to Calendars tag (URL is under /api/sheets/ for historical reasons) |
 
 ### Misc (1, including Profile fold-in)
 
@@ -202,6 +201,12 @@ CSRF-form-shaped endpoints, not API-shaped consumer endpoints.
 - `GET /api/newsletter_mailing_lists/`
 - `POST /api/find-refs/report/`
 
+## Removed after initial documentation
+
+Endpoints that were documented then removed on review.
+
+- `GET /api/sheets/{id}/likers` — removed 2026-05-07; not useful enough to external developers to warrant public documentation.
+
 ## Out of scope — duplicates or version-status helpers
 
 Alternate shapes of already-documented endpoints, or admin-dashboard helpers.
@@ -235,10 +240,10 @@ Endpoints group into the following sidebar folders (= OpenAPI `tags`):
 | Text | 9 | +2 |
 | Index | 10 | +7 (incl. Authors fold-in) |
 | Related | 5 | +1 |
-| Calendars | 4 | +2 |
+| Calendars | 5 | +3 (incl. Aliyot fold-in) |
 | Lexicon | 3 | unchanged |
 | Topic | 5 | unchanged |
 | Term | 1 | unchanged |
-| Sheets *(new)* | 13 | +13 |
+| Sheets *(new)* | 11 | +11 |
 | Collections *(new)* | 3 | +3 |
 | Misc | 7 | +1 (Profile fold-in) |
