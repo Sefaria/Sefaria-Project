@@ -44,7 +44,7 @@ import { ChatbotExperimentBanner } from './SiteWideBanner';
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
-    // TODO clean up generation of initial panels objects.
+    // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];

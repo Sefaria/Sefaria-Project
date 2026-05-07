@@ -120,6 +120,8 @@ class TestGematria():
     ("הבית כנסת פתוח", "הביכ״נ פתוח רק", False),  # same other longer abbrev
     ("אע״ג שרבי שמעול בן גמליאל שמר שבית שאשרעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", True),    # multiple abbrevs
     ("אע״ג שרבי שמעול בן גמליאל שמר שבית שארעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", False),    # diff multiple abbrevs
+    ("אפילו כך", "אפ׳ כך", True),     # trailing geresh abbreviation
+    ("אפילו כך", "אפ' כך", True),     # trailing ASCII apostrophe abbreviation
 ])
 def test_hebrew_starts_with(hebrew, other_hebrew, should_match):
     assert h.hebrew_starts_with(hebrew, other_hebrew) == should_match
