@@ -162,7 +162,7 @@
             <span class="int-en">Google: {% if "google" in connected_providers %}Connected{% else %}Not connected{% endif %}</span>
             {% if "google" in connected_providers %}
             <button type="button" class="button small blue" id="disconnect-google-btn"
-                {% if not has_usable_password and connected_providers|length == 1 %}disabled title="Set a password before removing your only login method"{% endif %}>
+                {% if not has_usable_password %}disabled title="Set a password before disconnecting a login method"{% endif %}>
                 <span class="int-en">Disconnect</span>
             </button>
             {% else %}
@@ -176,7 +176,7 @@
             <span class="int-en">Apple: {% if "apple" in connected_providers %}Connected{% else %}Not connected{% endif %}</span>
             {% if "apple" in connected_providers %}
             <button type="button" class="button small blue" id="disconnect-apple-btn"
-                {% if not has_usable_password and connected_providers|length == 1 %}disabled title="Set a password before removing your only login method"{% endif %}>
+                {% if not has_usable_password %}disabled title="Set a password before disconnecting a login method"{% endif %}>
                 <span class="int-en">Disconnect</span>
             </button>
             {% else %}

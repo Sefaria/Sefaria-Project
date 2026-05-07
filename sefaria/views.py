@@ -323,7 +323,7 @@ def unlink_social_provider(request, provider):
     try:
         SocialAuthService.unlink_provider(request.user, provider)
     except LastLoginMethodError:
-        return jsonResponse({"error": "Set a password before removing your only login method."}, status=409)
+        return jsonResponse({"error": "You must set a password before disconnecting a login method."}, status=409)
 
     return jsonResponse({"status": "ok"})
 

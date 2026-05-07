@@ -10,9 +10,15 @@ Implement Google One Tap SSO login/registration for Sefaria. Anonymous users can
 - Backend endpoint: `POST /api/auth/google/callback` verifies Google JWT using existing `google-auth` library
 - Reuse `auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")` for session issuance
 - Reuse `UserProfile` creation pattern from `process_register_form` in `sefaria/views.py`
-- No silent account merging — email collision returns a clear error
+- No silent account merging — email collision always returns a clear error, regardless of what other social identities the existing account has
 - POC scope: Google only, session-based (not JWT tokens)
 - `GOOGLE_SSO_CLIENT_ID` added to `local_settings_example.py` / `local_settings.py` and exposed via `context_processors.global_settings`
+
+## Edge Cases
+
+- **Email collision (any existing account):** If `POST /api/auth/google/callback` receives an email that belongs to any existing account (password-only or a different SSO provider), return 409 with a message directing the user to log in with their existing method and connect Google in Settings → Login Methods.
+- **Already-linked SSO account:** If a user tries to connect a Google account (via Settings) that is already linked to a *different* Sefaria account, return 409 "This account is already linked to another Sefaria account."
+- **Disconnect requires password:** A user may only disconnect Google SSO if they have a usable password set. The disconnect button is disabled in the UI when `has_usable_password` is False, and `SocialAuthService.unlink_provider()` raises `LastLoginMethodError` at the service layer as a server-side guard.
 
 ## Context
 

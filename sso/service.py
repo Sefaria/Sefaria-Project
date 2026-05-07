@@ -98,9 +98,7 @@ class SocialAuthService:
 
     @staticmethod
     def unlink_provider(user, provider):
-        """Removes a SocialIdentity. Raises LastLoginMethodError if this would leave the user with no login method."""
-        has_password = user.has_usable_password()
-        other_identities = user.social_identities.exclude(provider=provider).exists()
-        if not has_password and not other_identities:
+        """Removes a SocialIdentity. Raises LastLoginMethodError if user has no usable password."""
+        if not user.has_usable_password():
             raise LastLoginMethodError()
         user.social_identities.filter(provider=provider).delete()
