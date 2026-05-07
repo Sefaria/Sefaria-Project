@@ -14,7 +14,8 @@ def verify_token(id_token):
     claims.validate()
     if claims.get("iss") != "https://appleid.apple.com":
         raise ValueError("Invalid issuer")
-    if claims.get("aud") != settings.APPLE_SSO_CLIENT_ID:
+    valid_audiences = {settings.APPLE_SSO_CLIENT_ID, settings.APPLE_SSO_IOS_BUNDLE_ID}
+    if claims.get("aud") not in valid_audiences:
         raise ValueError("Invalid audience")
     return {
         "sub": claims["sub"],

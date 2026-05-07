@@ -247,7 +247,10 @@ def google_sso_callback(request):
         }, status=409)
 
     auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
-    return jsonResponse({"status": "ok", "is_new_user": is_new_user})
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(user)
+    return jsonResponse({"status": "ok", "is_new_user": is_new_user,
+                         "access": str(refresh.access_token), "refresh": str(refresh)})
 
 
 @csrf_exempt
@@ -283,7 +286,10 @@ def apple_sso_callback(request):
         }, status=409)
 
     auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
-    return jsonResponse({"status": "ok", "is_new_user": is_new_user})
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(user)
+    return jsonResponse({"status": "ok", "is_new_user": is_new_user,
+                         "access": str(refresh.access_token), "refresh": str(refresh)})
 
 
 @login_required
