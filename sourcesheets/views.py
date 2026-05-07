@@ -38,7 +38,7 @@ from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
 from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -48,7 +48,7 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
-from reader.views import menu_page
+
 
 def annotate_user_links(sources):
     """
@@ -62,8 +62,6 @@ def annotate_user_links(sources):
 
     return sources
 
-from django.utils.translation import gettext as _
-from reader.views import menu_page
 
 @ensure_csrf_cookie
 def sheets_home_page(request):

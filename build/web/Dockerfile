@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm
+FROM us-east1-docker.pkg.dev/production-deployment/containers/base-web:3.12-slim-bookworm
 ARG TYPE=build-prod
 
 # Django Environment Variables
