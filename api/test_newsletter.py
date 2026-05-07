@@ -1,20 +1,32 @@
 """
-Tests for newsletter API service and views.
+Newsletter unit tests + view tests.
 
-Uses pytest conventions for testing ActiveCampaign integration.
+This file holds two kinds of tests, both at the narrow end of the spectrum:
+
+    1. **Unit tests** for individual service functions (e.g. parsing helpers,
+       data mappers, single API-call wrappers). Collaborators are mocked at
+       their function boundary so each test exercises one piece of logic.
+
+    2. **Django view tests** that hit the URL with the test Client but mock
+       the service `*_impl` function. These check HTTP-layer concerns
+       (auth, validation, status codes, response shape) without running the
+       full service code.
+
+If you're testing how multiple service functions interact, or want the real
+service code to run with only the AC API mocked, write the test in
+test_newsletter_integration.py instead.
+
+If you're testing HTTP API behavior end-to-end (Django middleware, request
+parsing, etc.) with `*_impl` mocked, use test_newsletter_api_integration.py.
 """
 
 import pytest
-import json
 from unittest import mock
-from django.test import Client
 from api import newsletter_service
 
 
-@pytest.fixture
-def client():
-    """Fixture providing Django test client"""
-    return Client()
+# Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
+# api/conftest.py so they're available to every test file in this package.
 
 
 # ============================================================================
@@ -75,10 +87,10 @@ class TestParseMetadataFromVariable:
         assert newsletter_service.parse_metadata_from_variable(None) is None
 
 
-class TestMakeAcRequest:
-    """Tests for _make_ac_request helper function"""
+class TestMakeRequest:
+    """Tests for NewsletterClient.make_request (the AC API transport layer)"""
 
-    @mock.patch('api.newsletter_service.requests.request')
+    @mock.patch('api.newsletter_service.requests.Session.request')
     def test_data_parameter_passed_as_json(self, mock_request):
         """Verify data parameter is passed through as json= to requests.request()"""
         mock_response = mock.MagicMock()
@@ -87,13 +99,13 @@ class TestMakeAcRequest:
         mock_request.return_value = mock_response
 
         payload = {'fieldValue': {'contact': '123', 'field': 'test', 'value': '42'}}
-        newsletter_service._make_ac_request('fieldValues', method='POST', data=payload)
+        newsletter_service._client.make_request('fieldValues', method='POST', data=payload)
 
         mock_request.assert_called_once()
         call_kwargs = mock_request.call_args
         assert call_kwargs[1].get('json') == payload
 
-    @mock.patch('api.newsletter_service.requests.request')
+    @mock.patch('api.newsletter_service.requests.Session.request')
     def test_no_data_parameter_omits_json(self, mock_request):
         """Verify GET requests without data don't include json= parameter"""
         mock_response = mock.MagicMock()
@@ -101,7 +113,7 @@ class TestMakeAcRequest:
         mock_response.raise_for_status = mock.MagicMock()
         mock_request.return_value = mock_response
 
-        newsletter_service._make_ac_request('lists')
+        newsletter_service._client.make_request('lists')
 
         mock_request.assert_called_once()
         call_kwargs = mock_request.call_args
@@ -111,7 +123,7 @@ class TestMakeAcRequest:
 class TestGetAllLists:
     """Tests for fetching lists from ActiveCampaign"""
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_lists_success(self, mock_request):
         """Successfully fetch lists from AC"""
         mock_request.return_value = {
@@ -127,7 +139,7 @@ class TestGetAllLists:
         assert lists[1]['stringid'] == 'educator_resources'
         mock_request.assert_called_once_with('lists?limit=100')
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_lists_error(self, mock_request):
         """Raise error when API call fails"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API connection failed")
@@ -163,7 +175,7 @@ class TestGetAllAcListIds:
 class TestGetAllPersonalizationVariables:
     """Tests for fetching personalization variables from ActiveCampaign"""
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_variables_success(self, mock_request):
         """Successfully fetch personalization variables"""
         mock_request.return_value = {
@@ -269,61 +281,13 @@ class TestGetNewsletterList:
 
 
 # ============================================================================
-# Tests for newsletter API view
-# ============================================================================
-
-class TestGetNewsletterListsView:
-    """Tests for the /api/newsletter/lists endpoint"""
-
-    @mock.patch('api.newsletter_views.get_newsletter_list')
-    def test_get_request_success(self, mock_get_list, client):
-        """Successful GET request returns newsletters"""
-        mock_get_list.return_value = [
-            {
-                'id': '1',
-                'stringid': 'sefaria_news',
-                'displayName': 'Sefaria News',
-                'icon': 'news-and-resources.svg',
-                'language': 'english'
-            }
-        ]
-        response = client.get('/api/newsletter/lists')
-
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert 'newsletters' in data
-        assert len(data['newsletters']) == 1
-        assert data['newsletters'][0]['stringid'] == 'sefaria_news'
-
-    @mock.patch('api.newsletter_views.get_newsletter_list')
-    def test_error_response_500(self, mock_get_list, client):
-        """API error returns 500 status"""
-        mock_get_list.side_effect = newsletter_service.ActiveCampaignError("Connection failed")
-        response = client.get('/api/newsletter/lists')
-
-        assert response.status_code == 500
-        data = json.loads(response.content)
-        assert 'error' in data
-        assert 'Connection failed' in data['error']
-
-    def test_post_not_allowed(self, client):
-        """POST requests are not allowed"""
-        response = client.post('/api/newsletter/lists')
-
-        assert response.status_code == 405
-        data = json.loads(response.content)
-        assert 'error' in data
-        assert 'GET' in data['error']
-
-
-# ============================================================================
 # Tests for Contact Management Functions
 # ============================================================================
 
 class TestFindOrCreateContact:
     """Tests for finding or creating AC contacts"""
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_find_existing_contact(self, mock_request):
         """Find an existing contact by email"""
         mock_request.return_value = {
@@ -336,25 +300,23 @@ class TestFindOrCreateContact:
         assert contact['id'] == '28529'
         assert contact['email'] == 'john@example.com'
 
-    @mock.patch('api.newsletter_service.requests.post')
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_create_new_contact(self, mock_request, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_create_new_contact(self, mock_request):
         """Create a new contact if not found"""
-        # First call: no existing contacts
-        mock_request.return_value = {'contacts': []}
-
-        # Second call: create contact
-        mock_post.return_value.json.return_value = {
-            'contact': {'id': '28530', 'email': 'jane@example.com', 'firstName': 'Jane', 'lastName': 'Smith'}
-        }
-        mock_post.return_value.raise_for_status = lambda: None
+        # First call: no existing contacts (search)
+        # Second call: create contact (POST)
+        mock_request.side_effect = [
+            {'contacts': []},
+            {'contact': {'id': '28530', 'email': 'jane@example.com', 'firstName': 'Jane', 'lastName': 'Smith'}}
+        ]
 
         contact = newsletter_service.find_or_create_contact('jane@example.com', 'Jane', 'Smith')
 
         assert contact['id'] == '28530'
         assert contact['email'] == 'jane@example.com'
+        assert mock_request.call_count == 2
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_find_contact_api_error(self, mock_request):
         """Handle API errors when finding contact"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API connection failed")
@@ -366,7 +328,7 @@ class TestFindOrCreateContact:
 class TestGetContactListMemberships:
     """Tests for fetching contact list memberships"""
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_list_memberships_success(self, mock_request):
         """Successfully fetch list memberships"""
         mock_request.return_value = {
@@ -381,7 +343,7 @@ class TestGetContactListMemberships:
         assert '1' in list_ids
         assert '3' in list_ids
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_no_memberships(self, mock_request):
         """Return empty list when contact has no memberships"""
         mock_request.return_value = {'contactLists': []}
@@ -389,7 +351,7 @@ class TestGetContactListMemberships:
 
         assert list_ids == []
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_active_only_filters_by_status(self, mock_request):
         """active_only=True filters to only status=1 (active) memberships"""
         mock_request.return_value = {
@@ -406,7 +368,7 @@ class TestGetContactListMemberships:
         assert '5' in list_ids
         assert '3' not in list_ids
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_active_only_false_returns_all(self, mock_request):
         """active_only=False (default) returns all memberships regardless of status"""
         mock_request.return_value = {
@@ -478,23 +440,22 @@ class TestValidateNewsletterKeys:
 class TestAddContactToList:
     """Tests for adding contact to list"""
 
-    @mock.patch('api.newsletter_service.requests.post')
-    def test_add_contact_to_list_success(self, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_add_contact_to_list_success(self, mock_request):
         """Successfully add contact to list"""
-        mock_post.return_value.json.return_value = {
+        mock_request.return_value = {
             'contactList': {'contact': '28529', 'list': '1'}
         }
-        mock_post.return_value.raise_for_status = lambda: None
 
         result = newsletter_service.add_contact_to_list('28529', '1')
 
         assert result['contact'] == '28529'
         assert result['list'] == '1'
 
-    @mock.patch('api.newsletter_service.requests.post')
-    def test_add_contact_to_list_api_error(self, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_add_contact_to_list_api_error(self, mock_request):
         """Handle API errors when adding contact to list"""
-        mock_post.return_value.raise_for_status.side_effect = Exception("Connection failed")
+        mock_request.side_effect = newsletter_service.ActiveCampaignError("API failure")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.add_contact_to_list('28529', '1')
@@ -554,178 +515,38 @@ class TestSubscribeWithUnion:
 
 
 # ============================================================================
-# Tests for Subscribe Newsletter Endpoint
-# ============================================================================
-
-class TestSubscribeNewsletterEndpoint:
-    """Tests for the POST /api/newsletter/subscribe endpoint"""
-
-    @mock.patch('api.newsletter_views.subscribe_with_union')
-    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_subscribe_success(self, mock_get_list, mock_subscribe, client):
-        """Successfully subscribe a user"""
-        mock_get_list.return_value = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-            {'stringid': 'text_updates', 'id': '3'},
-        ]
-        mock_subscribe.return_value = {
-            'contact': {'id': '28529', 'email': 'test@example.com'},
-            'all_subscriptions': ['sefaria_news', 'text_updates']
-        }
-
-        response = client.post(
-            '/api/newsletter/subscribe',
-            json.dumps({
-                'firstName': 'John',
-                'lastName': 'Doe',
-                'email': 'test@example.com',
-                'newsletters': {
-                    'sefaria_news': True,
-                    'text_updates': True,
-                    'parashah_series': False,
-                }
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 200
-        data = json.loads(response.content)
-        assert data['success'] is True
-        assert data['email'] == 'test@example.com'
-        assert len(data['subscribedNewsletters']) == 2
-
-    def test_subscribe_missing_first_name(self, client):
-        """Return error when first name is missing"""
-        response = client.post(
-            '/api/newsletter/subscribe',
-            json.dumps({
-                'firstName': '',
-                'email': 'test@example.com',
-                'newsletters': {'sefaria_news': True}
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'First name and email are required' in data['error']
-
-    def test_subscribe_missing_email(self, client):
-        """Return error when email is missing"""
-        response = client.post(
-            '/api/newsletter/subscribe',
-            json.dumps({
-                'firstName': 'John',
-                'email': '',
-                'newsletters': {'sefaria_news': True}
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'First name and email are required' in data['error']
-
-    def test_subscribe_no_newsletters_selected(self, client):
-        """Return error when no newsletters selected"""
-        response = client.post(
-            '/api/newsletter/subscribe',
-            json.dumps({
-                'firstName': 'John',
-                'email': 'test@example.com',
-                'newsletters': {
-                    'sefaria_news': False,
-                    'text_updates': False,
-                }
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'Please select at least one newsletter' in data['error']
-
-    @mock.patch('api.newsletter_views.subscribe_with_union')
-    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_subscribe_invalid_json(self, mock_get_list, mock_subscribe, client):
-        """Return error for invalid JSON"""
-        response = client.post(
-            '/api/newsletter/subscribe',
-            'invalid json',
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'Invalid JSON' in data['error']
-
-    @mock.patch('api.newsletter_views.subscribe_with_union')
-    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_subscribe_activecampaign_error(self, mock_get_list, mock_subscribe, client):
-        """Return 500 when ActiveCampaign error occurs"""
-        mock_get_list.return_value = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-        ]
-        mock_subscribe.side_effect = newsletter_service.ActiveCampaignError("Connection failed")
-
-        response = client.post(
-            '/api/newsletter/subscribe',
-            json.dumps({
-                'firstName': 'John',
-                'email': 'test@example.com',
-                'newsletters': {'sefaria_news': True}
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 500
-        data = json.loads(response.content)
-        assert 'Connection failed' in data['error']
-
-    def test_subscribe_get_not_allowed(self, client):
-        """GET requests are not allowed"""
-        response = client.get('/api/newsletter/subscribe')
-
-        assert response.status_code == 405
-        data = json.loads(response.content)
-        assert 'POST' in data['error']
-
-
-# ============================================================================
 # Tests for Remove Contact from List Function
 # ============================================================================
 
 class TestRemoveContactFromList:
     """Tests for removing contact from newsletter list"""
 
-    @mock.patch('api.newsletter_service.requests.post')
-    def test_remove_contact_from_list_success(self, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_remove_contact_from_list_success(self, mock_request):
         """Successfully remove contact from list"""
-        mock_post.return_value.json.return_value = {
+        mock_request.return_value = {
             'contactList': {'contact': '28529', 'list': '1', 'status': '2'}
         }
-        mock_post.return_value.raise_for_status = lambda: None
 
         result = newsletter_service.remove_contact_from_list('28529', '1')
 
         assert result['contact'] == '28529'
         assert result['status'] == '2'
 
-    @mock.patch('api.newsletter_service.requests.post')
-    def test_remove_contact_from_list_api_error(self, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_remove_contact_from_list_api_error(self, mock_request):
         """Handle API errors when removing contact from list"""
-        mock_post.return_value.raise_for_status.side_effect = Exception("Connection failed")
+        mock_request.side_effect = newsletter_service.ActiveCampaignError("API failure")
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.remove_contact_from_list('28529', '1')
 
-    @mock.patch('api.newsletter_service.requests.post')
-    def test_remove_idempotent(self, mock_post):
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_remove_idempotent(self, mock_request):
         """Removing a contact twice should both succeed (idempotent)"""
-        mock_post.return_value.json.return_value = {
+        mock_request.return_value = {
             'contactList': {'contact': '28529', 'list': '1', 'status': '2'}
         }
-        mock_post.return_value.raise_for_status = lambda: None
 
         # First removal
         result1 = newsletter_service.remove_contact_from_list('28529', '1')
@@ -822,7 +643,7 @@ class TestFetchUserSubscriptionsImpl:
     """Tests for fetch_user_subscriptions_impl function"""
 
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_fetch_existing_user_subscriptions(self, mock_request, mock_get_memberships):
         """Fetch subscriptions for existing user"""
         mock_request.return_value = {
@@ -848,7 +669,7 @@ class TestFetchUserSubscriptionsImpl:
         # Default wants_marketing_emails when no user passed
         assert result['wants_marketing_emails'] is True
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_fetch_new_user_no_subscriptions(self, mock_request):
         """Return empty subscriptions for new user not in AC"""
         mock_request.return_value = {'contacts': []}
@@ -864,7 +685,7 @@ class TestFetchUserSubscriptionsImpl:
         assert result['wants_marketing_emails'] is True
 
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_fetch_filters_invalid_list_ids(self, mock_request, mock_get_memberships):
         """Fetch only maps valid list IDs back to stringids"""
         mock_request.return_value = {
@@ -884,7 +705,7 @@ class TestFetchUserSubscriptionsImpl:
         # Should only include valid mappings
         assert result['subscribed_newsletters'] == ['sefaria_news']
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_fetch_api_error(self, mock_request):
         """Handle API errors gracefully"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API down")
@@ -898,7 +719,7 @@ class TestFetchUserSubscriptionsImpl:
 
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_fetch_returns_wants_marketing_emails_from_profile(self, mock_request, mock_get_memberships, mock_profile_class):
         """Returns wants_marketing_emails from UserProfile when user is provided"""
         mock_request.return_value = {
@@ -929,7 +750,7 @@ class TestGetContactLearningLevel:
     """Tests for get_contact_learning_level function"""
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_returns_int_when_field_present(self, mock_request, mock_get_field_id):
         """Return integer learning level when AC field has a valid value"""
         mock_get_field_id.return_value = '7'
@@ -946,7 +767,7 @@ class TestGetContactLearningLevel:
         mock_get_field_id.assert_called_once_with('LEARNING_LEVEL')
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_returns_none_when_field_empty(self, mock_request, mock_get_field_id):
         """Return None when field exists but value is empty string"""
         mock_get_field_id.return_value = '7'
@@ -961,7 +782,7 @@ class TestGetContactLearningLevel:
         assert result is None
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_returns_none_when_field_missing(self, mock_request, mock_get_field_id):
         """Return None when LEARNING_LEVEL field is not in contact's fieldValues"""
         mock_get_field_id.return_value = '7'
@@ -976,7 +797,7 @@ class TestGetContactLearningLevel:
         assert result is None
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_returns_none_for_non_numeric_value(self, mock_request, mock_get_field_id):
         """Return None when AC stores a non-numeric string"""
         mock_get_field_id.return_value = '7'
@@ -991,7 +812,7 @@ class TestGetContactLearningLevel:
         assert result is None
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_api_error_propagates(self, mock_request, mock_get_field_id):
         """ActiveCampaignError propagates to caller"""
         mock_get_field_id.return_value = '7'
@@ -1001,7 +822,7 @@ class TestGetContactLearningLevel:
             newsletter_service.get_contact_learning_level('28529')
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_matches_field_id_as_string(self, mock_request, mock_get_field_id):
         """Field ID matching works when AC returns int vs string"""
         mock_get_field_id.return_value = '7'
@@ -1021,7 +842,7 @@ class TestFetchUserSubscriptionsLearningLevel:
 
     @mock.patch('api.newsletter_service.get_contact_learning_level')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_returns_ac_learning_level(self, mock_request, mock_get_memberships, mock_get_ll):
         """Return learning level from AC when present"""
         mock_request.return_value = {
@@ -1038,7 +859,7 @@ class TestFetchUserSubscriptionsLearningLevel:
     @mock.patch('api.newsletter_service.get_contact_learning_level')
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_ac_value_wins_over_profile(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
         """AC learning level takes priority over MongoDB profile value"""
         mock_request.return_value = {
@@ -1066,7 +887,7 @@ class TestFetchUserSubscriptionsLearningLevel:
     @mock.patch('api.newsletter_service.get_contact_learning_level')
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_falls_back_to_profile_when_ac_has_none(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
         """Falls back to profile learning level when AC field is empty"""
         mock_request.return_value = {
@@ -1094,7 +915,7 @@ class TestFetchUserSubscriptionsLearningLevel:
     @mock.patch('api.newsletter_service.get_contact_learning_level')
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_graceful_degradation_on_ac_field_error(self, mock_request, mock_get_memberships, mock_profile_class, mock_get_ll):
         """AC field fetch failure falls back to profile — doesn't break subscription fetch"""
         mock_request.return_value = {
@@ -1122,7 +943,7 @@ class TestFetchUserSubscriptionsLearningLevel:
         assert result['learning_level'] == 3  # Falls back to profile
 
     @mock.patch('api.newsletter_service.UserProfile')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_profile_learning_level_when_not_in_ac(self, mock_request, mock_profile_class):
         """User not in AC gets profile learning level as fallback"""
         mock_request.return_value = {'contacts': []}
@@ -1271,48 +1092,6 @@ class TestUpdateUserPreferencesImpl:
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service.get_all_ac_list_ids')
-    @mock.patch('api.newsletter_service.find_or_create_contact')
-    def test_marketing_opt_out_unsubscribes_all_lists(self, mock_find, mock_get_all_ids,
-                                                       mock_get_memberships, mock_update, mock_update_flag):
-        """Marketing opt-out unsubscribes from ALL lists (managed + unmanaged)"""
-        mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
-        # All lists in AC account (managed + unmanaged)
-        mock_get_all_ids.return_value = ['1', '2', '3', '99']
-        # User is actively subscribed to lists 1, 3, 99
-        mock_get_memberships.return_value = ['1', '3', '99']
-        mock_update.return_value = None
-
-        newsletter_list = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-            {'stringid': 'text_updates', 'id': '3'},
-        ]
-
-        result = newsletter_service.update_user_preferences_impl(
-            'user@example.com', 'John', 'Doe',
-            ['sefaria_news'],  # Selections don't matter for opt-out
-            newsletter_list,
-            marketing_opt_out=True
-        )
-
-        # Should unsubscribe from all active lists (1, 3, 99)
-        mock_update.assert_called_once()
-        call_args = mock_update.call_args
-        add_list = call_args[0][1]
-        remove_list = set(call_args[0][2])
-        assert add_list == []  # No subscriptions added
-        assert '1' in remove_list
-        assert '3' in remove_list
-        assert '99' in remove_list  # Unmanaged list also removed
-
-        assert result['subscribed_newsletters'] == []
-
-        # Verify wants_marketing_emails set to False
-        mock_update_flag.assert_called_once_with('user@example.com', False)
-
-    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
-    @mock.patch('api.newsletter_service.update_list_memberships')
-    @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     def test_normal_update_preserves_unmanaged_lists(self, mock_find, mock_get_memberships,
                                                       mock_update, mock_update_flag):
@@ -1345,118 +1124,12 @@ class TestUpdateUserPreferencesImpl:
 
         assert result['subscribed_newsletters'] == ['text_updates']
 
-
-# ============================================================================
-# Tests for Get User Subscriptions View (Authenticated)
-# ============================================================================
-
-class TestGetUserSubscriptionsView:
-    """Tests for the GET /api/newsletter/subscriptions endpoint (authenticated)"""
-
-    def test_get_subscriptions_not_authenticated(self, client):
-        """Return 401 when not authenticated"""
-        response = client.get('/api/newsletter/subscriptions')
-
-        # Without authentication, should return 401
-        # (Note: test client is not authenticated by default)
-        assert response.status_code == 401
-        data = json.loads(response.content)
-        assert 'Authentication required' in data['error']
-
-    def test_get_subscriptions_post_not_allowed(self, client):
-        """Verify only GET is allowed"""
-        response = client.post('/api/newsletter/subscriptions')
-
-        assert response.status_code == 405
-        data = json.loads(response.content)
-        assert 'GET' in data['error']
-
-
-# ============================================================================
-# Tests for Update User Preferences View (Authenticated)
-# ============================================================================
-
-class TestUpdateUserPreferencesView:
-    """Tests for the POST /api/newsletter/preferences endpoint (authenticated)"""
-
-    @mock.patch('api.newsletter_views.update_user_preferences_impl')
-    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_update_preferences_success(self, mock_get_list, mock_update, client):
-        """Successfully update preferences with valid data"""
-        mock_get_list.return_value = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-            {'stringid': 'text_updates', 'id': '3'},
-        ]
-        mock_update.return_value = {
-            'contact': {'id': '28529', 'email': 'test@example.com'},
-            'subscribed_newsletters': ['sefaria_news', 'text_updates']
-        }
-
-        # Note: requires authentication which test client doesn't have by default
-        # This test structure shows the expected success case
-
-    def test_update_preferences_no_newsletters_selected(self, client):
-        """Return 401 when not authenticated (auth check happens before validation)"""
-        response = client.post(
-            '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {
-                    'sefaria_news': False,
-                    'text_updates': False,
-                }
-            }),
-            content_type='application/json'
-        )
-
-        # Authentication is checked first, so unauthenticated requests get 401
-        # before reaching the validation logic
-        assert response.status_code == 401
-        data = json.loads(response.content)
-        assert 'Authentication required' in data['error']
-
-    def test_update_preferences_invalid_json(self, client):
-        """Return 401 when not authenticated (auth check happens before JSON parsing)"""
-        response = client.post(
-            '/api/newsletter/preferences',
-            'invalid json',
-            content_type='application/json'
-        )
-
-        # Authentication is checked first, so unauthenticated requests get 401
-        # before reaching JSON parsing logic
-        assert response.status_code == 401
-        data = json.loads(response.content)
-        assert 'Authentication required' in data['error']
-
-    def test_update_preferences_not_authenticated(self, client):
-        """Return 401 when not authenticated"""
-        response = client.post(
-            '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {'sefaria_news': True}
-            }),
-            content_type='application/json'
-        )
-
-        # Without authentication, should return 401
-        assert response.status_code == 401
-        data = json.loads(response.content)
-        assert 'Authentication required' in data['error']
-
-    def test_update_preferences_post_only(self, client):
-        """Verify only POST is allowed"""
-        response = client.get('/api/newsletter/preferences')
-
-        assert response.status_code == 405
-        data = json.loads(response.content)
-        assert 'POST' in data['error']
-
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
-    def test_update_preferences_empty_selection_allowed(self, mock_find, mock_get_memberships,
-                                                         mock_update_memberships, mock_update_flag):
+    def test_empty_selection_unsubscribes_from_all_managed(self, mock_find, mock_get_memberships,
+                                                           mock_update_memberships, mock_update_flag):
         """
         Empty newsletter selection is allowed for authenticated users.
 
@@ -1506,7 +1179,7 @@ class TestUpdateUserPreferencesView:
 class TestUpdateLearningLevelInAc:
     """Tests for update_learning_level_in_ac() service function"""
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     def test_update_learning_level_valid(self, mock_find_contact, mock_field_lookup, mock_ac_request):
@@ -1521,7 +1194,7 @@ class TestUpdateLearningLevelInAc:
         assert result['email'] == 'test@example.com'
         mock_field_lookup.assert_called_once_with('LEARNING_LEVEL')
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     def test_update_learning_level_none(self, mock_find_contact, mock_field_lookup, mock_ac_request):
@@ -1547,7 +1220,8 @@ class TestUpdateLearningLevelInAc:
     def test_update_learning_level_invalid_string(self):
         """Reject non-integer learning level"""
         with pytest.raises(newsletter_service.InputError):
-            newsletter_service.update_learning_level_in_ac('test@example.com', 'advanced')
+            # Deliberately passing a string to verify validation rejects it.
+            newsletter_service.update_learning_level_in_ac('test@example.com', 'advanced')  # type: ignore[arg-type]
 
     @mock.patch('api.newsletter_service.get_ac_field_id_by_perstag', return_value='104')
     @mock.patch('api.newsletter_service.find_or_create_contact')
@@ -1555,7 +1229,7 @@ class TestUpdateLearningLevelInAc:
         """Handle AC API errors gracefully"""
         mock_find_contact.return_value = {'id': '12345', 'email': 'test@example.com'}
 
-        with mock.patch('api.newsletter_service._make_ac_request') as mock_ac_request:
+        with mock.patch('api.newsletter_service._client.make_request') as mock_ac_request:
             mock_ac_request.side_effect = newsletter_service.ActiveCampaignError('API Error')
 
             with pytest.raises(newsletter_service.ActiveCampaignError):
@@ -1637,109 +1311,3 @@ class TestUpdateLearningLevelImpl:
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.update_learning_level_impl('test@example.com', 1)
-
-
-class TestUpdateLearningLevelView:
-    """Tests for the update_learning_level view endpoint"""
-
-    def test_update_learning_level_get_not_allowed(self, client):
-        """Verify only POST is allowed"""
-        response = client.get('/api/newsletter/learning-level')
-
-        assert response.status_code == 405
-        data = json.loads(response.content)
-        assert 'POST' in data['error']
-
-    @mock.patch('api.newsletter_service.update_learning_level_impl')
-    def test_update_learning_level_logged_out_success(self, mock_update, client):
-        """Logged-out user can update learning level with email (mocked)"""
-        mock_update.return_value = {
-            'email': 'newuser@example.com',
-            'learning_level': 3,
-            'user_id': None,
-            'message': 'Learning level updated successfully'
-        }
-
-        # Note: This test mocks the service layer, so it doesn't test HTTP integration
-        # It tests that the view correctly calls the service function
-        # For full integration tests, use Django's TestCase with fixtures
-        result = mock_update('newuser@example.com', 3)
-
-        assert result['email'] == 'newuser@example.com'
-        assert result['learning_level'] == 3
-        assert result['user_id'] is None
-
-    def test_update_learning_level_logged_out_missing_email(self, client):
-        """Logged-out user must provide email"""
-        response = client.post(
-            '/api/newsletter/learning-level',
-            json.dumps({
-                'learningLevel': 2
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'Email is required' in data['error']
-
-    def test_update_learning_level_invalid_json(self, client):
-        """Invalid JSON returns 400"""
-        response = client.post(
-            '/api/newsletter/learning-level',
-            'invalid json',
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'Invalid JSON' in data['error']
-
-    def test_update_learning_level_invalid_learning_level(self, client):
-        """Invalid learning level (not 1-5) returns 400"""
-        response = client.post(
-            '/api/newsletter/learning-level',
-            json.dumps({
-                'email': 'test@example.com',
-                'learningLevel': 10
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert 'Learning level must be' in data['error']
-
-    @mock.patch('api.newsletter_service.update_learning_level_impl')
-    def test_update_learning_level_none_is_valid(self, mock_update, client):
-        """Learning level can be set to null (optional)"""
-        mock_update.return_value = {
-            'email': 'test@example.com',
-            'learning_level': None,
-            'user_id': None,
-            'message': 'Learning level updated successfully'
-        }
-
-        # Test that None is accepted as a valid learning level
-        result = mock_update('test@example.com', None)
-
-        assert result['learning_level'] is None
-        assert result['email'] == 'test@example.com'
-
-    @mock.patch('api.newsletter_views.update_learning_level_impl')
-    def test_update_learning_level_ac_error(self, mock_update, client):
-        """AC API errors return 500"""
-        mock_update.side_effect = newsletter_service.ActiveCampaignError('AC API failed')
-
-        response = client.post(
-            '/api/newsletter/learning-level',
-            json.dumps({
-                'email': 'test@example.com',
-                'learningLevel': 2
-            }),
-            content_type='application/json'
-        )
-
-        assert response.status_code == 500
-        data = json.loads(response.content)
-        assert 'error' in data

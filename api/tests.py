@@ -284,7 +284,7 @@ class NewsletterServiceTests(SefariaTestCase):
         metadata = newsletter_service.parse_metadata_from_variable(None)
         self.assertIsNone(metadata)
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_lists_success(self, mock_request):
         """Test successfully fetching all lists from ActiveCampaign"""
         mock_request.return_value = {
@@ -299,14 +299,14 @@ class NewsletterServiceTests(SefariaTestCase):
         self.assertEqual(lists[1]['stringid'], 'educator_resources')
         mock_request.assert_called_once_with('lists')
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_lists_error(self, mock_request):
         """Test error handling when fetching lists fails"""
         mock_request.side_effect = newsletter_service.ActiveCampaignError("API connection failed")
         with self.assertRaises(newsletter_service.ActiveCampaignError):
             newsletter_service.get_all_lists()
 
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_get_all_personalization_variables_success(self, mock_request):
         """Test successfully fetching personalization variables"""
         mock_request.return_value = {

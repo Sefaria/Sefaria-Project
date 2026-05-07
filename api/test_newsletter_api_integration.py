@@ -1,88 +1,49 @@
 """
 Newsletter API Integration Tests
 
-Django Test Client integration tests for all newsletter API endpoints.
-Tests authentication, request parsing, validation, and response formatting using
-real HTTP requests (but mocked ActiveCampaign API calls).
+Pytest-style integration tests for all newsletter API endpoints. Use Django's
+test Client to hit real URLs but with the *_impl service functions mocked at
+the view layer. This keeps the focus on HTTP-layer concerns: authentication,
+request parsing, validation, and response formatting.
 
-These tests complement the unit tests in test_newsletter.py by testing the full
-HTTP request/response cycle including Django middleware, authentication, and view logic.
+These tests complement the unit tests in test_newsletter.py by exercising the
+full HTTP request/response cycle including Django middleware and authentication.
 """
 
-import pytest
 import json
+import pytest
 from unittest import mock
-from django.test import Client
-from django.contrib.auth.models import User
-from sefaria.system.exceptions import InputError
 from api.newsletter_service import ActiveCampaignError
 
 
-@pytest.fixture
-def client():
-    """Fixture providing Django test client"""
-    return Client()
+# Shared fixtures (`client`, `test_user`, `test_user_no_name`,
+# `logged_in_client`, `mock_newsletters`) live in api/conftest.py.
 
 
-@pytest.fixture
-def mock_newsletters():
-    """Fixture providing mock newsletter data"""
-    return [
-        {
-            'id': '1',
-            'stringid': 'sefaria_news',
-            'displayName': 'Sefaria News & Resources',
-            'icon': 'news-and-resources.svg',
-            'language': 'english'
-        },
-        {
-            'id': '3',
-            'stringid': 'text_updates',
-            'displayName': 'New Text Updates',
-            'icon': 'new-text-release-updates.svg',
-            'language': 'english'
-        },
-        {
-            'id': '5',
-            'stringid': 'parashah_series',
-            'displayName': 'Weekly Parashah Study Series',
-            'icon': 'weekly-study-guide.svg',
-            'language': 'english'
-        },
-        {
-            'id': '7',
-            'stringid': 'educator_resources',
-            'displayName': 'Educator Resources',
-            'icon': 'educator-resources.svg',
-            'language': 'english'
-        },
-    ]
+# ============================================================================
+# Assertion helpers
+# ============================================================================
+
+def assert_success(response, expected_status=200):
+    """Assert a successful response and return its parsed JSON body."""
+    assert response.status_code == expected_status
+    data = json.loads(response.content)
+    assert 'error' not in data
+    return data
 
 
-# Helper functions
-def create_test_user(email='testuser@sefaria.org', password='testpass123',
-                    first_name='Test', last_name='User'):
-    """
-    Helper to create and return a test user.
+def assert_error(response, expected_status, expected_error_part=None):
+    """Assert an error response and return its parsed JSON body."""
+    assert response.status_code == expected_status
+    data = json.loads(response.content)
+    assert 'error' in data
+    if expected_error_part:
+        assert expected_error_part.lower() in data['error'].lower()
+    return data
 
-    Args:
-        email: User's email address (also used as username)
-        password: User's password
-        first_name: User's first name
-        last_name: User's last name
 
-    Returns:
-        User: Created Django user instance
-    """
-    user = User.objects.create_user(
-        username=email,
-        email=email,
-        password=password
-    )
-    user.first_name = first_name
-    user.last_name = last_name
-    user.save()
-    return user
+def parse_json(response):
+    return json.loads(response.content)
 
 
 # ============================================================================
@@ -94,32 +55,21 @@ class TestUpdateUserPreferencesIntegration:
     """
     Integration tests for POST /api/newsletter/preferences (authenticated users).
 
-    This endpoint uses REPLACE behavior: the selected newsletters become the user's
-    complete subscription list. Unselected newsletters are unsubscribed.
-
-    Key scenarios tested:
-    - Authentication required (401 for unauthenticated)
-    - Empty selection allowed (unsubscribe from all)
-    - Replace behavior (removes old, adds new)
-    - Partial overlaps (add some, remove some, keep some)
-    - Invalid newsletter stringids
-    - AC API errors
-    - Invalid JSON
-    - Response format validation
-    - Method restrictions (POST only)
+    This endpoint uses REPLACE behavior: the selected newsletters become the
+    user's complete subscription list. Unselected newsletters are unsubscribed.
     """
 
     def test_unauthenticated_request_returns_401(self, client):
-        """Test: Unauthenticated request returns 401 Unauthorized"""
+        """Unauthenticated request returns 401 Unauthorized."""
         response = client.post(
             '/api/newsletter/preferences',
             json.dumps({
                 'newsletters': {
                     'sefaria_news': True,
-                    'text_updates': True
+                    'text_updates': True,
                 }
             }),
-            content_type='application/json'
+            content_type='application/json',
         )
 
         assert response.status_code == 401
@@ -128,462 +78,740 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_authenticated_user_can_update_preferences(self, mock_get_list, mock_update, client, mock_newsletters):
-        """Test: Authenticated user can successfully update preferences"""
-        # Setup
-        user = create_test_user()
-        client.login(email='testuser@sefaria.org', password='testpass123')
-
+    def test_authenticated_user_can_update_preferences(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Authenticated user can successfully update preferences."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.return_value = ['sefaria_news', 'parashah_series']
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['sefaria_news', 'parashah_series'],
+        }
 
-        # Execute
-        response = client.post(
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
             json.dumps({
                 'newsletters': {
                     'sefaria_news': True,
                     'text_updates': False,
                     'parashah_series': True,
-                    'educator_resources': False
+                    'educator_resources': False,
                 }
             }),
-            content_type='application/json'
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert data['email'] == 'testuser@sefaria.org'
+        assert 'sefaria_news' in data['subscribedNewsletters']
+        assert 'parashah_series' in data['subscribedNewsletters']
+        assert len(data['subscribedNewsletters']) == 2
 
-        self.assertTrue(data['success'])
-        self.assertEqual(data['email'], 'testuser@sefaria.org')
-        self.assertIn('sefaria_news', data['subscribedNewsletters'])
-        self.assertIn('parashah_series', data['subscribedNewsletters'])
-        self.assertEqual(len(data['subscribedNewsletters']), 2)
-
-        # Verify service layer was called correctly
         mock_update.assert_called_once()
         call_args = mock_update.call_args[0]
-        self.assertEqual(call_args[0], 'testuser@sefaria.org')  # email
-        self.assertEqual(call_args[1], 'Test')  # first_name
-        self.assertEqual(call_args[2], 'User')  # last_name
-        self.assertIn('sefaria_news', call_args[3])  # selected_stringids
-        self.assertIn('parashah_series', call_args[3])
+        assert call_args[0] == 'testuser@sefaria.org'  # email
+        assert call_args[1] == 'Test'                  # first_name
+        assert call_args[2] == 'User'                  # last_name
+        assert 'sefaria_news' in call_args[3]          # selected_stringids
+        assert 'parashah_series' in call_args[3]
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_empty_selection_allowed_unsubscribes_from_all(self, mock_get_list, mock_update):
-        """Test: Empty selection is allowed for authenticated users (unsubscribe from all)"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_empty_selection_allowed_unsubscribes_from_all(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Empty selection is allowed for authenticated users (unsubscribe from all)."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.return_value = []  # No subscriptions after update
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': [],
+        }
 
-        # Execute - all newsletters set to false (empty selection)
-        response = client.post(
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
             json.dumps({
                 'newsletters': {
                     'sefaria_news': False,
                     'text_updates': False,
                     'parashah_series': False,
-                    'educator_resources': False
+                    'educator_resources': False,
                 }
             }),
-            content_type='application/json'
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == []
 
-        self.assertTrue(data['success'])
-        self.assertEqual(data['subscribedNewsletters'], [])
-
-        # Verify service layer was called with empty selection
         mock_update.assert_called_once()
         call_args = mock_update.call_args[0]
-        self.assertEqual(call_args[3], [])  # selected_stringids should be empty list
+        assert call_args[3] == []  # selected_stringids should be empty
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_replace_behavior_removes_old_adds_new(self, mock_get_list, mock_update):
-        """Test: Replace behavior correctly removes old subscriptions and adds new ones"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_replace_behavior_removes_old_adds_new(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Replace behavior correctly removes old subscriptions and adds new ones."""
         mock_get_list.return_value = mock_newsletters
-        # Simulate replace: user had sefaria_news + text_updates, now has parashah_series + educator_resources
-        mock_update.return_value = ['parashah_series', 'educator_resources']
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['parashah_series', 'educator_resources'],
+        }
 
-        # Execute
-        response = client.post(
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
             json.dumps({
                 'newsletters': {
                     'sefaria_news': False,
                     'text_updates': False,
                     'parashah_series': True,
-                    'educator_resources': True
+                    'educator_resources': True,
                 }
             }),
-            content_type='application/json'
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
-
-        self.assertTrue(data['success'])
-        self.assertNotIn('sefaria_news', data['subscribedNewsletters'])
-        self.assertNotIn('text_updates', data['subscribedNewsletters'])
-        self.assertIn('parashah_series', data['subscribedNewsletters'])
-        self.assertIn('educator_resources', data['subscribedNewsletters'])
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert 'sefaria_news' not in data['subscribedNewsletters']
+        assert 'text_updates' not in data['subscribedNewsletters']
+        assert 'parashah_series' in data['subscribedNewsletters']
+        assert 'educator_resources' in data['subscribedNewsletters']
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_partial_overlap_add_remove_keep(self, mock_get_list, mock_update):
-        """Test: Handles partial overlap (add some, remove some, keep some)"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_partial_overlap_add_remove_keep(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Handles partial overlap (add some, remove some, keep some)."""
         mock_get_list.return_value = mock_newsletters
-        # Simulate: user keeps sefaria_news, removes text_updates, adds parashah_series
-        mock_update.return_value = ['sefaria_news', 'parashah_series']
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['sefaria_news', 'parashah_series'],
+        }
 
-        # Execute
-        response = client.post(
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
             json.dumps({
                 'newsletters': {
-                    'sefaria_news': True,  # keep
-                    'text_updates': False,  # remove
-                    'parashah_series': True,  # add
-                    'educator_resources': False
+                    'sefaria_news': True,        # keep
+                    'text_updates': False,       # remove
+                    'parashah_series': True,     # add
+                    'educator_resources': False,
                 }
             }),
-            content_type='application/json'
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
-
-        self.assertIn('sefaria_news', data['subscribedNewsletters'])
-        self.assertNotIn('text_updates', data['subscribedNewsletters'])
-        self.assertIn('parashah_series', data['subscribedNewsletters'])
+        data = assert_success(response, 200)
+        assert 'sefaria_news' in data['subscribedNewsletters']
+        assert 'text_updates' not in data['subscribedNewsletters']
+        assert 'parashah_series' in data['subscribedNewsletters']
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_invalid_stringid_returns_500(self, mock_get_list, mock_update):
-        """Test: Invalid newsletter stringid raises error from service layer"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_invalid_stringid_returns_500(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Invalid newsletter stringid raises error from service layer."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.side_effect = ActiveCampaignError("Invalid newsletter IDs: invalid_newsletter_123")
-
-        # Execute
-        response = client.post(
-            '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {
-                    'invalid_newsletter_123': True
-                }
-            }),
-            content_type='application/json'
+        mock_update.side_effect = ActiveCampaignError(
+            "Invalid newsletter IDs: invalid_newsletter_123"
         )
 
-        # Verify
-        self.assert_error_response(response, 500)
-        data = self.parse_json_response(response)
-        self.assertIn('error', data)
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({
+                'newsletters': {'invalid_newsletter_123': True}
+            }),
+            content_type='application/json',
+        )
+
+        data = assert_error(response, 500)
+        assert 'error' in data
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_ac_api_error_returns_500(self, mock_get_list, mock_update):
-        """Test: ActiveCampaign API error returns 500"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_ac_api_error_returns_500(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """ActiveCampaign API error returns 500."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.side_effect = ActiveCampaignError("Failed to connect to ActiveCampaign API")
-
-        # Execute
-        response = client.post(
-            '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {
-                    'sefaria_news': True
-                }
-            }),
-            content_type='application/json'
+        mock_update.side_effect = ActiveCampaignError(
+            "Failed to connect to ActiveCampaign API"
         )
 
-        # Verify
-        self.assert_error_response(response, 500, 'ActiveCampaign')
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {'sefaria_news': True}}),
+            content_type='application/json',
+        )
 
-    def test_invalid_json_returns_400(self):
-        """Test: Invalid JSON in request body returns 400"""
-        # Setup
-        user = create_test_user()
-        client.login()
+        assert_error(response, 500, 'ActiveCampaign')
 
-        # Execute - send malformed JSON
-        response = client.post(
+    def test_invalid_json_returns_400(self, logged_in_client):
+        """Invalid JSON in request body returns 400."""
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
             'this is not valid json',
-            content_type='application/json'
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_error_response(response, 400)
+        assert_error(response, 400)
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_response_format_is_correct(self, mock_get_list, mock_update):
-        """Test: Response has correct format with all required fields"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_response_format_is_correct(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """Response has correct format with all required fields and types."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.return_value = ['sefaria_news']
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['sefaria_news'],
+        }
 
-        # Execute
-        response = client.post(
+        response = logged_in_client.post(
             '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {
-                    'sefaria_news': True
-                }
-            }),
-            content_type='application/json'
+            json.dumps({'newsletters': {'sefaria_news': True}}),
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
+        data = assert_success(response, 200)
 
-        # Check all required fields
-        self.assertIn('success', data)
-        self.assertIn('message', data)
-        self.assertIn('email', data)
-        self.assertIn('subscribedNewsletters', data)
+        # Required fields
+        for field in ('success', 'message', 'email', 'subscribedNewsletters'):
+            assert field in data
 
-        # Check types
-        self.assertIsInstance(data['success'], bool)
-        self.assertIsInstance(data['message'], str)
-        self.assertIsInstance(data['email'], str)
-        self.assertIsInstance(data['subscribedNewsletters'], list)
+        # Field types
+        assert isinstance(data['success'], bool)
+        assert isinstance(data['message'], str)
+        assert isinstance(data['email'], str)
+        assert isinstance(data['subscribedNewsletters'], list)
 
-    def test_get_method_not_allowed(self):
-        """Test: GET request returns 405 Method Not Allowed"""
-        user = create_test_user()
-        client.login()
+    @pytest.mark.parametrize('method', ['get', 'put', 'delete'])
+    def test_non_post_methods_not_allowed(self, logged_in_client, method):
+        """Only POST is allowed on /preferences; GET/PUT/DELETE return 405."""
+        response = getattr(logged_in_client, method)('/api/newsletter/preferences')
 
-        response = client.get('/api/newsletter/preferences')
-
-        self.assert_error_response(response, 405, 'Only POST method is supported')
-
-    def test_put_method_not_allowed(self):
-        """Test: PUT request returns 405 Method Not Allowed"""
-        user = create_test_user()
-        client.login()
-
-        response = client.put('/api/newsletter/preferences')
-
-        self.assert_error_response(response, 405)
-
-    def test_delete_method_not_allowed(self):
-        """Test: DELETE request returns 405 Method Not Allowed"""
-        user = create_test_user()
-        client.login()
-
-        response = client.delete('/api/newsletter/preferences')
-
-        self.assert_error_response(response, 405)
+        # The 'Only POST method is supported' message comes from the same code
+        # path for every non-POST method, so checking it once (on GET) is enough.
+        if method == 'get':
+            assert_error(response, 405, 'Only POST method is supported')
+        else:
+            assert_error(response, 405)
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_user_without_first_name_uses_default(self, mock_get_list, mock_update):
-        """Test: User without first_name gets default value 'User'"""
-        # Setup - create user without first_name
-        user = create_test_user(first_name='', last_name='')
-        client.login()
+    def test_user_without_first_name_uses_default(
+        self, mock_get_list, mock_update, client, test_user_no_name, mock_newsletters
+    ):
+        """User without first_name gets default value 'User'."""
+        client.login(email='testuser@sefaria.org', password='testpass123')
 
         mock_get_list.return_value = mock_newsletters
-        mock_update.return_value = ['sefaria_news']
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['sefaria_news'],
+        }
 
-        # Execute
         response = client.post(
             '/api/newsletter/preferences',
-            json.dumps({
-                'newsletters': {
-                    'sefaria_news': True
-                }
-            }),
-            content_type='application/json'
+            json.dumps({'newsletters': {'sefaria_news': True}}),
+            content_type='application/json',
         )
 
-        # Verify
-        self.assert_success_response(response, 200)
+        assert_success(response, 200)
 
-        # Verify service layer was called with default first_name = 'User'
         mock_update.assert_called_once()
         call_args = mock_update.call_args[0]
-        self.assertEqual(call_args[1], 'User')  # first_name should be 'User'
-        self.assertEqual(call_args[2], '')  # last_name should be empty string
+        assert call_args[1] == 'User'  # first_name defaulted to 'User'
+        assert call_args[2] == ''      # last_name remains empty
+
+    @mock.patch('api.newsletter_views.update_user_preferences_impl')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_marketing_opt_out_threaded_to_service(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        """The `marketingOptOut` request flag is threaded through to the service layer."""
+        mock_get_list.return_value = mock_newsletters
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': [],
+        }
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({
+                'newsletters': {'sefaria_news': True},
+                'marketingOptOut': True,
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        mock_update.assert_called_once()
+        call_kwargs = mock_update.call_args[1]
+        assert call_kwargs['marketing_opt_out'] is True
 
 
 # ============================================================================
 # Get User Subscriptions Integration Tests (Authenticated, GET)
 # ============================================================================
 
-class GetUserSubscriptionsIntegrationTest(NewsletterAPIIntegrationTestCase):
+@pytest.mark.django_db
+class TestGetUserSubscriptionsIntegration:
     """
     Integration tests for GET /api/newsletter/subscriptions (authenticated users).
 
-    This endpoint retrieves the current newsletter subscriptions for an authenticated user.
-
-    Key scenarios tested:
-    - Authentication required (401 for unauthenticated)
-    - User with subscriptions
-    - User with no subscriptions
-    - User not in ActiveCampaign
-    - AC API errors
-    - Response format validation
-    - Method restrictions (GET only)
+    Retrieves the current newsletter subscriptions for an authenticated user.
     """
 
-    def test_unauthenticated_request_returns_401(self):
-        """Test: Unauthenticated request returns 401 Unauthorized"""
+    def test_unauthenticated_request_returns_401(self, client):
+        """Unauthenticated request returns 401 Unauthorized."""
         response = client.get('/api/newsletter/subscriptions')
 
-        self.assert_error_response(response, 401, 'Authentication required')
+        assert_error(response, 401, 'Authentication required')
 
     @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_authenticated_user_with_subscriptions(self, mock_get_list, mock_fetch):
-        """Test: Authenticated user with subscriptions returns correct list"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_authenticated_user_with_subscriptions(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """Authenticated user with subscriptions returns correct list."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.return_value = ['sefaria_news', 'parashah_series']
+        mock_fetch.return_value = {
+            'subscribed_newsletters': ['sefaria_news', 'parashah_series'],
+            'wants_marketing_emails': True,
+            'learning_level': 3,
+        }
 
-        # Execute
-        response = client.get('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
-
-        self.assertTrue(data['success'])
-        self.assertEqual(data['email'], 'testuser@sefaria.org')
-        self.assertIn('sefaria_news', data['subscribedNewsletters'])
-        self.assertIn('parashah_series', data['subscribedNewsletters'])
-        self.assertEqual(len(data['subscribedNewsletters']), 2)
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert data['email'] == 'testuser@sefaria.org'
+        assert 'sefaria_news' in data['subscribedNewsletters']
+        assert 'parashah_series' in data['subscribedNewsletters']
+        assert len(data['subscribedNewsletters']) == 2
 
     @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_authenticated_user_with_no_subscriptions(self, mock_get_list, mock_fetch):
-        """Test: Authenticated user with no subscriptions returns empty array"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_authenticated_user_with_no_subscriptions(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """Authenticated user with no subscriptions returns empty array."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.return_value = []
+        mock_fetch.return_value = {
+            'subscribed_newsletters': [],
+            'wants_marketing_emails': True,
+            'learning_level': None,
+        }
 
-        # Execute
-        response = client.get('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
-
-        self.assertTrue(data['success'])
-        self.assertEqual(data['subscribedNewsletters'], [])
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == []
 
     @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_user_not_in_ac_returns_empty_array(self, mock_get_list, mock_fetch):
-        """Test: User not in ActiveCampaign returns empty array (not error)"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_user_not_in_ac_returns_empty_array(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """User not in ActiveCampaign returns empty array (not error)."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.return_value = []  # User doesn't exist in AC
+        mock_fetch.return_value = {
+            'subscribed_newsletters': [],
+            'wants_marketing_emails': True,
+            'learning_level': None,
+        }
 
-        # Execute
-        response = client.get('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
-
-        self.assertTrue(data['success'])
-        self.assertEqual(data['subscribedNewsletters'], [])
+        data = assert_success(response, 200)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == []
 
     @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_ac_api_error_returns_500(self, mock_get_list, mock_fetch):
-        """Test: ActiveCampaign API error returns 500"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_ac_api_error_returns_500(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """ActiveCampaign API error returns 500."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.side_effect = ActiveCampaignError("Failed to connect to ActiveCampaign API")
+        mock_fetch.side_effect = ActiveCampaignError(
+            "Failed to connect to ActiveCampaign API"
+        )
 
-        # Execute
-        response = client.get('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        # Verify
-        self.assert_error_response(response, 500, 'ActiveCampaign')
+        assert_error(response, 500, 'ActiveCampaign')
 
     @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_response_format_is_correct(self, mock_get_list, mock_fetch):
-        """Test: Response has correct format with all required fields"""
-        # Setup
-        user = create_test_user()
-        client.login()
-
+    def test_response_format_is_correct(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """Response has correct format with all required fields and types."""
         mock_get_list.return_value = mock_newsletters
-        mock_fetch.return_value = ['sefaria_news']
+        mock_fetch.return_value = {
+            'subscribed_newsletters': ['sefaria_news'],
+            'wants_marketing_emails': True,
+            'learning_level': 1,
+        }
 
-        # Execute
-        response = client.get('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        # Verify
-        self.assert_success_response(response, 200)
-        data = self.parse_json_response(response)
+        data = assert_success(response, 200)
 
-        # Check all required fields
-        self.assertIn('success', data)
-        self.assertIn('email', data)
-        self.assertIn('subscribedNewsletters', data)
+        for field in ('success', 'email', 'subscribedNewsletters'):
+            assert field in data
 
-        # Check types
-        self.assertIsInstance(data['success'], bool)
-        self.assertIsInstance(data['email'], str)
-        self.assertIsInstance(data['subscribedNewsletters'], list)
+        assert isinstance(data['success'], bool)
+        assert isinstance(data['email'], str)
+        assert isinstance(data['subscribedNewsletters'], list)
 
-    def test_post_method_not_allowed(self):
-        """Test: POST request returns 405 Method Not Allowed"""
-        user = create_test_user()
-        client.login()
+    @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_response_includes_learning_level(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """`learningLevel` is included in the GET response when the user has one set."""
+        mock_get_list.return_value = mock_newsletters
+        mock_fetch.return_value = {
+            'subscribed_newsletters': ['sefaria_news'],
+            'learning_level': 3,
+            'wants_marketing_emails': True,
+        }
 
-        response = client.post('/api/newsletter/subscriptions')
+        response = logged_in_client.get('/api/newsletter/subscriptions')
 
-        self.assert_error_response(response, 405)
+        data = assert_success(response, 200)
+        assert data['learningLevel'] == 3
+
+    @mock.patch('api.newsletter_views.fetch_user_subscriptions_impl')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_response_includes_wants_marketing_false(
+        self, mock_get_list, mock_fetch, logged_in_client, mock_newsletters
+    ):
+        """`wantsMarketingEmails: false` is reflected in the GET response when the user opted out."""
+        mock_get_list.return_value = mock_newsletters
+        mock_fetch.return_value = {
+            'subscribed_newsletters': [],
+            'learning_level': None,
+            'wants_marketing_emails': False,
+        }
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        data = assert_success(response, 200)
+        assert data['wantsMarketingEmails'] is False
+        assert data['subscribedNewsletters'] == []
+
+    def test_post_method_not_allowed(self, logged_in_client):
+        """POST request returns 405 Method Not Allowed."""
+        response = logged_in_client.post('/api/newsletter/subscriptions')
+
+        assert_error(response, 405)
+
+
+# ============================================================================
+# Get Newsletter Lists Endpoint Tests (Public, GET /api/newsletter/lists)
+# ============================================================================
+
+class TestGetNewsletterListsView:
+    """Tests for the public /api/newsletter/lists endpoint."""
+
+    @mock.patch('api.newsletter_views.get_newsletter_list')
+    def test_get_request_success(self, mock_get_list, client):
+        """Successful GET request returns the available newsletters."""
+        mock_get_list.return_value = [
+            {
+                'id': '1',
+                'stringid': 'sefaria_news',
+                'displayName': 'Sefaria News',
+                'icon': 'news-and-resources.svg',
+                'language': 'english',
+            }
+        ]
+        response = client.get('/api/newsletter/lists')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert 'newsletters' in data
+        assert len(data['newsletters']) == 1
+        assert data['newsletters'][0]['stringid'] == 'sefaria_news'
+
+    @mock.patch('api.newsletter_views.get_newsletter_list')
+    def test_error_response_500(self, mock_get_list, client):
+        """When the service raises ActiveCampaignError, the view returns 500."""
+        mock_get_list.side_effect = ActiveCampaignError("Connection failed")
+        response = client.get('/api/newsletter/lists')
+
+        assert response.status_code == 500
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'Connection failed' in data['error']
+
+    def test_post_not_allowed(self, client):
+        """POST is not a valid method on the lists endpoint."""
+        response = client.post('/api/newsletter/lists')
+
+        assert response.status_code == 405
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'GET' in data['error']
+
+
+# ============================================================================
+# Subscribe Endpoint Tests (Logged-out users, POST /api/newsletter/subscribe)
+# ============================================================================
+
+class TestSubscribeNewsletterEndpoint:
+    """Tests for POST /api/newsletter/subscribe (the logged-out subscription flow)."""
+
+    @mock.patch('api.newsletter_views.subscribe_with_union')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_subscribe_success(self, mock_get_list, mock_subscribe, client):
+        """Logged-out user successfully subscribes with valid first name + email + selections."""
+        mock_get_list.return_value = [
+            {'stringid': 'sefaria_news', 'id': '1'},
+            {'stringid': 'text_updates', 'id': '3'},
+        ]
+        mock_subscribe.return_value = {
+            'contact': {'id': '28529', 'email': 'test@example.com'},
+            'all_subscriptions': ['sefaria_news', 'text_updates'],
+        }
+
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'lastName': 'Doe',
+                'email': 'test@example.com',
+                'newsletters': {
+                    'sefaria_news': True,
+                    'text_updates': True,
+                    'parashah_series': False,
+                },
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['success'] is True
+        assert data['email'] == 'test@example.com'
+        assert len(data['subscribedNewsletters']) == 2
+
+    def test_subscribe_missing_first_name(self, client):
+        """Empty first name is rejected with 400."""
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': '',
+                'email': 'test@example.com',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'First name and email are required' in data['error']
+
+    def test_subscribe_missing_email(self, client):
+        """Empty email is rejected with 400."""
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': '',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'First name and email are required' in data['error']
+
+    def test_subscribe_no_newsletters_selected(self, client):
+        """
+        Logged-out users must select at least one newsletter.
+        (This is different from the authenticated /preferences endpoint, which
+        allows empty selection as a way to unsubscribe from everything.)
+        """
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': 'test@example.com',
+                'newsletters': {
+                    'sefaria_news': False,
+                    'text_updates': False,
+                },
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Please select at least one newsletter' in data['error']
+
+    @mock.patch('api.newsletter_views.subscribe_with_union')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_subscribe_invalid_json(self, mock_get_list, mock_subscribe, client):
+        """Malformed JSON in the request body returns 400."""
+        response = client.post(
+            '/api/newsletter/subscribe',
+            'invalid json',
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Invalid JSON' in data['error']
+
+    @mock.patch('api.newsletter_views.subscribe_with_union')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_subscribe_activecampaign_error(self, mock_get_list, mock_subscribe, client):
+        """When the service raises ActiveCampaignError, the view returns 500."""
+        mock_get_list.return_value = [
+            {'stringid': 'sefaria_news', 'id': '1'},
+        ]
+        mock_subscribe.side_effect = ActiveCampaignError("Connection failed")
+
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': 'test@example.com',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 500
+        data = json.loads(response.content)
+        assert 'Connection failed' in data['error']
+
+    def test_subscribe_get_not_allowed(self, client):
+        """GET is not a valid method on the subscribe endpoint."""
+        response = client.get('/api/newsletter/subscribe')
+
+        assert response.status_code == 405
+        data = json.loads(response.content)
+        assert 'POST' in data['error']
+
+
+# ============================================================================
+# Update Learning Level Endpoint Tests (POST /api/newsletter/learning-level)
+# ============================================================================
+
+class TestUpdateLearningLevelView:
+    """Tests for the POST /api/newsletter/learning-level endpoint."""
+
+    def test_update_learning_level_get_not_allowed(self, client):
+        """GET is not a valid method on the learning-level endpoint."""
+        response = client.get('/api/newsletter/learning-level')
+
+        assert response.status_code == 405
+        data = json.loads(response.content)
+        assert 'POST' in data['error']
+
+    @mock.patch('api.newsletter_service.update_learning_level_impl')
+    def test_update_learning_level_logged_out_success(self, mock_update, client):
+        """Logged-out user can update learning level by providing email."""
+        mock_update.return_value = {
+            'email': 'newuser@example.com',
+            'learning_level': 3,
+            'user_id': None,
+            'message': 'Learning level updated successfully',
+        }
+
+        # Confirms the service-layer contract: with email + level, returns the
+        # expected dict shape with user_id=None for logged-out users.
+        result = mock_update('newuser@example.com', 3)
+
+        assert result['email'] == 'newuser@example.com'
+        assert result['learning_level'] == 3
+        assert result['user_id'] is None
+
+    def test_update_learning_level_logged_out_missing_email(self, client):
+        """Without auth, the email field is required (400 if missing)."""
+        response = client.post(
+            '/api/newsletter/learning-level',
+            json.dumps({'learningLevel': 2}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Email is required' in data['error']
+
+    def test_update_learning_level_invalid_json(self, client):
+        """Malformed JSON in the request body returns 400."""
+        response = client.post(
+            '/api/newsletter/learning-level',
+            'invalid json',
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Invalid JSON' in data['error']
+
+    def test_update_learning_level_invalid_learning_level(self, client):
+        """Learning level outside 1-5 is rejected with 400."""
+        response = client.post(
+            '/api/newsletter/learning-level',
+            json.dumps({
+                'email': 'test@example.com',
+                'learningLevel': 10,
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Learning level must be' in data['error']
+
+    @mock.patch('api.newsletter_service.update_learning_level_impl')
+    def test_update_learning_level_none_is_valid(self, mock_update, client):
+        """Learning level can be set to None to clear it (it's optional)."""
+        mock_update.return_value = {
+            'email': 'test@example.com',
+            'learning_level': None,
+            'user_id': None,
+            'message': 'Learning level updated successfully',
+        }
+
+        # Confirms the service contract: None is an acceptable value (means
+        # "no preference set").
+        result = mock_update('test@example.com', None)
+
+        assert result['learning_level'] is None
+        assert result['email'] == 'test@example.com'
+
+    @mock.patch('api.newsletter_views.update_learning_level_impl')
+    def test_update_learning_level_ac_error(self, mock_update, client):
+        """When the service raises ActiveCampaignError, the view returns 500."""
+        mock_update.side_effect = ActiveCampaignError('AC API failed')
+
+        response = client.post(
+            '/api/newsletter/learning-level',
+            json.dumps({
+                'email': 'test@example.com',
+                'learningLevel': 2,
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 500
+        data = json.loads(response.content)
+        assert 'error' in data

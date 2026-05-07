@@ -1,295 +1,123 @@
 """
-Integration test for newsletter_service.get_newsletter_list()
+Newsletter Service Integration Tests
 
-This test verifies the complete data flow from AC API responses through
-the merge logic to the final newsletter object structure.
+These tests run the **real** newsletter service code end-to-end and only mock
+at the system boundaries: the ActiveCampaign API (`_client.make_request`) and
+MongoDB (`UserProfile`, `_update_wants_marketing_emails`).
+
+Why this layer matters:
+    Pure unit tests in test_newsletter.py mock individual collaborators, which
+    means they can pass even when the *interaction* between service functions
+    is broken. These integration tests catch that class of bug — for example,
+    a mistake in the diff/scoping logic between `update_user_preferences_impl`,
+    `get_contact_list_memberships`, and `update_list_memberships`.
+
+Two flavors live here:
+    1. Pure service flow: call `update_user_preferences_impl` (or another
+       *_impl function) directly and assert what got passed to the AC layer.
+       Used for opt-out / re-opt-in tests where the HTTP layer is irrelevant.
+    2. View-through-service: post to a Django URL with the test Client, then
+       assert what got passed to the AC layer. Used when the HTTP layer is
+       part of the scenario (e.g. verifying that the `marketingOptOut` flag
+       in the JSON body actually drives the unsubscribe-all branch).
 """
 
+import json
 import pytest
 from unittest import mock
 from api import newsletter_service
 
 
-class TestGetNewsletterListIntegration:
-    """Integration test for get_newsletter_list() with realistic AC API responses"""
-
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_complete_integration_with_realistic_ac_responses(self, mock_request):
-        """
-        Integration test: Verify get_newsletter_list() works end-to-end
-        with realistic ActiveCampaign API response structures.
-
-        This test simulates production conditions:
-        1. AC API returns lists with id, stringid, name fields
-        2. AC API returns personalization variables with tag, name, content fields
-        3. Variables have simplified JSON content (only icon and language)
-        4. Function correctly merges data and returns expected structure
-        """
-
-        # Mock ActiveCampaign API responses with realistic structure
-        def ac_api_side_effect(endpoint):
-            if endpoint == 'lists?limit=100':
-                # Realistic AC lists endpoint response
-                return {
-                    'lists': [
-                        {
-                            'id': '1',
-                            'stringid': 'sefaria_news',
-                            'name': 'Sefaria News',  # AC's default name (not used)
-                            'cdate': '2024-01-15 10:00:00',
-                            'subscriber_count': '5234'
-                        },
-                        {
-                            'id': '2',
-                            'stringid': 'educator_resources',
-                            'name': 'Educator Resources',
-                            'cdate': '2024-02-20 14:30:00',
-                            'subscriber_count': '1823'
-                        },
-                        {
-                            'id': '3',
-                            'stringid': 'text_updates',
-                            'name': 'Text Updates',
-                            'cdate': '2024-03-10 09:15:00',
-                            'subscriber_count': '8901'
-                        },
-                        {
-                            'id': '99',
-                            'stringid': 'no_metadata_list',
-                            'name': 'No Metadata',
-                            'cdate': '2024-04-01 12:00:00',
-                            'subscriber_count': '100'
-                        }
-                    ]
-                }
-            elif endpoint == 'personalizations?limit=100':
-                # Realistic AC personalizations endpoint response
-                # Note: Tag is lowercase (AC normalizes it)
-                # Note: Only list 1, 2, 3 have metadata (list 99 does not)
-                return {
-                    'personalizations': [
-                        {
-                            'id': '101',
-                            'tag': 'list_1_meta',
-                            'name': 'Sefaria News & Resources',  # Used for displayName
-                            'content': '{"icon": "news-and-resources.svg", "language": "english"}',
-                            'date': '2024-01-15 10:05:00'
-                        },
-                        {
-                            'id': '102',
-                            'tag': 'list_2_meta',
-                            'name': 'Educator Resources',  # Used for displayName
-                            'content': '{"icon": "educator-resources.svg", "language": "english"}',
-                            'date': '2024-02-20 14:35:00'
-                        },
-                        {
-                            'id': '103',
-                            'tag': 'list_3_meta',
-                            'name': 'Text Updates & Insights',  # Used for displayName
-                            'content': '{"icon": "new-text-release-updates.svg", "language": "english"}',
-                            'date': '2024-03-10 09:20:00'
-                        },
-                        {
-                            'id': '999',
-                            'tag': 'other_variable',
-                            'name': 'Some Other Variable',
-                            'content': '{"unrelated": "data"}',
-                            'date': '2024-05-01 08:00:00'
-                        }
-                    ]
-                }
-
-        mock_request.side_effect = ac_api_side_effect
-
-        # Call the function
-        newsletters = newsletter_service.get_newsletter_list()
-
-        # Verify correct number returned (only lists with metadata)
-        assert len(newsletters) == 3, f"Expected 3 newsletters, got {len(newsletters)}"
-
-        # Verify Newsletter 1 structure and data sources
-        newsletter_1 = next(n for n in newsletters if n['id'] == '1')
-        assert newsletter_1['id'] == '1', "ID should come from AC list object"
-        assert newsletter_1['stringid'] == 'sefaria_news', "stringid should come from AC list object"
-        assert newsletter_1['displayName'] == 'Sefaria News & Resources', "displayName should come from variable's name field"
-        assert newsletter_1['icon'] == 'news-and-resources.svg', "icon should come from variable's JSON content"
-        assert newsletter_1['language'] == 'english', "language should come from variable's JSON content"
-
-        # Verify Newsletter 2 structure and data sources
-        newsletter_2 = next(n for n in newsletters if n['id'] == '2')
-        assert newsletter_2['id'] == '2'
-        assert newsletter_2['stringid'] == 'educator_resources', "stringid should be from AC list, not JSON"
-        assert newsletter_2['displayName'] == 'Educator Resources', "displayName should be from variable name"
-        assert newsletter_2['icon'] == 'educator-resources.svg'
-        assert newsletter_2['language'] == 'english'
-
-        # Verify Newsletter 3 structure and data sources
-        newsletter_3 = next(n for n in newsletters if n['id'] == '3')
-        assert newsletter_3['id'] == '3'
-        assert newsletter_3['stringid'] == 'text_updates', "stringid should be from AC list, not JSON"
-        assert newsletter_3['displayName'] == 'Text Updates & Insights', "displayName should be from variable name"
-        assert newsletter_3['icon'] == 'new-text-release-updates.svg'
-        assert newsletter_3['language'] == 'english'
-
-        # Verify list without metadata is excluded
-        newsletter_ids = [n['id'] for n in newsletters]
-        assert '99' not in newsletter_ids, "Lists without metadata should be excluded"
-
-        # Verify all newsletters have required fields
-        for newsletter in newsletters:
-            assert 'id' in newsletter
-            assert 'stringid' in newsletter
-            assert 'displayName' in newsletter
-            assert 'icon' in newsletter
-            assert 'language' in newsletter
-            assert len(newsletter) == 5, f"Newsletter should have exactly 5 fields, got {len(newsletter)}"
-
-        # Verify API was called correctly
-        assert mock_request.call_count == 2
-        mock_request.assert_any_call('lists?limit=100')
-        mock_request.assert_any_call('personalizations?limit=100')
-
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_integration_variable_without_name_field(self, mock_request):
-        """
-        Test edge case: Variable missing 'name' field
-        displayName should fallback to empty string
-        """
-        def ac_api_side_effect(endpoint):
-            if endpoint == 'lists?limit=100':
-                return {
-                    'lists': [
-                        {'id': '1', 'stringid': 'test_list', 'name': 'Test List'}
-                    ]
-                }
-            elif endpoint == 'personalizations?limit=100':
-                return {
-                    'personalizations': [
-                        {
-                            'id': '101',
-                            'tag': 'list_1_meta',
-                            # Missing 'name' field
-                            'content': '{"icon": "news-and-resources.svg", "language": "english"}'
-                        }
-                    ]
-                }
-
-        mock_request.side_effect = ac_api_side_effect
-
-        newsletters = newsletter_service.get_newsletter_list()
-
-        assert len(newsletters) == 1
-        assert newsletters[0]['displayName'] == '', "Missing name should default to empty string"
-        assert newsletters[0]['stringid'] == 'test_list', "stringid should still come from AC list"
-
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_integration_list_without_stringid_field(self, mock_request):
-        """
-        Test edge case: AC list missing 'stringid' field
-        stringid should fallback to empty string
-        """
-        def ac_api_side_effect(endpoint):
-            if endpoint == 'lists?limit=100':
-                return {
-                    'lists': [
-                        {
-                            'id': '1',
-                            # Missing 'stringid' field
-                            'name': 'Test List'
-                        }
-                    ]
-                }
-            elif endpoint == 'personalizations?limit=100':
-                return {
-                    'personalizations': [
-                        {
-                            'id': '101',
-                            'tag': 'list_1_meta',
-                            'name': 'Test Newsletter',
-                            'content': '{"icon": "news-and-resources.svg", "language": "english"}'
-                        }
-                    ]
-                }
-
-        mock_request.side_effect = ac_api_side_effect
-
-        newsletters = newsletter_service.get_newsletter_list()
-
-        assert len(newsletters) == 1
-        assert newsletters[0]['stringid'] == '', "Missing stringid should default to empty string"
-        assert newsletters[0]['displayName'] == 'Test Newsletter', "displayName should still come from variable name"
-
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_integration_json_content_missing_fields(self, mock_request):
-        """
-        Test: Variable JSON content missing optional fields
-        icon and language should have proper defaults
-        """
-        def ac_api_side_effect(endpoint):
-            if endpoint == 'lists?limit=100':
-                return {
-                    'lists': [
-                        {'id': '1', 'stringid': 'test_list', 'name': 'Test'}
-                    ]
-                }
-            elif endpoint == 'personalizations?limit=100':
-                return {
-                    'personalizations': [
-                        {
-                            'id': '101',
-                            'tag': 'list_1_meta',
-                            'name': 'Test Newsletter',
-                            'content': '{}'  # Empty JSON - no icon or language
-                        }
-                    ]
-                }
-
-        mock_request.side_effect = ac_api_side_effect
-
-        newsletters = newsletter_service.get_newsletter_list()
-
-        assert len(newsletters) == 1
-        assert newsletters[0]['icon'] == 'news-and-resources.svg', "Missing icon should default to news-and-resources.svg"
-        assert newsletters[0]['language'] == 'english', "Missing language should default to 'english'"
-
-    @mock.patch('api.newsletter_service._make_ac_request')
-    def test_integration_tag_case_normalization(self, mock_request):
-        """
-        Verify: ActiveCampaign normalizes tags to lowercase
-        Function should work with lowercase tags
-        """
-        def ac_api_side_effect(endpoint):
-            if endpoint == 'lists?limit=100':
-                return {
-                    'lists': [
-                        {'id': '42', 'stringid': 'advanced_list', 'name': 'Advanced'}
-                    ]
-                }
-            elif endpoint == 'personalizations?limit=100':
-                return {
-                    'personalizations': [
-                        {
-                            'id': '201',
-                            'tag': 'list_42_meta',  # lowercase (AC normalizes)
-                            'name': 'Advanced Topics',
-                            'content': '{"icon": "technology-updates.svg", "language": "english"}'
-                        }
-                    ]
-                }
-
-        mock_request.side_effect = ac_api_side_effect
-
-        newsletters = newsletter_service.get_newsletter_list()
-
-        assert len(newsletters) == 1
-        assert newsletters[0]['id'] == '42'
-        assert newsletters[0]['stringid'] == 'advanced_list'
-        assert newsletters[0]['displayName'] == 'Advanced Topics'
-        assert newsletters[0]['icon'] == 'technology-updates.svg'
+# Shared fixtures (`client`, `test_user`, `logged_in_client`, etc.) live in
+# api/conftest.py so they're available to every test file in this package.
 
 
-class TestUpdateUserPreferencesIntegration:
-    """Integration tests for update_user_preferences_impl with opt-out logic"""
+# Two-newsletter list used by the view-through-service tests below.
+# Kept intentionally small — these tests are checking diff/scoping logic, not
+# data-shape resilience, so a minimal managed-list set keeps the assertions
+# easy to follow.
+_MANAGED_NEWSLETTERS = [
+    {'stringid': 'sefaria_news', 'id': '1', 'displayName': 'Sefaria News',
+     'icon': 'news.svg', 'language': 'english'},
+    {'stringid': 'text_updates', 'id': '3', 'displayName': 'Text Updates',
+     'icon': 'text.svg', 'language': 'english'},
+]
+
+
+# ============================================================================
+# AC mock helpers (used by view-through-service tests)
+# ============================================================================
+
+def _ac_side_effect(contact_memberships, all_lists=None):
+    """
+    Build a side_effect for `_client.make_request` that returns realistic
+    AC responses based on the endpoint being requested.
+
+    Args:
+        contact_memberships: list of {'list': id, 'status': '1'|'2'} dicts
+            describing the lists the contact is on (status 1 = active,
+            status 2 = unsubscribed).
+        all_lists: list of {'id': ..., 'stringid': ..., 'name': ...} dicts.
+            Only needed by the opt-out path, which calls
+            `get_all_ac_list_ids` to find unmanaged lists too.
+
+    Returns:
+        A function that the test passes to `mock.patch.side_effect`. Inspect
+        the endpoint, return the right canned payload.
+    """
+    def side_effect(endpoint, method='GET', data=None):
+        if 'contacts?filters' in endpoint:
+            return {'contacts': [{'id': '100', 'email': 'testuser@sefaria.org'}]}
+        elif 'contactLists' in endpoint:
+            return {'contactLists': contact_memberships}
+        elif endpoint.startswith('lists'):
+            return {'lists': all_lists or []}
+        return {}
+    return side_effect
+
+
+def _extract_list_mutations(mock_ac_request):
+    """
+    Replay every recorded call to `_client.make_request` and figure out which
+    AC list IDs were added (status=1) or removed (status=2).
+
+    Returns:
+        (added, removed): two sets of list ID strings. Useful for asserting
+        "list X was added" / "list Y was removed" without depending on call
+        ordering or argument layout.
+    """
+    added = set()
+    removed = set()
+    for call in mock_ac_request.call_args_list:
+        # Calls look like: _client.make_request(endpoint, method='GET', data=None)
+        # `data` may be either keyword (call[1]) or positional at index 2 (call[0][2]).
+        data = call[1].get('data')
+        if data is None and len(call[0]) > 2:
+            data = call[0][2]
+
+        if not data:
+            continue
+
+        cl = data.get('contactList', {})
+        list_id = str(cl.get('list'))
+        if not list_id or list_id == 'None':
+            continue
+        if cl.get('status') == 2:
+            removed.add(list_id)
+        else:
+            added.add(list_id)
+    return added, removed
+
+
+# ============================================================================
+# Pure service-flow integration tests
+#
+# These call *_impl functions directly. No Django Client, no HTTP. The point
+# is to verify that one service function correctly orchestrates the others.
+# ============================================================================
+
+class TestOptOutFlowIntegration:
+    """Integration tests for update_user_preferences_impl opt-out and re-opt-in flows"""
 
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
@@ -373,7 +201,7 @@ class TestFetchUserSubscriptionsIntegration:
 
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    @mock.patch('api.newsletter_service._make_ac_request')
+    @mock.patch('api.newsletter_service._client.make_request')
     def test_stale_opt_out_scenario(self, mock_request, mock_get_memberships, mock_profile_class):
         """
         Integration: Stale opt-out scenario - user has wants_marketing_emails=False in MongoDB
@@ -407,5 +235,274 @@ class TestFetchUserSubscriptionsIntegration:
         # Backend returns both values as-is; frontend will override the toggle
         assert result['wants_marketing_emails'] is False
         assert len(result['subscribed_newsletters']) == 2
-        assert 'sefaria_news' in result['subscribed_newsletters']
-        assert 'text_updates' in result['subscribed_newsletters']
+
+
+# ============================================================================
+# View-through-service integration tests
+#
+# Use the real Django Client to POST/GET, real service code, with AC and
+# MongoDB mocked at the boundary. This catches bugs that can't surface when
+# *_impl is mocked at the view layer (e.g. bugs in managed-list scoping or
+# the diff calculation between current and selected lists).
+# ============================================================================
+
+@pytest.mark.django_db
+class TestViewThroughServiceNormalUpdate:
+    """
+    POST /api/newsletter/preferences (normal update, marketing_opt_out=False).
+    Full service logic runs end-to-end — verifies managed-list scoping.
+    """
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_diff_scoped_to_managed_lists(self, mock_get_list, mock_ac_request,
+                                          mock_update_flag, logged_in_client):
+        """
+        User has managed lists 1, 3 and unmanaged list 99 (all active).
+        Selecting only list 1 should remove list 3, leave list 99 untouched.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+                {'list': '3', 'status': '1'},
+                {'list': '99', 'status': '1'},
+            ]
+        )
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {'sefaria_news': True, 'text_updates': False}}),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == ['sefaria_news']
+
+        added, removed = _extract_list_mutations(mock_ac_request)
+        assert '3' in removed, "Managed list 3 should be unsubscribed"
+        assert '99' not in removed, "Unmanaged list 99 must NOT be touched"
+        assert '1' not in added, "List 1 already active — no re-subscribe needed"
+
+        mock_update_flag.assert_called_once_with('testuser@sefaria.org', True)
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_adding_new_managed_list(self, mock_get_list, mock_ac_request,
+                                     mock_update_flag, logged_in_client):
+        """
+        User has only list 1. Selecting both list 1 and 3 should add list 3.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+            ]
+        )
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {'sefaria_news': True, 'text_updates': True}}),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert sorted(data['subscribedNewsletters']) == ['sefaria_news', 'text_updates']
+
+        added, removed = _extract_list_mutations(mock_ac_request)
+        assert '3' in added, "List 3 should be newly subscribed"
+        assert len(removed) == 0, "No lists should be removed"
+
+
+@pytest.mark.django_db
+class TestViewThroughServiceOptOut:
+    """
+    POST /api/newsletter/preferences (marketing_opt_out=True).
+    Full service logic runs — verifies ALL lists (managed + unmanaged) are removed.
+    """
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_opt_out_removes_all_active_lists(self, mock_get_list, mock_ac_request,
+                                               mock_update_flag, logged_in_client):
+        """
+        Opt-out: user has managed lists 1, 3 and unmanaged list 99.
+        ALL active lists should be unsubscribed, wants_marketing_emails set to False.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+                {'list': '3', 'status': '1'},
+                {'list': '99', 'status': '1'},
+            ],
+            all_lists=[
+                {'id': '1', 'stringid': 'sefaria_news', 'name': 'Sefaria News'},
+                {'id': '3', 'stringid': 'text_updates', 'name': 'Text Updates'},
+                {'id': '99', 'stringid': 'internal_list', 'name': 'Internal'},
+            ]
+        )
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({
+                'newsletters': {'sefaria_news': True},
+                'marketingOptOut': True
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == []
+        assert data['marketingOptOut'] is True
+
+        added, removed = _extract_list_mutations(mock_ac_request)
+        assert removed == {'1', '3', '99'}, "All active lists must be removed on opt-out"
+        assert len(added) == 0, "No lists should be added during opt-out"
+
+        mock_update_flag.assert_called_once_with('testuser@sefaria.org', False)
+
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_opt_out_skips_already_unsubscribed_lists(self, mock_get_list, mock_ac_request,
+                                                       mock_update_flag, logged_in_client):
+        """
+        Opt-out: list 3 already unsubscribed (status=2). Should only remove list 1.
+        active_only=True filtering in service prevents wasted API calls.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+                {'list': '3', 'status': '2'},  # already unsubscribed
+            ],
+            all_lists=[
+                {'id': '1', 'stringid': 'sefaria_news', 'name': 'Sefaria News'},
+                {'id': '3', 'stringid': 'text_updates', 'name': 'Text Updates'},
+            ]
+        )
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {}, 'marketingOptOut': True}),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+
+        added, removed = _extract_list_mutations(mock_ac_request)
+        assert removed == {'1'}, "Only active list 1 should be removed"
+        assert '3' not in removed, "Already-unsubscribed list 3 should be skipped"
+
+
+@pytest.mark.django_db
+class TestViewThroughServiceFetchSubscriptions:
+    """
+    GET /api/newsletter/subscriptions.
+    Full service logic runs — verifies list-ID-to-stringid mapping and
+    wants_marketing_emails propagation from MongoDB through to HTTP response.
+    """
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_maps_list_ids_to_stringids(self, mock_get_list, mock_ac_request,
+                                        mock_profile_class, logged_in_client):
+        """
+        Service maps AC list IDs back to stringids using the newsletter list.
+        Only managed lists with matching IDs appear in the response.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = True
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+                {'list': '3', 'status': '1'},
+                {'list': '99', 'status': '1'},  # unmanaged — no stringid mapping
+            ]
+        )
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert sorted(data['subscribedNewsletters']) == ['sefaria_news', 'text_updates']
+        # List 99 has no stringid mapping → excluded from response
+        assert data['wantsMarketingEmails'] is True
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_wants_marketing_emails_false_propagates(self, mock_get_list, mock_ac_request,
+                                                      mock_profile_class, logged_in_client):
+        """
+        UserProfile.wants_marketing_emails=False in MongoDB propagates
+        through service → view → HTTP response.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+            ]
+        )
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['wantsMarketingEmails'] is False
+        assert data['subscribedNewsletters'] == ['sefaria_news']
+
+    @mock.patch('api.newsletter_service.get_contact_learning_level')
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_learning_level_propagates_from_ac(self, mock_get_list, mock_ac_request,
+                                                mock_profile_class, mock_get_ll,
+                                                logged_in_client):
+        """
+        Learning level from AC propagates through service → view → HTTP response.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = True
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '1', 'status': '1'},
+            ]
+        )
+        mock_get_ll.return_value = 4
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['learningLevel'] == 4
+        assert data['subscribedNewsletters'] == ['sefaria_news']

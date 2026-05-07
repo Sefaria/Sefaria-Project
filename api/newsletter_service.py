@@ -3,6 +3,18 @@ Newsletter Service Module
 
 Integrates with ActiveCampaign API to fetch and manage newsletter lists and metadata.
 Handles all API communication with ActiveCampaign.
+
+Threading model:
+    In production we run gunicorn with multiple worker processes, each running
+    multiple threads (--threads N). That means the module-level `_client` defined
+    below is shared across many threads inside a single worker process.
+
+    `requests.Session` is safe to share across threads for `.request()` calls
+    AS LONG AS we never modify the session's headers or cookies after it has been
+    constructed. We set the headers exactly once inside `NewsletterClient.__init__`
+    and never touch them again. If you add code here in the future, do NOT call
+    `_client._session.headers.update(...)` or `_client._session.cookies.set(...)`
+    after init time — that would introduce a race condition between threads.
 """
 
 from __future__ import annotations
@@ -10,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict
 
 import requests
@@ -23,6 +36,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 # ========== Typed dict shapes for structured return values ==========
 
 class NewsletterInfo(TypedDict):
+    """One managed newsletter with display metadata. Element of get_newsletter_list()."""
     id: str
     stringid: str
     displayName: str
@@ -31,28 +45,33 @@ class NewsletterInfo(TypedDict):
 
 
 class SubscribeResult(TypedDict):
+    """Return shape of subscribe_with_union: the contact and the union of all current subscriptions."""
     contact: dict[str, Any]
     all_subscriptions: list[str]
 
 
 class UserSubscriptions(TypedDict):
+    """Return shape of fetch_user_subscriptions_impl: a user's full subscription state."""
     subscribed_newsletters: list[str]
     learning_level: int | None
     wants_marketing_emails: bool
 
 
 class PreferencesResult(TypedDict):
+    """Return shape of update_user_preferences_impl: the contact and the post-update subscription list."""
     contact: dict[str, Any]
     subscribed_newsletters: list[str]
 
 
 class LearningLevelACResult(TypedDict):
+    """Return shape of update_learning_level_in_ac: confirms what was written to AC."""
     contact_id: str
     email: str
     learning_level: int | None
 
 
 class LearningLevelResult(TypedDict):
+    """Return shape of update_learning_level_impl: combined outcome of AC + UserProfile updates."""
     email: str
     learning_level: int | None
     user_id: int | None
@@ -62,6 +81,133 @@ class LearningLevelResult(TypedDict):
 class ActiveCampaignError(Exception):
     """Custom exception for ActiveCampaign API errors"""
     pass
+
+
+class NewsletterClient:
+    """
+    Client for talking to the ActiveCampaign (AC) API.
+
+    What this class does:
+        - Holds a single requests.Session so that multiple API calls reuse the
+          same underlying TCP/TLS connection. This is much faster than opening
+          a new connection for every call (a fresh HTTPS handshake adds hundreds
+          of milliseconds of latency).
+        - Sets the auth headers once, in __init__, so every request is
+          authenticated without us repeating the headers each time.
+        - Translates network/HTTP errors into a single ActiveCampaignError so
+          callers only need to catch one exception type.
+
+    Thread safety:
+        After __init__ finishes, this instance is safe to share across threads.
+        See the "Threading model" note at the top of this file. Do NOT add code
+        that mutates self._session.headers or self._session.cookies later — that
+        would create a race condition between threads sharing this client.
+    """
+
+    def __init__(self, api_token: str, account_name: str, timeout: int = 10):
+        """
+        Args:
+            api_token: ActiveCampaign API token, sent as the Api-Token header.
+            account_name: Your AC account subdomain (used to build the base URL,
+                e.g. account_name 'sefaria' -> https://sefaria.api-us1.com/...).
+            timeout: Per-request timeout in seconds. AC sometimes responds slowly
+                under load, so 10 seconds is the default.
+        """
+        self.api_token = api_token
+        self.account_name = account_name
+        self.timeout = timeout
+        self.base_url = f"https://{account_name}.api-us1.com/api/3"
+        self._session = requests.Session()
+        # Set headers exactly once here. They are never mutated after this point
+        # — see the thread-safety note in the module docstring.
+        self._session.headers.update({
+            "Api-Token": api_token,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        })
+
+    def make_request(self, endpoint: str, method: str = 'GET', data: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        Send a request to the ActiveCampaign API and return the parsed JSON.
+
+        This is the only place in the module that talks to AC over the network.
+        All higher-level helpers (get_all_lists, find_or_create_contact, etc.)
+        go through here so we have one place to handle errors and logging.
+
+        Args:
+            endpoint: API path (e.g. 'lists', 'contacts/123/contactLists').
+                A leading slash is OK; we strip it.
+            method: HTTP method ('GET', 'POST', 'PUT', etc.). Defaults to 'GET'.
+            data: JSON body to send for POST/PUT requests. Pass None for GET.
+
+        Returns:
+            dict: The parsed JSON response from ActiveCampaign.
+
+        Raises:
+            ActiveCampaignError: For any failure (timeout, connection error,
+                HTTP 4xx/5xx, or anything else unexpected). The error message
+                includes the AC response body when possible — useful for
+                debugging API errors and outages.
+        """
+        url: str = f"{self.base_url}/{endpoint.lstrip('/')}"
+        kwargs: dict[str, Any] = {
+            "method": method,
+            "url": url,
+            "timeout": self.timeout,
+        }
+        if data is not None:
+            kwargs["json"] = data
+
+        try:
+            response: requests.Response = self._session.request(**kwargs)
+            response.raise_for_status()
+            return response.json()
+
+        except requests.exceptions.Timeout:
+            raise ActiveCampaignError("ActiveCampaign API request timed out")
+
+        except requests.exceptions.ConnectionError:
+            raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
+
+        except requests.exceptions.HTTPError as e:
+            # Build the most useful error message we can. AC normally returns
+            # JSON with a 'message' or 'errors' field. If the body is not JSON
+            # (e.g. an HTML error page during an outage), fall back to the raw
+            # response text so we still see what AC sent.
+            status_code: int | str = e.response.status_code if e.response is not None else 'unknown'
+            error_msg: str | list[str] = f"ActiveCampaign API error: {status_code}"
+            if e.response is not None and e.response.text:
+                try:
+                    error_data: dict[str, Any] = e.response.json()
+                    error_msg = error_data.get('message') or error_data.get('errors') or error_msg
+                except json.JSONDecodeError:
+                    error_msg = f"{error_msg} - {e.response.text}"
+            raise ActiveCampaignError(error_msg)
+
+        except Exception as e:
+            # Truly unexpected (not a known requests exception). Log with the
+            # full stack trace so we can diagnose the surprise after the fact.
+            logger.exception(f"Unexpected error calling ActiveCampaign API: {e}")
+            raise ActiveCampaignError(f"Unexpected error communicating with ActiveCampaign: {str(e)}")
+
+
+# Module-level singleton instance.
+#
+# Why we instantiate this eagerly at import time:
+#   We want one NewsletterClient (and one requests.Session inside it) shared
+#   across the whole module. Sharing the Session means TCP/TLS connections to
+#   AC's servers stay open between calls instead of being torn down and rebuilt
+#   each time. Building a new HTTPS connection takes hundreds of milliseconds,
+#   and the newsletter signup flow makes 5–10 AC calls back-to-back, so reusing
+#   one connection saves real time on every signup.
+#
+# Why this is safe with gunicorn's preload_app=True:
+#   This line runs in the parent gunicorn process when the app preloads. That's
+#   safe because requests.Session() does NOT open any TCP connections at
+#   construction time — it only opens them on the first .request() call. After
+#   gunicorn forks worker processes, each worker opens its own connections
+#   lazily, so we never share live sockets across processes.
+_client: NewsletterClient = NewsletterClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
 
 
 # Module-level cache: maps AC custom field perstags to their numeric IDs.
@@ -88,7 +234,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     if perstag in _field_id_cache:
         return _field_id_cache[perstag]
 
-    response: dict[str, Any] = _make_ac_request('fields?limit=100')
+    response: dict[str, Any] = _client.make_request('fields?limit=100')
     fields: list[dict[str, Any]] = response.get('fields', [])
 
     for field in fields:
@@ -100,86 +246,26 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     return _field_id_cache[perstag]
 
 
-def _get_base_url() -> str:
-    """
-    Get the ActiveCampaign API base URL.
-
-    Returns:
-        str: Base URL for API calls
-    """
-    return f"https://{ACTIVECAMPAIGN_ACCOUNT_NAME}.api-us1.com/api/3"
-
-
-def _make_ac_request(endpoint: str, method: str = 'GET', data: dict[str, Any] | None = None) -> dict[str, Any]:
-    """
-    Make a request to the ActiveCampaign API.
-
-    Args:
-        endpoint (str): API endpoint path (e.g., 'lists', 'personalizations')
-        method (str): HTTP method (GET, POST, etc.)
-        data (dict or None): JSON body payload for POST/PUT requests
-
-    Returns:
-        dict: Parsed JSON response
-
-    Raises:
-        ActiveCampaignError: If API request fails
-    """
-    url: str = f"{_get_base_url()}/{endpoint}"
-
-    headers: dict[str, str] = {
-        'Api-Token': ACTIVECAMPAIGN_API_TOKEN,
-        'Accept': 'application/json',
-    }
-
-    if data is not None:
-        headers['Content-Type'] = 'application/json'
-
-    try:
-        kwargs: dict[str, Any] = {'headers': headers, 'timeout': 10}
-        if data is not None:
-            kwargs['json'] = data
-        response: requests.Response = requests.request(method, url, **kwargs)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.Timeout:
-        raise ActiveCampaignError("ActiveCampaign API request timed out")
-    except requests.exceptions.ConnectionError:
-        raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
-    except requests.exceptions.HTTPError as e:
-        error_msg: str | list[str] = f"ActiveCampaign API error: {response.status_code}"
-        if response.text:
-            try:
-                error_data: dict[str, Any] = response.json()
-                error_msg = error_data.get('errors', [error_msg])
-            except json.JSONDecodeError:
-                error_msg += f" - {response.text}"
-        raise ActiveCampaignError(error_msg)
-    except Exception as e:
-        logger.exception(f"Unexpected error calling ActiveCampaign API: {e}")
-        raise ActiveCampaignError(f"Unexpected error: {str(e)}")
-
-
 def get_all_lists() -> list[dict[str, Any]]:
     """
     Fetch all mailing lists from ActiveCampaign.
 
     Returns:
-        list: List of list objects with 'id', 'stringid', and 'name' fields
+        list: List of list objects with 'id', 'stringid', and 'name' fields.
 
     Raises:
-        ActiveCampaignError: If API request fails
+        ActiveCampaignError: If the API request fails.
     """
     try:
-        response: dict[str, Any] = _make_ac_request('lists?limit=100')
+        response: dict[str, Any] = _client.make_request('lists?limit=100')
         lists: list[dict[str, Any]] = response.get('lists', [])
         logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
         return lists
-    except ActiveCampaignError:
-        raise
     except Exception as e:
         logger.exception(f"Error fetching lists: {e}")
-        raise ActiveCampaignError(f"Error fetching lists: {str(e)}")
+        if not isinstance(e, ActiveCampaignError):
+            raise ActiveCampaignError(f"Error fetching lists: {str(e)}")
+        raise
 
 
 def get_all_personalization_variables() -> list[dict[str, Any]]:
@@ -193,15 +279,15 @@ def get_all_personalization_variables() -> list[dict[str, Any]]:
         ActiveCampaignError: If API request fails
     """
     try:
-        response: dict[str, Any] = _make_ac_request('personalizations?limit=100')
+        response: dict[str, Any] = _client.make_request('personalizations?limit=100')
         variables: list[dict[str, Any]] = response.get('personalizations', [])
         logger.info(f"Retrieved {len(variables)} personalization variables from ActiveCampaign")
         return variables
-    except ActiveCampaignError:
-        raise
     except Exception as e:
         logger.exception(f"Error fetching personalization variables: {e}")
-        raise ActiveCampaignError(f"Error fetching personalization variables: {str(e)}")
+        if not isinstance(e, ActiveCampaignError):
+            raise ActiveCampaignError(f"Error fetching personalization variables: {str(e)}")
+        raise
 
 
 def extract_list_id_from_tag(tag: str | Any) -> int | None:
@@ -357,7 +443,7 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
     """
     try:
         # Search for existing contact by email
-        search_response: dict[str, Any] = _make_ac_request(f'contacts?filters[email]={email}')
+        search_response: dict[str, Any] = _client.make_request(f'contacts?filters[email]={email}')
         contacts: list[dict[str, Any]] = search_response.get('contacts', [])
 
         if contacts:
@@ -377,34 +463,10 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
         if last_name:
             contact_data['contact']['lastName'] = last_name
 
-        # Make direct POST request with contact data
-        url: str = f"{_get_base_url()}/contacts"
-        headers: dict[str, str] = {
-            'Api-Token': ACTIVECAMPAIGN_API_TOKEN,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        }
-
-        try:
-            http_response: requests.Response = requests.post(url, json=contact_data, headers=headers, timeout=10)
-            http_response.raise_for_status()
-            result: dict[str, Any] = http_response.json()
-            contact = result.get('contact', {})
-            logger.info(f"Created new contact with email {email}: ID {contact.get('id')}")
-            return contact
-        except requests.exceptions.Timeout:
-            raise ActiveCampaignError("ActiveCampaign API request timed out")
-        except requests.exceptions.ConnectionError:
-            raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
-        except requests.exceptions.HTTPError as e:
-            error_msg: str | list[str] = f"ActiveCampaign API error: {http_response.status_code}"
-            if http_response.text:
-                try:
-                    error_data: dict[str, Any] = http_response.json()
-                    error_msg = error_data.get('errors', [error_msg])
-                except json.JSONDecodeError:
-                    error_msg += f" - {http_response.text}"
-            raise ActiveCampaignError(error_msg)
+        result: dict[str, Any] = _client.make_request('contacts', method='POST', data=contact_data)
+        contact = result.get('contact', {})
+        logger.info(f"Created new contact with email {email}: ID {contact.get('id')}")
+        return contact
 
     except ActiveCampaignError:
         raise
@@ -429,7 +491,7 @@ def get_contact_list_memberships(contact_id: str | int, active_only: bool = Fals
         ActiveCampaignError: If API request fails
     """
     try:
-        response: dict[str, Any] = _make_ac_request(f'contacts/{contact_id}/contactLists')
+        response: dict[str, Any] = _client.make_request(f'contacts/{contact_id}/contactLists')
         contact_lists: list[dict[str, Any]] = response.get('contactLists', [])
 
         if active_only:
@@ -467,7 +529,7 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
     """
     try:
         field_id: str = get_ac_field_id_by_perstag('LEARNING_LEVEL')
-        response: dict[str, Any] = _make_ac_request(f'contacts/{contact_id}/fieldValues')
+        response: dict[str, Any] = _client.make_request(f'contacts/{contact_id}/fieldValues')
         field_values: list[dict[str, Any]] = response.get('fieldValues', [])
 
         for fv in field_values:
@@ -490,7 +552,7 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
         raise ActiveCampaignError(f"Error fetching learning level: {str(e)}")
 
 
-def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: list[NewsletterInfo]) -> list[str]:
+def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: Sequence[Mapping[str, Any]]) -> list[str]:
     """
     Convert newsletter stringids to ActiveCampaign list IDs.
 
@@ -533,7 +595,7 @@ def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: 
         raise ActiveCampaignError(f"Error mapping stringids to list IDs: {str(e)}")
 
 
-def validate_newsletter_keys(newsletter_stringids: list[str], valid_newsletters: list[NewsletterInfo]) -> bool:
+def validate_newsletter_keys(newsletter_stringids: list[str], valid_newsletters: Sequence[Mapping[str, Any]]) -> bool:
     """
     Validate that newsletter stringids exist in the list of valid newsletters.
 
@@ -586,34 +648,14 @@ def add_contact_to_list(contact_id: str | int, list_id: str | int) -> dict[str, 
             }
         }
 
-        url: str = f"{_get_base_url()}/contactLists"
-        headers: dict[str, str] = {
-            'Api-Token': ACTIVECAMPAIGN_API_TOKEN,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        }
-
-        http_response: requests.Response = requests.post(url, json=contact_list_data, headers=headers, timeout=10)
-        http_response.raise_for_status()
-        result: dict[str, Any] = http_response.json()
+        result: dict[str, Any] = _client.make_request('contactLists', method='POST', data=contact_list_data)
         contact_list: dict[str, Any] = result.get('contactList', {})
 
         logger.info(f"Added contact {contact_id} to list {list_id}")
         return contact_list
 
-    except requests.exceptions.Timeout:
-        raise ActiveCampaignError("ActiveCampaign API request timed out")
-    except requests.exceptions.ConnectionError:
-        raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
-    except requests.exceptions.HTTPError as e:
-        error_msg: str | list[str] = f"ActiveCampaign API error: {http_response.status_code}"
-        if http_response.text:
-            try:
-                error_data: dict[str, Any] = http_response.json()
-                error_msg = error_data.get('errors', [error_msg])
-            except json.JSONDecodeError:
-                error_msg += f" - {http_response.text}"
-        raise ActiveCampaignError(error_msg)
+    except ActiveCampaignError:
+        raise
     except Exception as e:
         logger.exception(f"Error adding contact to list: {e}")
         raise ActiveCampaignError(f"Error adding contact to list: {str(e)}")
@@ -668,34 +710,14 @@ def remove_contact_from_list(contact_id: str | int, list_id: str | int) -> dict[
             }
         }
 
-        url: str = f"{_get_base_url()}/contactLists"
-        headers: dict[str, str] = {
-            'Api-Token': ACTIVECAMPAIGN_API_TOKEN,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        }
-
-        http_response: requests.Response = requests.post(url, json=contact_list_data, headers=headers, timeout=10)
-        http_response.raise_for_status()
-        result: dict[str, Any] = http_response.json()
+        result: dict[str, Any] = _client.make_request('contactLists', method='POST', data=contact_list_data)
         contact_list: dict[str, Any] = result.get('contactList', {})
 
         logger.info(f"Removed contact {contact_id} from list {list_id}")
         return contact_list
 
-    except requests.exceptions.Timeout:
-        raise ActiveCampaignError("ActiveCampaign API request timed out")
-    except requests.exceptions.ConnectionError:
-        raise ActiveCampaignError("Failed to connect to ActiveCampaign API")
-    except requests.exceptions.HTTPError as e:
-        error_msg: str | list[str] = f"ActiveCampaign API error: {http_response.status_code}"
-        if http_response.text:
-            try:
-                error_data: dict[str, Any] = http_response.json()
-                error_msg = error_data.get('errors', [error_msg])
-            except json.JSONDecodeError:
-                error_msg += f" - {http_response.text}"
-        raise ActiveCampaignError(error_msg)
+    except ActiveCampaignError:
+        raise
     except Exception as e:
         logger.exception(f"Error removing contact from list: {e}")
         raise ActiveCampaignError(f"Error removing contact from list: {str(e)}")
@@ -733,7 +755,7 @@ def update_list_memberships(contact_id: str | int, add_list_ids: list[str], remo
         raise ActiveCampaignError(f"Error updating list memberships: {str(e)}")
 
 
-def get_stringid_to_list_id_map(newsletter_list: list[NewsletterInfo]) -> dict[str, str]:
+def get_stringid_to_list_id_map(newsletter_list: Sequence[Mapping[str, Any]]) -> dict[str, str]:
     """
     Create a mapping from newsletter stringids to ActiveCampaign list IDs.
 
@@ -746,7 +768,7 @@ def get_stringid_to_list_id_map(newsletter_list: list[NewsletterInfo]) -> dict[s
     return {nl['stringid']: nl['id'] for nl in newsletter_list}
 
 
-def get_list_id_to_stringid_map(newsletter_list: list[NewsletterInfo]) -> dict[str, str]:
+def get_list_id_to_stringid_map(newsletter_list: Sequence[Mapping[str, Any]]) -> dict[str, str]:
     """
     Create a mapping from ActiveCampaign list IDs to newsletter stringids.
 
@@ -761,7 +783,7 @@ def get_list_id_to_stringid_map(newsletter_list: list[NewsletterInfo]) -> dict[s
 
 def subscribe_with_union(email: str, first_name: str, last_name: str,
                          newsletter_stringids: list[str],
-                         valid_newsletters: list[NewsletterInfo]) -> SubscribeResult:
+                         valid_newsletters: Sequence[Mapping[str, Any]]) -> SubscribeResult:
     """
     Subscribe a contact to newsletters using union behavior (add to existing subscriptions).
 
@@ -836,7 +858,7 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
         raise ActiveCampaignError(f"Error in subscribe_with_union: {str(e)}")
 
 
-def fetch_user_subscriptions_impl(email: str, valid_newsletters: list[NewsletterInfo],
+def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mapping[str, Any]],
                                   user: Any = None) -> UserSubscriptions:
     """
     Fetch current newsletter subscriptions for a user by email.
@@ -872,7 +894,7 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: list[Newsletter
                 logger.warning(f"Could not load UserProfile for {email}: {e}")
 
         # Find contact by email
-        response: dict[str, Any] = _make_ac_request(f'contacts?filters[email]={email}')
+        response: dict[str, Any] = _client.make_request(f'contacts?filters[email]={email}')
         contacts: list[dict[str, Any]] = response.get('contacts', [])
 
         if not contacts:
@@ -924,7 +946,7 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: list[Newsletter
 
 def update_user_preferences_impl(email: str, first_name: str, last_name: str,
                                   selected_stringids: list[str],
-                                  valid_newsletters: list[NewsletterInfo],
+                                  valid_newsletters: Sequence[Mapping[str, Any]],
                                   marketing_opt_out: bool = False,
                                   user: Any = None) -> PreferencesResult:
     """
@@ -1103,7 +1125,7 @@ def update_learning_level_in_ac(email: str, learning_level: int | None) -> Learn
             }
         }
 
-        _make_ac_request('fieldValues', method='POST', data=payload)
+        _client.make_request('fieldValues', method='POST', data=payload)
 
         logger.info(f"Successfully updated learning level in AC for {email}")
 
@@ -1168,7 +1190,9 @@ def update_learning_level_impl(email: str, learning_level: int | None) -> Learni
         logger.info(f"Found existing user account for {email} (ID: {user_id})")
 
         try:
-            profile.learning_level = learning_level
+            # UserProfile uses dynamic MongoDB-backed attributes; pyright infers
+            # the type from the __init__ default (None) and rejects int. Ignore.
+            profile.learning_level = learning_level  # type: ignore[assignment]
             profile.save()
             updated_profile = True
             logger.info(f"Updated UserProfile for user {user_id}")
