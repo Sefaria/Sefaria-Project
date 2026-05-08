@@ -700,6 +700,45 @@ class TestSubscribeNewsletterEndpoint:
         data = json.loads(response.content)
         assert 'Connection failed' in data['error']
 
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_subscribe_ac_unavailable_returns_503(self, mock_get_list, client):
+        """When get_cached_newsletter_list raises, the view returns 503."""
+        from api.newsletter_service import ActiveCampaignError
+        mock_get_list.side_effect = ActiveCampaignError("Failed to connect to ActiveCampaign API")
+
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': 'test@example.com',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 503
+        data = json.loads(response.content)
+        assert 'temporarily unavailable' in data['error']
+
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_subscribe_empty_newsletter_list_returns_503(self, mock_get_list, client):
+        """When get_cached_newsletter_list returns empty, the view returns 503."""
+        mock_get_list.return_value = []
+
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': 'test@example.com',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 503
+        data = json.loads(response.content)
+        assert 'temporarily unavailable' in data['error']
+
     def test_subscribe_get_not_allowed(self, client):
         """GET is not a valid method on the subscribe endpoint."""
         response = client.get('/api/newsletter/subscribe')

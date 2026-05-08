@@ -95,7 +95,8 @@ def get_cached_newsletter_list() -> list[NewsletterInfo]:
         return cached
 
     newsletters: list[NewsletterInfo] = get_newsletter_list()
-    cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
+    if newsletters:
+        cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
     return newsletters
 
 
@@ -193,8 +194,14 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
-                'error': 'Failed to validate newsletter options'
-            }, status=500)
+                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
+            }, status=503)
+
+        if not valid_newsletters:
+            logger.error("Newsletter list is empty — ActiveCampaign may be unreachable or misconfigured")
+            return jsonResponse({
+                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
+            }, status=503)
 
         # Subscribe using union behavior
         logger.info(f"Processing subscription for {email} with newsletters: {selected_newsletters}")
@@ -282,8 +289,8 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
-                'error': 'Failed to validate newsletter options'
-            }, status=500)
+                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
+            }, status=503)
 
         # Fetch user subscriptions (pass user for UserProfile lookup)
         result = fetch_user_subscriptions_impl(email, valid_newsletters, user=user)
@@ -389,8 +396,8 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
         except Exception as e:
             logger.exception(f"Error fetching cached newsletter list: {e}")
             return jsonResponse({
-                'error': 'Failed to validate newsletter options'
-            }, status=500)
+                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
+            }, status=503)
 
         # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
         result = update_user_preferences_impl(email, first_name, last_name,
