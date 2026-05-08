@@ -278,18 +278,18 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
 
       if (hasSkipLink) {
         await skipLink.click();
-
-        const successView = page.locator('.successView');
-        await expect(successView).toBeVisible();
-
-        await expectSupplementalContentHidden(page);
-        await expectFooterVisible(page);
+        // Skipping learning level navigates home instead of showing a success view
+        await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
       }
     }
   });
 
   test('should keep footer visible on logged-out success view', async ({ page }) => {
     const email = `newsletter-success-${Date.now()}@example.com`;
+
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
 
     await submitLoggedOutNewsletterForm(page, email);
 
@@ -298,10 +298,8 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
     await expectFooterVisible(page);
 
     await page.locator('button.skipLink').click();
-
-    await expect(page.locator('.successView')).toBeVisible();
-    await expectSupplementalContentHidden(page);
-    await expectFooterVisible(page);
+    // Skipping learning level navigates home instead of showing a success view
+    await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
   });
 
   test('should handle form with all fields populated', async ({ page }) => {

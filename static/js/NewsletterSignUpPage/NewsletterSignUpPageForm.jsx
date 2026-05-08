@@ -261,8 +261,9 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         } else {
           delete newErrors[fieldName];
         }
-        // confirmEmail validity depends on email — re-evaluate it whenever email changes
-        if (fieldName === 'email') {
+        // Re-evaluate confirmEmail when email changes, but only if confirmEmail has been
+        // touched (has a value) or already has an error that may need clearing.
+        if (fieldName === 'email' && (formData.confirmEmail !== '' || newErrors.confirmEmail)) {
           const confirmError = fieldValidators.confirmEmail();
           if (confirmError) {
             newErrors.confirmEmail = confirmError;
