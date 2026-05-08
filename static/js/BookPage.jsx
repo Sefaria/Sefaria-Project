@@ -1313,7 +1313,7 @@ const EditTextInfo = function({initTitle, close}) {
   const deleteObj = () => {
     setSavingStatus(true);
     const url = `/api/v2/index/${enTitle}`;
-    Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+    Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE")
         .then(() => window.location.href = '/texts');
   }
   const renderCollectiveTitle = () => {

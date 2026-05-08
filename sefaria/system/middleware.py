@@ -1,4 +1,5 @@
-import sys 
+import resource
+import sys
 import tempfile
 import cProfile
 import pstats
@@ -63,7 +64,7 @@ class LocationSettingsMiddleware(MiddlewareMixin):
         Determines if the user should see diaspora content or Israeli.
     """
     def process_request(self, request):
-        loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+        loc = request.headers.get("cf-ipcountry", None)
         if not loc:
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
@@ -95,7 +96,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
+            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
             interface = 'english' if interface not in ('english', 'hebrew') else interface
@@ -108,7 +109,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
+            if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
                 target_domain = get_redirect_domain_for_language(request, interface)
@@ -137,7 +138,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         # TRANSLATION LANGUAGE PREFERENCE
         translation_language_preference = (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
-        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", None))
+        langs_in_country = get_lang_codes_for_territory(request.headers.get("cf-ipcountry", None))
         translation_language_preference_suggestion = None
         trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested", False)
         if translation_language_preference is None and not trans_lang_pref_suggested:
@@ -268,13 +269,22 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         cookies by browsers. When transitioning to domain-scoped cookies, we need to
         expire the old domain-less cookies.
 
-        Uses a workaround for Django's limitation of not supporting multiple cookies
-        with the same name (see https://code.djangoproject.com/ticket/10554):
-        adds an extra header via _headers with a unique internal key.
+        Works around Django's limitation of not supporting multiple cookies with the same
+        name (see https://code.djangoproject.com/ticket/10554) by storing the expiry
+        morsel under a unique internal key while setting the morsel's actual output key
+        to the real cookie name. Django's WSGI handler serializes cookies via
+        morsel.output(), which uses morsel._key (the real name), not the SimpleCookie
+        dict key.
         """
-        expire_value = f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/'
-        header_key = f'set-cookie-legacy-{cookie_name}'
-        response._headers[header_key] = ('Set-Cookie', expire_value)
+        unique_key = f'_legacy_expire_{cookie_name}'
+        response.cookies[unique_key] = ''
+        morsel = response.cookies[unique_key]
+        morsel._key = cookie_name  # output the real cookie name, not the unique key
+        morsel._coded_value = ''
+        morsel['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        morsel['max-age'] = '0'
+        morsel['path'] = '/'
+        # No 'domain' attribute — this targets the legacy domain-less cookie
 
     def process_response(self, request, response):
         """
@@ -348,6 +358,31 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class MaxRSSMiddleware:
+    """
+    Samples maxrss at the start and end of each request and binds the delta
+    to structlog so it appears in the request_finished log.
+
+    Must be placed after django_structlog's RequestMiddleware in MIDDLEWARE
+    so it runs inside structlog's threadlocal context.
+    """
+    # On macOS, ru_maxrss is in bytes; on Linux it's in KB.
+    _maxrss_divisor = 1024 if sys.platform == 'darwin' else 1
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        maxrss_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        response = self.get_response(request)
+        maxrss_after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        logger.bind(
+            maxrss_delta_kb=(maxrss_after - maxrss_before) // self._maxrss_divisor,
+            maxrss_kb=maxrss_after // self._maxrss_divisor,
+        )
         return response
 
 

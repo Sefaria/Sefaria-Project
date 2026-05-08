@@ -35,6 +35,7 @@ data:
     varnishHost = os.getenv("VARNISH_HOST")
 
     ALLOWED_HOSTS = ["*"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
     DEBUG = os.getenv("DEBUG").lower() == "true"
     OFFLINE = os.getenv("OFFLINE").lower() == "true"
@@ -44,8 +45,10 @@ data:
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
     DOMAIN_MODULES = json.loads(os.getenv("DOMAIN_MODULES", "{}"))
+    # Django 6.0 deprecated tuple-of-tuples ADMINS; switch to address strings now to avoid the
+    # RemovedInDjango70Warning at startup. Name embedded via RFC 5322 display-name format.
     ADMINS = (
-        ('Sefaria Developers', 'dev@sefaria.org'),
+        '"Sefaria Developers" <dev@sefaria.org>',
     )
     ADMIN_PATH = os.getenv("SEFARIA_ADMIN_PATH")
 
@@ -280,12 +283,6 @@ data:
     CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
     SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
     SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "unknown")
-
-    if SENTRY_DSN:
-        from sefaria.settings_utils import init_sentry
-        
-        init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
-
 
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {

@@ -666,29 +666,42 @@ Sefaria = extend(Sefaria, {
       }
       return output;
   },
-    _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
-        /**
-         * Outputs a test string that can be pasted into linker_test.py to test the same input.
-         */
+  _getLinkerTestString({text, inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections}) {
+      /**
+       * Outputs a test string that can be pasted into linker_test.py to test the same input.
+       */
+      let testStr = "crrd([";
+      testStr += Sefaria._getLinkerTestStringForParts(inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections);
+      testStr += "]";
+      if (Sefaria.hebrew.isHebrew(text)) {
+          testStr += ")";
+      } else {
+          testStr += ", lang='en')";
+      }
+      return testStr;
+  },
+  _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
       const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
-        let testStr = "crrd([";
-        for (let i = 0; i < inputRefParts.length; i++) {
-            const part = inputRefParts[i];
-            const type = inputRefPartTypes[i];
-            const symbol = partTypeSymbolMap[type] || "?";
-            testStr += `"${symbol}${part.replace('"', '\\"')}"`;
-            if (i < inputRefParts.length - 1) {
-                testStr += ", ";
-            }
-        }
-        testStr += "]";
-        if (Sefaria.hebrew.isHebrew(text)) {
-            testStr += ")";
-        } else {
-            testStr += ", lang='en')";
-        }
-        return testStr;
-    },
+      let testStr = "";
+      for (let i = 0; i < refParts.length; i++) {
+          const part = refParts[i];
+          const type = refPartTypes[i];
+          if (type === "RANGE" && rangeSections && rangeToSections) {
+              testStr += Sefaria._getLinkerTestStringForParts(rangeSections, Array(rangeSections.length).fill("NUMBERED"));
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(["-"], ["RANGE_SYMBOL"]);
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
+          } else {
+              const symbol = partTypeSymbolMap[type] || "?";
+              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+          }
+          if (i < refParts.length - 1) {
+              testStr += ", ";
+          }
+      }
+      return testStr;
+  },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
@@ -911,9 +924,9 @@ Sefaria = extend(Sefaria, {
   postRefTopicLink: function(refInUrl, payload) {
       const url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
       // payload will need to be refactored once /api/ref-topic-links takes a more standard input
-      return Sefaria.adminEditorApiRequest(url, null, payload);
+      return Sefaria.apiRequestWithBodyAndAlert(url, null, payload);
   },
-  adminEditorApiRequest: async function(url, urlParams, payload, method="POST") {
+  apiRequestWithBodyAndAlert: async function(url, urlParams, payload, method="POST") {
       /**
        * Wraps apiRequestWithBody() with basic alerting if response has an error
        */
@@ -2746,6 +2759,9 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
+  experimentsOptInAPI: () => {
+    return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
+  },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
@@ -2947,7 +2963,7 @@ _media: {},
         throw new Error('Invalid day. Expected "holiday" or "parasha".');
       }
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          url:   `${this.apiHost}/api/calendars/topics/${day}?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
           key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
@@ -3494,6 +3510,14 @@ _media: {},
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
   },
+  updateCalendars: function(custom, diaspora) {
+    return Sefaria._ApiPromise(`/api/calendars?custom=${custom}&diaspora=${diaspora}`)
+      .then(data => {
+        if (data.calendar_items) {
+          Sefaria.calendars = data.calendar_items;
+        }
+      });
+  },
   _translateTerms: {},
   _cacheHebrewTerms: function(terms) {
       Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
@@ -3851,6 +3875,7 @@ Sefaria.unpackBaseProps = function(props){
       "_debug_mode",
       "remoteConfig",
       "chatbot_enabled",
+      "in_chatbot_experiment",
       "chatbot_user_token",
       "chatbot_api_base_url",
       "chatbot_version",

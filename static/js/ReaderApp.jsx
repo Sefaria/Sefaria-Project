@@ -39,12 +39,12 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
-import { Dedupe } from '@sentry/react';
+import { ChatbotExperimentBanner } from './SiteWideBanner';
 
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
-    // TODO clean up generation of initial panels objects.
+    // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
@@ -206,7 +206,8 @@ class ReaderApp extends Component {
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
-    
+    document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
@@ -239,6 +240,7 @@ class ReaderApp extends Component {
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
+    document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1171,6 +1173,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!url) { return; }
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
+  }
+  handleSettingsUpdatedEvent(event) {
+    const detail = event?.detail;
+    if (!detail) return;
+    if (detail.translationLanguagePreference !== undefined) {
+      this.setState({ translationLanguagePreference: detail.translationLanguagePreference });
+    }
+    if (detail.readingHistory !== undefined) {
+      Sefaria.is_history_enabled = detail.readingHistory;
+    }
+    if (detail.textualCustom !== undefined) {
+      Sefaria.updateCalendars(detail.textualCustom, detail.diaspora);
+    }
   }
   _getPathAndRefFromUrl(href) {
     let url;
@@ -2229,8 +2244,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
-    console.log("skylee log");
-    console.log(deDupedTriggers)
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
@@ -2439,6 +2452,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && Sefaria.interfaceLang === "english" && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
       // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
@@ -2451,6 +2466,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
+              {showChatbotBanner && <ChatbotExperimentBanner />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
@@ -2458,12 +2474,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
-                  api-base-url={this.props.chatbot_api_base_url}
+                  api-base-url={chatBotApiBaseUrl}
+                  origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
-                  default-open="false"
                   placement="right"
+                  default-open={true}
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
+                  max-prompts={this.props.chatbot_max_prompts}
+                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
+                  interface-lang={this.props.interfaceLang}
                 />
               )}
               </main>
