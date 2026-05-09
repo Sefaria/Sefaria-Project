@@ -447,18 +447,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const initial = initialSubscriptionsRef.current;
     const current = formData.selectedNewsletters;
 
-    const labelForKey = (key) => {
-      const nl = newsletters.find(n => n.key === key);
-      return nl ? Sefaria._(nl.labelKey) : key;
-    };
-
-    const added = Object.keys(current)
-      .filter(key => current[key] && !initial[key])
-      .map(labelForKey);
-
-    const removed = Object.keys(initial)
-      .filter(key => initial[key] && !current[key])
-      .map(labelForKey);
+    const added = Object.keys(current).filter(key => current[key] && !initial[key]);
+    const removed = Object.keys(initial).filter(key => initial[key] && !current[key]);
 
     return { added, removed };
   };

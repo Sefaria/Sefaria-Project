@@ -214,7 +214,7 @@ export default function NewsletterFormView({
                 disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
                 analyticsAttributes={{
                   "data-anl-event": "newsletter_selected:input",
-                  "data-anl-text": Sefaria._(newsletter.labelKey),
+                  "data-anl-text": newsletter.key,
                   "data-anl-form_name": "newsletter_signup",
                 }}
               />

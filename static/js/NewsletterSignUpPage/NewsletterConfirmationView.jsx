@@ -52,18 +52,22 @@ export default function NewsletterConfirmationView({
   const willReceiveConfirmationEmail =
     generalNewsletter &&
     (isLoggedIn && subscriptionDiffs
-      ? subscriptionDiffs.added.includes(Sefaria._(generalNewsletter.labelKey))
+      ? subscriptionDiffs.added.includes(generalNewsletter.key)
       : selectedNewsletters[generalNewsletter.key]);
 
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
 
-  const selectedNewsletterLabels = Object.entries(selectedNewsletters)
+  const keyToDisplayLabel = (key) => {
+    const nl = newsletters.find(n => n.key === key);
+    return nl ? Sefaria._(nl.labelKey) : key;
+  };
+
+  const selectedKeys = Object.entries(selectedNewsletters)
     .filter(([_, isSelected]) => isSelected)
-    .map(([key]) => {
-      const nl = newsletters.find(n => n.key === key);
-      return nl ? Sefaria._(nl.labelKey) : key;
-    })
-    .join(', ');
+    .map(([key]) => key);
+
+  const selectedNewsletterKeys = selectedKeys.join(', ');
+  const selectedNewsletterLabels = selectedKeys.map(keyToDisplayLabel).join(', ');
 
   return (
     <div
@@ -112,7 +116,7 @@ export default function NewsletterConfirmationView({
                 <p className="selectedLabel">
                   <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
                 </p>
-                <p className="selectedList">{subscriptionDiffs.added.join(", ")}</p>
+                <p className="selectedList">{subscriptionDiffs.added.map(keyToDisplayLabel).join(", ")}</p>
               </div>
             )}
             {subscriptionDiffs.removed.length > 0 && (
@@ -120,7 +124,7 @@ export default function NewsletterConfirmationView({
                 <p className="selectedLabel">
                   <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
                 </p>
-                <p className="selectedList">{subscriptionDiffs.removed.join(", ")}</p>
+                <p className="selectedList">{subscriptionDiffs.removed.map(keyToDisplayLabel).join(", ")}</p>
               </div>
             )}
             {marketingOptOut && (
@@ -135,8 +139,8 @@ export default function NewsletterConfirmationView({
             )}
           </div>
         ) : (
-          selectedNewsletterLabels && (
-            <div className="selectedNewslettersDisplay" data-anl-text={selectedNewsletterLabels}>
+          selectedNewsletterKeys && (
+            <div className="selectedNewslettersDisplay" data-anl-text={selectedNewsletterKeys}>
               <p className="selectedLabel">
                 <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
               </p>
