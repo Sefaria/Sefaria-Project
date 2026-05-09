@@ -87,6 +87,37 @@ class TestParseMetadataFromVariable:
         assert newsletter_service.parse_metadata_from_variable(None) is None
 
 
+class TestParseVariableEntry:
+    """Tests for _parse_variable_entry, the map function in get_newsletter_list's pipeline."""
+
+    def _make_variable(self, tag='list_1_meta', name='Sefaria News', content='{"icon": "news.svg", "language": "english"}'):
+        return {'tag': tag, 'name': name, 'content': content}
+
+    def test_returns_list_id_and_variable_data(self):
+        v = self._make_variable()
+        result = newsletter_service._parse_variable_entry(v)
+        assert result is not None
+        list_id, data = result
+        assert list_id == '1'
+        assert data['name'] == 'Sefaria News'
+        assert data['metadata'] == {'icon': 'news.svg', 'language': 'english'}
+
+    def test_name_defaults_to_empty_string_when_missing(self):
+        v = {'tag': 'list_3_meta', 'content': '{"icon": "edu.svg", "language": "english"}'}
+        result = newsletter_service._parse_variable_entry(v)
+        assert result is not None
+        _, data = result
+        assert data['name'] == ''
+
+    def test_returns_none_for_invalid_json_content(self):
+        v = self._make_variable(content='not valid json')
+        assert newsletter_service._parse_variable_entry(v) is None
+
+    def test_returns_none_for_missing_content_field(self):
+        v = {'tag': 'list_1_meta', 'name': 'Sefaria News'}
+        assert newsletter_service._parse_variable_entry(v) is None
+
+
 class TestMakeRequest:
     """Tests for NewsletterClient.make_request (the AC API transport layer)"""
 

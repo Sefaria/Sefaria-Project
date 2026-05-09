@@ -32,6 +32,8 @@ from sefaria.model.user_profile import UserProfile
 
 logger: logging.Logger = logging.getLogger(__name__)
 
+type DisplayName = dict[str, str | None]
+
 
 # ========== Typed dict shapes for structured return values ==========
 
@@ -39,7 +41,7 @@ class NewsletterInfo(TypedDict):
     """One managed newsletter with display metadata. Element of get_newsletter_list()."""
     id: str
     stringid: str
-    displayName: dict[str, str | None]
+    displayName: DisplayName
     icon: str
     language: str
 
@@ -237,8 +239,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     response: dict[str, Any] = _client.make_request('fields?limit=100')
     fields: list[dict[str, Any]] = response.get('fields', [])
 
-    for field in fields:
-        _field_id_cache[field.get('perstag', '')] = field['id']
+    _field_id_cache.update({f['perstag']: f['id'] for f in fields if f.get('perstag')})
 
     if perstag not in _field_id_cache:
         raise ActiveCampaignError(f"Custom field with perstag '{perstag}' not found in ActiveCampaign")
@@ -355,6 +356,20 @@ def get_all_ac_list_ids() -> list[str]:
     return [lst['id'] for lst in lists]
 
 
+def _parse_variable_entry(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+    """
+    Extract (list_id, variable_data) from a personalization variable, or None if metadata is missing.
+
+    Used as the mapping function in get_newsletter_list's map→filter→dict pipeline.
+    Returns None for variables whose JSON content can't be parsed, which filter(None, ...)
+    then discards.
+    """
+    metadata = parse_metadata_from_variable(v)
+    if metadata is None:
+        return None
+    return str(extract_list_id_from_tag(v['tag'])), {'metadata': metadata, 'name': v.get('name', '')}
+
+
 def get_newsletter_list() -> list[NewsletterInfo]:
     """
     Fetch all available newsletters with their metadata.
@@ -372,7 +387,7 @@ def get_newsletter_list() -> list[NewsletterInfo]:
             {
                 "id": "1",                          # AC numeric list ID
                 "stringid": "sefaria_news",         # From AC list object
-                "displayName": "Sefaria News",      # From personalization variable's 'name' field
+                "displayName": {"en": "Sefaria News", "he": null},  # Bilingual display name
                 "icon": "news-and-resources.svg",   # From personalization variable's JSON content
                 "language": "english"               # From personalization variable's JSON content
             }
@@ -387,22 +402,9 @@ def get_newsletter_list() -> list[NewsletterInfo]:
     # Create a map of list ID -> list info for quick lookup
     lists_by_id: dict[str, dict[str, Any]] = {lst['id']: lst for lst in lists}
 
-    # Filter variables by pattern and parse metadata
-    metadata_variables: list[dict[str, Any]] = list(filter(
-        lambda v: extract_list_id_from_tag(v.get('tag', '')) is not None,
-        variables
-    ))
-
-    # Build variable map: list_id -> variable object (includes both metadata and name)
-    variables_by_id: dict[str, dict[str, Any]] = {}
-    for v in metadata_variables:
-        list_id: str = str(extract_list_id_from_tag(v['tag']))
-        metadata: dict[str, Any] | None = parse_metadata_from_variable(v)
-        if metadata is not None:
-            variables_by_id[list_id] = {
-                'metadata': metadata,
-                'name': v.get('name', '')
-            }
+    # Filter variables by tag pattern, parse metadata, collect as list_id -> variable_data map
+    metadata_variables = [v for v in variables if extract_list_id_from_tag(v.get('tag', '')) is not None]
+    variables_by_id: dict[str, dict[str, Any]] = dict(filter(None, map(_parse_variable_entry, metadata_variables)))
 
     # Merge lists with metadata (only include lists with metadata)
     # Using walrus operator to check list exists while building newsletter
@@ -502,9 +504,8 @@ def get_contact_list_memberships(contact_id: str | int, active_only: bool = Fals
             # Filter to only active subscriptions (status=1)
             contact_lists = [cl for cl in contact_lists if str(cl.get('status', '')) == '1']
 
-        # Extract list IDs from contact list objects
-        list_ids: list[str] = [str(cl.get('list', cl.get('listid', ''))) for cl in contact_lists]
-        list_ids = [lid for lid in list_ids if lid]  # Filter out empty strings
+        # Extract list IDs from contact list objects, dropping empty strings in one pass
+        list_ids = [lid for cl in contact_lists if (lid := str(cl.get('list', cl.get('listid', ''))))]
 
         logger.info(f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}")
         return list_ids

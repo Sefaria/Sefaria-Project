@@ -18,6 +18,27 @@ import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserS
  * - Routes between different views based on current stage
  * - Handles API calls with mocked endpoints
  */
+function buildFieldValidators(formData, formStatus) {
+  return {
+    firstName: () => (!formStatus.isLoggedIn && !formData.firstName.trim())
+      ? BILINGUAL_TEXT.ENTER_FIRST_NAME : null,
+    lastName: () => (!formStatus.isLoggedIn && !formData.lastName.trim())
+      ? BILINGUAL_TEXT.ENTER_LAST_NAME : null,
+    email: () => {
+      if (!formData.email.trim()) return BILINGUAL_TEXT.ENTER_EMAIL;
+      if (!Sefaria.util.isValidEmailAddress(formData.email)) return BILINGUAL_TEXT.VALID_EMAIL;
+      return null;
+    },
+    confirmEmail: () => (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail)
+      ? BILINGUAL_TEXT.EMAILS_MISMATCH : null,
+    newsletters: () => {
+      if (formStatus.isLoggedIn) return null;
+      return Object.values(formData.selectedNewsletters).some(v => v)
+        ? null : BILINGUAL_TEXT.SELECT_NEWSLETTER;
+    },
+  };
+}
+
 export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== FORM DATA STATE ==========
   const [formData, setFormData] = useState({
@@ -164,21 +185,15 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
 
-  const handleFirstNameChange = (value) => {
-    setFormData(prev => ({ ...prev, firstName: value }));
-  };
+  const makeFieldSetter = (field) => (value) =>
+    setFormData(prev => ({ ...prev, [field]: value }));
 
-  const handleLastNameChange = (value) => {
-    setFormData(prev => ({ ...prev, lastName: value }));
-  };
-
-  const handleEmailChange = (value) => {
-    setFormData(prev => ({ ...prev, email: value }));
-  };
-
-  const handleConfirmEmailChange = (value) => {
-    setFormData(prev => ({ ...prev, confirmEmail: value }));
-  };
+  const handleFirstNameChange      = makeFieldSetter('firstName');
+  const handleLastNameChange       = makeFieldSetter('lastName');
+  const handleEmailChange          = makeFieldSetter('email');
+  const handleConfirmEmailChange   = makeFieldSetter('confirmEmail');
+  const handleMarketingEmailToggle = makeFieldSetter('wantsMarketingEmails');
+  const handleLearningLevelSelect  = makeFieldSetter('learningLevel');
 
   const handleNewsletterToggle = (key) => {
     setFormData(prev => ({
@@ -188,17 +203,6 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         [key]: !prev.selectedNewsletters[key],
       },
     }));
-  };
-
-  const handleMarketingEmailToggle = (wantsEmails) => {
-    setFormData(prev => ({
-      ...prev,
-      wantsMarketingEmails: wantsEmails,
-    }));
-  };
-
-  const handleLearningLevelSelect = (level) => {
-    setFormData(prev => ({ ...prev, learningLevel: level }));
   };
 
   // ========== HANDLERS: Field blur validation ==========
@@ -212,44 +216,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     // Only validate if user has already attempted submit
     if (!validationState.hasAttemptedSubmit) return;
 
-    const fieldValidators = {
-      firstName: () => {
-        if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
-          return BILINGUAL_TEXT.ENTER_FIRST_NAME;
-        }
-        return null;
-      },
-      lastName: () => {
-        if (!formStatus.isLoggedIn && !formData.lastName.trim()) {
-          return BILINGUAL_TEXT.ENTER_LAST_NAME;
-        }
-        return null;
-      },
-      email: () => {
-        if (!formData.email.trim()) {
-          return BILINGUAL_TEXT.ENTER_EMAIL;
-        }
-        if (!Sefaria.util.isValidEmailAddress(formData.email)) {
-          return BILINGUAL_TEXT.VALID_EMAIL;
-        }
-        return null;
-      },
-      confirmEmail: () => {
-        if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
-          return BILINGUAL_TEXT.EMAILS_MISMATCH;
-        }
-        return null;
-      },
-      newsletters: () => {
-        if (!formStatus.isLoggedIn) {
-          const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
-          if (!hasSelection) {
-            return BILINGUAL_TEXT.SELECT_NEWSLETTER;
-          }
-        }
-        return null;
-      },
-    };
+    const fieldValidators = buildFieldValidators(formData, formStatus);
 
     const validator = fieldValidators[fieldName];
     if (validator) {
@@ -402,39 +369,12 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
    * @returns {Object} - { fieldName: errorMessage } for each invalid field
    */
   const validateFormData = () => {
-    const errors = {};
-
-    // First name (logged-out only)
-    if (!formStatus.isLoggedIn && !formData.firstName.trim()) {
-      errors.firstName = BILINGUAL_TEXT.ENTER_FIRST_NAME;
-    }
-
-    // Last name (logged-out only)
-    if (!formStatus.isLoggedIn && !formData.lastName.trim()) {
-      errors.lastName = BILINGUAL_TEXT.ENTER_LAST_NAME;
-    }
-
-    // Email
-    if (!formData.email.trim()) {
-      errors.email = BILINGUAL_TEXT.ENTER_EMAIL;
-    } else if (!Sefaria.util.isValidEmailAddress(formData.email)) {
-      errors.email = BILINGUAL_TEXT.VALID_EMAIL;
-    }
-
-    // Confirm email (logged-out only)
-    if (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail) {
-      errors.confirmEmail = BILINGUAL_TEXT.EMAILS_MISMATCH;
-    }
-
-    // Newsletter selection (logged-out only)
-    if (!formStatus.isLoggedIn) {
-      const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
-      if (!hasSelection) {
-        errors.newsletters = BILINGUAL_TEXT.SELECT_NEWSLETTER;
-      }
-    }
-
-    return errors;  // Empty object = valid
+    const validators = buildFieldValidators(formData, formStatus);
+    return Object.fromEntries(
+      Object.entries(validators)
+        .map(([field, validate]) => [field, validate()])
+        .filter(([, error]) => error !== null)
+    );
   };
 
   // ========== HELPERS: Subscription diff computation ==========
