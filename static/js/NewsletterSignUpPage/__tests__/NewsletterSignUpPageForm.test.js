@@ -516,7 +516,13 @@ describe('NewsletterSignUpPageForm', () => {
   });
 
   describe('Final success stage notifications', () => {
-    it('notifies parent when skipping learning level moves to SUCCESS', async () => {
+    it('skipping learning level navigates to homepage rather than SUCCESS stage', async () => {
+      // Skipping navigates away via window.location.href — stage stays at CONFIRMATION.
+      // STAGE.SUCCESS is only reached by saving a learning level.
+      const originalHref = window.location.href;
+      delete window.location;
+      window.location = { href: originalHref };
+
       await renderForm({ onStageChange: stageChangeSpy });
 
       act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
@@ -530,7 +536,8 @@ describe('NewsletterSignUpPageForm', () => {
       await act(async () => { lastConfirmationViewProps.onSkip(); });
       await flushPromises();
 
-      expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.SUCCESS);
+      expect(window.location.href).toBe('/');
+      expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.CONFIRMATION);
     });
   });
 });
