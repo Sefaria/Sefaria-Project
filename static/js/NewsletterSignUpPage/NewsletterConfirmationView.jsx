@@ -59,7 +59,9 @@ export default function NewsletterConfirmationView({
 
   const keyToDisplayLabel = (key) => {
     const nl = newsletters.find(n => n.key === key);
-    return nl ? Sefaria._(nl.labelKey) : key;
+    if (!nl) return key;
+    const { en, he } = nl.displayName;
+    return Sefaria.interfaceLang === 'hebrew' ? (he || en) : (en || he);
   };
 
   const selectedKeys = Object.entries(selectedNewsletters)

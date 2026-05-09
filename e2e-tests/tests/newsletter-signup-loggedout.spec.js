@@ -686,7 +686,7 @@ test.describe('Newsletter Signup - Learning Level Flow', () => {
 
     await page.route('**/api/newsletter/lists', (route) =>
       route.fulfill({ json: { newsletters: [
-        { stringid: 'sefaria_news', displayName: 'Sefaria News & Resources', icon: 'news-and-resources.svg' },
+        { stringid: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null }, icon: 'news-and-resources.svg' },
       ] } })
     );
     await page.route('**/api/newsletter/subscribe', (route) =>
@@ -724,5 +724,53 @@ test.describe('Newsletter Signup - Learning Level Flow', () => {
     // Success view should appear
     await page.waitForSelector('.successView', { timeout: 10000 });
     await expect(page.locator('.successView')).toContainText('All set!');
+  });
+});
+
+test.describe('Newsletter Signup - Hebrew-only newsletter label rendering', () => {
+  test('renders Hebrew text as fallback in English interface', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' }, icon: 'news-and-resources.svg' },
+      ] } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.waitForSelector('.selectableOptionText', { timeout: 10000 });
+
+    // Hebrew text should appear as fallback since there's no English name
+    await expect(page.locator('.selectableOptionText')).toContainText('חדשות ספריא');
+
+    // InterfaceText in English interface uses int-en base class + heInEn fallback class
+    await expect(page.locator('.int-en.heInEn')).toBeVisible();
+  });
+
+  test('renders Hebrew text as primary in Hebrew interface', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.context().addCookies([{
+      name: 'interfaceLang',
+      value: 'hebrew',
+      url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
+    }]);
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' }, icon: 'news-and-resources.svg' },
+      ] } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('body.interface-hebrew', { timeout: 15000 });
+    await page.waitForSelector('.selectableOptionText', { timeout: 10000 });
+
+    // Hebrew text is primary in Hebrew interface
+    await expect(page.locator('.selectableOptionText')).toContainText('חדשות ספריא');
+
+    // InterfaceText in Hebrew interface uses int-he base class (no heInEn since Hebrew is primary)
+    await expect(page.locator('.selectableOptionText .int-he:not(.heInEn)')).toBeVisible();
   });
 });

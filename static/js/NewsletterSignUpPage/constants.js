@@ -20,12 +20,12 @@ export const STAGE = Object.freeze({
 });
 
 export const NEWSLETTERS = [
-  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources', icon: 'news-and-resources.svg' },
-  { key: 'educator_resources', labelKey: 'Educator Resources', icon: 'educator-resources.svg' },
-  { key: 'text_updates', labelKey: 'New Text Updates', icon: 'new-text-release-updates.svg' },
-  { key: 'parashah_series', labelKey: 'Weekly Parashah Study Series', icon: 'weekly-study-guide.svg' },
-  { key: 'tech_updates', labelKey: 'Technology and Developer Updates', icon: 'technology-updates.svg' },
-  { key: 'timeless_topics', labelKey: 'Timeless Topics', icon: 'timeless-topics.svg' },
+  { key: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null }, icon: 'news-and-resources.svg' },
+  { key: 'educator_resources', displayName: { en: 'Educator Resources', he: null }, icon: 'educator-resources.svg' },
+  { key: 'text_updates', displayName: { en: 'New Text Updates', he: null }, icon: 'new-text-release-updates.svg' },
+  { key: 'parashah_series', displayName: { en: 'Weekly Parashah Study Series', he: null }, icon: 'weekly-study-guide.svg' },
+  { key: 'tech_updates', displayName: { en: 'Technology and Developer Updates', he: null }, icon: 'technology-updates.svg' },
+  { key: 'timeless_topics', displayName: { en: 'Timeless Topics', he: null }, icon: 'timeless-topics.svg' },
 ];
 
 export const LEARNING_LEVELS = [

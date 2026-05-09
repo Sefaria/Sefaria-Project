@@ -207,7 +207,7 @@ export default function NewsletterFormView({
               <SelectableOption
                 key={newsletter.key}
                 type="checkbox"
-                label={Sefaria._(newsletter.labelKey)}
+                label={<InterfaceText text={newsletter.displayName} />}
                 icon={newsletter.icon}
                 isSelected={formData.selectedNewsletters[newsletter.key] || false}
                 onChange={() => onNewsletterToggle(newsletter.key)}

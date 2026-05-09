@@ -9,6 +9,7 @@ import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import NewsletterConfirmationView from '../NewsletterConfirmationView';
 import { FORM_STATUS } from '../constants';
+import SefariaModule from '../../sefaria/sefaria';
 
 // Mock Sefaria global object
 jest.mock('../../sefaria/sefaria', () => ({
@@ -45,9 +46,9 @@ jest.mock('../SelectableOption', () => {
 // ========== SHARED TEST FIXTURES ==========
 
 const NEWSLETTERS = [
-  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources' },
-  { key: 'educator_resources', labelKey: 'Educator Resources' },
-  { key: 'parashah_series', labelKey: 'Weekly Parashah Study Series' },
+  { key: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null } },
+  { key: 'educator_resources', displayName: { en: 'Educator Resources', he: null } },
+  { key: 'parashah_series', displayName: { en: 'Weekly Parashah Study Series', he: null } },
 ];
 
 const LEARNING_LEVELS = [
@@ -269,6 +270,50 @@ describe('NewsletterConfirmationView - Subscription Display', () => {
       expect(html).toContain("You&#x27;ve subscribed to:");
       expect(html).toContain('Educator Resources');
       expect(html).toContain('opted out of marketing emails');
+    });
+  });
+
+  describe('Hebrew-only newsletter keyToDisplayLabel fallback', () => {
+    const NEWSLETTERS_WITH_HEBREW = [
+      ...NEWSLETTERS,
+      { key: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' } },
+    ];
+
+    it('falls back to Hebrew text when interface is English and newsletter has no English name', () => {
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_WITH_HEBREW,
+        selectedNewsletters: { hebrew_news: true },
+        subscriptionDiffs: null,
+      });
+
+      expect(html).toContain('חדשות ספריא');
+    });
+
+    it('uses Hebrew text as primary when interface language is Hebrew', () => {
+      SefariaModule.interfaceLang = 'hebrew';
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_WITH_HEBREW,
+        selectedNewsletters: { hebrew_news: true },
+        subscriptionDiffs: null,
+      });
+      SefariaModule.interfaceLang = 'english';
+
+      expect(html).toContain('חדשות ספריא');
+    });
+
+    it('falls back to English text when interface is Hebrew but newsletter has no Hebrew name', () => {
+      SefariaModule.interfaceLang = 'hebrew';
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_WITH_HEBREW,
+        selectedNewsletters: { sefaria_news: true },
+        subscriptionDiffs: null,
+      });
+      SefariaModule.interfaceLang = 'english';
+
+      expect(html).toContain('Sefaria News &amp; Resources');
     });
   });
 

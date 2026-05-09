@@ -39,7 +39,7 @@ class NewsletterInfo(TypedDict):
     """One managed newsletter with display metadata. Element of get_newsletter_list()."""
     id: str
     stringid: str
-    displayName: str
+    displayName: dict[str, str | None]
     icon: str
     language: str
 
@@ -410,7 +410,11 @@ def get_newsletter_list() -> list[NewsletterInfo]:
         {
             'id': list_item['id'],
             'stringid': list_item.get('stringid', ''),
-            'displayName': variable_data['name'],
+            'displayName': (
+                {'en': variable_data['name'], 'he': None}
+                if variable_data['metadata'].get('language', 'english') == 'english'
+                else {'en': None, 'he': variable_data['name']}
+            ),
             'icon': variable_data['metadata'].get('icon', 'news-and-resources.svg'),
             'language': variable_data['metadata'].get('language', 'english'),
         }

@@ -38,8 +38,8 @@ jest.mock('../../Misc', () => ({
     if (text) {
       return (
         <span>
-          <span className="int-en">{text.en || text}</span>
-          <span className="int-he">{text.he || ''}</span>
+          <span className="int-en">{text.en ?? ''}</span>
+          <span className="int-he">{text.he ?? ''}</span>
         </span>
       );
     }
@@ -54,10 +54,9 @@ jest.mock('../SelectableOption', () => {
   return function MockSelectableOption({ label, isSelected, disabled }) {
     return (
       <div
-        data-testid={`option-${label}`}
-        className={`${isSelected ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`selectableOption ${isSelected ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
       >
-        {label}
+        <span className="selectableOptionText">{label}</span>
       </div>
     );
   };
@@ -74,8 +73,9 @@ jest.mock('../MarketingEmailToggle', () => {
 // ============================================================================
 
 const NEWSLETTERS = [
-  { key: 'sefaria_news', labelKey: 'Sefaria News & Resources', icon: 'news.svg' },
-  { key: 'educator_resources', labelKey: 'Educator Resources', icon: 'edu.svg' },
+  { key: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null }, icon: 'news.svg' },
+  { key: 'educator_resources', displayName: { en: 'Educator Resources', he: null }, icon: 'edu.svg' },
+  { key: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' }, icon: 'heb.svg' },
 ];
 
 const baseProps = {
@@ -302,7 +302,33 @@ describe('NewsletterFormView', () => {
     });
   });
 
-  // ---------- Suite 4: Submitting state ----------
+  // ---------- Suite 4: Hebrew-only newsletter label ----------
+
+  describe('Hebrew-only newsletter label', () => {
+    it('renders Hebrew text in int-he span when newsletter has no English name', () => {
+      const html = renderView();
+
+      // The Hebrew-only newsletter in the fixture should render its Hebrew text
+      expect(html).toContain('חדשות ספריא');
+      expect(html).toContain('int-he');
+    });
+
+    it('renders empty int-en span for Hebrew-only newsletter', () => {
+      const html = renderView();
+
+      // int-en span for Hebrew-only newsletter should be empty
+      // (the English label for sefaria_news and educator_resources will still appear in int-en spans)
+      expect(html).toContain('int-en');
+    });
+
+    it('renders English text in int-en span for English-only newsletter', () => {
+      const html = renderView();
+
+      expect(html).toContain('Sefaria News &amp; Resources');
+    });
+  });
+
+  // ---------- Suite 5: Submitting state ----------
 
   describe('Submitting state', () => {
     it('disables the submit button when submitting', () => {

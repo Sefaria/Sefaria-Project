@@ -80,7 +80,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           if (response.newsletters) {
             setNewsletters(response.newsletters.map(nl => ({
               key: nl.stringid,
-              labelKey: nl.displayName,
+              displayName: nl.displayName,
               icon: nl.icon,
             })));
           }

@@ -219,7 +219,7 @@ class TestGetNewsletterList:
         assert len(newsletters) == 2
         assert newsletters[0]['id'] == '1'
         assert newsletters[0]['stringid'] == 'sefaria_news'
-        assert newsletters[0]['displayName'] == 'Sefaria News & Resources'
+        assert newsletters[0]['displayName'] == {'en': 'Sefaria News & Resources', 'he': None}
         assert newsletters[0]['icon'] == 'news-and-resources.svg'
         assert newsletters[0]['language'] == 'english'
         assert newsletters[1]['id'] == '2'
@@ -269,6 +269,25 @@ class TestGetNewsletterList:
 
         assert len(newsletters) == 1
         assert newsletters[0]['id'] == '1'
+
+    @mock.patch('api.newsletter_service.get_all_lists')
+    @mock.patch('api.newsletter_service.get_all_personalization_variables')
+    def test_hebrew_language_produces_he_displayname(self, mock_variables, mock_lists):
+        """Hebrew-language metadata produces {'en': None, 'he': name} displayName shape."""
+        mock_lists.return_value = [
+            {'id': '9', 'stringid': 'hebrew_newsletter', 'name': 'Hebrew Newsletter'},
+        ]
+        mock_variables.return_value = [
+            {
+                'tag': 'list_9_meta',
+                'name': 'חדשות עברית',
+                'content': '{"icon": "news-and-resources.svg", "language": "hebrew"}'
+            },
+        ]
+        newsletters = newsletter_service.get_newsletter_list()
+
+        assert len(newsletters) == 1
+        assert newsletters[0]['displayName'] == {'en': None, 'he': 'חדשות עברית'}
 
     @mock.patch('api.newsletter_service.get_all_lists')
     @mock.patch('api.newsletter_service.get_all_personalization_variables')

@@ -533,7 +533,7 @@ class TestGetNewsletterListsView:
             {
                 'id': '1',
                 'stringid': 'sefaria_news',
-                'displayName': 'Sefaria News',
+                'displayName': {'en': 'Sefaria News', 'he': None},
                 'icon': 'news-and-resources.svg',
                 'language': 'english',
             }
@@ -556,6 +556,26 @@ class TestGetNewsletterListsView:
         data = json.loads(response.content)
         assert 'error' in data
         assert 'Connection failed' in data['error']
+
+    @mock.patch('api.newsletter_views.get_newsletter_list')
+    def test_hebrew_newsletter_displayname_shape(self, mock_get_list, client):
+        """Hebrew-language newsletter produces {en: None, he: ...} displayName."""
+        mock_get_list.return_value = [
+            {
+                'id': '9',
+                'stringid': 'hebrew_newsletter',
+                'displayName': {'en': None, 'he': 'חדשות עברית'},
+                'icon': 'news-and-resources.svg',
+                'language': 'hebrew',
+            }
+        ]
+        response = client.get('/api/newsletter/lists')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        nl = data['newsletters'][0]
+        assert nl['displayName'] == {'en': None, 'he': 'חדשות עברית'}
+        assert nl['stringid'] == 'hebrew_newsletter'
 
     def test_post_not_allowed(self, client):
         """POST is not a valid method on the lists endpoint."""
