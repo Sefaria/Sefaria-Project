@@ -363,8 +363,12 @@
 {% if GOOGLE_SSO_CLIENT_ID or APPLE_SSO_CLIENT_ID %}
 <script>
 function getCsrfToken() {
-    var match = document.cookie.match(/csrftoken=([^;]+)/);
-    return match ? match[1] : '';
+    var token = '';
+    document.cookie.split(';').forEach(function(c) {
+        var t = c.trim();
+        if (t.indexOf('csrftoken=') === 0) { token = t.slice('csrftoken='.length); }
+    });
+    return token;
 }
 
 {% if GOOGLE_SSO_CLIENT_ID %}
