@@ -39,9 +39,13 @@ data:
         "https://*.sefaria.org",
         "https://*.sefaria.org.il",
         "https://www.sefariastaging.org",
+        "http://www.sefariastaging.org",
         "https://www.sefariastaging-il.org",
+        "http://www.sefariastaging-il.org",
         "https://www.sefariapreprod.org",
+        "http://www.sefariapreprod.org",
         "https://www.sefariapreprod-il.org",
+        "http://www.sefariapreprod-il.org",
     ]
 
     DEBUG = os.getenv("DEBUG").lower() == "true"
