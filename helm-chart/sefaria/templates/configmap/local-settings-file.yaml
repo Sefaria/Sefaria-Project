@@ -38,14 +38,18 @@ data:
     CSRF_TRUSTED_ORIGINS = [
         "https://*.sefaria.org",
         "https://*.sefaria.org.il",
-        "https://www.sefariastaging.org",
-        "http://www.sefariastaging.org",
-        "https://www.sefariastaging-il.org",
-        "http://www.sefariastaging-il.org",
-        "https://www.sefariapreprod.org",
-        "http://www.sefariapreprod.org",
-        "https://www.sefariapreprod-il.org",
-        "http://www.sefariapreprod-il.org",
+        "https://sefariastaging.org",
+        "https://*.sefariastaging.org",
+        "http://sefariastaging.org",
+        "http://*.sefariastaging.org",
+        "https://sefariastaging-il.org",
+        "https://*.sefariastaging-il.org",
+        "http://sefariastaging-il.org",
+        "http://*.sefariastaging-il.org",
+        "https://sefariapreprod.org",
+        "https://*.sefariapreprod.org",
+        "https://sefariapreprod-il.org",
+        "https://*.sefariapreprod-il.org",
     ]
 
     DEBUG = os.getenv("DEBUG").lower() == "true"
