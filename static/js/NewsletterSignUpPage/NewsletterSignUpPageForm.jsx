@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Sefaria from "../sefaria/sefaria";
 import { FORM_STATUS, STAGE, NEWSLETTERS, LEARNING_LEVELS } from "./constants";
 import { BILINGUAL_TEXT } from "./bilingualUtils";
-import { LoadingMessage, LoadingRing } from "../Misc";
+import { InterfaceText, LoadingMessage, LoadingRing } from "../Misc";
 import NewsletterFormView from "./NewsletterFormView";
 import NewsletterConfirmationView from "./NewsletterConfirmationView";
 import SuccessView from "./SuccessView";
@@ -85,6 +85,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== DYNAMIC NEWSLETTER LIST ==========
   const [newsletters, setNewsletters] = useState(NEWSLETTERS);
   const [newslettersLoading, setNewslettersLoading] = useState(true);
+  const [serviceUnavailable, setServiceUnavailable] = useState(false);
 
   // Ref for focusing error summary on validation failure (accessibility)
   const errorSummaryRef = useRef(null);
@@ -123,10 +124,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           }
         })
         .catch((error) => {
-          console.error(
-            "Failed to fetch newsletter lists, using defaults:",
-            error,
-          );
+          console.error("Failed to fetch newsletter lists:", error);
+          setServiceUnavailable(true);
         }),
     ];
 
@@ -459,7 +458,21 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         )}
 
       {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
-        !newslettersLoading && (
+        !newslettersLoading &&
+        serviceUnavailable && (
+          <div className="newsletterUnavailable">
+            <InterfaceText
+              text={{
+                en: "Newsletter sign-up is not available right now.",
+                he: "ההרשמה לניוזלטר אינה זמינה כרגע.",
+              }}
+            />
+          </div>
+        )}
+
+      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
+        !newslettersLoading &&
+        !serviceUnavailable && (
           <NewsletterFormView
             formData={formData}
             formStatus={formStatus}

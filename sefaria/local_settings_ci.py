@@ -202,6 +202,9 @@ LOGGING = {
 STRAPI_LOCATION = None
 STRAPI_PORT = None
 
+ACTIVECAMPAIGN_API_TOKEN = None
+ACTIVECAMPAIGN_ACCOUNT_NAME = None
+
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,

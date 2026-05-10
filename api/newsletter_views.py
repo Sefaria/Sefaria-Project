@@ -19,6 +19,7 @@ from api.newsletter_service import (
     ActiveCampaignError,
     NewsletterInfo,
     get_newsletter_list,
+    is_newsletter_service_configured,
     subscribe_with_union,
     fetch_user_subscriptions_impl,
     update_user_preferences_impl,
@@ -64,6 +65,9 @@ def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
     """
     if request.method != 'GET':
         return jsonResponse({'error': 'Only GET method is supported'}, status=405)
+
+    if not is_newsletter_service_configured():
+        return jsonResponse({'error': 'newsletter_service_not_configured'}, status=503)
 
     try:
         newsletters: list[NewsletterInfo] = get_newsletter_list()

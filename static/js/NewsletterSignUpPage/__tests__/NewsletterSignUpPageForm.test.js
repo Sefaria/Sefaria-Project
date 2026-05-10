@@ -105,6 +105,7 @@ jest.mock('../SuccessView', () => {
 });
 
 jest.mock('../../Misc', () => ({
+  InterfaceText: ({ text }) => text.en || text.he || null,
   LoadingMessage: () => null,
   LoadingRing: () => null,
 }));
@@ -546,20 +547,20 @@ describe('NewsletterSignUpPageForm', () => {
 // Suite 9: getNewsletterLists failure → falls back to NEWSLETTERS constant
 // ============================================================================
 
-describe('Suite 9: getNewsletterLists failure falls back to NEWSLETTERS constant', () => {
+describe('Suite 9: getNewsletterLists failure shows service unavailable message', () => {
   beforeEach(() => {
     getNewsletterLists.mockReturnValueOnce(Promise.reject(new Error('Service down')));
   });
 
-  it('still renders the form after lists API failure', async () => {
+  it('does not render the form when lists API fails', async () => {
     await renderForm();
-    expect(lastFormViewProps.newsletters).toBeDefined();
+    expect(lastFormViewProps.newsletters).toBeUndefined();
   });
 
-  it('uses NEWSLETTERS constant as fallback when lists API rejects', async () => {
+  it('shows the unavailable message div when lists API rejects', async () => {
     await renderForm();
-    // Catch fires without calling setNewsletters — state stays at useState(NEWSLETTERS)
-    expect(lastFormViewProps.newsletters).toEqual(NEWSLETTERS);
+    const unavailableEl = container.querySelector('.newsletterUnavailable');
+    expect(unavailableEl).toBeTruthy();
   });
 });
 

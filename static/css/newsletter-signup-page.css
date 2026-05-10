@@ -53,6 +53,17 @@
   font-size: 18px;
 }
 
+/* Service unavailable message — same slot as loading state, centered */
+.newsletterUnavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  font-size: 18px;
+  color: var(--mid-grey, #999);
+  text-align: center;
+}
+
 /* Base view styling with fade animation */
 .newsletterFormView,
 .newsletterConfirmationView,

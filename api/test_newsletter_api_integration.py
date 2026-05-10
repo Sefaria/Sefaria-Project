@@ -586,6 +586,15 @@ class TestGetNewsletterListsView:
         assert 'error' in data
         assert 'GET' in data['error']
 
+    @mock.patch('api.newsletter_views.is_newsletter_service_configured', return_value=False)
+    def test_returns_503_when_not_configured(self, mock_configured, client):
+        """Returns 503 with a stable error key when AC credentials are absent."""
+        response = client.get('/api/newsletter/lists')
+
+        assert response.status_code == 503
+        data = json.loads(response.content)
+        assert data['error'] == 'newsletter_service_not_configured'
+
 
 # ============================================================================
 # Subscribe Endpoint Tests (Logged-out users, POST /api/newsletter/subscribe)

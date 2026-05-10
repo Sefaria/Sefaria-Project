@@ -19,6 +19,7 @@ Threading model:
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 import re
@@ -26,7 +27,11 @@ from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict
 
 import requests
-from sefaria.local_settings import ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME
+try:
+    from sefaria.local_settings import ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME
+except ImportError:
+    ACTIVECAMPAIGN_API_TOKEN = None
+    ACTIVECAMPAIGN_ACCOUNT_NAME = None
 from sefaria.system.exceptions import InputError
 from sefaria.model.user_profile import UserProfile
 
@@ -209,7 +214,36 @@ class NewsletterClient:
 #   construction time — it only opens them on the first .request() call. After
 #   gunicorn forks worker processes, each worker opens its own connections
 #   lazily, so we never share live sockets across processes.
-_client: NewsletterClient = NewsletterClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
+_client: NewsletterClient | None = (
+    NewsletterClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
+    if ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME
+    else None
+)
+
+
+def requires_ac_client(func):
+    """Decorator: raises ActiveCampaignError if AC credentials are not configured."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if _client is None:
+            raise ActiveCampaignError(
+                "Newsletter service not configured: "
+                "ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME must be set"
+            )
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def is_newsletter_service_configured() -> bool:
+    """Returns True if AC credentials are set and the client is ready."""
+    return _client is not None
+
+
+def _get_client() -> NewsletterClient:
+    # Always non-None here: callers are either @requires_ac_client public functions
+    # (which check first) or private helpers that only run from those functions.
+    assert _client is not None
+    return _client
 
 
 # Module-level cache: maps AC custom field perstags to their numeric IDs.
@@ -236,7 +270,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     if perstag in _field_id_cache:
         return _field_id_cache[perstag]
 
-    response: dict[str, Any] = _client.make_request('fields?limit=100')
+    response: dict[str, Any] = _get_client().make_request('fields?limit=100')
     fields: list[dict[str, Any]] = response.get('fields', [])
 
     _field_id_cache.update({f['perstag']: f['id'] for f in fields if f.get('perstag')})
@@ -258,7 +292,7 @@ def get_all_lists() -> list[dict[str, Any]]:
         ActiveCampaignError: If the API request fails.
     """
     try:
-        response: dict[str, Any] = _client.make_request('lists?limit=100')
+        response: dict[str, Any] = _get_client().make_request('lists?limit=100')
         lists: list[dict[str, Any]] = response.get('lists', [])
         logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
         return lists
@@ -280,7 +314,7 @@ def get_all_personalization_variables() -> list[dict[str, Any]]:
         ActiveCampaignError: If API request fails
     """
     try:
-        response: dict[str, Any] = _client.make_request('personalizations?limit=100')
+        response: dict[str, Any] = _get_client().make_request('personalizations?limit=100')
         variables: list[dict[str, Any]] = response.get('personalizations', [])
         logger.info(f"Retrieved {len(variables)} personalization variables from ActiveCampaign")
         return variables
@@ -370,6 +404,7 @@ def _parse_variable_entry(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | Non
     return str(extract_list_id_from_tag(v['tag'])), {'metadata': metadata, 'name': v.get('name', '')}
 
 
+@requires_ac_client
 def get_newsletter_list() -> list[NewsletterInfo]:
     """
     Fetch all available newsletters with their metadata.
@@ -449,7 +484,7 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
     """
     try:
         # Search for existing contact by email
-        search_response: dict[str, Any] = _client.make_request(f'contacts?filters[email]={email}')
+        search_response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={email}')
         contacts: list[dict[str, Any]] = search_response.get('contacts', [])
 
         if contacts:
@@ -469,7 +504,7 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
         if last_name:
             contact_data['contact']['lastName'] = last_name
 
-        result: dict[str, Any] = _client.make_request('contacts', method='POST', data=contact_data)
+        result: dict[str, Any] = _get_client().make_request('contacts', method='POST', data=contact_data)
         contact = result.get('contact', {})
         logger.info(f"Created new contact with email {email}: ID {contact.get('id')}")
         return contact
@@ -497,7 +532,7 @@ def get_contact_list_memberships(contact_id: str | int, active_only: bool = Fals
         ActiveCampaignError: If API request fails
     """
     try:
-        response: dict[str, Any] = _client.make_request(f'contacts/{contact_id}/contactLists')
+        response: dict[str, Any] = _get_client().make_request(f'contacts/{contact_id}/contactLists')
         contact_lists: list[dict[str, Any]] = response.get('contactLists', [])
 
         if active_only:
@@ -534,7 +569,7 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
     """
     try:
         field_id: str = get_ac_field_id_by_perstag('LEARNING_LEVEL')
-        response: dict[str, Any] = _client.make_request(f'contacts/{contact_id}/fieldValues')
+        response: dict[str, Any] = _get_client().make_request(f'contacts/{contact_id}/fieldValues')
         field_values: list[dict[str, Any]] = response.get('fieldValues', [])
 
         for fv in field_values:
@@ -653,7 +688,7 @@ def add_contact_to_list(contact_id: str | int, list_id: str | int) -> dict[str, 
             }
         }
 
-        result: dict[str, Any] = _client.make_request('contactLists', method='POST', data=contact_list_data)
+        result: dict[str, Any] = _get_client().make_request('contactLists', method='POST', data=contact_list_data)
         contact_list: dict[str, Any] = result.get('contactList', {})
 
         logger.info(f"Added contact {contact_id} to list {list_id}")
@@ -715,7 +750,7 @@ def remove_contact_from_list(contact_id: str | int, list_id: str | int) -> dict[
             }
         }
 
-        result: dict[str, Any] = _client.make_request('contactLists', method='POST', data=contact_list_data)
+        result: dict[str, Any] = _get_client().make_request('contactLists', method='POST', data=contact_list_data)
         contact_list: dict[str, Any] = result.get('contactList', {})
 
         logger.info(f"Removed contact {contact_id} from list {list_id}")
@@ -786,6 +821,7 @@ def get_list_id_to_stringid_map(newsletter_list: Sequence[Mapping[str, Any]]) ->
     return {nl['id']: nl['stringid'] for nl in newsletter_list}
 
 
+@requires_ac_client
 def subscribe_with_union(email: str, first_name: str, last_name: str,
                          newsletter_stringids: list[str],
                          valid_newsletters: Sequence[Mapping[str, Any]]) -> SubscribeResult:
@@ -863,6 +899,7 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
         raise ActiveCampaignError(f"Error in subscribe_with_union: {str(e)}")
 
 
+@requires_ac_client
 def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mapping[str, Any]],
                                   user: Any = None) -> UserSubscriptions:
     """
@@ -899,7 +936,7 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
                 logger.warning(f"Could not load UserProfile for {email}: {e}")
 
         # Find contact by email
-        response: dict[str, Any] = _client.make_request(f'contacts?filters[email]={email}')
+        response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={email}')
         contacts: list[dict[str, Any]] = response.get('contacts', [])
 
         if not contacts:
@@ -949,6 +986,7 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
         raise ActiveCampaignError(f"Error fetching user subscriptions: {str(e)}")
 
 
+@requires_ac_client
 def update_user_preferences_impl(email: str, first_name: str, last_name: str,
                                   selected_stringids: list[str],
                                   valid_newsletters: Sequence[Mapping[str, Any]],
@@ -1130,7 +1168,7 @@ def update_learning_level_in_ac(email: str, learning_level: int | None) -> Learn
             }
         }
 
-        _client.make_request('fieldValues', method='POST', data=payload)
+        _get_client().make_request('fieldValues', method='POST', data=payload)
 
         logger.info(f"Successfully updated learning level in AC for {email}")
 
@@ -1147,6 +1185,7 @@ def update_learning_level_in_ac(email: str, learning_level: int | None) -> Learn
         raise ActiveCampaignError(f"Error updating learning level in AC: {str(e)}")
 
 
+@requires_ac_client
 def update_learning_level_impl(email: str, learning_level: int | None) -> LearningLevelResult:
     """
     Update a user's learning level, handling both authenticated and unauthenticated users.
