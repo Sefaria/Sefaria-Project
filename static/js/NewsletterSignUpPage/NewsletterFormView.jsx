@@ -30,7 +30,16 @@ function InlineError({ fieldName, errors }) {
   );
 }
 
-function FormInput({ id, type = "text", label, value, onChange, onBlur, disabled, fieldErrors }) {
+function FormInput({
+  id,
+  type = "text",
+  label,
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  fieldErrors,
+}) {
   const error = fieldErrors[id];
   return (
     <div className="formField">
@@ -71,32 +80,52 @@ export default function NewsletterFormView({
 }) {
   const { isLoggedIn, userEmail } = formStatus;
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
-  const hasFieldErrors = hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
-  const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
-  const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
+  const hasFieldErrors =
+    hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
+  const buttonText = isLoggedIn
+    ? BILINGUAL_TEXT.UPDATE_PREFERENCES
+    : BILINGUAL_TEXT.SUBMIT;
+  const loadingText = isLoggedIn
+    ? BILINGUAL_TEXT.UPDATING
+    : BILINGUAL_TEXT.SUBMITTING;
 
   return (
     <div
       className="newsletterFormView"
       data-anl-batch={JSON.stringify({
         form_name: "newsletter_signup",
-        form_destination: isLoggedIn ? "manage_preferences" : "new_subscription",
+        form_destination: isLoggedIn
+          ? "manage_preferences"
+          : "new_subscription",
       })}
     >
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
         <h2 className="newsletterFormTitle" ref={errorSummaryRef}>
-          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_TITLE : BILINGUAL_TEXT.SUBSCRIBE_TITLE} />
+          <InterfaceText
+            text={
+              isLoggedIn
+                ? BILINGUAL_TEXT.MANAGE_TITLE
+                : BILINGUAL_TEXT.SUBSCRIBE_TITLE
+            }
+          />
         </h2>
         <p className="newsletterFormSubtitle">
-          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_SUBTITLE : BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE} />
+          <InterfaceText
+            text={
+              isLoggedIn
+                ? BILINGUAL_TEXT.MANAGE_SUBTITLE
+                : BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE
+            }
+          />
         </p>
       </div>
 
       {/* EMAIL INFO SECTION (for logged-in users) */}
       {isLoggedIn && (
         <div className="newsletterEmailInfo">
-          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} /> <strong>{userEmail}</strong>
+          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} />{" "}
+          <strong>{userEmail}</strong>
         </div>
       )}
 
@@ -159,12 +188,24 @@ export default function NewsletterFormView({
             <InlineError fieldName="firstName" errors={fieldErrors} />
             <InlineError fieldName="lastName" errors={fieldErrors} />
             <div className="nameFieldsRow">
-              <FormInput id="firstName" label="First Name" value={formData.firstName}
-                onChange={onFirstNameChange} onBlur={onFieldBlur}
-                disabled={isSubmitting} fieldErrors={fieldErrors} />
-              <FormInput id="lastName" label="Last Name" value={formData.lastName}
-                onChange={onLastNameChange} onBlur={onFieldBlur}
-                disabled={isSubmitting} fieldErrors={fieldErrors} />
+              <FormInput
+                id="firstName"
+                label="First Name"
+                value={formData.firstName}
+                onChange={onFirstNameChange}
+                onBlur={onFieldBlur}
+                disabled={isSubmitting}
+                fieldErrors={fieldErrors}
+              />
+              <FormInput
+                id="lastName"
+                label="Last Name"
+                value={formData.lastName}
+                onChange={onLastNameChange}
+                onBlur={onFieldBlur}
+                disabled={isSubmitting}
+                fieldErrors={fieldErrors}
+              />
             </div>
           </div>
         )}
@@ -176,18 +217,35 @@ export default function NewsletterFormView({
               <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
             </h3>
             <InlineError fieldName="email" errors={fieldErrors} />
-            <FormInput id="email" type="email" label="Email Address" value={formData.email}
-              onChange={onEmailChange} onBlur={onFieldBlur}
-              disabled={isSubmitting} fieldErrors={fieldErrors} />
+            <FormInput
+              id="email"
+              type="email"
+              label="Email Address"
+              value={formData.email}
+              onChange={onEmailChange}
+              onBlur={onFieldBlur}
+              disabled={isSubmitting}
+              fieldErrors={fieldErrors}
+            />
             <InlineError fieldName="confirmEmail" errors={fieldErrors} />
-            <FormInput id="confirmEmail" type="email" label="Confirm Email Address" value={formData.confirmEmail}
-              onChange={onConfirmEmailChange} onBlur={onFieldBlur}
-              disabled={isSubmitting} fieldErrors={fieldErrors} />
+            <FormInput
+              id="confirmEmail"
+              type="email"
+              label="Confirm Email Address"
+              value={formData.confirmEmail}
+              onChange={onConfirmEmailChange}
+              onBlur={onFieldBlur}
+              disabled={isSubmitting}
+              fieldErrors={fieldErrors}
+            />
           </div>
         )}
 
         {/* NEWSLETTER SELECTION SECTION */}
-        <div className="formSection newsletterSelectionSection" id="newsletters">
+        <div
+          className="formSection newsletterSelectionSection"
+          id="newsletters"
+        >
           <h3 className="sectionHeader">
             <InterfaceText text={BILINGUAL_TEXT.SELECT_LISTS_SECTION} />
           </h3>
@@ -201,7 +259,9 @@ export default function NewsletterFormView({
             role="group"
             aria-label={Sefaria._("Newsletter options")}
             aria-invalid={!!fieldErrors.newsletters}
-            aria-describedby={fieldErrors.newsletters ? "newsletters-error" : undefined}
+            aria-describedby={
+              fieldErrors.newsletters ? "newsletters-error" : undefined
+            }
           >
             {newsletters.map((newsletter) => (
               <SelectableOption
@@ -209,9 +269,13 @@ export default function NewsletterFormView({
                 type="checkbox"
                 label={<InterfaceText text={newsletter.displayName} />}
                 icon={newsletter.icon}
-                isSelected={formData.selectedNewsletters[newsletter.key] || false}
+                isSelected={
+                  formData.selectedNewsletters[newsletter.key] || false
+                }
                 onChange={() => onNewsletterToggle(newsletter.key)}
-                disabled={isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)}
+                disabled={
+                  isSubmitting || (isLoggedIn && !formData.wantsMarketingEmails)
+                }
                 analyticsAttributes={{
                   "data-anl-event": "newsletter_selected:input",
                   "data-anl-text": newsletter.key,
@@ -246,7 +310,10 @@ export default function NewsletterFormView({
               data-anl-form_name="newsletter_signup"
             >
               {isSubmitting ? (
-                <LoadingMessage message={loadingText.en} heMessage={loadingText.he} />
+                <LoadingMessage
+                  message={loadingText.en}
+                  heMessage={loadingText.he}
+                />
               ) : (
                 <InterfaceText text={buttonText} />
               )}

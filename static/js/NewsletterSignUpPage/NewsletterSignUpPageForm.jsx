@@ -1,12 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Sefaria from '../sefaria/sefaria';
-import { FORM_STATUS, STAGE, NEWSLETTERS, LEARNING_LEVELS } from './constants';
-import { BILINGUAL_TEXT } from './bilingualUtils';
-import { LoadingMessage, LoadingRing } from '../Misc';
-import NewsletterFormView from './NewsletterFormView';
-import NewsletterConfirmationView from './NewsletterConfirmationView';
-import SuccessView from './SuccessView';
-import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserSubscriptions, getNewsletterLists } from './newsletterApi';
+import React, { useState, useEffect, useRef } from "react";
+import Sefaria from "../sefaria/sefaria";
+import { FORM_STATUS, STAGE, NEWSLETTERS, LEARNING_LEVELS } from "./constants";
+import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { LoadingMessage, LoadingRing } from "../Misc";
+import NewsletterFormView from "./NewsletterFormView";
+import NewsletterConfirmationView from "./NewsletterConfirmationView";
+import SuccessView from "./SuccessView";
+import {
+  subscribeNewsletter,
+  updatePreferences,
+  updateLearningLevel,
+  fetchUserSubscriptions,
+  getNewsletterLists,
+} from "./newsletterApi";
 
 /**
  * NewsletterSignUpPageForm - Main container component
@@ -20,21 +26,29 @@ import { subscribeNewsletter, updatePreferences, updateLearningLevel, fetchUserS
  */
 function buildFieldValidators(formData, formStatus) {
   return {
-    firstName: () => (!formStatus.isLoggedIn && !formData.firstName.trim())
-      ? BILINGUAL_TEXT.ENTER_FIRST_NAME : null,
-    lastName: () => (!formStatus.isLoggedIn && !formData.lastName.trim())
-      ? BILINGUAL_TEXT.ENTER_LAST_NAME : null,
+    firstName: () =>
+      !formStatus.isLoggedIn && !formData.firstName.trim()
+        ? BILINGUAL_TEXT.ENTER_FIRST_NAME
+        : null,
+    lastName: () =>
+      !formStatus.isLoggedIn && !formData.lastName.trim()
+        ? BILINGUAL_TEXT.ENTER_LAST_NAME
+        : null,
     email: () => {
       if (!formData.email.trim()) return BILINGUAL_TEXT.ENTER_EMAIL;
-      if (!Sefaria.util.isValidEmailAddress(formData.email)) return BILINGUAL_TEXT.VALID_EMAIL;
+      if (!Sefaria.util.isValidEmailAddress(formData.email))
+        return BILINGUAL_TEXT.VALID_EMAIL;
       return null;
     },
-    confirmEmail: () => (!formStatus.isLoggedIn && formData.email !== formData.confirmEmail)
-      ? BILINGUAL_TEXT.EMAILS_MISMATCH : null,
+    confirmEmail: () =>
+      !formStatus.isLoggedIn && formData.email !== formData.confirmEmail
+        ? BILINGUAL_TEXT.EMAILS_MISMATCH
+        : null,
     newsletters: () => {
       if (formStatus.isLoggedIn) return null;
-      return Object.values(formData.selectedNewsletters).some(v => v)
-        ? null : BILINGUAL_TEXT.SELECT_NEWSLETTER;
+      return Object.values(formData.selectedNewsletters).some((v) => v)
+        ? null
+        : BILINGUAL_TEXT.SELECT_NEWSLETTER;
     },
   };
 }
@@ -42,10 +56,10 @@ function buildFieldValidators(formData, formStatus) {
 export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== FORM DATA STATE ==========
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    confirmEmail: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    confirmEmail: "",
     selectedNewsletters: {},
     learningLevel: null,
     wantsMarketingEmails: true, // Default to opted-in for marketing emails
@@ -64,8 +78,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== VALIDATION STATE ==========
   // Tracks per-field validation errors and whether user has attempted submit
   const [validationState, setValidationState] = useState({
-    fieldErrors: {},        // { firstName: 'error', email: 'error', ... }
-    hasAttemptedSubmit: false,  // Only show errors after first submit attempt
+    fieldErrors: {}, // { firstName: 'error', email: 'error', ... }
+    hasAttemptedSubmit: false, // Only show errors after first submit attempt
   });
 
   // ========== DYNAMIC NEWSLETTER LIST ==========
@@ -87,9 +101,9 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const isLoggedIn = !!Sefaria._uid;
     const userEmail = isLoggedIn ? Sefaria._email : null;
 
-    setFormStatus(prev => ({ ...prev, isLoggedIn, userEmail }));
+    setFormStatus((prev) => ({ ...prev, isLoggedIn, userEmail }));
     if (isLoggedIn) {
-      setFormData(prev => ({ ...prev, email: userEmail }));
+      setFormData((prev) => ({ ...prev, email: userEmail }));
     }
 
     // Build promises array; both fetches run in parallel.
@@ -97,43 +111,51 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     // loader always clears even when one API call fails.
     const promises = [
       getNewsletterLists()
-        .then(response => {
+        .then((response) => {
           if (response.newsletters) {
-            setNewsletters(response.newsletters.map(nl => ({
-              key: nl.stringid,
-              displayName: nl.displayName,
-              icon: nl.icon,
-            })));
+            setNewsletters(
+              response.newsletters.map((nl) => ({
+                key: nl.stringid,
+                displayName: nl.displayName,
+                icon: nl.icon,
+              })),
+            );
           }
         })
-        .catch(error => {
-          console.error('Failed to fetch newsletter lists, using defaults:', error);
+        .catch((error) => {
+          console.error(
+            "Failed to fetch newsletter lists, using defaults:",
+            error,
+          );
         }),
     ];
 
     if (isLoggedIn) {
       promises.push(
         fetchUserSubscriptions(userEmail)
-          .then(response => {
+          .then((response) => {
             if (response.success && response.subscribedNewsletters) {
               const selectedNewsletters = {};
-              response.subscribedNewsletters.forEach(key => {
+              response.subscribedNewsletters.forEach((key) => {
                 selectedNewsletters[key] = true;
               });
 
               // Stale opt-out detection: if backend says opted-out but user has
               // active managed subscriptions (re-subscribed via another channel),
               // show as opted-in. The MongoDB value is NOT corrected until user submits.
-              const backendWantsMarketing = response.wantsMarketingEmails ?? true;
-              const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
-              const effectiveWantsMarketing = !backendWantsMarketing && hasActiveManagedSubscription
-                ? true
-                : backendWantsMarketing;
+              const backendWantsMarketing =
+                response.wantsMarketingEmails ?? true;
+              const hasActiveManagedSubscription =
+                response.subscribedNewsletters.length > 0;
+              const effectiveWantsMarketing =
+                !backendWantsMarketing && hasActiveManagedSubscription
+                  ? true
+                  : backendWantsMarketing;
 
               initialSubscriptionsRef.current = { ...selectedNewsletters };
               initialWantsMarketingRef.current = effectiveWantsMarketing;
 
-              setFormData(prev => ({
+              setFormData((prev) => ({
                 ...prev,
                 selectedNewsletters,
                 wantsMarketingEmails: effectiveWantsMarketing,
@@ -141,9 +163,9 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
               }));
             }
           })
-          .catch(error => {
-            console.error('Failed to fetch user subscriptions:', error);
-          })
+          .catch((error) => {
+            console.error("Failed to fetch user subscriptions:", error);
+          }),
       );
     }
 
@@ -156,8 +178,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // unlike the old setTimeout approach which suffered from stale closures.
   useEffect(() => {
     if (!validationState.hasAttemptedSubmit) return;
-    setValidationState(prev => {
-      const hasSelection = Object.values(formData.selectedNewsletters).some(v => v);
+    setValidationState((prev) => {
+      const hasSelection = Object.values(formData.selectedNewsletters).some(
+        (v) => v,
+      );
       const newErrors = { ...prev.fieldErrors };
       if (!formStatus.isLoggedIn && !hasSelection) {
         newErrors.newsletters = BILINGUAL_TEXT.SELECT_NEWSLETTER;
@@ -169,7 +193,11 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       if (hadError === hasError) return prev;
       return { ...prev, fieldErrors: newErrors };
     });
-  }, [formData.selectedNewsletters, validationState.hasAttemptedSubmit, formStatus.isLoggedIn]);
+  }, [
+    formData.selectedNewsletters,
+    validationState.hasAttemptedSubmit,
+    formStatus.isLoggedIn,
+  ]);
 
   useEffect(() => {
     onStageChange?.(formStatus.currentStage);
@@ -178,7 +206,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // Scroll to top of form section when transitioning to confirmation or success
   useEffect(() => {
     if (formStatus.currentStage !== STAGE.NEWSLETTER_SELECTION) {
-      containerRef.current?.scrollIntoView?.({ behavior: 'instant', block: 'start' });
+      containerRef.current?.scrollIntoView?.({
+        behavior: "instant",
+        block: "start",
+      });
     }
   }, [formStatus.currentStage]);
 
@@ -186,17 +217,17 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // Note: Errors are cleared on blur, not on change, for better UX
 
   const makeFieldSetter = (field) => (value) =>
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleFirstNameChange      = makeFieldSetter('firstName');
-  const handleLastNameChange       = makeFieldSetter('lastName');
-  const handleEmailChange          = makeFieldSetter('email');
-  const handleConfirmEmailChange   = makeFieldSetter('confirmEmail');
-  const handleMarketingEmailToggle = makeFieldSetter('wantsMarketingEmails');
-  const handleLearningLevelSelect  = makeFieldSetter('learningLevel');
+  const handleFirstNameChange = makeFieldSetter("firstName");
+  const handleLastNameChange = makeFieldSetter("lastName");
+  const handleEmailChange = makeFieldSetter("email");
+  const handleConfirmEmailChange = makeFieldSetter("confirmEmail");
+  const handleMarketingEmailToggle = makeFieldSetter("wantsMarketingEmails");
+  const handleLearningLevelSelect = makeFieldSetter("learningLevel");
 
   const handleNewsletterToggle = (key) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       selectedNewsletters: {
         ...prev.selectedNewsletters,
@@ -221,7 +252,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const validator = fieldValidators[fieldName];
     if (validator) {
       const error = validator();
-      setValidationState(prev => {
+      setValidationState((prev) => {
         const newErrors = { ...prev.fieldErrors };
         if (error) {
           newErrors[fieldName] = error;
@@ -230,7 +261,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         }
         // Re-evaluate confirmEmail when email changes, but only if confirmEmail has been
         // touched (has a value) or already has an error that may need clearing.
-        if (fieldName === 'email' && (formData.confirmEmail !== '' || newErrors.confirmEmail)) {
+        if (
+          fieldName === "email" &&
+          (formData.confirmEmail !== "" || newErrors.confirmEmail)
+        ) {
           const confirmError = fieldValidators.confirmEmail();
           if (confirmError) {
             newErrors.confirmEmail = confirmError;
@@ -258,7 +292,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
     if (hasErrors) {
       // Set form status to error (for any legacy UI handling)
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
         errorMessage: null, // Clear old single-error message, we use fieldErrors now
@@ -266,7 +300,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
       // Scroll form title into view; error summary announces itself via role="alert"
       setTimeout(() => {
-        errorSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        errorSummaryRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 0);
       return;
     }
@@ -274,16 +311,28 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     // For logged-in users: skip API call if nothing actually changed
     if (formStatus.isLoggedIn) {
       const diffs = getSubscriptionDiffs();
-      const optOutChanged = formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
+      const optOutChanged =
+        formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
 
-      if (diffs.added.length === 0 && diffs.removed.length === 0 && !optOutChanged) {
-        setFormStatus(prev => ({ ...prev, currentStage: STAGE.CONFIRMATION }));
+      if (
+        diffs.added.length === 0 &&
+        diffs.removed.length === 0 &&
+        !optOutChanged
+      ) {
+        setFormStatus((prev) => ({
+          ...prev,
+          currentStage: STAGE.CONFIRMATION,
+        }));
         return;
       }
     }
 
     // Clear any previous error state and prepare for submission
-    setFormStatus(prev => ({ ...prev, status: FORM_STATUS.SUBMITTING, errorMessage: null }));
+    setFormStatus((prev) => ({
+      ...prev,
+      status: FORM_STATUS.SUBMITTING,
+      errorMessage: null,
+    }));
 
     // Always send actual selections; backend handles opt-out via marketingOptOut flag
     const newslettersToSubmit = formData.selectedNewsletters;
@@ -306,7 +355,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       }
 
       // Success! Move to confirmation view
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.SUCCESS,
         currentStage: STAGE.CONFIRMATION,
@@ -314,7 +363,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       }));
     } catch (error) {
       // Error during submission
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
         errorMessage: error.message
@@ -327,12 +376,12 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   const handleLearningLevelSubmit = async (shouldSave) => {
     if (!shouldSave) {
       // User clicked "No thanks" - go straight to the home page
-      window.location.href = '/';
+      window.location.href = "/";
       return;
     }
 
     if (formData.learningLevel === null) {
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
         errorMessage: BILINGUAL_TEXT.SELECT_LEARNING_LEVEL,
@@ -340,18 +389,18 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       return;
     }
 
-    setFormStatus(prev => ({ ...prev, status: FORM_STATUS.SUBMITTING }));
+    setFormStatus((prev) => ({ ...prev, status: FORM_STATUS.SUBMITTING }));
 
     try {
       await updateLearningLevel(formData.email, formData.learningLevel);
 
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.SUCCESS,
         currentStage: STAGE.SUCCESS,
       }));
     } catch (error) {
-      setFormStatus(prev => ({
+      setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
         errorMessage: error.message
@@ -373,7 +422,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     return Object.fromEntries(
       Object.entries(validators)
         .map(([field, validate]) => [field, validate()])
-        .filter(([, error]) => error !== null)
+        .filter(([, error]) => error !== null),
     );
   };
 
@@ -387,8 +436,12 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const initial = initialSubscriptionsRef.current;
     const current = formData.selectedNewsletters;
 
-    const added = Object.keys(current).filter(key => current[key] && !initial[key]);
-    const removed = Object.keys(initial).filter(key => initial[key] && !current[key]);
+    const added = Object.keys(current).filter(
+      (key) => current[key] && !initial[key],
+    );
+    const removed = Object.keys(initial).filter(
+      (key) => initial[key] && !current[key],
+    );
 
     return { added, removed };
   };
@@ -397,31 +450,33 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   return (
     <div className="newsletterSignUpPageForm" ref={containerRef}>
-      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && newslettersLoading && (
-        <div className="newsletterLoadingState">
-          <LoadingRing />
-          <LoadingMessage />
-        </div>
-      )}
+      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
+        newslettersLoading && (
+          <div className="newsletterLoadingState">
+            <LoadingRing />
+            <LoadingMessage />
+          </div>
+        )}
 
-      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION && !newslettersLoading && (
-        <NewsletterFormView
-          formData={formData}
-          formStatus={formStatus}
-          newsletters={newsletters}
-          fieldErrors={validationState.fieldErrors}
-          hasAttemptedSubmit={validationState.hasAttemptedSubmit}
-          errorSummaryRef={errorSummaryRef}
-          onFirstNameChange={handleFirstNameChange}
-          onLastNameChange={handleLastNameChange}
-          onEmailChange={handleEmailChange}
-          onConfirmEmailChange={handleConfirmEmailChange}
-          onNewsletterToggle={handleNewsletterToggle}
-          onMarketingEmailToggle={handleMarketingEmailToggle}
-          onFieldBlur={handleFieldBlur}
-          onSubmit={handleSubscribeSubmit}
-        />
-      )}
+      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
+        !newslettersLoading && (
+          <NewsletterFormView
+            formData={formData}
+            formStatus={formStatus}
+            newsletters={newsletters}
+            fieldErrors={validationState.fieldErrors}
+            hasAttemptedSubmit={validationState.hasAttemptedSubmit}
+            errorSummaryRef={errorSummaryRef}
+            onFirstNameChange={handleFirstNameChange}
+            onLastNameChange={handleLastNameChange}
+            onEmailChange={handleEmailChange}
+            onConfirmEmailChange={handleConfirmEmailChange}
+            onNewsletterToggle={handleNewsletterToggle}
+            onMarketingEmailToggle={handleMarketingEmailToggle}
+            onFieldBlur={handleFieldBlur}
+            onSubmit={handleSubscribeSubmit}
+          />
+        )}
 
       {formStatus.currentStage === STAGE.CONFIRMATION && (
         <NewsletterConfirmationView
@@ -435,14 +490,14 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           onSave={handleLearningLevelSubmit}
           onSkip={() => handleLearningLevelSubmit(false)}
           isLoggedIn={formStatus.isLoggedIn}
-          subscriptionDiffs={formStatus.isLoggedIn ? getSubscriptionDiffs() : null}
+          subscriptionDiffs={
+            formStatus.isLoggedIn ? getSubscriptionDiffs() : null
+          }
           marketingOptOut={!formData.wantsMarketingEmails}
         />
       )}
 
-      {formStatus.currentStage === STAGE.SUCCESS && (
-        <SuccessView />
-      )}
+      {formStatus.currentStage === STAGE.SUCCESS && <SuccessView />}
     </div>
   );
 }

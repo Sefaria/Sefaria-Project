@@ -19,6 +19,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { routeWithHarFixture } from '../support/har-fixture.js';
 
 // The email of the authenticated user, read from env vars
 const USER_EMAIL = process.env.PLAYWRIGHT_USER_EMAIL || '';
@@ -49,7 +50,9 @@ const expectFooterVisible = async (page) => {
 
 test.describe('Newsletter Signup - Real Authenticated Flow', () => {
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    await routeWithHarFixture(context, 'newsletter-loggedin');
+
     await page.setViewportSize({ width: 1280, height: 720 });
 
     // Dismiss cookies notification before page scripts run
@@ -67,6 +70,16 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await page.evaluate(() => {
       document.querySelector('#s2')?.remove();
     });
+
+    // The test account may have wantsMarketingEmails=false saved in MongoDB from a
+    // previous test run. Reset to "Yes" so checkboxes are enabled and tests start
+    // from a consistent baseline. This is a UI-only change — no API call is made
+    // until the form is submitted, so it doesn't affect HAR recording.
+    const yesToggle = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    if (await yesToggle.isVisible()) {
+      const isActive = await yesToggle.evaluate(el => el.classList.contains('on'));
+      if (!isActive) await yesToggle.click();
+    }
   });
 
   // ==========================================
@@ -313,16 +326,12 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
 
-    // Click "skip this step" link
-    const skipLink = page.locator('a.skipLink').first();
+    const skipLink = page.locator('button.skipLink').first();
     await expect(skipLink).toBeVisible();
     await skipLink.click();
 
-    // Stage 3: Success view
-    const successView = page.locator('.successView');
-    await expect(successView).toBeVisible({ timeout: 10000 });
-    await expectSupplementalContentHidden(page);
-    await expectFooterVisible(page);
+    // Stage 3: Skip navigates away from /newsletter (to homepage)
+    await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
   });
 
   test('should submit with no newsletters selected', async ({ page }) => {

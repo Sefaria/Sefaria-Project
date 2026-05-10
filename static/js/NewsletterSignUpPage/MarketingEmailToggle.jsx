@@ -18,7 +18,11 @@ import { BILINGUAL_TEXT } from "./bilingualUtils";
  * - onToggle: function(boolean) - callback when toggle changes
  * - disabled: boolean - whether the toggle is disabled (e.g., during form submission)
  */
-export default function MarketingEmailToggle({ wantsMarketingEmails, onToggle, disabled = false }) {
+export default function MarketingEmailToggle({
+  wantsMarketingEmails,
+  onToggle,
+  disabled = false,
+}) {
   // Define toggle options for ToggleSet.
   // content accepts React elements; ariaLabel must be a plain string for aria-label attribute.
   const isHebrew = Sefaria.interfaceLang === "hebrew";
@@ -48,7 +52,10 @@ export default function MarketingEmailToggle({ wantsMarketingEmails, onToggle, d
   const currentValue = wantsMarketingEmails ? "yes" : "no";
 
   return (
-    <div className="marketingEmailToggleSection" data-testid="marketing-email-toggle-section">
+    <div
+      className="marketingEmailToggleSection"
+      data-testid="marketing-email-toggle-section"
+    >
       <div className="marketingEmailToggleLabel">
         <InterfaceText text={BILINGUAL_TEXT.MARKETING_EMAIL_QUESTION} />
       </div>
