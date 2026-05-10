@@ -312,7 +312,8 @@ def link_social_provider(request, provider):
         else:
             from sso.providers.apple import verify_token
             payload = verify_token(request.data.get("id_token", ""))
-    except Exception:
+    except Exception as e:
+        logger.exception("Social provider token verification failed", provider=provider, error=str(e))
         return jsonResponse({"error": "Token verification failed"}, status=401)
 
     try:
