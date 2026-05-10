@@ -35,7 +35,8 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
 
@@ -219,6 +220,8 @@ def register_api(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def google_sso_callback(request):
     from sso.providers.google import verify_token
     from sso.service import SocialAuthService, EmailCollisionError
@@ -255,6 +258,8 @@ def google_sso_callback(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def apple_sso_callback(request):
     from sso.providers.apple import verify_token
     from sso.service import SocialAuthService, EmailCollisionError

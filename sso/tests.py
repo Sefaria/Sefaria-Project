@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, Client
 
 from sso.models import SocialIdentity
 from sso.service import SocialAuthService, EmailCollisionError, AlreadyLinkedError, LastLoginMethodError
@@ -237,6 +237,28 @@ class CallbackViewTest(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 409)
+
+    @patch("sso.providers.google.verify_token", return_value=GOOGLE_PAYLOAD)
+    @patch("sso.service.SocialAuthService._import_gravatar")
+    @patch("sso.service.UserProfile")
+    def test_google_callback_second_login_with_session_cookie_does_not_require_csrf(self, MockProfile, mock_gravatar, mock_verify):
+        MockProfile.return_value = _mock_profile()
+        client = Client(enforce_csrf_checks=True)
+
+        first_response = client.post(
+            "/api/auth/google/callback",
+            data={"credential": "fake-jwt"},
+            content_type="application/json",
+        )
+        self.assertEqual(first_response.status_code, 200)
+
+        second_response = client.post(
+            "/api/auth/google/callback",
+            data={"credential": "fake-jwt"},
+            content_type="application/json",
+        )
+        self.assertEqual(second_response.status_code, 200)
+        self.assertEqual(second_response.json()["is_new_user"], False)
 
     @patch("sso.providers.apple.verify_token", return_value=APPLE_PAYLOAD)
     @patch("sso.service.SocialAuthService._import_gravatar")
