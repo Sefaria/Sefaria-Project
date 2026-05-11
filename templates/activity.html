@@ -2,25 +2,21 @@
 {% load i18n cache humanize sefaria_tags static %}
 
 
-{% block title %}
-	{% if single %}
+{% block meta_title %}{% meta_title %}{% if single %}
 {% trans "Revision History of" %} {{ ref }} ({{ version }})
 	{% elif for_user %}
 {{ profile.full_name }} | {% trans "Sefaria Activity" %}
 	{% else %}
 {% trans "Sefaria Activity" %}
-	{% endif %}
-{% endblock %}
+	{% endif %}{% endmeta_title %}{% endblock %}
 
-{% block description %}
-	{% if single %}
+{% block meta_description %}{% meta_desc %}{% if single %}
 {% trans "View the complete revision hisotry of this text on Sefaria." %}
 	{% elif for_user %}
 {% trans "View a user's acitvitiy history on Sefaria, including published source sheets, and text translations, edits or additions." %}
 	{% else %}
 {% trans "View the complete log of public activity on Sefaria, including published source sheets, and text translations, edits or additions. " %}
-	{% endif %}
-{% endblock %}
+	{% endif %}{% endmeta_desc %}{% endblock %}
 
 {% block head %}
     <meta name="robots" content="noindex">

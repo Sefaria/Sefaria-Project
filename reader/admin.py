@@ -7,7 +7,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
-from django.conf.urls import url
+from django.urls import path
 
 from reader.models import UserExperimentSettings, _set_user_experiments
 
@@ -29,16 +29,18 @@ class UserExperimentSettingsAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         _set_user_experiments(obj.user, obj.experiments)
 
+    @admin.display(
+        description="Email",
+        ordering="user__email",
+    )
     def user_email(self, obj):
         return obj.user.email
-    user_email.short_description = "Email"
-    user_email.admin_order_field = "user__email"
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            url(
-                r'^upload-csv/$',
+            path(
+                'upload-csv/',
                 self.admin_site.admin_view(self.upload_csv_view),
                 name='reader_userexperimentsettings_upload_csv',
             ),

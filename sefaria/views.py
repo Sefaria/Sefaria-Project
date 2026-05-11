@@ -13,13 +13,13 @@ from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.conf import settings
 from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
@@ -94,11 +94,27 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
+    http_method_names = ["get", "post", "options"]
+
+    def get(self, request, *args, **kwargs):
+        # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
+        # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
+        return self.post(request, *args, **kwargs)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
-            return resolve_url(next_page)
+            # Validate ?next= against the request host before redirecting. Django's stock
+            # LogoutView.get_next_page does this; this override previously skipped it,
+            # which combined with GET-based logout would let a crafted /logout?next=...
+            # link bounce a user to an attacker-controlled domain (open redirect).
+            url_is_safe = url_has_allowed_host_and_scheme(
+                url=next_page,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+            if url_is_safe:
+                return resolve_url(next_page)
         return super().get_next_page()
 
 
