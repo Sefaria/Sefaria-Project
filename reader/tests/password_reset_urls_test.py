@@ -15,6 +15,11 @@ INTERNAL_RESET_TOKEN = "set-password"
 SAMPLE_UIDB64 = "Abc123"
 
 
+@pytest.fixture(autouse=True)
+def _use_library_urls(settings):
+    settings.ROOT_URLCONF = "sefaria.urls_library"
+
+
 class TestPasswordResetConfirmURL:
     """Verify password_reset_confirm URL handles all Django token formats."""
 
