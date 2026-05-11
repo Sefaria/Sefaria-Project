@@ -107,6 +107,16 @@ Converts parsed `RawRef` objects (sequences of classified ref parts from the ML 
 - **ContextMutation** (`context_mutation.py`): term rewriting rules defined on schema nodes
 - **RefPartAndNodeMatch** (`ref_part_and_node_match.py`): pairs matched parts with their corresponding node
 
+## Known Gotchas
+
+- **`is_empty()` silently kills correct ibid resolutions**: `remove_superfluous_matches` filters refs where `ref.is_empty()` is True (no text in DB). If the ibid target book has no text for a particular section, it gets dropped and a wrong book wins. Example: `שם ד, ט–י` after `Bach, Orach Chayim 70:1` resolves to SA instead of Bach because `Bach, Orach Chayim 4:9-10` has no DB text while SA does.
+
+- **Shared named-part terms cause unexpected ibid cross-book candidates**: `_get_term_contexts` walks up the schema tree of the ibid ref's node collecting ALL match template terms. For a commentary like Bach (child Orach Chayim), it yields `[TermContext(orach-chayim), TermContext(bach)]`. The shared `orach-chayim` term then makes SA a valid unrefined ibid candidate, even though SA is not the ibid book.
+
+- **Ibid refinement path depends on shared `base_text_titles`**: In `_get_refined_ref_part_matches_for_section_context`, the code iterates `context_titles & match_titles`. If the ibid book and the match book share a base text (e.g., Bach and Tur both have Tur in `base_text_titles`), section context is used. If not (e.g., SA and Bach), the match falls through to context-free refinement using the raw orach-chayim term. Both paths can produce a valid final ref—which is why the wrong book can survive to the pruning stage.
+
+- **`crrd` range simulation**: To test a ref with a multi-level range like `ד, ט–י` (siman 4, seif 9–10), use `crrd(['&שם', '#ד', '#ט', '^–', '#י'])`. The `_group_ranged_parts` method groups all NUMBERED parts before the RANGE_SYMBOL into `sections` and all NUMBERED parts after into `toSections`, so `sections=[ד, ט]` and `toSections=[ד, י]`. This matches what the NER produces for Hebrew range notation.
+
 ## Common Tasks
 
 - **Resolve refs from text**: Call `ref_resolver.bulk_resolve(raw_refs, book_context_ref=some_ref)`. Returns list of `PossiblyAmbigResolvedRef`. Check `.is_ambiguous` and `.resolution_failed` on each result.
