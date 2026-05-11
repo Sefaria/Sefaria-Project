@@ -114,7 +114,6 @@ shared_patterns = [
     re_path(r'^api/background-data', reader_views.background_data_api),
     re_path(r'^api/version-indices$', sefaria_views.version_indices_api),
     re_path(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
-    re_path(r'^api/version-rename$', sefaria_views.version_rename_api),
     re_path(r'^api/version-bulk-delete$', sefaria_views.version_bulk_delete_api),
     re_path(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     re_path(r'^api/sheets/?$', sheets_views.save_sheet_api),

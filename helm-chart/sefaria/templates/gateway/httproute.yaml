@@ -53,9 +53,6 @@ spec:
             value: /api/version-bulk-edit
         - path:
             type: Exact
-            value: /api/version-rename
-        - path:
-            type: Exact
             value: /api/version-bulk-delete
       timeouts:
         request: 5m
