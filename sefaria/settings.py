@@ -358,6 +358,8 @@ WEBPACK_LOADER = {
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
+CHROMA_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "private", "chroma")
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 ROOT_HOSTCONF = 'sefaria.hosts'

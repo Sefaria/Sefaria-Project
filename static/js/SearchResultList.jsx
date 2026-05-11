@@ -9,6 +9,7 @@ import Sefaria from './sefaria/sefaria';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchState from './sefaria/searchState';
+import SemanticSearchResult from './SemanticSearchResult';
 import {
   DropdownModal,
   DropdownButton,
@@ -76,12 +77,32 @@ const SearchTopic = (props) => {
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
+      this.state = {
+        semanticResults: [],
+        semanticLoading: false,
+      };
     }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
     }
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.type === "text" && this.props.query !== prevProps.query && this.props.query) {
+            this._fetchSemanticResults(this.props.query);
+        }
+    }
+    _fetchSemanticResults(query) {
+        this.setState({ semanticLoading: true, semanticResults: [] });
+        fetch(`/api/fuzzy-search?q=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(data => {
+                this.setState({ semanticResults: data.results || [], semanticLoading: false });
+            })
+            .catch(() => {
+                this.setState({ semanticLoading: false });
+            });
     }
     handleScroll() {
       if (!this.props.moreToLoad) { return; }
@@ -143,8 +164,23 @@ class SearchResultList extends Component {
         const haveResults      = !!results.length;
         results                = haveResults ? results : noResultsMessage;
 
+        const { semanticResults, semanticLoading } = this.state;
+        const semanticSection = (this.props.type === "text" && (semanticResults.length > 0 || semanticLoading)) ? (
+            <div id="semanticResults">
+                <div className="semanticResultsHeader">
+                    <span className="int-en">Semantic Matches</span>
+                    <span className="int-he">תוצאות סמנטיות</span>
+                </div>
+                {semanticLoading
+                    ? <LoadingMessage message="Finding semantic matches..." heMessage="מחפש התאמות סמנטיות..." />
+                    : semanticResults.map(r => <SemanticSearchResult key={r.ref} result={r} />)
+                }
+            </div>
+        ) : null;
+
         return (
           <div>
+              {semanticSection}
               <div className="searchResultList">
                   {queryFullyLoaded || haveResults ? results : null}
                   {this.props.isQueryRunning ? loadingMessage : null}

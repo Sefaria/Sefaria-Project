@@ -402,5 +402,7 @@ langchain-anthropic==0.3.22
 langchain-core==0.3.83
 langchain-community==0.3.31
 langsmith==0.4.4
+chromadb>=1.5.9
+langchain-google-genai>=4.2.2
 setuptools==69.5.1
 Pympler==1.1

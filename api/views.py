@@ -67,3 +67,17 @@ class Text(View):
             return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
+
+
+class FuzzySearch(View):
+
+    def get(self, request):
+        query = request.GET.get("q", "").strip()
+        if not query:
+            return jsonResponse({"error": "q parameter is required"}, status=400)
+        try:
+            from sefaria.helper.fuzzy_search import fuzzy_search
+            results = fuzzy_search(query)
+            return jsonResponse({"results": results})
+        except Exception as e:
+            return jsonResponse({"error": str(e)}, status=500)
