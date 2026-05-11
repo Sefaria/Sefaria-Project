@@ -870,7 +870,12 @@ def reset_ref(request, tref):
     :param tref:
     :return:
     """
-    oref = model.Ref(tref)
+    try:
+        oref = model.Ref(tref)
+    except InputError:
+        # in the case of index title change, you may need to refresh cache to get the current index since title changes now happen in celery
+        library.refresh_index_record_in_cache(tref)
+        oref = model.Ref(tref)
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
