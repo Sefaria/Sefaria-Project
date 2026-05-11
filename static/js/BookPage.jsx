@@ -1235,7 +1235,7 @@ const EditTextInfo = function({initTitle, close}) {
       });
 
     function pollIndexTitleTask(taskId, newTitle) {
-      const savingMessageSuffix = " (Page will automatically refresh when complete. It will still complete even you navigate away from this page although you won't be able to track progress.)";
+      const savingMessageSuffix = " (Page will automatically refresh when complete. It will still complete even if you navigate away from this page although you won't be able to track progress.)";
       setSavingMessage("Title change queued — processing in background..." + savingMessageSuffix);
       Sefaria.pollTask(taskId, {
         onProgress(meta) { setSavingMessage((meta.step || "Processing...") + savingMessageSuffix); },
