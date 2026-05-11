@@ -489,24 +489,28 @@ datadog:
 # Production environments leave keda.enabled: false and override per-component as needed.
 keda:
   enabled: false
+  # Prometheus server used by all triggers unless overridden per-component.
+  # Rendered with tpl, so {{ .Values.deployEnv }} etc. are available if needed.
+  prometheusAddress: http://kube-prometheus-stack-prometheus.monitoring:9090
   # How often KEDA polls the trigger (seconds). Up to this long before scale-up begins after first request.
   pollingInterval: 30
   # Seconds of idle trigger before scaling back to minReplicas.
   cooldownPeriod: 1800
   minReplicas: 0
-  maxReplicas: 5
+  maxReplicas: 2
   # Shared triggers applied to all ScaledObjects unless overridden per-component.
   # Scoped to this environment's HTTPRoute cluster names so environments don't affect each other.
   # Values are rendered with tpl, so {{ .Values.deployEnv }} and {{ .Release.Namespace }} are available.
-  # Adjust serverAddress to match your Prometheus installation.
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: http://kube-prometheus-stack-prometheus.monitoring:9090
+        serverAddress: "{{ .Values.keda.prometheusAddress }}"
         metricName: envoy_cluster_upstream_rq
-        threshold: "1"
+        # Threshold is RPS per replica. Validate against real traffic before treating as final.
+        threshold: "50"
+        # or vector(0) prevents no-data errors when all pods are scaled to zero.
         query: >-
-          ceil(sum(increase(envoy_cluster_upstream_rq_total{envoy_cluster_name=~"httproute/{{ .Release.Namespace }}/{{ .Values.deployEnv }}/.*"}[2m])) or vector(0))
+          sum(rate(envoy_cluster_upstream_rq_total{envoy_cluster_name=~"httproute/{{ .Release.Namespace }}/{{ .Values.deployEnv }}/.*"}[2m])) or vector(0)
   # Per-component enable flags. Any of minReplicas/maxReplicas/cooldownPeriod/pollingInterval/triggers
   # can be overridden per-component; unset fields fall back to the keda-level defaults above.
   web:
@@ -515,6 +519,8 @@ keda:
     enabled: true
   varnish:
     enabled: true
+    # Capped at 1: multiple varnish instances fragment the cache, reducing per-pod effectiveness.
+    maxReplicas: 1
   nodejs:
     enabled: true
   monitor:
