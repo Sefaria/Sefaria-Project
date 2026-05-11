@@ -94,11 +94,11 @@ WINDOW_WORDS = 120
 
 # LLM role → (env_var_for_model, default_model, provider)
 _LLM_CONFIGS: Dict[str, Tuple[str, str, str]] = {
-    "default":            ("ANTHROPIC_MODEL",         "claude-sonnet-4-5",      "anthropic"),
-    "confirmation":       ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-5",      "anthropic"),
-    "prior":              ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-5",      "anthropic"),
+    "default":            ("ANTHROPIC_MODEL",         "claude-sonnet-4-6",      "anthropic"),
+    "confirmation":       ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",      "anthropic"),
+    "prior":              ("ANTHROPIC_CONFIRM_MODEL",  "claude-sonnet-4-6",      "anthropic"),
     "keyword":            ("LLM_KEYWORD_MODEL",        "gpt-4o-mini",            "openai"),
-    "high_score_verify":  ("GEMINI_HIGH_SCORE_MODEL",  "claude-sonnet-4-5", "anthropic"),
+    "high_score_verify":  ("GEMINI_HIGH_SCORE_MODEL",  "claude-sonnet-4-6", "anthropic"),
 }
 
 
