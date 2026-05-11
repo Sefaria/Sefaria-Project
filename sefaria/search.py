@@ -538,7 +538,7 @@ class TextIndexer(object):
         On a transport-level failure (e.g. ConnectionTimeout, ConnectionError),
         re-classify every version that contributed to this batch as failed
         and continue — do NOT propagate. Without this, a single timeout in a
-        ~6h reindex aborts the entire run (sc-43948).
+        ~6h reindex aborts the entire run.
 
         Returns the number of versions that must be re-classified as failed
         so the caller can adjust its success/failure counters.

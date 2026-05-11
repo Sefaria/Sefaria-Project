@@ -166,7 +166,7 @@ def get_elasticsearch_client_for_indexer():
 
     The default 10s request_timeout was insufficient for bulk writes under
     GC pressure on the prod ES cluster, and `retry_on_timeout=False` caused
-    a single transport blip to abandon multi-hour runs (sc-43948). This
+    a single transport blip to abandon multi-hour runs. This
     factory must NOT be used on the online request path.
     """
     from elasticsearch import Elasticsearch
