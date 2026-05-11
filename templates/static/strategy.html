@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria Strategy" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria Strategy" %}{% endmeta_title %}{% endblock %}
 
 {% block css %}
   html, body {
