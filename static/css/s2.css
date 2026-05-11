@@ -15853,7 +15853,10 @@ span.ref-link-color-3 {color: blue}
   height: auto;
   min-height: 100vh;
 }
-.readerApp.singlePanel > .header,
+.readerApp.singlePanel > .header .headerInner {
+  position: fixed;
+  top: 0;
+}
 .readerApp.singlePanel .readerControlsOuter {
   position: sticky;
   top: 0;
