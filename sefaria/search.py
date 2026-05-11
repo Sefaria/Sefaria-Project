@@ -47,14 +47,12 @@ def setup_logging(debug=False):
 # Initial setup with default level
 setup_logging(False)
 
-# Set up logger for this module
 logger = logging.getLogger(__name__)
 
 es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
 _indexer_es_client = get_elasticsearch_client_for_indexer()
 
-# Constants for retry logic and progress logging
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
 PROGRESS_LOG_EVERY_N = 100
@@ -533,15 +531,9 @@ class TextIndexer(object):
 
     @classmethod
     def _flush_bulk_actions(cls, in_flight_versions):
-        """Flush accumulated bulk actions to ES.
+        """Flush bulk actions; absorb connection failures, propagate everything else.
 
-        On a transport-level failure (e.g. ConnectionTimeout, ConnectionError),
-        re-classify every version that contributed to this batch as failed
-        and continue — do NOT propagate. Without this, a single timeout in a
-        ~6h reindex aborts the entire run.
-
-        Returns the number of versions that must be re-classified as failed
-        so the caller can adjust its success/failure counters.
+        Returns the number of versions reclassified as failed.
         """
         if not cls._bulk_actions:
             return 0
@@ -551,11 +543,7 @@ class TextIndexer(object):
             cls._bulk_actions = []
             return 0
         except (ESConnectionError, ConnectionTimeout) as e:
-            # Only absorb connection-level failures. ConnectionTimeout and
-            # ConnectionError are siblings under TransportError in
-            # elastic_transport (NOT parent/child), so both must be listed
-            # explicitly. Programming errors, SerializationError, and
-            # API-level errors (mapping/auth/404) propagate to fail fast.
+            # Both are siblings under TransportError, not parent/child — list explicitly.
             logger.warning(
                 f"Bulk indexing failed: {type(e).__name__}: {e}; "
                 f"continuing with next index"
