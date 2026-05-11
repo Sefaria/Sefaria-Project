@@ -9,10 +9,10 @@ import pytest
 from django.urls import reverse, resolve
 
 
-DJANGO6_TOKEN = "cbbab4-e586b88a5c84910507df7a562596bf"
-LEGACY_SHORT_TOKEN = "abc123-def45678901234567890"
+DJANGO6_TOKEN = "a1b2c3-da39a3ee5e6b4b0d3255bfef95601890"
+LEGACY_SHORT_TOKEN = "a1b2c3-d4e5f6a7b8c9d0e1f2a3"
 INTERNAL_RESET_TOKEN = "set-password"
-SAMPLE_UIDB64 = "MYR4Nzw"
+SAMPLE_UIDB64 = "Abc123"
 
 
 class TestPasswordResetConfirmURL:
