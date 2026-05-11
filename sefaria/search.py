@@ -52,10 +52,6 @@ logger = logging.getLogger(__name__)
 
 es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
-# Separate client for the bulk-indexing path only (longer timeouts, retries
-# on connection failures). Must NOT replace `es_client` because online
-# deletion paths (delete_text, delete_version, delete_sheet) share that
-# module global and would inherit indexer-scale timeouts.
 _indexer_es_client = get_elasticsearch_client_for_indexer()
 
 # Constants for retry logic and progress logging

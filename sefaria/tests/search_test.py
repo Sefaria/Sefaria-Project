@@ -1,6 +1,4 @@
 """
-Regression tests for sc-43948.
-
 Bug: a single `elastic_transport.ConnectionTimeout` mid-run was abandoning
 the entire ~6h Elasticsearch full-reindex job — every book queued after
 the timeout was skipped, and the prior books that DID flush successfully
