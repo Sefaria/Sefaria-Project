@@ -1,0 +1,20 @@
+{{- if .Values.keda.enabled -}}
+{{- if .Values.keda.web.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "web" (printf "%s-web" .Values.deployEnv) .Values.keda.web) }}
+{{- end }}
+{{- if .Values.keda.nginx.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "nginx" (printf "%s-nginx" .Values.deployEnv) .Values.keda.nginx) }}
+{{- end }}
+{{- if .Values.keda.varnish.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "varnish" (printf "%s-varnish" .Values.deployEnv) .Values.keda.varnish) }}
+{{- end }}
+{{- if .Values.keda.nodejs.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "nodejs" (printf "%s-node" .Values.deployEnv) .Values.keda.nodejs) }}
+{{- end }}
+{{- if .Values.keda.monitor.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "monitor" (printf "%s-monitor" .Values.deployEnv) .Values.keda.monitor) }}
+{{- end }}
+{{- if and .Values.keda.tasks.enabled .Values.tasks.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "tasks" (printf "%s-tasks" .Values.deployEnv) .Values.keda.tasks) }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,22 @@
+{{- if and .Values.keda.enabled .Values.keda.splash.enabled .Values.gateway.enabled }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ .Values.deployEnv }}-keda-splash
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+  responseOverride:
+    - match:
+        statusCodes:
+          {{- toYaml .Values.keda.splash.statusCodes | nindent 10 }}
+      response:
+        contentType: text/html
+        body:
+          type: Inline
+          inline: {{ .Values.keda.splash.body | quote }}
+{{- end }}

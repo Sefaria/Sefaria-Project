@@ -482,3 +482,76 @@ instrumentation:
 
 datadog:
   enabled: false
+
+# KEDA autoscaling. Requires KEDA (keda.sh) installed in the cluster.
+# Default config is pre-populated for test environments (scale to zero when idle, scale up on traffic,
+# scale down after 30 min). To activate for a test environment, set keda.enabled: true.
+# Production environments leave keda.enabled: false and override per-component as needed.
+keda:
+  enabled: false
+  # How often KEDA polls the trigger (seconds). Up to this long before scale-up begins after first request.
+  pollingInterval: 30
+  # Seconds of idle trigger before scaling back to minReplicas.
+  cooldownPeriod: 1800
+  minReplicas: 0
+  maxReplicas: 5
+  # Shared triggers applied to all ScaledObjects unless overridden per-component.
+  # Scoped to this environment's HTTPRoute cluster names so environments don't affect each other.
+  # Values are rendered with tpl, so {{ .Values.deployEnv }} and {{ .Release.Namespace }} are available.
+  # Adjust serverAddress to match your Prometheus installation.
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: http://kube-prometheus-stack-prometheus.monitoring:9090
+        metricName: envoy_cluster_upstream_rq
+        threshold: "1"
+        query: >-
+          ceil(sum(increase(envoy_cluster_upstream_rq_total{envoy_cluster_name=~"httproute/{{ .Release.Namespace }}/{{ .Values.deployEnv }}/.*"}[2m])) or vector(0))
+  # Per-component enable flags. Any of minReplicas/maxReplicas/cooldownPeriod/pollingInterval/triggers
+  # can be overridden per-component; unset fields fall back to the keda-level defaults above.
+  web:
+    enabled: true
+  nginx:
+    enabled: true
+  varnish:
+    enabled: true
+  nodejs:
+    enabled: true
+  monitor:
+    enabled: true
+  tasks:
+    enabled: true
+  # Splash page served by Envoy Gateway during cold-start (scale-from-zero).
+  # Requires Envoy Gateway v1.1+ (BackendTrafficPolicy responseOverride).
+  splash:
+    enabled: true
+    statusCodes:
+      - type: Value
+        value: 502
+      - type: Value
+        value: 503
+    body: |
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Environment starting — Sefaria</title>
+        <style>
+          body { font-family: sans-serif; display: flex; align-items: center; justify-content: center;
+                 height: 100vh; margin: 0; background: #f5f5f5; color: #333; }
+          .card { text-align: center; background: #fff; padding: 2rem 3rem; border-radius: 8px;
+                  box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+          h2 { margin-top: 0; }
+          .note { font-size: .85rem; color: #888; margin-top: 1.5rem; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2>Environment is starting up</h2>
+          <p>This test environment was scaled down while idle.<br>It will be ready in about a minute.</p>
+          <p class="note">This page will refresh automatically.</p>
+        </div>
+        <script>setTimeout(() => location.reload(), 15000);</script>
+      </body>
+      </html>
