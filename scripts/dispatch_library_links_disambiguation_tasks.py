@@ -237,6 +237,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--start", type=int, default=0,
                         help="Number of individual payloads to skip before dispatching")
+    parser.add_argument("--limit", type=int, default=0,
+                        help="Number of individual payloads to limit to")
     parser.add_argument("--debug-ref", type=str, default=None,
                         help="Filter to citing refs equal to or contained within this ref")
     args = parser.parse_args()
@@ -269,8 +271,13 @@ def main():
     # Flatten groups into an ordered list, keeping each base-text group contiguous
     payloads_list = list(groups.values())
     all_payloads = [payload for payloads in payloads_list for payload in payloads]
-    total = len(all_payloads)
-    dispatch_list = all_payloads[args.start:] if args.start else all_payloads
+    if args.limit:
+        random.shuffle(all_payloads)
+        total = args.limit
+        dispatch_list = all_payloads[args.start:args.start+args.limit]
+    else:
+        total = len(all_payloads)
+        dispatch_list = all_payloads[args.start:]
 
     print(f"Dispatching {len(dispatch_list)} tasks (skipping first {args.start})...")
     try:
