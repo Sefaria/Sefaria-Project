@@ -40,11 +40,37 @@ class TextColumn extends Component {
        }
       gtag("event", "select_content", params)
 
-    this.node.addEventListener("scroll", this.handleScroll);
+    this.getScrollEventTarget().addEventListener("scroll", this.handleScroll);
   }
   componentWillUnmount() {
     this._isMounted = false;
-    this.node.removeEventListener("scroll", this.handleScroll);
+    this.getScrollEventTarget().removeEventListener("scroll", this.handleScroll);
+  }
+  isWindowScroll() {
+    // On singlePanel (mobile), the document is the scroll container so that mobile
+    // browsers collapse their URL/nav bars during productive scrolling. On multiPanel
+    // (desktop), each .textColumn is its own scroll container.
+    return !this.props.multiPanel;
+  }
+  getScrollEventTarget() {
+    return this.isWindowScroll() ? window : this.node;
+  }
+  getNodeDocOffsetTop() {
+    const docScroll = window.pageYOffset || document.documentElement.scrollTop;
+    return this.node.getBoundingClientRect().top + docScroll;
+  }
+  getLocalScrollTop() {
+    if (this.isWindowScroll()) {
+      const docScroll = window.pageYOffset || document.documentElement.scrollTop;
+      return Math.max(0, docScroll - this.getNodeDocOffsetTop());
+    }
+    return this.node.scrollTop;
+  }
+  getScrollHeight() {
+    return this.isWindowScroll() ? this.node.offsetHeight : this.node.scrollHeight;
+  }
+  getClientHeight() {
+    return this.isWindowScroll() ? window.innerHeight : this.node.clientHeight;
   }
   componentDidUpdate(prevProps, prevState) {
     
@@ -182,7 +208,7 @@ class TextColumn extends Component {
   setInitialScrollPosition() {
     // Sets scroll initial scroll position when a text is loaded which is either down to
     // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
-    if (this.node.scrollHeight < this.node.clientHeight) { return; }
+    if (this.getScrollHeight() < this.getClientHeight()) { return; }
 
     if (this.$container.find(".segment.invisibleHighlight").length) {
       // If there is a highlight the initial position scrolls to it.
@@ -236,7 +262,7 @@ class TextColumn extends Component {
     const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
     const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
     
-    const currentScrollTop = this.node.scrollTop;
+    const currentScrollTop = this.getLocalScrollTop();
     const calculatedTop = targetTop + currentScrollTop - adjust;
     
     return calculatedTop;
@@ -246,18 +272,18 @@ class TextColumn extends Component {
     // of it's scroll position it had before. This approximates keeping the currently visible
     // content in place, even thought its scroll position has changed due to the new layout.
     if (!this.prevScrollPercentage) { return; }
-    const target = this.node.scrollHeight * this.prevScrollPercentage;
+    const target = this.getScrollHeight() * this.prevScrollPercentage;
     this.setScrollTop(target);
   }
   setScrollTop(targetScrollTop) {
-    // Set the scroll position and prevent the scroll event handler from firing
-    // The justScrolled flag prevents handleScroll from running when we programmatically scroll
-    
-    // Prevent the scroll event handler from firing for this programmatic scroll
+    // targetScrollTop is relative to the top of the textColumn (local frame).
+    // The justScrolled flag prevents handleScroll from running when we programmatically scroll.
     this.justScrolled = true;
-    
-    // Apply the new scroll position
-    this.node.scrollTop = targetScrollTop;
+    if (this.isWindowScroll()) {
+      window.scrollTo(0, this.getNodeDocOffsetTop() + targetScrollTop);
+    } else {
+      this.node.scrollTop = targetScrollTop;
+    }
   }
   
   getLastTextRange() {
@@ -267,14 +293,13 @@ class TextColumn extends Component {
   adjustInfiniteScroll(downOnly=false) {
     // Add or remove TextRanges from the top or bottom, depending on scroll position
     if (!this._isMounted) { return; }
-    if (this.node.scrollHeight <= this.node.clientHeight) { return; }
+    if (this.getScrollHeight() <= this.getClientHeight()) { return; }
 
-    const $node = this.$container;
     const $lastText = this.getLastTextRange();
     if (!$lastText.length) { return; }
-    
-    const windowTop = this.node.scrollTop;
-    const windowHeight = $node.outerHeight();
+
+    const windowTop = this.getLocalScrollTop();
+    const windowHeight = this.getClientHeight();
     const lastTop = $lastText.position().top;
     const lastBottom = lastTop + $lastText.outerHeight();
     
@@ -378,7 +403,7 @@ class TextColumn extends Component {
     // to the right location after closing other panels.
     if (!this._isMounted) { return; }
 
-    this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
+    this.prevScrollPercentage = this.getLocalScrollTop() / this.getScrollHeight();
 
     // When using tab to navigate (i.e. a11y) set ref to currently focused ref
     let $segment = null;
@@ -386,9 +411,15 @@ class TextColumn extends Component {
       $segment = $(".segment:focus").eq(0);
     } else {
       const $container = this.$container;
+      const isWindowScroll = this.isWindowScroll();
+      const containerRectTop = isWindowScroll ? 0 : $container[0].getBoundingClientRect().top;
       $container.find(".basetext .segment").each(function(i, segment) {
-        const top = $(segment).offset().top - $container.offset().top;
-        const bottom = $(segment).outerHeight() + top;
+        // In multipanel, textColumn is fixed at the viewport so we measure within
+        // the textColumn frame. In singlePanel, the document scrolls so we measure
+        // viewport-relative directly.
+        const rect = segment.getBoundingClientRect();
+        const top = rect.top - containerRectTop;
+        const bottom = rect.height + top;
         if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
           $segment = $(segment);
           return false;
