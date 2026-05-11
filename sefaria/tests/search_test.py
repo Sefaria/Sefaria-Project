@@ -1,3 +1,5 @@
+"""Tests that the ES reindex job survives transient connection failures
+instead of aborting the entire multi-hour run."""
 import pytest
 from elastic_transport import ApiError, ConnectionTimeout
 
@@ -35,6 +37,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
     TextIndexer._skipped_versions = []
     TextIndexer._bulk_actions = []
 
+    # Stub heavyweight setup so we only exercise the per-book flush loop
     monkeypatch.setattr(
         TextIndexer, "create_version_priority_map",
         classmethod(lambda cls: None),
@@ -64,6 +67,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
         classmethod(fake_index_version),
     )
 
+    # BookA flush succeeds, BookB raises ConnectionTimeout, BookC should still flush
     bulk_calls = []
 
     def flaky_bulk(es_client, actions, **kwargs):
@@ -92,6 +96,7 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
     ApiError("400 mapping_parser_exception", meta=None, body=None),
 ])
 def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
+    """Programming errors and ES API errors must NOT be silently absorbed."""
     TextIndexer._failed_versions = []
     TextIndexer._bulk_actions = [{"_op_type": "index", "_id": "x"}]
 
