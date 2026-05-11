@@ -318,6 +318,7 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
         }, status=500)
 
 
+@csrf_exempt
 def update_user_preferences(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/preferences
