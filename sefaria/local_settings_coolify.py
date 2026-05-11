@@ -2,6 +2,7 @@ import os
 
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://*.sefaria.org']
 
 MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
 MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))

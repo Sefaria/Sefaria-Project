@@ -6,7 +6,7 @@ import sys
 import json
 import csv
 from datetime import datetime
-from django.utils.translation import ugettext as _, ungettext_lazy
+from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError

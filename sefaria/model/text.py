@@ -4972,6 +4972,7 @@ class Library(object):
 
         # Table of Contents
         self._toc = None
+        self._toc_with_authors = None
         self._toc_json = None
         self._toc_tree = None
         self._topic_toc = None
@@ -5067,7 +5068,10 @@ class Library(object):
         """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
+        self._toc_with_authors = None
+        scache.delete_shared_cache_elem('toc_with_authors')
         self._toc = self.get_toc(rebuild=True)
+        self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
@@ -5081,6 +5085,7 @@ class Library(object):
         from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
         
         self.get_toc(rebuild=rebuild)
+        self.get_toc_with_authors(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
@@ -5135,6 +5140,16 @@ class Library(object):
                 scache.set_shared_cache_elem('toc', self._toc)
                 self.set_last_cached_time()
         return self._toc
+
+    def get_toc_with_authors(self, rebuild=False):
+        if rebuild or not self._toc_with_authors:
+            if not rebuild:
+                self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
+            if rebuild or not self._toc_with_authors:
+                self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
+                scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
+                self.set_last_cached_time()
+        return self._toc_with_authors
 
     def get_toc_json(self, rebuild=False):
         """
