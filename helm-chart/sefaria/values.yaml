@@ -486,7 +486,8 @@ datadog:
 # KEDA autoscaling. Requires KEDA (keda.sh) installed in the cluster.
 # Default config is pre-populated for test environments (scale to zero when idle, scale up on traffic,
 # scale down after 30 min). To activate for a test environment, set keda.enabled: true.
-# Production environments leave keda.enabled: false and override per-component as needed.
+# keda.enabled must be true for any KEDA ScaledObjects to render. In production, enable it globally
+# only when you intend to use KEDA, then use per-component enable flags and overrides as needed.
 keda:
   enabled: false
   # Prometheus server used by all triggers unless overridden per-component.

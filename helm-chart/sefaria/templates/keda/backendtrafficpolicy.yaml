@@ -4,6 +4,7 @@ kind: BackendTrafficPolicy
 metadata:
   name: {{ .Values.deployEnv }}-keda-splash
   labels:
+{{- include "sefaria.labels" . | nindent 4 }}
     deployEnv: {{ .Values.deployEnv | quote }}
 spec:
   targetRefs:
@@ -18,5 +19,6 @@ spec:
         contentType: text/html
         body:
           type: Inline
-          inline: {{ .Values.keda.splash.body | quote }}
+          inline: |
+{{ .Values.keda.splash.body | nindent 12 }}
 {{- end }}
