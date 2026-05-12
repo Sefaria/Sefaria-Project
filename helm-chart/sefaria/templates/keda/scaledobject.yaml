@@ -5,9 +5,6 @@
 {{- if .Values.keda.nginx.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "nginx" (printf "%s-nginx" .Values.deployEnv) .Values.keda.nginx) }}
 {{- end }}
-{{- if .Values.keda.varnish.enabled }}
-{{- include "sefaria.keda.scaledobject" (list . "varnish" (printf "%s-varnish" .Values.deployEnv) .Values.keda.varnish) }}
-{{- end }}
 {{- if .Values.keda.nodejs.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "nodejs" (printf "%s-node" .Values.deployEnv) .Values.keda.nodejs) }}
 {{- end }}
