@@ -462,6 +462,9 @@ class RefResolver:
 
     @staticmethod
     def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> Optional[ResolvedRef]:
+        allowed_types = {RefPartType.NAMED, RefPartType.NUMBERED, RefPartType.RANGE, RefPartType.RANGE_SYMBOL}
+        if any(part.type not in allowed_types for part in raw_ref.parts_to_match):
+            return None
         try:
             ref = text.Ref(raw_ref.text)
             part_and_node_matches = [RefPartAndNodeMatch((part,), None, True) for part in raw_ref.parts_to_match]
