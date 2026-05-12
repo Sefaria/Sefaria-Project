@@ -97,10 +97,9 @@ const CHATBOT_BANNER_LEARN_MORE_URLS = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = () => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  const remoteLearnMoreUrls = Sefaria.remoteConfig?.chatbot?.promoLearnMoreUrls;
-  const learnMoreUrls = remoteLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
+  const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
   const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || CHATBOT_BANNER_LEARN_MORE_URLS.en;
 
   const handleJoin = async () => {
@@ -144,6 +143,10 @@ const ChatbotExperimentBanner = () => {
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
     />
   );
+};
+
+ChatbotExperimentBanner.propTypes = {
+  promoLearnMoreUrls: PropTypes.object,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };
