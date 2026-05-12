@@ -18,6 +18,8 @@ import { ProfilePage } from "./profilePage"
 import { EditProfilePage } from "./editProfilePage"
 import { AccountSettingsPage } from "./accountSettingsPage"
 import { LibraryAssistantPage } from "./libraryAssistantPage"
+import { ResourcePanelPage } from "./resourcePanelPage"
+import { MobileHamburgerPage } from "./mobileHamburgerPage"
 
 
 export class PageManager {
@@ -39,6 +41,8 @@ export class PageManager {
     private readonly editProfilePage: EditProfilePage
     private readonly accountSettingsPage: AccountSettingsPage
     private readonly libraryAssistantPage: LibraryAssistantPage
+    private readonly resourcePanelPage: ResourcePanelPage
+    private readonly mobileHamburgerPage: MobileHamburgerPage
 
 
 
@@ -61,6 +65,8 @@ export class PageManager {
         this.editProfilePage = new EditProfilePage(page, language)
         this.accountSettingsPage = new AccountSettingsPage(page, language)
         this.libraryAssistantPage = new LibraryAssistantPage(page, language)
+        this.resourcePanelPage = new ResourcePanelPage(page, language)
+        this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
 
     }
 
@@ -131,6 +137,14 @@ export class PageManager {
 
     onLibraryAssistant() {
         return this.libraryAssistantPage
+    }
+
+    onResourcePanel() {
+        return this.resourcePanelPage
+    }
+
+    onMobileHamburger() {
+        return this.mobileHamburgerPage
     }
 
 

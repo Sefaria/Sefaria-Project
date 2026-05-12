@@ -198,6 +198,81 @@ export const EXTERNAL_URLS = {
   DEVELOPERS: /developers\.sefaria\.org/
 } as const;
 
+// ==============================================================================
+// MOBILE HAMBURGER MENU SELECTORS / LABELS
+// ==============================================================================
+//
+// Source of truth: Sefaria-Project/static/js/Header.jsx — `<MobileNavMenu>` and
+// `<MobileInterfaceLanguageToggle>`. The mobile menu only renders when
+// `Sefaria.getBreakpoint() === MOBILE`, i.e. viewport width < 843 px
+// (see static/css/breakpoints.css --bp-tablet-min).
+//
+// Locators here intentionally prefer role / label / href anchors over class
+// names so the tests survive css refactors. Class names are used only where
+// the rendered element exposes no semantic handle (e.g. `.mobileNavMenu`
+// container, `.mobileModuleSwitcher` cross-module links, `.searchLine`).
+export const MOBILE_HAMBURGER = {
+  // Header / chrome
+  MENU_BUTTON_LABEL: 'Menu',
+  LIBRARY_LOGO_LABEL: 'Sefaria library logo',
+  HEADER_LANG_TOGGLE: '.mobileHeaderLanguageToggle .languageToggle',
+
+  // Menu container
+  NAV_MENU: '.mobileNavMenu',                // open: `.mobileNavMenu` (no `.closed`)
+  NAV_MENU_OPEN: '.mobileNavMenu:not(.closed)',
+  NAV_MENU_LABEL: 'Mobile navigation menu',
+  SEARCH_LINE: '.mobileNavMenu .searchLine',
+
+  // In-menu items — anchored on href so they survive label-localisation drift.
+  HREFS: {
+    TEXTS: '/texts',
+    TOPICS: '/topics',
+    LEARNING_SCHEDULES: '/calendars',
+    ABOUT: '/mobile-about-menu',
+    MORE_FROM_SEFARIA: '/products',
+    DEVELOPERS: 'https://developers.sefaria.org',
+    INTERFACE_EN: '/interface/english',
+    INTERFACE_HE: '/interface/hebrew',
+  },
+
+  // English labels (canonical) — the tests run in English per spec.
+  LABELS: {
+    TEXTS: 'Texts',
+    TOPICS: 'Topics',
+    LEARNING_SCHEDULES: 'Learning Schedules',
+    DONATE: 'Donate',
+    GET_HELP: 'Get Help',
+    ABOUT: 'About Sefaria',
+    VOICES_ON_SEFARIA: 'Voices on Sefaria',
+    SEFARIA_LIBRARY: 'Sefaria Library',
+    DEVELOPERS: 'Developers on Sefaria',
+    MORE_FROM_SEFARIA: 'More from Sefaria',
+    SIGN_UP: 'Sign up',
+    LOG_IN: 'Log in',
+    LANG_TOGGLE_CONTAINER: '.mobileInterfaceLanguageToggle',
+  },
+
+  // Module-switcher row — selector pattern + the per-row text.
+  MODULE_SWITCHER_ANCHOR: 'a.mobileModuleSwitcher',
+
+  // Login/signup wrappers
+  SIGNUP_LINK_CLASS: 'a.login.signupLink',
+  LOGIN_LINK_CLASS: 'a.login.loginLink',
+
+  // Search dropdown — the open-shadow-pierced selectors already exist as
+  // SEARCH_DROPDOWN above; mobile reuses them verbatim. The expected sections
+  // for a Library-module search are the canonical 4: Authors, Topics,
+  // Categories, Books — and Users must NOT appear.
+} as const;
+
+// Page-path regexes for navigation assertions.
+export const MOBILE_PAGE_URLS = {
+  TEXTS: /\/texts(\/|$|\?)/,
+  TOPICS: /\/topics(\/|$|\?)/,
+  ABOUT: /\/mobile-about-menu/,
+  MORE_FROM_SEFARIA: /\/products(\/|$|\?)/,
+} as const;
+
 export const SEARCH_DROPDOWN = {
   CONTAINER: '.autocomplete-dropdown',
   SECTIONS: {
