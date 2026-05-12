@@ -19,7 +19,7 @@ shared_patterns = [
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
     re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
-    re_path(fr'password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{{1,13}}-[0-9A-Za-z]{{1,20}})/$',
+    path('password/reset/confirm/<uidb64>/<token>/',
         sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     re_path(fr'password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(),
         name='password_reset_complete'),
