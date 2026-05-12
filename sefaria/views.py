@@ -46,7 +46,7 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
@@ -419,6 +419,10 @@ def linker_js(request, linker_version=None):
     }
 
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+
+
+def linker_js_map(request):
+    return HttpResponse(read_webpack_bundle_map("LINKER"), content_type="application/json")
 
 
 @api_view(["POST"])
