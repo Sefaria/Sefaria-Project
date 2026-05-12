@@ -1339,7 +1339,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid textual `Ref` to a Sefaria text.",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -1654,7 +1654,7 @@
               }
             },
             "name": "tref",
-            "description": "The `tref` parameter must a valid Sefaria ref to a text.",
+            "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
             "schema": {
               "type": "string",
               "default": "Numbers 12.1"
@@ -1734,7 +1734,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria ref",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "type": "string",
             "default": "Numbers.17.2"
@@ -3536,7 +3536,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria textual `Ref`. ",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -3713,7 +3713,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria textual `Ref`.",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -3805,7 +3805,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria textual `Ref`",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -5693,7 +5693,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria textual `Ref`.",
+          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -9741,7 +9741,7 @@
         "parameters": [
           {
             "name": "ref",
-            "description": "Sefaria ref, e.g. `Genesis.1.1`. Use dots for section separators in the URL.",
+            "description": "Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`. Use dots for section separators in the URL.",
             "schema": {
               "type": "string",
               "default": "Genesis.1.1"
@@ -11193,7 +11193,7 @@
         "parameters": [
           {
             "name": "refs",
-            "description": "Pipe-delimited list of Sefaria refs. Use dots for section separators, e.g. `Genesis.1.1|Exodus.1.1`.",
+            "description": "Pipe-delimited list of Sefaria refs. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`. Use dots for section separators, e.g. `Genesis.1.1|Exodus.1.1`.",
             "schema": {
               "type": "string",
               "default": "Genesis.1.1|Exodus.1.1"
@@ -11255,7 +11255,7 @@
         "parameters": [
           {
             "name": "refs",
-            "description": "A Sefaria ref from Tanakh, Mishnah or Talmud.",
+            "description": "A pipe-delimited list of Sefaria refs. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`. Use dots for section separators in the URL, e.g. `Berakhot.2a|Genesis.1.1`.",
             "schema": {
               "type": "string",
               "default": "Genesis.1.1"
@@ -18873,7 +18873,7 @@
         "parameters": [
           {
             "name": "ref",
-            "description": "Sefaria ref, e.g. `Genesis.1.1`.",
+            "description": "Sefaria ref, e.g. `Mishnah Peah 2:1`. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
             "schema": {
               "type": "string",
               "default": "Mishnah_Peah.2.1"
@@ -19002,7 +19002,8 @@
             "name": "year",
             "description": "Year. Must be combined with `month` and `day`.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 2026
             },
             "in": "query",
             "required": false
@@ -19011,7 +19012,8 @@
             "name": "month",
             "description": "Month (1–12). Must be combined with `year` and `day`.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 4
             },
             "in": "query",
             "required": false
@@ -19020,7 +19022,8 @@
             "name": "day",
             "description": "Day of month. Must be combined with `year` and `month`.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 3
             },
             "in": "query",
             "required": false
@@ -19230,7 +19233,7 @@
         "parameters": [
           {
             "name": "slug",
-            "description": "Profile URL slug. Found in the profile URL: `https://www.sefaria.org/profile/{slug}`. For example, the profile at `https://www.sefaria.org/profile/brett-lockspeiser` has slug `brett-lockspeiser`.",
+            "description": "Profile URL slug. Found in the profile URL: `https://www.sefaria.org/profile/{slug}`. For example, the profile at `https://www.sefaria.org/profile/i-love-sefaria` has slug `i-love-sefaria`.",
             "schema": {
               "type": "string"
             },
@@ -28190,7 +28193,7 @@
             "description": "Sheets owned by the user. For anonymous requests this contains only public sheets; an authenticated user requesting their own user_id additionally sees their private sheets.",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/SheetsJSON"
             }
           }
         }
@@ -28302,16 +28305,44 @@
         "title": "Root Type for BulktextJSON",
         "description": "A map keyed by Sefaria ref. Each entry contains the ref's English and Hebrew text plus metadata such as the language, ref for the url, etc. The exact key set matches the requested refs.",
         "type": "object",
-        "additionalProperties": {
-          "type": "object"
-        }
+          "properties": {
+            "he": {
+              "type": "string",
+              "description": "Hebrew text for the ref. May be an empty string if no Hebrew text is available."
+            },
+            "en": {
+              "type": "string",
+              "description": "English text for the ref. May be an empty string if no English text is available."
+            },
+            "lang": {
+              "type": "string",
+              "description": "Language of the ref string itself — `he` if the input ref was Hebrew, `en` otherwise."
+            },
+            "ref": {
+              "type": "string",
+              "description": "Normalized canonical ref."
+            },
+            "heRef": {
+              "type": "string",
+              "description": "Hebrew form of the ref."
+            },
+            "url": {
+              "type": "string",
+              "description": "URL-safe form of the ref, suitable for constructing a Sefaria link."
+            },
+            "primary_category": {
+              "type": "string",
+              "description": "Top-level category of the text. Only present when `useTextFamily=1` is passed."
+            }
+          }
       },
       "PassagesJSON": {
         "title": "Root Type for PassagesJSON",
         "description": "A map keyed by the requested Sefaria ref. Each value is the canonical passage ref that contains it — for Tanakh a parasha-style passage, for Mishnah a chapter passage, for Talmud a full sugya boundary.",
         "type": "object",
         "additionalProperties": {
-          "$ref": "#/components/schemas/ref"
+          "type": "string",
+          "description": "The canonical passage ref that contains the input ref."
         }
       },
       "IndexTitlesJSON": {
@@ -28358,7 +28389,22 @@
           "authors": {
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "en": {
+                  "type": "string",
+                  "description": "Author's English name."
+                },
+                "he": {
+                  "type": "string",
+                  "description": "Author's Hebrew name."
+                },
+                "slug": {
+                  "type": "string",
+                  "description": "Author's Sefaria topic slug."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "enDesc": {
@@ -28413,7 +28459,7 @@
                 }
               },
               "shape": {
-                "description": "Structural shape of the text (chapter/verse counts).",
+                "description": "Structural shape of the text (chapter/verse counts). Each position represents a chapter (i.e. the first value in the array is the number of verses in chapter 1, the following value in the array is the number of verses in chapter 2)",
                 "type": "array",
                 "items": {
                   "type": "integer"
@@ -28480,10 +28526,7 @@
           },
           "books": {
             "description": "Per-book breakdown within the category, keyed by book title. Each value is the number of links from that book.",
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer"
-            }
+            "type": "object"
           }
         }
       },
