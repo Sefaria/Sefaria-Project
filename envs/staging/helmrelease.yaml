@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.84.5"
+      version: "0.85.0"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project-helm-repo
