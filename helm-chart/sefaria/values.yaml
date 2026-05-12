@@ -251,6 +251,13 @@ tasks:
 # Required for Rambi Cronjob
 gpuServer: ""
 
+# Round-robin proxy for the Dicta parallels API.
+# When enabled, deploys a ClusterIP service that alternates requests between
+# the two Dicta upstream servers and injects DICTA_PARALLELS_URL into task pods.
+dictaProxy:
+  enabled: false
+  port: 8765
+
 # Declare domains handled by this sefaria instance for both app and ingress config
 # Root domains implicitly handle the library module and do not feature redirects
 # Each root domain should have a language and code
