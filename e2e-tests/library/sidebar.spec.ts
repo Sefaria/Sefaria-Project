@@ -7,7 +7,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
 
@@ -121,5 +121,31 @@ test.describe('Library Module Sidebar Tests', () => {
     await expect(page).toHaveURL(/ways-to-give/);
 
     await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
+  });
+
+  test('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
+    await hideAllModalsAndPopups(page);
+
+    // Both links present in the sidebar footer with expected hrefs
+    await pm.onModuleSidebar().verifyFooterLink({ name: 'Terms', href: /terms/ });
+    await pm.onModuleSidebar().verifyFooterLink({ name: 'Privacy Policy', href: /privacy-policy/ });
+
+    for (const { name, urlPattern } of [
+      { name: 'Terms', urlPattern: /\/terms/ },
+      { name: 'Privacy Policy', urlPattern: /\/privacy-policy/ },
+    ]) {
+      await pm.onModuleSidebar().clickAndVerifyLink({ name, href: urlPattern, opensNewTab: false });
+      await expect(page).toHaveURL(urlPattern);
+
+      const googleDocFrame = page.locator('iframe[src*="docs.google.com"]').first();
+      await expect(googleDocFrame).toBeVisible({ timeout: t(15000) });
+
+      const frame = page.frameLocator('iframe[src*="docs.google.com"]');
+      await expect(frame.locator('body')).not.toBeEmpty({ timeout: t(15000) });
+
+      // Return to Library so the next iteration's sidebar click resolves
+      await page.goto(MODULE_URLS.EN.LIBRARY);
+      await hideAllModalsAndPopups(page);
+    }
   });
 });
