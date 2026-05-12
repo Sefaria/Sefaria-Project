@@ -44,7 +44,7 @@ import { ChatbotExperimentBanner } from './SiteWideBanner';
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
-    // TODO clean up generation of initial panels objects.
+    // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
@@ -2483,7 +2483,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
-                  interface-lang={this.props.interfaceLang}
+                  interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
               </main>

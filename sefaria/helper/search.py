@@ -152,3 +152,15 @@ def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL
     return Elasticsearch(SEARCH_URL)
+
+
+def get_elasticsearch_client_for_indexer():
+    """Must NOT be used on the online request path."""
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=60,
+        retry_on_timeout=True,
+        max_retries=3,
+    )

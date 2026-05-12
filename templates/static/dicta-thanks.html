@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Dicta Thanks" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Dicta Thanks" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria thanks Dicta for all of their help." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria thanks Dicta for all of their help." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 <main id="dictaThanksPage" class="biReady container static">
