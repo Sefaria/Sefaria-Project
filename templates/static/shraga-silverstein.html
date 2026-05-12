@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "In Memory of Rabbi Shraga Silverstein" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "In Memory of Rabbi Shraga Silverstein" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% endblock %}
 
 {% block css %}
     #shraga h3 {

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n sefaria_tags %}
 
-{% block title %}{% trans "Create an Account" %} | {% trans "Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Create an Account" %} | {% trans "Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Create an account on Sefaria to make source sheets, take notes and follow other people." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Create an account on Sefaria to make source sheets, take notes and follow other people." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 <div id="register" class="biReady registrationContent static">

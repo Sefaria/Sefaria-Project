@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria Mobile Apps" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria Mobile Apps" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Download the free Sefaria Apps for iOS and Android." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Download the free Sefaria Apps for iOS and Android." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 
@@ -347,7 +348,7 @@
 
 {% endblock %}
 
-{% block js  %}
+{% block js %}
     <script>
     $(function() {
         // Set tracking links to app stores

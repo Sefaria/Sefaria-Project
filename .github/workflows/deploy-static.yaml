@@ -265,3 +265,4 @@ jobs:
       environment: ${{ needs.detect.outputs.env }}
     secrets:
       INFRA_WORKFLOW_TOKEN: ${{ secrets.INFRA_WORKFLOW_TOKEN }}
+

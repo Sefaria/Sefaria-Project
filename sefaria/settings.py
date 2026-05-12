@@ -1,7 +1,7 @@
 # Django settings for sefaria project.
 
 import os.path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
@@ -31,10 +31,13 @@ USE_I18N = True
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+# Django 3.2+: preserve existing integer PKs on legacy Django apps.
+# Avoids auto-generating BigAutoField migrations against existing tables.
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -105,7 +108,6 @@ TEMPLATES = [
                     "sefaria.system.context_processors.module_context",
             ],
             'loaders': [
-                #'django_mobile.loader.Loader',
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ]
@@ -159,7 +161,7 @@ INSTALLED_APPS = (
     'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
-    'captcha',
+    'django_recaptcha',
     'django.contrib.admin',
     'anymail',
     'webpack_loader',

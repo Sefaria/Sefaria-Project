@@ -97,35 +97,47 @@ class TopicAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    @admin.display(
+        description="Library Pool",
+        boolean=True,
+    )
     def is_in_pool_library(self, obj):
         return obj.pools.filter(name=PoolType.LIBRARY.value).exists()
-    is_in_pool_library.boolean = True
-    is_in_pool_library.short_description = "Library Pool"
 
+    @admin.display(
+        description="Sheets Pool",
+        boolean=True,
+    )
     def is_in_pool_sheets(self, obj):
         return obj.pools.filter(name=PoolType.SHEETS.value).exists()
-    is_in_pool_sheets.boolean = True
-    is_in_pool_sheets.short_description = "Sheets Pool"
 
+    @admin.display(
+        description="General Pool EN",
+        boolean=True,
+    )
     def is_in_pool_general_en(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL_EN.value).exists()
-    is_in_pool_general_en.boolean = True
-    is_in_pool_general_en.short_description = "General Pool EN"
 
+    @admin.display(
+        description="General Pool HE",
+        boolean=True,
+    )
     def is_in_pool_general_he(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL_HE.value).exists()
-    is_in_pool_general_he.boolean = True
-    is_in_pool_general_he.short_description = "General Pool HE"
 
+    @admin.display(
+        description="TorahTab Pool",
+        boolean=True,
+    )
     def is_in_pool_torah_tab(self, obj):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
-    is_in_pool_torah_tab.boolean = True
-    is_in_pool_torah_tab.short_description = "TorahTab Pool"
 
+    @admin.display(
+        description="Sefaria Link"
+    )
     def sefaria_link(self, obj):
         url = f"https://www.sefaria.org/topics/{obj.slug}"
         return format_html('<a href="{}" target="_blank">{}</a>', url, obj.slug)
-    sefaria_link.short_description = "Sefaria Link"
 
 
 class FeaturedTopicAdmin(admin.ModelAdmin):
