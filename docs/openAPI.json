@@ -27826,7 +27826,7 @@
             "description": "Collections that include this sheet.",
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref":"#/components/schemas/CollectionSummaryJSON"
             }
           },
           "displayedCollection": {
@@ -28207,7 +28207,109 @@
             "description": "Page of public sheets, each as a summary object.",
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "Numeric sheet ID.",
+                  "type": "integer"
+                },
+                "title": {
+                  "description": "Sheet title.",
+                  "type": "string"
+                },
+                "summary": {
+                  "description": "Short description of the sheet.",
+                  "type": "string"
+                },
+                "status": {
+                  "description": "Visibility of the sheet. Typically `\"public\"`.",
+                  "type": "string"
+                },
+                "author": {
+                  "description": "Numeric user ID of the sheet owner.",
+                  "type": "integer"
+                },
+                "ownerName": {
+                  "description": "Display name of the sheet owner.",
+                  "type": "string"
+                },
+                "ownerImageUrl": {
+                  "description": "Profile picture URL for the sheet owner. May be an empty string.",
+                  "type": "string"
+                },
+                "ownerProfileUrl": {
+                  "description": "Relative URL to the owner's profile page (e.g. `/profile/username`).",
+                  "type": "string"
+                },
+                "ownerOrganization": {
+                  "description": "Organization the owner is affiliated with. May be an empty string.",
+                  "type": "string"
+                },
+                "sheetUrl": {
+                  "description": "Relative URL to the sheet (e.g. `/sheets/123`).",
+                  "type": "string"
+                },
+                "views": {
+                  "description": "Number of times the sheet has been viewed.",
+                  "type": "integer"
+                },
+                "displayedCollection": {
+                  "description": "Slug of the collection this sheet is displayed under, if any. Empty string when not in a collection.",
+                  "type": "string"
+                },
+                "modified": {
+                  "description": "Date the sheet was last modified, formatted as `MM/DD/YYYY`.",
+                  "type": "string",
+                  "example": "05/05/2026"
+                },
+                "created": {
+                  "description": "ISO 8601 datetime when the sheet was created.",
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "published": {
+                  "description": "ISO 8601 datetime when the sheet was made public.",
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "topics": {
+                  "description": "Topic tags attached to the sheet.",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "asTyped": {
+                        "description": "The tag label as the author typed it.",
+                        "type": "string"
+                      },
+                      "slug": {
+                        "description": "Canonical topic slug.",
+                        "type": "string"
+                      },
+                      "en": {
+                        "description": "English display name for the topic.",
+                        "type": "string"
+                      },
+                      "he": {
+                        "description": "Hebrew display name for the topic. May be an empty string.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "tags": {
+                  "description": "Flat list of tag labels (the `asTyped` value for each topic).",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "options": {
+                  "description": "Sheet display options. Empty array when none are set.",
+                  "type": "array",
+                  "items": {}
+                }
+              }
             }
           }
         }
