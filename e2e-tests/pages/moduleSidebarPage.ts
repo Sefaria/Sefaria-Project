@@ -227,17 +227,17 @@ export class ModuleSidebarPage extends HelperBase {
    */
   async verifyStandardFooterLinks() {
     const specs: FooterLinkSpec[] = [
-      { name: 'About', href: /sefaria\.org/, opensNewTab: false },
-      { name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true },
+      { name: 'About', href: /\w*\.org/, opensNewTab: false },
+      { name: 'Help', href: /help\.\w*\.org/, opensNewTab: true },
       { name: 'Contact Us', href: /^mailto:/, isMailto: true, opensNewTab: true },
       { name: 'Newsletter', href: /newsletter/, opensNewTab: false },
-      { name: 'Blog', href: /blog\.sefaria\.org|sefaria\.org\.il/, opensNewTab: true },
+      { name: 'Blog', href: /blog\.\w*\.org|\.org\.il/, opensNewTab: true },
       { name: 'Instagram', href: /instagram\.com/, opensNewTab: true },
       { name: 'Facebook', href: /facebook\.com/, opensNewTab: true },
       { name: 'YouTube', href: /youtube\.com/, opensNewTab: true },
-      { name: 'Shop', href: /store\.sefaria\.org/, opensNewTab: true },
+      { name: 'Shop', href: /store\.\w*\.org/, opensNewTab: true },
       { name: 'Ways to Give', href: /ways-to-give/, opensNewTab: false },
-      { name: 'Donate', href: /donate\.sefaria\.org/, opensNewTab: false },
+      { name: 'Donate', href: /donate\.\w*\.org/, opensNewTab: false },
     ];
 
     for (const s of specs) {

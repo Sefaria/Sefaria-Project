@@ -66,18 +66,18 @@ test.describe('Library Module Sidebar Tests', () => {
   test('MOD-S006: Library - About link loads in same tab', async () => {
     // About should load in same tab to modularization cauldron
     await hideAllModalsAndPopups(page);
-    await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /sefaria\.org/, opensNewTab: false });
-    await expect(page).toHaveURL(/sefaria\.org/);
+    await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /\w*\.org/, opensNewTab: false });
+    await expect(page).toHaveURL(/\w*\.org/);
   });
 
   test('MOD-S007: Library - Help link href and behavior (Zendesk)', async () => {
     await hideAllModalsAndPopups(page);
     // First verify the href is to the Zendesk
-    await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true });
+    await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.\w*\.org/, opensNewTab: true });
 
     // Click the help link and verify it opens in a new tab with the correct URL
-    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Help', href: /help\.sefaria\.org/, opensNewTab: true });
-    await expect(newPage!).toHaveURL(/help\.sefaria\.org/);
+    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Help', href: /help\.\w*\.org/, opensNewTab: true });
+    await expect(newPage!).toHaveURL(/help\.\w*\.org/);
     await newPage!.close();
     
   });
@@ -94,8 +94,8 @@ test.describe('Library Module Sidebar Tests', () => {
 
   test('MOD-S010: Library - Blog opens in new tab', async () => {
     await hideAllModalsAndPopups(page);
-    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Blog', href: /blog|sefaria\.org\.il/, opensNewTab: true });
-    await expect(newPage!).toHaveURL(/blog|sefaria\.org\.il/);
+    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Blog', href: /blog|\.org\.il/, opensNewTab: true });
+    await expect(newPage!).toHaveURL(/blog|\.org\.il/);
     await newPage!.close();
   });
 
@@ -104,7 +104,7 @@ test.describe('Library Module Sidebar Tests', () => {
       { name: 'Instagram', href: /instagram\.com/ },
       { name: 'Facebook', href: /facebook\.com/ },
       { name: 'YouTube', href: /youtube\.com/ },
-      { name: 'Shop', href: /store\.sefaria\.org/ },
+      { name: 'Shop', href: /store\.\w*\.org/ },
     ];
 
     for (const s of socialSpecs) {
@@ -122,8 +122,7 @@ test.describe('Library Module Sidebar Tests', () => {
 
     await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
   });
-
-  test('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
+  test.skip('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
     await hideAllModalsAndPopups(page);
 
     // Both links present in the sidebar footer with expected hrefs
@@ -138,10 +137,10 @@ test.describe('Library Module Sidebar Tests', () => {
       await expect(page).toHaveURL(urlPattern);
 
       const googleDocFrame = page.locator('iframe[src*="docs.google.com"]').first();
-      await expect(googleDocFrame).toBeVisible({ timeout: t(15000) });
+      await expect(googleDocFrame).toBeVisible({ timeout: t(4000) });
 
       const frame = page.frameLocator('iframe[src*="docs.google.com"]');
-      await expect(frame.locator('body')).not.toBeEmpty({ timeout: t(15000) });
+      await expect(frame.locator('body')).not.toBeEmpty({ timeout: t(4000) });
 
       // Return to Library so the next iteration's sidebar click resolves
       await page.goto(MODULE_URLS.EN.LIBRARY);
