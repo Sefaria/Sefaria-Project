@@ -216,6 +216,25 @@ const BulkVersionEditor = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const waitForRenameTaskResult = async (taskId) => {
+    const maxAttempts = 20;
+    let delayMs = 600;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const status = await Sefaria.apiRequestWithBody(`/api/async/${taskId}`, null, null, 'GET');
+      if (status.state === "FAILURE") {
+        throw new Error(status.error || "Rename task failed");
+      }
+      if (status.state === "SUCCESS" || (status.ready && status.result)) {
+        return status.result || {};
+      }
+      await sleep(delayMs);
+      delayMs = Math.min(Math.floor(delayMs * 1.5), 4000);
+    }
+    throw new Error("Timed out waiting for rename task to complete");
+  };
+
   /**
    * Clear search and reset state
    */
@@ -494,8 +513,19 @@ const BulkVersionEditor = () => {
           ...(lang ? { language: lang } : {})
         };
         try {
-          await Sefaria.apiRequestWithBody(url, null, payload);
-          successes.push(indexTitle);
+          const response = await Sefaria.apiRequestWithBody(url, null, payload);
+          if (response.task_id) {
+            const taskResult = await waitForRenameTaskResult(response.task_id);
+            if (taskResult.status === "ok") {
+              successes.push(indexTitle);
+            } else {
+              failures.push({ index: indexTitle, error: taskResult.error || "Rename failed" });
+            }
+          } else if (response.status === "ok") {
+            successes.push(indexTitle);
+          } else {
+            failures.push({ index: indexTitle, error: response.error || "Rename failed" });
+          }
         } catch (error) {
           failures.push({ index: indexTitle, error: error.message || "Unknown error" });
         }

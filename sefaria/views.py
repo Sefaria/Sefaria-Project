@@ -45,9 +45,9 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
@@ -1808,12 +1808,11 @@ def version_rename_api(request):
       POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
 
     Response:
-      Success: 200 {"status": "ok"}
-      Failure: non-200 {"error": "..."}
+      Celery enabled: 202 {"task_id": "..."}
+      Celery disabled: 200 {"status": "ok"} or non-200 {"error": "..."}
 
-    Callers that need to rename a versionTitle across many indices should iterate
-    client-side and call this endpoint once per index, aggregating per-index
-    successes and failures.
+    Callers that need to rename a versionTitle across many indices should call
+    this endpoint once per index and aggregate per-index results.
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
@@ -1841,57 +1840,33 @@ def version_rename_api(request):
         return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
 
     language = data.get("language")
+    rename_payload = {
+        "user_id": request.user.id,
+        "versionTitle": version_title,
+        "newVersionTitle": new_version_title,
+        "index": index_title,
+        "language": language,
+    }
 
-    try:
-        load_query = {"title": index_title, "versionTitle": version_title}
-        if language:
-            load_query["language"] = language
-        version = Version().load(load_query)
-        if not version:
-            return jsonResponse({"error": f'No Version "{version_title}" found'}, status=404)
-
-        collision_query = {"title": index_title, "versionTitle": new_version_title}
-        if language:
-            collision_query["language"] = language
-        existing = Version().load(collision_query)
-        if existing and getattr(existing, "_id", None) != getattr(version, "_id", None):
-            return jsonResponse({"error": f'Version "{new_version_title}" already exists'}, status=409)
-
-        # Capture language before updating since it's needed for varnish invalidation
-        lang = version.language
-        try:
-            tracker.update_version_metadata(request.user.id, version, {"versionTitle": new_version_title})
-        except Exception:
-            logger.exception(
-                "version_rename_api: tracker.update_version_metadata failed",
-                index=index_title,
-                versionTitle=version_title,
-                newVersionTitle=new_version_title,
-                language=language,
-            )
-            raise
-
-        if USE_VARNISH:
-            try:
-                oref = Ref(index_title)
-                invalidate_linked(oref)
-                invalidate_ref(oref, lang, version_title)
-                invalidate_ref(oref, lang, new_version_title)
-            except Exception as e:
-                logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
-
-        return jsonResponse({"status": "ok"})
-
-    except Exception as e:
-        logger.exception(
-            "version_rename_api failed",
-            index=index_title,
-            versionTitle=version_title,
-            newVersionTitle=new_version_title,
-            language=language,
+    if CELERY_ENABLED:
+        from sefaria.helper.texts.tasks import rename_version_title
+        async_result = rename_version_title.apply_async(
+            args=(rename_payload,),
+            queue=CeleryQueue.TASKS.value,
         )
-        error_msg = str(e) if str(e) else type(e).__name__
-        return jsonResponse({"error": error_msg}, status=500)
+        return celeryResponse(async_result.id)
+
+    from sefaria.helper.texts.tasks import run_version_rename
+    result, status_code = run_version_rename(
+        user_id=request.user.id,
+        version_title=version_title,
+        new_version_title=new_version_title,
+        index_title=index_title,
+        language=language,
+    )
+    if result.get("status") == "error" and "error" in result:
+        return jsonResponse({"error": result["error"]}, status=status_code)
+    return jsonResponse(result, status=status_code)
 
 
 @staff_member_required

@@ -592,6 +592,44 @@ class TestVersionRenameAPI:
         assert 'error' in data
 
     @pytest.mark.django_db
+    def test_rename_enqueues_task_when_celery_enabled(self, staff_client, monkeypatch):
+        """When Celery is enabled, endpoint should return task_id for async polling."""
+
+        class DummyAsyncResult:
+            id = "fake-task-id-123"
+
+        class DummyTask:
+            def __init__(self):
+                self.called = False
+                self.queue = None
+                self.args = None
+
+            def apply_async(self, args, queue):
+                self.called = True
+                self.queue = queue
+                self.args = args
+                return DummyAsyncResult()
+
+        dummy_task = DummyTask()
+        monkeypatch.setattr("sefaria.views.CELERY_ENABLED", True)
+        monkeypatch.setattr("sefaria.helper.texts.tasks.rename_version_title", dummy_task)
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'AnyTitle',
+                'newVersionTitle': 'AnyTitle_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 202
+        data = json.loads(response.content)
+        assert data["task_id"] == "fake-task-id-123"
+        assert dummy_task.called is True
+
+    @pytest.mark.django_db
     def test_rename_success(self, staff_client):
         """Successful rename should change Version.versionTitle."""
         from sefaria.model import Version
