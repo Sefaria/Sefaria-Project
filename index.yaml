@@ -92,6 +92,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.2-keda-objects.1.tgz
     version: 0.85.2-keda-objects.1
   - apiVersion: v2
+    appVersion: v6.95.5
+    created: "2026-05-13T11:52:20.663733523Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 911064c68213959a4b68e45f4bb02a4a3c434ff709ad8f275931f67d70a7fc33
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.2-akiva-master.1.tgz
+    version: 0.85.2-akiva-master.1
+  - apiVersion: v2
     appVersion: v6.95.0
     created: "2026-05-12T10:32:28.51250789Z"
     description: Chart to deploy complete Sefaria environment
@@ -16620,4 +16635,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-05-13T11:41:05.37296721Z"
+generated: "2026-05-13T11:52:20.661049093Z"
