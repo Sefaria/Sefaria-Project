@@ -229,6 +229,7 @@ shared_patterns = [
     path('sefaria.js', sefaria_views.sefaria_js),
 
     re_path(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
+    path('linker.v3.js.map', sefaria_views.linker_js_map),
     re_path(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
     re_path(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     re_path(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
