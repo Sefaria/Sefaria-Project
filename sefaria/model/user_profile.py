@@ -2,6 +2,25 @@ import hashlib
 import urllib.request, urllib.parse, urllib.error
 import re
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
+
+_BIO_ALLOWED_TAGS = [
+    'a', 'strong', 'em', 'u', 's', 'sub', 'sup',
+    'p', 'br', 'div', 'span',
+    'ul', 'ol', 'li',
+    'table', 'tbody', 'tr', 'th', 'td',
+    'img', 'hr',
+]
+_BIO_ALLOWED_ATTRS = {
+    'a':   ['href', 'target'],
+    'img': ['src', 'alt', 'height', 'width', 'style'],
+    'td':  ['colspan', 'rowspan', 'style'],
+    'th':  ['colspan', 'rowspan', 'style'],
+    '*':   ['style', 'dir'],
+}
+_BIO_CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
+    'color', 'background-color', 'font-family', 'font-size', 'text-align', 'direction',
+])
 import sys
 import json
 import csv
@@ -497,7 +516,7 @@ class UserProfile(object):
         Save profile to DB, updated Django User object if needed
         """
         # Sanitize & Linkify fields that allow HTML
-        self.bio = bleach.linkify(self.bio)
+        self.bio = bleach.linkify(bleach.clean(self.bio, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True))
 
         d = self.to_mongo_dict()
         if self._id:
