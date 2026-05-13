@@ -3935,7 +3935,17 @@ class Ref(object, metaclass=RefCacheType):
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
         if self.index_node.is_virtual:
-            size = len(self.text().text)
+            # Honour the requested language; fall back to whichever language has content
+            # so single-language texts (e.g. dictionary entries with only a Hebrew Version)
+            # can still enumerate their segments.
+            size = len(self.text(lang).text) if lang in ("he", "en") else 0
+            if not size:
+                for fallback_lang in ("he", "en"):
+                    if fallback_lang == lang:
+                        continue
+                    size = len(self.text(fallback_lang).text)
+                    if size:
+                        break
             return self.subrefs(size)
         state_ja = state_ja or self.get_state_ja(lang)
         size = state_ja.sub_array_length([i - 1 for i in self.sections])
