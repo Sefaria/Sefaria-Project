@@ -30,7 +30,6 @@ import {
   InterruptingMessage,
   Banner,
   CookiesNotification,
-  CommunityPagePreviewControls
 } from './Misc';
 import Button from './common/Button';
 import { Promotions } from './Promotions';
@@ -141,7 +140,7 @@ class ReaderApp extends Component {
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
-      menuOpen:                state.menuOpen                || null, // "navigation", "display", "search", "sheets", "community", "book toc"
+      menuOpen:                state.menuOpen                || null, // "navigation", "display", "search", "sheets", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
@@ -536,11 +535,6 @@ class ReaderApp extends Component {
               const allTopicsTitle = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter;
               hist.title = Sefaria.getPageTitle(allTopicsTitle);
               hist.mode  = "topics";
-            break;
-          case "community":
-            hist.title = Sefaria.getPageTitle("From the Community: Today on Sefaria");
-            hist.url   = "community";
-            hist.mode  = "community";
             break;
           case "profile":
             hist.title = Sefaria.getPageTitle(state.profile.full_name);
@@ -1294,9 +1288,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/collections") {
       this.showCollections();
 
-    } else if (path === "/community") {
-      this.showCommunity();
-
     } else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug, params.get("tab"));
 
@@ -1922,9 +1913,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const searchState = new SearchState({ type: 'sheet',  appliedFilters, appliedFilterAggTypes});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
-  showCommunity() {
-    this.setSinglePanelState({menuOpen: "community"});
-  }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
   }
@@ -2441,10 +2429,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       />
     );
 
-    const communityPagePreviewControls = this.props.communityPreview ?
-      <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
-
-
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
@@ -2466,7 +2450,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner />}
+              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
@@ -2482,13 +2466,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
-                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
-                  interface-lang={this.props.interfaceLang}
+                  interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
               </main>
               {signUpModal}
-              {communityPagePreviewControls}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />

@@ -25,6 +25,7 @@ dmp = diff_match_patch()
 
 from . import abstract as abst
 from sefaria.system.database import db
+from sefaria.system.progress_context import report_progress
 
 
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
@@ -164,7 +165,7 @@ def process_index_title_change_in_history(indx, **kwargs):
         query_list = [{attribute: {'$regex': query}} for query in queries]
         return {'$or': query_list}
 
-    print("Cascading History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading History {} to {}".format(kwargs['old'], kwargs['new']))
     """
     Update all history entries which reference 'old' to 'new'.
     """
@@ -174,25 +175,25 @@ def process_index_title_change_in_history(indx, **kwargs):
     title_pattern = r'(^{}$)'.format(re.escape(kwargs["old"]))
 
     text_hist = HistorySet(construct_query('ref', queries),  sort=[('ref', 1)])
-    print("Cascading Text History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Text History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in text_hist:
         h.ref = h.ref.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     link_hist = HistorySet(construct_query("new.refs", queries), sort=[('new.refs', 1)])
-    print("Cascading Link History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Link History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in link_hist:
         h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
         h.save()
 
     note_hist = HistorySet(construct_query("new.ref", queries), sort=[('new.ref', 1)])
-    print("Cascading Note History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Note History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in note_hist:
         h.new["ref"] = h.new["ref"].replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     title_hist = HistorySet({"title": {"$regex": title_pattern}}, sort=[('title', 1)])
-    print("Cascading Index History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Index History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in title_hist:
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
