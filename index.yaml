@@ -873,6 +873,21 @@ entries:
     version: 0.84.3-reduce-tasks-replicas-to-6.1
   - apiVersion: v2
     appVersion: v6.94.2-prod.3
+    created: "2026-05-13T14:04:10.590436448Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 605b778149de16bf675f12cf17a17458d264948d75c626ef64c0ebdb0f291230
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.84.3-prod.3.tgz
+    version: 0.84.3-prod.3
+  - apiVersion: v2
+    appVersion: v6.94.2-prod.3
     created: "2026-05-13T12:50:06.659513866Z"
     description: Chart to deploy complete Sefaria environment
     digest: ffb065876071fca6364e2ee4c8e9db67fa14fbba0cbf8acc0a67bf73b58862a6
@@ -16710,4 +16725,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-05-13T13:57:38.790912342Z"
+generated: "2026-05-13T14:04:10.587260475Z"
