@@ -127,6 +127,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Resource Panel (ConnectionsPanel) feature-coverage tests — Library module
+    {
+      name: 'chrome-resource-panel',
+      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -166,6 +175,14 @@ export default defineConfig({
     {
       name: 'firefox-assistant',
       testDir: './e2e-tests/assistant',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-resource-panel',
+      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -214,7 +231,15 @@ export default defineConfig({
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
-    }
+    },
+    {
+      name: 'safari-resource-panel',
+      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
 
 
