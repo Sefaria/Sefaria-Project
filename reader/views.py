@@ -84,7 +84,6 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_random_topic_source, edit_topic_source, \
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
-from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
@@ -3219,7 +3218,11 @@ def background_data_api(request):
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
-    data.update(community_page_data(request, language=language))
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        data["followRecommendations"] = profile.follow_recommendations(lang=language)
+    else:
+        data["followRecommendations"] = general_follow_recommendations(lang=language)
 
     return jsonResponse(data)
 
@@ -4272,60 +4275,6 @@ def home(request):
     Homepage (which is the texts page)
     """
     return redirect("/texts")
-
-
-def community_page(request, props={}):
-    """
-    Community Page
-    """
-    title = get_page_title("From the Community: Today on Sefaria", module=request.active_module)
-    desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
-    data  = community_page_data(request, language=request.interfaceLang)
-    data.update(props) # don't overwrite data that was passed n with props
-    return menu_page(request, page="community", props=data, title=title, desc=desc)
-
-
-def community_page_data(request, language="english"):
-    data = {
-        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
-    }
-    if request.user.is_authenticated:
-        profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
-    else:
-        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
-
-    return data
-
-
-@staff_member_required
-def community_preview(request):
-    """
-    Preview the community page as it will appear at some date in the future
-    """
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("date", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
-
-
-@staff_member_required
-def community_reset(request):
-    """
-    Reset the cache of the community page content from Google sheet
-    """
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
-
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("next", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):
