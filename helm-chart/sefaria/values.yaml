@@ -576,8 +576,18 @@ keda:
           var WARN_AFTER = 180;
           var RELOAD_INTERVAL = 15;
           var key = 'keda_splash_start_' + location.hostname;
-          var start = parseInt(localStorage.getItem(key) || '0');
-          if (!start) { start = Date.now(); localStorage.setItem(key, start); }
+
+          var start = (function() {
+            try {
+              var s = parseInt(localStorage.getItem(key) || '0');
+              if (!s) { s = Date.now(); localStorage.setItem(key, s); }
+              return s;
+            } catch(e) { return Date.now(); }
+          })();
+
+          function clearStart() {
+            try { localStorage.removeItem(key); } catch(e) {}
+          }
 
           function fmt(s) {
             return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
@@ -590,7 +600,7 @@ keda:
             if (elapsed >= WARN_AFTER) document.getElementById('warn').style.display = '';
             countdown--;
             document.getElementById('countdown').textContent = countdown;
-            if (countdown <= 0) { localStorage.removeItem(key); location.reload(); }
+            if (countdown <= 0) { clearStart(); location.reload(); }
           }, 1000);
         </script>
       </body>
