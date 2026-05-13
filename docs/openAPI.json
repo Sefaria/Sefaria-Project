@@ -57,12 +57,12 @@
       "description": "Operations related to Sefaria collections — curated groups of source sheets"
     },
     {
-      "name": "Misc",
-      "description": "Miscellaneous API endpoints"
-    },
-    {
       "name": "Ref",
       "description": "Operations related to validating and analyzing text references"
+    },
+    {
+      "name": "Misc",
+      "description": "Miscellaneous API endpoints"
     }
   ],
   "paths": {
@@ -12409,7 +12409,12 @@
           "name": "tref",
           "description": "A valid segment-level Sefaria textual `Ref`. ",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ref"
+              }
+            ],
+            "default": "Deuteronomy 1.2"
           },
           "in": "path",
           "required": true
@@ -19339,7 +19344,8 @@
           "name": "tref",
           "description": "A text reference string to validate and analyze. Can be any Sefaria reference, including book-level, section-level, segment-level, or ranged references.",
           "schema": {
-            "type": "string"
+            "type": "string",
+            "default": "Genesis 1:1"
           },
           "in": "path",
           "required": true,
