@@ -2963,7 +2963,7 @@ _media: {},
         throw new Error('Invalid day. Expected "holiday" or "parasha".');
       }
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          url:   `${this.apiHost}/api/calendars/topics/${day}?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
           key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });

@@ -1,0 +1,71 @@
+name: "Promotion Gate"
+
+# Runs on PRs targeting preprod or prod.
+# Validates the source branch matches the allowed promotion path.
+# Add "Promotion Gate" as a required status check in branch protection
+# settings for preprod and prod — PRs cannot merge without this passing.
+#
+# Allowed paths:
+#   preprod ← master, hotfix/*
+#   prod    ← preprod, hotfix/*
+#
+# Who can approve merges is controlled by GitHub environment reviewers
+# on the "promote-preprod" and "promote-prod" environments, not here.
+
+on:
+  pull_request:
+    branches: [preprod, prod]
+  merge_group:
+    branches: [preprod, prod]
+
+jobs:
+  validate-promotion-path:
+    name: "Promotion Gate"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        env:
+          TARGET: ${{ github.base_ref || github.event.merge_group.base_ref }}
+          SOURCE: ${{ github.head_ref || github.event.merge_group.head_ref }}
+        run: |
+          echo "PR: $SOURCE → $TARGET"
+
+          # Guard against empty refs (e.g. merge_group event with missing head_ref)
+          if [[ -z "$SOURCE" || -z "$TARGET" ]]; then
+            echo "❌ ERROR: SOURCE or TARGET branch is empty — cannot validate promotion path."
+            echo "  SOURCE='$SOURCE' TARGET='$TARGET'"
+            exit 1
+          fi
+
+          # hotfix/* branches are allowed into both preprod and prod
+          if [[ "$SOURCE" == hotfix/* ]]; then
+            echo "✅ $TARGET ← $SOURCE: hotfix branch allowed"
+            exit 0
+          fi
+
+          if [[ "$TARGET" == "preprod" ]]; then
+            if [[ "$SOURCE" == "master" ]]; then
+              echo "✅ preprod ← master: allowed"
+            else
+              echo "❌ BLOCKED: preprod only accepts PRs from master or hotfix/*"
+              echo ""
+              echo "  Got: $SOURCE → preprod"
+              echo "  Expected: master → preprod (or hotfix/* → preprod)"
+              exit 1
+            fi
+
+          elif [[ "$TARGET" == "prod" ]]; then
+            if [[ "$SOURCE" == "preprod" ]]; then
+              echo "✅ prod ← preprod: allowed"
+            else
+              echo "❌ BLOCKED: prod only accepts PRs from preprod or hotfix/*"
+              echo ""
+              echo "  Got: $SOURCE → prod"
+              echo "  Expected: preprod → prod (or hotfix/* → prod)"
+              exit 1
+            fi
+
+          else
+            echo "❌ ERROR: Unexpected target branch '$TARGET' — gate only applies to preprod and prod."
+            exit 1
+          fi

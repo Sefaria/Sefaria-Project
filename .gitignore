@@ -87,6 +87,7 @@ CLAUDE.md
 #  Virtualenv Files #
 #####################
 venv/
+.venv*
 .python-version
 .node-version
 

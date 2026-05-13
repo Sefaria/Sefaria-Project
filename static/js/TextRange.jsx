@@ -135,9 +135,12 @@ class TextRange extends Component {
     this.conditionalPlaceSegmentNumbers();
     this.props.onTextLoad && this.props.onTextLoad(data.ref);
 
-    const connectionsPanelRefElement = document.querySelectorAll(`[data-ref='${this.props.filterRef}']`);
-    if (connectionsPanelRefElement.length > 0) {
-      connectionsPanelRefElement[0].scrollIntoView();
+    const filterRef = this.props.filterRef;
+    if (filterRef) {
+      const connectionsPanelRefElement = Array.from(
+        document.querySelectorAll("[data-ref]")
+      ).find((node) => node.getAttribute("data-ref") === filterRef);
+      connectionsPanelRefElement?.scrollIntoView();
     }
   }
   _prefetchLinksAndNotes(data) {

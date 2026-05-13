@@ -9,18 +9,18 @@ import requests
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Any
 from dataclasses import asdict
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
 from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.conf import settings
 from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
@@ -46,7 +46,7 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
@@ -92,11 +92,27 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
+    http_method_names = ["get", "post", "options"]
+
+    def get(self, request, *args, **kwargs):
+        # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
+        # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
+        return self.post(request, *args, **kwargs)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
-            return resolve_url(next_page)
+            # Validate ?next= against the request host before redirecting. Django's stock
+            # LogoutView.get_next_page does this; this override previously skipped it,
+            # which combined with GET-based logout would let a crafted /logout?next=...
+            # link bounce a user to an attacker-controlled domain (open redirect).
+            url_is_safe = url_has_allowed_host_and_scheme(
+                url=next_page,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+            if url_is_safe:
+                return resolve_url(next_page)
         return super().get_next_page()
 
 
@@ -198,30 +214,29 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next = request.GET.get('next', '')
+    next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
-            if "noredirect" in request.POST:
-                return HttpResponse("ok")
-            elif "new?assignment=" in request.POST.get("next",""):
-                next = request.POST.get("next", "")
-                return HttpResponseRedirect(next)
+            if "new?assignment=" in request.POST.get("next", ""):
+                next_url = request.POST.get("next", "")
             else:
-                next = request.POST.get("next", "/")
-                if "?" in next:
-                    next += "&welcome=to-sefaria"
-                else:
-                    next += "?welcome=to-sefaria"
-                return HttpResponseRedirect(next)
+                next_url = request.POST.get("next", "/")
+                parsed = urlparse(next_url)
+                next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if "noredirect" in request.POST:
+                return jsonResponse({"redirect": next_url})
+            return HttpResponseRedirect(next_url)
+        elif "noredirect" in request.POST:
+            return jsonResponse(errors)
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
 
 
 def maintenance_message(request):
@@ -404,6 +419,10 @@ def linker_js(request, linker_version=None):
     }
 
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+
+
+def linker_js_map(request):
+    return HttpResponse(read_webpack_bundle_map("LINKER"), content_type="application/json")
 
 
 @api_view(["POST"])
