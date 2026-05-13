@@ -1,10 +1,5 @@
-import bleach
 import pytest
-from sefaria.model.user_profile import _BIO_ALLOWED_TAGS, _BIO_ALLOWED_ATTRS, _BIO_CSS_SANITIZER
-
-
-def clean(html):
-    return bleach.linkify(bleach.clean(html, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True))
+from sefaria.model.user_profile import sanitize_bio
 
 
 # --- Allowed formatting is preserved ---
@@ -19,7 +14,7 @@ def clean(html):
      '<table><tbody><tr><td colspan="2">cell</td></tr></tbody></table>'),
 ])
 def test_allowed_tags_preserved(html, expected):
-    assert clean(html) == expected
+    assert sanitize_bio(html) == expected
 
 
 @pytest.mark.parametrize("css_prop,css_val", [
@@ -31,23 +26,22 @@ def test_allowed_tags_preserved(html, expected):
     ("direction",        "rtl"),
 ])
 def test_allowed_css_preserved(css_prop, css_val):
-    result = clean(f'<span style="{css_prop}: {css_val}">text</span>')
-    assert css_prop in result
+    assert css_prop in sanitize_bio(f'<span style="{css_prop}: {css_val}">text</span>')
 
 
 def test_dir_attr():
-    assert 'dir="rtl"' in clean('<p dir="rtl">text</p>')
+    assert 'dir="rtl"' in sanitize_bio('<p dir="rtl">text</p>')
 
 
 def test_link():
-    result = clean('<a href="https://sefaria.org" target="_blank">link</a>')
+    result = sanitize_bio('<a href="https://sefaria.org" target="_blank">link</a>')
     assert 'href="https://sefaria.org"' in result
     assert 'target="_blank"' in result
-    assert 'rel="nofollow"' in result  # bleach.linkify adds this by default
+    assert 'nofollow' in result
 
 
 def test_image():
-    result = clean('<img src="https://example.com/img.png" alt="x" height="100" width="100">')
+    result = sanitize_bio('<img src="https://example.com/img.png" alt="x" height="100" width="100">')
     assert 'src="https://example.com/img.png"' in result
     assert 'alt="x"' in result
 
@@ -55,13 +49,13 @@ def test_image():
 # --- Security: disallowed tags are stripped ---
 
 @pytest.mark.parametrize("html,absent", [
-    ("<script>alert('xss')</script>",          "<script>"),
+    ("<script>alert('xss')</script>",           "<script>"),
     ('<iframe src="https://evil.com"></iframe>', "<iframe"),
     ("<style>body { display: none }</style>",   "<style>"),
     ("<object data='evil'></object>",           "<object"),
 ])
 def test_disallowed_tags_stripped(html, absent):
-    assert absent not in clean(html)
+    assert absent not in sanitize_bio(html)
 
 
 # --- Security: disallowed attributes are stripped ---
@@ -73,7 +67,7 @@ def test_disallowed_tags_stripped(html, absent):
     ('<span data-custom="evil">text</span>',    "data-custom"),
 ])
 def test_disallowed_attrs_stripped(html, absent):
-    assert absent not in clean(html)
+    assert absent not in sanitize_bio(html)
 
 
 # --- Security: disallowed CSS properties are stripped ---
@@ -84,6 +78,14 @@ def test_disallowed_attrs_stripped(html, absent):
     "width: expression(alert(1))",
 ])
 def test_disallowed_css_stripped(style):
-    tag, prop = style.split(":")[0].strip(), style.split(":")[0].strip()
-    result = clean(f'<p style="{style}">text</p>')
-    assert prop not in result
+    result = sanitize_bio(f'<p style="{style}">text</p>')
+    for declaration in style.split(";"):
+        if ":" in declaration:
+            assert declaration.split(":")[0].strip() not in result
+
+
+# --- Security: reverse-tabnabbing protection ---
+
+def test_target_blank_gets_noopener():
+    result = sanitize_bio('<a href="https://sefaria.org" target="_blank">link</a>')
+    assert 'noopener' in result or 'noreferrer' in result
