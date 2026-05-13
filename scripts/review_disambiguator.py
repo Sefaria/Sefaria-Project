@@ -26,8 +26,8 @@ from sefaria.helper.linker.tasks import _is_non_segment_or_perek_ref
 
 
 # ---- params (edit these) ----
-INPUT_REF_OR_URL = "Midrash Tanchuma, Vayechi 14:1"
-VERSION_TITLE = "Tsel Midrash Tanchuma"
+INPUT_REF_OR_URL = "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem 37:26"
+VERSION_TITLE = None
 BASE_URL_OVERRIDE = None  # e.g. "https://www.sefaria.org"
 # -----------------------------
 
