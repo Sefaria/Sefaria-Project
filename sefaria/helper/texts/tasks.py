@@ -176,7 +176,7 @@ def rename_version_title(self, rename_payload: dict):
             lines.append(f"Error: {result.get('error', 'Unknown error')}")
             color = "#a30200"
             icon_emoji = ":warning:"
-        send_message(
+        slack_response = send_message(
             "#engineering-signal",
             "Version Rename",
             title,
@@ -184,7 +184,27 @@ def rename_version_title(self, rename_payload: dict):
             icon_emoji=icon_emoji,
             color=color,
         )
+        logger.info(
+            "rename_version_title: slack notification sent",
+            task_id=task_id,
+            index=index_title,
+            slack_status_code=getattr(slack_response, "status_code", None),
+            slack_ok=getattr(slack_response, "ok", None),
+            slack_reason=getattr(slack_response, "reason", None),
+        )
+        if not getattr(slack_response, "ok", False):
+            logger.warning(
+                "rename_version_title: slack notification non-2xx",
+                task_id=task_id,
+                index=index_title,
+                slack_status_code=getattr(slack_response, "status_code", None),
+                slack_body=getattr(slack_response, "text", None),
+            )
     except Exception:
-        logger.warning("rename_version_title: slack notification failed")
+        logger.exception(
+            "rename_version_title: slack notification failed",
+            task_id=getattr(self.request, "id", None),
+            index=rename_payload.get("index"),
+        )
 
     return result
