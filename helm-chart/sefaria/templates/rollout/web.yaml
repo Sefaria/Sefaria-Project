@@ -107,6 +107,8 @@ spec:
             value: "true"
           - name: DD_PROFILING_ENABLED
             value: "true"
+          - name: DD_PROFILING_MAX_FRAMES
+            value: "128"
           - name: DD_RUNTIME_METRICS_ENABLED
             value: "true"
           - name: DD_ENTITY_ID
