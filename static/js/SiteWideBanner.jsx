@@ -100,7 +100,7 @@ const PROJECT = 'Library Assistant';
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
-  const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || CHATBOT_BANNER_LEARN_MORE_URLS.en;
+  const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
 
   const handleJoin = async () => {
     setIsActionPending(true);
