@@ -55,14 +55,14 @@ class TestUserExperimentSettingsSync(TestCase):
         mock_dispatch.reset_mock()
         _set_user_experiments(self.user, True)  # first call — created, fires
         self.assertEqual(mock_dispatch.call_count, 1)
-        mock_dispatch.assert_called_with(self.user.email, True)
+        mock_dispatch.assert_called_with(self.user.email, True, "english")
 
         mock_dispatch.reset_mock()
         _set_user_experiments(self.user, True)  # same value — no fire
         mock_dispatch.assert_not_called()
 
         _set_user_experiments(self.user, False)  # changed — fires
-        mock_dispatch.assert_called_once_with(self.user.email, False)
+        mock_dispatch.assert_called_once_with(self.user.email, False, "english")
 
     # Keep compatibility with older test node IDs.
     def test_user_experiment_settings_admin_updates_profile_without_duplicates(self, _mock_dispatch):
@@ -222,7 +222,7 @@ class TestUploadCsvView(TestCase):
 
         self.assertEqual(mock_dispatch.call_count, len(emails))
         for u in self.existing_users:
-            mock_dispatch.assert_any_call(u.email, True)
+            mock_dispatch.assert_any_call(u.email, True, "english")
 
     def test_case_insensitive_email_matching(self, _mock_dispatch):
         user = self.existing_users[0]

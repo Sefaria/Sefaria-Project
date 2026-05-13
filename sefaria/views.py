@@ -45,7 +45,7 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
@@ -423,6 +423,10 @@ def linker_js(request, linker_version=None):
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
+def linker_js_map(request):
+    return HttpResponse(read_webpack_bundle_map("LINKER"), content_type="application/json")
+
+
 @api_view(["POST"])
 def find_refs_report_api(request):
     from sefaria.system.database import db
@@ -741,8 +745,15 @@ def reset_websites_data(request):
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
+    try:
+        index = model.library.get_index(title)
+    except BookNameError:
+        # The title may have been renamed in a Celery worker whose cache update
+        # hasn't propagated to this web-server process yet. Load fresh from DB.
+        index = model.Index().load({"title": title})
+        if index is None:
+            return HttpResponseRedirect("/?m=Title-Not-Found")
 
-    index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 
@@ -865,7 +876,12 @@ def reset_ref(request, tref):
     :param tref:
     :return:
     """
-    oref = model.Ref(tref)
+    try:
+        oref = model.Ref(tref)
+    except InputError:
+        # in the case of index title change, you may need to refresh cache to get the current index since title changes now happen in celery
+        library.refresh_index_record_in_cache(tref)
+        oref = model.Ref(tref)
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
