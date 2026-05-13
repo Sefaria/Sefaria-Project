@@ -208,8 +208,12 @@
           if (result.ok) {
             window.location.reload();
           } else {
-            console.error('Google SSO error:', result.data.error);
+            alert((result.data && result.data.error) || 'Sign in failed. Please try again.');
           }
+        })
+        .catch(function(err) {
+          console.error('Google SSO error:', err);
+          alert('Sign in failed. Please try again.');
         });
       }
     </script>

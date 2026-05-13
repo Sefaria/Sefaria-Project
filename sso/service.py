@@ -12,10 +12,6 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class EmailCollisionError(Exception):
-    pass
-
-
 class AlreadyLinkedError(Exception):
     pass
 
@@ -28,7 +24,13 @@ class SocialAuthService:
 
     @staticmethod
     def get_or_create_social_user(provider, uid, email, first_name, last_name, request):
-        """Returns (user, is_new_user). Raises EmailCollisionError if email exists but (provider, uid) is unknown."""
+        """Returns (user, is_new_user).
+
+        If an existing account matches the SSO email but is not yet linked to this
+        (provider, uid), auto-link it. The provider has already asserted the email
+        is verified (Google/Apple both sign verified emails into the ID token), so
+        the SSO user demonstrably controls the mailbox.
+        """
         try:
             identity = SocialIdentity.objects.select_related("user").get(provider=provider, uid=uid)
             return identity.user, False
@@ -36,7 +38,9 @@ class SocialAuthService:
             pass
 
         if user_exists(email):
-            raise EmailCollisionError()
+            existing_user = get_user(email)
+            SocialIdentity.objects.create(provider=provider, uid=uid, email=email, user=existing_user)
+            return existing_user, False
 
         with transaction.atomic():
             new_user = create_user(email, password=None)

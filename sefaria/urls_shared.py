@@ -31,6 +31,7 @@ shared_patterns = [
     path('api/auth/apple/callback', sefaria_views.apple_sso_callback, name='apple_sso_callback'),
     path('api/auth/link/<str:provider>', sefaria_views.link_social_provider, name='link_social_provider'),
     path('api/auth/unlink/<str:provider>', sefaria_views.unlink_social_provider, name='unlink_social_provider'),
+    path('api/auth/status', sefaria_views.user_auth_status, name='user_auth_status'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
     re_path(r'^history/?$', reader_views.user_history_content),

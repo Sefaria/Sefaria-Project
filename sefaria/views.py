@@ -224,7 +224,7 @@ def register_api(request):
 @permission_classes([AllowAny])
 def google_sso_callback(request):
     from sso.providers.google import verify_token
-    from sso.service import SocialAuthService, EmailCollisionError
+    from sso.service import SocialAuthService
 
     credential = request.data.get("credential") or request.POST.get("credential")
     if not credential:
@@ -235,19 +235,14 @@ def google_sso_callback(request):
     except Exception:
         return jsonResponse({"error": "Google sign-in failed. Please try again."}, status=401)
 
-    try:
-        user, is_new_user = SocialAuthService.get_or_create_social_user(
-            provider="google",
-            uid=payload["sub"],
-            email=payload["email"],
-            first_name=payload["given_name"],
-            last_name=payload["family_name"],
-            request=request,
-        )
-    except EmailCollisionError:
-        return jsonResponse({
-            "error": "An account with this email already exists. Sign in with your password, then connect Google in Settings → Login Methods."
-        }, status=409)
+    user, is_new_user = SocialAuthService.get_or_create_social_user(
+        provider="google",
+        uid=payload["sub"],
+        email=payload["email"],
+        first_name=payload["given_name"],
+        last_name=payload["family_name"],
+        request=request,
+    )
 
     auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
     from rest_framework_simplejwt.tokens import RefreshToken
@@ -262,7 +257,7 @@ def google_sso_callback(request):
 @permission_classes([AllowAny])
 def apple_sso_callback(request):
     from sso.providers.apple import verify_token
-    from sso.service import SocialAuthService, EmailCollisionError
+    from sso.service import SocialAuthService
 
     id_token = request.data.get("id_token") or request.POST.get("id_token")
     if not id_token:
@@ -276,19 +271,14 @@ def apple_sso_callback(request):
     first_name = request.data.get("first_name", "")
     last_name = request.data.get("last_name", "")
 
-    try:
-        user, is_new_user = SocialAuthService.get_or_create_social_user(
-            provider="apple",
-            uid=payload["sub"],
-            email=payload["email"],
-            first_name=first_name,
-            last_name=last_name,
-            request=request,
-        )
-    except EmailCollisionError:
-        return jsonResponse({
-            "error": "An account with this email already exists. Sign in with your password, then connect Apple in Settings → Login Methods."
-        }, status=409)
+    user, is_new_user = SocialAuthService.get_or_create_social_user(
+        provider="apple",
+        uid=payload["sub"],
+        email=payload["email"],
+        first_name=first_name,
+        last_name=last_name,
+        request=request,
+    )
 
     auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
     from rest_framework_simplejwt.tokens import RefreshToken
@@ -338,6 +328,16 @@ def unlink_social_provider(request, provider):
         return jsonResponse({"error": "You must set a password before disconnecting a login method."}, status=409)
 
     return jsonResponse({"status": "ok"})
+
+
+@login_required
+@api_view(["GET"])
+def user_auth_status(request):
+    connected = list(request.user.social_identities.values_list("provider", flat=True))
+    return jsonResponse({
+        "linked_providers": connected,
+        "has_usable_password": request.user.has_usable_password(),
+    })
 
 
 def register(request):

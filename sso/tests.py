@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory, Client
 
 from sso.models import SocialIdentity
-from sso.service import SocialAuthService, EmailCollisionError, AlreadyLinkedError, LastLoginMethodError
+from sso.service import SocialAuthService, AlreadyLinkedError, LastLoginMethodError
 
 
 GOOGLE_PAYLOAD = {
@@ -95,28 +95,43 @@ class SocialAuthServiceReturningUserTest(TestCase):
 
 
 class SocialAuthServiceCollisionTest(TestCase):
+    """Email collision with a password account auto-links the new SocialIdentity to that user."""
+
     def setUp(self):
         self.password_user = User.objects.create_user(
             username="pwuser", email="collision@example.com", password="secret"
         )
 
-    def test_raises_on_email_collision_with_password_account(self):
-        with self.assertRaises(EmailCollisionError):
-            SocialAuthService.get_or_create_social_user(
-                provider="google", uid="new-uid", email="collision@example.com",
-                first_name="", last_name="", request=_make_request(),
-            )
+    def test_collision_auto_links_to_existing_password_account(self):
+        user, is_new_user = SocialAuthService.get_or_create_social_user(
+            provider="google", uid="new-uid", email="collision@example.com",
+            first_name="", last_name="", request=_make_request(),
+        )
+        self.assertFalse(is_new_user)
+        self.assertEqual(user.pk, self.password_user.pk)
+        self.assertTrue(
+            SocialIdentity.objects.filter(user=self.password_user, provider="google", uid="new-uid").exists()
+        )
 
     def test_collision_check_is_case_insensitive(self):
-        with self.assertRaises(EmailCollisionError):
-            SocialAuthService.get_or_create_social_user(
-                provider="google", uid="new-uid-2", email="Collision@Example.COM",
-                first_name="", last_name="", request=_make_request(),
-            )
+        user, is_new_user = SocialAuthService.get_or_create_social_user(
+            provider="google", uid="new-uid-2", email="Collision@Example.COM",
+            first_name="", last_name="", request=_make_request(),
+        )
+        self.assertFalse(is_new_user)
+        self.assertEqual(user.pk, self.password_user.pk)
+
+    def test_collision_does_not_create_duplicate_user(self):
+        user_count_before = User.objects.count()
+        SocialAuthService.get_or_create_social_user(
+            provider="google", uid="new-uid-3", email="collision@example.com",
+            first_name="", last_name="", request=_make_request(),
+        )
+        self.assertEqual(User.objects.count(), user_count_before)
 
     @patch("sso.service.SocialAuthService._import_gravatar")
     @patch("sso.service.UserProfile")
-    def test_no_collision_when_existing_user_has_social_identity(self, MockProfile, mock_gravatar):
+    def test_existing_user_with_one_provider_can_link_another(self, MockProfile, mock_gravatar):
         MockProfile.return_value = _mock_profile()
         SocialIdentity.objects.create(provider="apple", uid="apple-uid", email="collision@example.com", user=self.password_user)
 
@@ -124,7 +139,11 @@ class SocialAuthServiceCollisionTest(TestCase):
             provider="google", uid="google-uid-new", email="collision@example.com",
             first_name="", last_name="", request=_make_request(),
         )
-        self.assertTrue(is_new_user)
+        self.assertFalse(is_new_user)
+        self.assertEqual(user.pk, self.password_user.pk)
+        self.assertTrue(
+            SocialIdentity.objects.filter(user=self.password_user, provider="google", uid="google-uid-new").exists()
+        )
 
 
 class SocialAuthServiceLinkTest(TestCase):
@@ -179,29 +198,27 @@ class SocialAuthServiceUnlinkTest(TestCase):
 
 
 class CaseInsensitiveCollisionIntegrationTest(TestCase):
-    """User registers with mixed-case email; SSO returns lowercase — must hit the collision path."""
+    """User registers with mixed-case email; SSO returns lowercase — must auto-link to the existing user."""
 
     def setUp(self):
         self.user = User.objects.create_user(
             username="caseuser", email="CaseSensitive@Gmail.com", password="secret"
         )
 
-    def test_lowercase_sso_email_collides_with_mixed_case_account(self):
-        with self.assertRaises(EmailCollisionError):
-            SocialAuthService.get_or_create_social_user(
-                provider="google", uid="case-uid", email="casesensitive@gmail.com",
-                first_name="", last_name="", request=_make_request(),
-            )
+    def test_lowercase_sso_email_auto_links_to_mixed_case_account(self):
+        user, is_new_user = SocialAuthService.get_or_create_social_user(
+            provider="google", uid="case-uid", email="casesensitive@gmail.com",
+            first_name="", last_name="", request=_make_request(),
+        )
+        self.assertFalse(is_new_user)
+        self.assertEqual(user.pk, self.user.pk)
 
     def test_no_duplicate_user_created_on_collision(self):
         user_count_before = User.objects.count()
-        try:
-            SocialAuthService.get_or_create_social_user(
-                provider="google", uid="case-uid-2", email="casesensitive@gmail.com",
-                first_name="", last_name="", request=_make_request(),
-            )
-        except EmailCollisionError:
-            pass
+        SocialAuthService.get_or_create_social_user(
+            provider="google", uid="case-uid-2", email="casesensitive@gmail.com",
+            first_name="", last_name="", request=_make_request(),
+        )
         self.assertEqual(User.objects.count(), user_count_before)
 
 
@@ -229,14 +246,18 @@ class CallbackViewTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     @patch("sso.providers.google.verify_token", return_value=GOOGLE_PAYLOAD)
-    def test_google_callback_collision_returns_409(self, mock_verify):
-        User.objects.create_user(username="coll", email="user@example.com", password="secret")
+    def test_google_callback_auto_links_existing_password_account(self, mock_verify):
+        existing = User.objects.create_user(username="coll", email="user@example.com", password="secret")
         response = self.client.post(
             "/api/auth/google/callback",
             data={"credential": "fake-jwt"},
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["is_new_user"], False)
+        self.assertTrue(
+            SocialIdentity.objects.filter(user=existing, provider="google", uid=GOOGLE_PAYLOAD["sub"]).exists()
+        )
 
     @patch("sso.providers.google.verify_token", return_value=GOOGLE_PAYLOAD)
     @patch("sso.service.SocialAuthService._import_gravatar")
