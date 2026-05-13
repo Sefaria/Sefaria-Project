@@ -520,12 +520,22 @@ keda:
     enabled: true
     # Never scale to zero — nginx is the direct Envoy downstream and must always have endpoints.
     minReplicas: 1
+  varnish:
+    enabled: true
+    # Scale to zero when idle, but never above 1 — multiple instances fragment the cache.
+    maxReplicas: 1
   nodejs:
     enabled: true
   monitor:
     enabled: true
   tasks:
     enabled: true
+  redis:
+    enabled: true
+    # Redis is a plain Deployment, not an Argo Rollout.
+    apiVersion: apps/v1
+    kind: Deployment
+    maxReplicas: 1
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).
   # Requires Envoy Gateway v1.1+ (BackendTrafficPolicy responseOverride).
   splash:

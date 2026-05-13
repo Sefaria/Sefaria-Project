@@ -212,8 +212,8 @@ metadata:
     deployEnv: {{ $ctx.Values.deployEnv | quote }}
 spec:
   scaleTargetRef:
-    apiVersion: argoproj.io/v1alpha1
-    kind: Rollout
+    apiVersion: {{ $cfg.apiVersion | default "argoproj.io/v1alpha1" }}
+    kind: {{ $cfg.kind | default "Rollout" }}
     name: {{ $rolloutName }}
   minReplicaCount: {{ $cfg.minReplicas | default $keda.minReplicas }}
   maxReplicaCount: {{ $cfg.maxReplicas | default $keda.maxReplicas }}
