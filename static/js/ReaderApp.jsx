@@ -2466,7 +2466,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
-                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
                   interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
