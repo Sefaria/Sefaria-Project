@@ -12,10 +12,9 @@ Usage:
 import argparse
 import itertools
 import threading
+import http.client
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
-import urllib.request
-import urllib.error
+from urllib.parse import urlparse
 
 UPSTREAMS = [
     "https://parallels-3-0a.loadbalancer.dicta.org.il",
@@ -31,53 +30,57 @@ def _next_upstream() -> str:
         return next(_cycle)
 
 
-PASSTHROUGH_HEADERS = {
-    "content-type",
-    "accept",
-    "accept-encoding",
-    "user-agent",
-}
-
+# Headers we must not blindly forward: the outgoing http.client connection
+# sets host/content-length itself, and hop-by-hop headers don't survive proxies.
 HOP_BY_HOP = {
     "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
     "te", "trailers", "transfer-encoding", "upgrade",
+    "host", "content-length",
 }
+
+
+def _make_conn(upstream: str) -> http.client.HTTPConnection:
+    parsed = urlparse(upstream)
+    if parsed.scheme == "https":
+        return http.client.HTTPSConnection(parsed.hostname, parsed.port or 443, timeout=60)
+    return http.client.HTTPConnection(parsed.hostname, parsed.port or 80, timeout=60)
 
 
 class ProxyHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
-        upstream = fmt % args if args else fmt
-        print(f"[proxy] {upstream}")
+        print(f"[proxy] {fmt % args if args else fmt}")
 
     def _proxy(self):
         upstream = _next_upstream()
-        target_url = upstream + self.path
         print(f"[proxy] {self.command} {self.path} → {upstream}")
 
         length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(length) if length else None
+        body = self.rfile.read(length) if length else b""
 
-        req = urllib.request.Request(target_url, data=body, method=self.command)
-        for key, val in self.headers.items():
-            if key.lower() not in HOP_BY_HOP:
-                req.add_header(key, val)
+        fwd_headers = {
+            k: v for k, v in self.headers.items()
+            if k.lower() not in HOP_BY_HOP
+        }
 
+        conn = _make_conn(upstream)
         try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                self.send_response(resp.status)
-                for key, val in resp.headers.items():
-                    if key.lower() not in HOP_BY_HOP:
-                        self.send_header(key, val)
-                self.end_headers()
-                self.wfile.write(resp.read())
-        except urllib.error.HTTPError as e:
-            self.send_response(e.code)
+            conn.request(self.command, self.path, body=body, headers=fwd_headers)
+            resp = conn.getresponse()
+            print(f"[proxy] ← {resp.status} {resp.reason}")
+
+            self.send_response(resp.status)
+            for key, val in resp.getheaders():
+                if key.lower() not in HOP_BY_HOP:
+                    self.send_header(key, val)
             self.end_headers()
-            self.wfile.write(e.read())
+            self.wfile.write(resp.read())
         except Exception as e:
+            print(f"[proxy] error: {e}")
             self.send_response(502)
             self.end_headers()
             self.wfile.write(f"Proxy error: {e}".encode())
+        finally:
+            conn.close()
 
     def do_GET(self):
         self._proxy()
