@@ -109,6 +109,10 @@ spec:
             value: "true"
           - name: DD_RUNTIME_METRICS_ENABLED
             value: "true"
+          - name: DD_ENTITY_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
           {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
