@@ -216,25 +216,6 @@ const BulkVersionEditor = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const waitForRenameTaskResult = async (taskId) => {
-    const maxAttempts = 20;
-    let delayMs = 600;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const status = await Sefaria.apiRequestWithBody(`/api/async/${taskId}`, null, null, 'GET');
-      if (status.state === "FAILURE") {
-        throw new Error(status.error || "Rename task failed");
-      }
-      if (status.state === "SUCCESS" || (status.ready && status.result)) {
-        return status.result || {};
-      }
-      await sleep(delayMs);
-      delayMs = Math.min(Math.floor(delayMs * 1.5), 4000);
-    }
-    throw new Error("Timed out waiting for rename task to complete");
-  };
-
   /**
    * Clear search and reset state
    */
@@ -476,9 +457,11 @@ const BulkVersionEditor = () => {
 
   /**
    * Rename versionTitle across selected indices by calling the per-index
-   * `/api/version-rename` endpoint once per selected index. Successes and
-   * failures are aggregated client-side and reported with the same UI shape
-   * as the bulk APIs. On full success, refresh results using the new title.
+   * `/api/version-rename` endpoint once per selected index.
+   *
+   * Fire-and-forget behavior: if the backend returns a Celery task id, treat
+   * that as a successful queue action and instruct moderators to follow Slack
+   * for completion/failure details.
    */
   const renameVersions = async () => {
     if (!pick.size) return;
@@ -515,12 +498,7 @@ const BulkVersionEditor = () => {
         try {
           const response = await Sefaria.apiRequestWithBody(url, null, payload);
           if (response.task_id) {
-            const taskResult = await waitForRenameTaskResult(response.task_id);
-            if (taskResult.status === "ok") {
-              successes.push(indexTitle);
-            } else {
-              failures.push({ index: indexTitle, error: taskResult.error || "Rename failed" });
-            }
+            successes.push(indexTitle);
           } else if (response.status === "ok") {
             successes.push(indexTitle);
           } else {
@@ -533,21 +511,23 @@ const BulkVersionEditor = () => {
 
       const successCount = successes.length;
       const failureCount = failures.length;
+      const slackReminder = "Check #engineering-signal in Slack for background task results.";
 
       if (failureCount === 0) {
-        console.log("Rename succeeded", { url, successCount, total, successes });
-        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Successfully renamed ${successCount} versions` });
+        console.log("Rename queued", { url, successCount, total, successes });
+        setMsg({ type: MESSAGE_TYPES.SUCCESS, message: `Queued ${successCount} renames.\n\n${slackReminder}` });
         setRenameNewTitle("");
-        setVtitle(newTitleTrimmed);
-        load(newTitleTrimmed);
       } else if (successCount > 0) {
         const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        console.warn("Rename partially succeeded", { url, successCount, failureCount, total, failures });
-        setMsg({ type: MESSAGE_TYPES.WARNING, message: `Renamed ${successCount}/${total} versions.\n\nFailed:\n${failureList}` });
+        console.warn("Rename partially queued", { url, successCount, failureCount, total, failures });
+        setMsg({
+          type: MESSAGE_TYPES.WARNING,
+          message: `Queued ${successCount}/${total} renames.\n\nQueueing failed:\n${failureList}\n\n${slackReminder}`
+        });
       } else {
         const failureList = failures.map(f => `• ${f.index}: ${f.error}`).join("\n");
-        console.error("Rename failed", { url, failureCount, total, failures });
-        setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} renames failed:\n${failureList}` });
+        console.error("Rename queueing failed", { url, failureCount, total, failures });
+        setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} renames failed to queue:\n${failureList}` });
       }
     } finally {
       setSaving(false);
