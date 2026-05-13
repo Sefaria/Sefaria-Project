@@ -218,7 +218,7 @@
 				var profile = {
 					first_name:       $("#firstName").val().stripHtml(),
 					last_name:        $("#lastName").val().stripHtml(),
-					bio:              $("#bio").text() ? $("#bio").html().stripHtml() : "",
+					bio:              CKEDITOR.instances.bio ? CKEDITOR.instances.bio.getData() : "",
 					position:         $("#position").val().stripHtml(),
 					organization:     $("#organization").val().stripHtml(),
 					website:          $("#website").val().stripHtml(),
