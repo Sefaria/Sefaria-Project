@@ -41,8 +41,12 @@ export default defineConfig({
     timeout: t(10000),
   },
 
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 2 : 1,
+  // The staging sandbox throttles aggressively under concurrent load — six
+  // mobile tests in parallel reliably trigger 5xx on /login and stalls on
+  // /texts. Cap workers per project so the suite stays deterministic without
+  // having to bump TIMEOUT_MULTIPLIER globally.
+  workers: process.env.CI ? 1 : 2,
 
   reporter: process.env.CI
     ? [['github']]

@@ -122,7 +122,7 @@ test.describe('Library Module Sidebar Tests', () => {
 
     await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
   });
-  test.skip('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
+  test('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
     await hideAllModalsAndPopups(page);
 
     // Both links present in the sidebar footer with expected hrefs

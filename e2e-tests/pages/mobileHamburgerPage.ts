@@ -158,6 +158,15 @@ export class MobileHamburgerPage extends HelperBase {
     return this.navMenu.locator(MOBILE_HAMBURGER.LOGIN_LINK_CLASS);
   }
 
+  /**
+   * Logout link rendered in place of the Sign up / Log in pair when
+   * `Sefaria._uid` is truthy. JSX (Header.jsx):
+   *   `<a className="logout" href={getLogoutUrl()}>… Logout</a>`
+   */
+  private get logoutLink(): Locator {
+    return this.navMenu.locator('a.logout');
+  }
+
   // ---------------------------------------------------------------------------
   // State helpers
   // ---------------------------------------------------------------------------
@@ -174,10 +183,21 @@ export class MobileHamburgerPage extends HelperBase {
       .locator('#interruptingMessageClose')
       .click({ timeout: t(1500) })
       .catch(() => {});
+    // Cookies notification — the OK confirm is a `<div role="button">` so the
+    // existing `hideAllModalsAndPopups` selectors (which look for `button` or
+    // `.accept`) don't match it on staging. Click it specifically and then
+    // CSS-hide the wrapper as a belt-and-braces in case the click is racey.
+    await this.page
+      .locator('.cookiesNotification [role="button"]')
+      .first()
+      .click({ timeout: t(1500) })
+      .catch(() => {});
     await this.page
       .evaluate(() => {
         document
-          .querySelectorAll<HTMLElement>('#interruptingMessageOverlay, #interruptingMessageBox')
+          .querySelectorAll<HTMLElement>(
+            '#interruptingMessageOverlay, #interruptingMessageBox, .cookiesNotification',
+          )
           .forEach((el) => {
             el.style.display = 'none';
           });
@@ -501,5 +521,112 @@ export class MobileHamburgerPage extends HelperBase {
 
   async clickDevelopersAndCloseExternalTab(): Promise<void> {
     await this.openInPopupAndAssert(this.developersLink, /developers\.sefaria\.org/);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Auth-flow actions
+  // ---------------------------------------------------------------------------
+  //
+  // Source of truth for the login / register / password-reset pages:
+  //   Sefaria-Project/templates/registration/login.html
+  //   Sefaria-Project/templates/registration/register.html
+  //   Sefaria-Project/templates/registration/password_reset_form.html
+  //
+  // The Log in / Sign up links in the mobile menu are wrapped in
+  // `NextRedirectAnchor`, which flips `href` to `#` at hydration and routes via
+  // JS. Tapping them performs a full-page navigation to `/login` / `/register`.
+
+  /**
+   * Tap "Log in" in the open hamburger menu and assert the user lands on the
+   * Django login page. Anchored on heading text + URL for redundancy — login
+   * may live at `/login` or `/login/` depending on Django's trailing-slash
+   * behavior.
+   */
+  async clickLogInAndExpectLoginPage(): Promise<void> {
+    await expect(this.loginLink).toBeVisible({ timeout: t(5000) });
+    await this.loginLink.tap();
+    await this.page.waitForLoadState('domcontentloaded');
+    await expect(this.page).toHaveURL(/\/login/, { timeout: t(15000) });
+    await expect(
+      this.page.getByRole('heading', { name: /Log in to Sefaria/i }),
+    ).toBeVisible({ timeout: t(10000) });
+  }
+
+  /**
+   * Tap "Sign up" in the open hamburger menu and assert the user lands on the
+   * Django register page. Used when a test wants to start from the signup
+   * page rather than via the login → "Create a new account" path.
+   */
+  async clickSignUpAndExpectRegisterPage(): Promise<void> {
+    await expect(this.signupLink).toBeVisible({ timeout: t(5000) });
+    await this.signupLink.tap();
+    await this.page.waitForLoadState('domcontentloaded');
+    await expect(this.page).toHaveURL(/\/register/, { timeout: t(15000) });
+  }
+
+  /**
+   * Assert that the hamburger drawer's last action item is the `Logout` link
+   * — i.e. the user is signed in. Verifies BOTH that Logout is present AND
+   * that the anonymous-only Sign up / Log in links are absent, so a regression
+   * that rendered both would still fail the test.
+   */
+  async expectLogoutPresentAndSignupAbsent(): Promise<void> {
+    await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
+    await expect(this.logoutLink).toBeVisible({ timeout: t(5000) });
+    await expect(this.signupLink).toHaveCount(0, { timeout: t(2000) });
+    await expect(this.loginLink).toHaveCount(0, { timeout: t(2000) });
+  }
+
+  /**
+   * Inverse of the assertion above — used after `Logout` returns the user to
+   * the anonymous state.
+   */
+  async expectSignupAndLoginPresent(): Promise<void> {
+    await expect(this.navMenuOpen).toBeVisible({ timeout: t(5000) });
+    await expect(this.signupLink).toBeVisible({ timeout: t(5000) });
+    await expect(this.loginLink).toBeVisible({ timeout: t(5000) });
+    await expect(this.logoutLink).toHaveCount(0, { timeout: t(2000) });
+  }
+
+  /**
+   * Tap the Logout anchor and wait for the post-logout redirect. Source:
+   * `Sefaria.getLogoutUrl()` returns `/logout?next=/texts` on Library, so the
+   * server clears the session and redirects to `/texts`. The most reliable
+   * "logged out" signal in the new DOM is the `sessionid` cookie being gone,
+   * but we can keep this method ergonomic by waiting on URL + DCL only and
+   * letting the caller assert the hamburger reverted to the anonymous state.
+   */
+  async clickLogoutAndExpectLoggedOut(): Promise<void> {
+    await expect(this.logoutLink).toBeVisible({ timeout: t(5000) });
+    const urlBefore = this.page.url();
+    await this.logoutLink.tap();
+    // Wait for either a URL change (server redirected somewhere new) or for
+    // /texts to appear (Library default `next` redirect target).
+    await this.page
+      .waitForURL(
+        (url) => url.href !== urlBefore || /\/texts/.test(url.pathname),
+        { timeout: t(15000) },
+      )
+      .catch(() => {
+        /* if no nav fires, the DCL wait below still gates on a fully loaded page */
+      });
+    await this.page.waitForLoadState('domcontentloaded', { timeout: t(15000) });
+
+    // Authoritative check: the Django session cookie is gone. Use a poll
+    // because on WebKit emulation the Set-Cookie removal sometimes lags the
+    // load-state event by a few hundred ms.
+    await expect
+      .poll(
+        async () => {
+          const cookies = await this.page.context().cookies();
+          return cookies.find(
+            (c) => c.name === 'sessionid' && c.value && c.value.length > 0,
+          )
+            ? 'present'
+            : 'cleared';
+        },
+        { timeout: t(15000), message: 'sessionid cookie should clear after logout' },
+      )
+      .toBe('cleared');
   }
 }

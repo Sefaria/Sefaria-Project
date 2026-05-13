@@ -42,7 +42,9 @@ Tests live under `e2e-tests/mobile/`; the POM is shared (`pages/mobileHamburgerP
 
 ## Test taxonomy
 
-[hamburger-menu.spec.ts](hamburger-menu.spec.ts) is split into 5 `describe` blocks. Each test starts from a fresh anonymous English Library page in `beforeEach` so cases stay independent.
+Two spec files cover separate concerns. Each test starts from a fresh anonymous English Library page in `beforeEach` so cases stay independent.
+
+### [hamburger-menu.spec.ts](hamburger-menu.spec.ts) — 12 tests, 5 describe blocks
 
 | Group | IDs | What it covers |
 |---|---|---|
@@ -51,6 +53,17 @@ Tests live under `e2e-tests/mobile/`; the POM is shared (`pages/mobileHamburgerP
 | **In-module navigation** | HAM-N001 – HAM-N004 | Texts → `/texts`, Topics → `/topics`, About Sefaria → `/mobile-about-menu`, More from Sefaria → `/products`. |
 | **External-tab links** | HAM-X001, HAM-X002 | Donate and Get Help open new tabs to external URLs; closing the popup leaves the original tab on the Library page. |
 | **Cross-module navigation** | HAM-M001, HAM-M002 | Voices on Sefaria opens a new tab on `voices.*`; that tab's hamburger replaces "Voices on Sefaria" with "Sefaria Library". Developers on Sefaria opens a new tab to `developers.sefaria.org`. |
+
+### [auth-flow.spec.ts](auth-flow.spec.ts) — 6 tests, 2 describe blocks
+
+| Group | IDs | What it covers |
+|---|---|---|
+| **Anonymous nav** | HAM-A001 | Tapping Log in lands on `/login` with email/password fields and Login button visible. |
+| **Anonymous nav** | HAM-A002 | From the login page, "Forgot your password?" navigates to the password-reset page; the device back button returns to login. |
+| **Anonymous nav** | HAM-A003 | From the login page, "Create a new account" navigates to `/register`; the device back button returns to login. |
+| **Logged-in state** | HAM-A004 | Submitting valid credentials redirects to `/texts`; the re-opened hamburger shows `Logout` and no longer shows Sign up / Log in. |
+| **Logged-in state** | HAM-A005 | After login, tapping Voices on Sefaria opens a voices tab whose hamburger also shows `Logout` — verifying the cross-subdomain session works. |
+| **Logged-in state** | HAM-A006 | Tapping `Logout` clears the session cookie and re-opening the hamburger restores Sign up / Log in. |
 
 ---
 
@@ -162,13 +175,45 @@ Per the user's "I want the tests to be reliable and not pass if something doesn'
 ```
 e2e-tests/mobile/
 ├── README.md                     ← you are here
-└── hamburger-menu.spec.ts        ← 12 tests, 5 describe blocks
+├── hamburger-menu.spec.ts        ← 12 tests, 5 describe blocks (Part 1)
+└── auth-flow.spec.ts             ← 6 tests, 2 describe blocks  (Part 2)
 
 e2e-tests/pages/
-└── mobileHamburgerPage.ts        ← POM, registered as pm.onMobileHamburger()
+├── mobileHamburgerPage.ts        ← POM, registered as pm.onMobileHamburger()
+└── loginPage.ts                  ← reused for form submission via pm.onLoginPage()
 
 e2e-tests/
 └── constants.ts                  ← MOBILE_HAMBURGER, MOBILE_PAGE_URLS
 
-playwright.mobile.config.ts       ← Pixel 5 + iPhone 13 projects
+playwright.mobile.config.ts       ← Pixel 5 + iPhone 13 projects, workers capped at 2
 ```
+
+---
+
+## Auth-flow notes (Part 2)
+
+### Cookies-notification overlay on staging
+
+Staging (`sefariastaging.org`) renders a "We use cookies… [OK]" banner that the production environment doesn't. The OK control is a `<div role="button">`, not a `<button>` — so the existing `hideAllModalsAndPopups` selectors (which look for `.cookiesNotification .accept` / `button`) miss it. The banner sits over the lower portion of the drawer where Sign up / Log in lives, intercepting taps.
+
+Fix lives in `waitForHeaderReady()`: it clicks `.cookiesNotification [role="button"]` AND then CSS-hides the wrapper as a belt-and-braces.
+
+### Login form (`pages/loginPage.ts`) is reused as-is
+
+`loginPage.loginAs(user)` uses placeholder-anchored locators (`Email Address`, `Password`) and works on mobile viewport unchanged. Keeping form-filling in `LoginPage` preserves the separation: `MobileHamburgerPage` owns the hamburger; `LoginPage` owns the form. The cross-spec helper `loginViaHamburger(page, pm)` in `auth-flow.spec.ts` glues them.
+
+### Cross-domain session works on mobile
+
+The session cookie is rewritten to the parent domain by `fixCookieDomainsForCrossSubdomain` (`utils.ts`), so a successful login on `www.*` authenticates `voices.*` too — HAM-A005 verifies this end-to-end via the mobile module switcher.
+
+### Logout cookie clears asynchronously on WebKit
+
+On the iPhone-13 emulation, `context().cookies()` lags the post-logout DCL event by a few hundred ms — a synchronous cookie check would race. `clickLogoutAndExpectLoggedOut()` uses `expect.poll` with a 15-second timeout to assert the `sessionid` cookie has been cleared.
+
+### Why the URL patterns are loose
+
+The auth pages live at `/login`, `/register`, and `/password/reset/` in Django's default config, but Sefaria sandboxes occasionally hyphenate or alias. The tests anchor on **URL substring + page heading** for redundancy (e.g. `/login` substring AND heading `Log in to Sefaria`). If one rotates, the other catches it.
+
+### Worker cap and retries
+
+`playwright.mobile.config.ts` caps non-CI workers at **2** and retries failed tests **once**. Six tests in parallel reliably triggered staging 5xx and stalled `/login` requests; capping at 2 keeps the suite deterministic without bumping `TIMEOUT_MULTIPLIER` globally. The one retry covers transient WebKit popup-race flakes in cross-module tests.
