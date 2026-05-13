@@ -374,6 +374,44 @@ class TestFindOrCreateContact:
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.find_or_create_contact('test@example.com', 'Test', 'User')
 
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_email_with_plus_is_url_encoded(self, mock_request):
+        """
+        Tagged emails like `foo+bar@gmail.com` must be URL-encoded in the lookup
+        query. AC's query parser otherwise decodes `+` as a space, fails to find
+        the existing contact, and we end up creating a duplicate. This asserts on
+        the raw endpoint string so a regression that drops `quote()` fails loudly.
+        """
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'foo+bar@gmail.com'}]
+        }
+
+        newsletter_service.find_or_create_contact('foo+bar@gmail.com', 'Foo', 'Bar')
+
+        # First positional arg to make_request is the endpoint path.
+        endpoint = mock_request.call_args.args[0]
+        assert 'foo%2Bbar%40gmail.com' in endpoint
+        # Defensive: the raw `+` and `@` must NOT appear unencoded in the query.
+        assert 'foo+bar@gmail.com' not in endpoint
+
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_email_with_special_chars_is_url_encoded(self, mock_request):
+        """
+        Other RFC 5321-legal characters that have URL meanings (`&`, `=`) must
+        also be encoded so they don't get parsed as additional query params.
+        """
+        mock_request.return_value = {'contacts': []}
+        # Second call: contact-create POST. We only care about the first (lookup).
+        mock_request.side_effect = [
+            {'contacts': []},
+            {'contact': {'id': '28530', 'email': 'a&b=c@example.com'}},
+        ]
+
+        newsletter_service.find_or_create_contact('a&b=c@example.com', 'A', 'B')
+
+        endpoint = mock_request.call_args_list[0].args[0]
+        assert 'a%26b%3Dc%40example.com' in endpoint
+
 
 class TestGetContactListMemberships:
     """Tests for fetching contact list memberships"""

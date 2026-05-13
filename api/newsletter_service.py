@@ -25,6 +25,7 @@ import logging
 import re
 from collections.abc import Mapping, Sequence
 from typing import Any, TypedDict
+from urllib.parse import quote
 
 import requests
 try:
@@ -483,8 +484,11 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
         ActiveCampaignError: If API request fails
     """
     try:
-        # Search for existing contact by email
-        search_response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={email}')
+        # Search for existing contact by email. The email must be URL-encoded —
+        # AC's query parser otherwise decodes `+` in tagged addresses (e.g.
+        # `foo+bar@gmail.com`) as a space, which would always miss and cause
+        # us to create duplicate contacts.
+        search_response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={quote(email)}')
         contacts: list[dict[str, Any]] = search_response.get('contacts', [])
 
         if contacts:
@@ -935,8 +939,9 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
             except Exception as e:
                 logger.warning(f"Could not load UserProfile for {email}: {e}")
 
-        # Find contact by email
-        response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={email}')
+        # Find contact by email. URL-encode so tagged addresses (`foo+bar@gmail.com`)
+        # don't get their `+` decoded to a space on AC's side — see find_or_create_contact.
+        response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={quote(email)}')
         contacts: list[dict[str, Any]] = response.get('contacts', [])
 
         if not contacts:
