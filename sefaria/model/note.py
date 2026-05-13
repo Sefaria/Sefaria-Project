@@ -9,6 +9,7 @@ from . import abstract as abst
 from sefaria.model.text import Ref
 
 import structlog
+from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -46,7 +47,7 @@ class NoteSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_notes(indx, **kwargs):
-    print("Cascading Notes {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Notes {} to {}".format(kwargs['old'], kwargs['new']))
     pattern = Ref(indx.title).regex()
     pattern = pattern.replace(re.escape(indx.title), re.escape(kwargs["old"]))
     notes = NoteSet({"ref": {"$regex": pattern}})
