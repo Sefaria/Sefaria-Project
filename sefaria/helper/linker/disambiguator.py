@@ -15,7 +15,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from html import unescape
 
 # Configure LangSmith integration BEFORE any LangChain imports
-os.environ["LANGSMITH_TRACING_V2"] = "true"
+os.environ["LANGSMITH_TRACING_V2"] = "false"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
 # LANGSMITH_API_KEY should be set in your environment
