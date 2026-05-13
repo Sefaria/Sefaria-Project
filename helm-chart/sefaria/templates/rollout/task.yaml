@@ -98,6 +98,10 @@ spec:
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
+          - name: DD_ENTITY_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
           {{- end }}
           {{- with .Values.gpuServer }}
           - name: GPU_SERVER_HOST
