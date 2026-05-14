@@ -26,8 +26,6 @@ testLanguageConfigs.forEach(({testLanguage, interfaceLanguage}) => {
 
         await pm.navigateFromBannerTo().topicsPage()
 
-        await pm.navigateFromBannerTo().communityPage()
-
         const donatePage = await pm.navigateFromBannerTo().donatePage()
         await donatePage.close()
 
@@ -71,14 +69,10 @@ test('Toggle Language Based on Locale', async({ context }) => {
     await page.getByRole('banner').getByRole('link', { name: 'Explore' }).click();
     expect(getPathAndParams(page.url())).toBe("/topics")
 
-    // Testing Community link
-    await page.getByRole('banner').getByRole('link', { name: 'Community' }).click();
-    expect(getPathAndParams(page.url())).toContain("/community")
-
     // Testing Sign-up
-    // This will end up on the page referenced by the previous "test", which is Community
+    // This will end up on the page referenced by the previous "test", which is Topics
     await page.getByRole('banner').getByRole('link', { name: 'Sign up' }).click();
-    expect(getPathAndParams(page.url())).toBe("/register?next=%2Fcommunity")
+    expect(getPathAndParams(page.url())).toBe("/register?next=%2Ftopics")
 
     // Testing log in link
     const page2 = await goToPageWithLang(context,'/texts',LANGUAGES.EN);
@@ -110,9 +104,6 @@ test('Banner links exist - Hebrew', async ({ context }) => {
 
     await page.getByRole('banner').getByRole('link', { name: 'נושאים' }).click();
     expect(getPathAndParams(page.url())).toBe("/topics")
-
-    await page.getByRole('banner').getByRole('link', { name: 'קהילה' }).click();
-    expect(page.url()).toContain("/community")
 
     //look for and click Donate, while waiting for the page to pop up
     const page1Promise = page.waitForEvent('popup');
