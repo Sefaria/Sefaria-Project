@@ -86,7 +86,19 @@ def _get_base_text_ref_for_grouping(ref_str: str):
     return _get_commentary_base_ref(ref_str)
 
 
-def find_all_resolutions(debug_parent_ref=None):
+_RESUME_MARKER_FIELDS = (
+    'llm_ambiguous_option_valid',
+    'llm_resolved_ref_ambiguous',
+    'llm_resolved_method_ambiguous',
+    'llm_resolved_phrase_ambiguous',
+    'llm_resolved_ref_non_segment',
+    'llm_resolved_method_non_segment',
+    'llm_resolved_phrase_non_segment',
+    'llm_resolved_ref_but_rejected',
+)
+
+
+def find_all_resolutions(debug_parent_ref=None, resume_mode=False):
     """
     Find all LinkerOutput records needing disambiguation (ambiguous or non-segment),
     and group payloads by base text ref so that tasks sharing a cached prompt are
@@ -95,6 +107,9 @@ def find_all_resolutions(debug_parent_ref=None):
     Args:
         debug_parent_ref: optional Ref; when set, only process citing refs that are
             equal to or contained within this ref.
+        resume_mode: if True, sort docs by _id for deterministic iteration and strip
+            prior disambiguation markers from spans in-memory so the rebuilt payload
+            list matches the original (pre-processing) list. Used for resume-from-anchor.
 
     Returns:
         dict mapping base_text_ref -> list of AmbiguousResolutionPayload | NonSegmentResolutionPayload
@@ -104,6 +119,8 @@ def find_all_resolutions(debug_parent_ref=None):
         print(f"DEBUG REF: Limiting to refs equal to or contained in '{debug_parent_ref.normal()}'")
     if DEBUG_MODE:
         print(f"DEBUG MODE: Fetching {DEBUG_LIMIT} random examples with seed {DEBUG_SEED}")
+    if resume_mode:
+        print("RESUME MODE: using natural order and ignoring prior disambiguation markers")
 
     query = {
         "spans": {
@@ -120,6 +137,9 @@ def find_all_resolutions(debug_parent_ref=None):
     if DEBUG_MODE:
         docs = _debug_cached_sample("all_resolutions", query, db.linker_output, DEBUG_LIMIT)
     else:
+        # Use natural order (no sort) to match the original un-sorted run.
+        # WiredTiger natural order is generally stable across in-place updates,
+        # though not formally guaranteed across docs that grow.
         docs = db.linker_output.find(query)
 
     groups = defaultdict(list)
@@ -135,6 +155,11 @@ def find_all_resolutions(debug_parent_ref=None):
 
         base_ref = _get_base_text_ref_for_grouping(citing_ref) or "__no_base_ref__"
         spans = raw_doc.get('spans', [])
+
+        if resume_mode:
+            for span in spans:
+                for marker in _RESUME_MARKER_FIELDS:
+                    span.pop(marker, None)
 
         # --- Ambiguous payloads: group spans by charRange ---
         char_range_groups = defaultdict(list)
@@ -223,6 +248,22 @@ def find_all_resolutions(debug_parent_ref=None):
     return groups
 
 
+def _payload_match_key(payload):
+    """Identity tuple for a payload, stable across runs."""
+    base = (payload.ref, payload.versionTitle, payload.language, tuple(payload.charRange))
+    if hasattr(payload, "resolved_non_segment_ref"):
+        return base + ("non_segment", payload.resolved_non_segment_ref)
+    return base + ("ambiguous", tuple(sorted(payload.ambiguous_refs)))
+
+
+def _target_match_key(target: dict):
+    """Identity tuple for a resume-anchor dict loaded from JSON."""
+    base = (target['ref'], target['versionTitle'], target['language'], tuple(target['charRange']))
+    if 'resolved_non_segment_ref' in target:
+        return base + ("non_segment", target['resolved_non_segment_ref'])
+    return base + ("ambiguous", tuple(sorted(target['ambiguous_refs'])))
+
+
 def enqueue_bulk_disambiguation(payload: dict):
     """Enqueue a single disambiguation task."""
     sig = app.signature(
@@ -241,7 +282,20 @@ def main():
                         help="Number of individual payloads to limit to")
     parser.add_argument("--debug-ref", type=str, default=None,
                         help="Filter to citing refs equal to or contained within this ref")
+    parser.add_argument("--resume-after-payload-file", type=str, default=None,
+                        help="Path to JSON file with the last-dispatched payload. Enables "
+                             "resume mode: sorts docs by _id, ignores prior disambiguation "
+                             "markers, and dispatches starting after the matching payload.")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="In resume mode, locate the anchor and print context without dispatching.")
     args = parser.parse_args()
+
+    if args.resume_after_payload_file and args.limit:
+        print("ERROR: --resume-after-payload-file is incompatible with --limit")
+        return
+    if args.resume_after_payload_file and args.start:
+        print("ERROR: --resume-after-payload-file is incompatible with --start")
+        return
 
     debug_parent_ref = None
     if args.debug_ref:
@@ -266,22 +320,55 @@ def main():
         print("=" * 80 + "\n")
         return
 
-    groups = find_all_resolutions(debug_parent_ref=debug_parent_ref)
+    resume_mode = args.resume_after_payload_file is not None
+    groups = find_all_resolutions(debug_parent_ref=debug_parent_ref, resume_mode=resume_mode)
 
     # Flatten groups into an ordered list, keeping each base-text group contiguous
     payloads_list = list(groups.values())
     all_payloads = [payload for payloads in payloads_list for payload in payloads]
-    if args.limit:
+
+    if resume_mode:
+        with open(args.resume_after_payload_file) as f:
+            target = json.load(f)
+        target_key = _target_match_key(target)
+        match_index = None
+        for i, p in enumerate(all_payloads):
+            if _payload_match_key(p) == target_key:
+                match_index = i
+                break
+        if match_index is None:
+            print("ERROR: Could not find resume-after payload in rebuilt list. "
+                  "Verify the JSON file contents and that the doc is still in the collection.")
+            return
+
+        print(f"\n=== Resume anchor found at index {match_index} / {len(all_payloads)} ===")
+        print(f"Anchor payload: {asdict(all_payloads[match_index])}")
+        for offset in (-2, -1, 1, 2):
+            j = match_index + offset
+            if 0 <= j < len(all_payloads):
+                print(f"  [{j:>8}] {'<-- anchor' if offset == 0 else ''} {asdict(all_payloads[j])}")
+        print(f"=== Would dispatch {len(all_payloads) - match_index - 1} payloads starting at index {match_index + 1} ===\n")
+
+        if args.dry_run:
+            print("Dry-run: not dispatching.")
+            return
+
+        dispatch_list = all_payloads[match_index + 1:]
+        start = match_index + 1
+        total = len(all_payloads)
+    elif args.limit:
         random.shuffle(all_payloads)
         total = args.limit
         dispatch_list = all_payloads[args.start:args.start+args.limit]
+        start = args.start
     else:
         total = len(all_payloads)
         dispatch_list = all_payloads[args.start:]
+        start = args.start
 
-    print(f"Dispatching {len(dispatch_list)} tasks (skipping first {args.start})...")
+    print(f"Dispatching {len(dispatch_list)} tasks (skipping first {start})...")
     try:
-        for payload in tqdm(dispatch_list, desc="Dispatching", initial=args.start, total=total):
+        for payload in tqdm(dispatch_list, desc="Dispatching", initial=start, total=total):
             enqueue_bulk_disambiguation(asdict(payload))
         print("Task dispatch complete!")
     except Exception as e:
