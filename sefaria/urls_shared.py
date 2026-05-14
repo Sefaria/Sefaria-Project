@@ -293,7 +293,7 @@ maintenance_patterns = [
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),
 ]
-# Everything else gets maintenance message
+# Everything else gets maintenance message.
 maintenance_patterns += [
     re_path(r'.*', sefaria_views.maintenance_message)
 ]
