@@ -226,6 +226,7 @@ shared_patterns = [
     path('sefaria.js', sefaria_views.sefaria_js),
 
     re_path(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
+    path('linker.v3.js.map', sefaria_views.linker_js_map),
     re_path(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
     re_path(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     re_path(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
@@ -243,7 +244,6 @@ shared_patterns = [
     re_path(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     re_path(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     re_path(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
-    re_path(r'^admin/reset/community$', reader_views.community_reset),
     re_path(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     re_path(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     re_path(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
@@ -269,7 +269,6 @@ shared_patterns = [
     re_path(r'^admin/spam/profiles', sefaria_views.profile_spam_dashboard),
     re_path(r'^admin/versions-csv', sefaria_views.versions_csv),
     re_path(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-    re_path(r'^admin/community-preview', reader_views.community_preview),
     re_path(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     re_path(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     re_path(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),

@@ -15,6 +15,7 @@ from sefaria.model.place import Place
 import regex as re
 from typing import Type
 logger = structlog.get_logger(__name__)
+from sefaria.system.progress_context import report_progress
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 from abc import ABC, abstractmethod
@@ -1168,7 +1169,7 @@ class TopicDataSourceSet(abst.AbstractMongoSet):
 def process_index_title_change_in_topic_links(indx, **kwargs):
     from sefaria.system.exceptions import InputError
 
-    print("Cascading Topic Links from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Topic Links from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg

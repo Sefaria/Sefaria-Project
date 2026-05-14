@@ -60,7 +60,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        env:
           SOURCE: ${{ github.event.inputs.source }}
           TARGET: ${{ github.event.inputs.target }}
         run: ./build/ci/generate-promotion-pr.sh "$SOURCE" "$TARGET"

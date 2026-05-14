@@ -8,6 +8,7 @@ from enum import Enum
 from abc import ABC, abstractmethod
 from bisect import bisect_right
 import structlog
+from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -358,7 +359,7 @@ def get_mutc_class(debug=False) -> type[MarkedUpTextChunk]:
 
 
 def process_index_title_change(indx, **kwargs):
-    print("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Marked Up Text Chunks from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
@@ -384,13 +385,13 @@ def process_index_delete(indx, **kwargs):
 
 
 def process_category_path_change(category, **kwargs):
-    print("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Marked Up Text Chunk category path from {} to {}".format(kwargs['old'], kwargs['new']))
     db.marked_up_text_chunks.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
     db.linker_output.update_many({'spans.categoryPath': kwargs['old']}, {"$set": {'spans.$[element].categoryPath': kwargs['new']}}, array_filters=[{"element.categoryPath": kwargs['old']}])
 
 
 def process_topic_slug_change(topic, **kwargs):
-    print("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Marked Up Text Chunk topic slug from {} to {}".format(kwargs['old'], kwargs['new']))
     db.marked_up_text_chunks.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
     db.linker_output.update_many({'spans.topicSlug': kwargs['old']}, {"$set": {'spans.$[element].topicSlug': kwargs['new']}}, array_filters=[{"element.topicSlug": kwargs['old']}])
     
