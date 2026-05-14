@@ -2,7 +2,7 @@
 
 {% load sefaria_tags static %}
 
-{% block title %}Visualizing the Sefaria Table of Contents{% if lang %} ({{ lang }}){% endif %}{% endblock %}
+{% block meta_title %}{% meta_title %}Visualizing the Sefaria Table of Contents{% if lang %} ({{ lang }}){% endif %}{% endmeta_title %}{% endblock %}
 {% block ogimage %}<meta property="og:image" content="{% static 'img/sunburst.png' %}"/>{% endblock %}
 {% block head %}
     {% if not OFFLINE %}
@@ -18,7 +18,7 @@
     </script>
     {% endif %}
     <script src="https://d3js.org/d3.v3.js"></script>
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
   #languageToggle {

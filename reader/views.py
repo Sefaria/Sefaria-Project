@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -67,14 +67,13 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL
+    CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
-from chatbot.models import get_chatbot_welcome_messages
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -84,7 +83,6 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_random_topic_source, edit_topic_source, \
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
-from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
@@ -363,9 +361,9 @@ def base_props(request):
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
+        'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
-        "chatbot_welcome_messages": get_chatbot_welcome_messages(),
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
@@ -1926,6 +1924,18 @@ def index_api(request, title, raw=False):
         return None, None
 
     def index_post(request, uid, j, method, raw):
+        is_title_change = bool(j.get("oldTitle") and j.get("oldTitle") != j.get("title"))
+        if is_title_change and CELERY_ENABLED:
+            from sefaria.helper.texts.tasks import update_index_title
+            from sefaria.celery_setup.config import CeleryQueue
+            async_result = update_index_title.apply_async(
+                args=(uid, j, raw, method),
+                queue=CeleryQueue.TASKS.value,
+            )
+            logger.info("index_api:title_change_enqueued",
+                        old_title=j["oldTitle"], new_title=j.get("title"),
+                        uid=uid, task_id=async_result.id)
+            return jsonResponse({"task_id": async_result.id}, status=202)
         func = tracker.update if 'update' in j else tracker.add
         return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
@@ -3219,7 +3229,11 @@ def background_data_api(request):
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
-    data.update(community_page_data(request, language=language))
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        data["followRecommendations"] = profile.follow_recommendations(lang=language)
+    else:
+        data["followRecommendations"] = general_follow_recommendations(lang=language)
 
     return jsonResponse(data)
 
@@ -4275,60 +4289,6 @@ def home(request):
     Homepage (which is the texts page)
     """
     return redirect("/texts")
-
-
-def community_page(request, props={}):
-    """
-    Community Page
-    """
-    title = get_page_title("From the Community: Today on Sefaria", module=request.active_module)
-    desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
-    data  = community_page_data(request, language=request.interfaceLang)
-    data.update(props) # don't overwrite data that was passed n with props
-    return menu_page(request, page="community", props=data, title=title, desc=desc)
-
-
-def community_page_data(request, language="english"):
-    data = {
-        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
-    }
-    if request.user.is_authenticated:
-        profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
-    else:
-        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
-
-    return data
-
-
-@staff_member_required
-def community_preview(request):
-    """
-    Preview the community page as it will appear at some date in the future
-    """
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("date", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
-
-
-@staff_member_required
-def community_reset(request):
-    """
-    Reset the cache of the community page content from Google sheet
-    """
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
-
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("next", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):
