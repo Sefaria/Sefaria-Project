@@ -3,7 +3,7 @@ import Sefaria from "../sefaria/sefaria";
 import { InterfaceText, LoadingMessage } from "../Misc";
 import SelectableOption from "./SelectableOption";
 import { BILINGUAL_TEXT } from "./bilingualUtils";
-import { FORM_STATUS } from "./constants";
+import { FORM_STATUS } from "./stateSymbols";
 
 /**
  * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level

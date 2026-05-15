@@ -119,13 +119,14 @@ def _extract_list_mutations(mock_ac_request):
 class TestOptOutFlowIntegration:
     """Integration tests for update_user_preferences_impl opt-out and re-opt-in flows"""
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service.get_all_ac_list_ids')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     def test_opt_out_end_to_end(self, mock_find, mock_get_all_ids,
-                                 mock_get_memberships, mock_update, mock_update_flag):
+                                 mock_get_memberships, mock_update, mock_update_flag, mock_load_profile):
         """
         Integration: Opt-out flow unsubscribes from all lists (managed + unmanaged)
         and sets wants_marketing_emails=False
@@ -156,14 +157,15 @@ class TestOptOutFlowIntegration:
         assert result['subscribed_newsletters'] == []
 
         # wants_marketing_emails set to False
-        mock_update_flag.assert_called_once_with('user@example.com', False)
+        mock_update_flag.assert_called_once_with(None, False)
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     def test_re_opt_in_after_opt_out(self, mock_find, mock_get_memberships,
-                                      mock_update, mock_update_flag):
+                                      mock_update, mock_update_flag, mock_load_profile):
         """
         Integration: Re-opting in after opt-out subscribes to selected managed lists
         and sets wants_marketing_emails=True
@@ -193,7 +195,7 @@ class TestOptOutFlowIntegration:
         assert sorted(result['subscribed_newsletters']) == ['sefaria_news', 'text_updates']
 
         # wants_marketing_emails set to True
-        mock_update_flag.assert_called_once_with('user@example.com', True)
+        mock_update_flag.assert_called_once_with(None, True)
 
 
 class TestFetchUserSubscriptionsIntegration:
@@ -253,11 +255,12 @@ class TestViewThroughServiceNormalUpdate:
     Full service logic runs end-to-end — verifies managed-list scoping.
     """
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
     def test_diff_scoped_to_managed_lists(self, mock_get_list, mock_ac_request,
-                                          mock_update_flag, logged_in_client):
+                                          mock_update_flag, mock_load_profile, logged_in_client):
         """
         User has managed lists 1, 3 and unmanaged list 99 (all active).
         Selecting only list 1 should remove list 3, leave list 99 untouched.
@@ -287,13 +290,14 @@ class TestViewThroughServiceNormalUpdate:
         assert '99' not in removed, "Unmanaged list 99 must NOT be touched"
         assert '1' not in added, "List 1 already active — no re-subscribe needed"
 
-        mock_update_flag.assert_called_once_with('testuser@sefaria.org', True)
+        mock_update_flag.assert_called_once_with(None, True)
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
     def test_adding_new_managed_list(self, mock_get_list, mock_ac_request,
-                                     mock_update_flag, logged_in_client):
+                                     mock_update_flag, mock_load_profile, logged_in_client):
         """
         User has only list 1. Selecting both list 1 and 3 should add list 3.
         """
@@ -326,11 +330,12 @@ class TestViewThroughServiceOptOut:
     Full service logic runs — verifies ALL lists (managed + unmanaged) are removed.
     """
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
     def test_opt_out_removes_all_active_lists(self, mock_get_list, mock_ac_request,
-                                               mock_update_flag, logged_in_client):
+                                               mock_update_flag, mock_load_profile, logged_in_client):
         """
         Opt-out: user has managed lists 1, 3 and unmanaged list 99.
         ALL active lists should be unsubscribed, wants_marketing_emails set to False.
@@ -368,13 +373,14 @@ class TestViewThroughServiceOptOut:
         assert removed == {'1', '3', '99'}, "All active lists must be removed on opt-out"
         assert len(added) == 0, "No lists should be added during opt-out"
 
-        mock_update_flag.assert_called_once_with('testuser@sefaria.org', False)
+        mock_update_flag.assert_called_once_with(None, False)
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
     def test_opt_out_skips_already_unsubscribed_lists(self, mock_get_list, mock_ac_request,
-                                                       mock_update_flag, logged_in_client):
+                                                       mock_update_flag, mock_load_profile, logged_in_client):
         """
         Opt-out: list 3 already unsubscribed (status=2). Should only remove list 1.
         active_only=True filtering in service prevents wasted API calls.

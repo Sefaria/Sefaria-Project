@@ -1,18 +1,19 @@
 """
 Newsletter API Views
 
-Functional views for newsletter operations via ActiveCampaign integration.
+Views for newsletter operations via ActiveCampaign integration.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+from functools import wraps
 from typing import Any, cast
 
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from api.newsletter_service import (
@@ -20,6 +21,7 @@ from api.newsletter_service import (
     NewsletterInfo,
     get_newsletter_list,
     is_newsletter_service_configured,
+    normalize_and_validate_email,
     subscribe_with_union,
     fetch_user_subscriptions_impl,
     update_user_preferences_impl,
@@ -27,6 +29,27 @@ from api.newsletter_service import (
 )
 
 logger: logging.Logger = logging.getLogger(__name__)
+
+
+def csrf_protect_authenticated(view_func):
+    """
+    Enforce CSRF checks only when the request is tied to an authenticated session.
+
+    The newsletter endpoints also support logged-out email-based flows, so the
+    outer view must remain exempt from Django's global CSRF middleware. Once the
+    user is authenticated, session-backed mutations should still require a valid
+    CSRF token.
+    """
+    protected_view = csrf_protect(view_func)
+
+    @wraps(view_func)
+    def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        user: Any = getattr(request, 'user', None)
+        if getattr(user, 'is_authenticated', False):
+            return protected_view(request, *args, **kwargs)
+        return view_func(request, *args, **kwargs)
+
+    return csrf_exempt(wrapped)
 
 
 def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
@@ -182,6 +205,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
             return jsonResponse({
                 'error': 'First name and email are required.'
             }, status=400)
+        email = normalize_and_validate_email(email)
 
         # Extract selected newsletter stringids
         selected_newsletters: list[str] = [key for key, selected in newsletters_dict.items() if selected]
@@ -218,6 +242,10 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
             'email': email,
             'subscribedNewsletters': result['all_subscriptions']
         }, status=200)
+
+    except InputError as e:
+        logger.warning(f"Validation error during subscription: {e}")
+        return jsonResponse({'error': str(e)}, status=400)
 
     except ActiveCampaignError as e:
         logger.warning(f"ActiveCampaign error during subscription: {e}")
@@ -307,6 +335,10 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
             'learningLevel': result.get('learning_level'),
         }, status=200)
 
+    except InputError as e:
+        logger.warning(f"Validation error fetching subscriptions: {e}")
+        return jsonResponse({'error': str(e)}, status=400)
+
     except ActiveCampaignError as e:
         logger.warning(f"ActiveCampaign error fetching subscriptions: {e}")
         return jsonResponse({'error': str(e)}, status=500)
@@ -318,7 +350,7 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
         }, status=500)
 
 
-@csrf_exempt
+@csrf_protect_authenticated
 def update_user_preferences(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/preferences
@@ -407,8 +439,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
         # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
         result = update_user_preferences_impl(email, first_name, last_name,
                                               selected_newsletters, valid_newsletters,
-                                              marketing_opt_out=marketing_opt_out,
-                                              user=user)
+                                              marketing_opt_out=marketing_opt_out)
 
         # Return success response
         return jsonResponse({
@@ -418,6 +449,10 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
             'subscribedNewsletters': result['subscribed_newsletters'],
             'marketingOptOut': marketing_opt_out,
         }, status=200)
+
+    except InputError as e:
+        logger.warning(f"Validation error updating preferences: {e}")
+        return jsonResponse({'error': str(e)}, status=400)
 
     except ActiveCampaignError as e:
         logger.warning(f"ActiveCampaign error updating preferences: {e}")
@@ -439,7 +474,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 # Learning Level Endpoint (Authenticated or Email-Based for Logged-Out Users)
 # ============================================================================
 
-@csrf_exempt
+@csrf_protect_authenticated
 def update_learning_level(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/learning-level
@@ -519,6 +554,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
                 return jsonResponse({
                     'error': 'Email is required for logged-out users.'
                 }, status=400)
+            email = normalize_and_validate_email(email)
 
         # Get learning level from request body
         learning_level: int | None = body.get('learningLevel')
@@ -539,7 +575,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
         return jsonResponse({
             'success': True,
             'message': result['message'],
-            'email': email,
+            'email': result['email'],
             'learningLevel': result['learning_level'],
             'userId': result['user_id']  # Will be None if no account exists
         }, status=200)

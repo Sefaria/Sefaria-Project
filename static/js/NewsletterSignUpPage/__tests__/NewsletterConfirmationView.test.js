@@ -8,7 +8,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import NewsletterConfirmationView from '../NewsletterConfirmationView';
-import { FORM_STATUS } from '../constants';
+import { FORM_STATUS } from '../stateSymbols';
 import SefariaModule from '../../sefaria/sefaria';
 
 // Mock Sefaria global object

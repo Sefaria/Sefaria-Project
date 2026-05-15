@@ -15,7 +15,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import { FORM_STATUS, STAGE, NEWSLETTERS } from '../constants';
+import { FORM_STATUS, STAGE } from '../stateSymbols';
 import { BILINGUAL_TEXT } from '../bilingualUtils';
 
 // ============================================================================
@@ -544,17 +544,29 @@ describe('NewsletterSignUpPageForm', () => {
 });
 
 // ============================================================================
-// Suite 9: getNewsletterLists failure → falls back to NEWSLETTERS constant
+// Suite 9: getNewsletterLists failure → shows service unavailable message
+// (form does NOT render fallback newsletters anymore; that path was removed)
 // ============================================================================
 
 describe('Suite 9: getNewsletterLists failure shows service unavailable message', () => {
+  let consoleErrorSpy;
+
   beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     getNewsletterLists.mockReturnValueOnce(Promise.reject(new Error('Service down')));
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it('does not render the form when lists API fails', async () => {
     await renderForm();
     expect(lastFormViewProps.newsletters).toBeUndefined();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to fetch newsletter lists:',
+      expect.any(Error)
+    );
   });
 
   it('shows the unavailable message div when lists API rejects', async () => {
@@ -569,12 +581,16 @@ describe('Suite 9: getNewsletterLists failure shows service unavailable message'
 // ============================================================================
 
 describe('Suite 10: fetchUserSubscriptions failure — form still renders for logged-in users', () => {
+  let consoleErrorSpy;
+
   beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     Sefaria._uid = 1;
     Sefaria._email = 'user@example.com';
     fetchUserSubscriptions.mockReturnValueOnce(Promise.reject(new Error('Unauthorized')));
   });
   afterEach(() => {
+    consoleErrorSpy.mockRestore();
     Sefaria._uid = 0;
     Sefaria._email = null;
   });
@@ -582,6 +598,10 @@ describe('Suite 10: fetchUserSubscriptions failure — form still renders for lo
   it('renders the form even when subscriptions API fails', async () => {
     await renderForm();
     expect(lastFormViewProps.formData).toBeDefined();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Failed to fetch user subscriptions:',
+      expect.any(Error)
+    );
   });
 
   it('selectedNewsletters defaults to empty object on subscriptions failure', async () => {

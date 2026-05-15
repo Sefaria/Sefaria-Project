@@ -217,6 +217,14 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   });
 
   test('should display confirmation page after submission', async ({ page }) => {
+    // Intercept the subscribe POST explicitly. The HAR fixture's `notFound:
+    // 'fallthrough'` policy means a request that doesn't exactly match the
+    // recorded entry silently hits real AC, which made this test flaky.
+    // This test only asserts on UI state, so a minimal success response is enough.
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+    );
+
     // Fill first name
     const firstNameInput = page.locator('input#firstName');
     await firstNameInput.fill('Jane');

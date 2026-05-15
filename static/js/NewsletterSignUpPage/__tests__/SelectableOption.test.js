@@ -77,20 +77,26 @@ describe('SelectableOption', () => {
 
   it('falls back to default icon on image load error', async () => {
     const OriginalImage = global.Image;
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     global.Image = class {
       set src(_v) { setTimeout(() => this.onerror && this.onerror(), 0); }
     };
 
-    await act(async () => {
-      ReactDOM.render(
-        React.createElement(SelectableOption, { label: 'Test', icon: 'broken-icon.svg', isSelected: false, onChange: () => {} }),
-        container
-      );
-      await new Promise(r => setTimeout(r, 50));
-    });
+    try {
+      await act(async () => {
+        ReactDOM.render(
+          React.createElement(SelectableOption, { label: 'Test', icon: 'broken-icon.svg', isSelected: false, onChange: () => {} }),
+          container
+        );
+        await new Promise(r => setTimeout(r, 50));
+      });
 
-    const span = container.querySelector('.selectableOptionIcon');
-    expect(span.style.maskImage).toContain('news-and-resources.svg');
-    global.Image = OriginalImage;
+      const span = container.querySelector('.selectableOptionIcon');
+      expect(span.style.maskImage).toContain('news-and-resources.svg');
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Failed to load icon: broken-icon.svg, falling back to default');
+    } finally {
+      consoleWarnSpy.mockRestore();
+      global.Image = OriginalImage;
+    }
   });
 });

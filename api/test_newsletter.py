@@ -496,33 +496,26 @@ class TestMapStringidsToListIds:
         ]
         stringids = ['sefaria_news', 'invalid_newsletter']
 
-        with pytest.raises(newsletter_service.ActiveCampaignError):
+        with pytest.raises(newsletter_service.InputError):
             newsletter_service.map_stringids_to_list_ids(stringids, newsletter_list)
 
 
-class TestValidateNewsletterKeys:
-    """Tests for validating newsletter keys"""
+class TestNormalizeAndValidateEmail:
+    """Tests for email validation before ActiveCampaign calls"""
 
-    def test_validate_valid_keys(self):
-        """Valid keys pass validation"""
-        newsletter_list = [
-            {'stringid': 'sefaria_news'},
-            {'stringid': 'text_updates'},
-        ]
-        stringids = ['sefaria_news']
-        result = newsletter_service.validate_newsletter_keys(stringids, newsletter_list)
+    def test_valid_email_is_trimmed(self):
+        assert newsletter_service.normalize_and_validate_email(' user@example.com ') == 'user@example.com'
 
-        assert result is True
-
-    def test_validate_invalid_keys(self):
-        """Invalid keys raise error"""
-        newsletter_list = [
-            {'stringid': 'sefaria_news'},
-        ]
-        stringids = ['sefaria_news', 'invalid_key']
-
-        with pytest.raises(newsletter_service.ActiveCampaignError):
-            newsletter_service.validate_newsletter_keys(stringids, newsletter_list)
+    @pytest.mark.parametrize('email', [
+        '',
+        'not-an-email',
+        'missing-domain@',
+        '@missing-local.com',
+        None,
+    ])
+    def test_invalid_email_raises_input_error(self, email):
+        with pytest.raises(newsletter_service.InputError):
+            newsletter_service.normalize_and_validate_email(email)
 
 
 class TestAddContactToList:
@@ -600,6 +593,46 @@ class TestSubscribeWithUnion:
         assert 'sefaria_news' in result['all_subscriptions']
         assert 'text_updates' in result['all_subscriptions']
         assert 'parashah_series' in result['all_subscriptions']
+
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service.subscribe_contact_to_lists')
+    @mock.patch('api.newsletter_service.find_or_create_contact')
+    def test_only_subscribes_to_diff(self, mock_find, mock_subscribe, mock_get_memberships):
+        """
+        subscribe_with_union should only POST to AC for lists the user isn't
+        already actively subscribed to — not for the full union. This avoids
+        redundant status:1 POSTs that AC treats as idempotent but still costs
+        one HTTP call per existing list.
+
+        It must also read memberships with active_only=True so a list the user
+        previously unsubscribed from (status:2) is treated as "needs subscribing"
+        rather than being silently skipped.
+        """
+        mock_find.return_value = {'id': '28529', 'email': 'existing@example.com'}
+        mock_get_memberships.return_value = ['1', '3']  # Already active on lists 1 and 3
+        mock_subscribe.return_value = None
+
+        newsletter_list = [
+            {'stringid': 'sefaria_news', 'id': '1'},      # Already on
+            {'stringid': 'text_updates', 'id': '3'},      # Already on
+            {'stringid': 'parashah_series', 'id': '5'},   # New
+        ]
+
+        # User submits all three — including two they already have.
+        newsletter_service.subscribe_with_union(
+            'existing@example.com', 'Existing', '',
+            ['sefaria_news', 'text_updates', 'parashah_series'],
+            newsletter_list,
+        )
+
+        # Active-only read is required; otherwise resubscribes after unsubscribe break.
+        assert mock_get_memberships.call_args.kwargs.get('active_only') is True
+
+        # Only list 5 should be POSTed — lists 1 and 3 are already active.
+        subscribed_ids = mock_subscribe.call_args.args[1]
+        assert set(subscribed_ids) == {'5'}, (
+            f"Expected only list '5' to be subscribed, got {subscribed_ids}"
+        )
 
 
 # ============================================================================
@@ -696,32 +729,6 @@ class TestUpdateListMemberships:
 # ============================================================================
 # Tests for Mapping Helper Functions
 # ============================================================================
-
-class TestMappingHelpers:
-    """Tests for stringid <-> list ID mapping helpers"""
-
-    def test_get_stringid_to_list_id_map(self):
-        """Create mapping from stringids to list IDs"""
-        newsletter_list = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-            {'stringid': 'text_updates', 'id': '3'},
-        ]
-        mapping = newsletter_service.get_stringid_to_list_id_map(newsletter_list)
-
-        assert mapping['sefaria_news'] == '1'
-        assert mapping['text_updates'] == '3'
-
-    def test_get_list_id_to_stringid_map(self):
-        """Create mapping from list IDs to stringids"""
-        newsletter_list = [
-            {'stringid': 'sefaria_news', 'id': '1'},
-            {'stringid': 'text_updates', 'id': '3'},
-        ]
-        mapping = newsletter_service.get_list_id_to_stringid_map(newsletter_list)
-
-        assert mapping['1'] == 'sefaria_news'
-        assert mapping['3'] == 'text_updates'
-
 
 # ============================================================================
 # Tests for Fetch User Subscriptions Implementation
@@ -1060,11 +1067,12 @@ class TestFetchUserSubscriptionsLearningLevel:
 class TestUpdateUserPreferencesImpl:
     """Tests for update_user_preferences_impl function (replace behavior)"""
 
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
     @mock.patch('api.newsletter_service.find_or_create_contact')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
-    def test_update_replace_subscriptions(self, mock_get_memberships, mock_find, mock_update, mock_update_flag):
+    def test_update_replace_subscriptions(self, mock_get_memberships, mock_find, mock_update, mock_update_flag, mock_load_profile):
         """Replace existing subscriptions with new selections (scoped to managed lists)"""
         mock_find.return_value = {'id': '28529', 'email': 'user@example.com'}
         # User currently subscribed to lists 1 and 2 (both managed)
@@ -1094,8 +1102,9 @@ class TestUpdateUserPreferencesImpl:
 
         assert sorted(result['subscribed_newsletters']) == ['sefaria_news', 'text_updates']
 
-        # Verify wants_marketing_emails set to True for normal update
-        mock_update_flag.assert_called_once_with('user@example.com', True)
+        # Helper receives the loaded profile (None here since _load_user_profile is mocked
+        # to simulate "no Sefaria account"). wants_marketing_emails set to True for normal update.
+        mock_update_flag.assert_called_once_with(None, True)
 
     @mock.patch('api.newsletter_service._update_wants_marketing_emails')
     @mock.patch('api.newsletter_service.update_list_memberships')
@@ -1170,7 +1179,7 @@ class TestUpdateUserPreferencesImpl:
         ]
 
         # Try to update with invalid stringid
-        with pytest.raises(newsletter_service.ActiveCampaignError):
+        with pytest.raises(newsletter_service.InputError):
             newsletter_service.update_user_preferences_impl(
                 'user@example.com', 'John', 'Doe',
                 ['sefaria_news', 'invalid_key'],

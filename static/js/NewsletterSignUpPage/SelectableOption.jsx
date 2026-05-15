@@ -44,6 +44,11 @@ export default function SelectableOption({
       setIconSrc(defaultPath);
     };
     img.src = iconPath;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [icon]);
 
   const inputProps = {

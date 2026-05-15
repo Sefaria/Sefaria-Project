@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Sefaria from "../sefaria/sefaria";
-import { FORM_STATUS, STAGE, NEWSLETTERS, LEARNING_LEVELS } from "./constants";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { FORM_STATUS, STAGE } from "./stateSymbols";
+import { BILINGUAL_TEXT, LEARNING_LEVELS } from "./bilingualUtils";
 import { InterfaceText, LoadingMessage, LoadingRing } from "../Misc";
 import NewsletterFormView from "./NewsletterFormView";
 import NewsletterConfirmationView from "./NewsletterConfirmationView";
@@ -83,7 +83,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   });
 
   // ========== DYNAMIC NEWSLETTER LIST ==========
-  const [newsletters, setNewsletters] = useState(NEWSLETTERS);
+  const [newsletters, setNewsletters] = useState([]);
   const [newslettersLoading, setNewslettersLoading] = useState(true);
   const [serviceUnavailable, setServiceUnavailable] = useState(false);
 
@@ -99,6 +99,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
+    let isMounted = true;
     const isLoggedIn = !!Sefaria._uid;
     const userEmail = isLoggedIn ? Sefaria._email : null;
 
@@ -113,6 +114,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const promises = [
       getNewsletterLists()
         .then((response) => {
+          if (!isMounted) return;
           if (response.newsletters) {
             setNewsletters(
               response.newsletters.map((nl) => ({
@@ -125,6 +127,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         })
         .catch((error) => {
           console.error("Failed to fetch newsletter lists:", error);
+          if (!isMounted) return;
           setServiceUnavailable(true);
         }),
     ];
@@ -133,6 +136,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       promises.push(
         fetchUserSubscriptions(userEmail)
           .then((response) => {
+            if (!isMounted) return;
             if (response.success && response.subscribedNewsletters) {
               const selectedNewsletters = {};
               response.subscribedNewsletters.forEach((key) => {
@@ -169,12 +173,17 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     }
 
     // Gate: form only renders after ALL required data arrives
-    Promise.all(promises).finally(() => setNewslettersLoading(false));
+    Promise.all(promises).finally(() => {
+      if (isMounted) setNewslettersLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Revalidate newsletter selection reactively after submit has been attempted.
-  // This runs after render, so formData.selectedNewsletters is always fresh —
-  // unlike the old setTimeout approach which suffered from stale closures.
+  // This runs after render, so formData.selectedNewsletters is always fresh
   useEffect(() => {
     if (!validationState.hasAttemptedSubmit) return;
     setValidationState((prev) => {

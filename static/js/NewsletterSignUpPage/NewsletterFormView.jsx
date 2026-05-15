@@ -4,7 +4,7 @@ import { InterfaceText, LoadingMessage } from "../Misc";
 import SelectableOption from "./SelectableOption";
 import MarketingEmailToggle from "./MarketingEmailToggle";
 import { BILINGUAL_TEXT } from "./bilingualUtils";
-import { FORM_STATUS } from "./constants";
+import { FORM_STATUS } from "./stateSymbols";
 
 /**
  * NewsletterFormView - Stage 1: Newsletter Selection Form

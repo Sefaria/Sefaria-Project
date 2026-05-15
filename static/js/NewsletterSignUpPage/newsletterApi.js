@@ -55,7 +55,12 @@ export const updatePreferences = async (email, newsletters, options = {}) => {
 export const updateLearningLevel = async (email, learningLevel) => {
   const response = await fetch("/api/newsletter/learning-level", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    mode: "same-origin",
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": Cookies.get("csrftoken"),
+    },
     body: JSON.stringify({ email, learningLevel }),
   });
   const result = await parseJsonResponse(response);

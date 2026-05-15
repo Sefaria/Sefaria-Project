@@ -25,11 +25,16 @@ const {
 // Helpers
 // ============================================================================
 
+// Minimal Fetch Response stand-in. `parseJsonResponse` in newsletterApi.js reads
+// `response.headers.get("content-type")` to decide whether to call `.json()` —
+// without a headers shim the helper throws before any assertion can run.
+const jsonHeaders = { get: (name) => (name.toLowerCase() === 'content-type' ? 'application/json' : null) };
+
 const mockFetchOk = (body) =>
-  Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
+  Promise.resolve({ ok: true, headers: jsonHeaders, json: () => Promise.resolve(body) });
 
 const mockFetchFail = (error) =>
-  Promise.resolve({ ok: false, json: () => Promise.resolve({ error }) });
+  Promise.resolve({ ok: false, headers: jsonHeaders, json: () => Promise.resolve({ error }) });
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -78,7 +83,7 @@ describe('subscribeNewsletter', () => {
   });
 
   it('throws fallback message when error field is absent', async () => {
-    global.fetch.mockReturnValue(Promise.resolve({ ok: false, json: () => Promise.resolve({}) }));
+    global.fetch.mockReturnValue(Promise.resolve({ ok: false, headers: jsonHeaders, json: () => Promise.resolve({}) }));
 
     await expect(subscribeNewsletter(payload)).rejects.toThrow('Failed to subscribe');
   });
@@ -224,6 +229,15 @@ describe('updateLearningLevel', () => {
     const body = JSON.parse(options.body);
     expect(body.email).toBe('user@example.com');
     expect(body.learningLevel).toBe(3);
+  });
+
+  it('includes CSRF token in X-CSRFToken header', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updateLearningLevel('user@example.com', 3);
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
   });
 
   it('throws on non-ok response', async () => {

@@ -12,7 +12,7 @@ import {
 } from './Misc';
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import NewsletterSignUpPageForm from "./NewsletterSignUpPage/NewsletterSignUpPageForm";
-import { STAGE } from "./NewsletterSignUpPage/constants";
+import { STAGE } from "./NewsletterSignUpPage/stateSymbols";
 import { BILINGUAL_TEXT } from "./NewsletterSignUpPage/bilingualUtils";
 import palette from './sefaria/palette';
 import classNames from 'classnames';

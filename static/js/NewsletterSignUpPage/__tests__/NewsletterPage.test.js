@@ -10,7 +10,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import { STAGE } from '../constants';
+import { STAGE } from '../stateSymbols';
 
 // ============================================================================
 // Mocks — must be declared before the component import
@@ -69,7 +69,7 @@ jest.mock('../../NewsletterSignUpForm', () => ({
 
 jest.mock('../../NewsletterSignUpPage/NewsletterSignUpPageForm', () => {
   const React = require('react');
-  const { STAGE } = require('../constants');
+  const { STAGE } = require('../stateSymbols');
 
   return {
     __esModule: true,

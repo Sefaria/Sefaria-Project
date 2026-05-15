@@ -13,7 +13,10 @@ full HTTP request/response cycle including Django middleware and authentication.
 import json
 import pytest
 from unittest import mock
+from django.conf import settings
+from django.test import Client
 from api.newsletter_service import ActiveCampaignError
+from sefaria.system.exceptions import InputError
 
 
 # Shared fixtures (`client`, `test_user`, `test_user_no_name`,
@@ -44,6 +47,13 @@ def assert_error(response, expected_status, expected_error_part=None):
 
 def parse_json(response):
     return json.loads(response.content)
+
+
+def csrf_checked_logged_in_client(test_user, token='a' * 32):
+    client = Client(enforce_csrf_checks=True)
+    client.login(email='testuser@sefaria.org', password='testpass123')
+    client.cookies[settings.CSRF_COOKIE_NAME] = token
+    return client, token
 
 
 # ============================================================================
@@ -213,12 +223,12 @@ class TestUpdateUserPreferencesIntegration:
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_invalid_stringid_returns_500(
+    def test_invalid_stringid_returns_400(
         self, mock_get_list, mock_update, logged_in_client, mock_newsletters
     ):
         """Invalid newsletter stringid raises error from service layer."""
         mock_get_list.return_value = mock_newsletters
-        mock_update.side_effect = ActiveCampaignError(
+        mock_update.side_effect = InputError(
             "Invalid newsletter IDs: invalid_newsletter_123"
         )
 
@@ -230,8 +240,43 @@ class TestUpdateUserPreferencesIntegration:
             content_type='application/json',
         )
 
-        data = assert_error(response, 500)
+        data = assert_error(response, 400)
         assert 'error' in data
+
+    def test_authenticated_preferences_requires_csrf_when_enforced(self, test_user):
+        """Authenticated preference mutations require CSRF under real middleware checks."""
+        client = Client(enforce_csrf_checks=True)
+        client.login(email='testuser@sefaria.org', password='testpass123')
+
+        response = client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {'sefaria_news': True}}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 403
+
+    @mock.patch('api.newsletter_views.update_user_preferences_impl')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_authenticated_preferences_accepts_valid_csrf(
+        self, mock_get_list, mock_update, test_user, mock_newsletters
+    ):
+        """Authenticated preference mutations pass with a valid CSRF cookie/header pair."""
+        client, token = csrf_checked_logged_in_client(test_user)
+        mock_get_list.return_value = mock_newsletters
+        mock_update.return_value = {
+            'contact': {'id': '12345', 'email': 'testuser@sefaria.org'},
+            'subscribed_newsletters': ['sefaria_news'],
+        }
+
+        response = client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {'sefaria_news': True}}),
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=token,
+        )
+
+        assert_success(response, 200)
 
     @mock.patch('api.newsletter_views.update_user_preferences_impl')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
@@ -669,6 +714,22 @@ class TestSubscribeNewsletterEndpoint:
         data = json.loads(response.content)
         assert 'First name and email are required' in data['error']
 
+    def test_subscribe_invalid_email(self, client):
+        """Malformed non-empty email is rejected before calling ActiveCampaign."""
+        response = client.post(
+            '/api/newsletter/subscribe',
+            json.dumps({
+                'firstName': 'John',
+                'email': 'not-an-email',
+                'newsletters': {'sefaria_news': True},
+            }),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Invalid email address' in data['error']
+
     def test_subscribe_no_newsletters_selected(self, client):
         """
         Logged-out users must select at least one newsletter.
@@ -781,6 +842,7 @@ class TestSubscribeNewsletterEndpoint:
 # Update Learning Level Endpoint Tests (POST /api/newsletter/learning-level)
 # ============================================================================
 
+@pytest.mark.django_db
 class TestUpdateLearningLevelView:
     """Tests for the POST /api/newsletter/learning-level endpoint."""
 
@@ -821,6 +883,31 @@ class TestUpdateLearningLevelView:
         assert response.status_code == 400
         data = json.loads(response.content)
         assert 'Email is required' in data['error']
+
+    def test_update_learning_level_logged_out_invalid_email(self, client):
+        """Malformed non-empty email is rejected before calling ActiveCampaign."""
+        response = client.post(
+            '/api/newsletter/learning-level',
+            json.dumps({'email': 'not-an-email', 'learningLevel': 2}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'Invalid email address' in data['error']
+
+    def test_authenticated_learning_level_requires_csrf_when_enforced(self, test_user):
+        """Authenticated learning-level mutations require CSRF under real middleware checks."""
+        client = Client(enforce_csrf_checks=True)
+        client.login(email='testuser@sefaria.org', password='testpass123')
+
+        response = client.post(
+            '/api/newsletter/learning-level',
+            json.dumps({'learningLevel': 2}),
+            content_type='application/json',
+        )
+
+        assert response.status_code == 403
 
     def test_update_learning_level_invalid_json(self, client):
         """Malformed JSON in the request body returns 400."""

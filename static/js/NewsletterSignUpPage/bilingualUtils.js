@@ -236,3 +236,46 @@ export const BILINGUAL_TEXT = {
     he: 'מצטערים, אירעה שגיאה. אנא נסה שוב.',
   },
 };
+
+export const LEARNING_LEVELS = [
+  {
+    value: 1,
+    label: { en: 'Newcomer', he: 'מתחיל' },
+    description: {
+      en: 'I need significant guidance and translation to navigate and study the texts in the Jewish library.',
+      he: 'אני צריך הנחיה משמעותית ותרגום כדי לנווט ללמוד טקסטים בספרייה היהודית.',
+    },
+  },
+  {
+    value: 2,
+    label: { en: 'Beginner', he: 'חדש' },
+    description: {
+      en: 'I need translation and contextual information to navigate and study the Jewish library.',
+      he: 'אני צריך תרגום ומידע הקשרי כדי לנווט ללמוד את הספרייה היהודית.',
+    },
+  },
+  {
+    value: 3,
+    label: { en: 'Intermediate', he: 'ביניים' },
+    description: {
+      en: 'I can navigate the library but need translation and/or context for meaningful study.',
+      he: 'אני יכול לנווט בספרייה אך אני צריך תרגום ו/או הקשר ללימוד משמעותי.',
+    },
+  },
+  {
+    value: 4,
+    label: { en: 'Advanced', he: 'מתקדם' },
+    description: {
+      en: 'I can easily navigate the Jewish library but benefit from translation and/or context in some cases.',
+      he: 'אני יכול לנווט בקלות בספרייה היהודית אך מקבל תועלת מתרגום ו/או הקשר במקרים מסוימים.',
+    },
+  },
+  {
+    value: 5,
+    label: { en: 'Expert', he: 'מומחה' },
+    description: {
+      en: 'I can easily study the texts of the Jewish library independently in their original language.',
+      he: 'אני יכול בקלות ללמוד את הטקסטים של הספרייה היהודית באופן עצמאי בשפתם המקורית.',
+    },
+  },
+];
