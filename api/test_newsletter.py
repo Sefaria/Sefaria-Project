@@ -815,8 +815,10 @@ class TestFetchUserSubscriptionsImpl:
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service.get_contact_list_memberships')
     @mock.patch('api.newsletter_service._client.make_request')
-    def test_fetch_returns_wants_marketing_emails_from_profile(self, mock_request, mock_get_memberships, mock_profile_class):
-        """Returns wants_marketing_emails from UserProfile when user is provided"""
+    def test_fetch_corrects_stale_wants_marketing_false_with_active_membership(
+        self, mock_request, mock_get_memberships, mock_profile_class
+    ):
+        """Active AC memberships correct stale wants_marketing_emails=False."""
         mock_request.return_value = {
             'contacts': [{'id': '28529', 'email': 'user@example.com'}]
         }
@@ -826,6 +828,7 @@ class TestFetchUserSubscriptionsImpl:
         mock_profile = mock.MagicMock()
         mock_profile.id = 42
         mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
         mock_profile_class.return_value = mock_profile
 
         # Mock authenticated user
@@ -838,7 +841,40 @@ class TestFetchUserSubscriptionsImpl:
             'user@example.com', newsletter_list, user=mock_user
         )
 
+        assert result['wants_marketing_emails'] is True
+        assert mock_profile.wants_marketing_emails is True
+        mock_profile.save.assert_called_once()
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service.get_contact_list_memberships')
+    @mock.patch('api.newsletter_service._client.make_request')
+    def test_fetch_preserves_wants_marketing_false_without_active_memberships(
+        self, mock_request, mock_get_memberships, mock_profile_class
+    ):
+        """No active AC memberships means an explicit opt-out remains valid."""
+        mock_request.return_value = {
+            'contacts': [{'id': '28529', 'email': 'user@example.com'}]
+        }
+        mock_get_memberships.return_value = []
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_user = mock.MagicMock()
+        mock_user.is_authenticated = True
+
+        newsletter_list = [{'stringid': 'sefaria_news', 'id': '1'}]
+
+        result = newsletter_service.fetch_user_subscriptions_impl(
+            'user@example.com', newsletter_list, user=mock_user
+        )
+
         assert result['wants_marketing_emails'] is False
+        assert mock_profile.wants_marketing_emails is False
+        mock_profile.save.assert_not_called()
 
 
 class TestGetContactLearningLevel:

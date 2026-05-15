@@ -655,23 +655,22 @@ def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: 
     Raises:
         InputError: If any stringid is not found in newsletter_list
     """
-    # Build map of stringid -> list ID
+    # Build the lookup once so validation and mapping use the same source of truth.
     stringid_to_list_id: dict[str, str] = {nl['stringid']: nl['id'] for nl in newsletter_list}
 
-    # Map input stringids to list IDs
-    list_ids: list[str] = []
-    invalid_ids: list[str] = []
-
-    for stringid in newsletter_stringids:
-        if stringid in stringid_to_list_id:
-            list_ids.append(stringid_to_list_id[stringid])
-        else:
-            invalid_ids.append(stringid)
+    # Validate all inputs before mapping so callers get one complete error message.
+    invalid_ids: list[str] = [
+        stringid for stringid in newsletter_stringids
+        if stringid not in stringid_to_list_id
+    ]
 
     if invalid_ids:
         error_msg: str = f"Invalid newsletter IDs: {', '.join(invalid_ids)}"
         logger.warning(error_msg)
         raise InputError(error_msg)
+
+    # Preserve the caller's ordering and duplicates in the returned AC list IDs.
+    list_ids: list[str] = [stringid_to_list_id[stringid] for stringid in newsletter_stringids]
 
     logger.info(f"Mapped stringids {newsletter_stringids} to list IDs {list_ids}")
     return list_ids
@@ -909,7 +908,7 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
         dict: {
             'subscribed_newsletters': [...],  # Array of stringids
             'learning_level': None,
-            'wants_marketing_emails': bool  # From MongoDB UserProfile (default True)
+            'wants_marketing_emails': bool  # From UserProfile, corrected if AC has active memberships
         }
 
     Raises:
@@ -921,12 +920,15 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
     # Read preferences from MongoDB UserProfile for authenticated users
     wants_marketing_emails: bool = True  # Default for unauthenticated or new users
     profile_learning_level: int | None = None
+    profile: UserProfile | None = None
     if user is not None and user.is_authenticated:
         try:
-            profile: UserProfile = UserProfile(email=email, user_registration=True)
+            profile = UserProfile(email=email, user_registration=True)
             if profile.id is not None:
                 wants_marketing_emails = getattr(profile, 'wants_marketing_emails', True)
                 profile_learning_level = getattr(profile, 'learning_level', None)
+            else:
+                profile = None
         except Exception as e:
             logger.warning(f"Could not load UserProfile for {email}: {e}")
 
@@ -950,6 +952,17 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
 
     # Get list memberships (active only for accurate subscription state)
     existing_list_ids: list[str] = get_contact_list_memberships(contact_id, active_only=True)
+
+    # If the user previously opted out, but AC now shows any active membership,
+    # the local opt-out flag is stale. Opt-out removes all AC lists, so any later
+    # active list means the user opted back in through another channel.
+    if profile is not None and not wants_marketing_emails and existing_list_ids:
+        logger.info(
+            f"Correcting stale wants_marketing_emails=False for {email}; "
+            f"found active AC list memberships: {existing_list_ids}"
+        )
+        _update_wants_marketing_emails(profile, True)
+        wants_marketing_emails = True
 
     # Map to stringids
     list_id_to_stringid: dict[str, str] = {nl['id']: nl['stringid'] for nl in valid_newsletters}

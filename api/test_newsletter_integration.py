@@ -208,7 +208,7 @@ class TestFetchUserSubscriptionsIntegration:
         """
         Integration: Stale opt-out scenario - user has wants_marketing_emails=False in MongoDB
         but has active managed subscriptions in AC (re-subscribed via another channel).
-        The function returns both values; frontend handles the detection logic.
+        The backend corrects and persists the stale MongoDB flag.
         """
         mock_request.return_value = {
             'contacts': [{'id': '100', 'email': 'user@example.com'}]
@@ -220,6 +220,7 @@ class TestFetchUserSubscriptionsIntegration:
         mock_profile = mock.MagicMock()
         mock_profile.id = 42
         mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
         mock_profile_class.return_value = mock_profile
 
         mock_user = mock.MagicMock()
@@ -234,9 +235,10 @@ class TestFetchUserSubscriptionsIntegration:
             'user@example.com', newsletter_list, user=mock_user
         )
 
-        # Backend returns both values as-is; frontend will override the toggle
-        assert result['wants_marketing_emails'] is False
+        assert result['wants_marketing_emails'] is True
         assert len(result['subscribed_newsletters']) == 2
+        assert mock_profile.wants_marketing_emails is True
+        mock_profile.save.assert_called_once()
 
 
 # ============================================================================
@@ -409,6 +411,45 @@ class TestViewThroughServiceOptOut:
         assert removed == {'1'}, "Only active list 1 should be removed"
         assert '3' not in removed, "Already-unsubscribed list 3 should be skipped"
 
+        mock_update_flag.assert_called_once_with(None, False)
+
+    @mock.patch('api.newsletter_service._load_user_profile', return_value=None)
+    @mock.patch('api.newsletter_service._update_wants_marketing_emails')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_opt_out_without_active_lists_still_persists_opt_out(
+        self, mock_get_list, mock_ac_request, mock_update_flag, mock_load_profile, logged_in_client
+    ):
+        """
+        A never-subscribed logged-in user can still explicitly opt out. There
+        are no AC memberships to remove, but the local preference must persist.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[],
+            all_lists=[
+                {'id': '1', 'stringid': 'sefaria_news', 'name': 'Sefaria News'},
+                {'id': '3', 'stringid': 'text_updates', 'name': 'Text Updates'},
+            ]
+        )
+
+        response = logged_in_client.post(
+            '/api/newsletter/preferences',
+            json.dumps({'newsletters': {}, 'marketingOptOut': True}),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['success'] is True
+        assert data['subscribedNewsletters'] == []
+        assert data['marketingOptOut'] is True
+
+        added, removed = _extract_list_mutations(mock_ac_request)
+        assert added == set()
+        assert removed == set()
+        mock_update_flag.assert_called_once_with(None, False)
+
 
 @pytest.mark.django_db
 class TestViewThroughServiceFetchSubscriptions:
@@ -454,11 +495,12 @@ class TestViewThroughServiceFetchSubscriptions:
     @mock.patch('api.newsletter_service.UserProfile')
     @mock.patch('api.newsletter_service._client.make_request')
     @mock.patch('api.newsletter_views.get_cached_newsletter_list')
-    def test_wants_marketing_emails_false_propagates(self, mock_get_list, mock_ac_request,
-                                                      mock_profile_class, logged_in_client):
+    def test_active_managed_subscription_corrects_stale_wants_marketing_false(
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+    ):
         """
-        UserProfile.wants_marketing_emails=False in MongoDB propagates
-        through service → view → HTTP response.
+        UserProfile.wants_marketing_emails=False is stale when AC has any active
+        membership, including managed lists shown by this frontend.
         """
         mock_get_list.return_value = _MANAGED_NEWSLETTERS
 
@@ -478,8 +520,72 @@ class TestViewThroughServiceFetchSubscriptions:
 
         assert response.status_code == 200
         data = json.loads(response.content)
-        assert data['wantsMarketingEmails'] is False
+        assert data['wantsMarketingEmails'] is True
         assert data['subscribedNewsletters'] == ['sefaria_news']
+        assert mock_profile.wants_marketing_emails is True
+        mock_profile.save.assert_called_once()
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_active_unmanaged_subscription_corrects_stale_wants_marketing_false(
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+    ):
+        """
+        Unmanaged AC lists are not exposed as frontend newsletter selections, but
+        any active AC membership still proves the local opt-out flag is stale.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_request.side_effect = _ac_side_effect(
+            contact_memberships=[
+                {'list': '99', 'status': '1'},
+            ]
+        )
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['wantsMarketingEmails'] is True
+        assert data['subscribedNewsletters'] == []
+        assert mock_profile.wants_marketing_emails is True
+        mock_profile.save.assert_called_once()
+
+    @mock.patch('api.newsletter_service.UserProfile')
+    @mock.patch('api.newsletter_service._client.make_request')
+    @mock.patch('api.newsletter_views.get_cached_newsletter_list')
+    def test_wants_marketing_emails_false_remains_false_without_active_memberships(
+        self, mock_get_list, mock_ac_request, mock_profile_class, logged_in_client
+    ):
+        """
+        A user who explicitly opted out and has no active AC memberships should
+        remain opted out.
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        mock_profile = mock.MagicMock()
+        mock_profile.id = 42
+        mock_profile.wants_marketing_emails = False
+        mock_profile.learning_level = None
+        mock_profile_class.return_value = mock_profile
+
+        mock_ac_request.side_effect = _ac_side_effect(contact_memberships=[])
+
+        response = logged_in_client.get('/api/newsletter/subscriptions')
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['wantsMarketingEmails'] is False
+        assert data['subscribedNewsletters'] == []
+        assert mock_profile.wants_marketing_emails is False
+        mock_profile.save.assert_not_called()
 
     @mock.patch('api.newsletter_service.get_contact_learning_level')
     @mock.patch('api.newsletter_service.UserProfile')
