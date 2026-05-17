@@ -3863,9 +3863,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._translations[props.initialTranslationsSlug] = props.translationsData;
   }
   if (props.topicData) {
-    const topicData = Sefaria.processTopicsTabsData(props.topicData);
-    Sefaria._topics[props.initialTopic] = topicData;
-    Sefaria._topics[Sefaria._getTopicCacheKey(props.initialTopic, {with_html: true})] = topicData;
+    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsTabsData(props.topicData);
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
