@@ -22,35 +22,27 @@ import {
  * - Manages form data state (user inputs)
  * - Manages form status state (current stage, submission status, errors)
  * - Routes between different views based on current stage
- * - Handles API calls with mocked endpoints
  */
 function buildFieldValidators(formData, formStatus) {
+  const isLoggedOut = !formStatus.isLoggedIn;
+  const hasSelectedNewsletter = Object.values(formData.selectedNewsletters).some(Boolean);
+
   return {
-    firstName: () =>
-      !formStatus.isLoggedIn && !formData.firstName.trim()
-        ? BILINGUAL_TEXT.ENTER_FIRST_NAME
-        : null,
-    lastName: () =>
-      !formStatus.isLoggedIn && !formData.lastName.trim()
-        ? BILINGUAL_TEXT.ENTER_LAST_NAME
-        : null,
+    firstName: () => (isLoggedOut && !formData.firstName.trim() ? BILINGUAL_TEXT.ENTER_FIRST_NAME : null),
+    lastName: () => (isLoggedOut && !formData.lastName.trim() ? BILINGUAL_TEXT.ENTER_LAST_NAME : null),
     email: () => {
       if (!formData.email.trim()) return BILINGUAL_TEXT.ENTER_EMAIL;
-      if (!Sefaria.util.isValidEmailAddress(formData.email))
-        return BILINGUAL_TEXT.VALID_EMAIL;
+      if (!Sefaria.util.isValidEmailAddress(formData.email)) return BILINGUAL_TEXT.VALID_EMAIL;
       return null;
     },
     confirmEmail: () =>
-      !formStatus.isLoggedIn && formData.email !== formData.confirmEmail
-        ? BILINGUAL_TEXT.EMAILS_MISMATCH
-        : null,
-    newsletters: () => {
-      if (formStatus.isLoggedIn) return null;
-      return Object.values(formData.selectedNewsletters).some((v) => v)
-        ? null
-        : BILINGUAL_TEXT.SELECT_NEWSLETTER;
-    },
+      isLoggedOut && formData.email !== formData.confirmEmail ? BILINGUAL_TEXT.EMAILS_MISMATCH : null,
+    newsletters: () => (isLoggedOut && !hasSelectedNewsletter ? BILINGUAL_TEXT.SELECT_NEWSLETTER : null),
   };
+}
+
+function errorToBilingualMessage(error) {
+  return error.message ? { en: error.message, he: error.message } : BILINGUAL_TEXT.GENERIC_ERROR;
 }
 
 export default function NewsletterSignUpPageForm({ onStageChange }) {
@@ -70,7 +62,6 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     currentStage: STAGE.NEWSLETTER_SELECTION,
     status: FORM_STATUS.IDLE,
     errorMessage: null,
-    successMessage: null,
     isLoggedIn: false,
     userEmail: null,
   });
@@ -87,15 +78,26 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   const [newslettersLoading, setNewslettersLoading] = useState(true);
   const [serviceUnavailable, setServiceUnavailable] = useState(false);
 
-  // Ref for focusing error summary on validation failure (accessibility)
-  const errorSummaryRef = useRef(null);
+  // Ref for returning to the form title when validation fails.
+  const formTitleRef = useRef(null);
   // Ref for scrolling to top of form section on stage transition
   const containerRef = useRef(null);
+  // Prevent late API responses from setting state after navigation/unmount.
+  // Tests exposed this lifecycle edge case, but it can also happen in production
+  // when a user leaves the page before a submit or learning-level request finishes.
+  const isMountedRef = useRef(false);
 
   // Baseline snapshots for computing subscription diffs (logged-in users only).
   // Refs because these are write-once values that never drive rendering.
   const initialSubscriptionsRef = useRef({});
   const initialWantsMarketingRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // ========== INITIALIZATION: Detect authentication status ==========
   useEffect(() => {
@@ -143,17 +145,11 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
                 selectedNewsletters[key] = true;
               });
 
-              // Stale opt-out detection: if backend says opted-out but user has
-              // active managed subscriptions (re-subscribed via another channel),
-              // show as opted-in. The MongoDB value is NOT corrected until user submits.
-              const backendWantsMarketing =
-                response.wantsMarketingEmails ?? true;
-              const hasActiveManagedSubscription =
-                response.subscribedNewsletters.length > 0;
-              const effectiveWantsMarketing =
-                !backendWantsMarketing && hasActiveManagedSubscription
-                  ? true
-                  : backendWantsMarketing;
+              // Active managed subscriptions imply marketing emails are enabled;
+              // guard against stale or mocked opt-out flags saying otherwise.
+              const backendWantsMarketing = response.wantsMarketingEmails ?? true;
+              const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
+              const effectiveWantsMarketing = backendWantsMarketing || hasActiveManagedSubscription;
 
               initialSubscriptionsRef.current = { ...selectedNewsletters };
               initialWantsMarketingRef.current = effectiveWantsMarketing;
@@ -187,31 +183,24 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   useEffect(() => {
     if (!validationState.hasAttemptedSubmit) return;
     setValidationState((prev) => {
-      const hasSelection = Object.values(formData.selectedNewsletters).some(
-        (v) => v,
-      );
+      const newsletterError = buildFieldValidators(formData, formStatus).newsletters();
+      if (prev.fieldErrors.newsletters === newsletterError) return prev;
+
       const newErrors = { ...prev.fieldErrors };
-      if (!formStatus.isLoggedIn && !hasSelection) {
-        newErrors.newsletters = BILINGUAL_TEXT.SELECT_NEWSLETTER;
+      if (newsletterError) {
+        newErrors.newsletters = newsletterError;
       } else {
         delete newErrors.newsletters;
       }
-      const hadError = !!prev.fieldErrors.newsletters;
-      const hasError = !!newErrors.newsletters;
-      if (hadError === hasError) return prev;
       return { ...prev, fieldErrors: newErrors };
     });
-  }, [
-    formData.selectedNewsletters,
-    validationState.hasAttemptedSubmit,
-    formStatus.isLoggedIn,
-  ]);
+  }, [formData.selectedNewsletters, validationState.hasAttemptedSubmit, formStatus.isLoggedIn]);
 
   useEffect(() => {
     onStageChange?.(formStatus.currentStage);
   }, [formStatus.currentStage, onStageChange]);
 
-  // Scroll to top of form section when transitioning to confirmation or success
+  // Effects run after React commits the new stage, so this scroll can happen immediately.
   useEffect(() => {
     if (formStatus.currentStage !== STAGE.NEWSLETTER_SELECTION) {
       containerRef.current?.scrollIntoView?.({
@@ -224,8 +213,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
 
-  const makeFieldSetter = (field) => (value) =>
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const makeFieldSetter = (field) => (value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
   const handleFirstNameChange = makeFieldSetter("firstName");
   const handleLastNameChange = makeFieldSetter("lastName");
@@ -258,31 +246,28 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const fieldValidators = buildFieldValidators(formData, formStatus);
 
     const validator = fieldValidators[fieldName];
-    if (validator) {
-      const error = validator();
-      setValidationState((prev) => {
-        const newErrors = { ...prev.fieldErrors };
-        if (error) {
-          newErrors[fieldName] = error;
+    if (!validator) return;
+
+    const error = validator();
+    setValidationState((prev) => {
+      const newErrors = { ...prev.fieldErrors };
+      if (error) {
+        newErrors[fieldName] = error;
+      } else {
+        delete newErrors[fieldName];
+      }
+      // Re-evaluate confirmEmail when email changes, but only if confirmEmail has been
+      // touched (has a value) or already has an error that may need clearing.
+      if (fieldName === "email" && (formData.confirmEmail !== "" || newErrors.confirmEmail)) {
+        const confirmError = fieldValidators.confirmEmail();
+        if (confirmError) {
+          newErrors.confirmEmail = confirmError;
         } else {
-          delete newErrors[fieldName];
+          delete newErrors.confirmEmail;
         }
-        // Re-evaluate confirmEmail when email changes, but only if confirmEmail has been
-        // touched (has a value) or already has an error that may need clearing.
-        if (
-          fieldName === "email" &&
-          (formData.confirmEmail !== "" || newErrors.confirmEmail)
-        ) {
-          const confirmError = fieldValidators.confirmEmail();
-          if (confirmError) {
-            newErrors.confirmEmail = confirmError;
-          } else {
-            delete newErrors.confirmEmail;
-          }
-        }
-        return { ...prev, fieldErrors: newErrors };
-      });
-    }
+      }
+      return { ...prev, fieldErrors: newErrors };
+    });
   };
 
   // ========== HANDLERS: Form submission ==========
@@ -299,16 +284,16 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     });
 
     if (hasErrors) {
-      // Set form status to error (for any legacy UI handling)
+      // Client-side validation errors live in fieldErrors; clear any stale API-level error.
       setFormStatus((prev) => ({
         ...prev,
-        status: FORM_STATUS.ERROR,
-        errorMessage: null, // Clear old single-error message, we use fieldErrors now
+        status: FORM_STATUS.IDLE,
+        errorMessage: null,
       }));
 
-      // Scroll form title into view; error summary announces itself via role="alert"
+      // Defer until validation errors render; the title is a cleaner scroll target than the summary.
       setTimeout(() => {
-        errorSummaryRef.current?.scrollIntoView({
+        formTitleRef.current?.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
@@ -319,14 +304,10 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     // For logged-in users: skip API call if nothing actually changed
     if (formStatus.isLoggedIn) {
       const diffs = getSubscriptionDiffs();
-      const optOutChanged =
-        formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
+      const hasSubscriptionChanges = diffs.added.length > 0 || diffs.removed.length > 0;
+      const optOutChanged = formData.wantsMarketingEmails !== initialWantsMarketingRef.current;
 
-      if (
-        diffs.added.length === 0 &&
-        diffs.removed.length === 0 &&
-        !optOutChanged
-      ) {
+      if (!hasSubscriptionChanges && !optOutChanged) {
         setFormStatus((prev) => ({
           ...prev,
           currentStage: STAGE.CONFIRMATION,
@@ -342,14 +323,11 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       errorMessage: null,
     }));
 
-    // Always send actual selections; backend handles opt-out via marketingOptOut flag
-    const newslettersToSubmit = formData.selectedNewsletters;
-
     try {
       if (formStatus.isLoggedIn) {
         // For logged-in users: update preferences
         // Pass marketingOptOut flag to indicate intent when newsletters is empty
-        await updatePreferences(formStatus.userEmail, newslettersToSubmit, {
+        await updatePreferences(formStatus.userEmail, formData.selectedNewsletters, {
           marketingOptOut: !formData.wantsMarketingEmails,
         });
       } else {
@@ -362,21 +340,23 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
         });
       }
 
+      // The user may have navigated away while the API request was in flight.
+      if (!isMountedRef.current) return;
+
       // Success! Move to confirmation view
       setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.SUCCESS,
         currentStage: STAGE.CONFIRMATION,
-        successMessage: `We've sent a confirmation to ${formData.email}. You should see it soon.`,
       }));
     } catch (error) {
+      if (!isMountedRef.current) return;
+
       // Error during submission
       setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
-        errorMessage: error.message
-          ? { en: error.message, he: error.message }
-          : BILINGUAL_TEXT.GENERIC_ERROR,
+        errorMessage: errorToBilingualMessage(error),
       }));
     }
   };
@@ -402,18 +382,21 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     try {
       await updateLearningLevel(formData.email, formData.learningLevel);
 
+      // The user may have navigated away while the API request was in flight.
+      if (!isMountedRef.current) return;
+
       setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.SUCCESS,
         currentStage: STAGE.SUCCESS,
       }));
     } catch (error) {
+      if (!isMountedRef.current) return;
+
       setFormStatus((prev) => ({
         ...prev,
         status: FORM_STATUS.ERROR,
-        errorMessage: error.message
-          ? { en: error.message, he: error.message }
-          : BILINGUAL_TEXT.GENERIC_ERROR,
+        errorMessage: errorToBilingualMessage(error),
       }));
     }
   };
@@ -444,63 +427,61 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     const initial = initialSubscriptionsRef.current;
     const current = formData.selectedNewsletters;
 
-    const added = Object.keys(current).filter(
-      (key) => current[key] && !initial[key],
-    );
-    const removed = Object.keys(initial).filter(
-      (key) => initial[key] && !current[key],
-    );
+    const added = Object.keys(current).filter((key) => current[key] && !initial[key]);
+    const removed = Object.keys(initial).filter((key) => initial[key] && !current[key]);
 
     return { added, removed };
   };
 
   // ========== RENDER: View routing based on current stage ==========
 
+  const isNewsletterSelectionStage = formStatus.currentStage === STAGE.NEWSLETTER_SELECTION;
+  const isConfirmationStage = formStatus.currentStage === STAGE.CONFIRMATION;
+  const isSuccessStage = formStatus.currentStage === STAGE.SUCCESS;
+  const showNewsletterLoading = isNewsletterSelectionStage && newslettersLoading;
+  const showServiceUnavailable = isNewsletterSelectionStage && !newslettersLoading && serviceUnavailable;
+  const showNewsletterForm = isNewsletterSelectionStage && !newslettersLoading && !serviceUnavailable;
+
   return (
     <div className="newsletterSignUpPageForm" ref={containerRef}>
-      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
-        newslettersLoading && (
-          <div className="newsletterLoadingState">
-            <LoadingRing />
-            <LoadingMessage />
-          </div>
-        )}
+      {showNewsletterLoading && (
+        <div className="newsletterLoadingState">
+          <LoadingRing />
+          <LoadingMessage />
+        </div>
+      )}
 
-      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
-        !newslettersLoading &&
-        serviceUnavailable && (
-          <div className="newsletterUnavailable">
-            <InterfaceText
-              text={{
-                en: "Newsletter sign-up is not available right now.",
-                he: "ההרשמה לניוזלטר אינה זמינה כרגע.",
-              }}
-            />
-          </div>
-        )}
-
-      {formStatus.currentStage === STAGE.NEWSLETTER_SELECTION &&
-        !newslettersLoading &&
-        !serviceUnavailable && (
-          <NewsletterFormView
-            formData={formData}
-            formStatus={formStatus}
-            newsletters={newsletters}
-            fieldErrors={validationState.fieldErrors}
-            hasAttemptedSubmit={validationState.hasAttemptedSubmit}
-            errorSummaryRef={errorSummaryRef}
-            onFirstNameChange={handleFirstNameChange}
-            onLastNameChange={handleLastNameChange}
-            onEmailChange={handleEmailChange}
-            onConfirmEmailChange={handleConfirmEmailChange}
-            onNewsletterToggle={handleNewsletterToggle}
-            onMarketingEmailToggle={handleMarketingEmailToggle}
-            onFieldBlur={handleFieldBlur}
-            onSubmit={handleSubscribeSubmit}
+      {showServiceUnavailable && (
+        <div className="newsletterUnavailable">
+          <InterfaceText
+            text={{
+              en: "Newsletter sign-up is not available right now.",
+              he: "ההרשמה לניוזלטר אינה זמינה כרגע.",
+            }}
           />
-        )}
+        </div>
+      )}
 
-      {formStatus.currentStage === STAGE.CONFIRMATION && (
+      {showNewsletterForm && (
+        <NewsletterFormView
+          formData={formData}
+          formStatus={formStatus}
+          newsletters={newsletters}
+          fieldErrors={validationState.fieldErrors}
+          hasAttemptedSubmit={validationState.hasAttemptedSubmit}
+          formTitleRef={formTitleRef}
+          onFirstNameChange={handleFirstNameChange}
+          onLastNameChange={handleLastNameChange}
+          onEmailChange={handleEmailChange}
+          onConfirmEmailChange={handleConfirmEmailChange}
+          onNewsletterToggle={handleNewsletterToggle}
+          onMarketingEmailToggle={handleMarketingEmailToggle}
+          onFieldBlur={handleFieldBlur}
+          onSubmit={handleSubscribeSubmit}
+        />
+      )}
+
+      {isConfirmationStage && (
         <NewsletterConfirmationView
           email={formData.email}
           selectedNewsletters={formData.selectedNewsletters}
@@ -512,14 +493,12 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           onSave={handleLearningLevelSubmit}
           onSkip={() => handleLearningLevelSubmit(false)}
           isLoggedIn={formStatus.isLoggedIn}
-          subscriptionDiffs={
-            formStatus.isLoggedIn ? getSubscriptionDiffs() : null
-          }
+          subscriptionDiffs={formStatus.isLoggedIn ? getSubscriptionDiffs() : null}
           marketingOptOut={!formData.wantsMarketingEmails}
         />
       )}
 
-      {formStatus.currentStage === STAGE.SUCCESS && <SuccessView />}
+      {isSuccessStage && <SuccessView />}
     </div>
   );
 }
