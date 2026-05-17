@@ -45,6 +45,23 @@ function errorToBilingualMessage(error) {
   return error.message ? { en: error.message, he: error.message } : BILINGUAL_TEXT.GENERIC_ERROR;
 }
 
+function buildFormDataFromSubscriptionResponse(response) {
+  const selectedNewsletters = Object.fromEntries(
+    response.subscribedNewsletters.map((key) => [key, true]),
+  );
+
+  // Active managed subscriptions imply marketing emails are enabled;
+  // guard against stale or mocked opt-out flags saying otherwise.
+  const wantsMarketingEmails =
+    (response.wantsMarketingEmails ?? true) || response.subscribedNewsletters.length > 0;
+
+  return {
+    selectedNewsletters,
+    wantsMarketingEmails,
+    learningLevel: response.learningLevel ?? null,
+  };
+}
+
 export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== FORM DATA STATE ==========
   const [formData, setFormData] = useState({
@@ -140,25 +157,14 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           .then((response) => {
             if (!isMounted) return;
             if (response.success && response.subscribedNewsletters) {
-              const selectedNewsletters = {};
-              response.subscribedNewsletters.forEach((key) => {
-                selectedNewsletters[key] = true;
-              });
+              const subscriptionData = buildFormDataFromSubscriptionResponse(response);
 
-              // Active managed subscriptions imply marketing emails are enabled;
-              // guard against stale or mocked opt-out flags saying otherwise.
-              const backendWantsMarketing = response.wantsMarketingEmails ?? true;
-              const hasActiveManagedSubscription = response.subscribedNewsletters.length > 0;
-              const effectiveWantsMarketing = backendWantsMarketing || hasActiveManagedSubscription;
-
-              initialSubscriptionsRef.current = { ...selectedNewsletters };
-              initialWantsMarketingRef.current = effectiveWantsMarketing;
+              initialSubscriptionsRef.current = { ...subscriptionData.selectedNewsletters };
+              initialWantsMarketingRef.current = subscriptionData.wantsMarketingEmails;
 
               setFormData((prev) => ({
                 ...prev,
-                selectedNewsletters,
-                wantsMarketingEmails: effectiveWantsMarketing,
-                learningLevel: response.learningLevel ?? null,
+                ...subscriptionData,
               }));
             }
           })
