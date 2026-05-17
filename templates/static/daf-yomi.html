@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Daf Yomi | Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Daf Yomi | Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Learn the Talmud each day with Daf Yomi on Sefaria." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Learn the Talmud each day with Daf Yomi on Sefaria." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 

@@ -26,10 +26,15 @@ def decompose_request_info(logger, method_name, event_dict):
     """
     req_obj = event_dict.pop("request", None)
     if req_obj is not None:
-        event_dict["httpRequest"] = {
-            "requestUrl": req_obj.get_full_path(),
-            "requestMethod": req_obj.method
-        }
+        # django-structlog 8.x binds the request URL as a string in many
+        # contexts; older releases passed the full HttpRequest object.
+        if hasattr(req_obj, "get_full_path"):
+            event_dict["httpRequest"] = {
+                "requestUrl": req_obj.get_full_path(),
+                "requestMethod": req_obj.method,
+            }
+        else:
+            event_dict["httpRequest"] = {"requestUrl": str(req_obj)}
     return event_dict
 
 

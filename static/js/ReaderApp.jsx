@@ -43,7 +43,7 @@ import { ChatbotExperimentBanner } from './SiteWideBanner';
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
-    // TODO clean up generation of initial panels objects.
+    // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
@@ -1230,7 +1230,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleModuleLinkRightClick(e) {
     /*
-    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Handle right-clicks on links with data-target-module to ensure correct subdomain
     Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
@@ -2450,7 +2450,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner />}
+              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
@@ -2466,8 +2466,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
-                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
-                  interface-lang={this.props.interfaceLang}
+                  interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
               </main>
