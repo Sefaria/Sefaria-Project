@@ -9,6 +9,7 @@ from sefaria import tracker
 import sefaria.model.category as c
 from sefaria.helper.category import update_order_of_category_children
 import datetime
+from sefaria.model.text import TocSerializationOptions
 class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_new_terms(self):
@@ -239,7 +240,6 @@ class Test_Categories(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         assert len(base_json) == len(new_json)
 
-
 """
 Are these tests necessary anymore?
 They were useful in validating 1st class categories against older forms. 
@@ -258,4 +258,3 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
-

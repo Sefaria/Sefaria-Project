@@ -44,7 +44,7 @@ class RemoteConfigCache:
                 if self._cache is None:  # double-checked locking for minimal contention
                     try:
                         self._cache = self._build_cache()
-                    except OperationalError:
+                    except (OperationalError, RuntimeError):
                         self._cache = {}
         return self._cache
 

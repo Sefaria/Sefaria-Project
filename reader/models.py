@@ -37,7 +37,8 @@ def _set_user_experiments(user, value):
     profile.save()
 
     if changed:
-        dispatch_chatbot_opt_in_webhook(user.email, experiments_enabled)
+        interface_language = profile.settings.get("interface_language", "english")
+        dispatch_chatbot_opt_in_webhook(user.email, experiments_enabled, interface_language)
 
 
 if not hasattr(User, "experiments"):
@@ -47,4 +48,4 @@ if not hasattr(User, "experiments"):
 def user_has_experiments(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    return UserExperimentSettings.objects.filter(user=user, experiments=True).exists()
+    return UserExperimentSettings.objects.filter(user=user).exists()

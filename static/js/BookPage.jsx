@@ -1080,6 +1080,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [heTitleVariants, setHeTitleVariants] = useState(index.current.heTitleVariants.map((item, i) =>({["name"]: item, ["id"]: i})));
   const [categories, setCategories] = useState(index.current.categories);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("");
   const [sections, setSections] = useState(index.current.sectionNames);
   const [enDesc, setEnDesc] = useState(index.current?.enDesc || "");
   const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
@@ -1218,10 +1219,12 @@ const EditTextInfo = function({initTitle, close}) {
       url += "?update=1";
     }
     toggleInProgress();
-    $.post(url,  {"json": postJSON}, function(data) {
+    $.post(url,  {"json": postJSON}, function(data, textStatus, xhr) {
       if (data.error) {
         toggleInProgress();
         alert(data.error);
+      } else if (xhr.status === 202 && data.task_id) {
+        pollIndexTitleTask(data.task_id, enTitle);
       } else {
         alert("Text information saved.");
         window.location.href = "/admin/reset/"+index.current.title;
@@ -1230,6 +1233,25 @@ const EditTextInfo = function({initTitle, close}) {
         alert("Unfortunately, there may have been an error saving this text information.");
         window.location.href = "/admin/reset/"+index.current.title;  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
       });
+
+    function pollIndexTitleTask(taskId, newTitle) {
+      const savingMessageSuffix = " (Page will automatically refresh when complete. It will still complete even if you navigate away from this page although you won't be able to track progress.)";
+      setSavingMessage("Title change queued — processing in background..." + savingMessageSuffix);
+      Sefaria.pollTask(taskId, {
+        onProgress(meta) { setSavingMessage((meta.step || "Processing...") + savingMessageSuffix); },
+      })
+        .then(result => {
+          const finalTitle = (result && result.title) ? result.title : newTitle;
+          alert("Title change complete.");
+          window.location.href = "/admin/reset/" + finalTitle;
+        })
+        .catch(err => {
+          toggleInProgress();
+          alert(err.isNetworkError
+            ? "Could not check task status. Please confirm with an admin whether the rename completed."
+            : "Title change failed: " + err.message);
+        });
+    }
   };
   const validateThenSave = async function () {
     const valid = await validate();
@@ -1376,7 +1398,7 @@ const EditTextInfo = function({initTitle, close}) {
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
-          {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
+          {savingStatus ? <div className="collectionsWidget">{savingMessage || "Saving text information..."}</div> : null}
           <div id="newIndex">
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">

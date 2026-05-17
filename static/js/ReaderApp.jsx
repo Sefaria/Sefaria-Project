@@ -30,7 +30,6 @@ import {
   InterruptingMessage,
   Banner,
   CookiesNotification,
-  CommunityPagePreviewControls
 } from './Misc';
 import Button from './common/Button';
 import { Promotions } from './Promotions';
@@ -44,7 +43,7 @@ import { ChatbotExperimentBanner } from './SiteWideBanner';
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
-    // TODO clean up generation of initial panels objects.
+    // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
     let panels                 = [];
@@ -141,7 +140,7 @@ class ReaderApp extends Component {
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
-      menuOpen:                state.menuOpen                || null, // "navigation", "display", "search", "sheets", "community", "book toc"
+      menuOpen:                state.menuOpen                || null, // "navigation", "display", "search", "sheets", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
@@ -206,7 +205,8 @@ class ReaderApp extends Component {
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
-    
+    document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
     // Save all initial panels to recently viewed
@@ -239,6 +239,7 @@ class ReaderApp extends Component {
     window.removeEventListener("beforeprint", this.handlePrint);
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
+    document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -534,11 +535,6 @@ class ReaderApp extends Component {
               const allTopicsTitle = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter;
               hist.title = Sefaria.getPageTitle(allTopicsTitle);
               hist.mode  = "topics";
-            break;
-          case "community":
-            hist.title = Sefaria.getPageTitle("From the Community: Today on Sefaria");
-            hist.url   = "community";
-            hist.mode  = "community";
             break;
           case "profile":
             hist.title = Sefaria.getPageTitle(state.profile.full_name);
@@ -1178,6 +1174,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
   }
+  handleSettingsUpdatedEvent(event) {
+    const detail = event?.detail;
+    if (!detail) return;
+    if (detail.translationLanguagePreference !== undefined) {
+      this.setState({ translationLanguagePreference: detail.translationLanguagePreference });
+    }
+    if (detail.readingHistory !== undefined) {
+      Sefaria.is_history_enabled = detail.readingHistory;
+    }
+    if (detail.textualCustom !== undefined) {
+      Sefaria.updateCalendars(detail.textualCustom, detail.diaspora);
+    }
+  }
   _getPathAndRefFromUrl(href) {
     let url;
     try {
@@ -1227,7 +1236,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleModuleLinkRightClick(e) {
     /*
-    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Handle right-clicks on links with data-target-module to ensure correct subdomain
     Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
@@ -1284,9 +1293,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/collections") {
       this.showCollections();
-
-    } else if (path === "/community") {
-      this.showCommunity();
 
     } else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug, params.get("tab"));
@@ -1913,9 +1919,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const searchState = new SearchState({ type: 'sheet',  appliedFilters, appliedFilterAggTypes});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
-  showCommunity() {
-    this.setSinglePanelState({menuOpen: "community"});
-  }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
   }
@@ -2432,10 +2435,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       />
     );
 
-    const communityPagePreviewControls = this.props.communityPreview ?
-      <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
-
-
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
@@ -2457,7 +2456,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner />}
+              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
@@ -2468,17 +2467,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   api-base-url={chatBotApiBaseUrl}
                   origin={this.props.chatbot_origin}
                   is-moderator={this.props.is_moderator || undefined}
-                  default-open="false"
                   placement="right"
+                  default-open={true}
                   mode="floating"  //this simply defines the initial mode which can be toggled by the user
                   max-input-chars={this.props.chatbot_max_input_chars}
-                  welcome-messages={JSON.stringify(this.props.chatbot_welcome_messages)}
-                  interface-lang={this.props.interfaceLang}
+                  max-prompts={this.props.chatbot_max_prompts}
+                  interface-lang={Sefaria._getShortInterfaceLang()}
                 />
               )}
               </main>
               {signUpModal}
-              {communityPagePreviewControls}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />

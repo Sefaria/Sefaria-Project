@@ -666,29 +666,42 @@ Sefaria = extend(Sefaria, {
       }
       return output;
   },
-    _getLinkerTestString({text, inputRefParts, inputRefPartTypes}) {
-        /**
-         * Outputs a test string that can be pasted into linker_test.py to test the same input.
-         */
+  _getLinkerTestString({text, inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections}) {
+      /**
+       * Outputs a test string that can be pasted into linker_test.py to test the same input.
+       */
+      let testStr = "crrd([";
+      testStr += Sefaria._getLinkerTestStringForParts(inputRefParts, inputRefPartTypes, inputRangeSections, inputRangeToSections);
+      testStr += "]";
+      if (Sefaria.hebrew.isHebrew(text)) {
+          testStr += ")";
+      } else {
+          testStr += ", lang='en')";
+      }
+      return testStr;
+  },
+  _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
       const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
-        let testStr = "crrd([";
-        for (let i = 0; i < inputRefParts.length; i++) {
-            const part = inputRefParts[i];
-            const type = inputRefPartTypes[i];
-            const symbol = partTypeSymbolMap[type] || "?";
-            testStr += `"${symbol}${part.replace('"', '\\"')}"`;
-            if (i < inputRefParts.length - 1) {
-                testStr += ", ";
-            }
-        }
-        testStr += "]";
-        if (Sefaria.hebrew.isHebrew(text)) {
-            testStr += ")";
-        } else {
-            testStr += ", lang='en')";
-        }
-        return testStr;
-    },
+      let testStr = "";
+      for (let i = 0; i < refParts.length; i++) {
+          const part = refParts[i];
+          const type = refPartTypes[i];
+          if (type === "RANGE" && rangeSections && rangeToSections) {
+              testStr += Sefaria._getLinkerTestStringForParts(rangeSections, Array(rangeSections.length).fill("NUMBERED"));
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(["-"], ["RANGE_SYMBOL"]);
+              testStr += ", ";
+              testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
+          } else {
+              const symbol = partTypeSymbolMap[type] || "?";
+              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+          }
+          if (i < refParts.length - 1) {
+              testStr += ", ";
+          }
+      }
+      return testStr;
+  },
   getAllTranslationsWithText: async function(ref) {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{languageFamilyName: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
@@ -2950,7 +2963,7 @@ _media: {},
         throw new Error('Invalid day. Expected "holiday" or "parasha".');
       }
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/calendars/topics/${day}`,
+          url:   `${this.apiHost}/api/calendars/topics/${day}?lang=${Sefaria.interfaceLang.slice(0, 2)}`,
           key:   day + new Date().toLocaleDateString(),
           store: this._upcomingDay,
      });
@@ -3493,9 +3506,57 @@ _media: {},
     return Sefaria._ApiPromise("/api/background-data?locale=" + Sefaria.interfaceLang)
       .then(data => { Sefaria = extend(Sefaria, data); });
   },
+  /**
+   * Poll an async Celery task until it completes.
+   * Returns a Promise that resolves with the task result on success, or rejects
+   * with an Error on task failure or network error. Network errors set
+   * err.isNetworkError = true so callers can show a different message.
+   * @param {string} taskId
+   * @param {number} [interval=3000] ms between polls
+   * @returns {Promise}
+   */
+  pollTask(taskId, { interval = 3000, onProgress } = {}) {
+    return new Promise((resolve, reject) => {
+      const handle = setInterval(async () => {
+        try {
+          const resp = await fetch("/api/async/" + taskId);
+          if (!resp.ok) {
+            clearInterval(handle);
+            const err = new Error("Network error polling task " + taskId);
+            err.isNetworkError = true;
+            reject(err);
+            return;
+          }
+          const data = await resp.json();
+          if (!data.ready) {
+            if (onProgress && data.meta) onProgress(data.meta);
+            return;
+          }
+          clearInterval(handle);
+          if (data.error) {
+            reject(new Error(data.error));
+          } else {
+            resolve(data.result);
+          }
+        } catch (e) {
+          clearInterval(handle);
+          e.isNetworkError = true;
+          reject(e);
+        }
+      }, interval);
+    });
+  },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
+  },
+  updateCalendars: function(custom, diaspora) {
+    return Sefaria._ApiPromise(`/api/calendars?custom=${custom}&diaspora=${diaspora}`)
+      .then(data => {
+        if (data.calendar_items) {
+          Sefaria.calendars = data.calendar_items;
+        }
+      });
   },
   _translateTerms: {},
   _cacheHebrewTerms: function(terms) {
