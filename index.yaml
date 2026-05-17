@@ -137,6 +137,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.5-preprod.1.tgz
     version: 0.85.5-preprod.1
   - apiVersion: v2
+    appVersion: v6.97.1
+    created: "2026-05-17T13:45:07.019806717Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: d0d3f55ad22df4a014f5492acf74489ea7064cd2fca6e74b45282dcd8c0a3985
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.5-auth-from-chatbot-to-ser-erv.1.tgz
+    version: 0.85.5-auth-from-chatbot-to-ser-erv.1
+  - apiVersion: v2
     appVersion: v6.96.1
     created: "2026-05-13T18:18:46.727758043Z"
     description: Chart to deploy complete Sefaria environment
@@ -16905,4 +16920,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-05-17T10:29:52.583738261Z"
+generated: "2026-05-17T13:45:07.016646017Z"
