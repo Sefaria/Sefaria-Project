@@ -3661,11 +3661,11 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
 }
 
 def _topic_page_data(topic, lang):
-    _topic_data(topic=topic, lang=lang, annotate_time_period=True)
+    return _topic_data(topic=topic, lang=lang, annotate_time_period=True)
 
 
 def _topic_data(**kwargs):
-    cat = library.get_topic_toc_category_mapping().get(topic, None)
+    cat = library.get_topic_toc_category_mapping().get(kwargs["topic"], None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
 
     response = get_topic(True, ref_link_type_filters=ref_link_type_filters, **kwargs)
