@@ -53,10 +53,10 @@ DOMAIN_MODULES = {
     }
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
-
+CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+     'you@example.com',
 )
 ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
 

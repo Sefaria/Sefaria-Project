@@ -12,6 +12,7 @@ import structlog
 import regex
 import dateutil.parser
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 from datetime import datetime, timedelta
 from functools import wraps
 from bson.son import SON
@@ -624,15 +625,17 @@ def is_valid_source(source):
     return True
 
 
+# Module-level so we don't reallocate on every bleach_text call. Sheet saves invoke
+# bleach_text once per source.
+_OK_SHEET_TAGS = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
+        'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup', 'u', 'h1']
+_OK_SHEET_ATTRS = {'a': ['href', 'name', 'target', 'data-ref'], 'img': ['src'], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'], "*": ["class"]}
+_OK_SHEET_STYLES = ['color', 'background-color', 'text-align']
+_SHEET_CSS_SANITIZER = CSSSanitizer(allowed_css_properties=_OK_SHEET_STYLES)
+
+
 def bleach_text(text):
-    ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
-            'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup', 'u', 'h1']
-
-    ok_sheet_attrs = {'a': [ 'href', 'name', 'target', 'data-ref' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
-
-    ok_sheet_styles = ['color', 'background-color', 'text-align']
-
-    return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
+    return bleach.clean(text, tags=_OK_SHEET_TAGS, attributes=_OK_SHEET_ATTRS, css_sanitizer=_SHEET_CSS_SANITIZER, strip=True)
 
 
 def clean_source(source):

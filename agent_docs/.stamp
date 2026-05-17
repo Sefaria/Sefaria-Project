@@ -1,0 +1,12 @@
+# Sefaria agent_docs freshness stamp
+#
+# The commit SHA below is the state of the repo at which the docs in
+# AGENTS.md + agent_docs/ were last audited. To check whether the docs
+# need updating, diff source paths since this commit. See AGENTS.md
+# ("Keeping These Docs Fresh") for the procedure.
+#
+# Format: one key=value per line. Keep machine-readable.
+
+commit=dbf5a96949263e03d800c5dbd9ba41878d044bef
+date=2026-04-20
+note=Re-audit after pulling latest. Marked disambiguation pipeline as temporarily disabled in linker_and_llm.md (commit 8f079ea). Ref_resolver multi-part ordering fix, calendar API lang param fix, and AI-icon swap reviewed — no doc changes required at summary level.
