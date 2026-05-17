@@ -28,7 +28,6 @@ from sefaria.helper.fuzzy_search_indexer import (
 logger = logging.getLogger(__name__)
 
 _TOP_K_PER_PHRASE = 10
-_MAX_SNIPPET_CHARS = 300
 
 
 def _get_haiku():
@@ -71,19 +70,6 @@ def _expand_query(query: str) -> List[str]:
     return [query] + phrases
 
 
-def _fetch_snippet(ref_str: str) -> str:
-    from sefaria.model.text import Ref
-    try:
-        oref = Ref(ref_str)
-        chunk = oref.text("en")
-        text = chunk.text
-        if isinstance(text, list):
-            text = " ".join(str(t) for t in text if t)
-        return (text or "")[:_MAX_SNIPPET_CHARS]
-    except Exception:
-        return ""
-
-
 def fuzzy_search(query: str, n_results: int = 20) -> List[dict]:
     """
     Semantic search over the ChromaDB keyphrases index.
@@ -119,14 +105,14 @@ def fuzzy_search(query: str, n_results: int = 20) -> List[dict]:
             results = collection.query(
                 query_embeddings=[embedding],
                 n_results=min(_TOP_K_PER_PHRASE, collection.count()),
-                include=["metadatas", "distances"],
+                include=["metadatas", "distances", "documents"],
             )
         except Exception as e:
             logger.warning(f"ChromaDB query failed for phrase '{phrase}': {e}")
             continue
 
         for metadata, distance in zip(
-            results["metadatas"][0], results["distances"][0]
+            results["metadatas"][0], results["distances"][0],
         ):
             ref = metadata["ref"]
             # ChromaDB cosine distance ∈ [0,2]; convert to similarity ∈ [-1,1]
@@ -145,11 +131,11 @@ def fuzzy_search(query: str, n_results: int = 20) -> List[dict]:
     output = []
     for ref_str, score in ranked:
         meta = ref_meta.get(ref_str, {})
-        snippet = _fetch_snippet(ref_str)
         output.append({
             "ref": ref_str,
             "heRef": meta.get("heRef", ref_str),
-            "snippet": snippet,
+            "en_text": meta.get("en_text", ""),
+            "he_text": meta.get("he_text", ""),
             "score": round(score, 4),
             "keyphrases_matched": sorted(ref_keyphrases[ref_str]),
         })

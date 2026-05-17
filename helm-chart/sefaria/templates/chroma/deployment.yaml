@@ -1,0 +1,36 @@
+{{- if .Values.chroma.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-chroma"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chroma-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chroma-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: chroma
+        {{- include "sefaria.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+        - name: chroma
+          image: "{{ .Values.chroma.containerImage.imageRegistry }}:{{ .Values.chroma.containerImage.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources: {{ toYaml .Values.chroma.resources | nindent 12 }}
+{{- end }}

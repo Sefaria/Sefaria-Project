@@ -1,0 +1,16 @@
+{{- if .Values.chroma.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.deployEnv }}-chroma"
+  labels:
+    app: {{ .Values.deployEnv }}-chroma
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: chroma-{{ .Values.deployEnv }}
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
+{{- end }}

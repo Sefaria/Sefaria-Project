@@ -36,15 +36,17 @@ def _get_haiku():
 
 def get_chroma_collection():
     import chromadb
-    from chromadb.utils.embedding_functions import EmbeddingFunction
     from django.conf import settings
 
-    client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
-    collection = client.get_or_create_collection(
+    if getattr(settings, "CHROMA_HOST", ""):
+        client = chromadb.HttpClient(host=settings.CHROMA_HOST, port=settings.CHROMA_PORT)
+    else:
+        client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
+
+    return client.get_or_create_collection(
         name=COLLECTION_NAME,
         metadata={"hnsw:space": "cosine"},
     )
-    return collection
 
 
 def _get_embedding_fn():
@@ -56,21 +58,21 @@ def _get_embedding_fn():
 
 
 @traceable(run_type="llm", name="fuzzy_search_generate_keyphrases")
-def _generate_keyphrases(en_text: str, he_text: str) -> List[str]:
+def _generate_keyphrases(ref_str: str, en_text: str, he_text: str) -> List[str]:
     llm = _get_haiku()
     prompt = ChatPromptTemplate.from_messages([
         ("system",
          "You are a search query expert for a Jewish text library. "
-         "Given a text passage, list 5-8 short phrases (in English or Hebrew) "
+         "Given a text passage and its source reference, list 5-8 short phrases (in English or Hebrew) "
          "that a user might type into a search box when looking for this passage. "
          "Think about: topics, key figures, rituals, concepts, emotions, or events in the text. "
          "Output one phrase per line, no numbering, no explanation."),
         ("human",
-         "English text:\n{en_text}\n\nHebrew text:\n{he_text}\n\nSearch phrases:")
+         "Reference: {ref_str}\n\nEnglish text:\n{en_text}\n\nHebrew text:\n{he_text}\n\nSearch phrases:")
     ])
     chain = prompt | llm
     try:
-        response = chain.invoke({"en_text": en_text[:800], "he_text": he_text[:800]})
+        response = chain.invoke({"ref_str": ref_str, "en_text": en_text[:800], "he_text": he_text[:800]})
         content = getattr(response, "content", "")
         phrases = [line.strip() for line in content.split("\n") if line.strip()]
         return phrases[:10]
@@ -80,7 +82,7 @@ def _generate_keyphrases(en_text: str, he_text: str) -> List[str]:
 
 
 @traceable(run_type="llm", name="fuzzy_search_rate_keyphrases")
-def _rate_keyphrases(en_text: str, he_text: str, phrases: List[str]) -> List[dict]:
+def _rate_keyphrases(ref_str: str, en_text: str, phrases: List[str]) -> List[dict]:
     if not phrases:
         return []
     llm = _get_haiku()
@@ -93,11 +95,12 @@ def _rate_keyphrases(en_text: str, he_text: str, phrases: List[str]) -> List[dic
          'Return a JSON array: [{{"phrase": "...", "rating": N}}]. '
          "No markdown, no explanation."),
         ("human",
-         "Text passage:\n{en_text}\n\nPhrases to rate:\n{phrases}")
+         "Reference: {ref_str}\n\nText passage:\n{en_text}\n\nPhrases to rate:\n{phrases}")
     ])
     chain = prompt | llm
     try:
         response = chain.invoke({
+            "ref_str": ref_str,
             "en_text": en_text[:600],
             "phrases": phrase_list,
         })
@@ -120,17 +123,28 @@ def index_ref(ref_str: str, collection, embed_fn) -> int:
     """Index a single ref. Returns number of keyphrases indexed."""
     from sefaria.model.text import Ref
 
+    existing = collection.get(where={"ref": ref_str}, limit=1)
+    if existing["ids"]:
+        return 0
+
     try:
         oref = Ref(ref_str)
     except Exception:
         logger.warning(f"Invalid ref: {ref_str}")
         return 0
 
+    def _flatten(val) -> str:
+        if isinstance(val, str):
+            return val
+        if isinstance(val, list):
+            return " ".join(_flatten(v) for v in val if v)
+        return ""
+
     try:
         he_chunk = oref.text("he")
         en_chunk = oref.text("en")
-        he_text = he_chunk.text if isinstance(he_chunk.text, str) else " ".join(he_chunk.text or [])
-        en_text = en_chunk.text if isinstance(en_chunk.text, str) else " ".join(en_chunk.text or [])
+        he_text = _flatten(he_chunk.text)
+        en_text = _flatten(en_chunk.text)
     except Exception as e:
         logger.warning(f"Failed to fetch text for {ref_str}: {e}")
         return 0
@@ -138,11 +152,11 @@ def index_ref(ref_str: str, collection, embed_fn) -> int:
     if not (he_text or en_text):
         return 0
 
-    phrases = _generate_keyphrases(en_text, he_text)
+    phrases = _generate_keyphrases(ref_str, en_text, he_text)
     if not phrases:
         return 0
 
-    rated = _rate_keyphrases(en_text, he_text, phrases)
+    rated = _rate_keyphrases(ref_str, en_text, phrases)
     good_phrases = [r["phrase"] for r in rated if r["rating"] >= MIN_RATING]
     if not good_phrases:
         return 0
@@ -161,39 +175,47 @@ def index_ref(ref_str: str, collection, embed_fn) -> int:
     phrase_ratings = {r["phrase"]: r["rating"] for r in rated}
     ids = [f"{ref_str}::{p}" for p in good_phrases]
     metadatas = [
-        {"ref": ref_str, "heRef": he_ref, "phrase": p, "rating": phrase_ratings.get(p, MIN_RATING)}
+        {
+            "ref": ref_str,
+            "heRef": he_ref,
+            "phrase": p,
+            "rating": phrase_ratings.get(p, MIN_RATING),
+            "en_text": en_text[:500],
+            "he_text": he_text[:500],
+        }
         for p in good_phrases
     ]
     documents = good_phrases
 
     collection.upsert(ids=ids, embeddings=embeddings, metadatas=metadatas, documents=documents)
-    logger.info(f"Indexed {len(good_phrases)} keyphrases for {ref_str}")
     return len(good_phrases)
 
 
 def index_refs(refs: List[str], batch_size: int = 50, max_workers: int = 4) -> int:
     """Index a list of refs. Returns total keyphrases indexed."""
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    from tqdm import tqdm
+
     collection = get_chroma_collection()
     embed_fn = _get_embedding_fn()
     total = 0
     errors = 0
 
-    for i in range(0, len(refs), batch_size):
-        batch = refs[i:i + batch_size]
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(index_ref, r, collection, embed_fn): r for r in batch}
-            for future in as_completed(futures):
-                ref_str = futures[future]
-                try:
-                    count = future.result()
-                    total += count
-                except Exception as e:
-                    errors += 1
-                    logger.warning(f"index_ref failed for {ref_str}: {e}")
-
-        logger.info(
-            f"Progress: {min(i + batch_size, len(refs))}/{len(refs)} refs | "
-            f"{total} keyphrases indexed | {errors} errors"
-        )
+    with tqdm(total=len(refs), unit="ref") as pbar:
+        for i in range(0, len(refs), batch_size):
+            batch = refs[i:i + batch_size]
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(index_ref, r, collection, embed_fn): r for r in batch}
+                for future in as_completed(futures):
+                    ref_str = futures[future]
+                    try:
+                        count = future.result()
+                        total += count
+                    except Exception as e:
+                        errors += 1
+                        logger.warning(f"index_ref failed for {ref_str}: {e}")
+                    pbar.update(1)
+                    pbar.set_postfix(keyphrases=total, errors=errors)
 
     return total

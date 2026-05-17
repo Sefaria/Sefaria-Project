@@ -80,10 +80,14 @@ class SearchResultList extends Component {
       this.state = {
         semanticResults: [],
         semanticLoading: false,
+        semanticExpanded: true,
       };
     }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
+        if (this.props.type === "text" && this.props.query) {
+            this._fetchSemanticResults(this.props.query);
+        }
     }
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
@@ -164,17 +168,18 @@ class SearchResultList extends Component {
         const haveResults      = !!results.length;
         results                = haveResults ? results : noResultsMessage;
 
-        const { semanticResults, semanticLoading } = this.state;
+        const { semanticResults, semanticLoading, semanticExpanded } = this.state;
         const semanticSection = (this.props.type === "text" && (semanticResults.length > 0 || semanticLoading)) ? (
             <div id="semanticResults">
-                <div className="semanticResultsHeader">
-                    <span className="int-en">Semantic Matches</span>
-                    <span className="int-he">תוצאות סמנטיות</span>
+                <div className="semanticResultsHeader" onClick={() => this.setState({ semanticExpanded: !semanticExpanded })} style={{cursor: "pointer"}}>
+                    <span className="int-en">Semantic Matches {semanticResults.length > 0 && `(${semanticResults.length})`}</span>
+                    <span className="int-he">תוצאות סמנטיות {semanticResults.length > 0 && `(${semanticResults.length})`}</span>
+                    <i className={`fa fa-caret-${semanticExpanded ? "up" : "down"}`} style={{marginInlineStart: "0.4em"}}/>
                 </div>
-                {semanticLoading
+                {semanticExpanded && (semanticLoading
                     ? <LoadingMessage message="Finding semantic matches..." heMessage="מחפש התאמות סמנטיות..." />
                     : semanticResults.map(r => <SemanticSearchResult key={r.ref} result={r} />)
-                }
+                )}
             </div>
         ) : null;
 

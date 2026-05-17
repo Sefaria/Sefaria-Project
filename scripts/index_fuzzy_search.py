@@ -20,7 +20,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 django.setup()
 
 from sefaria.model import *
-from sefaria.helper.fuzzy_search_indexer import index_refs
+from sefaria.helper.fuzzy_search_indexer import COLLECTION_NAME, index_refs, get_chroma_collection
 
 logging.basicConfig(
     level=logging.INFO,
@@ -83,7 +83,16 @@ def main():
                         help="Refs per batch (default: 50)")
     parser.add_argument("--workers", type=int, default=4,
                         help="Parallel workers per batch (default: 4)")
+    parser.add_argument("--reset", action="store_true",
+                        help="Delete and recreate the ChromaDB collection before indexing")
     args = parser.parse_args()
+
+    if args.reset:
+        import chromadb
+        from django.conf import settings
+        client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
+        client.delete_collection(COLLECTION_NAME)
+        logger.info(f"Deleted ChromaDB collection '{COLLECTION_NAME}'")
 
     logger.info(f"Collecting refs (limit={args.limit}, category={args.category}, passages={args.passages})")
 

@@ -358,6 +358,8 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 CHROMA_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "private", "chroma")
+CHROMA_HOST = os.environ.get("CHROMA_HOST", "")
+CHROMA_PORT = int(os.environ.get("CHROMA_PORT", "8000"))
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
