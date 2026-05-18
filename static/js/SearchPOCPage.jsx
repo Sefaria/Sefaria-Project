@@ -1,6 +1,7 @@
-<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
+import classNames from 'classnames';
 import { InterfaceText, TabView } from './Misc';
+import { SearchTopic } from './SearchResultList';
 import Sefaria from "./sefaria/sefaria";
 import SearchState from "./sefaria/searchState";
 
@@ -72,33 +73,27 @@ const TABS = [
   { id: "topics",  label: "Topics"  },
 ];
 
-=======
-import React, {useState} from 'react';
-import classNames from 'classnames';
-import {InterfaceText, TabView} from './Misc';
->>>>>>> 30fa65417639cee43057b21f4e636803a2a69032
-
 
 const searchPOCData = {
   query: "Moses",
   sources: [
-    { title: "Moses; A Human Life", subtitle: "Text", url: "Moses;_A_Human_Life" },
-    { title: "Moses; A Human Life, 1 Identities", subtitle: "Text", url: "Moses;_A_Human_Life,_1_Identities" },
-    { title: "Moses; A Human Life, Introduction", subtitle: "Text", url: "Moses;_A_Human_Life,_Introduction" },
+    { title: "Moses; A Human Life", heTitle: "Moses; A Human Life", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life" },
+    { title: "Moses; A Human Life, 1 Identities", heTitle: "Moses; A Human Life, 1 Identities", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life,_1_Identities" },
+    { title: "Moses; A Human Life, Introduction", heTitle: "Moses; A Human Life, Introduction", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life,_Introduction" },
   ],
   topics: [
-    { title: "Moses", subtitle: "Person Topic", url: "topics/moses" },
-    { title: "Moses' Staff", subtitle: "Topic", url: "topics/moses-staff" },
-    { title: "Moses' Birth", subtitle: "Topic", url: "topics/moses-birth" },
-    { title: "Moses' Signs", subtitle: "Topic", url: "topics/moses-signs" },
+    { title: "Moses", heTitle: "Moses", topicCat: "Person Topic", heTopicCat: "Person Topic", analyticCat: "topic", url: "/topics/moses", numSources: 12, numSheets: 8 },
+    { title: "Moses' Staff", heTitle: "Moses' Staff", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-staff", numSources: 3, numSheets: 4 },
+    { title: "Moses' Birth", heTitle: "Moses' Birth", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-birth", numSources: 5, numSheets: 2 },
+    { title: "Moses' Signs", heTitle: "Moses' Signs", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-signs", numSources: 4, numSheets: 1 },
   ],
   books: [
-    { title: "Moses; A Human Life", subtitle: "Text", url: "Moses;_A_Human_Life" },
+    { title: "Moses; A Human Life", heTitle: "Moses; A Human Life", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life" },
   ],
   authors: [
-    { title: "Moses ben Nachman (Ramban)", subtitle: "Author Topic", url: "topics/ramban" },
-    { title: "Moses Chaim Luzzatto (Ramchal)", subtitle: "Author Topic", url: "topics/moses-chaim-luzzatto-(ramchal)" },
-    { title: "Moses Sofer (Chatam Sofer)", subtitle: "Author Topic", url: "topics/moses-sofer" },
+    { title: "Moses ben Nachman (Ramban)", heTitle: "Moses ben Nachman (Ramban)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/ramban" },
+    { title: "Moses Chaim Luzzatto (Ramchal)", heTitle: "Moses Chaim Luzzatto (Ramchal)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/moses-chaim-luzzatto-(ramchal)" },
+    { title: "Moses Sofer (Chatam Sofer)", heTitle: "Moses Sofer (Chatam Sofer)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/moses-sofer" },
   ],
 };
 
@@ -119,12 +114,7 @@ const SearchResultItems = ({items}) => (
   <ul className="searchPOCResults">
     {items.map(item => (
       <li key={`${item.title}-${item.url}`} className="searchPOCResult">
-        <a href={`/${item.url}`}>
-          <InterfaceText>{item.title}</InterfaceText>
-        </a>
-        <div className="resultMeta sans-serif">
-          <InterfaceText>{item.subtitle}</InterfaceText>
-        </div>
+        <SearchTopic topic={item} />
       </li>
     ))}
   </ul>
