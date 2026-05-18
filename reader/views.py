@@ -984,6 +984,23 @@ def search(request):
         "noindex": True
     })
 
+
+@ensure_csrf_cookie
+@sanitize_get_params
+def search_poc(request):
+    """
+    Search proof-of-concept page.
+    """
+    props = {
+        "initialMenu": "search-poc",
+    }
+    return render_template(request, 'base.html', props, {
+        "title": get_page_title("Search POC", module=request.active_module),
+        "desc": _("Search proof-of-concept page."),
+        "noindex": True
+    })
+
+
 @ensure_csrf_cookie
 def public_collections(request):
     props = base_props(request)
