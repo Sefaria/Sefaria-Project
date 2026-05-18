@@ -4,26 +4,25 @@ import {InterfaceText, TabView} from './Misc';
 
 
 const searchPOCData = {
-  query: "Esther",
+  query: "Moses",
   sources: [
-    { title: "Esther", subtitle: "Book", url: "Esther" },
-    { title: "Esther Rabbah", subtitle: "Text", url: "Esther_Rabbah" },
-    { title: "Esther Rabbah, Petichta", subtitle: "Text", url: "Esther_Rabbah,_Petichta" },
+    { title: "Moses; A Human Life", subtitle: "Text", url: "Moses;_A_Human_Life" },
+    { title: "Moses; A Human Life, 1 Identities", subtitle: "Text", url: "Moses;_A_Human_Life,_1_Identities" },
+    { title: "Moses; A Human Life, Introduction", subtitle: "Text", url: "Moses;_A_Human_Life,_Introduction" },
   ],
   topics: [
-    { title: "Esther", subtitle: "Person Topic", url: "topics/esther" },
+    { title: "Moses", subtitle: "Person Topic", url: "topics/moses" },
+    { title: "Moses' Staff", subtitle: "Topic", url: "topics/moses-staff" },
+    { title: "Moses' Birth", subtitle: "Topic", url: "topics/moses-birth" },
+    { title: "Moses' Signs", subtitle: "Topic", url: "topics/moses-signs" },
   ],
   books: [
-    { title: "Esther", subtitle: "Chapter, Verse", url: "Esther" },
+    { title: "Moses; A Human Life", subtitle: "Text", url: "Moses;_A_Human_Life" },
   ],
   authors: [
-    { title: "Esther Soban-Hendler", subtitle: "User", url: "profile/esther-soban-hendler" },
-    { title: "Esther Brass-Chorin", subtitle: "User", url: "profile/esther-brass-chorin" },
-    { title: "Esther Silberstein", subtitle: "User", url: "profile/esther-silberstein" },
-    { title: "Esther Azar", subtitle: "User", url: "profile/esther-azar" },
-    { title: "Esther Amster", subtitle: "User", url: "profile/esther-amster" },
-    { title: "Esther Hugenholtz", subtitle: "User", url: "profile/esther-hugenholtz" },
-    { title: "Esther Hecht", subtitle: "User", url: "profile/esther-hecht" },
+    { title: "Moses ben Nachman (Ramban)", subtitle: "Author Topic", url: "topics/ramban" },
+    { title: "Moses Chaim Luzzatto (Ramchal)", subtitle: "Author Topic", url: "topics/moses-chaim-luzzatto-(ramchal)" },
+    { title: "Moses Sofer (Chatam Sofer)", subtitle: "Author Topic", url: "topics/moses-sofer" },
   ],
 };
 
