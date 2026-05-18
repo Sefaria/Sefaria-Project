@@ -6,8 +6,6 @@ import SearchTextResult from './SearchTextResult';
 import { SearchTopic } from './SearchResultList';
 import Sefaria from "./sefaria/sefaria";
 import SearchState from "./sefaria/searchState";
-import classNames from "classnames";
-
 
 // --- Data fetching -----------------------------------------------------------
 
@@ -166,7 +164,7 @@ const dedupeSearchTopics = searchTopics => {
 function SourceResults({ results, query }) {
   const mergedResults = Sefaria.search.mergeTextResultsVersions(results);
   return (
-    <div className="searchPOCResults">
+    <div className="searchPOCResults searchContent">
       {mergedResults.filter(result => !!result._source.version).map(result => (
         <SearchTextResult
           data={result}
@@ -291,19 +289,6 @@ const SearchPOCPage = ({ searchQuery }) => {
       runningSourceQuery?.abort();
     };
   }, [query]);
-
-  useEffect(() => {
-    const query = "mos";
-    fetchSources(query, {
-      onSuccess: data => {},
-      onError: err => console.error("fetchSources error", err),
-    });
-    fetchNameResults(query).then(completionObjects => {
-      filterAuthors(completionObjects);
-      filterBooks(completionObjects);
-      filterTopics(completionObjects);
-    });
-  }, []);
 
   return (
     <div className="readerNavMenu">
