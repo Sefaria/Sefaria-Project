@@ -6,13 +6,14 @@ import SearchTextResult from './SearchTextResult';
 import { SearchTopic } from './SearchResultList';
 import Sefaria from "./sefaria/sefaria";
 import SearchState from "./sefaria/searchState";
+import classNames from "classnames";
 
 
 // --- Data fetching -----------------------------------------------------------
 
 function fetchSources(query, { onSuccess, onError }) {
   const { field, fieldExact, sortType } = SearchState.metadataByType.text;
-  return Sefaria.search.execute_query({
+  const result = Sefaria.search.execute_query({
     query,
     type: "text",
     size: 20,
@@ -23,30 +24,41 @@ function fetchSources(query, { onSuccess, onError }) {
     applied_filters: [],
     appliedFilterAggTypes: [],
     aggregationsToUpdate: [],
-    success: onSuccess,
+    success: data => { console.log("fetchSources success", data); onSuccess(data); },
     error: onError,
   });
+  console.log("fetchSources return value", result);
+  return result;
 }
 
 async function fetchNameResults(query) {
-  const res = await fetch(`/api/name/${encodeURIComponent(query)}?limit=20`);
+  const res = await fetch(`/api/name/${encodeURIComponent(query)}?limit=50`);
   if (!res.ok) {
     throw new Error("Name lookup failed");
   }
   const data = await res.json();
-  return data.completion_objects || [];
+  console.log("fetchNameResults raw response", data);
+  const completionObjects = data.completion_objects || [];
+  console.log("fetchNameResults completion_objects", completionObjects);
+  return completionObjects;
 }
 
 function filterAuthors(completionObjects) {
-  return completionObjects.filter(o => o.type === "AuthorTopic");
+  const results = completionObjects.filter(o => o.type === "AuthorTopic");
+  console.log("filterAuthors", results);
+  return results;
 }
 
 function filterBooks(completionObjects) {
-  return completionObjects.filter(o => o.type === "ref");
+  const results = completionObjects.filter(o => o.type === "ref");
+  console.log("filterBooks", results);
+  return results;
 }
 
 function filterTopics(completionObjects) {
-  return completionObjects.filter(o => o.type === "Topic" || o.type === "PersonTopic");
+  const results = completionObjects.filter(o => o.type === "Topic" || o.type === "PersonTopic");
+  console.log("filterTopics", results);
+  return results;
 }
 
 // --- Renderers ---------------------------------------------------------------
@@ -279,6 +291,19 @@ const SearchPOCPage = ({ searchQuery }) => {
       runningSourceQuery?.abort();
     };
   }, [query]);
+
+  useEffect(() => {
+    const query = "mos";
+    fetchSources(query, {
+      onSuccess: data => {},
+      onError: err => console.error("fetchSources error", err),
+    });
+    fetchNameResults(query).then(completionObjects => {
+      filterAuthors(completionObjects);
+      filterBooks(completionObjects);
+      filterTopics(completionObjects);
+    });
+  }, []);
 
   return (
     <div className="readerNavMenu">
