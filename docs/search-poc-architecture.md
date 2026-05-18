@@ -9,6 +9,7 @@
   - text search through `Sefaria.search.execute_query`
   - name lookup through `/api/name/<query>?limit=50`
 - Normalizes name lookup results into the `SearchTopic` shape already used by search result UI components.
+- Lazily enriches Topics, Books, and Authors only after the user selects the corresponding tab.
 - Renders four tabs: Sources, Topics, Books, and Authors.
 - Tracks loading and error state across both request paths.
 
@@ -20,11 +21,12 @@
    - `AuthorTopic` becomes Author results.
    - `ref` becomes Book results.
    - `Topic` and `PersonTopic` become Topic results.
-4. Each name result is expanded into a `SearchTopic` object:
-   - books use `Sefaria.getIndexDetails()`
-   - topics and authors use `Sefaria.getTopic()`
-   - fallback objects are created if expansion fails
+4. Each name result is converted directly into a lightweight `SearchTopic` object using the completion object's title, Hebrew title, type, key, and derived category.
 5. Book results are deduped by URL or title before rendering.
+6. When a user selects a hydratable tab:
+   - Topics and Authors call `Sefaria.getTopic()` for results in that tab.
+   - Books call `Sefaria.getIndexDetails()` for book results.
+   - Returned descriptions, primary titles, and book categories are merged into the existing result cards.
 
 ## Rendering
 
@@ -40,8 +42,11 @@ The main `useEffect` resets results whenever the query changes, then starts both
 
 Loading state stays active until both request paths finish. If either path fails, the page sets `hasError` and displays a generic search failure message.
 
+Tab hydration is tracked separately for Topics, Books, and Authors. Each tab hydrates at most once per query, and detail requests run with bounded concurrency so opening a large tab does not create an unbounded burst of API calls. Hydration responses are ignored if the user changes the query before they return.
+
 ## Notes
 
 - The file currently logs intermediate fetch and filtering details to the console, which is useful for POC debugging but should be removed or gated before production use.
 - Hebrew tab labels currently mirror the English strings for this POC.
+- Topic, book, and author cards are initially lightweight. Descriptions and richer book metadata are added only for the active tab.
 - The page depends on existing Sefaria frontend APIs and result components, so most UI behavior follows the established search result presentation.

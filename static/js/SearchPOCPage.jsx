@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { InterfaceText, LoadingMessage, TabView } from './Misc';
@@ -85,74 +85,77 @@ const getSearchTopicCategory = (item) => {
   return { en: "Topics", he: Sefaria.hebrewTranslation("Topics") };
 };
 
-const getBookSearchTopic = async (item) => {
-  const book = await Sefaria.getIndexDetails(item.key);
-  const primaryCategory = book.categories?.[0];
-  const tocCategory = primaryCategory && Sefaria.toc.find(cat => cat.category === primaryCategory);
-  const searchTopic = {
-    analyticCat: "Book",
-    title: book.title,
-    heTitle: book.heTitle,
-    topicCat: primaryCategory || "Books",
-    heTopicCat: tocCategory?.heCategory || Sefaria.hebrewTranslation("Books"),
-    url: `/${book.title.replace(/ /g, "_")}`,
-    numSources: 0,
-    numSheets: 0,
-  };
-  if (book.enDesc || book.enShortDesc) {
-    searchTopic.enDesc = book.enDesc || book.enShortDesc;
-    searchTopic.heDesc = book.heDesc || book.heShortDesc;
-  }
-  return searchTopic;
-};
-
-const getTopicSearchTopic = async (item) => {
-  const topic = await Sefaria.getTopic(item.key, {annotated: false});
+const getSearchTopicForNameResult = item => {
   const category = getSearchTopicCategory(item);
-  const searchTopic = {
+  return {
     analyticCat: category.en,
-    title: topic.primaryTitle?.en || item.title,
-    heTitle: topic.primaryTitle?.he || item.heTitle || item.title,
+    sourceKey: item.key,
+    sourceType: item.type,
+    title: item.title,
+    heTitle: item.heTitle || item.title,
     topicCat: category.en,
     heTopicCat: category.he,
     url: getURLForNameResult(item),
-    numSources: topic.tabs?.sources?.refs?.length || 0,
-    numSheets: topic.tabs?.sheets?.refs?.length || 0,
+    numSources: 0,
+    numSheets: 0,
+  };
+};
+
+const getSearchTopicsForNameResults = results => results.map(getSearchTopicForNameResult);
+
+const getHydratedBookSearchTopic = async searchTopic => {
+  const book = await Sefaria.getIndexDetails(searchTopic.sourceKey);
+  const primaryCategory = book.categories?.[0];
+  const tocCategory = primaryCategory && Sefaria.toc.find(cat => cat.category === primaryCategory);
+  const hydratedTopic = {
+    ...searchTopic,
+    title: book.title || searchTopic.title,
+    heTitle: book.heTitle || searchTopic.heTitle,
+    topicCat: primaryCategory || searchTopic.topicCat,
+    heTopicCat: tocCategory?.heCategory || searchTopic.heTopicCat,
+    url: `/${(book.title || searchTopic.title).replace(/ /g, "_")}`,
+  };
+  if (book.enDesc || book.enShortDesc) {
+    hydratedTopic.enDesc = book.enDesc || book.enShortDesc;
+    hydratedTopic.heDesc = book.heDesc || book.heShortDesc;
+  }
+  return hydratedTopic;
+};
+
+const getHydratedTopicSearchTopic = async searchTopic => {
+  const topic = await Sefaria.getTopic(searchTopic.sourceKey, {annotated: false});
+  const hydratedTopic = {
+    ...searchTopic,
+    title: topic.primaryTitle?.en || searchTopic.title,
+    heTitle: topic.primaryTitle?.he || searchTopic.heTitle,
   };
   if (topic.description?.en) {
-    searchTopic.enDesc = topic.description.en;
-    searchTopic.heDesc = topic.description.he;
+    hydratedTopic.enDesc = topic.description.en;
+    hydratedTopic.heDesc = topic.description.he;
   }
-  return searchTopic;
+  return hydratedTopic;
 };
 
-const getSearchTopicForNameResult = async (item) => {
-  if (item.type === "ref") {
-    return getBookSearchTopic(item);
-  }
-  return getTopicSearchTopic(item);
-};
+const hydrateSearchTopic = searchTopic => searchTopic.sourceType === "ref" ?
+  getHydratedBookSearchTopic(searchTopic) :
+  getHydratedTopicSearchTopic(searchTopic);
 
-const getSearchTopicsForNameResults = results => Promise.all(
-  results.map(item => getSearchTopicForNameResult(item).catch(() => {
-    const category = getSearchTopicCategory(item);
-    return {
-      analyticCat: category.en,
-      title: item.title,
-      heTitle: item.heTitle || item.title,
-      topicCat: category.en,
-      heTopicCat: category.he,
-      url: getURLForNameResult(item),
-      numSources: 0,
-      numSheets: 0,
-    };
-  }))
-);
+async function mapWithConcurrency(items, concurrency, callback) {
+  let nextIndex = 0;
+  const workers = Array.from({length: Math.min(concurrency, items.length)}, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      await callback(items[currentIndex], currentIndex);
+    }
+  });
+  await Promise.all(workers);
+}
 
 const dedupeSearchTopics = searchTopics => {
   const seen = new Set();
   return searchTopics.filter(searchTopic => {
-    const key = searchTopic.url || searchTopic.title;
+    const key = `${searchTopic.sourceType}-${searchTopic.sourceKey || searchTopic.url || searchTopic.title}`;
     if (seen.has(key)) {
       return false;
     }
@@ -212,16 +215,37 @@ const emptyResults = {
   authors: [],
 };
 
+const emptyHydrationStatus = {
+  topics: "idle",
+  books: "idle",
+  authors: "idle",
+};
+
+const hydratableTabs = new Set(Object.keys(emptyHydrationStatus));
+const hydrationConcurrency = 4;
+
 const SearchPOCPage = ({ searchQuery }) => {
   const [tab, setTab] = useState(tabs[0].id);
   const [results, setResults] = useState(emptyResults);
+  const [hydrationStatus, setHydrationStatus] = useState(emptyHydrationStatus);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const query = (searchQuery || "").trim();
+  const activeQueryRef = useRef(query);
+  const isMountedRef = useRef(true);
+  activeQueryRef.current = query;
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!query) {
       setResults(emptyResults);
+      setHydrationStatus(emptyHydrationStatus);
       setIsLoading(false);
       setHasError(false);
       return;
@@ -237,6 +261,7 @@ const SearchPOCPage = ({ searchQuery }) => {
     };
 
     setResults(emptyResults);
+    setHydrationStatus(emptyHydrationStatus);
     setIsLoading(true);
     setHasError(false);
 
@@ -259,13 +284,10 @@ const SearchPOCPage = ({ searchQuery }) => {
     });
 
     fetchNameResults(query)
-      .then(async completionObjects => {
-        const [authors, rawBooks, topics] = await Promise.all([
-          getSearchTopicsForNameResults(filterAuthors(completionObjects)),
-          getSearchTopicsForNameResults(filterBooks(completionObjects)),
-          getSearchTopicsForNameResults(filterTopics(completionObjects)),
-        ]);
-        const books = dedupeSearchTopics(rawBooks);
+      .then(completionObjects => {
+        const authors = getSearchTopicsForNameResults(filterAuthors(completionObjects));
+        const books = dedupeSearchTopics(getSearchTopicsForNameResults(filterBooks(completionObjects)));
+        const topics = getSearchTopicsForNameResults(filterTopics(completionObjects));
         if (isCurrent) {
           setResults(prevResults => ({
             ...prevResults,
@@ -289,6 +311,53 @@ const SearchPOCPage = ({ searchQuery }) => {
       runningSourceQuery?.abort();
     };
   }, [query]);
+
+  useEffect(() => {
+    if (!query || !hydratableTabs.has(tab) || hydrationStatus[tab] !== "idle" || results[tab].length === 0) {
+      return;
+    }
+
+    const hydrationQuery = query;
+    const isCurrent = () => isMountedRef.current && activeQueryRef.current === hydrationQuery;
+    setHydrationStatus(prevStatus => ({
+      ...prevStatus,
+      [tab]: "loading",
+    }));
+
+    mapWithConcurrency(results[tab], hydrationConcurrency, async searchTopic => {
+      try {
+        const hydratedTopic = await hydrateSearchTopic(searchTopic);
+        if (isCurrent()) {
+          setResults(prevResults => ({
+            ...prevResults,
+            [tab]: prevResults[tab].map(currentTopic =>
+              currentTopic.sourceKey === searchTopic.sourceKey && currentTopic.sourceType === searchTopic.sourceType ?
+                hydratedTopic :
+                currentTopic
+            ),
+          }));
+        }
+      } catch {
+        // Keep the lightweight autocomplete result if detail hydration fails.
+      }
+    })
+      .then(() => {
+        if (isCurrent()) {
+          setHydrationStatus(prevStatus => ({
+            ...prevStatus,
+            [tab]: "loaded",
+          }));
+        }
+      })
+      .catch(() => {
+        if (isCurrent()) {
+          setHydrationStatus(prevStatus => ({
+            ...prevStatus,
+            [tab]: "error",
+          }));
+        }
+      });
+  }, [query, tab, hydrationStatus, results]);
 
   return (
     <div className="readerNavMenu">
