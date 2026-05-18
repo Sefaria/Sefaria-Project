@@ -126,10 +126,15 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().ensureOpen();
   });
 
-  test('UX-057: More-options menu opens with the four expected items', async () => {
+  test('UX-057: More-options menu opens with the five expected items', async () => {
+    // The QA LA user is marked staff in Django (so Braintree can filter
+    // automation noise via its "is staff?" column). Staff users see an extra
+    // "Settings" item inserted at the top of the menu (`isModerator` branch
+    // in LCChatbot.svelte).
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
     await pm.onLibraryAssistant().expectMenuItemTexts([
+      'Settings',
       'Restart conversation',
       'Give feedback',
       'Help',
