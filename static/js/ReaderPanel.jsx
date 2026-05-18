@@ -40,6 +40,7 @@ import {
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
+import SearchPOCPage from "./SearchPOCPage";
 import {SheetsHomePage} from "./sheets/SheetsHomePage";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
@@ -961,6 +962,8 @@ class ReaderPanel extends Component {
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
                     compare={this.state.compare}/>);
+    } else if (this.state.menuOpen === "search-poc") {
+      menu = <SearchPOCPage />;
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (
