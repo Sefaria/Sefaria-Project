@@ -10,7 +10,7 @@ import { FORM_STATUS } from "./stateSymbols";
  * NewsletterFormView - Stage 1: Newsletter Selection Form
  *
  * Displays the initial form for:
- * - Logged-out users: First Name, Last Name (optional), Email input fields
+ * - Logged-out users: First Name, Last Name, Email input fields
  * - Logged-in users: Email display and newsletter preference management
  *
  * Features:
@@ -62,13 +62,77 @@ function FormInput({
   );
 }
 
+function BackendErrorBanner({ message }) {
+  return (
+    <div
+      className="newsletterErrorMessage"
+      role="alert"
+      data-anl-event="form_error:displayed"
+      data-anl-engagement_type="error"
+      data-anl-form_name="newsletter_signup"
+    >
+      <span className="errorIcon">⚠️</span>
+      <span>
+        <InterfaceText text={message} />
+      </span>
+    </div>
+  );
+}
+
+function FieldErrorSummary({ fieldErrors }) {
+  return (
+    <div
+      className="newsletterErrorSummary"
+      role="alert"
+      aria-live="assertive"
+      data-anl-event="form_error:displayed"
+      data-anl-engagement_type="error"
+    >
+      <h3 className="errorSummaryTitle">
+        <span className="errorIcon">⚠️</span>
+        <InterfaceText text={BILINGUAL_TEXT.FIX_ERRORS} />
+      </h3>
+      <ul className="errorSummaryList">
+        {Object.entries(fieldErrors).map(([field, message]) => (
+          <li key={field}>
+            <a href={`#${field}-error`} className="errorSummaryLink">
+              <InterfaceText text={message} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SubmitButton({ isSubmitting, isLoggedIn }) {
+  const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
+  const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
+  return (
+    <button
+      type="submit"
+      className="submitButton primary"
+      disabled={isSubmitting}
+      data-anl-event="newsletter_action:click"
+      data-anl-action={isLoggedIn ? "update_preferences" : "submit"}
+      data-anl-form_name="newsletter_signup"
+    >
+      {isSubmitting ? (
+        <LoadingMessage message={loadingText.en} heMessage={loadingText.he} />
+      ) : (
+        <InterfaceText text={buttonText} />
+      )}
+    </button>
+  );
+}
+
 export default function NewsletterFormView({
   formData,
   formStatus,
   newsletters,
   fieldErrors = {}, // Per-field validation errors
   hasAttemptedSubmit = false, // Whether user has tried to submit
-  errorSummaryRef, // Ref for focusing error summary
+  formTitleRef,
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
@@ -82,12 +146,6 @@ export default function NewsletterFormView({
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
   const hasFieldErrors =
     hasAttemptedSubmit && Object.keys(fieldErrors).length > 0;
-  const buttonText = isLoggedIn
-    ? BILINGUAL_TEXT.UPDATE_PREFERENCES
-    : BILINGUAL_TEXT.SUBMIT;
-  const loadingText = isLoggedIn
-    ? BILINGUAL_TEXT.UPDATING
-    : BILINGUAL_TEXT.SUBMITTING;
 
   return (
     <div
@@ -101,7 +159,7 @@ export default function NewsletterFormView({
     >
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
-        <h2 className="newsletterFormTitle" ref={errorSummaryRef}>
+        <h2 className="newsletterFormTitle" ref={formTitleRef}>
           <InterfaceText
             text={
               isLoggedIn
@@ -140,43 +198,10 @@ export default function NewsletterFormView({
       >
         {/* BACKEND ERROR — shown when API call fails after successful client-side validation */}
         {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
-          <div
-            className="newsletterErrorMessage"
-            role="alert"
-            data-anl-event="form_error:displayed"
-            data-anl-engagement_type="error"
-            data-anl-form_name="newsletter_signup"
-          >
-            <span className="errorIcon">⚠️</span>
-            <span>
-              <InterfaceText text={formStatus.errorMessage} />
-            </span>
-          </div>
+          <BackendErrorBanner message={formStatus.errorMessage} />
         )}
         {/* ERROR SUMMARY - Announced via role="alert" for screen readers */}
-        {hasFieldErrors && (
-          <div
-            className="newsletterErrorSummary"
-            role="alert"
-            aria-live="assertive"
-            data-anl-event="form_error:displayed"
-            data-anl-engagement_type="error"
-          >
-            <h3 className="errorSummaryTitle">
-              <span className="errorIcon">⚠️</span>
-              <InterfaceText text={BILINGUAL_TEXT.FIX_ERRORS} />
-            </h3>
-            <ul className="errorSummaryList">
-              {Object.entries(fieldErrors).map(([field, message]) => (
-                <li key={field}>
-                  <a href={`#${field}-error`} className="errorSummaryLink">
-                    <InterfaceText text={message} />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {hasFieldErrors && <FieldErrorSummary fieldErrors={fieldErrors} />}
 
         {/* NAME SECTION (hidden for logged-in users) */}
         {!isLoggedIn && (
@@ -301,23 +326,7 @@ export default function NewsletterFormView({
             <InterfaceText text={BILINGUAL_TEXT.FINISHED_SECTION} />
           </h3>
           <div className="formActions">
-            <button
-              type="submit"
-              className="submitButton primary"
-              disabled={isSubmitting}
-              data-anl-event="newsletter_action:click"
-              data-anl-action={isLoggedIn ? "update_preferences" : "submit"}
-              data-anl-form_name="newsletter_signup"
-            >
-              {isSubmitting ? (
-                <LoadingMessage
-                  message={loadingText.en}
-                  heMessage={loadingText.he}
-                />
-              ) : (
-                <InterfaceText text={buttonText} />
-              )}
-            </button>
+            <SubmitButton isSubmitting={isSubmitting} isLoggedIn={isLoggedIn} />
           </div>
         </div>
       </form>
