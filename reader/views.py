@@ -991,8 +991,11 @@ def search_poc(request):
     """
     Search proof-of-concept page.
     """
+    search_params = get_search_params(request.GET)
+
     props = {
         "initialMenu": "search-poc",
+        "initialQuery": search_params["query"],
     }
     return render_template(request, 'base.html', props, {
         "title": get_page_title("Search POC", module=request.active_module),

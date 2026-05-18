@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { InterfaceText, TabView } from './Misc';
+import { InterfaceText, LoadingMessage, TabView } from './Misc';
+import SearchTextResult from './SearchTextResult';
 import { SearchTopic } from './SearchResultList';
 import Sefaria from "./sefaria/sefaria";
 import SearchState from "./sefaria/searchState";
@@ -10,7 +12,7 @@ import SearchState from "./sefaria/searchState";
 
 function fetchSources(query, { onSuccess, onError }) {
   const { field, fieldExact, sortType } = SearchState.metadataByType.text;
-  Sefaria.search.execute_query({
+  return Sefaria.search.execute_query({
     query,
     type: "text",
     size: 20,
@@ -28,6 +30,9 @@ function fetchSources(query, { onSuccess, onError }) {
 
 async function fetchNameResults(query) {
   const res = await fetch(`/api/name/${encodeURIComponent(query)}?limit=20`);
+  if (!res.ok) {
+    throw new Error("Name lookup failed");
+  }
   const data = await res.json();
   return data.completion_objects || [];
 }
@@ -46,56 +51,136 @@ function filterTopics(completionObjects) {
 
 // --- Renderers ---------------------------------------------------------------
 
-function SourceResults({ results }) {
-  // TODO: render source hits (result._source.ref, result.highlight, etc.)
-  return <ul>{results.map(r => <li key={r._id}>{r._source?.ref}</li>)}</ul>;
-}
-
-function AuthorResults({ results }) {
-  // TODO: render author cards
-  return <ul>{results.map(r => <li key={r.key}>{r.title}</li>)}</ul>;
-}
-
-function BookResults({ results }) {
-  // TODO: render book entries
-  return <ul>{results.map(r => <li key={r.key}>{r.title}</li>)}</ul>;
-}
-
-function TopicResults({ results }) {
-  // TODO: render topic chips/cards
-  return <ul>{results.map(r => <li key={r.key}>{r.title}</li>)}</ul>;
-}
-
-const TABS = [
-  { id: "sources", label: "Sources" },
-  { id: "authors", label: "Authors" },
-  { id: "books",   label: "Books"   },
-  { id: "topics",  label: "Topics"  },
-];
-
-
-const searchPOCData = {
-  query: "Moses",
-  sources: [
-    { title: "Moses; A Human Life", heTitle: "Moses; A Human Life", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life" },
-    { title: "Moses; A Human Life, 1 Identities", heTitle: "Moses; A Human Life, 1 Identities", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life,_1_Identities" },
-    { title: "Moses; A Human Life, Introduction", heTitle: "Moses; A Human Life, Introduction", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life,_Introduction" },
-  ],
-  topics: [
-    { title: "Moses", heTitle: "Moses", topicCat: "Person Topic", heTopicCat: "Person Topic", analyticCat: "topic", url: "/topics/moses", numSources: 12, numSheets: 8 },
-    { title: "Moses' Staff", heTitle: "Moses' Staff", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-staff", numSources: 3, numSheets: 4 },
-    { title: "Moses' Birth", heTitle: "Moses' Birth", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-birth", numSources: 5, numSheets: 2 },
-    { title: "Moses' Signs", heTitle: "Moses' Signs", topicCat: "Topic", heTopicCat: "Topic", analyticCat: "topic", url: "/topics/moses-signs", numSources: 4, numSheets: 1 },
-  ],
-  books: [
-    { title: "Moses; A Human Life", heTitle: "Moses; A Human Life", topicCat: "Text", heTopicCat: "Text", analyticCat: "text", url: "/Moses;_A_Human_Life" },
-  ],
-  authors: [
-    { title: "Moses ben Nachman (Ramban)", heTitle: "Moses ben Nachman (Ramban)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/ramban" },
-    { title: "Moses Chaim Luzzatto (Ramchal)", heTitle: "Moses Chaim Luzzatto (Ramchal)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/moses-chaim-luzzatto-(ramchal)" },
-    { title: "Moses Sofer (Chatam Sofer)", heTitle: "Moses Sofer (Chatam Sofer)", topicCat: "Author Topic", heTopicCat: "Author Topic", analyticCat: "author", url: "/topics/moses-sofer" },
-  ],
+const getURLForNameResult = (item) => {
+  if (item.type === "ref") {
+    return `/${item.key.replace(/ /g, "_")}`;
+  }
+  if (item.type === "Topic" || item.type === "PersonTopic" || item.type === "AuthorTopic") {
+    return `/topics/${item.key}`;
+  }
+  return null;
 };
+
+const getSearchTopicCategory = (item) => {
+  if (item.type === "AuthorTopic") {
+    return { en: "Authors", he: Sefaria.hebrewTranslation("Authors") };
+  }
+  if (item.type === "ref") {
+    return { en: "Books", he: Sefaria.hebrewTranslation("Books") };
+  }
+  const typeObj = Sefaria.displayTopicTocCategory(item.key);
+  if (typeObj) {
+    return typeObj;
+  }
+  return { en: "Topics", he: Sefaria.hebrewTranslation("Topics") };
+};
+
+const getBookSearchTopic = async (item) => {
+  const book = await Sefaria.getIndexDetails(item.key);
+  const primaryCategory = book.categories?.[0];
+  const tocCategory = primaryCategory && Sefaria.toc.find(cat => cat.category === primaryCategory);
+  const searchTopic = {
+    analyticCat: "Book",
+    title: book.title,
+    heTitle: book.heTitle,
+    topicCat: primaryCategory || "Books",
+    heTopicCat: tocCategory?.heCategory || Sefaria.hebrewTranslation("Books"),
+    url: `/${book.title.replace(/ /g, "_")}`,
+    numSources: 0,
+    numSheets: 0,
+  };
+  if (book.enDesc || book.enShortDesc) {
+    searchTopic.enDesc = book.enDesc || book.enShortDesc;
+    searchTopic.heDesc = book.heDesc || book.heShortDesc;
+  }
+  return searchTopic;
+};
+
+const getTopicSearchTopic = async (item) => {
+  const topic = await Sefaria.getTopic(item.key, {annotated: false});
+  const category = getSearchTopicCategory(item);
+  const searchTopic = {
+    analyticCat: category.en,
+    title: topic.primaryTitle?.en || item.title,
+    heTitle: topic.primaryTitle?.he || item.heTitle || item.title,
+    topicCat: category.en,
+    heTopicCat: category.he,
+    url: getURLForNameResult(item),
+    numSources: topic.tabs?.sources?.refs?.length || 0,
+    numSheets: topic.tabs?.sheets?.refs?.length || 0,
+  };
+  if (topic.description?.en) {
+    searchTopic.enDesc = topic.description.en;
+    searchTopic.heDesc = topic.description.he;
+  }
+  return searchTopic;
+};
+
+const getSearchTopicForNameResult = async (item) => {
+  if (item.type === "ref") {
+    return getBookSearchTopic(item);
+  }
+  return getTopicSearchTopic(item);
+};
+
+const getSearchTopicsForNameResults = results => Promise.all(
+  results.map(item => getSearchTopicForNameResult(item).catch(() => {
+    const category = getSearchTopicCategory(item);
+    return {
+      analyticCat: category.en,
+      title: item.title,
+      heTitle: item.heTitle || item.title,
+      topicCat: category.en,
+      heTopicCat: category.he,
+      url: getURLForNameResult(item),
+      numSources: 0,
+      numSheets: 0,
+    };
+  }))
+);
+
+const dedupeSearchTopics = searchTopics => {
+  const seen = new Set();
+  return searchTopics.filter(searchTopic => {
+    const key = searchTopic.url || searchTopic.title;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
+function SourceResults({ results, query }) {
+  const mergedResults = Sefaria.search.mergeTextResultsVersions(results);
+  return (
+    <div className="searchPOCResults">
+      {mergedResults.filter(result => !!result._source.version).map(result => (
+        <SearchTextResult
+          data={result}
+          query={query}
+          key={result._id}
+        />
+      ))}
+    </div>
+  );
+}
+
+const NameResults = ({ results }) => (
+  <ul className="searchPOCResults">
+    {results.map(searchTopic => (
+      <li key={`${searchTopic.analyticCat}-${searchTopic.url}`} className="searchPOCResult">
+        <SearchTopic topic={searchTopic} />
+      </li>
+    ))}
+  </ul>
+);
+
+const AuthorResults = ({ results }) => <NameResults results={results} />;
+
+const BookResults = ({ results }) => <NameResults results={results} />;
+
+const TopicResults = ({ results }) => <NameResults results={results} />;
 
 const tabs = [
   { id: "sources", title: { en: "Sources", he: "Sources" } },
@@ -110,18 +195,90 @@ const renderTab = tab => (
   </div>
 );
 
-const SearchResultItems = ({items}) => (
-  <ul className="searchPOCResults">
-    {items.map(item => (
-      <li key={`${item.title}-${item.url}`} className="searchPOCResult">
-        <SearchTopic topic={item} />
-      </li>
-    ))}
-  </ul>
-);
+const emptyResults = {
+  sources: [],
+  topics: [],
+  books: [],
+  authors: [],
+};
 
-const SearchPOCPage = () => {
+const SearchPOCPage = ({ searchQuery }) => {
   const [tab, setTab] = useState(tabs[0].id);
+  const [results, setResults] = useState(emptyResults);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const query = (searchQuery || "").trim();
+
+  useEffect(() => {
+    if (!query) {
+      setResults(emptyResults);
+      setIsLoading(false);
+      setHasError(false);
+      return;
+    }
+
+    let isCurrent = true;
+    let pendingRequests = 2;
+    const finishLoading = () => {
+      pendingRequests -= 1;
+      if (isCurrent && pendingRequests === 0) {
+        setIsLoading(false);
+      }
+    };
+
+    setResults(emptyResults);
+    setIsLoading(true);
+    setHasError(false);
+
+    const runningSourceQuery = fetchSources(query, {
+      onSuccess: data => {
+        if (isCurrent) {
+          setResults(prevResults => ({
+            ...prevResults,
+            sources: data.hits?.hits || [],
+          }));
+        }
+        finishLoading();
+      },
+      onError: () => {
+        if (isCurrent) {
+          setHasError(true);
+        }
+        finishLoading();
+      },
+    });
+
+    fetchNameResults(query)
+      .then(async completionObjects => {
+        const [authors, rawBooks, topics] = await Promise.all([
+          getSearchTopicsForNameResults(filterAuthors(completionObjects)),
+          getSearchTopicsForNameResults(filterBooks(completionObjects)),
+          getSearchTopicsForNameResults(filterTopics(completionObjects)),
+        ]);
+        const books = dedupeSearchTopics(rawBooks);
+        if (isCurrent) {
+          setResults(prevResults => ({
+            ...prevResults,
+            authors,
+            books,
+            topics,
+          }));
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setHasError(true);
+        }
+      })
+      .finally(() => {
+        finishLoading();
+      });
+
+    return () => {
+      isCurrent = false;
+      runningSourceQuery?.abort();
+    };
+  }, [query]);
 
   return (
     <div className="readerNavMenu">
@@ -131,23 +288,32 @@ const SearchPOCPage = () => {
             <InterfaceText>Search POC</InterfaceText>
           </h1>
           <p className="sans-serif">
-            <InterfaceText>{`Dummy results for "${searchPOCData.query}"`}</InterfaceText>
+            {query ?
+              <InterfaceText>{`Results for "${query}"`}</InterfaceText> :
+              <InterfaceText>Enter a search query to see results.</InterfaceText>}
           </p>
-          <TabView
-            tabs={tabs}
-            currTabName={tab}
-            setTab={setTab}
-            renderTab={renderTab}
-            containerClasses={"largeTabs"}>
-            <SearchResultItems items={searchPOCData.sources} />
-            <SearchResultItems items={searchPOCData.topics} />
-            <SearchResultItems items={searchPOCData.books} />
-            <SearchResultItems items={searchPOCData.authors} />
-          </TabView>
+          {hasError ? <LoadingMessage message="Search failed." heMessage="החיפוש נכשל." /> : null}
+          {isLoading ? <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." /> : null}
+          {query ?
+            <TabView
+              tabs={tabs}
+              currTabName={tab}
+              setTab={setTab}
+              renderTab={renderTab}
+              containerClasses={"largeTabs"}>
+              <SourceResults results={results.sources} query={query} />
+              <TopicResults results={results.topics} />
+              <BookResults results={results.books} />
+              <AuthorResults results={results.authors} />
+            </TabView> : null}
         </div>
       </div>
     </div>
   );
+};
+
+SearchPOCPage.propTypes = {
+  searchQuery: PropTypes.string,
 };
 
 export default SearchPOCPage;

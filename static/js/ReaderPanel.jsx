@@ -963,7 +963,7 @@ class ReaderPanel extends Component {
                     registerAvailableFilters={this.props.registerAvailableFilters}
                     compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "search-poc") {
-      menu = <SearchPOCPage />;
+      menu = <SearchPOCPage searchQuery={this.state.searchQuery} />;
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (

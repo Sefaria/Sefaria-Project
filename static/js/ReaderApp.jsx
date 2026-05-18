@@ -515,8 +515,10 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "search-poc":
-            hist.title = Sefaria.getPageTitle("Search POC");
-            hist.url = "search-poc";
+            const searchPOCQuery = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
+            const searchPOCTitle = state.searchQuery ? state.searchQuery.stripHtml() : "Search POC";
+            hist.title = Sefaria.getPageTitle(searchPOCTitle);
+            hist.url = "search-poc" + (state.searchQuery ? `&q=${searchPOCQuery}` : "");
             hist.mode = "search-poc";
             break;
           case "topics":
@@ -1285,7 +1287,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.showSaved();
       
     } else if (path === "/search-poc") {
-      this.showSearchPOC();
+      this.showSearchPOC(params.get("q"));
 
     } else if (path === "/texts/notes") {
       this.showNotes();
@@ -1915,8 +1917,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchState });
   }
-  showSearchPOC() {
-    this.setSinglePanelState({mode: "Menu", menuOpen: "search-poc"});
+  showSearchPOC(searchQuery) {
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search-poc", searchQuery});
   }
   searchInCollection(searchQuery, collection) {
     const appliedFilters = [collection];

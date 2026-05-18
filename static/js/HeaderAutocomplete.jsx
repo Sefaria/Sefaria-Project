@@ -490,15 +490,14 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
     };
 
     const showSearchWrapper = (query) => {
-        // just commenting this out for the time being to test the search-poc page
-        // query = query.trim();
+        query = query.trim();
         // if (typeof sjs !== "undefined") {
         //   query = encodeURIComponent(query);
         //   window.location = `/search?q=${query}`;
         //   return;
         // }
         // showSearch(query);
-        window.location = "/search-poc";
+        window.location = query ? `/search-poc?q=${encodeURIComponent(query)}` : "/search-poc";
 
         onNavigate && onNavigate();
     };
