@@ -19083,13 +19083,14 @@
           },
           {
             "name": "platform",
-            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation.",
+            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation. Defaults to `facebook` if omitted or invalid. Use `twitter` for X/Twitter cards.",
             "schema": {
               "enum": [
                 "facebook",
                 "twitter"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "facebook"
             },
             "in": "query"
           },

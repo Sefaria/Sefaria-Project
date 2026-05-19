@@ -62,9 +62,9 @@ def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1")
 
     assert result["lang"] == "en"
+    assert result["platform"] == "facebook"
     assert result["text"] == "In the beginning"
     assert result["ref_str"] == "Genesis 1:1"
-    assert result["platform"] == "twitter"
 
 
 def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):
@@ -97,3 +97,21 @@ def test_social_image_api_preserves_hebrew_lang(monkeypatch):
     assert result["lang"] == "he"
     assert result["text"] == "בראשית"
     assert result["ref_str"] == "בראשית א׳:א׳"
+
+
+def test_social_image_api_defaults_empty_platform_to_facebook(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=")
+
+    assert result["platform"] == "facebook"
+
+
+def test_social_image_api_defaults_invalid_platform_to_facebook(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=linkedin")
+
+    assert result["platform"] == "facebook"
+
+
+def test_social_image_api_preserves_twitter_platform(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter")
+
+    assert result["platform"] == "twitter"

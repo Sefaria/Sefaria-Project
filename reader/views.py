@@ -1775,7 +1775,9 @@ def social_image_api(request, tref):
     if lang == "bi":
         lang = "en"
     version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
 
     try:
         ref = Ref(tref)
