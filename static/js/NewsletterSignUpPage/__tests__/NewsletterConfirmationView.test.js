@@ -257,7 +257,10 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
       expect(html).not.toContain("up to date");
     });
 
-    it("shows opt-out message alongside subscription diffs", () => {
+    it("suppresses subscription diffs when opting out (opt-out is the louder, exclusive message)", () => {
+      // Functionally, opting out of marketing emails unsubscribes the user from
+      // everything — so showing what they "subscribed to" or "unsubscribed from"
+      // alongside the opt-out message would be misleading and noisy.
       const html = renderView({
         isLoggedIn: true,
         selectedNewsletters: { educator_resources: true },
@@ -268,9 +271,9 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: true,
       });
 
-      expect(html).toContain("You&#x27;ve subscribed to:");
-      expect(html).toContain("Educator Resources");
       expect(html).toContain("opted out of marketing emails");
+      expect(html).not.toContain("You&#x27;ve subscribed to:");
+      expect(html).not.toContain("Educator Resources");
     });
   });
 

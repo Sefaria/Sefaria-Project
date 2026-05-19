@@ -40,7 +40,12 @@ function computeWillReceiveConfirmationEmail({ isLoggedIn, subscriptionDiffs, se
 
 /**
  * SubscriptionChangesSummary — display block for logged-in users with diffs.
- * Renders any combination of added / removed / opted-out / no-change states.
+ *
+ * Opt-out is the loud, exclusive message: when marketingOptOut is true the
+ * user has unsubscribed from everything, so we suppress the added/removed
+ * detail (which would otherwise be misleading) and show only the opt-out
+ * message. Otherwise, renders any combination of added / removed /
+ * preferences-up-to-date as appropriate.
  */
 function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
   const { added, removed } = diffs;
