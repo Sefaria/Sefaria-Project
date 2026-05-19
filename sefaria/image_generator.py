@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 import textwrap
 from bidi.algorithm import get_display
 import re
@@ -55,10 +55,39 @@ def smart_truncate(content, length=180, suffix='...'):
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
+def get_text_width(text, font):
+    if hasattr(font, "getlength"):
+        return font.getlength(text)
+    if hasattr(font, "getbbox"):
+        left, _, right, _ = font.getbbox(text)
+        return right - left
+    return font.getsize(text)[0]
+
+
 def calc_letters_per_line(text, font, img_width):
-    avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
-    max_char_count = int(img_width / avg_char_width )
-    return max_char_count
+    if not text:
+        return 1
+    avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
+    if avg_char_width <= 0:
+        return len(text)
+    max_char_count = int(img_width / avg_char_width)
+    return max(1, max_char_count)
+
+
+def supports_rtl_text_layout():
+    return features.check("raqm")
+
+
+def prepare_text_for_drawing(text, lang):
+    if lang == "en" or supports_rtl_text_layout():
+        return text
+    return get_display(text)
+
+
+def get_text_direction(lang):
+    if lang != "en" and supports_rtl_text_layout():
+        return "rtl"
+    return None
 
 
 def html_to_text_canonical(html):
@@ -94,7 +123,7 @@ def cleanup_and_format_text(text, language):
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
 
-    strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
+    strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
     text = strip_cantillation_vowel_regex.sub('', text)
     text = smart_truncate(text)
     return text
@@ -128,11 +157,12 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     text = cleanup_and_format_text(text, lang)
     text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
-    text = get_display(text) # Applies BIDI algorithm to text so that letters aren't reversed in PIL.
+    text = prepare_text_for_drawing(text, lang)
+    direction = get_text_direction(lang)
 
     draw = ImageDraw.Draw(im=img)
     draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align,
-              fill=text_color, anchor='mm')
+              fill=text_color, anchor='mm', direction=direction)
 
 
     #category line
@@ -143,7 +173,8 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
     #write ref
-    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+    ref_text = prepare_text_for_drawing(ref_str.upper(), lang)
+    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=ref_text, font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm', direction=direction)
 
 
     #border
