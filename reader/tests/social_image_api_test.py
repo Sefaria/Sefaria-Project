@@ -1,3 +1,10 @@
+"""
+Tests for the social_image_api view.
+
+Covers the lang parameter normalization added to fix cases where a missing,
+empty, or unrecognized lang value caused the wrong language to be used when
+generating social share images.
+"""
 from django.test import RequestFactory
 
 from reader import views
@@ -8,12 +15,14 @@ class DummyRef:
         return "Genesis 1:1"
 
     def he_normal(self):
+        # Stub — tests assert against this exact string to verify the view
+        # picks ref.he_normal() when lang="he".
         return "בראשית א׳:א׳"
 
 
 class DummyTextFamily:
     def __init__(self, *args, **kwargs):
-        self.kwargs = kwargs
+        pass
 
     def contents(self):
         return {
@@ -55,6 +64,7 @@ def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
     assert result["lang"] == "en"
     assert result["text"] == "In the beginning"
     assert result["ref_str"] == "Genesis 1:1"
+    assert result["platform"] == "twitter"
 
 
 def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):

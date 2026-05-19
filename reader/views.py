@@ -1769,7 +1769,9 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    lang = request.GET.get("lang") or "en"
+    if lang not in {"en", "he", "bi"}:
+        lang = "en"
     if lang == "bi":
         lang = "en"
     version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
