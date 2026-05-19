@@ -146,6 +146,8 @@ class TestVersionBulkEditAPI:
     def test_bulk_edit_null_clears_field(self, staff_client):
         """Sending null value should remove field from version entirely."""
         from sefaria.model import VersionSet, Version
+        
+        VersionSet({"versionTitle": "TestVersionForClearing"}).delete()
 
         # Create a test version with purchaseInformationURL set
         test_version = Version({
@@ -166,7 +168,7 @@ class TestVersionBulkEditAPI:
             'versionSource': 'https://test.com',
             'purchaseInformationURL': 'https://example.com/buy'
         })
-        test_version.save()
+        test_version2.save()
 
         # Verify field exists before clearing
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
@@ -191,7 +193,7 @@ class TestVersionBulkEditAPI:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['status'] == 'ok'
-        assert len(data['successes']) == 1
+        assert len(data['successes']) == 2
 
         # Verify field was removed (not just set to null or empty string)
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
@@ -229,7 +231,7 @@ class TestVersionBulkEditAPI:
             'purchaseInformationURL': 'https://example.com/buy',
             'versionNotes': 'Old notes'
         })
-        test_version.save()
+        test_version2.save()
 
         # Update some fields, clear others
         response = staff_client.post(
