@@ -708,6 +708,8 @@ def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
+    :param user_id: the ID of the user importing the versions
+    :param csv_filename: the filename of the CSV file to import
     :return:
     """
     csv.field_size_limit(sys.maxsize)
