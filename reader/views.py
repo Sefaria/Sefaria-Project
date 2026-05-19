@@ -4676,7 +4676,7 @@ def serve_static_by_lang(request, page):
 
 
 # TODO: This really should be handled by a CMS :)
-def annual_report(request, report_year):
+def annual_report(request, report_year=None):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
