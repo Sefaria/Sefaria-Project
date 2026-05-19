@@ -84,6 +84,25 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    /* Auth setup — logs in a real user and saves session to .auth/setup_session.json */
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.js/,
+    },
+
+    // Newsletter signup tests — kept as a standalone project during the
+    // integration window. TODO: fold into the per-module matrix once the
+    // newsletter tests align with an existing module's scope.
+    {
+      name: 'chrome-newsletter',
+      testDir: './e2e-tests/tests',
+      testMatch: /newsletter-signup-.*\.spec\.js/,
+      testIgnore: [/.*-real\.spec\.js/],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+
     // Library-specific tests
     {
       name: 'chrome-library',
@@ -135,6 +154,17 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
+    },
+
+    /* Authenticated project — uses real Django session from setup */
+    {
+      name: 'authenticated',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e-tests/.auth/setup_session.json',
+      },
+      dependencies: ['setup'],
+      testMatch: /.*-real\.spec\.js/,
     },
 
     // Firefox - Library-specific modularization tests
