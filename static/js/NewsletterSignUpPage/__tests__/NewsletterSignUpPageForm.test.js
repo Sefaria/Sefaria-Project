@@ -232,11 +232,12 @@ describe('NewsletterSignUpPageForm', () => {
       });
     });
 
-    it('sets formStatus.status to ERROR', async () => {
+    it('keeps client validation failures out of API error status', async () => {
       await renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
-      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.IDLE);
+      expect(lastFormViewProps.formStatus.errorMessage).toBeNull();
     });
   });
 
@@ -258,10 +259,10 @@ describe('NewsletterSignUpPageForm', () => {
       const merged = { ...valid, ...overrides };
 
       // Apply field values through the handler props
-      act(() => { lastFormViewProps.onFirstNameChange(merged.firstName); });
-      act(() => { lastFormViewProps.onLastNameChange(merged.lastName); });
-      act(() => { lastFormViewProps.onEmailChange(merged.email); });
-      act(() => { lastFormViewProps.onConfirmEmailChange(merged.confirmEmail); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', merged.firstName); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', merged.lastName); });
+      act(() => { lastFormViewProps.onFieldChange('email', merged.email); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', merged.confirmEmail); });
       if (merged.newsletter) {
         act(() => { lastFormViewProps.onNewsletterToggle(merged.newsletter); });
       }
@@ -309,7 +310,7 @@ describe('NewsletterSignUpPageForm', () => {
       expect(lastFormViewProps.fieldErrors.confirmEmail).toBe(BILINGUAL_TEXT.EMAILS_MISMATCH);
 
       // User fixes email to match the already-typed confirmEmail value
-      act(() => { lastFormViewProps.onEmailChange('different@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'different@example.com'); });
 
       // Blurring email should re-evaluate confirmEmail in the same state update
       act(() => { lastFormViewProps.onFieldBlur('email'); });
@@ -374,10 +375,10 @@ describe('NewsletterSignUpPageForm', () => {
       await renderForm();
 
       // Fill valid form
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       // Trigger submit — capture the SUBMITTING state
@@ -398,10 +399,10 @@ describe('NewsletterSignUpPageForm', () => {
     it('calls subscribeNewsletter with correct args', async () => {
       await renderForm();
 
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -417,10 +418,10 @@ describe('NewsletterSignUpPageForm', () => {
     it('notifies parent when stage changes to CONFIRMATION', async () => {
       await renderForm({ onStageChange: stageChangeSpy });
 
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       await act(async () => { await lastFormViewProps.onSubmit(); });
@@ -438,10 +439,10 @@ describe('NewsletterSignUpPageForm', () => {
 
       await renderForm();
 
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -453,15 +454,38 @@ describe('NewsletterSignUpPageForm', () => {
       });
     });
 
+    it('clears a stale backend error when a later submit has client validation errors', async () => {
+      subscribeNewsletter.mockRejectedValueOnce(new Error('Server unavailable'));
+
+      await renderForm();
+
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { lastFormViewProps.onSubmit(); });
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBeTruthy();
+
+      act(() => { lastFormViewProps.onFieldChange('email', 'not-an-email'); });
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.IDLE);
+      expect(lastFormViewProps.formStatus.errorMessage).toBeNull();
+      expect(lastFormViewProps.fieldErrors.email).toBe(BILINGUAL_TEXT.VALID_EMAIL);
+    });
+
     it('uses GENERIC_ERROR when error has no message', async () => {
       subscribeNewsletter.mockRejectedValueOnce(new Error());
 
       await renderForm();
 
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       await act(async () => { lastFormViewProps.onSubmit(); });
@@ -526,10 +550,10 @@ describe('NewsletterSignUpPageForm', () => {
 
       await renderForm({ onStageChange: stageChangeSpy });
 
-      act(() => { lastFormViewProps.onFirstNameChange('Ada'); });
-      act(() => { lastFormViewProps.onLastNameChange('Lovelace'); });
-      act(() => { lastFormViewProps.onEmailChange('ada@example.com'); });
-      act(() => { lastFormViewProps.onConfirmEmailChange('ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
       await act(async () => { await lastFormViewProps.onSubmit(); });

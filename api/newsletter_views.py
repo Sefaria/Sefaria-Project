@@ -8,18 +8,19 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, cast
+from typing import Any, ParamSpec, cast
 
-from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_protect
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from api.newsletter_service import (
     ActiveCampaignError,
     NewsletterInfo,
-    get_newsletter_list,
+    NewsletterListUnavailableError,
+    get_cached_newsletter_list,
     is_newsletter_service_configured,
     normalize_and_validate_email,
     subscribe_with_union,
@@ -29,34 +30,49 @@ from api.newsletter_service import (
 )
 
 logger: logging.Logger = logging.getLogger(__name__)
+P = ParamSpec("P")
 
 
-def csrf_protect_authenticated(view_func):
-    """
-    Enforce CSRF checks only when the request is tied to an authenticated session.
+def handle_newsletter_view_errors(
+    action: str,
+) -> Callable[[Callable[P, HttpResponse]], Callable[P, HttpResponse]]:
+    """Convert newsletter view exceptions into consistent JSON responses."""
 
-    The newsletter endpoints also support logged-out email-based flows, so the
-    outer view must remain exempt from Django's global CSRF middleware. Once the
-    user is authenticated, session-backed mutations should still require a valid
-    CSRF token.
-    """
-    protected_view = csrf_protect(view_func)
+    def decorator(view_func: Callable[P, HttpResponse]) -> Callable[P, HttpResponse]:
+        @wraps(view_func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> HttpResponse:
+            try:
+                return view_func(*args, **kwargs)
+            except json.JSONDecodeError:
+                return jsonResponse(
+                    {"error": "Invalid JSON in request body"}, status=400
+                )
+            except InputError as e:
+                logger.warning(f"Validation error {action}: {e}")
+                return jsonResponse({"error": str(e)}, status=400)
+            except NewsletterListUnavailableError as e:
+                logger.warning(f"Newsletter list unavailable {action}: {e}")
+                return jsonResponse({"error": str(e)}, status=503)
+            except ActiveCampaignError as e:
+                logger.warning(f"ActiveCampaign error {action}: {e}")
+                return jsonResponse({"error": str(e)}, status=500)
+            except Exception as e:
+                logger.exception(f"Unexpected error {action}: {e}")
+                return jsonResponse(
+                    {"error": "An unexpected error occurred"}, status=500
+                )
 
-    @wraps(view_func)
-    def wrapped(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        user: Any = getattr(request, 'user', None)
-        if getattr(user, 'is_authenticated', False):
-            return protected_view(request, *args, **kwargs)
-        return view_func(request, *args, **kwargs)
+        return wrapper
 
-    return csrf_exempt(wrapped)
+    return decorator
 
 
+@handle_newsletter_view_errors("getting newsletter lists")
 def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/lists
 
-    Returns all available newsletters with their metadata from ActiveCampaign.
+    Returns all available managed newsletters with their metadata from ActiveCampaign.
 
     Query Parameters:
         None
@@ -67,10 +83,9 @@ def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
                 {
                     "id": "1",
                     "stringid": "sefaria_news",
-                    "displayName": "Sefaria News & Resources",
+                    "displayName": {"en": "Sefaria News & Resources", "he": null},
                     "icon": "news-and-resources.svg",
-                    "language": "english",
-                    "acListId": "1"
+                    "language": "english"
                 },
                 ...
             ]
@@ -83,55 +98,26 @@ def get_newsletter_lists(request: HttpRequest) -> HttpResponse:
 
     Notes:
         - Only returns newsletters that have complete metadata (LIST_{id}_META variable)
-        - Numeric list ID should be used as the form field value for subscriptions
-        - Results are cached for 1 hour for performance
+        - The frontend submits stringid values; the service maps them to ActiveCampaign list IDs
+        - Results are cached in newsletter_service for 1 hour
     """
-    if request.method != 'GET':
-        return jsonResponse({'error': 'Only GET method is supported'}, status=405)
+    if request.method != "GET":
+        return jsonResponse({"error": "Only GET method is supported"}, status=405)
 
     if not is_newsletter_service_configured():
-        return jsonResponse({'error': 'newsletter_service_not_configured'}, status=503)
+        return jsonResponse({"error": "newsletter_service_not_configured"}, status=503)
 
-    try:
-        newsletters: list[NewsletterInfo] = get_newsletter_list()
-        return jsonResponse({'newsletters': newsletters})
-    except ActiveCampaignError as e:
-        return jsonResponse({'error': str(e)}, status=500)
-    except Exception as e:
-        logger.exception(f"Unexpected error in get_newsletter_lists: {e}")
-        return jsonResponse({'error': 'An unexpected error occurred'}, status=500)
-
-
-# ============================================================================
-# Caching Wrapper for Newsletter List (used for validation during subscription)
-# ============================================================================
-
-NEWSLETTER_LIST_CACHE_KEY: str = 'newsletter_list_from_ac'
-NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
-
-
-def get_cached_newsletter_list() -> list[NewsletterInfo]:
-    """
-    Get cached newsletter list, fetching from ActiveCampaign if not cached.
-
-    Returns:
-        list: Cached list of newsletters
-    """
-    cached: list[NewsletterInfo] | None = cache.get(NEWSLETTER_LIST_CACHE_KEY)
-    if cached is not None:
-        return cached
-
-    newsletters: list[NewsletterInfo] = get_newsletter_list()
-    if newsletters:
-        cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
-    return newsletters
+    newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
+    return jsonResponse({"newsletters": newsletters})
 
 
 # ============================================================================
 # Subscription Endpoint
 # ============================================================================
 
-@csrf_exempt
+
+@csrf_protect
+@handle_newsletter_view_errors("during subscription")
 def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/subscribe
@@ -145,7 +131,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     Request Body:
         {
             "firstName": string (required),
-            "lastName": string (optional),
+            "lastName": string (required),
             "email": string (required),
             "newsletters": {
                 "sefaria_news": boolean,
@@ -171,7 +157,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
 
     Errors (400 Bad Request):
         {
-            "error": "First name and email are required."
+            "error": "First name, last name, and email are required."
         }
         OR
         {
@@ -184,89 +170,63 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         }
 
     Notes:
-        - Validates newsletter selections against cached list of available newsletters
+        - The service validates newsletter selections against the cached managed newsletter list
         - Uses AC contact lookup/create pattern for managing subscribers
         - Subscriptions are union-based: new selections are added to existing, never removed
         - Response includes all current subscriptions (existing + newly added)
     """
-    if request.method != 'POST':
-        return jsonResponse({'error': 'Only POST method is supported'}, status=405)
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
-    try:
-        # Parse request body
-        body: dict[str, Any] = json.loads(cast(bytes, request.body))
-        first_name: str = body.get('firstName', '').strip()
-        last_name: str = body.get('lastName', '').strip()
-        email: str = body.get('email', '').strip()
-        newsletters_dict: dict[str, bool] = body.get('newsletters', {})
+    # Parse request body
+    body: dict[str, Any] = json.loads(cast(bytes, request.body))
+    first_name: str = body.get("firstName", "").strip()
+    last_name: str = body.get("lastName", "").strip()
+    email: str = body.get("email", "").strip()
+    newsletters_dict: dict[str, bool] = body.get("newsletters", {})
 
-        # Validate required fields
-        if not first_name or not email:
-            return jsonResponse({
-                'error': 'First name and email are required.'
-            }, status=400)
-        email = normalize_and_validate_email(email)
+    # Validate required fields
+    if not first_name or not last_name or not email:
+        return jsonResponse(
+            {"error": "First name, last name, and email are required."}, status=400
+        )
+    email = normalize_and_validate_email(email)
 
-        # Extract selected newsletter stringids
-        selected_newsletters: list[str] = [key for key, selected in newsletters_dict.items() if selected]
+    # Extract selected newsletter stringids
+    selected_newsletters: list[str] = [
+        key for key, selected in newsletters_dict.items() if selected
+    ]
 
-        # Validate at least one newsletter selected
-        if not selected_newsletters:
-            return jsonResponse({
-                'error': 'Please select at least one newsletter.'
-            }, status=400)
+    # Validate at least one newsletter selected
+    if not selected_newsletters:
+        return jsonResponse(
+            {"error": "Please select at least one newsletter."}, status=400
+        )
 
-        # Get cached valid newsletters for validation
-        try:
-            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
-        except Exception as e:
-            logger.exception(f"Error fetching cached newsletter list: {e}")
-            return jsonResponse({
-                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
-            }, status=503)
+    # Subscribe using union behavior
+    logger.info(
+        f"Processing subscription for {email} with newsletters: {selected_newsletters}"
+    )
+    result = subscribe_with_union(email, first_name, last_name, selected_newsletters)
 
-        if not valid_newsletters:
-            logger.error("Newsletter list is empty — ActiveCampaign may be unreachable or misconfigured")
-            return jsonResponse({
-                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
-            }, status=503)
-
-        # Subscribe using union behavior
-        logger.info(f"Processing subscription for {email} with newsletters: {selected_newsletters}")
-        result = subscribe_with_union(email, first_name, last_name, selected_newsletters, valid_newsletters)
-
-        # Return success response
-        return jsonResponse({
-            'success': True,
-            'message': 'Successfully subscribed to newsletters',
-            'email': email,
-            'subscribedNewsletters': result['all_subscriptions']
-        }, status=200)
-
-    except InputError as e:
-        logger.warning(f"Validation error during subscription: {e}")
-        return jsonResponse({'error': str(e)}, status=400)
-
-    except ActiveCampaignError as e:
-        logger.warning(f"ActiveCampaign error during subscription: {e}")
-        return jsonResponse({'error': str(e)}, status=500)
-
-    except json.JSONDecodeError:
-        return jsonResponse({
-            'error': 'Invalid JSON in request body'
-        }, status=400)
-
-    except Exception as e:
-        logger.exception(f"Unexpected error in subscribe_newsletter: {e}")
-        return jsonResponse({
-            'error': 'An unexpected error occurred'
-        }, status=500)
+    # Return success response
+    return jsonResponse(
+        {
+            "success": True,
+            "message": "Successfully subscribed to newsletters",
+            "email": email,
+            "subscribedNewsletters": result["all_subscriptions"],
+        },
+        status=200,
+    )
 
 
 # ============================================================================
 # Authenticated Newsletter Endpoints
 # ============================================================================
 
+
+@handle_newsletter_view_errors("fetching subscriptions")
 def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
     """
     GET /api/newsletter/subscriptions
@@ -301,56 +261,36 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
         - Returns empty array if user has no subscriptions yet
         - Returns empty array if user email not found in ActiveCampaign
     """
-    if request.method != 'GET':
-        return jsonResponse({'error': 'Only GET method is supported'}, status=405)
+    if request.method != "GET":
+        return jsonResponse({"error": "Only GET method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, 'user')
+    user: Any = getattr(request, "user")
 
     # Check authentication
     if not user.is_authenticated:
-        return jsonResponse({'error': 'Authentication required'}, status=401)
+        return jsonResponse({"error": "Authentication required"}, status=401)
 
-    try:
-        email: str = user.email
-        logger.info(f"Fetching subscriptions for authenticated user: {email}")
+    email: str = user.email
+    logger.info(f"Fetching subscriptions for authenticated user: {email}")
 
-        # Get cached valid newsletters for mapping
-        try:
-            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
-        except Exception as e:
-            logger.exception(f"Error fetching cached newsletter list: {e}")
-            return jsonResponse({
-                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
-            }, status=503)
+    # Fetch user subscriptions (pass user for UserProfile lookup)
+    result = fetch_user_subscriptions_impl(email, user=user)
 
-        # Fetch user subscriptions (pass user for UserProfile lookup)
-        result = fetch_user_subscriptions_impl(email, valid_newsletters, user=user)
-
-        return jsonResponse({
-            'success': True,
-            'email': email,
-            'subscribedNewsletters': result['subscribed_newsletters'],
-            'wantsMarketingEmails': result.get('wants_marketing_emails', True),
-            'learningLevel': result.get('learning_level'),
-        }, status=200)
-
-    except InputError as e:
-        logger.warning(f"Validation error fetching subscriptions: {e}")
-        return jsonResponse({'error': str(e)}, status=400)
-
-    except ActiveCampaignError as e:
-        logger.warning(f"ActiveCampaign error fetching subscriptions: {e}")
-        return jsonResponse({'error': str(e)}, status=500)
-
-    except Exception as e:
-        logger.exception(f"Unexpected error in get_user_subscriptions: {e}")
-        return jsonResponse({
-            'error': 'An unexpected error occurred'
-        }, status=500)
+    return jsonResponse(
+        {
+            "success": True,
+            "email": email,
+            "subscribedNewsletters": result["subscribed_newsletters"],
+            "wantsMarketingEmails": result.get("wants_marketing_emails", True),
+            "learningLevel": result.get("learning_level"),
+        },
+        status=200,
+    )
 
 
-@csrf_protect_authenticated
+@csrf_protect
+@handle_newsletter_view_errors("updating preferences")
 def update_user_preferences(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/preferences
@@ -358,7 +298,7 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
     Update newsletter preferences for the authenticated user.
 
     Uses REPLACE behavior: The user's selected newsletters become their new
-    complete subscription list. Anything not selected is unsubscribed.
+    complete managed subscription list. Anything not selected is unsubscribed.
 
     Authentication: Required (must be logged in)
 
@@ -395,86 +335,72 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
     Notes:
         - Requires authenticated user via Django session/auth
         - REPLACE behavior: unselected newsletters are unsubscribed
-        - Empty selection (all false) is allowed: unsubscribes from all newsletters
+        - Empty selection (all false) is allowed: unsubscribes from all managed newsletters
         - Idempotent: calling multiple times with same selections produces same result
     """
-    if request.method != 'POST':
-        return jsonResponse({'error': 'Only POST method is supported'}, status=405)
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, 'user')
+    user: Any = getattr(request, "user")
 
     # Check authentication
     if not user.is_authenticated:
-        return jsonResponse({'error': 'Authentication required'}, status=401)
+        return jsonResponse({"error": "Authentication required"}, status=401)
 
-    try:
-        # Parse request body
-        body: dict[str, Any] = json.loads(cast(bytes, request.body))
-        newsletters_dict: dict[str, bool] = body.get('newsletters', {})
-        marketing_opt_out: bool = body.get('marketingOptOut', False)  # Informational flag for intent tracking
+    # Parse request body
+    body: dict[str, Any] = json.loads(cast(bytes, request.body))
+    newsletters_dict: dict[str, bool] = body.get("newsletters", {})
+    marketing_opt_out: bool = body.get(
+        "marketingOptOut", False
+    )  # Informational flag for intent tracking
 
-        # Extract selected newsletter stringids
-        selected_newsletters: list[str] = [key for key, selected in newsletters_dict.items() if selected]
+    # Extract selected newsletter stringids
+    selected_newsletters: list[str] = [
+        key for key, selected in newsletters_dict.items() if selected
+    ]
 
-        email: str = user.email
-        first_name: str = user.first_name or 'User'
-        last_name: str = user.last_name or ''
+    email: str = user.email
+    first_name: str = user.first_name or "User"
+    last_name: str = user.last_name or ""
 
-        # Log the intent for analytics/debugging (no validation - all selections valid for logged-in users)
-        if marketing_opt_out:
-            logger.info(f"User {email} explicitly opted out of marketing emails")
+    # Log the intent for analytics/debugging (no validation - all selections valid for logged-in users)
+    if marketing_opt_out:
+        logger.info(f"User {email} explicitly opted out of marketing emails")
 
-        logger.info(f"Updating preferences for {email} with selections: {selected_newsletters}, marketingOptOut: {marketing_opt_out}")
+    logger.info(
+        f"Updating preferences for {email} with selections: {selected_newsletters}, marketingOptOut: {marketing_opt_out}"
+    )
 
-        # Get cached valid newsletters for validation
-        try:
-            valid_newsletters: list[NewsletterInfo] = get_cached_newsletter_list()
-        except Exception as e:
-            logger.exception(f"Error fetching cached newsletter list: {e}")
-            return jsonResponse({
-                'error': 'Newsletter service is temporarily unavailable. Please try again later.'
-            }, status=503)
+    # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
+    result = update_user_preferences_impl(
+        email,
+        first_name,
+        last_name,
+        selected_newsletters,
+        marketing_opt_out=marketing_opt_out,
+    )
 
-        # Update preferences using replace behavior (or opt-out if marketing_opt_out=True)
-        result = update_user_preferences_impl(email, first_name, last_name,
-                                              selected_newsletters, valid_newsletters,
-                                              marketing_opt_out=marketing_opt_out)
-
-        # Return success response
-        return jsonResponse({
-            'success': True,
-            'message': 'Preferences updated successfully',
-            'email': email,
-            'subscribedNewsletters': result['subscribed_newsletters'],
-            'marketingOptOut': marketing_opt_out,
-        }, status=200)
-
-    except InputError as e:
-        logger.warning(f"Validation error updating preferences: {e}")
-        return jsonResponse({'error': str(e)}, status=400)
-
-    except ActiveCampaignError as e:
-        logger.warning(f"ActiveCampaign error updating preferences: {e}")
-        return jsonResponse({'error': str(e)}, status=500)
-
-    except json.JSONDecodeError:
-        return jsonResponse({
-            'error': 'Invalid JSON in request body'
-        }, status=400)
-
-    except Exception as e:
-        logger.exception(f"Unexpected error in update_user_preferences: {e}")
-        return jsonResponse({
-            'error': 'An unexpected error occurred'
-        }, status=500)
+    # Return success response
+    return jsonResponse(
+        {
+            "success": True,
+            "message": "Preferences updated successfully",
+            "email": email,
+            "subscribedNewsletters": result["subscribed_newsletters"],
+            "marketingOptOut": marketing_opt_out,
+        },
+        status=200,
+    )
 
 
 # ============================================================================
 # Learning Level Endpoint (Authenticated or Email-Based for Logged-Out Users)
 # ============================================================================
 
-@csrf_protect_authenticated
+
+@csrf_protect
+@handle_newsletter_view_errors("during learning level update")
 def update_learning_level(request: HttpRequest) -> HttpResponse:
     """
     POST /api/newsletter/learning-level
@@ -532,69 +458,59 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
         - Optional for users - can be skipped
         - For logged-out users, creates AC contact even if no account exists
     """
-    if request.method != 'POST':
-        return jsonResponse({'error': 'Only POST method is supported'}, status=405)
+    if request.method != "POST":
+        return jsonResponse({"error": "Only POST method is supported"}, status=405)
 
     # Extract user from middleware-injected attribute (not on base HttpRequest type)
-    user: Any = getattr(request, 'user')
+    user: Any = getattr(request, "user")
 
-    try:
-        # Parse request body
-        body: dict[str, Any] = json.loads(cast(bytes, request.body))
+    # Parse request body
+    body: dict[str, Any] = json.loads(cast(bytes, request.body))
 
-        # Determine email source based on authentication status
-        if user.is_authenticated:
-            # For authenticated users, use their email from the session
-            email: str = user.email
-        else:
-            # For logged-out users, email must be provided in request
-            email = body.get('email', '').strip()
+    # Determine email source based on authentication status
+    if user.is_authenticated:
+        # For authenticated users, use their email from the session
+        email: str = user.email
+    else:
+        # For logged-out users, email must be provided in request
+        email = body.get("email", "").strip()
 
-            if not email:
-                return jsonResponse({
-                    'error': 'Email is required for logged-out users.'
-                }, status=400)
-            email = normalize_and_validate_email(email)
+        if not email:
+            return jsonResponse(
+                {"error": "Email is required for logged-out users."}, status=400
+            )
+        email = normalize_and_validate_email(email)
 
-        # Get learning level from request body
-        learning_level: int | None = body.get('learningLevel')
+    # Get learning level from request body
+    learning_level: int | None = body.get("learningLevel")
 
-        # Validate learning_level type if provided
-        # Allow null/None (optional field), or integer 1-5
-        if learning_level is not None:
-            if not isinstance(learning_level, int) or learning_level < 1 or learning_level > 5:
-                return jsonResponse({
-                    'error': 'Learning level must be an integer between 1 and 5, or null.'
-                }, status=400)
+    # Validate learning_level type if provided
+    # Allow null/None (optional field), or integer 1-5
+    if learning_level is not None:
+        if (
+            not isinstance(learning_level, int)
+            or learning_level < 1
+            or learning_level > 5
+        ):
+            return jsonResponse(
+                {
+                    "error": "Learning level must be an integer between 1 and 5, or null."
+                },
+                status=400,
+            )
 
-        # Update learning level using service function
-        logger.info(f"Processing learning level update for {email}")
-        result = update_learning_level_impl(email, learning_level)
+    # Update learning level using service function
+    logger.info(f"Processing learning level update for {email}")
+    result = update_learning_level_impl(email, learning_level)
 
-        # Return success response
-        return jsonResponse({
-            'success': True,
-            'message': result['message'],
-            'email': result['email'],
-            'learningLevel': result['learning_level'],
-            'userId': result['user_id']  # Will be None if no account exists
-        }, status=200)
-
-    except InputError as e:
-        logger.warning(f"Validation error in learning level update: {e}")
-        return jsonResponse({'error': str(e)}, status=400)
-
-    except ActiveCampaignError as e:
-        logger.warning(f"ActiveCampaign error during learning level update: {e}")
-        return jsonResponse({'error': str(e)}, status=500)
-
-    except json.JSONDecodeError:
-        return jsonResponse({
-            'error': 'Invalid JSON in request body'
-        }, status=400)
-
-    except Exception as e:
-        logger.exception(f"Unexpected error in update_learning_level: {e}")
-        return jsonResponse({
-            'error': 'An unexpected error occurred'
-        }, status=500)
+    # Return success response
+    return jsonResponse(
+        {
+            "success": True,
+            "message": result["message"],
+            "email": result["email"],
+            "learningLevel": result["learning_level"],
+            "userId": result["user_id"],  # Will be None if no account exists
+        },
+        status=200,
+    )

@@ -18,3 +18,15 @@ export const STAGE = Object.freeze({
   CONFIRMATION: Symbol("confirmation"),
   SUCCESS: Symbol("success"),
 });
+
+/**
+ * FORM_STATUS_ACTION — Symbols for formStatusReducer action types
+ * Consumed by formStatusReducer in NewsletterSignUpPageForm.jsx.
+ */
+export const FORM_STATUS_ACTION = Object.freeze({
+  SUBMISSION_RESET: Symbol("submission_reset"),
+  STAGE_ADVANCED: Symbol("stage_advanced"),
+  SUBMIT_STARTED: Symbol("submit_started"),
+  SUBMIT_SUCCEEDED: Symbol("submit_succeeded"),
+  SUBMIT_FAILED: Symbol("submit_failed"),
+});

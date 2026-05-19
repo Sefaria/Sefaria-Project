@@ -1,20 +1,97 @@
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
-import { InterfaceText, LoadingMessage } from "../Misc";
-import SelectableOption from "./SelectableOption";
+import { InterfaceText } from "../Misc";
 import { BILINGUAL_TEXT } from "./bilingualUtils";
 import { FORM_STATUS } from "./stateSymbols";
+import LearningLevelSurvey from "./LearningLevelSurvey";
+
+/**
+ * Resolves a newsletter key (e.g., "general") to its bilingual display label.
+ * Falls back to the key itself if no matching newsletter is found.
+ */
+function keyToDisplayLabel(newsletters, key) {
+  const nl = newsletters.find((n) => n.key === key);
+  if (!nl) return key;
+  const { en, he } = nl.displayName;
+  return Sefaria.interfaceLang === "hebrew" ? he || en : en || he;
+}
+
+/**
+ * Predicate: will the user actually receive a confirmation email after this submit?
+ *
+ * ActiveCampaign only sends confirmation emails for NEW subscriptions to the general
+ * newsletter (always the first item in the dynamic list, AC list ID 1).
+ *
+ * Logic (where G = generalNewsletter exists, L = isLoggedIn, D = subscriptionDiffs exists,
+ *              A = newsletter in added list, S = newsletter selected):
+ *   willReceive = G ∧ ((L ∧ D → A) ∨ (¬(L ∧ D) → S))
+ *
+ * For logged-in users with a known diff: "new" means the general newsletter is in `added`.
+ * For logged-out users (or logged-in without a diff): "new" means it's currently selected
+ *   — since logged-out flows imply fresh signups.
+ */
+function computeWillReceiveConfirmationEmail({ isLoggedIn, subscriptionDiffs, selectedNewsletters, newsletters }) {
+  const general = newsletters.length > 0 ? newsletters[0] : null;
+  if (!general) return false;
+  return isLoggedIn && subscriptionDiffs
+    ? subscriptionDiffs.added.includes(general.key)
+    : !!selectedNewsletters[general.key];
+}
+
+/**
+ * SubscriptionChangesSummary — display block for logged-in users with diffs.
+ * Renders any combination of added / removed / opted-out / no-change states.
+ */
+function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
+  const { added, removed } = diffs;
+  const nothingChanged = added.length === 0 && removed.length === 0 && !marketingOptOut;
+  return (
+    <div className="selectedNewslettersDisplay">
+      {!marketingOptOut && (
+        <>
+          {added.length > 0 && (
+            <div data-anl-text={added.join(", ")}>
+              <p className="selectedLabel">
+                <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
+              </p>
+              <p className="selectedList">{added.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
+            </div>
+          )}
+          {removed.length > 0 && (
+            <div data-anl-text={removed.join(", ")}>
+              <p className="selectedLabel">
+                <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
+              </p>
+              <p className="selectedList">{removed.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
+            </div>
+          )}
+        </>
+      )}
+      {marketingOptOut && (
+        <p className="selectedLabel singleCase">
+          <InterfaceText text={BILINGUAL_TEXT.OPTED_OUT_MARKETING} />
+        </p>
+      )}
+      {nothingChanged && (
+        <p className="selectedLabel singleCase">
+          <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE} />
+        </p>
+      )}
+    </div>
+  );
+}
 
 /**
  * NewsletterConfirmationView - Stage 2: Subscription Confirmation with Learning Level
  *
- * Displays confirmation message after successful newsletter subscription,
- * along with an embedded optional learning level form.
+ * Displays confirmation messaging after a successful newsletter submission, plus
+ * an embedded optional learning-level survey (delegated to LearningLevelSurvey).
  *
  * Features:
- * - Clear single goal: acknowledge subscription success
- * - Embedded learning level survey (no separate stage)
- * - Conditional messaging based on newsletter selection
+ * - Conditional confirmation messaging based on whether the user signed up for the
+ *   general newsletter (only those subscriptions trigger an ActiveCampaign confirmation email)
+ * - Diff display for logged-in users (added / removed / opted-out / no-change)
+ * - Embedded optional learning-level survey
  * - Full bilingual support (English/Hebrew)
  * - Analytics tracking for confirmation view
  */
@@ -32,44 +109,22 @@ export default function NewsletterConfirmationView({
   subscriptionDiffs = null,
   marketingOptOut = false,
 }) {
-  /**
-   * Determine if we should show "check your email for confirmation" messaging.
-   *
-   * ActiveCampaign only sends confirmation emails for NEW subscriptions.
-   *
-   * Logic (where G = generalNewsletter exists, L = isLoggedIn, D = subscriptionDiffs exists,
-   *              A = newsletter in added list, S = newsletter selected):
-   *   willReceive = G ∧ ((L ∧ D → A) ∨ (¬(L ∧ D) → S))
-   *
-   * For logged-in users with diffs: check if general newsletter was ADDED
-   * For logged-out users (or logged-in without diffs): check if general newsletter is SELECTED
-   *   (For logged-out users, "selected" implies "new" since they're signing up)
-   *
-   * The first newsletter in the dynamic list is always the general one (AC list ID 1).
-   */
-  const generalNewsletter = newsletters.length > 0 ? newsletters[0] : null;
-
-  const willReceiveConfirmationEmail =
-    generalNewsletter &&
-    (isLoggedIn && subscriptionDiffs
-      ? subscriptionDiffs.added.includes(generalNewsletter.key)
-      : selectedNewsletters[generalNewsletter.key]);
-
   const isSubmitting = formStatus.status === FORM_STATUS.SUBMITTING;
+  const errorMessage = formStatus.status === FORM_STATUS.ERROR ? formStatus.errorMessage : null;
 
-  const keyToDisplayLabel = (key) => {
-    const nl = newsletters.find(n => n.key === key);
-    if (!nl) return key;
-    const { en, he } = nl.displayName;
-    return Sefaria.interfaceLang === 'hebrew' ? (he || en) : (en || he);
-  };
+  const willReceiveConfirmationEmail = computeWillReceiveConfirmationEmail({
+    isLoggedIn,
+    subscriptionDiffs,
+    selectedNewsletters,
+    newsletters,
+  });
 
+  // Logged-out display: derive selected keys + labels for the simple list rendering.
   const selectedKeys = Object.entries(selectedNewsletters)
-    .filter(([_, isSelected]) => isSelected)
+    .filter(([, isSelected]) => isSelected)
     .map(([key]) => key);
-
-  const selectedNewsletterKeys = selectedKeys.join(', ');
-  const selectedNewsletterLabels = selectedKeys.map(keyToDisplayLabel).join(', ');
+  const selectedNewsletterKeys = selectedKeys.join(", ");
+  const selectedNewsletterLabels = selectedKeys.map((k) => keyToDisplayLabel(newsletters, k)).join(", ");
 
   return (
     <div
@@ -84,7 +139,11 @@ export default function NewsletterConfirmationView({
         {!marketingOptOut && (
           <>
             <div className="successIcon">
-              <img src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg" alt="" aria-hidden="true" />
+              <img
+                src="/static/icons/newsletter-signup/newsletter-selected-checkbox.svg"
+                alt="Success"
+                aria-hidden="true"
+              />
             </div>
 
             <h2 className="confirmationTitle">
@@ -112,34 +171,11 @@ export default function NewsletterConfirmationView({
 
         {/* SELECTED NEWSLETTERS DISPLAY */}
         {isLoggedIn && subscriptionDiffs ? (
-          <div className="selectedNewslettersDisplay">
-            {subscriptionDiffs.added.length > 0 && (
-              <div data-anl-text={subscriptionDiffs.added.join(", ")}>
-                <p className="selectedLabel">
-                  <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
-                </p>
-                <p className="selectedList">{subscriptionDiffs.added.map(keyToDisplayLabel).join(", ")}</p>
-              </div>
-            )}
-            {subscriptionDiffs.removed.length > 0 && (
-              <div data-anl-text={subscriptionDiffs.removed.join(", ")}>
-                <p className="selectedLabel">
-                  <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
-                </p>
-                <p className="selectedList">{subscriptionDiffs.removed.map(keyToDisplayLabel).join(", ")}</p>
-              </div>
-            )}
-            {marketingOptOut && (
-              <p className="selectedLabel">
-                <InterfaceText text={BILINGUAL_TEXT.OPTED_OUT_MARKETING} />
-              </p>
-            )}
-            {subscriptionDiffs.added.length === 0 && subscriptionDiffs.removed.length === 0 && !marketingOptOut && (
-              <p className="selectedLabel">
-                <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE} />
-              </p>
-            )}
-          </div>
+          <SubscriptionChangesSummary
+            diffs={subscriptionDiffs}
+            marketingOptOut={marketingOptOut}
+            newsletters={newsletters}
+          />
         ) : (
           selectedNewsletterKeys && (
             <div className="selectedNewslettersDisplay" data-anl-text={selectedNewsletterKeys}>
@@ -153,102 +189,15 @@ export default function NewsletterConfirmationView({
       </div>
 
       {/* EMBEDDED LEARNING LEVEL SECTION */}
-      <div
-        className="embeddedLearningLevel"
-        data-anl-batch={JSON.stringify({
-          form_name: "learning_level_survey",
-          engagement_type: "optional_profile_data",
-        })}
-      >
-        {/* HEADER WITH OPTIONAL INDICATOR */}
-        <div className="learningLevelHeaderWrapper">
-          <h3 className="learningLevelHeader">
-            <InterfaceText text={BILINGUAL_TEXT.LEARNING_LEVEL_HEADER} />
-          </h3>
-          <span className="optionalLabel">
-            <InterfaceText text={BILINGUAL_TEXT.OPTIONAL} />
-          </span>
-        </div>
-
-        {/* ERROR MESSAGE (if any) */}
-        {formStatus.status === FORM_STATUS.ERROR && formStatus.errorMessage && (
-          <div
-            className="learningLevelErrorMessage"
-            data-anl-event="form_error:displayed"
-            data-anl-engagement_type="error"
-            data-anl-form_name="learning_level_survey"
-          >
-            <span className="errorIcon">⚠️</span>
-            <span>
-              <InterfaceText text={formStatus.errorMessage} />
-            </span>
-          </div>
-        )}
-
-        {/* RADIO OPTIONS */}
-        <form
-          className="learningLevelForm"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSave(true);
-          }}
-        >
-          <div className="learningLevelOptions">
-            {learningLevels.map((level) => (
-              <SelectableOption
-                key={level.value}
-                type="radio"
-                name="learningLevel"
-                value={level.value}
-                label={<InterfaceText text={level.description} />}
-                isSelected={selectedLevel === level.value}
-                onChange={() => onLevelSelect(level.value)}
-                disabled={isSubmitting}
-                analyticsAttributes={{
-                  "data-anl-event": "learning_level_selected:input",
-                  "data-anl-text": level.label.en,
-                  "data-anl-form_name": "learning_level_survey",
-                }}
-              />
-            ))}
-          </div>
-
-          {/* ACTION BUTTONS */}
-          <div className="learningLevelActions">
-            <button
-              type="submit"
-              className="saveButton primary"
-              disabled={isSubmitting || selectedLevel === null}
-              data-anl-event="learning_level_action:click"
-              data-anl-action="save_learning_level"
-              data-anl-form_name="learning_level_survey"
-            >
-              {isSubmitting ? (
-                <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} />
-              ) : (
-                <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />
-              )}
-            </button>
-
-            {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
-            <p className="skipPrompt">
-              <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />{" "}
-              <button
-                type="button"
-                className={`skipLink${isSubmitting ? " disabled" : ""}`}
-                onClick={onSkip}
-                disabled={isSubmitting}
-                data-anl-event="learning_level_action:click"
-                data-anl-action="skip_learning_level"
-                data-anl-form_name="learning_level_survey"
-              >
-                <InterfaceText text={BILINGUAL_TEXT.SKIP_THIS_STEP} />
-              </button>{" "}
-              <InterfaceText text={BILINGUAL_TEXT.AND_GO_TO_HOMEPAGE} />
-            </p>
-          </div>
-        </form>
-      </div>
+      <LearningLevelSurvey
+        learningLevels={learningLevels}
+        selectedLevel={selectedLevel}
+        onLevelSelect={onLevelSelect}
+        onSave={onSave}
+        onSkip={onSkip}
+        isSubmitting={isSubmitting}
+        errorMessage={errorMessage}
+      />
     </div>
   );
 }

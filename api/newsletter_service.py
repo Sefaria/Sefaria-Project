@@ -4,15 +4,16 @@ Newsletter Service Module
 Integrates with ActiveCampaign API to fetch and manage newsletter lists and metadata.
 Handles all API communication with ActiveCampaign.
 
-Threading model:
+Threading model notes:
+
     In production gunicorn is used with multiple worker processes, each running
-    multiple threads (--threads N). That means the module-level `_client` defined
+    multiple threads. That means the module-level `_client` defined
     below is shared across many threads inside a single worker process.
 
     `requests.Session` is safe to share across threads for `.request()` calls
     AS LONG AS the session's headers or cookies are modified after it has been
     constructed. The headers are set exactly once inside `NewsletterClient.__init__`
-    and never touch them again.  do NOT call
+    and never touched again. Do NOT call
     `_client._session.headers.update(...)` or `_client._session.cookies.set(...)`
     after init time — that would introduce a race condition between threads.
 """
@@ -28,10 +29,15 @@ from typing import Any, TypedDict
 from urllib.parse import quote
 
 import requests
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email as django_validate_email
+
 try:
-    from sefaria.local_settings import ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME
+    from sefaria.local_settings import (
+        ACTIVECAMPAIGN_API_TOKEN,
+        ACTIVECAMPAIGN_ACCOUNT_NAME,
+    )
 except ImportError:
     ACTIVECAMPAIGN_API_TOKEN = None
     ACTIVECAMPAIGN_ACCOUNT_NAME = None
@@ -40,13 +46,17 @@ from sefaria.model.user_profile import UserProfile
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-type DisplayName = dict[str, str | None]
+NEWSLETTER_LIST_CACHE_KEY: str = "newsletter_list_from_ac"
+NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
 
+type DisplayName = dict[str, str | None]
 
 # ========== Typed dict shapes for structured return values ==========
 
+
 class NewsletterInfo(TypedDict):
     """One managed newsletter with display metadata. Element of get_newsletter_list()."""
+
     id: str
     stringid: str
     displayName: DisplayName
@@ -56,12 +66,14 @@ class NewsletterInfo(TypedDict):
 
 class SubscribeResult(TypedDict):
     """Return shape of subscribe_with_union: the contact and the union of all current subscriptions."""
+
     contact: dict[str, Any]
     all_subscriptions: list[str]
 
 
 class UserSubscriptions(TypedDict):
     """Return shape of fetch_user_subscriptions_impl: a user's full subscription state."""
+
     subscribed_newsletters: list[str]
     learning_level: int | None
     wants_marketing_emails: bool
@@ -69,12 +81,14 @@ class UserSubscriptions(TypedDict):
 
 class PreferencesResult(TypedDict):
     """Return shape of update_user_preferences_impl: the contact and the post-update subscription list."""
+
     contact: dict[str, Any]
     subscribed_newsletters: list[str]
 
 
 class LearningLevelACResult(TypedDict):
     """Return shape of update_learning_level_in_ac: confirms what was written to AC."""
+
     contact_id: str
     email: str
     learning_level: int | None
@@ -82,6 +96,7 @@ class LearningLevelACResult(TypedDict):
 
 class LearningLevelResult(TypedDict):
     """Return shape of update_learning_level_impl: combined outcome of AC + UserProfile updates."""
+
     email: str
     learning_level: int | None
     user_id: int | None
@@ -90,6 +105,13 @@ class LearningLevelResult(TypedDict):
 
 class ActiveCampaignError(Exception):
     """Custom exception for ActiveCampaign API errors"""
+
+    pass
+
+
+class NewsletterListUnavailableError(ActiveCampaignError):
+    """Raised when managed newsletter metadata cannot be loaded for a user flow."""
+
     pass
 
 
@@ -133,7 +155,7 @@ class NewsletterClient:
         """
         Args:
             api_token: ActiveCampaign API token, sent as the Api-Token header.
-            account_name: Your AC account subdomain (used to build the base URL,
+            account_name: Sefaria's AC account subdomain (used to build the base URL,
                 e.g. account_name 'sefaria' -> https://sefaria.api-us1.com/...).
             timeout: Per-request timeout in seconds. AC sometimes responds slowly
                 under load, so 10 seconds is the default.
@@ -145,23 +167,26 @@ class NewsletterClient:
         self._session = requests.Session()
         # Set headers exactly once here. They are never mutated after this point
         # — see the thread-safety note in the module docstring.
-        self._session.headers.update({
-            "Api-Token": api_token,
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        })
+        self._session.headers.update(
+            {
+                "Api-Token": api_token,
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            }
+        )
 
-    def make_request(self, endpoint: str, method: str = 'GET', data: dict[str, Any] | None = None) -> dict[str, Any]:
+    def make_request(
+        self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Send a request to the ActiveCampaign API and return the parsed JSON.
 
         This is the only place in the module that talks to AC over the network.
         All higher-level helpers (get_all_lists, find_or_create_contact, etc.)
-        go through here so we have one place to handle errors and logging.
+        go through here to have one place to handle errors and logging.
 
         Args:
             endpoint: API path (e.g. 'lists', 'contacts/123/contactLists').
-                A leading slash is OK; we strip it.
             method: HTTP method ('GET', 'POST', 'PUT', etc.). Defaults to 'GET'.
             data: JSON body to send for POST/PUT requests. Pass None for GET.
 
@@ -199,12 +224,18 @@ class NewsletterClient:
             # JSON with a 'message' or 'errors' field. If the body is not JSON
             # (e.g. an HTML error page during an outage), fall back to the raw
             # response text so we still see what AC sent.
-            status_code: int | str = e.response.status_code if e.response is not None else 'unknown'
+            status_code: int | str = (
+                e.response.status_code if e.response is not None else "unknown"
+            )
             error_msg: str | list[str] = f"ActiveCampaign API error: {status_code}"
             if e.response is not None and e.response.text:
                 try:
                     error_data: dict[str, Any] = e.response.json()
-                    error_msg = error_data.get('message') or error_data.get('errors') or error_msg
+                    error_msg = (
+                        error_data.get("message")
+                        or error_data.get("errors")
+                        or error_msg
+                    )
                 except json.JSONDecodeError:
                     error_msg = f"{error_msg} - {e.response.text}"
             raise ActiveCampaignError(error_msg)
@@ -213,7 +244,9 @@ class NewsletterClient:
             # Truly unexpected (not a known requests exception). Log with the
             # full stack trace so we can diagnose the surprise after the fact.
             logger.exception(f"Unexpected error calling ActiveCampaign API: {e}")
-            raise ActiveCampaignError(f"Unexpected error communicating with ActiveCampaign: {str(e)}")
+            raise ActiveCampaignError(
+                f"Unexpected error communicating with ActiveCampaign: {str(e)}"
+            )
 
 
 # Module-level singleton instance.
@@ -229,7 +262,7 @@ class NewsletterClient:
 # Why this is safe with gunicorn's preload_app=True:
 #   This line runs in the parent gunicorn process when the app preloads. That's
 #   safe because requests.Session() does NOT open any TCP connections at
-#   construction time — it only opens them on the first .request() call. After
+#   construction time. It only opens them on the first .request() call. After
 #   gunicorn forks worker processes, each worker opens its own connections
 #   lazily, so we never share live sockets across processes.
 _client: NewsletterClient | None = (
@@ -241,6 +274,7 @@ _client: NewsletterClient | None = (
 
 def requires_ac_client(func):
     """Decorator: raises ActiveCampaignError if AC credentials are not configured."""
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if _client is None:
@@ -249,6 +283,7 @@ def requires_ac_client(func):
                 "ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME must be set"
             )
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -275,6 +310,7 @@ def wraps_ac_errors(func):
         @wraps_ac_errors
         def my_service_fn(...): ...
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -284,6 +320,7 @@ def wraps_ac_errors(func):
         except Exception as e:
             logger.exception(f"Error in {func.__name__}: {e}")
             raise ActiveCampaignError(f"Error in {func.__name__}: {str(e)}")
+
     return wrapper
 
 
@@ -299,7 +336,7 @@ def _get_client() -> NewsletterClient:
     return _client
 
 
-# Module-level cache: maps AC custom field perstags to their numeric IDs.
+# Module-level cache: maps AC custom field perstags (personalization tags) to their numeric IDs.
 # Populated on first call to get_ac_field_id_by_perstag(), persists for process lifetime.
 _field_id_cache: dict[str, str] = {}
 
@@ -310,6 +347,7 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
 
     Fetches all fields on first call and caches the full mapping.
     Subsequent calls return from cache without an API call.
+    TODO: reconsider using actual cache in the future
 
     Args:
         perstag (str): The perstag identifier (e.g., 'LEARNING_LEVEL')
@@ -323,30 +361,33 @@ def get_ac_field_id_by_perstag(perstag: str) -> str:
     if perstag in _field_id_cache:
         return _field_id_cache[perstag]
 
-    response: dict[str, Any] = _get_client().make_request('fields?limit=100')
-    fields: list[dict[str, Any]] = response.get('fields', [])
+    response: dict[str, Any] = _get_client().make_request("fields?limit=100")
+    fields: list[dict[str, Any]] = response.get("fields", [])
 
-    _field_id_cache.update({f['perstag']: f['id'] for f in fields if f.get('perstag')})
+    _field_id_cache.update({f["perstag"]: f["id"] for f in fields if f.get("perstag")})
 
     if perstag not in _field_id_cache:
-        raise ActiveCampaignError(f"Custom field with perstag '{perstag}' not found in ActiveCampaign")
+        raise ActiveCampaignError(
+            f"Custom field with perstag '{perstag}' not found in ActiveCampaign"
+        )
 
     return _field_id_cache[perstag]
 
 
+# TODO: evaluate whether this can be cached
 @wraps_ac_errors
 def get_all_lists() -> list[dict[str, Any]]:
     """
     Fetch all mailing lists from ActiveCampaign.
 
     Returns:
-        list: List of list objects with 'id', 'stringid', and 'name' fields.
+        list: List of newsletter list objects with 'id', 'stringid', and 'name' fields.
 
     Raises:
         ActiveCampaignError: If the API request fails.
     """
-    response: dict[str, Any] = _get_client().make_request('lists?limit=100')
-    lists: list[dict[str, Any]] = response.get('lists', [])
+    response: dict[str, Any] = _get_client().make_request("lists?limit=100")
+    lists: list[dict[str, Any]] = response.get("lists", [])
     logger.info(f"Retrieved {len(lists)} lists from ActiveCampaign")
     return lists
 
@@ -362,16 +403,18 @@ def get_all_personalization_variables() -> list[dict[str, Any]]:
     Raises:
         ActiveCampaignError: If API request fails
     """
-    response: dict[str, Any] = _get_client().make_request('personalizations?limit=100')
-    variables: list[dict[str, Any]] = response.get('personalizations', [])
-    logger.info(f"Retrieved {len(variables)} personalization variables from ActiveCampaign")
+    response: dict[str, Any] = _get_client().make_request("personalizations?limit=100")
+    variables: list[dict[str, Any]] = response.get("personalizations", [])
+    logger.info(
+        f"Retrieved {len(variables)} personalization variables from ActiveCampaign"
+    )
     return variables
 
 
 # Precompiled at module load so we don't pay the compile/cache-lookup cost
 # on every call. get_newsletter_list() runs this against every personalization
-# variable AC returns, so it's the hottest path in this module.
-_LIST_META_TAG_RE: re.Pattern[str] = re.compile(r'list_(\d+)_meta')
+# variable AC returns
+_LIST_META_TAG_RE: re.Pattern[str] = re.compile(r"list_(\d+)_meta")
 
 
 def extract_list_id_from_tag(tag: str | Any) -> int | None:
@@ -395,7 +438,9 @@ def extract_list_id_from_tag(tag: str | Any) -> int | None:
     return int(match.group(1)) if match else None
 
 
-def parse_metadata_from_variable(variable: dict[str, Any] | None) -> dict[str, Any] | None:
+def parse_metadata_from_variable(
+    variable: dict[str, Any] | None,
+) -> dict[str, Any] | None:
     """
     Parse metadata JSON from a personalization variable's content field.
 
@@ -405,10 +450,10 @@ def parse_metadata_from_variable(variable: dict[str, Any] | None) -> dict[str, A
     Returns:
         dict or None: Parsed metadata object, or None if parsing fails
     """
-    if not variable or 'content' not in variable:
+    if not variable or "content" not in variable:
         return None
 
-    content: str = variable.get('content', '')
+    content: str = variable.get("content", "")
     if not content:
         return None
 
@@ -416,7 +461,7 @@ def parse_metadata_from_variable(variable: dict[str, Any] | None) -> dict[str, A
         metadata: dict[str, Any] = json.loads(content)
         return metadata
     except json.JSONDecodeError as e:
-        tag: str = variable.get('tag', 'UNKNOWN')
+        tag: str = variable.get("tag", "UNKNOWN")
         logger.warning(f"Failed to parse JSON content for variable '{tag}': {e}")
         return None
 
@@ -436,7 +481,7 @@ def get_all_ac_list_ids() -> list[str]:
         ActiveCampaignError: If API request fails
     """
     lists: list[dict[str, Any]] = get_all_lists()
-    return [lst['id'] for lst in lists]
+    return [lst["id"] for lst in lists]
 
 
 def _parse_variable_entry(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
@@ -446,16 +491,16 @@ def _parse_variable_entry(v: dict[str, Any]) -> tuple[str, dict[str, Any]] | Non
     be parsed.
 
     Single-pass design: runs the regex exactly once per variable. The caller
-    in get_newsletter_list uses this as the only filter — no separate prefilter
-    that would re-run the regex.
+    in get_newsletter_list uses this as the only filter. No separate prefilter
+    re-runs the regex.
     """
-    list_id = extract_list_id_from_tag(v.get('tag', ''))
+    list_id = extract_list_id_from_tag(v.get("tag", ""))
     if list_id is None:
         return None
     metadata = parse_metadata_from_variable(v)
     if metadata is None:
         return None
-    return str(list_id), {'metadata': metadata, 'name': v.get('name', '')}
+    return str(list_id), {"metadata": metadata, "name": v.get("name", "")}
 
 
 @requires_ac_client
@@ -476,7 +521,7 @@ def get_newsletter_list() -> list[NewsletterInfo]:
             {
                 "id": "1",                          # AC numeric list ID
                 "stringid": "sefaria_news",         # From AC list object
-                "displayName": {"en": "Sefaria News", "he": null},  # Bilingual display name
+                "displayName": {"en": "Sefaria News", "he": null},  # Bilingual display name from personalization variable
                 "icon": "news-and-resources.svg",   # From personalization variable's JSON content
                 "language": "english"               # From personalization variable's JSON content
             }
@@ -489,27 +534,30 @@ def get_newsletter_list() -> list[NewsletterInfo]:
     variables: list[dict[str, Any]] = get_all_personalization_variables()
 
     # Create a map of list ID -> list info for quick lookup
-    lists_by_id: dict[str, dict[str, Any]] = {lst['id']: lst for lst in lists}
+    lists_by_id: dict[str, dict[str, Any]] = {lst["id"]: lst for lst in lists}
 
     # Single-pass tag-match + metadata-parse via _parse_variable_entry.
     # Each variable runs the regex exactly once. Variables whose tag doesn't
     # match `list_{N}_meta` or whose JSON content fails to parse return None
     # and get dropped by filter(None, ...).
-    variables_by_id: dict[str, dict[str, Any]] = dict(filter(None, map(_parse_variable_entry, variables)))
+    variables_by_id: dict[str, dict[str, Any]] = dict(
+        filter(None, map(_parse_variable_entry, variables))
+    )
 
     # Merge lists with metadata (only include lists with metadata)
     # Using walrus operator to check list exists while building newsletter
+    # Newsletter lists will have one display name in either English or Hebrew but not both
     newsletters: list[NewsletterInfo] = [
         {
-            'id': list_item['id'],
-            'stringid': list_item.get('stringid', ''),
-            'displayName': (
-                {'en': variable_data['name'], 'he': None}
-                if variable_data['metadata'].get('language', 'english') == 'english'
-                else {'en': None, 'he': variable_data['name']}
+            "id": list_item["id"],
+            "stringid": list_item.get("stringid", ""),
+            "displayName": (
+                {"en": variable_data["name"], "he": None}
+                if variable_data["metadata"].get("language", "english") == "english"
+                else {"en": None, "he": variable_data["name"]}
             ),
-            'icon': variable_data['metadata'].get('icon', 'news-and-resources.svg'),
-            'language': variable_data['metadata'].get('language', 'english'),
+            "icon": variable_data["metadata"].get("icon", "news-and-resources.svg"),
+            "language": variable_data["metadata"].get("language", "english"),
         }
         for list_id_str, variable_data in variables_by_id.items()
         if (list_item := lists_by_id.get(list_id_str))
@@ -519,12 +567,65 @@ def get_newsletter_list() -> list[NewsletterInfo]:
     return newsletters
 
 
+def get_cached_newsletter_list() -> list[NewsletterInfo]:
+    """
+    Get the managed newsletter list, caching non-empty ActiveCampaign responses.
+
+    get_newsletter_list() remains the raw ActiveCampaign fetch. This wrapper is
+    used by both views and service flows that need current managed-list metadata
+    for validation or display, so the cache boundary stays close to the data
+    source rather than in one view module.
+    """
+    cached: list[NewsletterInfo] | None = cache.get(NEWSLETTER_LIST_CACHE_KEY)
+    if cached is not None:
+        return cached
+
+    newsletters: list[NewsletterInfo] = get_newsletter_list()
+    if newsletters:
+        cache.set(NEWSLETTER_LIST_CACHE_KEY, newsletters, NEWSLETTER_LIST_CACHE_TTL)
+    return newsletters
+
+
+def _resolve_valid_newsletters(
+    valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
+) -> Sequence[Mapping[str, Any]]:
+    """
+    Return caller-provided newsletter metadata or load it through the service cache.
+
+    The optional argument keeps unit tests and specialized callers able to inject a
+    known list, but production flows should let the service own the cached lookup.
+    """
+    if valid_newsletters is not None:
+        return valid_newsletters
+
+    try:
+        newsletters = get_cached_newsletter_list()
+    except Exception as e:
+        logger.exception(f"Error fetching cached newsletter list: {e}")
+        raise NewsletterListUnavailableError(
+            "Newsletter service is temporarily unavailable. Please try again later."
+        )
+
+    if not newsletters:
+        logger.error(
+            "Newsletter list is empty — ActiveCampaign may be unreachable or misconfigured"
+        )
+        raise NewsletterListUnavailableError(
+            "Newsletter service is temporarily unavailable. Please try again later."
+        )
+
+    return newsletters
+
+
 # ============================================================================
 # Contact Management and Subscription Functions
 # ============================================================================
 
+
 @wraps_ac_errors
-def find_or_create_contact(email: str, first_name: str = '', last_name: str = '') -> dict[str, Any]:
+def find_or_create_contact(
+    email: str, first_name: str = "", last_name: str = ""
+) -> dict[str, Any]:
     """
     Find an existing contact by email or create a new one.
 
@@ -544,47 +645,54 @@ def find_or_create_contact(email: str, first_name: str = '', last_name: str = ''
     # TODO: Replace this look-up-then-create pattern with AC's `contact/sync`
     # endpoint. `POST /api/3/contact/sync` upserts the contact in a single
     # round trip — returns existing if matched, creates if not. Saves the
-    # second HTTP call on every new-user signup (~200-500ms).
+    # second HTTP call on every new-user signup.
     #
     # Search for existing contact by email. The email must be URL-encoded —
     # AC's query parser otherwise decodes `+` in tagged addresses (e.g.
     # `foo+bar@gmail.com`) as a space, which would always miss and cause
     # us to create duplicate contacts.
-    search_response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={quote(email)}')
-    contacts: list[dict[str, Any]] = search_response.get('contacts', [])
+    search_response: dict[str, Any] = _get_client().make_request(
+        f"contacts?filters[email]={quote(email)}"
+    )
+    contacts: list[dict[str, Any]] = search_response.get("contacts", [])
 
     if contacts:
         # Contact exists, return the first one
         contact: dict[str, Any] = contacts[0]
-        logger.info(f"Found existing contact with email {email}: ID {contact.get('id')}")
+        logger.info(
+            f"Found existing contact with email {email}: ID {contact.get('id')}"
+        )
         return contact
 
     # Contact doesn't exist, create new one
     logger.info(f"Creating new contact with email {email}")
     contact_data: dict[str, dict[str, str]] = {
-        'contact': {
-            'email': email,
-            'firstName': first_name,
+        "contact": {
+            "email": email,
+            "firstName": first_name,
+            "lastName": last_name,
         }
     }
-    if last_name:
-        contact_data['contact']['lastName'] = last_name
 
-    result: dict[str, Any] = _get_client().make_request('contacts', method='POST', data=contact_data)
-    contact = result.get('contact', {})
+    result: dict[str, Any] = _get_client().make_request(
+        "contacts", method="POST", data=contact_data
+    )
+    contact = result.get("contact", {})
     logger.info(f"Created new contact with email {email}: ID {contact.get('id')}")
     return contact
 
 
 @wraps_ac_errors
-def get_contact_list_memberships(contact_id: str | int, active_only: bool = False) -> list[str]:
+def get_contact_list_memberships(
+    contact_id: str | int, active_only: bool = False
+) -> list[str]:
     """
     Get all list memberships for a contact.
 
     Args:
         contact_id (str or int): ActiveCampaign contact ID
         active_only (bool): If True, only return lists with status=1 (active subscriptions).
-                           If False (default), return all memberships regardless of status.
+                            If False (default), return all memberships regardless of status.
 
     Returns:
         list: List of list IDs the contact is subscribed to (as strings)
@@ -592,17 +700,25 @@ def get_contact_list_memberships(contact_id: str | int, active_only: bool = Fals
     Raises:
         ActiveCampaignError: If API request fails
     """
-    response: dict[str, Any] = _get_client().make_request(f'contacts/{contact_id}/contactLists')
-    contact_lists: list[dict[str, Any]] = response.get('contactLists', [])
+    response: dict[str, Any] = _get_client().make_request(
+        f"contacts/{contact_id}/contactLists"
+    )
+    contact_lists: list[dict[str, Any]] = response.get("contactLists", [])
 
     if active_only:
         # Filter to only active subscriptions (status=1)
-        contact_lists = [cl for cl in contact_lists if str(cl.get('status', '')) == '1']
+        contact_lists = [cl for cl in contact_lists if str(cl.get("status", "")) == "1"]
 
     # Extract list IDs from contact list objects, dropping empty strings in one pass
-    list_ids = [lid for cl in contact_lists if (lid := str(cl.get('list', cl.get('listid', ''))))]
+    list_ids = [
+        lid
+        for cl in contact_lists
+        if (lid := str(cl.get("list", cl.get("listid", ""))))
+    ]
 
-    logger.info(f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}")
+    logger.info(
+        f"Contact {contact_id} memberships (active_only={active_only}): {len(list_ids)} lists: {list_ids}"
+    )
     return list_ids
 
 
@@ -622,18 +738,22 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
     Raises:
         ActiveCampaignError: If API request fails
     """
-    field_id: str = get_ac_field_id_by_perstag('LEARNING_LEVEL')
-    response: dict[str, Any] = _get_client().make_request(f'contacts/{contact_id}/fieldValues')
-    field_values: list[dict[str, Any]] = response.get('fieldValues', [])
+    field_id: str = get_ac_field_id_by_perstag("LEARNING_LEVEL")
+    response: dict[str, Any] = _get_client().make_request(
+        f"contacts/{contact_id}/fieldValues"
+    )
+    field_values: list[dict[str, Any]] = response.get("fieldValues", [])
 
     for fv in field_values:
-        if str(fv.get('field', '')) == str(field_id):
-            raw_value: str = fv.get('value', '')
+        if str(fv.get("field", "")) == str(field_id):
+            raw_value: str = fv.get("value", "")
             if raw_value:
                 try:
                     return int(raw_value)
                 except (ValueError, TypeError):
-                    logger.warning(f"Non-numeric LEARNING_LEVEL value for contact {contact_id}: {raw_value}")
+                    logger.warning(
+                        f"Non-numeric LEARNING_LEVEL value for contact {contact_id}: {raw_value}"
+                    )
                     return None
             return None
 
@@ -641,7 +761,9 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
 
 
 @wraps_ac_errors
-def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: Sequence[Mapping[str, Any]]) -> list[str]:
+def map_stringids_to_list_ids(
+    newsletter_stringids: list[str], newsletter_list: Sequence[Mapping[str, Any]]
+) -> list[str]:
     """
     Convert newsletter stringids to ActiveCampaign list IDs.
 
@@ -656,11 +778,14 @@ def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: 
         InputError: If any stringid is not found in newsletter_list
     """
     # Build the lookup once so validation and mapping use the same source of truth.
-    stringid_to_list_id: dict[str, str] = {nl['stringid']: nl['id'] for nl in newsletter_list}
+    stringid_to_list_id: dict[str, str] = {
+        nl["stringid"]: nl["id"] for nl in newsletter_list
+    }
 
     # Validate all inputs before mapping so callers get one complete error message.
     invalid_ids: list[str] = [
-        stringid for stringid in newsletter_stringids
+        stringid
+        for stringid in newsletter_stringids
         if stringid not in stringid_to_list_id
     ]
 
@@ -670,7 +795,9 @@ def map_stringids_to_list_ids(newsletter_stringids: list[str], newsletter_list: 
         raise InputError(error_msg)
 
     # Preserve the caller's ordering and duplicates in the returned AC list IDs.
-    list_ids: list[str] = [stringid_to_list_id[stringid] for stringid in newsletter_stringids]
+    list_ids: list[str] = [
+        stringid_to_list_id[stringid] for stringid in newsletter_stringids
+    ]
 
     logger.info(f"Mapped stringids {newsletter_stringids} to list IDs {list_ids}")
     return list_ids
@@ -692,15 +819,17 @@ def add_contact_to_list(contact_id: str | int, list_id: str | int) -> dict[str, 
         ActiveCampaignError: If API request fails
     """
     contact_list_data: dict[str, dict[str, str | int]] = {
-        'contactList': {
-            'contact': str(contact_id),
-            'list': str(list_id),
-            'status': 1  # 1 = subscribed (required by AC API)
+        "contactList": {
+            "contact": str(contact_id),
+            "list": str(list_id),
+            "status": 1,  # 1 = subscribed (required by AC API)
         }
     }
 
-    result: dict[str, Any] = _get_client().make_request('contactLists', method='POST', data=contact_list_data)
-    contact_list: dict[str, Any] = result.get('contactList', {})
+    result: dict[str, Any] = _get_client().make_request(
+        "contactLists", method="POST", data=contact_list_data
+    )
+    contact_list: dict[str, Any] = result.get("contactList", {})
 
     logger.info(f"Added contact {contact_id} to list {list_id}")
     return contact_list
@@ -729,11 +858,15 @@ def subscribe_contact_to_lists(contact_id: str | int, list_ids: list[str]) -> No
     for list_id in list_ids:
         add_contact_to_list(contact_id, list_id)
 
-    logger.info(f"Successfully subscribed contact {contact_id} to {len(list_ids)} lists")
+    logger.info(
+        f"Successfully subscribed contact {contact_id} to {len(list_ids)} lists"
+    )
 
 
 @wraps_ac_errors
-def remove_contact_from_list(contact_id: str | int, list_id: str | int) -> dict[str, Any]:
+def remove_contact_from_list(
+    contact_id: str | int, list_id: str | int
+) -> dict[str, Any]:
     """
     Remove a contact from a newsletter list (unsubscribe).
 
@@ -748,22 +881,26 @@ def remove_contact_from_list(contact_id: str | int, list_id: str | int) -> dict[
         ActiveCampaignError: If API request fails
     """
     contact_list_data: dict[str, dict[str, str | int]] = {
-        'contactList': {
-            'contact': str(contact_id),
-            'list': str(list_id),
-            'status': 2  # 2 = unsubscribed
+        "contactList": {
+            "contact": str(contact_id),
+            "list": str(list_id),
+            "status": 2,  # 2 = unsubscribed
         }
     }
 
-    result: dict[str, Any] = _get_client().make_request('contactLists', method='POST', data=contact_list_data)
-    contact_list: dict[str, Any] = result.get('contactList', {})
+    result: dict[str, Any] = _get_client().make_request(
+        "contactLists", method="POST", data=contact_list_data
+    )
+    contact_list: dict[str, Any] = result.get("contactList", {})
 
     logger.info(f"Removed contact {contact_id} from list {list_id}")
     return contact_list
 
 
 @wraps_ac_errors
-def update_list_memberships(contact_id: str | int, add_list_ids: list[str], remove_list_ids: list[str]) -> None:
+def update_list_memberships(
+    contact_id: str | int, add_list_ids: list[str], remove_list_ids: list[str]
+) -> None:
     """
     Atomically add and remove contact from multiple lists.
 
@@ -775,13 +912,14 @@ def update_list_memberships(contact_id: str | int, add_list_ids: list[str], remo
     Raises:
         ActiveCampaignError: If any operation fails
     """
-    logger.info(f"Updating list memberships for contact {contact_id}: adding {add_list_ids}, removing {remove_list_ids}")
+    logger.info(
+        f"Updating list memberships for contact {contact_id}: adding {add_list_ids}, removing {remove_list_ids}"
+    )
 
     # TODO: Batch these calls. Same options as subscribe_contact_to_lists:
     #   (a) AC's `contact/sync` endpoint with `subscribe`/`unsubscribe` arrays —
     #       single round trip for both directions.
     #   (b) ThreadPoolExecutor for concurrent per-list calls.
-    # See memory: newsletter_ac_concurrency.md for the deferred analysis.
     for list_id in remove_list_ids:
         remove_contact_from_list(contact_id, list_id)
     for list_id in add_list_ids:
@@ -792,9 +930,13 @@ def update_list_memberships(contact_id: str | int, add_list_ids: list[str], remo
 
 @requires_ac_client
 @wraps_ac_errors
-def subscribe_with_union(email: str, first_name: str, last_name: str,
-                         newsletter_stringids: list[str],
-                         valid_newsletters: Sequence[Mapping[str, Any]]) -> SubscribeResult:
+def subscribe_with_union(
+    email: str,
+    first_name: str,
+    last_name: str,
+    newsletter_stringids: list[str],
+    valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
+) -> SubscribeResult:
     """
     Subscribe a contact to newsletters using union semantics.
 
@@ -803,23 +945,13 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
 
         final_active = currently_active ∪ newly_selected
 
-    Implementation note (read this before "optimizing"):
-        We deliberately do NOT issue a status:1 POST for lists the contact is
+    Implementation note:
+        Do NOT issue a status:1 POST for lists the contact is
         already actively subscribed to. AC treats redundant status:1 POSTs as
-        idempotent, but each one is still a separate HTTP round trip. For a
-        contact already on 5 of 6 lists clicking "subscribe to all 6", this
-        means we issue 1 POST instead of 6.
-
-        To make that safe we read existing memberships with active_only=True.
-        That way, a list the contact previously unsubscribed from (status:2)
-        is treated as "not currently subscribed" and ends up in the to_add
-        diff if it appears in the new selection — restoring the previous
-        behavior of reactivating those lists when the user re-selects them.
-        Without active_only=True, status:2 entries would land in `existing`
-        and be silently skipped, which would be a correctness regression.
+        idempotent, but each one is still a separate HTTP round trip.
 
     Flow:
-        1. Map stringids to AC list IDs (raises if any stringid is unknown).
+        1. Map stringids to AC list IDs (raises exception if any stringid is unknown).
         2. Find or create contact by email.
         3. Read existing *active* memberships (active_only=True).
         4. Compute to_add = newly_selected - currently_active.
@@ -831,7 +963,7 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
         first_name (str): Contact's first name
         last_name (str): Contact's last name (optional)
         newsletter_stringids (list): Array of newsletter stringids to add
-        valid_newsletters (list): List of valid newsletters from get_newsletter_list()
+        valid_newsletters (list): Optional injected newsletter metadata; defaults to cached service lookup.
 
     Returns:
         dict: {
@@ -845,29 +977,34 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
         ActiveCampaignError: If any step fails
     """
     email = normalize_and_validate_email(email)
-    logger.info(f"Starting subscription flow for {email} with newsletters: {newsletter_stringids}")
+    logger.info(
+        f"Starting subscription flow for {email} with newsletters: {newsletter_stringids}"
+    )
+    valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
 
     # Step 1: Map stringids to AC list IDs. map_stringids_to_list_ids raises
-    # ActiveCampaignError if any stringid isn't in valid_newsletters, so this
+    # InputError if any stringid isn't in valid_newsletters, so this
     # validates and maps in one pass.
-    new_list_ids: set[str] = set(map_stringids_to_list_ids(newsletter_stringids, valid_newsletters))
+    new_list_ids: set[str] = set(
+        map_stringids_to_list_ids(newsletter_stringids, valid_newsletters)
+    )
     logger.info(f"Mapped to AC list IDs: {new_list_ids}")
 
     # Step 2: Find or create contact
     contact: dict[str, Any] = find_or_create_contact(email, first_name, last_name)
-    contact_id: str = contact['id']
+    contact_id: str = contact["id"]
 
     # Step 3: Get current *active* subscriptions.
     # Use active_only=True so a list the user previously unsubscribed from
     # (status: 2) is treated as "not subscribed" and ends up in to_add below —
     # otherwise we'd silently skip resubscribing them.
-    existing_active_list_ids: set[str] = set(get_contact_list_memberships(contact_id, active_only=True))
+    existing_active_list_ids: set[str] = set(
+        get_contact_list_memberships(contact_id, active_only=True)
+    )
     logger.info(f"Contact has existing active list IDs: {existing_active_list_ids}")
 
     # Step 4: Only subscribe to lists the user isn't already actively on.
-    # This avoids redundant status:1 POSTs to AC for memberships that are
-    # already active — the prior implementation re-POSTed every list in the
-    # union, which was idempotent on AC's side but cost an HTTP call per list.
+    # This avoids redundant status:1 POSTs to AC for memberships that are already active
     to_add: set[str] = new_list_ids - existing_active_list_ids
     logger.info(f"Lists to newly subscribe to: {to_add}")
 
@@ -878,30 +1015,37 @@ def subscribe_with_union(email: str, first_name: str, last_name: str,
     # final_list_ids reflects the post-call state: previously-active lists
     # plus the ones we just added.
     final_list_ids: set[str] = existing_active_list_ids | to_add
-    list_id_to_stringid: dict[str, str] = {nl['id']: nl['stringid'] for nl in valid_newsletters}
-    all_subscriptions: list[str] = sorted([
-        stringid for lid in final_list_ids
-        if (stringid := list_id_to_stringid.get(lid))
-    ])
-
-    logger.info(f"Subscription complete for {email}. All subscriptions: {all_subscriptions}")
-
-    return {
-        'contact': contact,
-        'all_subscriptions': all_subscriptions
+    list_id_to_stringid: dict[str, str] = {
+        nl["id"]: nl["stringid"] for nl in valid_newsletters
     }
+    all_subscriptions: list[str] = sorted(
+        [
+            stringid
+            for lid in final_list_ids
+            if (stringid := list_id_to_stringid.get(lid))
+        ]
+    )
+
+    logger.info(
+        f"Subscription complete for {email}. All subscriptions: {all_subscriptions}"
+    )
+
+    return {"contact": contact, "all_subscriptions": all_subscriptions}
 
 
 @requires_ac_client
 @wraps_ac_errors
-def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mapping[str, Any]],
-                                  user: Any = None) -> UserSubscriptions:
+def fetch_user_subscriptions_impl(
+    email: str,
+    valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
+    user: Any = None,
+) -> UserSubscriptions:
     """
     Fetch current newsletter subscriptions for a user by email.
 
     Args:
         email (str): User's email address
-        valid_newsletters (list): List of valid newsletters from get_newsletter_list()
+        valid_newsletters (list): Optional injected newsletter metadata; defaults to cached service lookup.
         user: Django User object (optional, for reading UserProfile preferences)
 
     Returns:
@@ -922,36 +1066,35 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
     profile_learning_level: int | None = None
     profile: UserProfile | None = None
     if user is not None and user.is_authenticated:
-        try:
-            profile = UserProfile(email=email, user_registration=True)
-            if profile.id is not None:
-                wants_marketing_emails = getattr(profile, 'wants_marketing_emails', True)
-                profile_learning_level = getattr(profile, 'learning_level', None)
-            else:
-                profile = None
-        except Exception as e:
-            logger.warning(f"Could not load UserProfile for {email}: {e}")
+        profile = _load_user_profile(email)
+        if profile is not None:
+            wants_marketing_emails = getattr(profile, "wants_marketing_emails", True)
+            profile_learning_level = getattr(profile, "learning_level", None)
 
-    # Find contact by email. URL-encode so tagged addresses (`foo+bar@gmail.com`)
-    # don't get their `+` decoded to a space on AC's side — see find_or_create_contact.
-    response: dict[str, Any] = _get_client().make_request(f'contacts?filters[email]={quote(email)}')
-    contacts: list[dict[str, Any]] = response.get('contacts', [])
+    # Find contact by email
+    response: dict[str, Any] = _get_client().make_request(
+        f"contacts?filters[email]={quote(email)}"
+    )
+    contacts: list[dict[str, Any]] = response.get("contacts", [])
 
     if not contacts:
         # User not in ActiveCampaign yet — fall back to profile value
         logger.info(f"Contact {email} not found in ActiveCampaign")
         return {
-            'subscribed_newsletters': [],
-            'learning_level': profile_learning_level,
-            'wants_marketing_emails': wants_marketing_emails,
+            "subscribed_newsletters": [],
+            "learning_level": profile_learning_level,
+            "wants_marketing_emails": wants_marketing_emails,
         }
 
     contact: dict[str, Any] = contacts[0]
-    contact_id: str = contact['id']
+    contact_id: str = contact["id"]
     logger.info(f"Found contact {contact_id} for email {email}")
 
     # Get list memberships (active only for accurate subscription state)
-    existing_list_ids: list[str] = get_contact_list_memberships(contact_id, active_only=True)
+    existing_list_ids: list[str] = get_contact_list_memberships(
+        contact_id, active_only=True
+    )
+    valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
 
     # If the user previously opted out, but AC now shows any active membership,
     # the local opt-out flag is stale. Opt-out removes all AC lists, so any later
@@ -964,30 +1107,28 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
         _update_wants_marketing_emails(profile, True)
         wants_marketing_emails = True
 
-    # Map to stringids
-    list_id_to_stringid: dict[str, str] = {nl['id']: nl['stringid'] for nl in valid_newsletters}
-    subscribed_newsletters: list[str] = sorted([
-        stringid for lid in existing_list_ids
-        if (stringid := list_id_to_stringid.get(lid))
-    ])
+    # Map to stringids, separating out the managed newsletter lists
+    list_id_to_stringid: dict[str, str] = {
+        nl["id"]: nl["stringid"] for nl in valid_newsletters
+    }
+    subscribed_newsletters: list[str] = sorted(
+        [
+            stringid
+            for lid in existing_list_ids
+            if (stringid := list_id_to_stringid.get(lid))
+        ]
+    )
 
     logger.info(f"User {email} is subscribed to: {subscribed_newsletters}")
 
     # Fetch learning level from AC custom field; AC value takes priority over profile.
     #
-    # Why we always hit AC here even when MongoDB has a value:
+    # Why to always hit AC here even when MongoDB has a value:
     #   The AC learning_level field can be written from outside our control plane —
     #   AC's admin UI, AC automation flows, segmentation triggers, third-party
-    #   integrations attached to the account, or future Sefaria forms that touch
+    #   integrations attached to the account, such as from Salesforce, or future external Sefaria forms that touch
     #   AC without updating MongoDB. Any of those can make AC the more recent
-    #   source of truth while MongoDB stays stale.
-    #
-    #   So this read is not redundant; it's the freshness check. Do NOT optimize
-    #   it away by gating on `profile_learning_level is None` — that would return
-    #   stale data whenever a learning level was set externally.
-    #
-    #   (If AC writes ever become exclusively backend-controlled, the gating
-    #   becomes safe and this comment can come out. Today it isn't.)
+    #   source of truth while MongoDB stays stale. This is a freshness check
     learning_level: int | None = profile_learning_level
     try:
         ac_learning_level: int | None = get_contact_learning_level(contact_id)
@@ -997,18 +1138,22 @@ def fetch_user_subscriptions_impl(email: str, valid_newsletters: Sequence[Mappin
         logger.warning(f"Could not fetch learning level from AC for {email}: {e}")
 
     return {
-        'subscribed_newsletters': subscribed_newsletters,
-        'learning_level': learning_level,
-        'wants_marketing_emails': wants_marketing_emails,
+        "subscribed_newsletters": subscribed_newsletters,
+        "learning_level": learning_level,
+        "wants_marketing_emails": wants_marketing_emails,
     }
 
 
 @requires_ac_client
 @wraps_ac_errors
-def update_user_preferences_impl(email: str, first_name: str, last_name: str,
-                                  selected_stringids: list[str],
-                                  valid_newsletters: Sequence[Mapping[str, Any]],
-                                  marketing_opt_out: bool = False) -> PreferencesResult:
+def update_user_preferences_impl(
+    email: str,
+    first_name: str,
+    last_name: str,
+    selected_stringids: list[str],
+    valid_newsletters: Sequence[Mapping[str, Any]] | None = None,
+    marketing_opt_out: bool = False,
+) -> PreferencesResult:
     """
     Update user's newsletter preferences using REPLACE behavior (not union).
 
@@ -1027,7 +1172,7 @@ def update_user_preferences_impl(email: str, first_name: str, last_name: str,
         first_name (str): User's first name
         last_name (str): User's last name
         selected_stringids (list): Array of newsletter stringids user is selecting NOW
-        valid_newsletters (list): List of valid newsletters from get_newsletter_list()
+        valid_newsletters (list): Optional injected newsletter metadata; defaults to cached service lookup.
         marketing_opt_out (bool): If True, unsubscribe from ALL lists (managed + unmanaged)
 
     Returns:
@@ -1040,8 +1185,10 @@ def update_user_preferences_impl(email: str, first_name: str, last_name: str,
         ActiveCampaignError: If any step fails
     """
     email = normalize_and_validate_email(email)
-    logger.info(f"Updating preferences for {email} with selections: {selected_stringids}, "
-                 f"marketing_opt_out: {marketing_opt_out}")
+    logger.info(
+        f"Updating preferences for {email} with selections: {selected_stringids}, "
+        f"marketing_opt_out: {marketing_opt_out}"
+    )
 
     # Load UserProfile once at the top so both branches share the same instance.
     # Returns None if no Sefaria account exists for `email` — that's fine; the
@@ -1050,7 +1197,7 @@ def update_user_preferences_impl(email: str, first_name: str, last_name: str,
 
     # Find or create contact
     contact: dict[str, Any] = find_or_create_contact(email, first_name, last_name)
-    contact_id: str = contact['id']
+    contact_id: str = contact["id"]
 
     if marketing_opt_out:
         # === OPT-OUT BRANCH: Unsubscribe from ALL lists ===
@@ -1060,73 +1207,85 @@ def update_user_preferences_impl(email: str, first_name: str, last_name: str,
         all_list_ids: set[str] = set(get_all_ac_list_ids())
 
         # Get user's current active memberships
-        active_list_ids: set[str] = set(get_contact_list_memberships(contact_id, active_only=True))
+        active_list_ids: set[str] = set(
+            get_contact_list_memberships(contact_id, active_only=True)
+        )
 
         # Only unsubscribe from lists the user is actually subscribed to
         lists_to_remove: set[str] = all_list_ids & active_list_ids
-        logger.info(f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}")
+        logger.info(
+            f"Unsubscribing from {len(lists_to_remove)} lists: {lists_to_remove}"
+        )
 
         update_list_memberships(contact_id, [], list(lists_to_remove))
 
-        # Update wants_marketing_emails on the pre-loaded profile (no extra MongoDB read).
         _update_wants_marketing_emails(profile, False)
 
         logger.info(f"Marketing opt-out complete for {email}")
-        return {
-            'contact': contact,
-            'subscribed_newsletters': []
-        }
+        return {"contact": contact, "subscribed_newsletters": []}
 
     else:
         # === NORMAL BRANCH: REPLACE within managed lists only ===
         logger.info(f"Normal preference update for {email}")
+        valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
 
         # Map stringids to AC list IDs. map_stringids_to_list_ids raises
-        # ActiveCampaignError if any stringid isn't valid, so this validates
+        # InputError if any stringid isn't valid, so this validates
         # and maps in one pass.
-        new_list_ids: set[str] = set(map_stringids_to_list_ids(selected_stringids, valid_newsletters))
+        new_list_ids: set[str] = set(
+            map_stringids_to_list_ids(selected_stringids, valid_newsletters)
+        )
         logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
 
         # Get managed list IDs (only diff against these)
-        managed_list_ids: set[str] = set(nl['id'] for nl in valid_newsletters)
+        managed_list_ids: set[str] = set(nl["id"] for nl in valid_newsletters)
 
         # Get existing active subscriptions
-        existing_list_ids: set[str] = set(get_contact_list_memberships(contact_id, active_only=True))
+        existing_list_ids: set[str] = set(
+            get_contact_list_memberships(contact_id, active_only=True)
+        )
         logger.info(f"Contact has existing active list IDs: {existing_list_ids}")
 
         # Scope the diff to managed lists only (don't touch unmanaged lists)
         existing_managed: set[str] = existing_list_ids & managed_list_ids
         lists_to_add: set[str] = new_list_ids - existing_managed
         lists_to_remove_managed: set[str] = existing_managed - new_list_ids
-        logger.info(f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove_managed}")
+        logger.info(
+            f"Lists to add: {lists_to_add}, Lists to remove: {lists_to_remove_managed}"
+        )
 
         # Update list memberships (add and remove as needed)
-        update_list_memberships(contact_id, list(lists_to_add), list(lists_to_remove_managed))
+        update_list_memberships(
+            contact_id, list(lists_to_add), list(lists_to_remove_managed)
+        )
 
-        # Update wants_marketing_emails on the pre-loaded profile (no extra MongoDB read).
+        # Update wants_marketing_emails on the pre-loaded profile
         _update_wants_marketing_emails(profile, True)
 
-        logger.info(f"Preferences updated for {email}. New subscriptions: {selected_stringids}")
+        logger.info(
+            f"Preferences updated for {email}. New subscriptions: {selected_stringids}"
+        )
 
         return {
-            'contact': contact,
-            'subscribed_newsletters': sorted(selected_stringids)
+            "contact": contact,
+            "subscribed_newsletters": sorted(selected_stringids),
         }
 
 
 def _load_user_profile(email: str) -> UserProfile | None:
     """
-    Look up a UserProfile by email without auto-creating one.
+    Look up a UserProfile by email without constructor-side auto-save.
 
-    Returns the profile if an account exists for `email`, or None if no account
-    is found. Used by service functions that need to read or update profile
-    state alongside the AC operation.
+    `user_registration=True` prevents UserProfile.__init__ from immediately
+    creating a Mongo profile document when a Django user exists but no profile
+    document exists yet. It can still return a user-backed UserProfile object;
+    if a caller mutates and saves that object, a missing Mongo profile document
+    will be created then. Returns None only when no Django user can be resolved
+    for `email`.
 
     Why this exists as a separate helper: the MongoDB lookup happens exactly
-    once per call to the parent service function — explicit loading at the
-    call site makes that cost visible. A previous version inlined the lookup
-    inside `_update_wants_marketing_emails`, which hid the DB call behind a
-    helper that sounded like a fast attribute update.
+    once per call to the parent service function. Explicit loading at the
+    call site makes the cost visible.
     """
     try:
         profile = UserProfile(email=email, user_registration=True)
@@ -1136,7 +1295,9 @@ def _load_user_profile(email: str) -> UserProfile | None:
         return None
 
 
-def _update_wants_marketing_emails(profile: UserProfile | None, wants_marketing: bool) -> None:
+def _update_wants_marketing_emails(
+    profile: UserProfile | None, wants_marketing: bool
+) -> None:
     """
     Set wants_marketing_emails on an already-loaded UserProfile and save.
 
@@ -1154,21 +1315,28 @@ def _update_wants_marketing_emails(profile: UserProfile | None, wants_marketing:
     try:
         profile.wants_marketing_emails = wants_marketing
         profile.save()
-        logger.info(f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}")
+        logger.info(
+            f"Updated wants_marketing_emails={wants_marketing} for user {profile.id}"
+        )
     except Exception as e:
-        logger.warning(f"Failed to update wants_marketing_emails for user {profile.id}: {e}")
+        logger.warning(
+            f"Failed to update wants_marketing_emails for user {profile.id}: {e}"
+        )
 
 
 # ============================================================================
 # Learning Level Management
 # ============================================================================
 
+
 @wraps_ac_errors
-def update_learning_level_in_ac(email: str, learning_level: int | None) -> LearningLevelACResult:
+def update_learning_level_in_ac(
+    email: str, learning_level: int | None
+) -> LearningLevelACResult:
     """
     Update a contact's learning level in ActiveCampaign.
 
-    Learning level is stored as a custom field in AC for all users (with or without accounts).
+    Learning level is stored as a custom field in AC for all users (with or without Django accounts).
     This allows tracking learning level preferences even for users without Sefaria accounts.
 
     Args:
@@ -1191,50 +1359,54 @@ def update_learning_level_in_ac(email: str, learning_level: int | None) -> Learn
     # Validate learning_level. InputError is passed through unchanged by the
     # @wraps_ac_errors decorator so callers can distinguish bad input from AC failures.
     if learning_level is not None:
-        if not isinstance(learning_level, int) or learning_level < 1 or learning_level > 5:
+        if (
+            not isinstance(learning_level, int)
+            or learning_level < 1
+            or learning_level > 5
+        ):
             logger.warning(f"Invalid learning level {learning_level} for email {email}")
-            raise InputError("Learning level must be an integer between 1 and 5, or null/None")
+            raise InputError(
+                "Learning level must be an integer between 1 and 5, or null/None"
+            )
 
     logger.info(f"Updating learning level in AC for {email}: {learning_level}")
 
     # Find or create contact
     contact: dict[str, Any] = find_or_create_contact(email)
-    contact_id: str = contact['id']
+    contact_id: str = contact["id"]
 
     # Look up the field ID dynamically by perstag (cached after first call)
-    field_id: str = get_ac_field_id_by_perstag('LEARNING_LEVEL')
+    field_id: str = get_ac_field_id_by_perstag("LEARNING_LEVEL")
 
     payload: dict[str, dict[str, str]] = {
-        'fieldValue': {
-            'contact': contact_id,
-            'field': field_id,
-            'value': str(learning_level) if learning_level is not None else ''
+        "fieldValue": {
+            "contact": contact_id,
+            "field": field_id,
+            "value": str(learning_level) if learning_level is not None else "",
         }
     }
 
-    _get_client().make_request('fieldValues', method='POST', data=payload)
+    _get_client().make_request("fieldValues", method="POST", data=payload)
 
     logger.info(f"Successfully updated learning level in AC for {email}")
 
-    return {
-        'contact_id': contact_id,
-        'email': email,
-        'learning_level': learning_level
-    }
+    return {"contact_id": contact_id, "email": email, "learning_level": learning_level}
 
 
 @requires_ac_client
-def update_learning_level_impl(email: str, learning_level: int | None) -> LearningLevelResult:
+def update_learning_level_impl(
+    email: str, learning_level: int | None
+) -> LearningLevelResult:
     """
     Update a user's learning level, handling both authenticated and unauthenticated users.
 
     For users WITH existing Sefaria accounts:
-        - Updates their UserProfile in MongoDB (persistent storage)
+        - Updates their UserProfile in MongoDB
         - Also updates AC for consistency across systems
 
     For users WITHOUT accounts:
-        - Only updates AC (no profile to create)
-        - AC custom field stores their learning level preference
+        - Only updates AC (no profile to use or create)
+        - AC custom field stores their learning level preference, which will sync with Salesforce
 
     Args:
         email (str): User email address
@@ -1256,26 +1428,29 @@ def update_learning_level_impl(email: str, learning_level: int | None) -> Learni
 
     # Validate learning_level
     if learning_level is not None:
-        if not isinstance(learning_level, int) or learning_level < 1 or learning_level > 5:
+        if (
+            not isinstance(learning_level, int)
+            or learning_level < 1
+            or learning_level > 5
+        ):
             logger.warning(f"Invalid learning level {learning_level} for {email}")
-            raise InputError("Learning level must be an integer between 1 and 5, or null/None")
+            raise InputError(
+                "Learning level must be an integer between 1 and 5, or null/None"
+            )
 
     logger.info(f"Updating learning level for {email}: {learning_level}")
 
-    # Step 1: Try to load existing user profile using the standard UserProfile convention
-    # Pass user_registration=True to prevent auto-creating a profile
-    profile: UserProfile = UserProfile(email=email, user_registration=True)
+    # Step 1: Try to load the user profile using the shared newsletter helper.
+    profile: UserProfile | None = _load_user_profile(email)
 
-    user_id: int | None = profile.id  # Will be None if no account exists for this email
+    user_id: int | None = profile.id if profile is not None else None
     updated_profile: bool = False
 
     # Step 2: If account exists, update the UserProfile
-    if user_id is not None:
+    if profile is not None:
         logger.info(f"Found existing user account for {email} (ID: {user_id})")
 
         try:
-            # UserProfile uses dynamic MongoDB-backed attributes; pyright infers
-            # the type from the __init__ default (None) and rejects int. Ignore.
             profile.learning_level = learning_level  # type: ignore[assignment]
             profile.save()
             updated_profile = True
@@ -1295,13 +1470,13 @@ def update_learning_level_impl(email: str, learning_level: int | None) -> Learni
         logger.exception(f"Error updating learning level in AC for {email}: {e}")
         raise
 
-    message: str = 'Learning level updated successfully'
+    message: str = "Learning level updated successfully"
     if updated_profile:
-        message += ' (and saved to profile)'
+        message += " (and saved to profile)"
 
     return {
-        'email': email,
-        'learning_level': learning_level,
-        'user_id': user_id,
-        'message': message
+        "email": email,
+        "learning_level": learning_level,
+        "user_id": user_id,
+        "message": message,
     }

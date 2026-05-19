@@ -183,12 +183,13 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   // ========== HANDLERS: Form data updates ==========
   // Note: Errors are cleared on blur, not on change, for better UX
 
-  const makeFieldSetter = (field) => (value) => setFormData((prev) => ({ ...prev, [field]: value }));
+  // Core setter — applied directly by FormInput, which forwards its `id` via onChange(id, value).
+  const handleFieldChange = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
-  const handleFirstNameChange = makeFieldSetter("firstName");
-  const handleLastNameChange = makeFieldSetter("lastName");
-  const handleEmailChange = makeFieldSetter("email");
-  const handleConfirmEmailChange = makeFieldSetter("confirmEmail");
+  // Curried variant for child components that don't forward a field id
+  // (MarketingEmailToggle, learning-level select).
+  const makeFieldSetter = (field) => (value) => handleFieldChange(field, value);
+
   const handleMarketingEmailToggle = makeFieldSetter("wantsMarketingEmails");
   const handleLearningLevelSelect = makeFieldSetter("learningLevel");
 
@@ -296,7 +297,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
     const apiCall = formStatus.isLoggedIn
       ? () =>
-          updatePreferences(formStatus.userEmail, formData.selectedNewsletters, {
+          updatePreferences(formData.selectedNewsletters, {
             marketingOptOut: !formData.wantsMarketingEmails,
           })
       : () =>
@@ -310,19 +311,17 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     await runSubmission(apiCall, STAGE.CONFIRMATION);
   };
 
-  const handleLearningLevelSubmit = async (shouldSave) => {
-    if (!shouldSave) {
-      // User clicked "No thanks" - go straight to the home page
-      window.location.href = "/";
-      return;
-    }
-
+  const handleSaveLearningLevel = async () => {
     if (formData.learningLevel === null) {
       dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: BILINGUAL_TEXT.SELECT_LEARNING_LEVEL });
       return;
     }
-
     await runSubmission(() => updateLearningLevel(formData.email, formData.learningLevel), STAGE.SUCCESS);
+  };
+
+  const handleSkipLearningLevel = () => {
+    // User clicked "No thanks" — go straight to the home page.
+    window.location.href = "/";
   };
 
   // ========== VALIDATION ==========
@@ -378,10 +377,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           fieldErrors={validationState.fieldErrors}
           hasAttemptedSubmit={validationState.hasAttemptedSubmit}
           formTitleRef={formTitleRef}
-          onFirstNameChange={handleFirstNameChange}
-          onLastNameChange={handleLastNameChange}
-          onEmailChange={handleEmailChange}
-          onConfirmEmailChange={handleConfirmEmailChange}
+          onFieldChange={handleFieldChange}
           onNewsletterToggle={handleNewsletterToggle}
           onMarketingEmailToggle={handleMarketingEmailToggle}
           onFieldBlur={handleFieldBlur}
@@ -399,8 +395,8 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           selectedLevel={formData.learningLevel}
           learningLevels={LEARNING_LEVELS}
           onLevelSelect={handleLearningLevelSelect}
-          onSave={handleLearningLevelSubmit}
-          onSkip={() => handleLearningLevelSubmit(false)}
+          onSave={handleSaveLearningLevel}
+          onSkip={handleSkipLearningLevel}
           isLoggedIn={formStatus.isLoggedIn}
           subscriptionDiffs={formStatus.isLoggedIn ? getSubscriptionDiffs() : null}
           marketingOptOut={!formData.wantsMarketingEmails}

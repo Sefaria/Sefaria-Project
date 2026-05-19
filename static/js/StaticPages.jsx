@@ -550,8 +550,8 @@ const EducatorsPage = () => (
 
     <ButtonRow white={true} enTitle="" heTitle="">
       { [
-          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "https://newsletter.sefaria.org/f/40", "https://chiburim.sefaria.org.il/sheets/361600?lang=he"],
-          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators", "/collections/educator-newsletters?tab=sheets&utm_source=sefaria&utm_medium=landingpage&utm_campaign=educators"],
+          ["Get Sefaria for Educators", "מדריך למשתמש בספריא", "/newsletter", "/newsletter"],
+          ["Past Educator Newsletter", "ספריא לתלמידים", "/collections/educator-newsletters?tab=sheets", "/collections/educator-newsletters?tab=sheets"],
           ["Share a Teaching Tip", "שאלות נפוצות", "mailto:education@sefaria.org", Sefaria._siteSettings.HELP_CENTER_URLS.HE]
       ].map(i =>
           <SimpleButton
@@ -3123,163 +3123,163 @@ const HeaderForNewsletterPage = () => (
           <span className="int-en">{BILINGUAL_TEXT.HERO_TITLE.en}</span>
           <span className="int-he">{BILINGUAL_TEXT.HERO_TITLE.he}</span>
         </h1>
-        <SimpleInterfaceBlock classes="staticPageHeaderText"
+        <SimpleInterfaceBlock
+          classes="staticPageHeaderText"
           en={BILINGUAL_TEXT.HERO_DESCRIPTION.en}
-          he={BILINGUAL_TEXT.HERO_DESCRIPTION.he} />
+          he={BILINGUAL_TEXT.HERO_DESCRIPTION.he}
+        />
       </div>
     </div>
   </div>
 );
 
-const EnhancedFeature = ({enTitle, enText, enImg, enImgAlt, borderColor, link, iframeSrc}) => (
-    <div className="feature">
-        <div className="staticPageBlockInner flexContainer">
-            <div className="featureText" style={{borderColor: borderColor}}>
-                <div className="featureHeader">
-                    <ConditionalLink link={link}>
-                        <h3>
-                            <span className="int-en">{enTitle}</span>
-                        </h3>
-                    </ConditionalLink>
-                </div>
-                <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
-            </div>
-            {iframeSrc ? (
-                <div className="featureIframe">
-                    <iframe
-                        className="featureIframeEmbed"
-                        src={iframeSrc}
-                        title={enTitle}
-                    />
-                </div>
-            ) : (
-                <ConditionalLink link={link}>
-                    <div className="featureImage">
-                        <img className="int-en" src={enImg} alt={enImgAlt}/>
-                    </div>
-                </ConditionalLink>
-            )}
+const EnhancedFeature = ({ enTitle, enText, enImg, enImgAlt, borderColor, link, iframeSrc }) => (
+  <div className="feature">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="featureText" style={{ borderColor: borderColor }}>
+        <div className="featureHeader">
+          <ConditionalLink link={link}>
+            <h3>
+              <span className="int-en">{enTitle}</span>
+            </h3>
+          </ConditionalLink>
         </div>
+        <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
+      </div>
+      {iframeSrc ? (
+        <div className="featureIframe">
+          <iframe className="featureIframeEmbed" src={iframeSrc} title={enTitle} />
+        </div>
+      ) : (
+        <ConditionalLink link={link}>
+          <div className="featureImage">
+            <img className="int-en" src={enImg} alt={enImgAlt} />
+          </div>
+        </ConditionalLink>
+      )}
     </div>
+  </div>
 );
 
-const EnhancedUserQuote = ({enText, heText, enImage, heImage, enName, heName}) =>
-    <div className="staticPageUserQuote">
-        <div className="staticPageUserQuoteContent">
-            <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
-            <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
-        </div>
-        <div className="staticPageUserQuoteNameBox">
-            <img className="int-en" src={enImage} style={{backgroundColor: 'white'}} />
-            <img className="int-he" src={heImage} style={{backgroundColor: 'white'}} />
-            <div className="staticPageUserQuoteName">
-                <span className="int-en" dangerouslySetInnerHTML={{__html:enName}} />
-                <span className="int-he" dangerouslySetInnerHTML={{__html:heName}} />
-            </div>
-        </div>
-    </div>;
+const EnhancedUserQuote = ({ enText, heText, enImage, heImage, enName, heName }) => (
+  <div className="staticPageUserQuote">
+    <div className="staticPageUserQuoteContent">
+      <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
+      <div className="int-he" dangerouslySetInnerHTML={{ __html: heText }} />
+    </div>
+    <div className="staticPageUserQuoteNameBox">
+      <img className="int-en" src={enImage} style={{ backgroundColor: "white" }} />
+      <img className="int-he" src={heImage} style={{ backgroundColor: "white" }} />
+      <div className="staticPageUserQuoteName">
+        <span className="int-en" dangerouslySetInnerHTML={{ __html: enName }} />
+        <span className="int-he" dangerouslySetInnerHTML={{ __html: heName }} />
+      </div>
+    </div>
+  </div>
+);
 
 const NewsletterPage = () => {
-    const [currentStage, setCurrentStage] = useState(STAGE.NEWSLETTER_SELECTION);
-    const showSupplementalContent = currentStage === STAGE.NEWSLETTER_SELECTION;
-    const showEmailExamples = Sefaria.interfaceLang !== "hebrew";
+  const [currentStage, setCurrentStage] = useState(STAGE.NEWSLETTER_SELECTION);
+  const showSupplementalContent = currentStage === STAGE.NEWSLETTER_SELECTION;
+  const showEmailExamples = Sefaria.interfaceLang !== "hebrew";
 
-    return <StaticPage>
-        <HeaderForNewsletterPage/>
-        <NewsletterSignUpPageForm onStageChange={setCurrentStage} />
-        {showSupplementalContent ? (
+  return (
+    <StaticPage>
+      <HeaderForNewsletterPage />
+      <NewsletterSignUpPageForm onStageChange={setCurrentStage} />
+      {showSupplementalContent ? (
+        <>
+          {showEmailExamples ? (
             <>
-                {showEmailExamples ? (
-                    <>
-                        <GreyBox light={true}>
-                            <H2Block text={BILINGUAL_TEXT.EMAIL_EXAMPLES_HEADER} />
-                        </GreyBox>
-                        <EnhancedFeature
-                            enTitle="Weekly Parashah Study Companion"
-                            enText="<p>Each week we send out a guide to help you learn the weekly Torah reading. This resource includes historical context, discussion questions, and connections to other texts in our library.</p><p>These study guides support curious readers of all levels, from those who are encountering Jewish texts for the first time to experienced learners seeking new perspectives.</p>"
-                            borderColor="var(--sefaria-blue)"
-                            iframeSrc="/static/files/email-examples/weekly-parashah-bereshit-email-example.html"
-                        />
-                        <EnhancedFeature
-                            enTitle="Timeless Topics"
-                            enText="<p>Discover the connections between ancient wisdom and contemporary life with our topic guides. Each issue explores a theme through multiple lenses, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
-                            borderColor="var(--talmud-gold)"
-                            iframeSrc="/static/files/email-examples/topics-silence-email-example.html"
-                        />
-                    </>
-                ) : null}
-                <WhiteBox>
-                    <H2Block text={BILINGUAL_TEXT.TESTIMONIALS_HEADER} />
-                    <Section>
-                        <ResponsiveNBox
-                            threshold2={Number.POSITIVE_INFINITY}
-                            threshold3={Number.POSITIVE_INFINITY}
-                            content={[
-                                <EnhancedUserQuote
-                                    enText="“I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do.”"
-                                    heText='"תודה על כל השפע, החידושים וההתחדשות!"'
-                                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
-                                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                                    enName="Alan Shavit-Lonstein"
-                                    heName="יפעת דיאמנט"
-                                />,
-                                <EnhancedUserQuote
-                                    enText="“The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study.”"
-                                    heText='"שלום וברכה, הדף מהקישור המצורף הוא יפה מאד וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."'
-                                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
-                                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                                    enName="TK TK lwrabine@gmail"
-                                    heName="אורן לש"
-                                />,
-                                <EnhancedUserQuote
-                                    enText="“Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources”"
-                                    heText='"לצוות ספריא היקר, ממש מרגש ונוגע, הבאתם מקורות עם הרבה מגוון ונגיעות, תודה רבה"'
-                                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
-                                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                                    enName="Stephen Waldek"
-                                    heName="עדינה ביליג"
-                                />,
-                                <EnhancedUserQuote
-                                    enText="“I am so grateful to you for all the incredible work and material you provide! It was extremely helpful to me in a time of crisis, when I urgently needed clarity and detailed explanation on a topic that affects my every day life! Thank you so much for giving me the access to such crucial information! It was such a wonderful experience! You literally saved my life.”"
-                                    heText='"אני כותבת להודות על המייל המתומצת, והערוך בטוב טעם.<br><br>שתהיה לך שנה טובה ולכל ישראל באשר הם."'
-                                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
-                                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                                    enName="Tk TK kritzlerperl@gmail.com"
-                                    heName="לאה נמדר"
-                                />
-                            ]}
-                        />
-                    </Section>
-                </WhiteBox>
-                
+              <GreyBox light={true}>
+                <H2Block text={BILINGUAL_TEXT.EMAIL_EXAMPLES_HEADER} />
+              </GreyBox>
+              <EnhancedFeature
+                enTitle="Weekly Parashah Study Companion"
+                enText="<p>Each week we send out a guide to help you learn the weekly Torah reading. This resource includes historical context, discussion questions, and connections to other texts in our library.</p><p>These study guides support curious readers of all levels, from those who are encountering Jewish texts for the first time to experienced learners seeking new perspectives.</p>"
+                borderColor="var(--sefaria-blue)"
+                iframeSrc="/static/files/email-examples/weekly-parashah-bereshit-email-example.html"
+              />
+              <EnhancedFeature
+                enTitle="Timeless Topics"
+                enText="<p>Discover the connections between ancient wisdom and contemporary life with our topic guides. Each issue explores a theme through multiple lenses, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
+                borderColor="var(--talmud-gold)"
+                iframeSrc="/static/files/email-examples/topics-silence-email-example.html"
+              />
             </>
-        ) : null}
-        <ButtonRow white={true} optionalClass="newsletterFooterButtons">
-            <SimpleButton
-                href="https://donate.sefaria.org"
-                he_href="https://donate.sefaria.org/he"
-                en="Donate"
-                he="לתרומה"
-                white={true}
-                newTab={true}
-            />
-            <SimpleButton
-                href="/testimonials"
-                he_href="/testimonials"
-                en="Leave a Testimonial"
-                he="כתבו המלצה"
-                white={true}
-            />
-            <SimpleButton
-                href="https://torah.sefaria.org"
-                he_href="https://torah.sefaria.org"
-                en="Claim Your Letter in the Torah"
-                he="הוסיפו את האות שלכם בתורה"
-                white={true}
-                newTab={true}
-            />
-        </ButtonRow>
-    </StaticPage>;
+          ) : null}
+          <WhiteBox>
+            <H2Block text={BILINGUAL_TEXT.TESTIMONIALS_HEADER} />
+            <Section>
+              <ResponsiveNBox
+                threshold2={Number.POSITIVE_INFINITY}
+                threshold3={Number.POSITIVE_INFINITY}
+                content={[
+                  <EnhancedUserQuote
+                    enText="“I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do.”"
+                    heText='"תודה על כל השפע, החידושים וההתחדשות!"'
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                    enName=""
+                    heName=""
+                  />,
+                  <EnhancedUserQuote
+                    enText="“The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study.”"
+                    heText='"הדף מהקישור המצורף הוא יפה וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."'
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                    enName=""
+                    heName=""
+                  />,
+                  <EnhancedUserQuote
+                    enText="“Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources”"
+                    heText='"ממש מרגש ונוגע, הבאתם עם הרבה מגוון ונגיעות, תודה רבה."'
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                    enName=""
+                    heName=""
+                  />,
+                  <EnhancedUserQuote
+                    enText="“I look forward to receiving these emails each week to kick off my Torah study and explore new and refreshing topics”"
+                    heText='"תודה על המייל המתומצת, והעיון בתוב"'
+                    enImage="/static/img/newsletter-signup-page/quote-en.svg"
+                    heImage="/static/img/newsletter-signup-page/quote-he.svg"
+                    enName=""
+                    heName=""
+                  />,
+                ]}
+              />
+            </Section>
+          </WhiteBox>
+        </>
+      ) : null}
+      <ButtonRow white={true} optionalClass="newsletterFooterButtons">
+        <SimpleButton
+          href="https://donate.sefaria.org"
+          he_href="https://donate.sefaria.org/he"
+          en="Donate"
+          he="לתרומה"
+          white={true}
+          newTab={true}
+        />
+        <SimpleButton
+          href="/testimonials"
+          he_href="/testimonials"
+          en="Leave a Testimonial"
+          he="כתבו המלצה"
+          white={true}
+        />
+        <SimpleButton
+          href="https://torah.sefaria.org"
+          he_href="https://torah.sefaria.org/he"
+          en="Claim Your Letter in the Torah"
+          he="הוסיפו את האות שלכם בתורה"
+          white={true}
+          newTab={true}
+        />
+      </ButtonRow>
+    </StaticPage>
+  );
 };
 
 export {

@@ -2,15 +2,8 @@
 Shared pytest fixtures for the api/ test suite.
 
 All fixtures here use the default function scope. That means pytest creates a
-brand-new instance for every single test that requests one. This is the
-foundation of test independence: one test's mutations (logged-in state,
+brand-new instance for every single test that requests one. One test's mutations (logged-in state,
 created users, modified mock newsletters) cannot leak into the next test.
-
-If you ever feel tempted to add `scope="module"` or `scope="session"` to
-speed something up, stop and think hard. A module-scoped Client() means every
-test in the file shares the same login state. A session-scoped User row
-exists across the whole test run and tests can interfere with each other's
-profile state. Function scope keeps tests honest.
 
 Database isolation is provided by pytest-django: every test marked with
 @pytest.mark.django_db (or in a class so marked) is wrapped in a transaction

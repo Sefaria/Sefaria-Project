@@ -67,6 +67,15 @@ describe('subscribeNewsletter', () => {
     expect(JSON.parse(options.body)).toEqual(payload);
   });
 
+  it('includes CSRF token in X-CSRFToken header', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await subscribeNewsletter(payload);
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
+  });
+
   it('returns parsed response on success', async () => {
     const body = { success: true, email: 'ada@example.com' };
     global.fetch.mockReturnValue(mockFetchOk(body));
@@ -97,7 +106,7 @@ describe('updatePreferences', () => {
   it('calls fetch with POST to /api/newsletter/preferences', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updatePreferences('user@example.com', { sefaria_news: true });
+    await updatePreferences({ sefaria_news: true });
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/newsletter/preferences',
@@ -108,7 +117,7 @@ describe('updatePreferences', () => {
   it('includes marketingOptOut=true in request body when passed', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updatePreferences('user@example.com', { sefaria_news: true }, { marketingOptOut: true });
+    await updatePreferences({ sefaria_news: true }, { marketingOptOut: true });
 
     const [, options] = global.fetch.mock.calls[0];
     expect(JSON.parse(options.body).marketingOptOut).toBe(true);
@@ -117,7 +126,7 @@ describe('updatePreferences', () => {
   it('defaults marketingOptOut to false when options omitted', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updatePreferences('user@example.com', {});
+    await updatePreferences({});
 
     const [, options] = global.fetch.mock.calls[0];
     expect(JSON.parse(options.body).marketingOptOut).toBe(false);
@@ -126,7 +135,7 @@ describe('updatePreferences', () => {
   it('includes CSRF token in X-CSRFToken header', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updatePreferences('user@example.com', {});
+    await updatePreferences({});
 
     const [, options] = global.fetch.mock.calls[0];
     expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
@@ -135,7 +144,7 @@ describe('updatePreferences', () => {
   it('throws server error message on non-ok response', async () => {
     global.fetch.mockReturnValue(mockFetchFail('Unauthorized'));
 
-    await expect(updatePreferences('user@example.com', {})).rejects.toThrow('Unauthorized');
+    await expect(updatePreferences({})).rejects.toThrow('Unauthorized');
   });
 });
 
@@ -147,7 +156,7 @@ describe('fetchUserSubscriptions', () => {
   it('calls fetch with GET to /api/newsletter/subscriptions', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true, subscribedNewsletters: [] }));
 
-    await fetchUserSubscriptions('user@example.com');
+    await fetchUserSubscriptions();
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/newsletter/subscriptions',
@@ -159,7 +168,7 @@ describe('fetchUserSubscriptions', () => {
     const body = { success: true, subscribedNewsletters: ['sefaria_news'], wantsMarketingEmails: true };
     global.fetch.mockReturnValue(mockFetchOk(body));
 
-    const result = await fetchUserSubscriptions('user@example.com');
+    const result = await fetchUserSubscriptions();
 
     expect(result).toEqual(body);
   });
@@ -167,7 +176,7 @@ describe('fetchUserSubscriptions', () => {
   it('throws on non-ok response', async () => {
     global.fetch.mockReturnValue(mockFetchFail('Unauthorized'));
 
-    await expect(fetchUserSubscriptions('user@example.com')).rejects.toThrow('Unauthorized');
+    await expect(fetchUserSubscriptions()).rejects.toThrow('Unauthorized');
   });
 });
 

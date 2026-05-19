@@ -17,12 +17,12 @@
 
 import { test as setup, expect } from '@playwright/test';
 import path from 'path';
+import { testUser } from './globals';
 
-export const STORAGE_STATE = path.join(__dirname, '.auth/user.json');
+export const STORAGE_STATE = path.join(__dirname, '.auth/setup_session.json');
 
 setup('authenticate via Django login', async ({ page }) => {
-  const email = process.env.PLAYWRIGHT_USER_EMAIL;
-  const password = process.env.PLAYWRIGHT_USER_PASSWORD;
+  const { email, password } = testUser;
 
   if (!email || !password) {
     throw new Error(
@@ -61,16 +61,17 @@ setup('authenticate via Django login', async ({ page }) => {
   // Playwright follows redirects by default, so we check the final status.
   expect(response.ok()).toBeTruthy();
 
-  // Verify the session cookie was set by navigating to a page that
-  // requires auth context (the newsletter page shows different UI for logged-in users)
-  await page.goto('/newsletter');
-  await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+  // Step 5: Verify the sessionid cookie was actually set.
+  // storageState() serializes cookies + localStorage — if no sessionid is in
+  // the jar, the saved file won't authenticate any downstream test. A 200 OK
+  // alone isn't sufficient: Django re-renders the login page (with errors) at
+  // 200 OK when credentials are wrong, so the cookie check is what proves the
+  // login itself succeeded vs. the page just rendering.
+  const cookies = await page.context().cookies();
+  const sessionCookie = cookies.find((c) => c.name === 'sessionid');
+  expect(sessionCookie, 'sessionid cookie was not set after login').toBeTruthy();
 
-  // Confirm the page recognizes us as logged in by checking for the email display
-  const emailDisplay = page.locator(`text=${email}`).first();
-  await expect(emailDisplay).toBeVisible({ timeout: 5000 });
-
-  // Step 5: Save the authenticated browser state (cookies + localStorage).
+  // Step 6: Save the authenticated browser state (cookies + localStorage).
   // This file will be loaded by test projects that depend on 'setup'.
   await page.context().storageState({ path: STORAGE_STATE });
 });

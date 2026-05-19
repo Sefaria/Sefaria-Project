@@ -10,6 +10,7 @@
 
 import { test, expect } from '@playwright/test';
 import { routeWithHarFixture } from '../support/har-fixture.js';
+import { LANGUAGES } from '../globals';
 
 const supplementalContentTexts = [
   'Weekly Parashah Study Companion',
@@ -170,7 +171,7 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   test('should hide email examples but keep testimonials and footer in Hebrew interface', async ({ page }) => {
     await page.context().addCookies([{
       name: 'interfaceLang',
-      value: 'hebrew',
+      value: LANGUAGES.HE,
       url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
     }]);
     await page.goto('/newsletter');
@@ -745,7 +746,7 @@ test.describe('Newsletter Signup - Hebrew-only newsletter label rendering', () =
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.context().addCookies([{
       name: 'interfaceLang',
-      value: 'hebrew',
+      value: LANGUAGES.HE,
       url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
     }]);
 

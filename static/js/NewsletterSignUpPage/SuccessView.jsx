@@ -6,11 +6,6 @@ import { BILINGUAL_TEXT } from "./bilingualUtils";
  * SuccessView - Final success view after form completion
  *
  * Displays completion message and redirect option to homepage.
- * Features:
- * - Success confirmation with icon
- * - Link to return to homepage
- * - Full bilingual support (English/Hebrew)
- * - Analytics tracking for completion
  */
 export default function SuccessView() {
   return (

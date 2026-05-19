@@ -11,7 +11,7 @@ const FIXTURES_DIR = path.join(__dirname, '../fixtures');
  * No HAR exists and not recording: falls through to the real network unchanged.
  *
  * To record a fixture from scratch:
- *   RECORD_HAR=1 SANDBOX_URL=http://127.0.0.1:8000 \
+ *   RECORD_HAR=1 SANDBOX_URL=http://localhost:8000 \
  *     ./node_modules/.bin/playwright test --project=chromium --workers=1 \
  *     e2e-tests/tests/newsletter-signup-loggedout.spec.js
  *

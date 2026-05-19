@@ -12,7 +12,6 @@ const ICON_BASE_PATH = "/static/icons/newsletter-signup/";
  * - SVG checkmark appears on right (English) or left (Hebrew) when selected
  * - Optional icon with preloading and fallback
  * - Supports both radio and checkbox input types
- * - Full bilingual support (English/Hebrew)
  */
 export default function SelectableOption({
   type = "checkbox",

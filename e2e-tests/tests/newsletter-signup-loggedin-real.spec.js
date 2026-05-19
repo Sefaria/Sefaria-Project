@@ -1,40 +1,36 @@
 /**
  * Playwright Test: Newsletter Signup - Real Authenticated User Flow
  *
- * Unlike newsletter-signup-loggedin.spec.js (which mocks auth via addInitScript),
- * this file uses a real Django session established by auth.setup.js.
- * The storageState includes a valid sessionid cookie, so:
+ * Tests the logged-in newsletter flow against a real Django session that's
+ * established once per run by auth.setup.js. The storageState file includes
+ * a valid sessionid cookie, so:
  *   - Django recognizes the user on every request
  *   - API calls (subscribe, update preferences, learning level) work end-to-end
  *   - The full multi-stage flow can be tested: Form → Confirmation → Success
  *
+ * These tests belong to the `authenticated` Playwright project (see
+ * playwright.config.ts), which depends on the `setup` project — Playwright
+ * runs auth.setup.js first, then loads the resulting storageState here.
+ *
  * Requires environment variables:
- *   PLAYWRIGHT_USER_EMAIL  - email of the test user
+ *   PLAYWRIGHT_USER_EMAIL    - email of the test user
  *   PLAYWRIGHT_USER_PASSWORD - password of the test user
- *   SANDBOX_URL - base URL (e.g., http://localhost:8000)
+ *   SANDBOX_URL              - base URL (e.g., http://localhost:8000)
  *
  * Run with:
- *   PLAYWRIGHT_USER_EMAIL=skyler@derp.com PLAYWRIGHT_USER_PASSWORD=abdxqz \
+ *   PLAYWRIGHT_USER_EMAIL=<TEST USERNAME> PLAYWRIGHT_USER_PASSWORD=<TEST USERNAME'S PASSWORD> \
  *   SANDBOX_URL=http://localhost:8000 npx playwright test --project=authenticated --workers=1
  */
 
-import { test, expect } from '@playwright/test';
-import { routeWithHarFixture } from '../support/har-fixture.js';
+import { test, expect } from "@playwright/test";
+import { routeWithHarFixture } from "../support/har-fixture.js";
 
 // The email of the authenticated user, read from env vars
-const USER_EMAIL = process.env.PLAYWRIGHT_USER_EMAIL || '';
+const USER_EMAIL = process.env.PLAYWRIGHT_USER_EMAIL || "";
 
-const supplementalContentTexts = [
-  'Weekly Parashah Study Companion',
-  'Timeless Topics',
-  'What the people are saying',
-];
+const supplementalContentTexts = ["Weekly Parashah Study Companion", "Timeless Topics", "What the people are saying"];
 
-const footerButtonTexts = [
-  'Donate',
-  'Leave a Testimonial',
-  'Claim Your Letter in the Torah',
-];
+const footerButtonTexts = ["Donate", "Leave a Testimonial", "Claim Your Letter in the Torah"];
 
 const expectSupplementalContentHidden = async (page) => {
   for (const text of supplementalContentTexts) {
@@ -48,10 +44,9 @@ const expectFooterVisible = async (page) => {
   }
 };
 
-test.describe('Newsletter Signup - Real Authenticated Flow', () => {
-
+test.describe("Newsletter Signup - Real Authenticated Flow", () => {
   test.beforeEach(async ({ page, context }) => {
-    await routeWithHarFixture(context, 'newsletter-loggedin');
+    await routeWithHarFixture(context, "newsletter-loggedin");
 
     await page.setViewportSize({ width: 1280, height: 720 });
 
@@ -62,22 +57,22 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
 
     // Navigate to newsletter page — the sessionid cookie from storageState
     // is automatically included, so Django sees us as logged in
-    await page.goto('/newsletter');
-    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    await page.goto("/newsletter");
+    await page.waitForSelector("#NewsletterInner", { timeout: 10000 });
     await page.waitForTimeout(1000);
 
     // Remove sticky header so it doesn't intercept click actions
     await page.evaluate(() => {
-      document.querySelector('#s2')?.remove();
+      document.querySelector("#s2")?.remove();
     });
 
     // The test account may have wantsMarketingEmails=false saved in MongoDB from a
     // previous test run. Reset to "Yes" so checkboxes are enabled and tests start
     // from a consistent baseline. This is a UI-only change — no API call is made
     // until the form is submitted, so it doesn't affect HAR recording.
-    const yesToggle = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    const yesToggle = page.locator(".marketingToggleWrapper .toggleOption.yes");
     if (await yesToggle.isVisible()) {
-      const isActive = await yesToggle.evaluate(el => el.classList.contains('on'));
+      const isActive = await yesToggle.evaluate((el) => el.classList.contains("on"));
       if (!isActive) await yesToggle.click();
     }
   });
@@ -86,10 +81,10 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
   // FORM DISPLAY TESTS (Stage 1)
   // ==========================================
 
-  test('should display logged-in form with real user email', async ({ page }) => {
-    await expect(page.locator('#NewsletterInner')).toBeVisible();
+  test("should display logged-in form with real user email", async ({ page }) => {
+    await expect(page.locator("#NewsletterInner")).toBeVisible();
 
-    const form = page.locator('form').first();
+    const form = page.locator("form").first();
     await expect(form).toBeVisible();
 
     // Real user email should be displayed (not an input field)
@@ -115,15 +110,15 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
   });
 
   test('should show "Manage Your Subscriptions" title', async ({ page }) => {
-    const manageTitle = page.locator('text=Manage Your Subscriptions');
+    const manageTitle = page.locator("text=Manage Your Subscriptions");
     await expect(manageTitle).toBeVisible();
 
-    const subscribeTitle = page.locator('text=Subscribe to Our Newsletters');
+    const subscribeTitle = page.locator("text=Subscribe to Our Newsletters");
     await expect(subscribeTitle).not.toBeVisible();
   });
 
-  test('should display all newsletter options', async ({ page }) => {
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+  test("should display all newsletter options", async ({ page }) => {
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const count = await checkboxLabels.count();
     expect(count).toBeGreaterThanOrEqual(5);
 
@@ -133,8 +128,8 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     }
   });
 
-  test('should toggle newsletter checkboxes', async ({ page }) => {
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+  test("should toggle newsletter checkboxes", async ({ page }) => {
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
 
     const initialState = await checkbox1.isChecked();
@@ -148,7 +143,7 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     expect(await checkbox1.isChecked()).toBe(initialState);
   });
 
-  test('should not allow email editing', async ({ page }) => {
+  test("should not allow email editing", async ({ page }) => {
     expect(await page.locator('input[type="email"]').count()).toBe(0);
 
     const emailText = page.locator(`text=${USER_EMAIL}`).first();
@@ -159,18 +154,18 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
   // MARKETING EMAIL TOGGLE TESTS
   // ==========================================
 
-  test('should display marketing email toggle', async ({ page }) => {
-    const toggleSection = page.locator('.marketingEmailToggleSection');
+  test("should display marketing email toggle", async ({ page }) => {
+    const toggleSection = page.locator(".marketingEmailToggleSection");
     await expect(toggleSection).toBeVisible();
 
-    const questionLabel = page.locator('.marketingEmailToggleLabel');
+    const questionLabel = page.locator(".marketingEmailToggleLabel");
     await expect(questionLabel).toBeVisible();
     const labelText = await questionLabel.textContent();
-    expect(labelText.toLowerCase()).toContain('email updates');
+    expect(labelText.toLowerCase()).toContain("email updates");
 
     // Yes/No toggle options
-    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
-    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    const yesOption = page.locator(".marketingToggleWrapper .toggleOption.yes");
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
     await expect(yesOption).toBeVisible();
     await expect(noOption).toBeVisible();
 
@@ -179,32 +174,32 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await expect(noOption).not.toHaveClass(/\bon\b/);
 
     // Helper text about administrative emails
-    const helperText = page.locator('.marketingEmailNote');
+    const helperText = page.locator(".marketingEmailNote");
     await expect(helperText).toBeVisible();
     const noteText = await helperText.textContent();
-    expect(noteText.toLowerCase()).toContain('administrative');
+    expect(noteText.toLowerCase()).toContain("administrative");
   });
 
-  test('should disable checkboxes when No is selected', async ({ page }) => {
-    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+  test("should disable checkboxes when No is selected", async ({ page }) => {
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
     await noOption.click();
 
     await expect(noOption).toHaveClass(/\bon\b/);
 
-    const checkboxesContainer = page.locator('.newsletterCheckboxes');
+    const checkboxesContainer = page.locator(".newsletterCheckboxes");
     await expect(checkboxesContainer).toHaveClass(/disabled/);
 
     const firstCheckbox = page.locator('form input[type="checkbox"]').nth(0);
     expect(await firstCheckbox.isDisabled()).toBe(true);
   });
 
-  test('should re-enable checkboxes when Yes is selected again', async ({ page }) => {
-    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
-    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+  test("should re-enable checkboxes when Yes is selected again", async ({ page }) => {
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
+    const yesOption = page.locator(".marketingToggleWrapper .toggleOption.yes");
 
     // Disable
     await noOption.click();
-    const checkboxesContainer = page.locator('.newsletterCheckboxes');
+    const checkboxesContainer = page.locator(".newsletterCheckboxes");
     await expect(checkboxesContainer).toHaveClass(/disabled/);
 
     // Re-enable
@@ -216,8 +211,8 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     expect(await firstCheckbox.isDisabled()).toBe(false);
   });
 
-  test('should maintain checkbox selections visually when No is selected', async ({ page }) => {
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+  test("should maintain checkbox selections visually when No is selected", async ({ page }) => {
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
     const checkbox2 = page.locator('form input[type="checkbox"]').nth(1);
 
@@ -229,12 +224,12 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await expect(checkbox2).toBeChecked();
 
     // Opt out — checkboxes stay visually checked but container is disabled
-    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
     await noOption.click();
 
     await expect(checkbox1).toBeChecked();
     await expect(checkbox2).toBeChecked();
-    await expect(page.locator('.newsletterCheckboxes')).toHaveClass(/disabled/);
+    await expect(page.locator(".newsletterCheckboxes")).toHaveClass(/disabled/);
   });
 
   // ==========================================
@@ -242,9 +237,9 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
   // These tests actually hit the backend API
   // ==========================================
 
-  test('should submit preferences and navigate to confirmation', async ({ page }) => {
+  test("should submit preferences and navigate to confirmation", async ({ page }) => {
     // Select at least one newsletter
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
 
     // Ensure at least one is checked
@@ -257,15 +252,15 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // With real auth, the API call should succeed and navigate to confirmation
-    const confirmationView = page.locator('.newsletterConfirmationView');
+    const confirmationView = page.locator(".newsletterConfirmationView");
     await expect(confirmationView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
   });
 
-  test('should complete full flow: select → confirm → learning level → success', async ({ page }) => {
+  test("should complete full flow: select → confirm → learning level → success", async ({ page }) => {
     // Stage 1: Select newsletters
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
 
     if (!(await checkbox1.isChecked())) {
@@ -277,13 +272,13 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Stage 2: Confirmation with embedded learning level
-    const confirmationView = page.locator('.newsletterConfirmationView');
+    const confirmationView = page.locator(".newsletterConfirmationView");
     await expect(confirmationView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
 
     // Learning level options should be embedded in the confirmation view
-    const learningLevelOptions = page.locator('.embeddedLearningLevel .selectableOptionLabel');
+    const learningLevelOptions = page.locator(".embeddedLearningLevel .selectableOptionLabel");
     const optionCount = await learningLevelOptions.count();
     expect(optionCount).toBe(5);
 
@@ -291,9 +286,7 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await learningLevelOptions.nth(0).click();
 
     // Verify it's selected
-    const hasSelectedClass = await learningLevelOptions.nth(0).evaluate(
-      el => el.classList.contains('selected')
-    );
+    const hasSelectedClass = await learningLevelOptions.nth(0).evaluate((el) => el.classList.contains("selected"));
     expect(hasSelectedClass).toBe(true);
 
     // Submit learning level
@@ -302,15 +295,15 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await saveButton.click();
 
     // Stage 3: Should reach success view
-    const successView = page.locator('.successView');
+    const successView = page.locator(".successView");
     await expect(successView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
   });
 
-  test('should skip learning level and reach success', async ({ page }) => {
+  test("should skip learning level and reach success", async ({ page }) => {
     // Stage 1: Select a newsletter and submit
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
 
     if (!(await checkbox1.isChecked())) {
@@ -321,22 +314,22 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Stage 2: Confirmation view
-    const confirmationView = page.locator('.newsletterConfirmationView');
+    const confirmationView = page.locator(".newsletterConfirmationView");
     await expect(confirmationView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
 
-    const skipLink = page.locator('button.skipLink').first();
+    const skipLink = page.locator("button.skipLink").first();
     await expect(skipLink).toBeVisible();
     await skipLink.click();
 
     // Stage 3: Skip navigates away from /newsletter (to homepage)
-    await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
+    await page.waitForURL((url) => !url.href.includes("/newsletter"), { timeout: 5000 });
   });
 
-  test('should submit with no newsletters selected', async ({ page }) => {
+  test("should submit with no newsletters selected", async ({ page }) => {
     // Uncheck all newsletters
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkboxes = page.locator('form input[type="checkbox"]');
     const count = await checkboxes.count();
 
@@ -351,19 +344,19 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Should navigate to confirmation (no validation error)
-    const confirmationView = page.locator('.newsletterConfirmationView');
+    const confirmationView = page.locator(".newsletterConfirmationView");
     await expect(confirmationView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
   });
 
-  test('should submit with No selected (opt out of all marketing emails)', async ({ page }) => {
+  test("should submit with No selected (opt out of all marketing emails)", async ({ page }) => {
     // Select some newsletters first
-    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const checkboxLabels = page.locator("label.selectableOptionLabel");
     await checkboxLabels.nth(0).click();
 
     // Click No to opt out of all marketing emails
-    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    const noOption = page.locator(".marketingToggleWrapper .toggleOption.no");
     await noOption.click();
 
     // Submit
@@ -371,13 +364,13 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
     await updateButton.click();
 
     // Should navigate to confirmation (opting out is a valid path)
-    const confirmationView = page.locator('.newsletterConfirmationView');
+    const confirmationView = page.locator(".newsletterConfirmationView");
     await expect(confirmationView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
   });
 
-  test('should show pre-existing subscriptions as checked', async ({ page }) => {
+  test("should show pre-existing subscriptions as checked", async ({ page }) => {
     // With a real session, the form fetches the user's current subscriptions
     // from /api/newsletter/subscriptions and pre-checks them.
     // We can't predict which ones are checked, but we can verify the
@@ -394,6 +387,6 @@ test.describe('Newsletter Signup - Real Authenticated Flow', () => {
 
     // Verify we got boolean states for all checkboxes (form rendered properly)
     expect(states.length).toBeGreaterThanOrEqual(5);
-    expect(states.every(s => typeof s === 'boolean')).toBe(true);
+    expect(states.every((s) => typeof s === "boolean")).toBe(true);
   });
 });

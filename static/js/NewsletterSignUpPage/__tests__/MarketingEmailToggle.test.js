@@ -8,19 +8,19 @@
  * with blueStyle for consistent styling across the app.
  */
 
-import React from 'react';
-import ReactDOMServer from 'react-dom/server';
-import MarketingEmailToggle from '../MarketingEmailToggle';
+import React from "react";
+import ReactDOMServer from "react-dom/server";
+import MarketingEmailToggle from "../MarketingEmailToggle";
 
 // Mock Sefaria global object
-jest.mock('../../sefaria/sefaria', () => ({
-  interfaceLang: 'english',
+jest.mock("../../sefaria/sefaria", () => ({
+  interfaceLang: "english",
   _: (text) => text,
   site: false,
 }));
 
 // Mock the components from Misc
-jest.mock('../../Misc', () => ({
+jest.mock("../../Misc", () => ({
   // Mock InterfaceText to render the English text directly
   InterfaceText: ({ text, children }) => {
     if (text) {
@@ -31,7 +31,7 @@ jest.mock('../../Misc', () => ({
   // Mock ToggleSet for toggle functionality
   ToggleSet: ({ blueStyle, ariaLabel, name, options, setOption, currentValue }) => (
     <div
-      className={`toggleSet ${blueStyle ? 'blueStyle' : ''} ${name}`}
+      className={`toggleSet ${blueStyle ? "blueStyle" : ""} ${name}`}
       role="radiogroup"
       aria-label={ariaLabel}
       data-testid="toggle-set"
@@ -39,7 +39,7 @@ jest.mock('../../Misc', () => ({
       {options.map((option) => (
         <div
           key={option.name}
-          className={`toggleOption ${option.name} ${currentValue === option.name ? 'on' : ''}`}
+          className={`toggleOption ${option.name} ${currentValue === option.name ? "on" : ""}`}
           role={option.role}
           aria-label={option.ariaLabel}
           aria-checked={currentValue === option.name}
@@ -53,41 +53,32 @@ jest.mock('../../Misc', () => ({
   ),
 }));
 
-describe('MarketingEmailToggle', () => {
+describe("MarketingEmailToggle", () => {
   const mockOnToggle = jest.fn();
 
   beforeEach(() => {
     mockOnToggle.mockClear();
   });
 
-  describe('Rendering', () => {
-    it('renders without crashing', () => {
+  describe("Rendering", () => {
+    it("renders without crashing", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
-      expect(html).toContain('marketingEmailToggleSection');
+      expect(html).toContain("marketingEmailToggleSection");
     });
 
-    it('renders the ToggleSet with blueStyle', () => {
+    it("renders the ToggleSet with blueStyle", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
-      expect(html).toContain('toggleSet');
-      expect(html).toContain('blueStyle');
+      expect(html).toContain("toggleSet");
+      expect(html).toContain("blueStyle");
     });
 
     it('renders Yes option with "on" class when wantsMarketingEmails is true', () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       // Yes option should have "on" class
       expect(html).toMatch(/class="[^"]*toggleOption[^"]*yes[^"]*on[^"]*"/);
@@ -95,113 +86,84 @@ describe('MarketingEmailToggle', () => {
 
     it('renders No option with "on" class when wantsMarketingEmails is false', () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={false}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={false} onToggle={mockOnToggle} />,
       );
       // No option should have "on" class
       expect(html).toMatch(/class="[^"]*toggleOption[^"]*no[^"]*on[^"]*"/);
     });
 
-    it('renders the question label about email updates', () => {
+    it("renders the question label about email updates", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
-      expect(html).toContain('marketingEmailToggleLabel');
-      expect(html).toContain('Do you want to receive email updates from Sefaria');
+      expect(html).toContain("marketingEmailToggleLabel");
+      expect(html).toContain("Do you want to receive email updates from Sefaria");
     });
 
-    it('renders helper text about administrative emails', () => {
+    it("renders helper text about administrative emails", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
-      expect(html).toContain('marketingEmailNote');
-      expect(html).toContain('administrative emails');
+      expect(html).toContain("marketingEmailNote");
+      expect(html).toContain("administrative emails");
     });
 
-    it('renders both Yes and No options', () => {
+    it("renders both Yes and No options", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       expect(html).toContain('data-testid="toggle-option-yes"');
       expect(html).toContain('data-testid="toggle-option-no"');
     });
   });
 
-  describe('Disabled state', () => {
-    it('adds disabled class to wrapper when disabled prop is true', () => {
+  describe("Disabled state", () => {
+    it("adds disabled class to wrapper when disabled prop is true", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-          disabled={true}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} disabled={true} />,
       );
-      expect(html).toContain('marketingToggleWrapper disabled');
+      expect(html).toContain("marketingToggleWrapper disabled");
     });
 
-    it('does not add disabled class when disabled prop is false', () => {
+    it("does not add disabled class when disabled prop is false", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-          disabled={false}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} disabled={false} />,
       );
-      expect(html).not.toContain('marketingToggleWrapper disabled');
+      expect(html).not.toContain("marketingToggleWrapper disabled");
     });
   });
 
-  describe('Accessibility', () => {
-    it('has proper ARIA role radiogroup on ToggleSet', () => {
+  describe("Accessibility", () => {
+    it("has proper ARIA role radiogroup on ToggleSet", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       expect(html).toContain('role="radiogroup"');
     });
 
-    it('options have role radio', () => {
+    it("options have role radio", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       // Count role="radio" occurrences - should be 2 (Yes and No)
       const matches = html.match(/role="radio"/g);
       expect(matches).toHaveLength(2);
     });
 
-    it('has aria-label for marketing email preference', () => {
+    it("has aria-label for marketing email preference", () => {
       const html = ReactDOMServer.renderToString(
-        <MarketingEmailToggle
-          wantsMarketingEmails={true}
-          onToggle={mockOnToggle}
-        />
+        <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       expect(html).toContain('aria-label="Marketing email preference"');
     });
   });
 
-  describe('Component exports', () => {
-    it('exports a default function component', () => {
-      expect(typeof MarketingEmailToggle).toBe('function');
+  describe("Component exports", () => {
+    it("exports a default function component", () => {
+      expect(typeof MarketingEmailToggle).toBe("function");
     });
 
-    it('returns a React element', () => {
+    it("returns a React element", () => {
       const element = MarketingEmailToggle({
         wantsMarketingEmails: true,
         onToggle: mockOnToggle,

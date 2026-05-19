@@ -2,7 +2,7 @@
  * Newsletter Signup Page Styles
  *
  * This file extends existing Sefaria CSS classes rather than creating new ones.
- * It adds newsletter-specific modifiers and minimal new classes for container styling.
+ * It adds newsletter-specific modifiers and new classes for container styling.
  *
  * Reuses:
  * - .button (base class with modifiers)
@@ -188,7 +188,9 @@
 .newsletterFormView input[type="email"]:focus {
   outline: none;
   border-color: var(--select-blue);
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px, 0 0 0 3px rgba(11, 113, 231, 0.1);
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0px 1px 3px 0px,
+    0 0 0 3px rgba(11, 113, 231, 0.1);
 }
 
 .newsletterFormView input[type="text"]:disabled,
@@ -325,7 +327,7 @@ span.errorIcon {
   border: 2px solid #dc2626;
   border-radius: 8px;
   padding: 12px;
-  margin-top: 0;  /* Don't pull up into the error message */
+  margin-top: 0; /* Don't pull up into the error message */
   margin-left: -12px;
   margin-right: -12px;
   margin-bottom: -12px;
@@ -387,17 +389,19 @@ span.errorIcon {
 }
 
 .selectableOptionLabel.selected {
-  background-color: #E8E8E8;
+  background-color: #e8e8e8;
 }
 
 .selectableOptionLabel.selected:hover {
-  background-color: #DEDEDE;
+  background-color: #dedede;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
 /* Focus state for accessibility */
 .selectableOptionLabel:focus-within {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(11, 113, 231, 0.2);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    0 0 0 3px rgba(11, 113, 231, 0.2);
 }
 
 /* Selected checkmark icon - positioned at end (right for LTR, left for RTL) */
@@ -426,7 +430,7 @@ span.errorIcon {
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  background-color: #CCCCCC;
+  background-color: #cccccc;
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
@@ -572,6 +576,10 @@ span.errorIcon {
   letter-spacing: 0.5px;
 }
 
+.newsletterConfirmationView .selectedLabel.singleCase {
+  margin-top: 8px;
+}
+
 .newsletterConfirmationView .selectedNewslettersDisplay > div + div {
   margin-top: 16px;
 }
@@ -598,7 +606,10 @@ span.errorIcon {
   text-decoration: none;
   cursor: pointer;
   font-weight: 500;
-  transition: text-decoration 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+  transition:
+    text-decoration 0.2s ease,
+    opacity 0.2s ease,
+    color 0.2s ease;
 }
 
 .newsletterConfirmationView .skipLink:hover {
@@ -656,11 +667,9 @@ span.errorIcon {
    RESPONSIVE DESIGN
    ============================================ */
 
-
 /* ============================================
    RTL (Right-to-Left) for Hebrew
    ============================================ */
-
 
 .interface-hebrew .formField label {
   flex-direction: row-reverse;
@@ -784,7 +793,6 @@ span.errorIcon {
   text-align: start;
 }
 
-
 /* ============================================
    DISABLED NEWSLETTER CHECKBOXES STATE
    (When marketing emails opt-out is selected)
@@ -814,7 +822,12 @@ span.errorIcon {
 
 /* Testimonial separators */
 .gridBoxRow:not(:last-child) .staticPageUserQuote {
-  border-bottom: 1px solid #CCCCCC;
+  border-bottom: 1px solid #cccccc;
+}
+
+/* Keep newsletter quote logos opaque without affecting quote images on other static pages. */
+#NewsletterInner .staticPageUserQuote img {
+  background-color: white !important;
 }
 
 /* Mobile layout */
@@ -952,6 +965,12 @@ span.errorIcon {
 
   #NewsletterInner .staticPage .feature .featureIframe .featureIframeEmbed {
     max-width: 350px;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  #NewsletterInner .staticPage .feature .featureIframe {
+    width: 100%;
   }
 }
 

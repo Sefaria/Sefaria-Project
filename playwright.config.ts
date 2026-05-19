@@ -57,7 +57,7 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    /* Auth setup — logs in a real user and saves session to .auth/user.json */
+    /* Auth setup — logs in a real user and saves session to .auth/setup_session.json */
     {
       name: 'setup',
       testMatch: /auth\.setup\.js/,
@@ -80,7 +80,7 @@ export default defineConfig({
       name: 'authenticated',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'e2e-tests/.auth/user.json',
+        storageState: 'e2e-tests/.auth/setup_session.json',
       },
       dependencies: ['setup'],
       testMatch: /.*-real\.spec\.js/,

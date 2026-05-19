@@ -3350,7 +3350,6 @@ display: none;
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
   .staticPage .feature .featureImage,
-  .staticPage .feature .featureIframe,
   .staticPage .feature .featureImage img,
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
@@ -3725,8 +3724,4 @@ form.globalUpdateForm + div.notificationsList {
 }
 .updateTextarea {
   width: 100%;
-}
-
-.staticPageUserQuote img {
-  background-color: white !important;
 }

@@ -10,6 +10,7 @@ import Cookies from "js-cookie";
  * - GET  /api/newsletter/lists           Fetch available newsletters
  */
 
+// TODO: Use Sefaria.apiRequestWithBody in the future by adjusting it
 const parseJsonResponse = async (response) => {
   const contentType = response.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {
@@ -20,76 +21,72 @@ const parseJsonResponse = async (response) => {
   return response.json();
 };
 
-export const subscribeNewsletter = async (data) => {
-  const response = await fetch("/api/newsletter/subscribe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const result = await parseJsonResponse(response);
-  if (!response.ok) {
-    throw new Error(result.error || "Failed to subscribe");
+/**
+ * Internal helper: performs a same-origin JSON request and returns the parsed body.
+ *
+ * Each caller must declare `csrf: true | false` explicitly — there is no default.
+ * That keeps the security posture visible at every call site instead of implicit
+ * in a heuristic, and accommodates edge cases (a GET that needs CSRF, or a
+ * @csrf_exempt POST that doesn't) without having to change the helper.
+ *
+ * On non-OK responses, throws an Error whose message is the server-supplied
+ * `error` field if present, otherwise `fallbackError`. On non-JSON responses,
+ * parseJsonResponse throws a code-tagged Error with an empty message so callers
+ * fall through to a generic user-facing message.
+ */
+const apiRequest = async (url, { method = "POST", body, csrf, fallbackError } = {}) => {
+  const headers = { "Content-Type": "application/json" };
+  if (csrf) {
+    headers["X-CSRFToken"] = Cookies.get("csrftoken");
   }
-  return result;
-};
-
-export const updatePreferences = async (email, newsletters, options = {}) => {
-  const { marketingOptOut = false } = options;
-  const response = await fetch("/api/newsletter/preferences", {
-    method: "POST",
+  const response = await fetch(url, {
+    method,
     mode: "same-origin",
     credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": Cookies.get("csrftoken"),
-    },
-    body: JSON.stringify({ newsletters, marketingOptOut }),
+    headers,
+    body: body && JSON.stringify(body),
   });
   const result = await parseJsonResponse(response);
   if (!response.ok) {
-    throw new Error(result.error || "Failed to update preferences");
+    throw new Error(result.error || fallbackError);
   }
   return result;
 };
 
-export const updateLearningLevel = async (email, learningLevel) => {
-  const response = await fetch("/api/newsletter/learning-level", {
-    method: "POST",
-    mode: "same-origin",
-    credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": Cookies.get("csrftoken"),
-    },
-    body: JSON.stringify({ email, learningLevel }),
-  });
-  const result = await parseJsonResponse(response);
-  if (!response.ok) {
-    throw new Error(result.error || "Failed to update learning level");
-  }
-  return result;
-};
+// CSRF requirements below are verified against api/newsletter_views.py:
+// the three @csrf_protect-decorated views need a token; the two GETs do not.
 
-export const fetchUserSubscriptions = async (email) => {
-  const response = await fetch("/api/newsletter/subscriptions", {
+export const subscribeNewsletter = (data) =>
+  apiRequest("/api/newsletter/subscribe", {
+    body: data,
+    csrf: true,
+    fallbackError: "Failed to subscribe",
+  });
+
+export const updatePreferences = (newsletters, { marketingOptOut = false } = {}) =>
+  apiRequest("/api/newsletter/preferences", {
+    body: { newsletters, marketingOptOut },
+    csrf: true,
+    fallbackError: "Failed to update preferences",
+  });
+
+export const updateLearningLevel = (email, learningLevel) =>
+  apiRequest("/api/newsletter/learning-level", {
+    body: { email, learningLevel },
+    csrf: true,
+    fallbackError: "Failed to update learning level",
+  });
+
+export const fetchUserSubscriptions = () =>
+  apiRequest("/api/newsletter/subscriptions", {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    csrf: false,
+    fallbackError: "Failed to fetch subscriptions",
   });
-  const result = await parseJsonResponse(response);
-  if (!response.ok) {
-    throw new Error(result.error || "Failed to fetch subscriptions");
-  }
-  return result;
-};
 
-export const getNewsletterLists = async () => {
-  const response = await fetch("/api/newsletter/lists", {
+export const getNewsletterLists = () =>
+  apiRequest("/api/newsletter/lists", {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    csrf: false,
+    fallbackError: "Failed to fetch newsletter lists",
   });
-  const result = await parseJsonResponse(response);
-  if (!response.ok) {
-    throw new Error(result.error || "Failed to fetch newsletter lists");
-  }
-  return result;
-};

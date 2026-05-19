@@ -14,16 +14,16 @@
  * - Layout adapts appropriately
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
 const viewports = [
-  { name: 'iPhone SE', width: 375, height: 667 },
-  { name: 'iPad', width: 768, height: 1024 },
-  { name: 'Desktop', width: 1280, height: 720 },
-  { name: 'Large Desktop', width: 1920, height: 1080 },
+  { name: "iPhone SE", width: 375, height: 667 },
+  { name: "iPad", width: 768, height: 1024 },
+  { name: "Desktop", width: 1280, height: 720 },
+  { name: "Large Desktop", width: 1920, height: 1080 },
 ];
 
-test.describe('Newsletter Signup - Mobile Responsiveness', () => {
+test.describe("Newsletter Signup - Mobile Responsiveness", () => {
   viewports.forEach(({ name, width, height }) => {
     test.describe(`${name} (${width}x${height})`, () => {
       test.beforeEach(async ({ page }) => {
@@ -31,21 +31,21 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         await page.addInitScript(() => {
           document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
         });
-        await page.goto('/newsletter');
-        await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+        await page.goto("/newsletter");
+        await page.waitForSelector("#NewsletterInner", { timeout: 10000 });
         await page.waitForTimeout(500);
         await page.evaluate(() => {
-          document.querySelector('#s2')?.remove();
+          document.querySelector("#s2")?.remove();
         });
       });
 
-      test('should display form completely without horizontal scroll', async ({ page }) => {
+      test("should display form completely without horizontal scroll", async ({ page }) => {
         // Get viewport width
         const viewportWidth = await page.evaluate(() => window.innerWidth);
         expect(viewportWidth).toBe(width);
 
         // Check form is visible
-        const form = page.locator('form').first();
+        const form = page.locator("form").first();
         await expect(form).toBeVisible();
 
         // Get form width - should not exceed viewport
@@ -54,9 +54,9 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(formWidth).toBeLessThanOrEqual(viewportWidth + 20);
       });
 
-      test('should have readable text at viewport size', async ({ page }) => {
+      test("should have readable text at viewport size", async ({ page }) => {
         // Check heading is visible
-        const heading = page.locator('h2, h1').first();
+        const heading = page.locator("h2, h1").first();
         await expect(heading).toBeVisible();
 
         // Get text and verify it's readable
@@ -73,7 +73,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(fontSize).toBeGreaterThanOrEqual(12);
       });
 
-      test('should have visible and accessible form inputs', async ({ page }) => {
+      test("should have visible and accessible form inputs", async ({ page }) => {
         // Check first input is accessible (not hidden off-screen)
         const input = page.locator('form input[type="text"]').first();
 
@@ -93,9 +93,9 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         }
       });
 
-      test('should not have content cut off', async ({ page }) => {
+      test("should not have content cut off", async ({ page }) => {
         // Verify main form container is fully visible
-        const formContainer = page.locator('form').first();
+        const formContainer = page.locator("form").first();
         const isFullyInViewport = await formContainer.evaluate((el) => {
           const rect = el.getBoundingClientRect();
           return rect.width > 0 && rect.height > 0;
@@ -104,9 +104,9 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(isFullyInViewport).toBe(true);
       });
 
-      test('should have touchable target sizes on mobile', async ({ page }) => {
+      test("should have touchable target sizes on mobile", async ({ page }) => {
         // On mobile devices, tap targets should be at least 44x44px (Apple) or 48x48px (Android)
-        const buttons = page.locator('button, label.selectableOptionLabel');
+        const buttons = page.locator("button, label.selectableOptionLabel");
         const minTapSize = width < 600 ? 44 : 40; // More lenient on desktop
 
         for (let i = 0; i < Math.min(await buttons.count(), 3); i++) {
@@ -122,8 +122,8 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         }
       });
 
-      test('should render all newsletter checkboxes', async ({ page }) => {
-        const checkboxLabels = page.locator('label.selectableOptionLabel');
+      test("should render all newsletter checkboxes", async ({ page }) => {
+        const checkboxLabels = page.locator("label.selectableOptionLabel");
         const count = await checkboxLabels.count();
 
         // Should have all newsletters (currently 7, loaded from server)
@@ -136,7 +136,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         }
       });
 
-      test('should allow scrolling through long form on small screens', async ({ page }) => {
+      test("should allow scrolling through long form on small screens", async ({ page }) => {
         // Get initial scroll position
         const initialScroll = await page.evaluate(() => window.scrollY);
 
@@ -155,7 +155,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(resetScroll).toBeLessThanOrEqual(10);
       });
 
-      test('should maintain button accessibility', async ({ page }) => {
+      test("should maintain button accessibility", async ({ page }) => {
         const submitButton = page.locator('button:has-text("Submit"), button:has-text("Update Preferences")').first();
         await expect(submitButton).toBeVisible();
 
@@ -170,28 +170,28 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(size.height).toBeGreaterThanOrEqual(minHeight);
       });
 
-      test('should not have text overflow in inputs', async ({ page }) => {
+      test("should not have text overflow in inputs", async ({ page }) => {
         // Fill an input with text
         const input = page.locator('form input[type="text"]').first();
-        await input.fill('This is a test name that might be long');
+        await input.fill("This is a test name that might be long");
 
         // Check that input can contain the text
         const value = await input.inputValue();
-        expect(value).toBe('This is a test name that might be long');
+        expect(value).toBe("This is a test name that might be long");
 
         // Input should not have text overflow hidden
         const hasOverflow = await input.evaluate((el) => {
           const computed = window.getComputedStyle(el);
-          return computed.overflow === 'hidden' && computed.textOverflow === 'ellipsis';
+          return computed.overflow === "hidden" && computed.textOverflow === "ellipsis";
         });
 
         // Should either show all text or have proper overflow handling
         expect(hasOverflow || true).toBeTruthy();
       });
 
-      test('should have readable form labels', async ({ page }) => {
+      test("should have readable form labels", async ({ page }) => {
         // Check section headers are readable (form now uses section headers instead of input labels)
-        const sectionHeaders = page.locator('form h3.sectionHeader').first();
+        const sectionHeaders = page.locator("form h3.sectionHeader").first();
         const headerText = await sectionHeaders.textContent();
 
         expect(headerText).toBeTruthy();
@@ -206,15 +206,15 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(fontSize).toBeGreaterThanOrEqual(12);
       });
 
-      test('should display error messages properly at viewport size', async ({ page }) => {
+      test("should display error messages properly at viewport size", async ({ page }) => {
         // Trigger an error
         const firstInput = page.locator('form input[type="text"]').first();
         const emailInputs = page.locator('input[type="email"]');
-        const checkbox = page.locator('label.selectableOptionLabel').first();
+        const checkbox = page.locator("label.selectableOptionLabel").first();
 
-        await firstInput.fill('');
-        await emailInputs.nth(0).fill('');
-        await emailInputs.nth(1).fill('');
+        await firstInput.fill("");
+        await emailInputs.nth(0).fill("");
+        await emailInputs.nth(1).fill("");
         await checkbox.click();
 
         const submitButton = page.locator('button:has-text("Submit"), button:has-text("Update Preferences")').first();
@@ -223,7 +223,7 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         await page.waitForTimeout(500);
 
         // Error summary should be visible and readable
-        const errorSummary = page.locator('.newsletterErrorSummary');
+        const errorSummary = page.locator(".newsletterErrorSummary");
         const isVisible = await errorSummary.isVisible().catch(() => false);
 
         if (isVisible) {
@@ -239,26 +239,26 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         }
       });
 
-      test('should fill and submit form at viewport size', async ({ page }) => {
+      test("should fill and submit form at viewport size", async ({ page }) => {
         // Fill first name
-        const firstNameInput = page.locator('input#firstName');
-        await firstNameInput.fill('John');
+        const firstNameInput = page.locator("input#firstName");
+        await firstNameInput.fill("John");
 
         // Fill last name
-        const lastNameInput = page.locator('input#lastName');
+        const lastNameInput = page.locator("input#lastName");
         if (await lastNameInput.isVisible()) {
-          await lastNameInput.fill('Doe');
+          await lastNameInput.fill("Doe");
         }
 
         // Fill email and confirm email
         const emailInputs = page.locator('input[type="email"]');
-        if (await emailInputs.count() >= 2) {
-          await emailInputs.nth(0).fill('john@example.com');
-          await emailInputs.nth(1).fill('john@example.com');
+        if ((await emailInputs.count()) >= 2) {
+          await emailInputs.nth(0).fill("john@example.com");
+          await emailInputs.nth(1).fill("john@example.com");
         }
 
         // Select a newsletter
-        const checkbox = page.locator('label.selectableOptionLabel').first();
+        const checkbox = page.locator("label.selectableOptionLabel").first();
         await checkbox.click();
 
         // Submit
@@ -268,13 +268,13 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         // Should respond (either move to next stage or show validation)
         await page.waitForTimeout(1000);
 
-        const pageText = await page.textContent('body');
+        const pageText = await page.textContent("body");
         expect(pageText).toBeTruthy();
       });
 
-      test('should maintain spacing and alignment at viewport size', async ({ page }) => {
+      test("should maintain spacing and alignment at viewport size", async ({ page }) => {
         // Get form element
-        const form = page.locator('form').first();
+        const form = page.locator("form").first();
 
         // Check that form has proper padding/margin
         const computed = await form.evaluate((el) => {
@@ -290,9 +290,9 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
         expect(computed.display).toMatch(/block|flex/);
       });
 
-      test('should not have overlapping elements', async ({ page }) => {
+      test("should not have overlapping elements", async ({ page }) => {
         // Check if any form elements overlap
-        const inputs = page.locator('form input');
+        const inputs = page.locator("form input");
         const inputCount = await inputs.count();
 
         if (inputCount > 1) {
@@ -309,18 +309,20 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
     });
   });
 
-  test('should handle orientation change gracefully', async ({ page, context }) => {
+  test("should handle orientation change gracefully", async ({ page, context }) => {
     // Start in portrait
     await page.setViewportSize({ width: 375, height: 667 });
     await page.addInitScript(() => {
       document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
     });
-    await page.goto('/newsletter');
-    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
-    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.goto("/newsletter");
+    await page.waitForSelector("#NewsletterInner", { timeout: 10000 });
+    await page.evaluate(() => {
+      document.querySelector("#s2")?.remove();
+    });
 
     // Verify form is visible
-    const form = page.locator('form').first();
+    const form = page.locator("form").first();
     await expect(form).toBeVisible();
 
     // Change to landscape
@@ -337,21 +339,23 @@ test.describe('Newsletter Signup - Mobile Responsiveness', () => {
     expect(isFocused).toBe(true);
   });
 
-  test('should maintain form state across viewport changes', async ({ page }) => {
+  test("should maintain form state across viewport changes", async ({ page }) => {
     // Start at desktop size
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.addInitScript(() => {
       document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
     });
-    await page.goto('/newsletter');
-    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
-    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.goto("/newsletter");
+    await page.waitForSelector("#NewsletterInner", { timeout: 10000 });
+    await page.evaluate(() => {
+      document.querySelector("#s2")?.remove();
+    });
 
     // Fill in some data
     const input = page.locator('form input[type="text"]').first();
-    await input.fill('John');
+    await input.fill("John");
 
-    const checkbox = page.locator('label.selectableOptionLabel').first();
+    const checkbox = page.locator("label.selectableOptionLabel").first();
     await checkbox.click();
 
     // Get initial values
