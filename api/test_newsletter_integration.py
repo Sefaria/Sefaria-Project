@@ -693,3 +693,84 @@ class TestViewThroughServiceFetchSubscriptions:
         data = json.loads(response.content)
         assert data["learningLevel"] == 4
         assert data["subscribedNewsletters"] == ["sefaria_news"]
+
+
+class TestViewThroughServiceSubscribe:
+    """
+    POST /api/newsletter/subscribe (logged-out subscription flow).
+    Full service logic runs end-to-end — verifies that find_or_create_contact
+    actually creates a brand-new AC contact when the submitted email isn't
+    already registered with AC, and that the new contact is then subscribed
+    to the selected lists.
+    """
+
+    @mock.patch("api.newsletter_service._client.make_request")
+    @mock.patch("api.newsletter_service.get_cached_newsletter_list")
+    def test_subscribe_creates_new_ac_contact_for_unknown_email(
+        self,
+        mock_get_list,
+        mock_ac_request,
+        client,
+    ):
+        """
+        New logged-out signup with an unknown email:
+          1. AC search by email returns empty → forces the create branch
+          2. POST /contacts creates a new contact (assertion target)
+          3. New contact's ID is used to subscribe to the selected lists
+        """
+        mock_get_list.return_value = _MANAGED_NEWSLETTERS
+
+        new_contact_id = "55501"
+        new_email = "brand-new-user@example.com"
+
+        def side_effect(endpoint, method="GET", data=None):
+            if "contacts?filters" in endpoint:
+                # Empty search result → find_or_create_contact takes the create branch
+                return {"contacts": []}
+            if endpoint == "contacts" and method == "POST":
+                # AC's response to the create POST
+                return {"contact": {"id": new_contact_id, "email": new_email}}
+            if "contactLists" in endpoint and method == "GET":
+                # Brand-new contact has no existing list memberships
+                return {"contactLists": []}
+            return {}
+
+        mock_ac_request.side_effect = side_effect
+
+        response = client.post(
+            "/api/newsletter/subscribe",
+            json.dumps(
+                {
+                    "firstName": "First",
+                    "lastName": "Last",
+                    "email": new_email,
+                    "newsletters": {"sefaria_news": True},
+                }
+            ),
+            content_type="application/json",
+        )
+
+        assert response.status_code == 200
+
+        # Assertion 1: a POST to /contacts was actually issued.
+        create_calls = [
+            call
+            for call in mock_ac_request.call_args_list
+            if call.args
+            and call.args[0] == "contacts"
+            and call.kwargs.get("method") == "POST"
+        ]
+        assert len(create_calls) == 1, (
+            f"Expected exactly one POST to /contacts; saw endpoints: "
+            f"{[c.args[0] for c in mock_ac_request.call_args_list if c.args]}"
+        )
+
+        # Assertion 2: the create POST payload carried the submitted name + email.
+        create_data = create_calls[0].kwargs["data"]
+        assert create_data["contact"]["email"] == new_email
+        assert create_data["contact"]["firstName"] == "First"
+        assert create_data["contact"]["lastName"] == "Last"
+
+        # Assertion 3: the new contact ID was then used to subscribe to list 1.
+        added, _ = _extract_list_mutations(mock_ac_request)
+        assert "1" in added, "New contact should be subscribed to list 1 (sefaria_news)"
