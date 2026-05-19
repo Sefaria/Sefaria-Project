@@ -127,7 +127,7 @@ class TestVersionBulkEditAPI:
             data=json.dumps({
                 'versionTitle': 'NonexistentVersion12345',
                 'language': 'en',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
                 'updates': {'license': 'CC-BY'}
             }),
             content_type='application/json'
