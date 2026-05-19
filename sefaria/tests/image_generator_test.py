@@ -4,7 +4,7 @@ import pytest
 from bidi.algorithm import get_display
 
 from sefaria import image_generator
-from sefaria.image_generator import generate_image, palette, platforms
+from sefaria.image_generator import generate_image, get_category_colors, palette, platforms
 
 
 def _pixel_variance(img, box):
@@ -100,6 +100,20 @@ def _assert_logo_rendered(img):
             "en",
             "twitter",
         ),
+        (
+            "And the king said to the wise men who knew the times.",
+            "Second Temple",
+            "Esther 1:13",
+            "en",
+            "facebook",
+        ),
+        (
+            "Explore Jewish texts, translations, commentaries, and source sheets.",
+            "Static",
+            "Sefaria",
+            "en",
+            "facebook",
+        ),
     ],
 )
 def test_generate_social_image_smoke(text, category, ref_str, lang, platform):
@@ -127,6 +141,27 @@ def test_generate_social_image_renders_logo_in_header():
     )
 
     _assert_logo_rendered(img)
+
+
+def test_generate_social_image_renders_unknown_category_with_stable_fallback_color():
+    category = "New Category"
+    img = generate_image(
+        text="A new category should still produce a usable social image.",
+        category=category,
+        ref_str="New Category 1",
+        lang="en",
+        platform="facebook",
+    )
+
+    expected_bg, _ = get_category_colors(category)
+    assert img.getpixel((100, 200))[:3] == expected_bg
+    _assert_text_rendered(img)
+    _assert_logo_rendered(img)
+
+
+def test_unknown_category_color_fallback_is_deterministic():
+    assert get_category_colors("New Category") == get_category_colors("New Category")
+    assert get_category_colors("New Category") != palette["System"]
 
 
 def test_hebrew_text_keeps_logical_order_when_pillow_supports_rtl(monkeypatch):

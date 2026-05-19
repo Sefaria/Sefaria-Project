@@ -20,14 +20,45 @@ palette = { # [(bg), (font)]
     "Chasidut":    [(151, 179, 134), (0, 0, 0)],
     "Musar":    [(124, 65, 111), (255, 255, 255)],
     "Responsa":    [(203, 97, 88), (255, 255, 255)],
+    "Second Temple": [(198, 167, 180), (0, 0, 0)],
     "Quoting Commentary": [(203, 97, 88), (255, 255, 255)],
     "Sheets":    [(24, 52, 93), (255, 255, 255)],
     "Sheet":    [(24, 52, 93), (255, 255, 255)],
     "Targum":    [(59, 88, 73), (255, 255, 255)],
     "Modern Commentary":    [(184, 212, 211), (255, 255, 255)],
     "Reference":    [(212, 137, 108), (255, 255, 255)],
-    "System":    [(24, 52, 93), (255, 255, 255)]
+    "System":    [(24, 52, 93), (255, 255, 255)],
+    "Static":    [(0, 80, 94), (255, 255, 255)]
 }
+
+fallback_palette_colors = [
+    (0, 78, 95),
+    (124, 65, 111),
+    (93, 149, 111),
+    (154, 184, 203),
+    (72, 113, 191),
+    (203, 97, 88),
+    (199, 167, 180),
+    (7, 53, 112),
+    (171, 78, 102),
+    (127, 133, 169),
+    (204, 180, 121),
+    (89, 65, 118),
+    (90, 153, 183),
+    (151, 179, 134),
+    (128, 47, 62),
+    (0, 130, 127),
+    (184, 212, 211),
+    (212, 137, 108),
+]
+
+
+def get_category_colors(category):
+    if category in palette:
+        return palette[category]
+    category = category if isinstance(category, str) else ""
+    index = sum(ord(char) for char in category) % len(fallback_palette_colors)
+    return [fallback_palette_colors[index], (255, 255, 255)]
 
 platforms = {
     "facebook": {
@@ -130,8 +161,7 @@ def cleanup_and_format_text(text, language):
 
 
 def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
-    text_color = palette[category][1]
-    bg_color = palette[category][0]
+    bg_color, text_color = get_category_colors(category)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -166,7 +196,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
 
     #category line
-    draw.line(cat_border_pos, fill=palette[category][0], width=int(width*.02))
+    draw.line(cat_border_pos, fill=bg_color, width=int(width*.02))
 
     #header white
     draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
