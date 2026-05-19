@@ -42,7 +42,10 @@ export { default as BulkVersionEditor } from './components/BulkVersionEditor';
 // export { default as NodeTitleEditor } from './components/NodeTitleEditor';
 
 // Shared components
-export * from './components/shared';
+export { default as ModToolsSection } from './components/shared/ModToolsSection';
+export { default as StatusMessage } from './components/shared/StatusMessage';
+export { default as IndexSelector } from './components/shared/IndexSelector';
+export { default as HelpButton } from './components/shared/HelpButton';
 
 // Constants
 export * from './constants/fieldMetadata';

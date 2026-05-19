@@ -63,6 +63,16 @@ const splitCsvByIndex = (text, sourceName = 'upload.csv') => {
   const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
   const rows = parsed.data || [];
 
+  const fatalParseErrors = (parsed.errors || []).filter(
+    (e) => e.type === 'Quotes' || e.type === 'Delimiter'
+  );
+  if (fatalParseErrors.length > 0) {
+    const first = fatalParseErrors[0];
+    const where = first.row != null ? ` on row ${first.row + 1}` : '';
+    result.error = `CSV parse error${where}: ${first.message}`;
+    return result;
+  }
+
   if (rows.length === 0) {
     result.error = 'CSV is empty';
     return result;

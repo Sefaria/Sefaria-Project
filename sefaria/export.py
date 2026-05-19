@@ -714,7 +714,7 @@ def import_versions_from_file(csv_filename, columns, user_id):
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
 def _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=False):
