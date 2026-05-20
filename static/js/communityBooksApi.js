@@ -13,6 +13,7 @@ import Cookies from "js-cookie";
 // ---------------------------------------------------------------------------
 // Feature flag: switch to false once the backend is live
 // ---------------------------------------------------------------------------
+// TODO(SC-44454): Set USE_MOCKS to false when backend API endpoints are deployed
 const USE_MOCKS = true;
 
 // ---------------------------------------------------------------------------

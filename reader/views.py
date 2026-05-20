@@ -1157,6 +1157,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
     })
 
 
+@login_required
 @ensure_csrf_cookie
 def community_upload_page(request):
     title = _("Upload Your Book")
