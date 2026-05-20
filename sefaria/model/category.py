@@ -235,6 +235,8 @@ class TocTree(object):
         for i in indx_set:
             if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                 continue
+            if getattr(i, 'communityBook', None) is not None:
+                continue
             node = self._make_index_node(i, mobile=mobile)
             cat = self.lookup(i.categories)
             if not cat:
