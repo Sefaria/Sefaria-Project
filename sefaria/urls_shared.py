@@ -7,6 +7,7 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import sefaria.views as sefaria_views
+import api.community_books as community_book_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
 from sefaria.heapdump import heapdump_view
@@ -144,6 +145,10 @@ shared_patterns = [
     path('api/sheets/upload-image', sheets_views.upload_sheet_media),
     re_path(r'^api/sheets/next-untagged/?$', sheets_views.next_untagged),
     re_path(r'^api/sheets/next-uncategorized/?$', sheets_views.next_uncategorized),
+
+    # Community Books API
+    path('api/community-books/upload', community_book_views.upload, name='community_books_upload'),
+    path('api/community-books/confirm', community_book_views.confirm, name='community_books_confirm'),
 
     path('api/collections/user-collections/<int:user_id>', sheets_views.user_collections_api),
     path('api/collections/upload', sefaria_views.collections_image_upload),
