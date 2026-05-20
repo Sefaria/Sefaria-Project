@@ -121,6 +121,7 @@ const communityBookFilter = (currFilter, book) => {
   for (let field of ['sheet_title', 'sheet_summary', 'publisher_name']) {
     if (n(book[field]).indexOf(currFilter) > -1) { return true; }
   }
+  return false;
 };
 
 
@@ -193,6 +194,7 @@ const communityBookSort = (currSortOption, a, b) => {
   } else if (currSortOption === 'Newest') {
     if (b.order.dateCreated < a.order.dateCreated) { return -1; }
     if (a.order.dateCreated < b.order.dateCreated) { return 1; }
+    return 0;
   } else {
     if (b.order.relevance === a.order.relevance) { return b.order.views - a.order.views; }
     return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
