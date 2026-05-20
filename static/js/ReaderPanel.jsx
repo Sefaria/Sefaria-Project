@@ -42,6 +42,7 @@ import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
 import {SheetsHomePage} from "./sheets/SheetsHomePage";
 import CommunityUploadPage from './CommunityUploadPage';
+import CommunityUploadGuidePage from './CommunityUploadGuidePage';
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import GuideOverlay from './GuideOverlay';
@@ -1118,6 +1119,10 @@ class ReaderPanel extends Component {
           toggleLanguage={this.toggleLanguage}
           toggleSignUpModal={this.props.toggleSignUpModal}
         />
+      );
+    } else if (this.state.menuOpen === "communityUploadGuide") {
+      menu = (
+        <CommunityUploadGuidePage />
       );
     } else if (this.state.menuOpen === "profile") {
       menu = (
