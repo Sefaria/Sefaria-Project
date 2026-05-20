@@ -292,6 +292,9 @@ Sefaria = extend(Sefaria, {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
     if (deriveIfNotFound && !oref) { //couldn't find `ref` in cache so try to derive it
+        if (typeof ref === "string" && ref.indexOf(":") !== -1) {
+            return ref.replace(/_/g, " ").split(":").slice(0, -1).join(":");
+        }
         const humanRefForm = Sefaria.humanRef(ref);
         if (!!humanRefForm && humanRefForm.length > 0) {
             return humanRefForm.split(":")[0]; // "Genesis 3:3" yields "Genesis 3"
@@ -614,6 +617,24 @@ Sefaria = extend(Sefaria, {
     // ref is segment ref or bottom level section ref
     // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
+    if (url in Sefaria._textsStore) {
+        return Sefaria._textsStore[url];
+    }
+    const persistentObject = await Sefaria._persistentTextsStore.get(url).catch(() => undefined);
+    if (typeof persistentObject !== 'undefined') {
+        Sefaria._textsStore[url] = persistentObject;
+        Sefaria._buildLinkerOutputMap(persistentObject?.linker_output);
+        return persistentObject;
+    }
+    const sectionObject = await Sefaria._getAPIV3SegmentFromSectionCache(ref, requiredVersions, mergeText, return_format);
+    if (typeof sectionObject !== 'undefined') {
+        Sefaria._textsStore[url] = sectionObject;
+        Promise.resolve()
+            .then(() => Sefaria._persistentTextsStore.put(url, sectionObject))
+            .catch(() => undefined);
+        Sefaria._buildLinkerOutputMap(sectionObject?.linker_output);
+        return sectionObject;
+    }
     const apiObject = await Sefaria._cachedApiPromise({
         url: url,
         key: url,
@@ -622,6 +643,55 @@ Sefaria = extend(Sefaria, {
     });
     Sefaria._buildLinkerOutputMap(apiObject?.linker_output);
     return apiObject;
+  },
+  _getAPIV3SegmentFromSectionCache: async function(ref, requiredVersions, mergeText, return_format) {
+      const sectionRef = Sefaria.sectionRef(ref, true);
+      if (!sectionRef || sectionRef === ref) { return undefined; }
+      const sectionUrl = Sefaria.makeUrlForAPIV3Text(sectionRef, requiredVersions, mergeText, return_format);
+      let sectionData = Sefaria._textsStore[sectionUrl];
+      if (typeof sectionData === 'undefined') {
+          sectionData = await Sefaria._persistentTextsStore.get(sectionUrl).catch(() => undefined);
+      }
+      if (typeof sectionData === 'undefined') { return undefined; }
+      const segmentData = Sefaria._extractAPIV3SegmentFromSection(ref, sectionData);
+      if (typeof segmentData !== 'undefined') {
+          Sefaria._textsStore[sectionUrl] = sectionData;
+      }
+      return segmentData;
+  },
+  _segmentNumberFromRef: function(ref) {
+      const parsedRef = Sefaria.parseRef(ref);
+      if (!("error" in parsedRef) && parsedRef.sections && parsedRef.sections.length) {
+          return parsedRef.sections[parsedRef.sections.length - 1];
+      }
+      const match = Sefaria.humanRef(ref).match(/[:.](\d+)$/);
+      return match ? parseInt(match[1]) : null;
+  },
+  _extractAPIV3SegmentFromSection: function(ref, sectionData) {
+      if (!sectionData || sectionData.textDepth === sectionData.sections?.length) { return undefined; }
+      const segmentNumber = Sefaria._segmentNumberFromRef(ref);
+      if (!segmentNumber) { return undefined; }
+      const offset = Sefaria._get_offsets(sectionData)[0] || 0;
+      const segmentIndex = segmentNumber - 1 - offset;
+      if (segmentIndex < 0) { return undefined; }
+      const segmentData = Sefaria.util.clone(sectionData);
+      segmentData.ref = Sefaria.humanRef(ref).replace(/_/g, " ");
+      segmentData.sections = (sectionData.sections || []).concat(segmentNumber);
+      segmentData.toSections = (sectionData.sections || []).concat(segmentNumber);
+      segmentData.sectionRef = sectionData.ref;
+      if (Array.isArray(segmentData.versions)) {
+          segmentData.versions = segmentData.versions.map(version => {
+              const segmentVersion = Sefaria.util.clone(version);
+              if (Array.isArray(version.text)) {
+                  segmentVersion.text = version.text[segmentIndex] || "";
+              }
+              if (Array.isArray(version.sources)) {
+                  segmentVersion.sources = version.sources[segmentIndex] || "";
+              }
+              return segmentVersion;
+          });
+      }
+      return segmentData;
   },
   _makeV3VersionsUrlCacheKey: function(ref, versions) {
     versions.map(version => version.isPrimary ? { languageFamilyName: 'primary' } : version);
@@ -909,6 +979,25 @@ Sefaria = extend(Sefaria, {
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
+        const persistentVersions = await this._persistentVersionsStore.get(url).catch(() => undefined);
+        if (typeof persistentVersions !== 'undefined') {
+            this._cacheVersionsResponse(ref, persistentVersions);
+            return Promise.resolve(this._versions[ref]);
+        }
+        const sectionRef = Sefaria.sectionRef(ref, true);
+        if (sectionRef && sectionRef !== ref) {
+            const sectionUrl = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(sectionRef);
+            const sectionVersions = sectionRef in this._versions ?
+                this._versions[sectionRef] :
+                await this._persistentVersionsStore.get(sectionUrl).catch(() => undefined);
+            if (typeof sectionVersions !== 'undefined') {
+                this._cacheVersionsResponse(ref, sectionVersions);
+                Promise.resolve()
+                    .then(() => this._persistentVersionsStore.put(url, this._versions[ref]))
+                    .catch(() => undefined);
+                return Promise.resolve(this._versions[ref]);
+            }
+        }
         await this._cachedApiPromise({
             url,
             key: ref,
@@ -1052,25 +1141,84 @@ Sefaria = extend(Sefaria, {
       await Sefaria.relatedApi(ref);
       return ref;
   },
-  downloadBookForOffline: async function(bookTitle, {onProgress, concurrency=Sefaria._offlineDownloadConcurrency, currVersions={}, translationLanguagePreference=null}={}) {
+  _commentaryTitleForOption: function(commentary) {
+      return commentary.collectiveTitle?.en || commentary.collectiveTitle || commentary.title;
+  },
+  _commentaryLinkMatchesSelection: function(link, selectedCommentaries) {
+      if (!selectedCommentaries || !selectedCommentaries.length) { return false; }
+      if (link.category !== "Commentary") { return false; }
+      const selected = new Set(selectedCommentaries);
+      return selected.has(link.index_title) || selected.has(link?.collectiveTitle?.en);
+  },
+  _commentaryOptionFromLink: function(link) {
+      if (link.category !== "Commentary") { return null; }
+      const title = link?.collectiveTitle?.en || link.index_title;
+      if (!title) { return null; }
+      return {
+          title,
+          heTitle: link?.collectiveTitle?.he || link.index_title,
+          fullTitle: link.index_title,
+      };
+  },
+  _relatedLinksAndCommentariesForDownload: async function(sectionRefs) {
+      let links = [];
+      const commentariesByTitle = {};
+      for (let sectionRef of sectionRefs) {
+          const relatedData = await Sefaria.relatedApi(sectionRef);
+          const sectionLinks = relatedData?.links || Sefaria.getLinksFromCache(sectionRef) || [];
+          links = links.concat(sectionLinks);
+          sectionLinks.forEach(link => {
+              const commentary = Sefaria._commentaryOptionFromLink(link);
+              if (!commentary) { return; }
+              if (!commentariesByTitle[commentary.title]) {
+                  commentariesByTitle[commentary.title] = commentary;
+              }
+          });
+      }
+      return {
+          links,
+          availableCommentaries: Object.values(commentariesByTitle).sort((a, b) => a.title.localeCompare(b.title)),
+      };
+  },
+  _commentarySectionRefsForDownload: async function(sectionRefs, selectedCommentaries=[]) {
+      if (!selectedCommentaries.length) { return []; }
+      const {links} = await Sefaria._relatedLinksAndCommentariesForDownload(sectionRefs);
+      const commentaryRefs = links
+          .filter(link => Sefaria._commentaryLinkMatchesSelection(link, selectedCommentaries))
+          .map(link => Sefaria.sectionRef(link.sourceRef, true) || Sefaria.zoomOutRef(link.sourceRef))
+          .filter(ref => !!ref);
+      return commentaryRefs.unique();
+  },
+  downloadBookForOffline: async function(bookTitle, {onProgress, concurrency=Sefaria._offlineDownloadConcurrency, currVersions={}, translationLanguagePreference=null, commentaries=[]}={}) {
       const indexDetails = await Sefaria.downloadIndexDetailsForOffline(bookTitle);
       await Sefaria.cacheOfflineUrls(Sefaria._offlineShellAssetUrls().concat(Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails)));
       const refs = Sefaria._sectionRefsFromSchema(indexDetails.schema, indexDetails.title || bookTitle).unique();
+      const {availableCommentaries} = await Sefaria._relatedLinksAndCommentariesForDownload(refs);
+      const commentaryRefs = await Sefaria._commentarySectionRefsForDownload(refs, commentaries);
+      const refsToDownload = refs.concat(commentaryRefs).unique();
       let completed = 0;
-      onProgress && onProgress({bookTitle, total: refs.length, completed, currentRef: null});
-      for (let i = 0; i < refs.length; i += concurrency) {
-          const batch = refs.slice(i, i + concurrency);
+      onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: null});
+      for (let i = 0; i < refsToDownload.length; i += concurrency) {
+          const batch = refsToDownload.slice(i, i + concurrency);
           await Promise.all(batch.map(ref => Sefaria._downloadRefForOffline(ref, {currVersions, translationLanguagePreference}).then(() => {
               completed++;
-              onProgress && onProgress({bookTitle, total: refs.length, completed, currentRef: ref});
+              onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: ref});
           })));
       }
       await Sefaria._persistentTextsStore.putDownloadedBook({
           title: bookTitle,
           sectionRefs: refs,
+          commentaryRefs,
+          commentaries,
+          availableCommentaries,
+          commentaryListCollected: true,
           urls: Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails),
       });
-      return {bookTitle, total: refs.length, completed};
+      return {bookTitle, total: refsToDownload.length, completed, availableCommentaries};
+  },
+  getOfflineBookDownloadInfo: async function(bookTitle) {
+      if (!Sefaria._persistentTextsStore.getDownloadedBook) { return undefined; }
+      return await Sefaria._persistentTextsStore.getDownloadedBook(bookTitle);
   },
   _portals: {},
   getPortal: async function(portalSlug) {
@@ -2498,6 +2646,7 @@ _media: {},
       },
     }).then(data => {
       if (data && callback) { callback(data); }
+      return data;
     });
   },
   _relatedPrivate: {},
@@ -2832,13 +2981,14 @@ _media: {},
     }
     var results = [];
     for (var i=0; i < toc.length; i++) {
-        var curTocElem = toc[i];
-        if (curTocElem.title) { //this is a book
-            if(curTocElem.dependence == 'Commentary'){
-                if((title && curTocElem.base_text_titles && (title in curTocElem.refs_to_base_texts)) || (title == null)){
-                    results.push(curTocElem);
-                }
-            }
+	        var curTocElem = toc[i];
+	        if (curTocElem.title) { //this is a book
+	            if(curTocElem.dependence == 'Commentary'){
+	                const refsToBaseTexts = curTocElem.refs_to_base_texts || {};
+	                if((title && curTocElem.base_text_titles && (title in refsToBaseTexts)) || (title == null)){
+	                    results.push(curTocElem);
+	                }
+	            }
         } else if (curTocElem.contents) { //this is still a category and might have books under it
           results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }

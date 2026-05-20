@@ -117,6 +117,16 @@ export class PersistentApiCache {
     }
   }
 
+  async getDownloadedBook(title) {
+    try {
+      const db = this._getDB();
+      if (!db) { return undefined; }
+      return await db.downloadedBooks.get(title);
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   async _enforceMaxRows(db) {
     try {
       if (!this.maxRows) { return; }

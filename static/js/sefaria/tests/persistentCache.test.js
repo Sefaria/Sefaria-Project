@@ -112,5 +112,9 @@ describe("PersistentApiCache", function() {
       urls: ['/texts', '/texts/Tanakh', '/Genesis?tab=contents'],
       schemaVersion: cache.schemaVersion,
     }]);
+    await expect(cache.getDownloadedBook('Genesis')).resolves.toMatchObject({
+      title: 'Genesis',
+      sectionRefs: ['Genesis 1'],
+    });
   });
 });

@@ -17,11 +17,13 @@ describe("offline book download helpers", function() {
   const originalApiHost = Sefaria.apiHost;
   const originalVirtualBooks = Sefaria.virtualBooks;
   const originalBooksDict = Sefaria.booksDict;
+  const originalToc = Sefaria.toc;
 
   beforeEach(function() {
     Sefaria.apiHost = '';
     Sefaria.virtualBooks = [];
     Sefaria.booksDict = {Genesis: 1};
+    Sefaria.toc = originalToc;
     Sefaria.cacheOfflineUrls = jest.fn(() => Promise.resolve());
     Sefaria._persistentTextsStore = {
       putDownloadedBook: jest.fn(() => Promise.resolve()),
@@ -44,6 +46,7 @@ describe("offline book download helpers", function() {
     Sefaria.apiHost = originalApiHost;
     Sefaria.virtualBooks = originalVirtualBooks;
     Sefaria.booksDict = originalBooksDict;
+    Sefaria.toc = originalToc;
     jest.clearAllMocks();
   });
 
@@ -93,10 +96,11 @@ describe("offline book download helpers", function() {
       },
     }));
     Sefaria._downloadRefForOffline = jest.fn(ref => Promise.resolve(ref));
+    Sefaria.relatedApi = jest.fn(() => Promise.resolve({links: []}));
     const currVersions = {en: {languageFamilyName: 'translation'}};
 
     await expect(Sefaria.downloadBookForOffline('Genesis', {onProgress: progress, concurrency: 1, currVersions}))
-      .resolves.toEqual({bookTitle: 'Genesis', total: 2, completed: 2});
+      .resolves.toEqual({bookTitle: 'Genesis', total: 2, completed: 2, availableCommentaries: []});
 
     expect(Sefaria._downloadRefForOffline).toHaveBeenCalledWith('Genesis 1', {
       currVersions,
@@ -121,6 +125,10 @@ describe("offline book download helpers", function() {
     expect(Sefaria._persistentTextsStore.putDownloadedBook).toHaveBeenCalledWith({
       title: 'Genesis',
       sectionRefs: ['Genesis 1', 'Genesis 2'],
+      commentaryRefs: [],
+      commentaries: [],
+      availableCommentaries: [],
+      commentaryListCollected: true,
       urls: [
         '/texts',
         '/texts/Tanakh',
@@ -128,6 +136,73 @@ describe("offline book download helpers", function() {
         '/Genesis?tab=contents',
       ],
     });
+  });
+
+  it("downloads selected commentaries by section ref", async function() {
+    Sefaria.downloadIndexDetailsForOffline = jest.fn(() => Promise.resolve({
+      title: 'Genesis',
+      schema: {
+        nodeType: 'JaggedArrayNode',
+        depth: 2,
+        addressTypes: ['Integer', 'Integer'],
+        content_counts: [31],
+      },
+    }));
+    Sefaria.relatedApi = jest.fn(() => Promise.resolve({
+      links: [{
+        category: 'Commentary',
+        index_title: 'Ibn Ezra on Genesis',
+        collectiveTitle: {en: 'Ibn Ezra', he: 'אבן עזרא'},
+        sourceRef: 'Ibn Ezra on Genesis 1:3',
+      }, {
+        category: 'Commentary',
+        index_title: 'Rashi on Genesis',
+        collectiveTitle: {en: 'Rashi', he: 'רש״י'},
+        sourceRef: 'Rashi on Genesis 1:1',
+      }],
+    }));
+    Sefaria._downloadRefForOffline = jest.fn(ref => Promise.resolve(ref));
+
+    await expect(Sefaria.downloadBookForOffline('Genesis', {concurrency: 1, commentaries: ['Ibn Ezra']}))
+      .resolves.toEqual({
+        bookTitle: 'Genesis',
+        total: 2,
+        completed: 2,
+        availableCommentaries: [
+          {title: 'Ibn Ezra', heTitle: 'אבן עזרא', fullTitle: 'Ibn Ezra on Genesis'},
+          {title: 'Rashi', heTitle: 'רש״י', fullTitle: 'Rashi on Genesis'},
+        ],
+      });
+
+    expect(Sefaria._downloadRefForOffline).toHaveBeenCalledWith('Genesis 1', {
+      currVersions: {},
+      translationLanguagePreference: null,
+    });
+    expect(Sefaria._downloadRefForOffline).toHaveBeenCalledWith('Ibn Ezra on Genesis 1', {
+      currVersions: {},
+      translationLanguagePreference: null,
+    });
+    expect(Sefaria._persistentTextsStore.putDownloadedBook).toHaveBeenCalledWith(expect.objectContaining({
+      commentaryRefs: ['Ibn Ezra on Genesis 1'],
+      commentaries: ['Ibn Ezra'],
+      availableCommentaries: [
+        {title: 'Ibn Ezra', heTitle: 'אבן עזרא', fullTitle: 'Ibn Ezra on Genesis'},
+        {title: 'Rashi', heTitle: 'רש״י', fullTitle: 'Rashi on Genesis'},
+      ],
+    }));
+  });
+
+  it("does not crash when commentary TOC entries are missing refs_to_base_texts", function() {
+    Sefaria.toc = [{
+      category: 'Commentary',
+      contents: [{
+        title: 'Sparse Commentary',
+        dependence: 'Commentary',
+        base_text_titles: ['Genesis'],
+      }],
+    }];
+
+    expect(Sefaria.commentaryList('Genesis')).toEqual([]);
   });
 
   it("persists index details for offline book contents pages", async function() {
