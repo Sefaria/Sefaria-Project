@@ -1,0 +1,38 @@
+.sefaria-hello-world-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px auto;
+}
+
+.sefaria-hello-world-marker-msg {
+  font-size: 16px;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
+}
+
+.sefaria-hello-world-marker-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #1a73e8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sefaria-hello-world-marker-btn:hover {
+  background-color: #1558b8;
+}
+
+.sefaria-hello-world-marker-btn:active {
+  background-color: #0f3f8a;
+}
+
+.sefaria-hello-world-marker-btn:disabled {
+  background-color: #6b8aa8;
+  cursor: default;
+}
