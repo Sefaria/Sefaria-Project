@@ -223,6 +223,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication",           # (dict) Dedication texts, keyed by language
         "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
         "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
+        "communityBook",        # (dict) Community book metadata: {status, submittedBy, submittedAt, reviewedBy, rejectionReason}
     ]
 
     def __str__(self):
@@ -235,6 +236,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if DISABLE_INDEX_SAVE:
             raise InputError("Index saving has been disabled on this system.")
         return super(Index, self).save(override_dependencies=override_dependencies)
+
+    @property
+    def is_community_book(self):
+        return getattr(self, 'communityBook', None) is not None
 
     def _set_derived_attributes(self):
         if getattr(self, "schema", None):
@@ -794,6 +799,18 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for author_slug in self.authors:
                 topic = Topic.init(author_slug)
                 assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
+
+        if getattr(self, 'communityBook', None) is not None:
+            cb = self.communityBook
+            if not isinstance(cb, dict):
+                raise InputError("communityBook must be a dict")
+            valid_statuses = ["submitted", "approved", "rejected", "withdrawn"]
+            if cb.get("status") not in valid_statuses:
+                raise InputError("communityBook.status must be one of: {}".format(", ".join(valid_statuses)))
+            if not cb.get("submittedBy") or not cb.get("submittedAt"):
+                raise InputError("communityBook requires submittedBy and submittedAt")
+            if cb.get("status") == "rejected" and not cb.get("rejectionReason"):
+                raise InputError("Rejected community books must have a rejectionReason")
 
         return True
 
