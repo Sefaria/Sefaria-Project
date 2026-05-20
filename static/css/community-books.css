@@ -27,11 +27,19 @@
   gap: 6px;
 }
 
-.communityUploadPage .formField label {
+.communityUploadPage .formField label,
+.communityUploadPage .formField legend,
+.communityUploadPage .formField > span[id] {
   font-size: 14px;
   font-weight: 600;
   color: #18345a;
   font-family: sans-serif;
+}
+
+.communityUploadPage fieldset.formField {
+  border: none;
+  margin: 0;
+  padding: 0;
 }
 
 .communityUploadPage .formField input[type="text"],
@@ -86,7 +94,7 @@
 }
 
 /* File upload area */
-.communityUploadPage .fileUploadArea {
+.communityUploadPage .fileUpload {
   border: 2px dashed #c8c8c8;
   border-radius: 4px;
   padding: 32px 24px;
@@ -96,30 +104,49 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.communityUploadPage .fileUploadArea:hover,
-.communityUploadPage .fileUploadArea.dragOver {
+.communityUploadPage .fileUpload:hover,
+.communityUploadPage .fileUpload.dragOver {
   border-color: #18345a;
   background: #f0f4fa;
 }
 
-.communityUploadPage .fileUploadArea .uploadIcon {
+.communityUploadPage .fileUpload.hasFile {
+  border-color: #18345a;
+  background: #f0f4fa;
+}
+
+.communityUploadPage .formField.hasError .fileUpload {
+  border-color: #e53e3e;
+}
+
+.communityUploadPage .fileUpload .uploadIcon {
   font-size: 32px;
   margin-bottom: 8px;
   color: #666;
 }
 
-.communityUploadPage .fileUploadArea .uploadPrompt {
+.communityUploadPage .fileUpload .uploadPrompt {
   font-size: 15px;
   color: #555;
   margin-bottom: 4px;
 }
 
-.communityUploadPage .fileUploadArea .uploadHint {
+.communityUploadPage .fileUpload .uploadHint {
   font-size: 12px;
   color: #999;
 }
 
-.communityUploadPage .fileUploadArea input[type="file"] {
+.communityUploadPage .fileUpload .fileName {
+  color: #18345a;
+  font-weight: 600;
+}
+
+.communityUploadPage .fileUpload .fileSize {
+  font-weight: 400;
+  color: #555;
+}
+
+.communityUploadPage .fileUpload input[type="file"] {
   display: none;
 }
 

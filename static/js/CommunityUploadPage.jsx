@@ -175,7 +175,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <div className="successMessage">
+              <div className="successMessage" role="status">
                 <strong>
                   <InterfaceText text={{ en: 'Book Submitted!', he: 'הספר הוגש בהצלחה!' }} />
                 </strong>
@@ -211,7 +211,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
               </h1>
 
               {error && (
-                <div className="errorBanner">
+                <div className="errorBanner" role="alert">
                   {error}{' '}
                   <a href="/contact">
                     <InterfaceText text={{ en: 'Contact Us', he: 'צרו קשר' }} />
@@ -285,7 +285,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
             </h1>
 
             {error && (
-              <div className="errorBanner">
+              <div className="errorBanner" role="alert">
                 {error}{' '}
                 <a href="/contact">
                   <InterfaceText text={{ en: 'Contact Us', he: 'צרו קשר' }} />
@@ -307,9 +307,11 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
                   placeholder="Enter English title"
+                  aria-describedby={validationErrors.titleEn ? 'titleEn-error' : undefined}
+                  aria-invalid={!!validationErrors.titleEn}
                 />
                 {validationErrors.titleEn && (
-                  <span className="fieldError">{validationErrors.titleEn}</span>
+                  <span id="titleEn-error" className="fieldError" role="alert">{validationErrors.titleEn}</span>
                 )}
               </div>
 
@@ -326,17 +328,19 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   onChange={(e) => setTitleHe(e.target.value)}
                   placeholder="הכנס כותרת עברית"
                   dir="rtl"
+                  aria-describedby={validationErrors.titleHe ? 'titleHe-error' : undefined}
+                  aria-invalid={!!validationErrors.titleHe}
                 />
                 {validationErrors.titleHe && (
-                  <span className="fieldError">{validationErrors.titleHe}</span>
+                  <span id="titleHe-error" className="fieldError" role="alert">{validationErrors.titleHe}</span>
                 )}
               </div>
 
               {/* Structure type */}
-              <div className="formField">
-                <label>
+              <fieldset className="formField">
+                <legend>
                   <InterfaceText text={{ en: 'Structure Type', he: 'סוג המבנה' }} />
-                </label>
+                </legend>
                 <div className="radioGroup">
                   <label>
                     <input
@@ -359,7 +363,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                     <InterfaceText text={{ en: 'Chapters + Sections', he: 'פרקים וסעיפים' }} />
                   </label>
                 </div>
-              </div>
+              </fieldset>
 
               {/* Language of text */}
               <div className="formField">
@@ -405,10 +409,10 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
               </div>
 
               {/* Topics */}
-              <div className="formField">
-                <label>
+              <div className="formField" role="group" aria-labelledby="topics-label">
+                <span id="topics-label">
                   <InterfaceText text={{ en: 'Topics', he: 'נושאים' }} />
-                </label>
+                </span>
                 <ReactTags
                   allowNew={false}
                   tags={topics}
@@ -434,14 +438,8 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current && fileInputRef.current.click(); }}
-                  style={{
-                    border: '2px dashed ' + (validationErrors.file ? '#e53e3e' : hasFile ? '#18345a' : '#c8c8c8'),
-                    borderRadius: '4px',
-                    padding: '32px 24px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    background: hasFile ? '#f0f4fa' : '#fafafa',
-                  }}
+                  aria-describedby={validationErrors.file ? 'file-error' : undefined}
+                  aria-invalid={!!validationErrors.file}
                 >
                   <input
                     ref={fileInputRef}
@@ -451,26 +449,26 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                     onChange={handleFileChange}
                   />
                   {hasFile ? (
-                    <span style={{ color: '#18345a', fontWeight: '600' }}>
+                    <span className="fileName">
                       {file.name}{' '}
-                      <span style={{ fontWeight: '400', color: '#555' }}>
+                      <span className="fileSize">
                         ({(file.size / (1024 * 1024)).toFixed(2)} MB)
                       </span>
                     </span>
                   ) : (
                     <>
-                      <div style={{ fontSize: '32px', marginBottom: '8px', color: '#666' }}>📄</div>
-                      <div style={{ fontSize: '15px', color: '#555', marginBottom: '4px' }}>
+                      <div className="uploadIcon">📄</div>
+                      <div className="uploadPrompt">
                         <InterfaceText text={{ en: 'Click to select a .docx file', he: 'לחץ לבחירת קובץ .docx' }} />
                       </div>
-                      <div style={{ fontSize: '12px', color: '#999' }}>
+                      <div className="uploadHint">
                         <InterfaceText text={{ en: 'Maximum file size: 10 MB', he: 'גודל מרבי: 10 MB' }} />
                       </div>
                     </>
                   )}
                 </div>
                 {validationErrors.file && (
-                  <span className="fieldError">{validationErrors.file}</span>
+                  <span id="file-error" className="fieldError" role="alert">{validationErrors.file}</span>
                 )}
               </div>
 
@@ -507,6 +505,8 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   type="checkbox"
                   checked={guideChecked}
                   onChange={(e) => setGuideChecked(e.target.checked)}
+                  aria-describedby={validationErrors.guide ? 'guide-error' : undefined}
+                  aria-invalid={!!validationErrors.guide}
                 />
                 <label htmlFor="guideChecked">
                   <InterfaceText text={{
@@ -516,7 +516,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                 </label>
               </div>
               {validationErrors.guide && (
-                <span className="fieldError validationError">{validationErrors.guide}</span>
+                <span id="guide-error" className="fieldError validationError" role="alert">{validationErrors.guide}</span>
               )}
 
               {/* TOS checkbox */}
@@ -526,6 +526,8 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   type="checkbox"
                   checked={tosChecked}
                   onChange={(e) => setTosChecked(e.target.checked)}
+                  aria-describedby={validationErrors.tos ? 'tos-error' : undefined}
+                  aria-invalid={!!validationErrors.tos}
                 />
                 <label htmlFor="tosChecked">
                   <InterfaceText text={{
@@ -535,7 +537,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                 </label>
               </div>
               {validationErrors.tos && (
-                <span className="fieldError validationError">{validationErrors.tos}</span>
+                <span id="tos-error" className="fieldError validationError" role="alert">{validationErrors.tos}</span>
               )}
 
               {/* Submit */}
