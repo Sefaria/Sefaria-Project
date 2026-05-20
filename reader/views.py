@@ -4206,6 +4206,42 @@ def _get_anonymous_user_history(request):
     return history
 
 
+@login_required
+def book_completion_api(request):
+    """
+    GET /api/book_completion?book=Genesis
+    Returns whether the logged-in user has viewed at least one verse from every chapter.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+
+    book = request.GET.get("book")
+    if not book:
+        return jsonResponse({"error": "Must specify 'book' param"})
+
+    try:
+        index = library.get_index(book)
+    except (InputError, BookNameError):
+        return jsonResponse({"error": f"Unknown book: {book}"})
+
+    all_chapter_refs = {r.normal() for r in index.all_top_section_refs()}
+    total_chapters = len(all_chapter_refs)
+
+    pipeline = [
+        {"$match": {"uid": request.user.id, "book": book, "secondary": {"$ne": True}}},
+        {"$unwind": "$context_refs"},
+        {"$group": {"_id": "$context_refs"}},
+    ]
+    viewed_context_refs = {doc["_id"] for doc in db.user_history.aggregate(pipeline)}
+    chapters_read = len(all_chapter_refs & viewed_context_refs)
+
+    return jsonResponse({
+        "complete": chapters_read >= total_chapters,
+        "chapters_read": chapters_read,
+        "total_chapters": total_chapters,
+    })
+
+
 def user_history_api(request):
     """
     GET API for user history for a particular user. optional URL params are

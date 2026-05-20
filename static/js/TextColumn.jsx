@@ -10,6 +10,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import {ContentText} from "./ContentText";
+import HazakCelebration from './HazakCelebration';
 
 
 class TextColumn extends Component {
@@ -465,9 +466,16 @@ class TextColumn extends Component {
         (noPrev ? bookTitle :
         <LoadingMessage className="base prev" key={"prev"}/>) : null;
 
+      const isEndOfBook = last && !last.next;
+      const isTorahBook = Sefaria.titleIsTorah(this.props.bookTitle);
+
       post = hasNext && this.state.showScrollPlaceholders ?
         <LoadingMessage className="base next" key={"next"}/> :
-        <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
+        <React.Fragment key={"next"}>
+          {isEndOfBook && isTorahBook &&
+            <HazakCelebration bookTitle={this.props.bookTitle} heBookTitle={this.props.heBookTitle} />}
+          <LoadingMessage message={" "} heMessage={" "} className="base next final" />
+        </React.Fragment>;
     }
 
     return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
