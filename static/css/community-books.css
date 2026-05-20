@@ -514,6 +514,127 @@
   text-decoration: none;
 }
 
+/* ============================================================
+   Topics ReactTags — scoped to upload form
+   ============================================================ */
+
+.communityUploadPage .react-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.communityUploadPage .react-tags.is-focused {
+  border-color: #18345a;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 52, 90, 0.15);
+}
+
+.communityUploadPage .react-tags__selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.communityUploadPage .react-tags__selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #e8eef6;
+  border: 1px solid #b0c0d8;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #18345a;
+  cursor: default;
+}
+
+.communityUploadPage .react-tags__selected-tag:after {
+  content: "×";
+  margin-left: 4px;
+  font-size: 15px;
+  color: #7a9abf;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.communityUploadPage .react-tags__selected-tag:hover:after {
+  color: #c0392b;
+}
+
+.communityUploadPage .react-tags__search {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 160px;
+}
+
+.communityUploadPage .react-tags__search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.communityUploadPage .react-tags__search-input::placeholder {
+  color: #aaa;
+}
+
+.communityUploadPage .react-tags__suggestions {
+  position: absolute;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-width: 200px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+.communityUploadPage .react-tags__suggestions ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.communityUploadPage .react-tags__suggestions li {
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #222;
+}
+
+.communityUploadPage .react-tags__suggestions li:hover,
+.communityUploadPage .react-tags__suggestions li.is-active {
+  background: #f0f4fa;
+  color: #18345a;
+}
+
+.communityUploadPage .react-tags__suggestions mark {
+  background: none;
+  font-weight: 600;
+  color: #18345a;
+}
+
+.communityUploadPage .topicsHint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
 .communityUploadGuidePage .templateDownload .downloadIcon {
   width: 16px;
   height: 16px;

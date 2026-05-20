@@ -61,7 +61,7 @@ def build_schema(depth: int, title_en: str, title_he: str) -> dict:
 
 def build_jagged_array(parse_result: ParseResult) -> list:
     if parse_result.structure_depth == 1:
-        return [ch.content for ch in parse_result.chapters]
+        return ['\n'.join(ch.content) for ch in parse_result.chapters]
     else:
         return [[sec.content for sec in ch.sections] for ch in parse_result.chapters]
 

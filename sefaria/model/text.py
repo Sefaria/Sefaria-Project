@@ -322,6 +322,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         contents["heCategories"] = list(map(hebrew_term, self.categories))
         contents = self.time_period_and_place_contents(contents)
+        if getattr(self, "communityBook", None):
+            cb = dict(self.communityBook)
+            if hasattr(cb.get("submittedAt"), "isoformat"):
+                cb["submittedAt"] = cb["submittedAt"].isoformat()
+            contents["communityBook"] = cb
         return contents
 
     def time_period_and_place_contents(self, contents):

@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 // Feature flag: switch to false once the backend is live
 // ---------------------------------------------------------------------------
 // TODO(SC-44454): Set USE_MOCKS to false when backend API endpoints are deployed
-const USE_MOCKS = true;
+const USE_MOCKS = false;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -212,7 +212,8 @@ export async function uploadCommunityBook(formData) {
     });
 
     if (!response.ok) {
-        throw new Error("Upload failed: " + response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Upload failed: " + response.statusText);
     }
     const json = await response.json();
     if (json.error) {
@@ -240,7 +241,8 @@ export async function confirmCommunityBook(bookData) {
     });
 
     if (!response.ok) {
-        throw new Error("Confirm failed: " + response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Confirm failed: " + response.statusText);
     }
     const json = await response.json();
     if (json.error) {

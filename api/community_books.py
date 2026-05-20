@@ -226,7 +226,7 @@ def _create_or_update_index(payload, schema, user):
         idx.save(override_dependencies=True)
     except InputError as e:
         logger.error("Index creation failed", error=str(e), title=payload["title_en"])
-        return None, JsonResponse({"error": "Failed to save book. Please try again."}, status=500)
+        return None, JsonResponse({"error": "Failed to save book: " + str(e)}, status=500)
     return idx, None
 
 

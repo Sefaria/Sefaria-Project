@@ -116,19 +116,30 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('titleEn', titleEn.trim());
-    formData.append('titleHe', titleHe.trim());
-    formData.append('structureType', structureType);
+    formData.append('title_en', titleEn.trim());
+    formData.append('title_he', titleHe.trim());
+    formData.append('depth', structureType === 'depth1' ? '1' : '2');
     formData.append('language', language);
-    formData.append('descEn', descEn.trim());
-    formData.append('descHe', descHe.trim());
+    formData.append('description_en', descEn.trim());
+    formData.append('description_he', descHe.trim());
     formData.append('topics', JSON.stringify(topics.map((t) => ({ asTyped: t.name, slug: t.slug }))));
     formData.append('license', license);
 
     setUploading(true);
     try {
       const result = await uploadCommunityBook(formData);
-      setPreview({ ...result.preview, gcsUrl: result.gcsUrl });
+      const p = result.preview;
+      setPreview({
+        chapters: (p.chapters || []).map(ch => ({
+          title: ch.title,
+          sectionCount: ch.section_count ?? ch.sectionCount ?? 0,
+          wordCount: ch.word_count ?? ch.wordCount ?? 0,
+        })),
+        totalWordCount: p.total_words ?? p.totalWordCount ?? 0,
+        detectedDepth: p.depth ?? p.detectedDepth ?? 1,
+        gcsUrl: result.gcs_url ?? result.gcsUrl,
+        uploadToken: result.upload_token ?? result.uploadToken,
+      });
     } catch (err) {
       setError(err.message || 'Upload failed. Please try again.');
     } finally {
@@ -141,18 +152,13 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
     setConfirming(true);
     try {
       const bookData = {
-        titleEn: titleEn.trim(),
-        titleHe: titleHe.trim(),
-        structureType,
-        language,
-        descEn: descEn.trim(),
-        descHe: descHe.trim(),
-        topics: topics.map((t) => ({ asTyped: t.name, slug: t.slug })),
-        license,
-        gcsUrl: preview.gcsUrl,
+        upload_token: preview.uploadToken,
       };
       const result = await confirmCommunityBook(bookData);
-      setConfirmed(result);
+      setConfirmed({
+        ...result,
+        url: result.index_title ? '/' + result.index_title.replace(/ /g, '_') : null,
+      });
     } catch (err) {
       setError(err.message || 'Submission failed. Please try again.');
     } finally {
@@ -409,7 +415,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
               </div>
 
               {/* Topics */}
-              <div className="formField" role="group" aria-labelledby="topics-label">
+              <div className="formField" role="group" aria-labelledby="topics-label" style={{ position: 'relative' }}>
                 <span id="topics-label">
                   <InterfaceText text={{ en: 'Topics', he: 'נושאים' }} />
                 </span>
@@ -421,9 +427,13 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                   onAddition={onTopicAddition}
                   onValidate={onTopicValidate}
                   onInput={updateTopicSuggestions}
-                  placeholderText={Sefaria._('Add a topic…')}
+                  placeholderText={topics.length === 0 ? Sefaria._('Search for a topic…') : Sefaria._('Add another…')}
                   delimiters={['Enter', ',']}
+                  minQueryLength={2}
                 />
+                <p className="topicsHint">
+                  <InterfaceText text={{ en: 'Type to search Sefaria topics (e.g. "Torah", "Prayer")', he: 'הקלד/י לחיפוש נושאים' }} />
+                </p>
               </div>
 
               {/* File upload */}
