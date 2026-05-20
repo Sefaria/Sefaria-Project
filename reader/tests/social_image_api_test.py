@@ -21,8 +21,10 @@ class DummyRef:
 
 
 class DummyTextFamily:
+    captured_kwargs = {}
+
     def __init__(self, *args, **kwargs):
-        pass
+        self.__class__.captured_kwargs = kwargs
 
     def contents(self):
         return {
@@ -38,6 +40,7 @@ def _request(path):
 
 def _capture_social_image_call(monkeypatch, path):
     captured = {}
+    DummyTextFamily.captured_kwargs = {}
 
     def fake_response(text, category, ref_str, lang, platform):
         captured.update(
@@ -49,6 +52,7 @@ def _capture_social_image_call(monkeypatch, path):
                 "platform": platform,
             }
         )
+        captured["text_family_kwargs"] = DummyTextFamily.captured_kwargs
         return captured
 
     monkeypatch.setattr(views, "Ref", lambda tref: DummyRef())
@@ -111,7 +115,37 @@ def test_social_image_api_defaults_invalid_platform_to_facebook(monkeypatch):
     assert result["platform"] == "facebook"
 
 
+def test_social_image_api_preserves_facebook_platform(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=facebook")
+
+    assert result["platform"] == "facebook"
+
+
 def test_social_image_api_preserves_twitter_platform(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter")
 
     assert result["platform"] == "twitter"
+
+
+def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatch):
+    path = (
+        "/api/img-gen/Genesis.1.1?"
+        "lang=en&ven=english%7CThe_Contemporary_Torah,_Jewish_Publication_Society,_2006"
+    )
+    result = _capture_social_image_call(monkeypatch, path)
+
+    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
+
+
+def test_social_image_api_extracts_hebrew_version_title_from_vhe(monkeypatch):
+    path = "/api/img-gen/Genesis.1.1?lang=he&vhe=hebrew%7CTanach_with_Ta%27amei_Hamikra"
+    result = _capture_social_image_call(monkeypatch, path)
+
+    assert result["text_family_kwargs"]["version"] == "Tanach with Ta'amei Hamikra"
+
+
+def test_social_image_api_accepts_legacy_version_title_without_language_prefix(monkeypatch):
+    path = "/api/img-gen/Genesis.1.1?lang=en&ven=The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
+    result = _capture_social_image_call(monkeypatch, path)
+
+    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"

@@ -654,6 +654,22 @@ def _extract_version_params(request, key):
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
+
+def _extract_version_title_param(request, key):
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
+
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -1774,7 +1790,7 @@ def social_image_api(request, tref):
         lang = "en"
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
     platform = request.GET.get("platform") or "facebook"
     if platform not in {"facebook", "twitter"}:
         platform = "facebook"
