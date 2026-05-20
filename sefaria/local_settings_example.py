@@ -342,6 +342,9 @@ WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
+# List of user IDs allowed to upload community books
+COMMUNITY_BOOK_ADMIN_IDS = []
+
 # Session cookie settings for cross-subdomain support
 # Set this to your top-level domain (e.g., '.example.com') to allow session cookies
 # to work across all subdomains. The leading dot is important!
