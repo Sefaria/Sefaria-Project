@@ -4,7 +4,7 @@ const CommunityBookBlock = ({ book }) => {
   return (
     <div className="communityBookBlock">
       <div className="bookTitle">
-        <a href={`/${book.sheet_title.replace(/ /g, '_')}`}>
+        <a href={book.url || `/${encodeURIComponent(book.sheet_title.replace(/ /g, '_'))}`}>
           {book.sheet_title}
         </a>
       </div>

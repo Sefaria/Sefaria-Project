@@ -5,14 +5,17 @@ import { InterfaceText } from './Misc';
 const STATUS_CONFIG = {
   submitted: {
     className: 'pending',
+    icon: '⏳',
     label: { en: 'Pending Review', he: 'ממתין לבדיקה' },
   },
   approved: {
     className: 'approved',
+    icon: '✓',
     label: { en: 'Approved Community Book', he: 'ספר קהילתי מאושר' },
   },
   rejected: {
     className: 'rejected',
+    icon: '✗',
     label: { en: 'Submission Rejected', he: 'ההגשה נדחתה' },
   },
 };
@@ -26,6 +29,7 @@ const CommunityBookStatusBanner = ({ submissionStatus, rejectionReason, submitte
 
   return (
     <div className={`communityBookStatusBanner ${config.className}`}>
+      <span aria-hidden="true">{config.icon}</span>{' '}
       <strong><InterfaceText text={config.label} /></strong>
       {showRejectionDetails && rejectionReason && (
         <span>: {rejectionReason}</span>
