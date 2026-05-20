@@ -70,7 +70,7 @@ The `.env` file is gitignored — never commit credentials.
 | --- | --- |
 | `SANDBOX_URL` | Base URL for the English sandbox (e.g. `https://modularization.cauldron.sefaria.org/`). `MODULE_URLS.EN.LIBRARY` and `.VOICES` are derived from this domain. |
 | `SANDBOX_URL_IL` | Base URL for the Hebrew/IL sandbox. `MODULE_URLS.HE.LIBRARY` and `.VOICES` are derived from this. |
-| `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` | Credentials for the standard test user. Used by `goToPageWithUser` and `BROWSER_SETTINGS.english / .hebrew / .enUser / .heUser`. |
+| `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` | Credentials for the standard test user. Used by `goToPageWithUser` and `BROWSER_SETTINGS.enUser / .heUser`. |
 | `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD` | Credentials for admin flows (`BROWSER_SETTINGS.enAdmin / .heAdmin`) and Django admin endpoints (e.g. the trending-tags reset used by `voices/trending-topics.spec.ts`). |
 | `TIMEOUT_MULTIPLIER` | Scales every timeout in the suite. Range `0.1–3.0`, default `1.0`. Set to `2` or `3` on a slow CI runner or while debugging. See [Timeouts](#timeouts-and-the-t-wrapper). |
 | `CI` | When truthy, Playwright runs with `forbidOnly`, `retries: 2`, `workers: 1`, and the GitHub reporter. |
@@ -129,7 +129,8 @@ e2e-tests/
 ├── example.env            ← template for .env
 ├── globals.ts             ← LANGUAGES, SOURCE_LANGUAGES, BROWSER_SETTINGS, t(), testUser, testAdminUser
 ├── utils.ts               ← goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, MDL helpers,
-│                            geo-location, cross-subdomain cookie fixup, clearAuthFiles
+│                            geo-location, fixCookieDomainsForCrossSubdomain
+├── global-setup.ts        ← runs once before any worker; writes auth_*.json per profile
 ├── constants.ts           ← MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS, SITE_CONFIGS,
 │                            VALID_TOPICS, SEARCH_DROPDOWN, SaveStates, and more
 ├── helpDeskLinksConstants.ts ← data driving Misc/help-sheet-redirects.spec.ts
@@ -238,17 +239,18 @@ These eight rules govern every new test and page object. Violations are the most
 | --- | --- |
 | Anonymous user, English UI | `goToPageWithLang(context, url, LANGUAGES.EN)` |
 | Anonymous user, Hebrew UI | `goToPageWithLang(context, url, LANGUAGES.HE)` |
-| Logged-in primary user | `goToPageWithUser(context, url, BROWSER_SETTINGS.english)` |
-| Logged-in admin | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)` |
-| Secondary user (e.g. for multi-user trending-topic tests) | `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` |
-| Hebrew-UI admin | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)` |
+| Logged-in primary user, EN | `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` |
+| Logged-in primary user, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heUser)` |
+| Logged-in admin, EN | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)` |
+| Logged-in admin, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)` |
+| Library Assistant whitelisted user | `goToPageWithUser(context, url, BROWSER_SETTINGS.enLAUser)` |
 
 **What they handle for you:**
 
-- `goToPageWithLang` — sets the interface-language cookie, handles geo-location (NYC by default — see [playwright.config.ts](../playwright.config.ts) `use.geolocation`), and returns a `Page` ready to drive.
-- `goToPageWithUser` — creates or reuses a storage-state JSON for that user/language combo, applies it to a new context, handles cross-subdomain cookie fixup so the session works on both `www.*` and `voices.*`, and returns a logged-in `Page`.
+- `goToPageWithLang` — pre-seeds the `interfaceLang` cookie on the parent domain (so Sefaria doesn't geo-redirect `www.*` → `*.org.il`), navigates once, and returns an anonymous `Page` ready to drive.
+- `goToPageWithUser` — reads the storage-state file written by [global-setup.ts](global-setup.ts), applies it to the test's context (cross-subdomain cookies already fixed up so `www.*` and `voices.*` share auth), and returns a logged-in `Page`. Workers never log in themselves.
 
-**Current limitation:** the two cannot be combined in a single call. If you need a logged-in Hebrew user, use `BROWSER_SETTINGS.hebrew` / `.heAdmin` / `.heUser` (which bake the Hebrew preference into the auth state) or call `changeLanguage(page, LANGUAGES.HE)` after the user helper.
+**Current limitation:** the two cannot be combined in a single call. If you need a logged-in Hebrew session, use `heUser` / `heAdmin` directly — they already bake the Hebrew interface language into storage state.
 
 Subsequent navigations within the same test may use `page.goto(...)` directly — but **always call `hideAllModalsAndPopups(page)` afterward.**
 
@@ -439,30 +441,37 @@ Playwright defaults to NYC coordinates (set in [playwright.config.ts](../playwri
 
 | Profile | Logged in as | Purpose |
 | --- | --- | --- |
-| `BROWSER_SETTINGS.english` / `.hebrew` | **Anonymous** (`user: null`) | Seeds storage state with the named interface language. **Do not** pass to `goToPageWithUser` if your test needs login — see callout below. |
 | `BROWSER_SETTINGS.enUser` / `.heUser` | Standard test user (`testUser`) | Default profile for any logged-in test |
 | `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser (`testAdminUser`) | Moderator / editor flows (e.g. RP-083 "Create topic", RP-171 "Edit Text") |
 | `BROWSER_SETTINGS.enLAUser` | Library Assistant whitelisted user (`testLAUser`) | LA-specific — `<lc-chatbot>` only mounts for this account |
 
-> ⚠️ **`english` / `hebrew` are anonymous profiles, not logged-in ones.** Their `user` is `null` in `globals.ts`. If you pass them to `goToPageWithUser`, the helper still creates a storage state, but the resulting session has no authenticated user. Logged-in tests must use `enUser` / `heUser` / `enAdmin` / `heAdmin` / `enLAUser`. (CLAUDE.md §4 has the full callout.)
-
 ### How the flow works
 
-1. On any `import` of `utils.ts`, `clearAuthFiles()` runs and wipes all `auth_*.json` temp files from the previous run. This guarantees a fresh login per suite run.
-2. When `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` is called, it logs the user in and writes `auth_english_user.json`.
-3. Subsequent calls for the same profile within the same run reuse the JSON via `context.storageState()`.
-4. `fixCookieDomainsForCrossSubdomain` rewrites session cookies from `www.*` to `.<parent>` so the same login authenticates `voices.*` without a second login.
+The auth layer is a **one-time global setup, read-only thereafter** model — the textbook Playwright pattern for parallel-safe auth state.
+
+1. **Before any worker starts**, Playwright invokes [global-setup.ts](global-setup.ts). It:
+   - Wipes every `auth_*.json` from the previous run.
+   - Logs in each *unique account* exactly once (`testUser`, `testAdminUser`, `testLAUser`). Sefaria invalidates concurrent sessions for the same user, so EN and HE variants of one account **share** that login — they're stamped from the same captured cookie set with different `interfaceLang` values.
+   - Calls `fixCookieDomainsForCrossSubdomain` on the captured cookies so `sessionid` lives on `.sefaria.org` (the parent domain) and authenticates both `www.*` and `voices.*`.
+   - Writes one `auth_<lang>_<role>.json` per profile.
+2. **Each test worker** (a separate Node process spawned by Playwright) calls `goToPageWithUser(context, url, BROWSER_SETTINGS.<profile>)`. This now:
+   - Reads the `auth_*.json` file (file MUST exist; if not, the helper throws with a pointer to globalSetup).
+   - Defensively re-applies `fixCookieDomainsForCrossSubdomain` and normalizes the `interfaceLang` cookie value.
+   - Calls `context.addCookies(...)`, opens a page, navigates once, hides modals. Done.
+3. Anonymous tests use `goToPageWithLang(context, url, LANGUAGES.EN | LANGUAGES.HE)`. The helper pre-seeds the `interfaceLang` cookie on the parent domain (so Sefaria doesn't geo-redirect `www.*` → `*.org.il`) and navigates. No file caching, no login.
 
 ### What this means in practice
 
-- You do **not** manually delete `auth_*.json` between tests — the import-time cleanup handles it.
-- You can run multiple tests that each call `goToPageWithUser(..., BROWSER_SETTINGS.enUser)` and only incur the login cost once per run.
+- You do **not** manually delete `auth_*.json` between tests — globalSetup handles it on each run start.
+- Per-test login cost is **zero** — workers never log in. The login cost is paid once, in globalSetup, before workers spawn.
+- You can run the suite at full parallelism (no `--workers=N` cap, no `retries`) and auth-gated tests will not race on a shared auth file, because the file is read-only during the test phase.
 - If your test needs to assert both the logged-out and logged-in states, use the helper `pm.onModuleHeader().testWithAuthStates(...)` in [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) — it logs out, runs the logged-out branch, logs in as superuser, runs the logged-in branch.
 - For tests that create destructive state on the QA user (notes, sheets, feedback), intercept the relevant `/api/...` endpoints with `page.route()` so production stays clean. See [Resource Panel/README.md §8.8](Full%20testing%20by%20Feature/Resource%20Panel/README.md) for the canonical pattern.
+- The Sanity "logout" test (Sanity 7) drives logout through the UI dropdown and works unchanged — Sefaria's actual `/logout` endpoint still clears `sessionid` normally.
 
 ### Credentials
 
-Credentials come from the env vars described in [Environment setup](#environment-setup). Never hardcode.
+Credentials come from the env vars described in [Environment setup](#environment-setup). Never hardcode. If a `PLAYWRIGHT_*_EMAIL` / `_PASSWORD` pair is missing, globalSetup skips that account with a warning rather than failing the whole run — any test that then needs the missing profile will throw a clear "auth file missing" error.
 
 ---
 
@@ -598,7 +607,7 @@ npx playwright test library/sidebar-help-link.spec.ts --project=chrome-library
 2. **URL regex too tight?** `console.log(newPage.url())` and refine `EXTERNAL_URLS.HELP` in `constants.ts` — do not inline a different regex in the test.
 3. **Slow environment?** Set `TIMEOUT_MULTIPLIER=2` in `.env`.
 4. **Locator changed upstream?** Update the page object (`moduleSidebarPage.ts`), not the test.
-5. **Auth required?** If the link only renders for logged-in users, switch the entry-point helper to `goToPageWithUser(context, url, BROWSER_SETTINGS.english)`.
+5. **Auth required?** If the link only renders for logged-in users, switch the entry-point helper to `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)`.
 
 That's the whole flow: pick folder and filename, reuse existing page objects and constants, follow the canonical skeleton, diagnose failures from the outside in.
 
@@ -680,7 +689,7 @@ If you see intermittent failures only when a project runs alongside others, drop
 Call `await hideAllModalsAndPopups(page)` after every navigation. The site has ~13 overlay types that appear unpredictably.
 
 **Auth state seems corrupted between runs.**
-`clearAuthFiles()` runs automatically on import of `utils.ts` and wipes all `auth_*.json` temp files. Do not manually delete them mid-run.
+[global-setup.ts](global-setup.ts) wipes all `auth_*.json` at the start of every run and re-writes them from a fresh login. Do not manually delete them mid-run. If a particular profile is wedged, delete just that one file and re-run — globalSetup will re-create it.
 
 **Timeouts flaky on a slow machine.**
 Set `TIMEOUT_MULTIPLIER=2` (or `3`) in your `.env` — it scales every `t()`-wrapped timeout globally.

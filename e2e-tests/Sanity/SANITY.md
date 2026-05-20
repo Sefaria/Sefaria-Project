@@ -394,8 +394,9 @@ Tests navigate to the appropriate module before interacting with module-specific
 ### Authentication Strategy
 
 Tests use two authentication approaches:
-- `goToPageWithLang()`: Starts unauthenticated, tests login flow
-- `goToPageWithUser()`: Uses pre-authenticated state from `BROWSER_SETTINGS.enUser`
+
+- `goToPageWithLang()`: Starts unauthenticated. Sanity 1 (UI login) and the cross-module multi-tab scenarios enter through this path so they can drive the real login form.
+- `goToPageWithUser()`: Reads a pre-authenticated storage state file (typically `auth_english_user.json` via `BROWSER_SETTINGS.enUser`) that [global-setup.ts](../global-setup.ts) writes once at run start. Every Sanity test that needs to *start* logged in uses this — no per-test login, no race between workers.
 
 ### Test Isolation
 

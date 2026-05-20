@@ -31,7 +31,7 @@ Consumed by [globals.ts](../globals.ts) as `testLAUser`, wired through `BROWSER_
 page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
 ```
 
-**Do not reuse `BROWSER_SETTINGS.english` / `enUser`.** Those accounts are *not* whitelisted for the LA; the `<lc-chatbot>` element simply won't be in the DOM and tests will fail at `waitForReady()`.
+**Do not reuse `BROWSER_SETTINGS.enUser` / `.heUser` / `.enAdmin`.** Those accounts are *not* whitelisted for the LA; the `<lc-chatbot>` element simply won't be in the DOM and tests will fail at `waitForReady()`.
 
 ---
 
@@ -164,7 +164,7 @@ npx playwright test --project=chrome-assistant -g 'UX-025'
 5. **Use `.last()` on message selectors.** `BROWSER_SETTINGS.enLAUser` persists storage state (including any chat localStorage written at login), so historical messages may be present. Latest-match assertions are robust to that.
 6. **The CSV is the spec; the CSV can also be wrong.** UX-021 claims 500-char limit; the actual `maxlength` on the textarea is 10000. When the CSV contradicts observed DOM, trust the DOM and note it.
 7. **Cross-test isolation works out of the box** because each Playwright worker gets its own `BrowserContext`. Running 10 tests in parallel sends at most 3 real prompts — no rate-limit issues observed.
-8. **Only the LA-whitelisted account sees the chatbot.** Standard automation accounts (`qa+automation@sefaria.org`) will not, so reusing `BROWSER_SETTINGS.english` / `enUser` will silently make `waitForReady()` time out. Always go through `enLAUser`.
+8. **Only the LA-whitelisted account sees the chatbot.** Standard automation accounts (`qa+automation@sefaria.org`) will not, so reusing `BROWSER_SETTINGS.enUser` / `.heUser` / `.enAdmin` will silently make `waitForReady()` time out. Always go through `enLAUser`.
 9. **Trigger is absent, not hidden, when the panel is open.** Expect `toBeHidden()` (which also accepts absent/detached) rather than `not.toBeVisible()` for precision.
 
 ---

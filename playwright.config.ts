@@ -31,6 +31,9 @@ export default defineConfig({
   testDir: './e2e-tests',
   /* Output directory for test results */
   outputDir: './e2e-tests/e2e-test-logs/test-results',
+  /* Log in every test account once before any worker starts and write a
+   * read-only storage-state file per profile. See e2e-tests/global-setup.ts. */
+  globalSetup: './e2e-tests/global-setup.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

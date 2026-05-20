@@ -1,56 +1,13 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS, t } from './globals'
+import { DEFAULT_LANGUAGE, LANGUAGES, t } from './globals'
 import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
-import { LoginPage } from './pages/loginPage';
 import { MODULE_URLS, MODULE_SELECTORS } from './constants';
 import path from 'path';
 import fs from 'fs';
 
-// NOTE: per simplification, modal-close attempts are inlined in hideAllModalsAndPopups
-
 let currentLocation: string = '';
 
-// Clear all auth files before starting tests to ensure fresh login
-const clearAuthFiles = () => {
-  const authFiles = Object.values(BROWSER_SETTINGS).map((setting) => path.join(__dirname, setting.file));
-  authFiles.forEach((filePath) => {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  });
-};
-
-clearAuthFiles();
-
-
-/**
- * Gets the path to a test fixture file
- * @param fixtureName - Name of the fixture file (e.g., 'test-image.jpg')
- * @returns Absolute path to the fixture file
- */
-export const getFixturePath = (fixtureName: string): string => {
-  return path.join(__dirname, 'fixtures', fixtureName);
-};
-
-/**
- * Gets the path to a test image for upload testing
- * @param imageName - Name of the image file (defaults to 'test-image.jpg')
- * @returns Absolute path to the test image
- */
-export const getTestImagePath = (imageName: string = 'test-image.jpg'): string => {
-  return getFixturePath(imageName);
-};
-
-/*METHODS TO HIDE MODALS/POPUPS THAT INTERRUPT THE USER EXPERIENCE */
-
-/**Note, for all of these miding/dismiss methods, we currently use CSS to hide them
- * We may want to opt for a more robust solution in the future, or something user-realistic such as 
- * clicking an "x" or "okay" button,but this is a workaround for now.
- * 
- * They are all exports in the case that they will be used individually in tests outside this file, 
- * rather than only calling hideAllModalsAndPopups()
-*/
 
 interface Cookie {
   name: string;
@@ -63,17 +20,12 @@ interface Cookie {
   sameSite: 'Strict' | 'Lax' | 'None';
 }
 
-interface StorageState {
-  cookies: Cookie[];
-  origins: any[];
-}
-
 /**
  * Fixes cookie domains to use parent domain for cross-subdomain access
  * Converts subdomain-specific cookies (e.g., www.example.com) to parent domain (.example.com)
  * This allows cookies to work across all subdomains (www, voices, etc.)
  */
-const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
+export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
   return cookies.map((cookie: Cookie) => {
     // Extract parent domain from subdomain-specific domain
     // e.g., "www.baseurl.org" -> ".baseurl.org"
@@ -106,23 +58,6 @@ const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
     return cookie;
   });
 };
-
-const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
-  // Modify the cookies as needed
-  storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
-    if (cookie.name === key) {
-      return { ...cookie, value: value };
-    }
-    return cookie;
-  });
-
-  // Fix cookie domains for cross-subdomain access
-  storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
-
-  return storageState.cookies;
-}
-
-// Individual hide helpers removed — use hideAllModalsAndPopups(page) instead.
 
 /**
  * Hides all common popups, modals, and banners that might interfere with tests
@@ -236,109 +171,93 @@ export const toggleLanguage = async (page: Page, language: string) => {
  */
 export const expireLogoutCookie = async (context: BrowserContext) => {
   const cookies = await context.cookies();
-  const sessionCookie = cookies.find((c: any) => c.name === 'sessionid');
-  if (sessionCookie) {    // Overwrite the sessionid cookie with an expired one to remove it
-    await context.addCookies([
-      {
-        name: 'sessionid',
-        value: '',
-        domain: sessionCookie.domain,
-        path: sessionCookie.path,
-        expires: Math.floor(Date.now() / 1000) - 1000, // Expired in the past
-        httpOnly: sessionCookie.httpOnly,
-        secure: sessionCookie.secure,
-        sameSite: sessionCookie.sameSite,
-      }
-    ]);
-    return true;
-  } else {
+  const sessionCookies = cookies.filter((c: any) => c.name === 'sessionid');
+  if (sessionCookies.length === 0) {
     return false;
   }
+  // Sefaria can set sessionid on multiple domain/path tuples after
+  // fixCookieDomainsForCrossSubdomain (parent domain + per-host duplicates).
+  // Clear every match — clearing only the first one leaves the auth alive
+  // on the surviving entry.
+  const expiredAt = Math.floor(Date.now() / 1000) - 1000;
+  await context.addCookies(sessionCookies.map((c: any) => ({
+    name: 'sessionid',
+    value: '',
+    domain: c.domain,
+    path: c.path,
+    expires: expiredAt,
+    httpOnly: c.httpOnly,
+    secure: c.secure,
+    sameSite: c.sameSite,
+  })));
+  return true;
 };
 
 /*METHODS TO NAVIGATE TO A PAGE */
 
+/**
+ * Anonymous entry point — seeds the interfaceLang cookie on the parent domain
+ * and navigates once. No file caching: anonymous sessions don't need
+ * persistence and the previous file-cache layer caused stale-state bugs after
+ * Sefaria changed the geo-detection cookie shape.
+ */
 export const goToPageWithLang = async (context: BrowserContext, url: string, language = DEFAULT_LANGUAGE) => {
-  let page: Page = await context.newPage();
-  const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
-  const filePath = path.join(__dirname, settings.file);
-  if (!fs.existsSync(filePath)) {
-    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    await changeLanguage(page, language);
+  const parsed = new URL(url);
+  const parts = parsed.hostname.split('.');
+  // Same parent-domain rule fixCookieDomainsForCrossSubdomain uses, so that
+  // www.* and voices.* share the cookie.
+  const parentDomain = parts.length >= 3
+    ? '.' + parts.slice(1).join('.')
+    : '.' + parsed.hostname;
 
-    // Save storage state and fix cookie domains for cross-subdomain access
-    const storageState = await page.context().storageState();
-    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
-    fs.writeFileSync(filePath, JSON.stringify(storageState, null, 2));
+  await context.addCookies([{
+    name: 'interfaceLang',
+    value: language,
+    domain: parentDomain,
+    path: '/',
+    expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+    httpOnly: false,
+    secure: parsed.protocol === 'https:',
+    sameSite: 'Lax',
+  }]);
 
-    // Also fix cookies in current context for immediate use
-    await page.context().addCookies(storageState.cookies);
-
-    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(t(1500));
-    await hideAllModalsAndPopups(page);
-  } else {
-    const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-    if (storageCookies == null) {
-      throw new Error(`No cookies found in storage state for language ${language}`);
-    }
-    await page.context().addCookies(storageCookies);
-    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(t(1500));
-    await hideAllModalsAndPopups(page);
-  }
-
-  await hideAllModalsAndPopups(page);
-  return page
-}
-
-export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
-  // Use a persistent auth file to store/reuse login state
-  const language = settings.lang;
-  const user = settings.user;
-  const authPath = path.join(__dirname, settings.file);
-  let page: Page;
-  if (!fs.existsSync(authPath)) {
-    // No auth file, perform login and save storage state
-    page = await context.newPage();
-    await gotoOrThrow(page, `/login`, { waitUntil: 'domcontentloaded' });
-    const loginPage = new LoginPage(page, language);
-    await changeLanguage(page, language);
-    await loginPage.loginAs(user);
-
-    // Save storage state and fix cookie domains for cross-subdomain access
-    const storageState = await page.context().storageState();
-    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
-    fs.writeFileSync(authPath, JSON.stringify(storageState, null, 2));
-
-    // Also fix cookies in current context for immediate use
-    await page.context().addCookies(storageState.cookies);
-
-    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(t(2000));
-    // await page.waitForLoadState('domcontentloaded');
-    await hideAllModalsAndPopups(page);
-    return page;
-  }
-  // If auth file exists, add cookies to the provided context and create page from it
-  const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
-  const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-  if (storageCookies == null) {
-    throw new Error(`No cookies found in storage state for language ${language}`);
-  }
-  // Add cookies to the provided context so all pages created from it will have auth
-  await context.addCookies(storageCookies);
-
-  page = await context.newPage();
-  // Navigate to the desired URL
+  const page = await context.newPage();
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-  await changeLanguage(page, language);
-  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(t(2000));
+  await page.waitForTimeout(t(1500));
   await hideAllModalsAndPopups(page);
   return page;
-}
+};
+
+/**
+ * Authenticated entry point — applies the storage state written by
+ * global-setup.ts. The file MUST already exist; if it doesn't, the suite is
+ * being driven without globalSetup wired up.
+ */
+export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
+  const language = settings.lang;
+  const authPath = path.join(__dirname, settings.file);
+  if (!fs.existsSync(authPath)) {
+    throw new Error(
+      `Auth file '${settings.file}' is missing. global-setup.ts is expected to write it ` +
+      `before any worker starts — check that 'globalSetup' is wired in playwright.config.ts ` +
+      `and that PLAYWRIGHT_*_EMAIL / PLAYWRIGHT_*_PASSWORD env vars are populated.`
+    );
+  }
+  const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+  // Defensive re-application — global-setup.ts already fixed cookie domains,
+  // but the cost is negligible and protects against a hand-edited file.
+  storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+  storageState.cookies = storageState.cookies.map((c: Cookie) =>
+    c.name === 'interfaceLang' ? { ...c, value: language } : c
+  );
+  await context.addCookies(storageState.cookies);
+
+  const page = await context.newPage();
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(t(1500));
+  await hideAllModalsAndPopups(page);
+  return page;
+};
 
 export const getPathAndParams = (url: string) => {
   const urlObj = new URL(url);

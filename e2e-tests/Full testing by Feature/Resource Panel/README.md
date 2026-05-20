@@ -189,11 +189,11 @@ Every mode has a stable container (its *mode anchor*, already mapped in `expectM
 
 ## 7. Auth-gated panel features
 
-Several panel modes silently change behavior when the user is logged out. Tests for these features must enter via `goToPageWithUser(context, url, BROWSER_SETTINGS.english)` (or `.enAdmin` for moderator-only features) — otherwise the test sees the sign-up modal and fails for the wrong reason.
+Several panel modes silently change behavior when the user is logged out. Tests for these features must enter via `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` (or `.enAdmin` for moderator-only features) — otherwise the test sees the sign-up modal and fails for the wrong reason.
 
 | Feature | Logged-in requirement | Logged-out behavior |
 | --- | --- | --- |
-| Notes (RP-120 → RP-125) | Any user (`BROWSER_SETTINGS.english`) | Sign-up modal opens; no notes UI visible. RP-120 verifies this prompt explicitly. |
+| Notes (RP-120 → RP-125) | Any user (`BROWSER_SETTINGS.enUser`) | Sign-up modal opens; no notes UI visible. RP-120 verifies this prompt explicitly. |
 | Add to Sheet (RP-130 → RP-133) | Any user | Sign-up modal opens. RP-130 verifies the prompt. |
 | Add Connection (RP-140 → RP-144) | Editor / moderator (`BROWSER_SETTINGS.enAdmin`) | Sign-up modal opens. RP-140 verifies the prompt. |
 | Advanced Tools — Edit Text (RP-171, RP-173) | Editor permissions | Button hidden entirely; RP-173 verifies non-editors don't see it. |

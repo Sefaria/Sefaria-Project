@@ -40,8 +40,6 @@ export const AUTH_PATHS = {
     heAdminFile: `auth_hebrew_admin.json`,
     enUserFile: `auth_english_user.json`,
     heUserFile: `auth_hebrew_user.json`,
-    heNoUserFile: `auth_hebrew_no_user.json`,
-    enNoUserFile: `auth_english_no_user.json`,
     enLAUserFile: `auth_english_la_user.json`,
 }
 
@@ -65,16 +63,6 @@ export const BROWSER_SETTINGS = {
         file: AUTH_PATHS.heUserFile,
         lang: LANGUAGES.HE,
         user: testUser,
-    },
-    english: {
-        file: AUTH_PATHS.enNoUserFile,
-        lang: LANGUAGES.EN,
-        user: null,
-    },
-    hebrew: {
-        file: AUTH_PATHS.heNoUserFile,
-        lang: LANGUAGES.HE,
-        user: null,
     },
     enLAUser: {
         file: AUTH_PATHS.enLAUserFile,
