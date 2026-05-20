@@ -37,12 +37,14 @@ This guide is the single source of truth for humans. Read it cover-to-cover when
 
 ## What this suite covers
 
-Sefaria ships two independent web modules that share a session and a user base:
+Sefaria ships two independent web modules and two embedded products that share a session and a user base:
 
 - **Library** — the traditional reader, topics, and texts experience. Hosted at `www.<sandbox-domain>` (English) and `www.<sandbox-domain-il>` (Hebrew).
 - **Voices** — the sheet-editing / community / trending-topics experience. Hosted at `voices.<sandbox-domain>` (English) and `chiburim.<sandbox-domain-il>` (Hebrew).
+- **Library Assistant** — `<lc-chatbot>` Svelte custom element embedded on the Library module for whitelisted users. See [assistant/README.md](assistant/README.md).
+- **Resource Panel** — the connections sidebar (`ConnectionsPanel`) that opens when a reader segment is clicked. Covers RP-001 → RP-212 across 19 spec files. See [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
 
-Because the two modules share authentication but live on different subdomains, many tests exercise **cross-module** behavior (logging in on one module and verifying state on the other, following redirects, etc.). The suite is organised by folder (`library/`, `voices/`, `Sanity/`, `Misc/`); each folder maps to one or more Playwright projects, and each project pairs that folder with a specific browser and baseURL. See the [project matrix](#project-matrix).
+Because the two modules share authentication but live on different subdomains, many tests exercise **cross-module** behavior (logging in on one module and verifying state on the other, following redirects, etc.). The suite is organised by folder (`library/`, `voices/`, `Sanity/`, `Misc/`, `assistant/`, `Full testing by Feature/<feature>/`); each folder maps to one or more Playwright projects, and each project pairs that folder with a specific browser and baseURL. See the [project matrix](#project-matrix).
 
 ---
 
@@ -79,11 +81,17 @@ The `.env` file is gitignored — never commit credentials.
 ## Running tests
 
 ```bash
-# Every Playwright project (chrome/firefox/safari × library/voices/Sanity/Misc)
+# Every Playwright project (chrome/firefox/safari × library / voices / Sanity / Misc / assistant / resource-panel)
 npx playwright test
 
 # A single project
 npx playwright test --project=chrome-library
+npx playwright test --project=chrome-assistant
+npx playwright test --project=chrome-resource-panel --workers=2  # see workers note below
+
+# Mobile suite (separate config — Pixel 5 Chrome + iPhone 13 Safari)
+npx playwright test --config=playwright.mobile.config.ts
+npx playwright test --config=playwright.mobile.config.ts --project=chrome-mobile-library
 
 # A single spec file
 npx playwright test library/header.spec.ts
@@ -128,14 +136,23 @@ e2e-tests/
 ├── pages/
 │   ├── pageManager.ts     ← single entry point that mounts all page objects
 │   ├── helperBase.ts      ← base class providing `page` and `language`
-│   └── <Feature>Page.ts   ← 15 page objects, one per feature area
-├── library/               ← Library-module UI tests
-├── voices/                ← Voices-module UI tests
+│   └── <Feature>Page.ts   ← 18+ page objects, one per feature area
+├── library/               ← Library-module UI tests (header, sidebar, reader, search, …)
+├── voices/                ← Voices-module UI tests (sheet editor, trending, chiburim, …)
 ├── Sanity/                ← Release-gate smoke suite + redirect tests
 │   └── SANITY.md          ← per-test inventory for this suite
 ├── Misc/                  ← Cross-cutting / platform-level tests
+├── assistant/             ← Library Assistant (<lc-chatbot>) tests
+│   └── README.md          ← Library Assistant-specific guide
+├── mobile/                ← Mobile-viewport tests (hamburger drawer, auth flow)
+│   └── README.md          ← Mobile-specific guide; runs via playwright.mobile.config.ts
+├── Full testing by Feature/
+│   └── Resource Panel/    ← Resource Panel (ConnectionsPanel) tests, RP-001 → RP-212
+│       └── README.md      ← Resource Panel-specific guide (navigation map, gotchas, reference texts)
 └── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
 ```
+
+> Mobile tests live under a **separate Playwright config** ([../playwright.mobile.config.ts](../playwright.mobile.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`. The desktop projects in [../playwright.config.ts](../playwright.config.ts) never exercise it. See [mobile/README.md](mobile/README.md).
 
 ---
 
@@ -149,6 +166,9 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | `voices/` | `chrome-voices` | `firefox-voices` | `safari-voices` | `voices.<SANDBOX_URL domain>` |
 | `Sanity/` | `chrome-sanity` | `firefox-sanity` | `safari-sanity` | `www.<SANDBOX_URL domain>` |
 | `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<SANDBOX_URL domain>` |
+| `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<SANDBOX_URL domain>` |
+| `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<SANDBOX_URL domain>` |
+| `mobile/` *(separate config — [`playwright.mobile.config.ts`](../playwright.mobile.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<SANDBOX_URL domain>` |
 
 Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used inside tests when asserting Hebrew-site behavior — not as separate Playwright projects.
 
@@ -158,21 +178,24 @@ Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are deriv
 | --- | --- |
 | Library-specific UI (reader, texts, topics, library header/sidebar) | `library/` |
 | Voices-specific UI (sheet editor, trending, chiburim pages) | `voices/` |
+| Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` |
+| Connections sidebar / Resource Panel (RP-NNN tests) | `Full testing by Feature/Resource Panel/` |
+| Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile/` *(run via `--config=playwright.mobile.config.ts`)* |
 | End-to-end release-gate smoke (login → profile → settings → logout, cross-module auth) | `Sanity/` |
 | Platform-level invariants, cross-module URL redirects, static-route assertions | `Misc/` |
 
-When in doubt: if the feature ships in one module only, use that folder; if it crosses modules, use `Sanity/`.
+When in doubt: if the feature ships in one module only and has its own deep test matrix (CSV-driven), it earns its own folder under `Full testing by Feature/`. Otherwise, if the feature ships in one module only, use that module's folder; if it crosses modules, use `Sanity/`.
 
 ---
 
 ## Architecture in one diagram
 
 ```text
-spec.ts (in library/ | voices/ | Sanity/ | Misc/)
+spec.ts (in library/ | voices/ | Sanity/ | Misc/ | assistant/ | Full testing by Feature/<feature>/)
     │
     ├── new PageManager(page, language)
     │         │
-    │         └── mounts 15 page objects, each extending HelperBase
+    │         └── mounts 18+ page objects, each extending HelperBase
     │                   (constructor receives `page` and `language`)
     │
     ├── goToPageWithLang(context, url, language)
@@ -412,26 +435,30 @@ Playwright defaults to NYC coordinates (set in [playwright.config.ts](../playwri
 
 ### `BROWSER_SETTINGS` — named auth profiles
 
-[globals.ts](globals.ts) exposes storage-state profiles keyed by name:
+[globals.ts](globals.ts) exposes storage-state profiles keyed by name. Each profile has a `lang`, an `auth_*.json` file path, and a `user` (either credentials *or* `null`).
 
-| Profile | Purpose |
-| --- | --- |
-| `BROWSER_SETTINGS.english` / `.hebrew` | Standard test user with the named interface language |
-| `BROWSER_SETTINGS.enUser` / `.heUser` | Secondary user for multi-user scenarios (e.g. two users publishing to the same topic) |
-| `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser |
+| Profile | Logged in as | Purpose |
+| --- | --- | --- |
+| `BROWSER_SETTINGS.english` / `.hebrew` | **Anonymous** (`user: null`) | Seeds storage state with the named interface language. **Do not** pass to `goToPageWithUser` if your test needs login — see callout below. |
+| `BROWSER_SETTINGS.enUser` / `.heUser` | Standard test user (`testUser`) | Default profile for any logged-in test |
+| `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser (`testAdminUser`) | Moderator / editor flows (e.g. RP-083 "Create topic", RP-171 "Edit Text") |
+| `BROWSER_SETTINGS.enLAUser` | Library Assistant whitelisted user (`testLAUser`) | LA-specific — `<lc-chatbot>` only mounts for this account |
+
+> ⚠️ **`english` / `hebrew` are anonymous profiles, not logged-in ones.** Their `user` is `null` in `globals.ts`. If you pass them to `goToPageWithUser`, the helper still creates a storage state, but the resulting session has no authenticated user. Logged-in tests must use `enUser` / `heUser` / `enAdmin` / `heAdmin` / `enLAUser`. (CLAUDE.md §4 has the full callout.)
 
 ### How the flow works
 
 1. On any `import` of `utils.ts`, `clearAuthFiles()` runs and wipes all `auth_*.json` temp files from the previous run. This guarantees a fresh login per suite run.
-2. When `goToPageWithUser(context, url, BROWSER_SETTINGS.english)` is called, it logs the user in and writes `auth_english.json`.
+2. When `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` is called, it logs the user in and writes `auth_english_user.json`.
 3. Subsequent calls for the same profile within the same run reuse the JSON via `context.storageState()`.
 4. `fixCookieDomainsForCrossSubdomain` rewrites session cookies from `www.*` to `.<parent>` so the same login authenticates `voices.*` without a second login.
 
 ### What this means in practice
 
 - You do **not** manually delete `auth_*.json` between tests — the import-time cleanup handles it.
-- You can run multiple tests that each call `goToPageWithUser(..., BROWSER_SETTINGS.english)` and only incur the login cost once per run.
+- You can run multiple tests that each call `goToPageWithUser(..., BROWSER_SETTINGS.enUser)` and only incur the login cost once per run.
 - If your test needs to assert both the logged-out and logged-in states, use the helper `pm.onModuleHeader().testWithAuthStates(...)` in [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) — it logs out, runs the logged-out branch, logs in as superuser, runs the logged-in branch.
+- For tests that create destructive state on the QA user (notes, sheets, feedback), intercept the relevant `/api/...` endpoints with `page.route()` so production stays clean. See [Resource Panel/README.md §8.8](Full%20testing%20by%20Feature/Resource%20Panel/README.md) for the canonical pattern.
 
 ### Credentials
 
@@ -634,6 +661,17 @@ npx playwright test --project=chrome-library
 npx playwright test --project=chrome-sanity
 ```
 
+### Workers and parallelism — when to cap
+
+The Sefaria production sandbox rate-limits at high concurrency, and several feature areas (Translations, Manuscripts, Notes, Add to Sheet, async-loaded panel content generally) start flaking at 4+ parallel tabs. **For local runs against the production sandbox, prefer `--workers=2`.** CI already runs `workers: 1` from [../playwright.config.ts](../playwright.config.ts).
+
+```bash
+npx playwright test --project=chrome-resource-panel --workers=2  # stable
+npx playwright test --project=chrome-resource-panel               # may flake under high concurrency
+```
+
+If you see intermittent failures only when a project runs alongside others, drop the worker count before assuming the test is buggy.
+
 ---
 
 ## Troubleshooting
@@ -707,7 +745,11 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly and get auto
 
 ## Related docs
 
-- [CLAUDE.md](CLAUDE.md) — the same conventions, compressed for AI agents, plus the current cleanup-candidates inventory
+- [CLAUDE.md](CLAUDE.md) — the same conventions, compressed for AI agents, plus universal patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception, worker tuning) and the current cleanup-candidates inventory
 - [Sanity/SANITY.md](Sanity/SANITY.md) — per-test inventory for the Sanity release-gate suite
-- [../playwright.config.ts](../playwright.config.ts) — Playwright configuration
+- [assistant/README.md](assistant/README.md) — Library Assistant (`<lc-chatbot>`) testing guide
+- [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) — Resource Panel testing guide: mode navigation map, per-mode selector reference, auth-gated features, and the full Common-gotchas catalogue (8.1–8.13) accumulated across Parts 1 and 2
+- [mobile/README.md](mobile/README.md) — Mobile-viewport testing guide: hamburger drawer, auth flow, staging cookies banner, WebKit popup/cookie quirks
+- [../playwright.config.ts](../playwright.config.ts) — Playwright configuration (desktop projects)
+- [../playwright.mobile.config.ts](../playwright.mobile.config.ts) — Playwright configuration (mobile projects)
 - [Playwright official docs](https://playwright.dev/docs/intro) — upstream framework reference

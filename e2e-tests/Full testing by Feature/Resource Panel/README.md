@@ -1,12 +1,14 @@
 # Resource Panel — E2E Tests
 
-End-to-end tests for the Sefaria **Resource Panel** (a.k.a. `ConnectionsPanel`) — the right-side sidebar that opens when a reader segment is clicked. Covers test IDs **RP-001 → RP-058** from [`e2e-tests/.claude/Resource.csv`](../../.claude/Resource.csv).
+End-to-end tests for the Sefaria **Resource Panel** (a.k.a. `ConnectionsPanel`) — the right-side sidebar that opens when a reader segment is clicked. Covers test IDs **RP-001 → RP-212** from [`e2e-tests/.claude/Resource.csv`](../../.claude/Resource.csv).
 
-This folder is `Part 1` of the *Texts → Resource Panel* feature: opening behavior, the Resources hub, TOC navigation, About-This-Text, Translations, and the Lexicon. Later parts (Connections List, Text List, Topics, Web Pages, Sheets, Manuscripts, Notes, Add to Sheet, Add Connection, Share, Feedback, Advanced Tools, Search in Text, Guide, Divine Name, Hebrew UI, Auth State, Cross-Module) will live in sibling folders under `Full testing by Feature/`.
+Parts 1 and 2 together cover opening behavior, the Resources hub, TOC navigation, About-This-Text, Translations, the Lexicon (Part 1) plus Connections List, Text List, Topics, Web Pages, Sheets, Manuscripts, Notes, Add to Sheet, Share, Search in Text, Feedback, Guide, and Hebrew UI (Part 2). The remaining areas (Advanced Tools, Add Connection, Divine Name, Auth State, Cross-Module — RP-140 → RP-232) will land in subsequent parts.
 
 ---
 
 ## 1. What it tests
+
+### Part 1 — RP-001 → RP-058
 
 | Spec file | Test IDs | Feature area |
 | --- | --- | --- |
@@ -17,14 +19,32 @@ This folder is `Part 1` of the *Texts → Resource Panel* feature: opening behav
 | [translations.spec.ts](translations.spec.ts) | RP-040 → RP-047 | Translations list, language grouping, current selection, open in reader, empty state |
 | [lexicon.spec.ts](lexicon.spec.ts) | RP-050 → RP-058 | Auto-trigger on 1–2 Hebrew words, no-trigger on >3, headwords, BDB, disambiguation, manual search, clear-to-Resources |
 
-Total active tests: **37**. Current pass rate: **37 passed, 0 skipped, 0 failed** — every test runs against real production data and fails honestly when its target UI is missing. See [§3 Test data, research, and design decisions](#3-test-data-research-and-design-decisions) for the data choices that make each test reliable.
+### Part 2 — RP-060 → RP-212
+
+| Spec file | Test IDs | Feature area |
+| --- | --- | --- |
+| [connections-list.spec.ts](connections-list.spec.ts) | RP-060 → RP-063 | Category drill-in; book counts; recent filters; English availability tags |
+| [text-list.spec.ts](text-list.spec.ts) | RP-070 → RP-073 | Connection snippets; click navigates main reader; bilingual rendering; empty TextList |
+| [topics.spec.ts](topics.spec.ts) | RP-080, RP-081 | Topics list; click → topic page in new tab |
+| [web-pages.spec.ts](web-pages.spec.ts) | RP-090 → RP-092 | Sites grouped with counts; site-filter drill-in; external page → new tab |
+| [sheets.spec.ts](sheets.spec.ts) | RP-100, RP-101 | Sheets count badge; click opens `/sheets-with-ref/<ref>` in new tab |
+| [manuscripts.spec.ts](manuscripts.spec.ts) | RP-110, RP-111 | Manuscript cards with caption/location/license/source; click thumbnail → full-res new tab |
+| [notes.spec.ts](notes.spec.ts) | RP-120 → RP-124 | Login prompt (logged out); add / edit / delete (logged in); "Go to My Notes" link |
+| [add-to-sheet.spec.ts](add-to-sheet.spec.ts) | RP-130 → RP-133 | Sign-up modal (logged out); sheet picker + add (logged in, intercepted); version metadata in payload; cancel |
+| [share.spec.ts](share.spec.ts) | RP-150 → RP-153 | Copy-link input + social buttons; clipboard write; new-tab share URLs; execCommand fallback path |
+| [search-in-text.spec.ts](search-in-text.spec.ts) | RP-180, RP-181 | SidebarSearch input present; "covenant" yields results in Genesis |
+| [feedback.spec.ts](feedback.spec.ts) | RP-160, RP-161 | Form mounts; `/api/send_feedback` POST intercepted (does not pollute production) |
+| [guide.spec.ts](guide.spec.ts) | RP-190 → RP-194 | Key Questions; Q → S → C transitions; back traversal; hidden when no guide content (Genesis) |
+| [hebrew-ui.spec.ts](hebrew-ui.spec.ts) | RP-210 → RP-212 | RTL layout; Hebrew category labels in ConnectionsList; bilingual About content |
+
+Total active tests: **79** (37 + 42). Current pass rate: **79 / 0 / 0** at default parallelism. Every test runs against real production data and fails honestly when its target UI is missing.
 
 ---
 
 ## 2. Running
 
 ```bash
-# Whole Resource Panel suite (only project that runs this folder)
+# Whole Resource Panel suite
 npx playwright test --project=chrome-resource-panel
 
 # One file
@@ -41,6 +61,8 @@ npx playwright test --project=chrome-resource-panel --debug
 TIMEOUT_MULTIPLIER=2 npx playwright test --project=chrome-resource-panel
 ```
 
+Heavy async-data tests in this suite (`manuscripts.spec.ts`) use `test.slow()` to triple their per-test timeout — that's enough to absorb the request-queueing the production sandbox does under concurrent load. If you see a flake on a new test under parallel load, the fix is in the test (longer timeout on the async fetch, atomic `page.evaluate` instead of sequential `isVisible`s) — not in capping workers globally.
+
 The project is wired in [`playwright.config.ts`](../../../playwright.config.ts) under `name: 'chrome-resource-panel'` with `baseURL` set to `MODULE_URLS.EN.LIBRARY`. Add Firefox / Safari projects symmetrically if cross-browser coverage is needed.
 
 ---
@@ -49,17 +71,30 @@ The project is wired in [`playwright.config.ts`](../../../playwright.config.ts) 
 
 Each test below was made reliable by either (a) picking a text known via the Sefaria `/api/texts` API to expose the data the test needs, or (b) reaching into the React fiber tree when no event-level interaction would propagate. Nothing here is a fallback — every test fails honestly if the expected UI is absent.
 
-### Reference texts (verified against production on 2026-05-12)
+### Reference texts (verified against production on 2026-05-18)
 
 | Test | Text | Why |
 | --- | --- | --- |
 | RP-001…RP-016 | `Genesis.1` | 1607 connections on Gen 1:1, many categories, stable across releases |
-| RP-020…RP-023 | `Genesis.1` (EN) and `Genesis.1` (HE interface) | TOC renders for any book with chapters |
+| RP-020…RP-023 | `Genesis.1` (EN and HE interface) | TOC renders for any book with chapters |
 | RP-030…RP-032, RP-034 | `Genesis.1` | About panel + alternate versions section both present (57 versions) |
 | RP-033 | `Rashi_on_Genesis.1.1` | `aboutAuthor` is a stable `<a href="/topics/rashi">Rashi</a>` link |
 | RP-040…RP-047 | `Genesis.1` | 46 versions across 17 languages — richest stable surface for translation tests |
 | RP-050…RP-058 | `Genesis.1` (EN interface, Hebrew content) | First two words `בְּ` + `רֵאשִׁ֖ית` both return BDB entries |
 | RP-055 | `Berakhot.2a` | 8 inline named-entity links (`data-slug` on Rabbi Eliezer, Rabban Gamliel, etc.) — the only text in our sample with NE annotation density |
+| RP-060…RP-072 | `Genesis.1` Commentary → first book | 871+ commentary connections; first commentary book has English-translated snippets reliably |
+| RP-073 | `Sifrei_Bamidbar.9.1?with=Exodus` | Sifrei Bamidbar (midrash on Numbers) filtered by Exodus → 0 connections — exercises the empty TextList rendering path |
+| RP-080…RP-081 | `Genesis.1` segment 1:1 | 7 topic associations; clicking a topic opens its `/topics/<slug>` page in a new tab |
+| RP-090…RP-092 | `Ezra.2.29` | 10+ web-page sites / 60+ pages across Torat Har Etzion, Jewish Virtual Library, OU Torah, hatanakh.com, etc. — verified via `/api/related/Ezra.2.29/websites` |
+| RP-100…RP-101 | `Ezra.2.29` | 6 sheets confirmed via `/api/related/Ezra.2.29` |
+| RP-110…RP-111 | `Ezra.2.29` | 1 manuscript (Leningrad Codex 1008 CE) with image / caption / location / source. Note: no license field on this manuscript, so RP-110 asserts the 4 always-present fields (license is conditional data) |
+| RP-120…RP-124 | `Genesis.1` 1:1, **logged in as `BROWSER_SETTINGS.enUser`** | Notes flow creates + cleans up notes in each test; RP-120 is logged-out (signup prompt) |
+| RP-130…RP-133 | `Genesis.1` 1:1, **logged in as `enUser`** | RP-131/132 intercept `/api/sheets/<id>/add` so production isn't polluted; RP-130 is logged-out |
+| RP-150…RP-153 | `Genesis.1` 1:1 | Share panel always renders; RP-151 grants `clipboard-read,clipboard-write`; RP-153 overrides `navigator.clipboard` to verify the `execCommand('copy')` fallback runs |
+| RP-160…RP-161 | `Genesis.1` 1:1, **logged in as `enUser`** | Logged-in to skip the "valid email" validation. RP-161 intercepts `/api/send_feedback` to avoid actually submitting |
+| RP-180…RP-181 | `Genesis.1` | "covenant" appears in many segments; ElasticSearchQuerier reliably returns `.result.textResult` rows |
+| RP-190…RP-194 | `Pirkei_Avot.1` (RP-194 negative on `Genesis.1`) | **Guide content only exists for Pirkei Avot on production** — Genesis has no guides, so the negative test (RP-194) verifies the button is hidden there |
+| RP-210…RP-212 | `Genesis.1` in `LANGUAGES.HE` interface | `interface-hebrew` body class sets RTL on app shell (`body`, `.readerApp`); the panel itself stays LTR because it wraps English content |
 
 ### Non-obvious implementation details
 
@@ -218,6 +253,97 @@ When writing new tests, if you don't intend to test the lexicon, don't trigger s
 `ReaderApp.jsx` chooses between single-panel and multi-panel layout based on viewport. At desktop widths (Playwright's default) it's multi-panel, and our selectors rely on `.readerPanelBox.sidebar` existing. If a test sets `viewport: { width: <760 }` or similar, the panel collapses to single-panel (`fullPanel=false`, no sidebar class) and most selectors break.
 
 Don't change viewport size in Resource Panel tests unless you're explicitly testing responsive behavior, and if you do, document the layout assumption.
+
+### 8.5 Auth-gated buttons don't enter a panel mode when logged out
+
+The Tools buttons for `Notes` / `Add to Sheet` / `Add Connection` use this onClick:
+
+```js
+() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")
+```
+
+When logged out the click renders the **SignUpModal** (`#interruptingMessageBox.sefariaModalBox`) — the panel does NOT switch to Notes mode. So calling `openNotes()` (which waits for the `.addNoteBox` mode anchor) hangs forever. Pattern for logged-out auth-gated tests:
+
+```ts
+await pm.onResourcePanel().toolsButton('Notes').click();
+await expect(page.locator('#interruptingMessageBox.sefariaModalBox').first()).toBeVisible();
+```
+
+### 8.6 FA icon `<i>` elements have zero intrinsic dimensions
+
+Sefaria's `Note.editNoteButton` renders as `<i class="editNoteButton fa fa-pencil">` with no text content. Font Awesome paints the icon via a CSS `::before` pseudo-element. Playwright's actionability check measures the `<i>`'s box — which is `0 × 0` — and refuses to click. The fix:
+
+```ts
+await note.scrollIntoViewIfNeeded();
+await note.locator('.editNoteButton').click({ force: true });
+```
+
+Same applies to any other Sefaria element where the visual is pseudo-element-rendered.
+
+### 8.7 jQuery `$.post` urlencodes spaces as `+`, not `%20`
+
+Sefaria's API calls go through jQuery. When you intercept a body and `decodeURIComponent` it, spaces appear as literal `+`. Normalize before substring-matching:
+
+```ts
+const decoded = decodeURIComponent(body).replace(/\+/g, ' ');
+expect(decoded).toContain('Genesis 1:1');  // not 'Genesis+1:1'
+```
+
+Also note: `decodeURIComponent` throws "URI malformed" when the body has stray special characters mixed with `%XX` sequences (e.g. user-typed `<`, `>`). For feedback / note bodies, skip the decode and substring-match the raw urlencoded body, or use `.replace(/\+/g, ' ')` alone.
+
+### 8.8 Network interception is non-negotiable for destructive APIs
+
+The auth-gated tests (Notes, Add to Sheet, Feedback) MUST intercept the relevant endpoints so we don't accumulate state on the QA user / Sefaria backend:
+
+| Test | Endpoint to intercept |
+| --- | --- |
+| RP-121 / RP-122 / RP-123 (Notes) | None — tests create + delete in the same test (real notes, cleaned up by test logic) |
+| RP-131 / RP-132 (Add to Sheet) | `**/api/sheets/**/add` |
+| RP-161 (Feedback) | `**/api/send_feedback` |
+
+Interception pattern:
+
+```ts
+let body: string | null = null;
+await page.route('**/api/sheets/**/add', async (route) => {
+  body = route.request().postData();
+  await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 999999, sources: [], status: 'ok' }) });
+});
+// ... trigger the action ...
+expect(body).toBeTruthy();
+// substring-match the captured payload
+```
+
+### 8.9 Confirm dialogs need a listener BEFORE the click
+
+`AddNoteBox.deleteNote` calls `window.confirm()`. Register the dialog handler before clicking delete:
+
+```ts
+this.page.once('dialog', d => d.accept().catch(() => {}));
+await deleteButton.click();
+```
+
+If you reverse the order, the dialog auto-dismisses with cancel and the delete silently no-ops.
+
+### 8.10 Different web-page data lives in different APIs
+
+`/api/related/<Ref>` returns sheets, topics, links, manuscripts — but **not** web pages. Web pages live at `/api/related/<Ref>/websites`. When researching whether a reference text has web pages for RP-090-style tests, hit the correct endpoint.
+
+### 8.11 Recent filter chips live INSIDE the TextList view, not the panel header
+
+`RecentFilterSet` is rendered inside the TextList view (`TextList.jsx:188`), not in the connections-panel header. After navigating ConnectionsList → TextList(Rashi) → back → TextList(Ibn Ezra), the chips show in `.connectionsPanel .recentFilterSet .textFilter` *while you're in TextList*. If your test clicks back to ConnectionsList, the chips disappear — assert them while still in TextList.
+
+### 8.12 Hebrew interface RTL applies to the app shell, not English content panels
+
+`interface-hebrew` body class sets `direction: rtl` on `body` and `.readerApp`. The `.connectionsPanel` inside a `.readerPanel.english` wrapper inherits LTR (English content panel). For RP-210, assert on the body/app direction, not the panel:
+
+```ts
+expect(await page.locator('body').evaluate(el => getComputedStyle(el).direction)).toBe('rtl');
+```
+
+### 8.13 Connection snippet text body isn't the navigation target
+
+Clicking a snippet's TEXT in TextList does nothing — only internal `.refLink` citations within the text fire `onCitationClick`. The "Open" affordance is the `.connection-button.panel-open-link` button in `.connection-buttons`. For tests that want the main reader to navigate, click that explicitly.
 
 ---
 
