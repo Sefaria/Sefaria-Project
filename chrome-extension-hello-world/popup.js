@@ -3,6 +3,12 @@ const SEFARIA_ORIGIN = "https://www.sefaria.org";
 
 const SUPPORTED_TITLES = ["Daf Yomi", "Daily Mishnah", "929"];
 
+const COMMENTARIES = {
+  "Daf Yomi": ["Rashi", "Tosafot", "Steinsaltz", "Rashba", "Maharsha"],
+  "Daily Mishnah": ["Bartenura", "Yachin", "Boaz", "Tiferet Yisrael", "Ikar Tosafot Yom Tov"],
+  "929": ["Rashi", "Ibn Ezra", "Ramban", "Radak", "Sforno"],
+};
+
 function titleEn(item) {
   return (item && item.title && item.title.en) || "";
 }
@@ -35,9 +41,11 @@ function refToUrlPath(ref) {
   return ref.replace(/ /g, "_").replace(/:/g, ".");
 }
 
-function itemUrl(item) {
+function itemUrl(item, commentary) {
   const path = item.url || refToUrlPath(item.ref || "");
-  return `${SEFARIA_ORIGIN}/${path.replace(/^\/+/, "")}`;
+  const base = `${SEFARIA_ORIGIN}/${path.replace(/^\/+/, "")}`;
+  if (!commentary) return base;
+  return `${base}?lang=bi&with=${encodeURIComponent(commentary)}&lang2=en`;
 }
 
 function renderMessage(cls, text) {
@@ -57,6 +65,13 @@ async function toggleSelection(displayTitle, checked) {
   await chrome.storage.local.set({ selected: Array.from(set) });
 }
 
+async function setCommentary(displayTitle, commentary) {
+  const { commentaries = {} } = await chrome.storage.local.get(["commentaries"]);
+  if (commentary) commentaries[displayTitle] = commentary;
+  else delete commentaries[displayTitle];
+  await chrome.storage.local.set({ commentaries });
+}
+
 async function render(entries) {
   const list = document.getElementById("schedule-list");
   list.innerHTML = "";
@@ -64,12 +79,20 @@ async function render(entries) {
     renderMessage("empty", "No supported schedules today.");
     return;
   }
-  const { selected = [], done = [] } = await chrome.storage.local.get(["selected", "done"]);
+  const { selected = [], done = [], commentaries = {} } = await chrome.storage.local.get([
+    "selected",
+    "done",
+    "commentaries",
+  ]);
   const selectedSet = new Set(selected);
   const doneSet = new Set(done);
 
   for (const { item, displayTitle } of entries) {
     const li = document.createElement("li");
+    li.className = "schedule-row";
+
+    const topRow = document.createElement("div");
+    topRow.className = "schedule-top";
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -81,7 +104,7 @@ async function render(entries) {
 
     const a = document.createElement("a");
     a.className = "schedule-link";
-    a.href = itemUrl(item);
+    a.href = itemUrl(item, commentaries[displayTitle]);
     a.target = "_blank";
     a.rel = "noopener noreferrer";
 
@@ -96,15 +119,56 @@ async function render(entries) {
     a.appendChild(titleEl);
     a.appendChild(refEl);
 
-    li.appendChild(checkbox);
-    li.appendChild(a);
+    topRow.appendChild(checkbox);
+    topRow.appendChild(a);
 
     if (doneSet.has(displayTitle)) {
       const medal = document.createElement("span");
       medal.className = "schedule-medal";
       medal.textContent = "🥇";
       medal.title = "Completed";
-      li.appendChild(medal);
+      topRow.appendChild(medal);
+    }
+
+    li.appendChild(topRow);
+
+    const options = COMMENTARIES[displayTitle] || [];
+    if (options.length) {
+      const commentaryRow = document.createElement("div");
+      commentaryRow.className = "commentary-row";
+
+      const label = document.createElement("label");
+      label.className = "commentary-label";
+      label.textContent = "Learn with:";
+
+      const select = document.createElement("select");
+      select.className = "commentary-select";
+
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Select Commentary...";
+      select.appendChild(defaultOpt);
+
+      for (const c of options) {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        if (commentaries[displayTitle] === c) opt.selected = true;
+        select.appendChild(opt);
+      }
+
+      select.addEventListener("change", async () => {
+        await setCommentary(displayTitle, select.value);
+        a.href = itemUrl(item, select.value);
+      });
+
+      const selectId = `commentary-${displayTitle.replace(/\s+/g, "-")}`;
+      select.id = selectId;
+      label.htmlFor = selectId;
+
+      commentaryRow.appendChild(label);
+      commentaryRow.appendChild(select);
+      li.appendChild(commentaryRow);
     }
 
     list.appendChild(li);

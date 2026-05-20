@@ -37,6 +37,7 @@ async function confirmAndStartTimers() {
 
 async function prunePendingAndDone() {
   const { selected, pending, done } = await getState();
+  const { commentaries = {} } = await chrome.storage.local.get(["commentaries"]);
   const newSelected = selected.filter((t) => SUPPORTED_TITLES.has(t));
   const selectedSet = new Set(newSelected);
   const updates = {};
@@ -45,6 +46,13 @@ async function prunePendingAndDone() {
   if (newPending.length !== pending.length) updates.pending = newPending;
   const newDone = done.filter((t) => SUPPORTED_TITLES.has(t) && selectedSet.has(t));
   if (newDone.length !== done.length) updates.done = newDone;
+  const newCommentaries = {};
+  let commentariesChanged = false;
+  for (const [t, c] of Object.entries(commentaries)) {
+    if (SUPPORTED_TITLES.has(t)) newCommentaries[t] = c;
+    else commentariesChanged = true;
+  }
+  if (commentariesChanged) updates.commentaries = newCommentaries;
   if (Object.keys(updates).length) await chrome.storage.local.set(updates);
   const all = await chrome.alarms.getAll();
   for (const a of all) {
