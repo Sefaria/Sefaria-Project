@@ -66,6 +66,31 @@ export class PersistentApiCache {
     }
   }
 
+  async getByUrlPrefix(prefix) {
+    try {
+      const db = this._getDB();
+      if (!db) { return undefined; }
+
+      const rows = await db[this.tableName]
+        .where('url')
+        .startsWith(prefix)
+        .reverse()
+        .sortBy('cachedAt');
+      for (let row of rows) {
+        const expired = row.cachedAt + this.ttlMs < Date.now();
+        const schemaMismatch = row.schemaVersion !== this.schemaVersion;
+        if (expired || schemaMismatch) {
+          await db[this.tableName].delete(row.url);
+          continue;
+        }
+        return row.data;
+      }
+      return undefined;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   async put(url, data) {
     try {
       const db = this._getDB();

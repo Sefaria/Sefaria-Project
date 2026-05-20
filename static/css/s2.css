@@ -5595,6 +5595,42 @@ big {
   color: var(--grey);
   margin-bottom: 10px;
 }
+.downloadDropdownProgress {
+  margin-bottom: 10px;
+}
+.downloadDropdownProgressLabel {
+  font-size: 0.85em;
+  color: var(--grey);
+  margin-bottom: 4px;
+}
+.downloadDropdownProgressBar {
+  height: 6px;
+  background: var(--lighter-grey);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.downloadDropdownProgressFill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.downloadDropdownProgressCount {
+  font-size: 0.8em;
+  color: var(--grey);
+  text-align: end;
+}
+.downloadDropdownStatus {
+  margin-bottom: 10px;
+  font-size: 0.85em;
+}
+.downloadDropdownStatus--complete {
+  color: var(--green);
+}
+.downloadDropdownStatus--error {
+  color: var(--error-red, #c0392b);
+}
 .downloadDropdownAction {
   width: 100%;
   cursor: pointer;

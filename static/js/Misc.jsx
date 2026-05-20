@@ -1473,8 +1473,23 @@ function DownloadButton({bookTitle, currVersions, translationLanguagePreference,
           <InterfaceText>Download for offline use</InterfaceText>
         </div>
         {status === "preparing" ?
-          <div className="downloadDropdownEmpty">
-            <InterfaceText>Loading commentaries...</InterfaceText>
+          <div className="downloadDropdownProgress">
+            <div className="downloadDropdownProgressLabel">
+              <InterfaceText>Preparing book...</InterfaceText>
+            </div>
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressBar">
+                <div
+                  className="downloadDropdownProgressFill"
+                  style={{width: `${Math.round(100 * progress.completed / progress.total)}%`}}
+                />
+              </div>
+            }
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressCount">
+                {progress.completed} / {progress.total}
+              </div>
+            }
           </div> :
           availableCommentaries.length ?
           <div className="downloadCommentaryList">
@@ -1496,7 +1511,37 @@ function DownloadButton({bookTitle, currVersions, translationLanguagePreference,
             <InterfaceText>No commentaries available</InterfaceText>
           </div>
         }
-        {availableCommentaries.length ?
+        {status === "downloading" &&
+          <div className="downloadDropdownProgress">
+            <div className="downloadDropdownProgressLabel">
+              <InterfaceText>Downloading commentaries...</InterfaceText>
+            </div>
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressBar">
+                <div
+                  className="downloadDropdownProgressFill"
+                  style={{width: `${Math.round(100 * progress.completed / progress.total)}%`}}
+                />
+              </div>
+            }
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressCount">
+                {progress.completed} / {progress.total}
+              </div>
+            }
+          </div>
+        }
+        {status === "complete" &&
+          <div className="downloadDropdownStatus downloadDropdownStatus--complete">
+            <InterfaceText>Download complete</InterfaceText>
+          </div>
+        }
+        {status === "error" &&
+          <div className="downloadDropdownStatus downloadDropdownStatus--error">
+            <InterfaceText>Download failed, please try again</InterfaceText>
+          </div>
+        }
+        {availableCommentaries.length && status !== "downloading" ?
           <button className="downloadDropdownAction" disabled={disabled || !selectedCommentaries.length} onClick={onDownloadClick}>
             <InterfaceText>Download Selected Commentaries</InterfaceText>
           </button> : null}

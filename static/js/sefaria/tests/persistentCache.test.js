@@ -20,6 +20,21 @@ describe("PersistentApiCache", function() {
     await expect(cache.get('/api/v3/texts/Genesis 1:1')).resolves.toEqual(data);
   });
 
+  it("finds cached rows by URL prefix", async function() {
+    const cache = new PersistentApiCache({dbName: dbName()});
+    const data = {ref: 'Ibn Ezra on Genesis 3', versions: [{text: ['one']}]};
+
+    await cache.put('/api/v3/texts/Ibn_Ezra_on_Genesis.3?version=primary&fill_in_missing_segments=1', data);
+
+    await expect(cache.getByUrlPrefix('/api/v3/texts/Ibn_Ezra_on_Genesis.3?')).resolves.toEqual(data);
+  });
+
+  it("returns undefined when no URL prefix row exists", async function() {
+    const cache = new PersistentApiCache({dbName: dbName()});
+
+    await expect(cache.getByUrlPrefix('/api/v3/texts/Missing.1?')).resolves.toBeUndefined();
+  });
+
   it("deletes and misses expired rows", async function() {
     const cache = new PersistentApiCache({dbName: dbName(), ttlMs: 10});
     const db = cache._getDB();

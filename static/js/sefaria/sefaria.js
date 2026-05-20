@@ -652,6 +652,10 @@ Sefaria = extend(Sefaria, {
       if (typeof sectionData === 'undefined') {
           sectionData = await Sefaria._persistentTextsStore.get(sectionUrl).catch(() => undefined);
       }
+      if (typeof sectionData === 'undefined' && Sefaria._persistentTextsStore.getByUrlPrefix) {
+          const sectionUrlPrefix = `${Sefaria.apiHost}/api/v3/texts/${Sefaria.normRef(sectionRef)}?`;
+          sectionData = await Sefaria._persistentTextsStore.getByUrlPrefix(sectionUrlPrefix).catch(() => undefined);
+      }
       if (typeof sectionData === 'undefined') { return undefined; }
       const segmentData = Sefaria._extractAPIV3SegmentFromSection(ref, sectionData);
       if (typeof segmentData !== 'undefined') {
@@ -804,10 +808,10 @@ Sefaria = extend(Sefaria, {
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
     ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang, status: versionsResponse.versionStatus } = translation);
     ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang, status: versionsResponse.heVersionStatus } = primary);
-    if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
+    if (Array.isArray(translation.sources) && !translation.sources.every(source => source === translation.sources[0])) {
         versionsResponse.sources = translation.sources;
     }
-    if (primary.sources && primary.sources.every(source => source === primary.sources[0])) {
+    if (Array.isArray(primary.sources) && primary.sources.every(source => source === primary.sources[0])) {
         versionsResponse.heSources = primary.sources;
     }
   },
@@ -1198,13 +1202,17 @@ Sefaria = extend(Sefaria, {
       const refsToDownload = refs.concat(commentaryRefs).unique();
       let completed = 0;
       onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: null});
-      for (let i = 0; i < refsToDownload.length; i += concurrency) {
-          const batch = refsToDownload.slice(i, i + concurrency);
-          await Promise.all(batch.map(ref => Sefaria._downloadRefForOffline(ref, {currVersions, translationLanguagePreference}).then(() => {
+      const downloadRefs = async function(downloadRefs, downloadOptions) {
+          for (let i = 0; i < downloadRefs.length; i += concurrency) {
+              const batch = downloadRefs.slice(i, i + concurrency);
+              await Promise.all(batch.map(ref => Sefaria._downloadRefForOffline(ref, downloadOptions).then(() => {
               completed++;
               onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: ref});
-          })));
-      }
+              })));
+          }
+      };
+      await downloadRefs(refs, {currVersions, translationLanguagePreference});
+      await downloadRefs(commentaryRefs, {currVersions: {}, translationLanguagePreference});
       await Sefaria._persistentTextsStore.putDownloadedBook({
           title: bookTitle,
           sectionRefs: refs,
@@ -2630,7 +2638,26 @@ _media: {},
     })
     return guides
   },
-  relatedApi: function(ref, callback) {
+  relatedApi: async function(ref, callback) {
+    // For segment refs, try loading section-level IDB data first so offline sidepanel
+    // reads can resolve without a network call. _saveRelatedData splits links by anchorRef
+    // and populates this._related for each verse, making the _cachedApiPromise key check
+    // resolve in memory on the subsequent call below.
+    if (!(ref in this._related)) {
+      const sectionRef = Sefaria.sectionRef(ref, true);
+      if (sectionRef && sectionRef !== ref && !(sectionRef in this._related)) {
+        const sectionUrl = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(sectionRef) + "?with_sheet_links=1";
+        const sectionData = await this._persistentRelatedStore.get(sectionUrl).catch(() => undefined);
+        if (typeof sectionData !== 'undefined') {
+          this._saveRelatedData(sectionRef, sectionData);
+          // If this segment still has no entry after the split, mark it as empty so
+          // _cachedApiPromise short-circuits without an offline-failing network call.
+          if (!(ref in this._related)) {
+            this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
+          }
+        }
+      }
+    }
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._cachedApiPromise({
       url,

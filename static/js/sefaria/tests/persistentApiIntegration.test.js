@@ -122,6 +122,36 @@ describe("persistent API cache integrations", function() {
     expect(Sefaria._ApiPromise).not.toHaveBeenCalled();
   });
 
+  it("extracts segment-level v3 text from any matching section-level IndexedDB URL before fetching", async function() {
+    const requestedVersions = [{languageFamilyName: 'translation'}];
+    const sectionData = {
+      ref: 'Ibn Ezra on Genesis 3',
+      sectionRef: 'Ibn Ezra on Genesis 3',
+      textDepth: 2,
+      sections: [3],
+      toSections: [3],
+      versions: [{
+        languageFamilyName: 'hebrew',
+        text: ['one', 'two', 'three'],
+      }],
+    };
+    Sefaria._persistentTextsStore = {
+      _inflight: {},
+      get: jest.fn(() => Promise.resolve(undefined)),
+      getByUrlPrefix: jest.fn(() => Promise.resolve(sectionData)),
+      put: jest.fn(() => Promise.resolve()),
+    };
+    Sefaria._ApiPromise = jest.fn();
+
+    const data = await Sefaria.getTextsFromAPIV3('Ibn Ezra on Genesis 3:3', requestedVersions, true, 'wrap_all_entities');
+
+    expect(Sefaria._persistentTextsStore.getByUrlPrefix)
+      .toHaveBeenCalledWith('/api/v3/texts/Ibn_Ezra_on_Genesis.3?');
+    expect(data.ref).toBe('Ibn Ezra on Genesis 3:3');
+    expect(data.versions[0].text).toBe('three');
+    expect(Sefaria._ApiPromise).not.toHaveBeenCalled();
+  });
+
   it("loads related data from IndexedDB beneath the related memory cache", async function() {
     const cachedRelated = {
       links: [],
@@ -181,5 +211,86 @@ describe("persistent API cache integrations", function() {
     expect(Sefaria._persistentRelatedStore.put)
       .toHaveBeenCalledWith('/api/related/Genesis.29?with_sheet_links=1', apiRelated);
     expect(callback).toHaveBeenCalledWith(apiRelated);
+  });
+
+  it("falls back to section-level IndexedDB related data for segment-level queries", async function() {
+    const sectionRelated = {
+      links: [
+        {anchorRef: 'Genesis 29:7', anchorVerse: 7, category: 'Commentary',
+         index_title: 'Rashi on Genesis', collectiveTitle: {en: 'Rashi', he: 'רש"י'}},
+      ],
+      notes: [],
+      sheets: [],
+      topics: [],
+      media: [],
+      manuscripts: [],
+      guides: [],
+    };
+    const callback = jest.fn();
+    Sefaria._persistentRelatedStore = {
+      _inflight: {},
+      get: jest.fn(url => {
+        if (url === '/api/related/Genesis.29?with_sheet_links=1') {
+          return Promise.resolve(sectionRelated);
+        }
+        return Promise.resolve(undefined);
+      }),
+      put: jest.fn(),
+    };
+    Sefaria._ApiPromise = jest.fn();
+    Sefaria._saveRelatedData = jest.fn((ref, data) => {
+      Sefaria._related[ref] = data;
+      // simulate split: populate segment-level entry as real _saveRelatedData would
+      if (ref === 'Genesis 29') {
+        Sefaria._related['Genesis 29:7'] = {
+          links: data.links, notes: [], sheets: [], webpages: [], media: [], topics: [], guides: [],
+        };
+      }
+      return data;
+    });
+
+    await Sefaria.relatedApi('Genesis 29:7', callback);
+
+    expect(Sefaria._persistentRelatedStore.get)
+      .toHaveBeenCalledWith('/api/related/Genesis.29?with_sheet_links=1');
+    expect(Sefaria._saveRelatedData).toHaveBeenCalledWith('Genesis 29', sectionRelated);
+    expect(Sefaria._ApiPromise).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalled();
+  });
+
+  it("marks segment ref as empty in memory when section IDB data has no links for that verse", async function() {
+    const sectionRelated = {
+      links: [],
+      notes: [],
+      sheets: [],
+      topics: [],
+      media: [],
+      manuscripts: [],
+      guides: [],
+    };
+    const callback = jest.fn();
+    Sefaria._persistentRelatedStore = {
+      _inflight: {},
+      get: jest.fn(url => {
+        if (url === '/api/related/Genesis.29?with_sheet_links=1') {
+          return Promise.resolve(sectionRelated);
+        }
+        return Promise.resolve(undefined);
+      }),
+      put: jest.fn(),
+    };
+    Sefaria._ApiPromise = jest.fn();
+    Sefaria._saveRelatedData = jest.fn((ref, data) => {
+      Sefaria._related[ref] = data;
+      // no split for verse 7 — no links in this section
+      return data;
+    });
+
+    await Sefaria.relatedApi('Genesis 29:7', callback);
+
+    // segment ref was not in _related after split, so it should be set to empty
+    expect(Sefaria._related['Genesis 29:7']).toBeDefined();
+    // _cachedApiPromise saw it in memory and resolved without hitting the network
+    expect(Sefaria._ApiPromise).not.toHaveBeenCalled();
   });
 });
