@@ -166,6 +166,24 @@
     return lastPSeg;
   }
 
+  function launchConfetti() {
+    const colors = ["#1a73e8", "#e8431a", "#f4b400", "#0f9d58", "#ab47bc", "#ff7043"];
+    const container = document.createElement("div");
+    container.className = "sefaria-hello-world-confetti";
+    for (let i = 0; i < 80; i++) {
+      const piece = document.createElement("div");
+      piece.className = "sefaria-hello-world-confetti-piece";
+      piece.style.left = Math.random() * 100 + "vw";
+      piece.style.backgroundColor = colors[i % colors.length];
+      piece.style.animationDelay = Math.random() * 0.4 + "s";
+      piece.style.animationDuration = 2 + Math.random() * 1.5 + "s";
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 4000);
+  }
+
   function removeMarker() {
     document.querySelectorAll("." + MARKER_CLASS).forEach((el) => el.remove());
   }
@@ -231,6 +249,7 @@
       markCalendarDone(displayTitle);
       btn.disabled = true;
       btn.textContent = "Done ✓";
+      launchConfetti();
     });
     wrapper.appendChild(btn);
 

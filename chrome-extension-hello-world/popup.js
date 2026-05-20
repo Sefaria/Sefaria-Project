@@ -5,9 +5,24 @@ const SUPPORTED_TITLES = ["Daf Yomi", "Daily Mishnah", "929"];
 
 const COMMENTARIES = {
   "Daf Yomi": ["Rashi", "Tosafot", "Steinsaltz", "Rashba", "Maharsha"],
-  "Daily Mishnah": ["Bartenura", "Yachin", "Boaz", "Tiferet Yisrael", "Ikar Tosafot Yom Tov"],
+  "Daily Mishnah": ["Bartenura", "English Explanation of Mishnah", "Yachin", "Boaz", "Tiferet Yisrael"],
   "929": ["Rashi", "Ibn Ezra", "Ramban", "Radak", "Sforno"],
 };
+
+function ordinal(n) {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function formatToday() {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const d = new Date();
+  return `${months[d.getMonth()]} ${ordinal(d.getDate())}`;
+}
 
 function titleEn(item) {
   return (item && item.title && item.title.en) || "";
@@ -189,5 +204,7 @@ function fetchAndRender() {
       renderMessage("error", "Could not load today's calendars.");
     });
 }
+
+document.getElementById("today-date").textContent = `· ${formatToday()}`;
 
 fetchAndRender();
