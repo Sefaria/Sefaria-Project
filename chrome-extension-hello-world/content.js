@@ -1,35 +1,26 @@
 (() => {
   const MARKER_CLASS = "sefaria-hello-world-marker";
   const CALENDARS_URL = "https://www.sefaria.org/api/calendars";
+  const LANG = SefariaI18n.isHebrewHost(window.location.hostname) ? "he" : "en";
+  const T = SefariaI18n.STRINGS[LANG];
 
-  function displayTitleFor(item) {
+  function storageKeyFor(item) {
     return (item && item.title && item.title.en) || "";
   }
 
-  function ordinal(n) {
-    const s = ["th", "st", "nd", "rd"];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  function displayTitleFor(item) {
+    return SefariaI18n.calendarTitleFor(item, LANG);
   }
 
-  function formatToday() {
-    const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-    const d = new Date();
-    return `${months[d.getMonth()]} ${ordinal(d.getDate())}`;
-  }
-
-  async function markCalendarDone(displayTitle) {
-    if (!displayTitle) return;
+  async function markCalendarDone(storageKey) {
+    if (!storageKey) return;
     const { pending = [], done = [] } = await chrome.storage.local.get(["pending", "done"]);
     const updates = {};
-    if (pending.includes(displayTitle)) {
-      updates.pending = pending.filter((t) => t !== displayTitle);
+    if (pending.includes(storageKey)) {
+      updates.pending = pending.filter((t) => t !== storageKey);
     }
-    if (!done.includes(displayTitle)) {
-      updates.done = [...done, displayTitle];
+    if (!done.includes(storageKey)) {
+      updates.done = [...done, storageKey];
     }
     if (Object.keys(updates).length) await chrome.storage.local.set(updates);
   }
@@ -204,8 +195,8 @@
     let anchor = null;
     let matchedItem = null;
     for (const item of items) {
-      const displayTitle = displayTitleFor(item);
-      if (!selected.includes(displayTitle)) continue;
+      const storageKey = storageKeyFor(item);
+      if (!selected.includes(storageKey)) continue;
       const range = parseRange(item.ref);
       if (!range) continue;
       const candidate = findLastSegmentInRange(range);
@@ -221,12 +212,13 @@
       return;
     }
 
+    const storageKey = storageKeyFor(matchedItem);
     const displayTitle = displayTitleFor(matchedItem);
     const existing = document.querySelector("." + MARKER_CLASS);
     if (
       existing &&
       existing.previousElementSibling === anchor &&
-      existing.dataset.calendarTitle === displayTitle
+      existing.dataset.calendarTitle === storageKey
     ) {
       return;
     }
@@ -234,21 +226,22 @@
 
     const wrapper = document.createElement("div");
     wrapper.className = MARKER_CLASS;
-    wrapper.dataset.calendarTitle = displayTitle;
+    wrapper.dataset.calendarTitle = storageKey;
+    wrapper.dir = LANG === "he" ? "rtl" : "ltr";
 
     const msg = document.createElement("div");
     msg.className = MARKER_CLASS + "-msg";
-    msg.textContent = `End of ${displayTitle} learning for ${formatToday()}`;
+    msg.textContent = T.endOfLearning(displayTitle, SefariaI18n.formatToday(LANG));
     wrapper.appendChild(msg);
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = MARKER_CLASS + "-btn";
-    btn.textContent = "I'm Done!";
+    btn.textContent = T.imDone;
     btn.addEventListener("click", () => {
-      markCalendarDone(displayTitle);
+      markCalendarDone(storageKey);
       btn.disabled = true;
-      btn.textContent = "Done ✓";
+      btn.textContent = T.doneCheck;
       launchConfetti();
     });
     wrapper.appendChild(btn);

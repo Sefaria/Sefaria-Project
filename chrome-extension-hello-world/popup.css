@@ -78,6 +78,24 @@ li.schedule-row {
   cursor: pointer;
 }
 
+html[dir="rtl"] .schedule-checkbox {
+  margin: 0 4px 0 0;
+}
+
+html[dir="rtl"] .commentary-row {
+  padding: 0 28px 0 4px;
+}
+
+html[dir="rtl"] #today-date {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+html[dir="rtl"] .schedule-medal {
+  margin-right: 0;
+  margin-left: 4px;
+}
+
 li:first-child {
   border-top: none;
 }

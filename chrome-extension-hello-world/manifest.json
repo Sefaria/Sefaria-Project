@@ -3,7 +3,7 @@
   "name": "Sefaria Hello World",
   "version": "0.2.0",
   "description": "Daily learning notifications and end-of-reading Done button for Sefaria.",
-  "permissions": ["storage", "alarms"],
+  "permissions": ["storage", "alarms", "tabs"],
   "action": {
     "default_title": "Sefaria Learning Schedules",
     "default_popup": "popup.html"
@@ -13,8 +13,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.sefaria.org/*", "*://sefaria.org/*"],
-      "js": ["content.js"],
+      "matches": ["*://*.sefaria.org/*", "*://sefaria.org/*", "*://*.sefaria.org.il/*", "*://sefaria.org.il/*"],
+      "js": ["i18n.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }

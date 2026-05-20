@@ -1,4 +1,4 @@
-const NOTIFY_DELAY_MINUTES = 3 / 60; // 10 seconds
+const NOTIFY_DELAY_MINUTES = 7 / 60; // 10 seconds
 const ALARM_PREFIX = "notify:";
 const BADGE_COLOR = "#d93025";
 const SUPPORTED_TITLES = new Set(["Daf Yomi", "Daily Mishnah", "929"]);
