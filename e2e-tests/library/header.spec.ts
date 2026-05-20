@@ -152,8 +152,6 @@ test.describe('Library Module Header Tests - English', () => {
     await page.waitForTimeout(t(2500));
     await hideAllModalsAndPopups(page);
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
-    // await hideAllModalsAndPopups(page);
-
 
     // Test logout
     await pm.onModuleHeader().logout();

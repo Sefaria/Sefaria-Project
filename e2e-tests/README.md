@@ -87,7 +87,7 @@ npx playwright test
 # A single project
 npx playwright test --project=chrome-library
 npx playwright test --project=chrome-assistant
-npx playwright test --project=chrome-resource-panel --workers=2  # see workers note below
+npx playwright test --project=chrome-resource-panel
 
 # Mobile suite (separate config — Pixel 5 Chrome + iPhone 13 Safari)
 npx playwright test --config=playwright.mobile.config.ts
@@ -128,8 +128,9 @@ e2e-tests/
 ├── CLAUDE.md              ← same rules, compressed for AI agents
 ├── example.env            ← template for .env
 ├── globals.ts             ← LANGUAGES, SOURCE_LANGUAGES, BROWSER_SETTINGS, t(), testUser, testAdminUser
-├── utils.ts               ← goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, MDL helpers,
-│                            geo-location, fixCookieDomainsForCrossSubdomain
+├── utils.ts               ← goToPageWithLang, goToPageWithUser, installOverlaySuppression,
+│                            hideAllModalsAndPopups, MDL helpers, geo-location,
+│                            fixCookieDomainsForCrossSubdomain
 ├── global-setup.ts        ← runs once before any worker; writes auth_*.json per profile
 ├── constants.ts           ← MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS, SITE_CONFIGS,
 │                            VALID_TOPICS, SEARCH_DROPDOWN, SaveStates, and more
@@ -222,7 +223,7 @@ These eight rules govern every new test and page object. Violations are the most
 
 1. **Always go through `PageManager`.** In a `.spec.ts` file, prefer `pm.onX().someAction()` over raw `page.locator(...)`. Raw locators belong inside a page object, not a spec.
 2. **Always wrap timeouts with `t()`** from [globals.ts](globals.ts). No hardcoded `5000`, `10000`, etc. Example: `await expect(x).toBeVisible({ timeout: t(10000) })`.
-3. **Always call `hideAllModalsAndPopups(page)`** after every navigation (`goto`, module switch, login redirect). The site has ~13 overlay types that can appear unpredictably and block clicks.
+3. **Overlay suppression is two layers.** Layer 1 is `installOverlaySuppression(context)`, called inside `goToPageWithLang` / `goToPageWithUser` *before* `context.newPage()`. It patches `localStorage.getItem` so every `modal_*` / `banner_*` key reads `"true"` (short-circuiting `InterruptingMessage.shouldShow()` and `Banner.shouldShow()` in [`Misc.jsx`](../../Sefaria-Project-Master/static/js/Misc.jsx) at lines 2100 and 2282 respectively) and short-circuits `/api/strapi/graphql-cache` with an empty payload. This eliminates the Strapi "Sustainer" interrupting message and any other Strapi-driven campaign at the React level — the `showDelay` timer never even arms. Layer 2 is `hideAllModalsAndPopups(page)`, which click-dismisses the residual non-Strapi survivors (cookies banner, UseBounce widget, GuideOverlay, `#bannerMessage`, SiteWideBanner). The entry-point helpers already call layer 2 after the first navigation; call it again after any subsequent in-test `page.goto`, module switch, or login redirect — a survivor (e.g. SiteWideBanner triggered by an interaction) can mount mid-test.
 4. **Always enter via `goToPageWithLang` or `goToPageWithUser`** for the first navigation in `test.beforeEach`. Do not start a test with a bare `page.goto(...)`.
 5. **Locator priority:** `getByRole` > `getByLabel` > `getByText` > `getByTestId` > CSS. Avoid brittle CSS like `.react-tags__search-input` in new code.
 6. **Never use `page.waitForTimeout(ms)` to wait for state.** Use web-first assertions (`await expect(locator).toBeVisible()`) — they auto-retry. `waitForTimeout` is acceptable only for deliberate pacing (e.g. after dismissing a modal) and, if used, must be wrapped with `t()`.
@@ -670,23 +671,20 @@ npx playwright test --project=chrome-library
 npx playwright test --project=chrome-sanity
 ```
 
-### Workers and parallelism — when to cap
+### Workers and parallelism
 
-The Sefaria production sandbox rate-limits at high concurrency, and several feature areas (Translations, Manuscripts, Notes, Add to Sheet, async-loaded panel content generally) start flaking at 4+ parallel tabs. **For local runs against the production sandbox, prefer `--workers=2`.** CI already runs `workers: 1` from [../playwright.config.ts](../playwright.config.ts).
+Desktop tests should pass at full parallelism. CI runs `workers: 1` from [../playwright.config.ts](../playwright.config.ts); local runs default to Playwright's auto-detected worker count and the suite is expected to stay green there.
 
-```bash
-npx playwright test --project=chrome-resource-panel --workers=2  # stable
-npx playwright test --project=chrome-resource-panel               # may flake under high concurrency
-```
+If a test flakes only when other tests run alongside it, the cause is in the test, not in the worker count. Fix the test rather than capping workers — see CLAUDE.md rule 20 for the diagnostic checklist (too-short timeouts on async fetches, sequential `isVisible` races, redirect-tolerant URL matching, `test.slow()` on known-heavy describes).
 
-If you see intermittent failures only when a project runs alongside others, drop the worker count before assuming the test is buggy.
+The one sanctioned exception is the mobile config ([../playwright.mobile.config.ts](../playwright.mobile.config.ts)), which caps non-CI workers at 2 — staging returns 5xx on `/login` under 5+ concurrent mobile-emulation workers. That cap is config-level and applies automatically when you run with `--config=playwright.mobile.config.ts`.
 
 ---
 
 ## Troubleshooting
 
 **Tests fail with `element intercepts pointer events` or modals blocking clicks.**
-Call `await hideAllModalsAndPopups(page)` after every navigation. The site has ~13 overlay types that appear unpredictably.
+The most common offenders (Strapi "Sustainer" modal, generic banner) are pre-empted at the context level by `installOverlaySuppression` inside the entry-point helpers. For residual non-Strapi overlays (cookies banner, GuideOverlay, UseBounce, SiteWideBanner) call `await hideAllModalsAndPopups(page)` after the offending action. If you see `interruptingMessage` or `bannerMessage` in a DOM snapshot, that's a regression in the layer-1 patch — check `utils.ts` and verify `installOverlaySuppression` is being awaited before `context.newPage()`.
 
 **Auth state seems corrupted between runs.**
 [global-setup.ts](global-setup.ts) wipes all `auth_*.json` at the start of every run and re-writes them from a fresh login. Do not manually delete them mid-run. If a particular profile is wedged, delete just that one file and re-run — globalSetup will re-create it.

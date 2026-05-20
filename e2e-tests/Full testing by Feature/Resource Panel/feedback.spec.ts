@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithUser } from '../../utils';
 import { BROWSER_SETTINGS, LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -24,7 +24,6 @@ test.describe('Resource Panel — Feedback — English', () => {
     // bypass the email field entirely (Misc.jsx:2791-2793).
     page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, BROWSER_SETTINGS.enUser);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().openFeedback();

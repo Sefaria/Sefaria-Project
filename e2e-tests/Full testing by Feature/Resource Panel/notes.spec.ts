@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang, goToPageWithUser } from '../../utils';
 import { BROWSER_SETTINGS, LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -35,7 +35,6 @@ test.describe('Resource Panel — Notes — Logged out', () => {
     // via `openNotes()`/`expectMode('Notes')`.
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().toolsButton('Notes').click();
@@ -55,7 +54,6 @@ test.describe('Resource Panel — Notes — Logged in', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, BROWSER_SETTINGS.enUser);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().openNotes();

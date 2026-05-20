@@ -1478,7 +1478,9 @@ export class ResourcePanelPage extends HelperBase {
 
   /** Whether the Guided Learning button is present in Resources hub. */
   async hasGuideButton(): Promise<boolean> {
-    return await this.toolsButton('Guided Learning').isVisible({ timeout: t(3000) }).catch(() => false);
+    // 15s budget: under full-parallel load, /api/related (which feeds
+    // Sefaria.guidesByRef and gates the button's render) sometimes takes >3s.
+    return await this.toolsButton('Guided Learning').isVisible({ timeout: t(15000) }).catch(() => false);
   }
 
   /** Selectors and counts within the Guide. */

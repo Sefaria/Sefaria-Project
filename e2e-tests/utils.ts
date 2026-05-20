@@ -60,32 +60,117 @@ export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] =
 };
 
 /**
- * Hides all common popups, modals, and banners that might interfere with tests
- * This is called automatically by navigation functions but can also be called manually
+ * Installs context-level overlay suppression for Strapi-driven interrupting
+ * messages and banners. Layer 1 of the two-layer overlay-suppression model
+ * (see `hideAllModalsAndPopups` for the click-through fallback layer).
+ *
+ * Two independent guards, both wired before the first page is created so the
+ * preconditions exist before any navigation:
+ *
+ * 1. `addInitScript` monkey-patches `Storage.prototype.getItem` so any
+ *    `modal_*` / `banner_*` key returns the string `"true"`. This causes the
+ *    `shouldShow()` short-circuits in `InterruptingMessage` (Misc.jsx:2100)
+ *    and `Banner` (Misc.jsx:2282) to treat every campaign as already
+ *    dismissed, killing the Strapi "Sustainer" modal before the `showDelay`
+ *    timer even arms. SignUpModal (Misc.jsx:1964-2011) renders from
+ *    `this.props.show` and never touches localStorage, so auth-gated tests
+ *    (RP-121/122/123/131/132/161) are unaffected. `TopicsLaunchBanner` uses
+ *    `sessionStorage`, not `localStorage`, so the patch doesn't reach it.
+ *
+ * 2. `context.route('**\/api/strapi/graphql-cache*')` short-circuits the
+ *    GraphQL fetch with an empty payload matching the live response shape
+ *    (`{ data: { modals: { data: [] }, banners: { data: [] },
+ *    sidebarAds: { data: [] } } }`). Belt-and-braces fallback for the case
+ *    where Sefaria changes the localStorage key shape; with the script in
+ *    place, this guard is strictly redundant, but it costs nothing and
+ *    documents intent.
+ *
+ * @param context - The Playwright browser context. Call BEFORE
+ *   `context.newPage()` — both guards apply to all pages created after this
+ *   call (`addInitScript` is documented as applying to every page in the
+ *   context; `route` is registered context-wide).
+ */
+export const installOverlaySuppression = async (context: BrowserContext) => {
+  // Layer 1a: monkey-patch localStorage.getItem for modal_/banner_ keys.
+  // Runs before any page script (init scripts execute after document is
+  // created but before any other script — Playwright docs).
+  await context.addInitScript(() => {
+    const originalGetItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key: string) {
+      if (typeof key === 'string' && (key.startsWith('modal_') || key.startsWith('banner_'))) {
+        return 'true';
+      }
+      return originalGetItem.call(this, key);
+    };
+  });
+
+  // Layer 1b: short-circuit the Strapi GraphQL cache endpoint with an empty
+  // payload. Matches the live response shape captured 2026-05-20 against
+  // www.sefaria.org/api/strapi/graphql-cache.
+  await context.route('**/api/strapi/graphql-cache*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          modals: { data: [] },
+          banners: { data: [] },
+          sidebarAds: { data: [] },
+        },
+      }),
+    });
+  });
+
+  // Layer 1c: pre-seed the cookies-accepted cookie so the CookiesNotification
+  // component (Misc.jsx:2861) short-circuits at constructor time and never
+  // renders. Without this, the banner appears post-hydration (after
+  // hideAllModalsAndPopups has already run) when the storage-state lacks the
+  // accepted cookie — observed mid-test on Voices during the Sanity suite.
+  // Set for both production hosts (.sefaria.org / .sefaria.org.il) so the
+  // cookie applies across all subdomains the tests visit.
+  await context.addCookies([
+    { name: 'cookiesNotificationAccepted', value: '1', domain: '.sefaria.org',    path: '/' },
+    { name: 'cookiesNotificationAccepted', value: '1', domain: '.sefaria.org.il', path: '/' },
+  ]);
+};
+
+/**
+ * Click-through fallback for the residual non-Strapi overlays — layer 2 of
+ * the overlay-suppression model. Strapi-driven banners (`Sustainer` modal,
+ * generic banner, sidebar promos) are suppressed at the context level by
+ * `installOverlaySuppression`; this helper only needs to deal with the
+ * survivors:
+ *
+ *   - `.cookiesNotification` — first-visit EU/CCPA banner
+ *   - `.ub-emb-iframe-wrapper`/`.ub-emb-close` — UseBounce third-party widget
+ *   - `.guideOverlay` — GuideOverlay.jsx in-app guide cards
+ *   - `#bannerMessage` — Sefaria's own non-Strapi banner wrapper
+ *   - `.siteWideBannerContent` — SiteWideBanner.jsx (chatbot/signup promo,
+ *     dismissed by cookie not localStorage so still needs UI click)
+ *
+ * Selectors are queried in parallel with `Promise.all`; the longest wait is
+ * `t(500)`, not 6 × `t(500)`, because Playwright's `isVisible({ timeout })`
+ * polls until the element appears OR the timeout expires.
  */
 export const hideAllModalsAndPopups = async (page: Page) => {
   const selectors = [
-    '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
-    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close', '#interruptingMessageBox #interruptingMessageClose',
-    '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close','.siteWideBannerContent .siteWideBannerClose',
-    '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
-    'small.popover-button.accessible-touch-target', '#bannerMessageClose', '.cookiesNotification', 'cookiesNotification.button.small.white.int-en',
-    'button[data-active-module="voices"].popover-button', '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.cookiesNotification > span.int-en > div',
-    'button.popover-button:has-text("Got it!")', '.ub-emb-iframe-wrapper .ub-emb-visible'
+    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
+    '.cookiesNotification [role="button"]',
+    '.ub-emb-close',
+    '.ub-emb-iframe-wrapper .ub-emb-visible',
+    '.guideOverlay .readerNavMenuCloseButton.circledX',
+    '#bannerMessage .close, #bannerMessage button.close, #bannerMessageClose',
+    '.siteWideBannerContent .siteWideBannerClose',
   ];
-  for (const s of selectors) {
+
+  await Promise.all(selectors.map(async (s) => {
     try {
-      const el = page.locator(s);
-      if (await el.isVisible({ timeout: t(1500) })) {
+      const el = page.locator(s).first();
+      if (await el.isVisible({ timeout: t(500) })) {
         await el.click({ timeout: t(2000) }).catch(() => {});
       }
-    } catch (e) { console.log(e); }
-  }
-  // await page.evaluate(() => {
-  //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2, [id^="interruptingMessage"], [class*="genericBanner"]');
-  //   overlays.forEach(el => el.remove());
-  // }).catch(() => { });
-  await page.waitForTimeout(t(300));
+    } catch { /* selector miss is fine — overlay isn't present */ }
+  }));
 };
 
 /**
@@ -221,8 +306,21 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     sameSite: 'Lax',
   }]);
 
+  // MUST be wired before context.newPage(): the init-script side of
+  // installOverlaySuppression applies to every page in the context, but only
+  // for pages created after the call (per Playwright docs on
+  // BrowserContext.addInitScript).
+  await installOverlaySuppression(context);
+
   const page = await context.newPage();
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  // CLAUDE.md rule 6 smell: this is "wait for state" (React hydration to
+  // attach event handlers), not "deliberate pacing." Tried replacing with
+  // document.fonts.ready + 2 RAFs — RP-001 and RP-002 then flaked 3/5,
+  // confirming the wait is gating on React hydration, not on layout/fonts.
+  // Replacing it cleanly requires probing a Sefaria-specific
+  // post-hydration signal (e.g. a window flag set in ReaderApp.componentDidMount,
+  // or an element class added only client-side). See utils.ts cleanup backlog.
   await page.waitForTimeout(t(1500));
   await hideAllModalsAndPopups(page);
   return page;
@@ -251,6 +349,9 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
     c.name === 'interfaceLang' ? { ...c, value: language } : c
   );
   await context.addCookies(storageState.cookies);
+
+  // Same ordering rule as goToPageWithLang — must precede context.newPage().
+  await installOverlaySuppression(context);
 
   const page = await context.newPage();
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });

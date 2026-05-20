@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -27,7 +27,6 @@ test.describe('Resource Panel — Guide — Pirkei Avot', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Pirkei_Avot.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickFirstSegmentToOpen();
   });
@@ -86,7 +85,6 @@ test.describe('Resource Panel — Guide — Hidden when no guide content', () =>
     // Guided Learning button should not render.
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     const hasGuide = await pm.onResourcePanel().hasGuideButton();

@@ -19,6 +19,48 @@ Parts 1 and 2 together cover opening behavior, the Resources hub, TOC navigation
 | [translations.spec.ts](translations.spec.ts) | RP-040 → RP-047 | Translations list, language grouping, current selection, open in reader, empty state |
 | [lexicon.spec.ts](lexicon.spec.ts) | RP-050 → RP-058 | Auto-trigger on 1–2 Hebrew words, no-trigger on >3, headwords, BDB, disambiguation, manual search, clear-to-Resources |
 
+#### Part 1 — per-test detail
+
+| Test | What it asserts |
+| --- | --- |
+| **RP-001** | Clicking a segment opens the resource panel and the default mode is Resources |
+| **RP-002** | Click-drag across segments selects a multi-segment range; `Range.intersectsNode` confirms `Genesis 1:1`, `1:2`, `1:3` are touched. Uses real `page.mouse.move/down/up`. |
+| **RP-003** | Close button (`a.readerNavMenuCloseButton.circledX`) closes the panel |
+| **RP-004** | Clicking a different segment reloads connections; URL transitions to the new segment's ref |
+| **RP-005** | Panel and main reader have independent scroll containers (scrolling one doesn't move the other) |
+| **RP-006** | Back button on the panel header returns from a sub-mode (About) to Resources |
+| **RP-010** | Standard hub buttons present: About this Text / Table of Contents / Search in this Text / Translations |
+| **RP-011** | Related Texts section shows category filters with numeric counts; categories are clickable |
+| **RP-012** | More / See Less toggle expands and collapses the category list past the 4-item default cap |
+| **RP-013** | Segment with no connections — Related Texts section absent or empty without crashing |
+| **RP-015** | Resources section shows Sheets / Web Pages / Topics / Manuscripts buttons (gated on data availability) |
+| **RP-016** | Tools section shows Add to Sheet / Dictionaries / Notes / Share / Feedback / Advanced |
+| **RP-020** | TOC opens with section links; `.textTableOfContents` rendered |
+| **RP-021** | Clicking a TOC section link navigates the main reader; URL changes |
+| **RP-022** | Back button in TOC returns to Resources mode |
+| **RP-023** | Hebrew interface renders TOC links with `body.interface-hebrew` |
+| **RP-030** | About panel shows text metadata (`.aboutTitle`, `.aboutDesc`) |
+| **RP-031** | About panel shows current version section (`.currVersionSection`) |
+| **RP-032** | About panel shows alternate versions section (Genesis has 57 alternates) |
+| **RP-033** | Author link in About panel navigates to `/topics/rashi` (using `Rashi_on_Genesis.1.1`) |
+| **RP-034** | Extended Notes slot (`.versionExtendedNotesLinks`) renders structurally on the current version. Production data has no `extendedNotes` populated on any version, so the slot carries `n-a` — the test asserts the slot exists, proving React handles the empty case |
+| **RP-040** | Translations panel groups versions by language and shows version rows |
+| **RP-041** | Clicking a version's `.versionPreview` opens it in Translation Open mode |
+| **RP-042** | Open button on a non-current version (`.selectButton:not(.currSelectButton)`) navigates the reader to that version |
+| **RP-043** | Currently-selected version's button is labeled "Currently Selected" |
+| **RP-044** | English language group is rendered first per `sortPrioritizeLanugage="en"`; subsequent groups alphabetical |
+| **RP-046** | Translation list mounts without crashing (empty state path) |
+| **RP-047** | Extended Notes slot is structurally present for alternate versions (same `n-a` rationale as RP-034) |
+| **RP-050** | Selecting 1 Hebrew word auto-opens the Lexicon; results render |
+| **RP-051** | Selecting 2 Hebrew words auto-opens the Lexicon for the phrase |
+| **RP-052** | Selecting 4+ Hebrew words does NOT auto-open the Lexicon (the React condition is `split(" ").length < 3`) |
+| **RP-053** | Lexicon entry shows a headword |
+| **RP-054** | BDB dictionary entry is present in the lexicon results (`.entry .attribution` matches `/BDB/i`); uses the 2nd Hebrew word `רֵאשִׁ֖ית` because the prefix `בְּ` returns Klein-only |
+| **RP-056** | Manual lexicon search of `xqzqz1234` triggers either "No definitions found" or "Invalid entry. Please type a Hebrew word." |
+| **RP-057** | Clearing the selection returns the panel to Resources mode. Implementation: walks the React fiber tree from `.readerApp` to find the `ReaderApp` instance and calls `setSelectedWords(0, '')` directly — the only reliable way to propagate deselection through Sefaria's `handleTextSelection` chain |
+| **RP-058** | Manual dictionary search of `שלום` returns results |
+| **RP-055** | Inline named-entity link click in `Berakhot.2a` (the only Sefaria text in the sample with `data-slug` annotations) opens the named-entity wrapper in the panel |
+
 ### Part 2 — RP-060 → RP-212
 
 | Spec file | Test IDs | Feature area |
@@ -36,6 +78,71 @@ Parts 1 and 2 together cover opening behavior, the Resources hub, TOC navigation
 | [feedback.spec.ts](feedback.spec.ts) | RP-160, RP-161 | Form mounts; `/api/send_feedback` POST intercepted (does not pollute production) |
 | [guide.spec.ts](guide.spec.ts) | RP-190 → RP-194 | Key Questions; Q → S → C transitions; back traversal; hidden when no guide content (Genesis) |
 | [hebrew-ui.spec.ts](hebrew-ui.spec.ts) | RP-210 → RP-212 | RTL layout; Hebrew category labels in ConnectionsList; bilingual About content |
+
+#### Part 2 — per-test detail
+
+| Test | What it asserts |
+| --- | --- |
+| **RP-060** | Clicking a category opens ConnectionsList; books listed with counts; back button visible |
+| **RP-061** | Clicking a book filter enters TextList; snippets rendered for that book |
+| **RP-062** | Recent-filter chips appear in the TextList view after navigating into 2+ books (lives in `.connectionsPanel .recentFilterSet`, *not* in the panel header) |
+| **RP-063** | At least one book in the open category carries the `EN` availability tag (`.englishAvailableTag`) |
+| **RP-070** | TextList shows connection snippets; each `.textListTextRangeBox` has at least one inner `[data-ref]` |
+| **RP-071** | Clicking the `.connection-button.panel-open-link` button (the actual nav affordance, not the snippet body) navigates the main reader; URL changes |
+| **RP-072** | Snippets render readable text in Hebrew or English (`/[A-Za-zא-ת]/`) — the precondition for the global language switch to do anything |
+| **RP-073** | `Sifrei_Bamidbar.9.1?with=Exodus` produces 0 snippets and the loading-message reads "No connections known for Exodus here." |
+| **RP-080** | Topics list shows ≥1 `.topicButton`; each has a `.topicButtonTitle` |
+| **RP-081** | Clicking a topic opens `/topics/<slug>` in a new tab (`target="_blank"`) |
+| **RP-090** | Web Pages shows ≥1 `.website[role="button"]` site card with favicon, name, and `.connectionsCount` |
+| **RP-091** | Clicking a site filters to that site's individual pages; back button visible |
+| **RP-092** | Clicking a specific page opens the external URL in a new tab |
+| **RP-100** | Sheets toolsButton has a numeric count badge (Ezra.2.29: "(6)") |
+| **RP-101** | Clicking Sheets opens `voices.<sandbox>/sheets-with-ref/<ref>` in a new tab |
+| **RP-110** | Manuscript card renders with image, caption, location, source link (license is conditional data — Leningrad Codex on Ezra.2.29 has no license, so the test asserts the 4 always-present fields). `test.slow()` triples the budget for the async manuscripts fetch |
+| **RP-111** | Clicking the manuscript thumbnail opens the full-resolution image in a new tab |
+| **RP-120** | Clicking Notes when logged out opens the SignUpModal (`#interruptingMessageBox.sefariaModalBox`) — does NOT enter Notes panel mode |
+| **RP-121** | Logged-in: typing in the textarea and clicking "Add Note" (aria-label="Add Note") creates a real note; it appears in `.myNoteList`; test cleans up by triggering the edit → delete flow (with `page.once('dialog', d => d.accept())` pinned BEFORE the click) |
+| **RP-122** | Logged-in: editing an existing note via `.editNoteButton` (a FA icon — clicked with `force: true` because the `<i>` host has zero intrinsic dimensions) shows the updated text |
+| **RP-123** | Logged-in: deleting a note via the confirm dialog removes it from the list |
+| **RP-124** | "Go to My Notes" link points at `/texts/notes` |
+| **RP-130** | Clicking Add to Sheet when logged out opens the SignUpModal |
+| **RP-131** | Logged-in: sheet picker opens, lists the QA user's sheets, clicking Add POSTs `source={"refs":["Genesis 1:1"],...}` to `/api/sheets/<id>/add`. Request is intercepted with `page.route()` so no real source is added |
+| **RP-132** | The POST payload from RP-131 includes `version-he` and/or `version-en` keys (verified by reading the captured body, normalised with `.replace(/\+/g, ' ')` because jQuery `$.post` urlencodes spaces as `+`) |
+| **RP-133** | Back button cancels Add to Sheet without firing `/api/sheets/<id>/add` |
+| **RP-150** | Share panel shows `#sheetShareLink` input + `.shareInputButton` + three social `.toolsButton`s (Facebook, X, Email) |
+| **RP-151** | Granting `clipboard-read`/`clipboard-write` permissions, clicking Copy, then reading `navigator.clipboard.readText()` — the clipboard contents match the URL input value |
+| **RP-152** | Facebook share opens `facebook.com/sharer/sharer.php` with the Sefaria URL in the query; X share opens an `x.com` or `twitter.com` URL — when X redirects unauthenticated users to `x.com/i/flow/login`, the test double-decodes `redirect_after_login` and confirms `sefaria.org` is still in the destination |
+| **RP-153** | The `execCommand('copy')` fallback path runs when `navigator.clipboard` is unavailable. Implementation: overrides `navigator.clipboard` to `undefined` via `Object.defineProperty`, spies on `document.execCommand`, clicks Copy, verifies the spy received `'copy'` |
+| **RP-180** | SidebarSearch panel opens with `#searchQueryInput` and placeholder "Search in this text" |
+| **RP-181** | Typing "covenant" and pressing Enter yields `.searchResultList .result.textResult` rows |
+| **RP-160** | Feedback panel mounts with `.feedbackBox`, `#feedbackText` textarea, and the Submit button |
+| **RP-161** | Selecting "Other" from the type dropdown, typing a message, and clicking Submit POSTs to `/api/send_feedback` with the message in the body. Intercepted to avoid actually submitting; the captured body is normalized with `.replace(/\+/g, ' ')` and asserted to contain the unique test marker |
+| **RP-190** | Guided Learning panel renders on `Pirkei_Avot.1` with ≥1 `.guidePromptBox` and the "Experiment" label |
+| **RP-191** | Clicking a key question transitions to the Summaries state (different `.guidePromptBox` text) |
+| **RP-192** | Clicking a summary transitions to Commentaries state (`.guideBox` now contains a `.textRange[data-ref]`) |
+| **RP-193** | Back button traverses Commentaries → Summaries → Questions → Resources |
+| **RP-194** | Genesis (no guide content) hides the Guided Learning button entirely |
+| **RP-210** | Hebrew interface sets `body.interface-hebrew`, `body[direction=rtl]`, and `.readerApp[direction=rtl]` |
+| **RP-211** | Category labels in ConnectionsList contain Hebrew characters (`/[א-ת]/`) when interface is Hebrew |
+| **RP-212** | About panel renders bilingual content with Hebrew text present when interface is Hebrew |
+
+#### Test types in the mix
+
+These 79 tests cover several distinct assertion shapes — useful when scoping a new test or auditing an existing one:
+
+| Type | What it does | Examples |
+| --- | --- | --- |
+| **UI mechanics** | Mode opens, button clicks, mode transitions, back navigation, panel state | RP-001, RP-003, RP-022, RP-180, RP-190 |
+| **Navigation outcomes** | Main-reader URL changes; new-tab popups captured via `context.waitForEvent('page')` | RP-021, RP-042, RP-071, RP-081, RP-092, RP-101, RP-111 |
+| **API payload assertions** | `page.route()` intercepts destructive endpoints and asserts the request body without polluting production | RP-131, RP-132, RP-133, RP-161 |
+| **Auth-gated behavior** | SignUpModal for logged-out clicks on Notes / Add to Sheet; logged-in (`BROWSER_SETTINGS.enUser`) for create/edit/delete flows | RP-120, RP-121–RP-124, RP-130, RP-131–RP-133, RP-161 |
+| **Clipboard interaction** | Granting `clipboard-read`/`clipboard-write` permissions and reading clipboard contents | RP-151 |
+| **Code-path-only assertion** | Override an API or React state to verify a fallback branch runs that's otherwise unreachable from Playwright | RP-153 (`navigator.clipboard = undefined` → `execCommand` fallback); RP-057 (fiber traversal to reset `selectedWords`) |
+| **Empty-state assertions** | Filter with no connections; text with no guide content; non-Hebrew search input | RP-013, RP-073, RP-194, RP-056 |
+| **Bilingual / RTL** | Hebrew interface flips on the same content; RTL on the app shell; Hebrew text rendering | RP-023, RP-210, RP-211, RP-212 |
+| **Structural assertions for missing data** | Asserts a slot is rendered with the `n-a` empty-state class when the React component would otherwise have data — verifies the empty path honestly | RP-034, RP-047 (no version on production has `extendedNotes` populated) |
+| **Selection / drag** | Real `page.mouse.move/down/up` for multi-segment selection; programmatic Range with mouseup dispatch on `.textColumn` for Hebrew word picking | RP-002, RP-050–RP-058 |
+| **Async-loaded content** | Long timeouts (`t(40000)+`) or `test.slow()` for endpoints that queue under parallel load | RP-110 (`test.slow()`), RP-081 (30s popup), RP-070/RP-072 (waits for inner `[data-ref]`) |
 
 Total active tests: **79** (37 + 42). Current pass rate: **79 / 0 / 0** at default parallelism. Every test runs against real production data and fails honestly when its target UI is missing.
 
