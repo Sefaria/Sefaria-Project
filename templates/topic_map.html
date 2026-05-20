@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load sefaria_tags %}
+
+{% block meta_title %}{% meta_title %}Topic Map | Sefaria{% endmeta_title %}{% endblock %}
+{% block meta_description %}{% meta_desc %}Explore how topics appear across Jewish texts with an interactive visualization.{% endmeta_desc %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/topic-map.css' %}">
+<script src="{% static 'js/lib/d3.v5.min.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="topicMapPageContent"></div>
+{% endblock %}
+
+{% block js %}
+<script>
+    DJANGO_VARS.containerId = 'topicMapPageContent';
+    DJANGO_VARS.reactComponentName = 'TopicMapPage';
+    DJANGO_VARS.props = DJANGO_VARS.props || {};
+</script>
+{% endblock %}

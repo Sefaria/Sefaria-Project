@@ -9,6 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import TopicMapPage from './TopicMapPage';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -2545,5 +2546,6 @@ export {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
-  UpdatesPanel
+  UpdatesPanel,
+  TopicMapPage
 };

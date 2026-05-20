@@ -1,0 +1,258 @@
+#topicMapPageContent {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+.topicMapHeader {
+  margin-bottom: 20px;
+}
+
+.topicMapHeader h1 {
+  font-size: 28px;
+  font-weight: normal;
+  margin: 0 0 4px;
+}
+
+.topicMapHeader p {
+  font-size: 15px;
+  color: #666;
+  margin: 0 0 16px;
+}
+
+.bookSelector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.bookSelector label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.bookSelector select {
+  font-size: 15px;
+  padding: 7px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+.topicMapLayout {
+  display: flex;
+  gap: 24px;
+  min-height: 500px;
+}
+
+.topicMapLeft {
+  flex: 0 0 62%;
+  min-width: 0;
+}
+
+.topicMapRight {
+  flex: 1;
+  min-width: 240px;
+  border-left: 1px solid #e0e0e0;
+  padding-left: 24px;
+}
+
+/* Bubble chart */
+.topicBubbleWrap {
+  width: 100%;
+  background: #f9f9f7;
+  border: 1px solid #e8e8e4;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.topicBubbleSvg {
+  display: block;
+  width: 100%;
+}
+
+.topicBubbleSvg circle {
+  transition: fill-opacity 0.15s, stroke-width 0.15s;
+}
+
+.topicBubbleSvg text {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Right panel */
+.topicMapRightEmpty {
+  color: #999;
+  font-size: 14px;
+  padding-top: 12px;
+}
+
+.selectedTopicHeader {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: normal;
+}
+
+.selectedTopicHeader span {
+  color: #333;
+  font-weight: 600;
+}
+
+.topicBooksSection h3,
+.chapterSection h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  margin: 0 0 8px;
+}
+
+/* Book ranking list */
+.topicBooksList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.topicBooksList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background 0.1s;
+}
+
+.topicBooksList li:hover {
+  background: #f0f0ec;
+}
+
+.topicBooksList li.active {
+  background: #e8f4e8;
+  font-weight: 600;
+}
+
+.topicBooksList .rank {
+  color: #bbb;
+  font-size: 12px;
+  min-width: 24px;
+  text-align: right;
+}
+
+.topicBooksList .bookCategory {
+  font-size: 11px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+.topicBooksList .bookCount {
+  margin-left: auto;
+  font-size: 13px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+/* Chapter breakdown bar chart */
+.chapterSection {
+  margin-top: 20px;
+}
+
+.barChart {
+  display: flex;
+  align-items: flex-end;
+  height: 120px;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 22px;
+  position: relative;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 16px;
+}
+
+.barGroup .bar {
+  background-color: #6b7ec2;
+  width: 12px;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  transition: background-color 0.15s;
+}
+
+.barGroup:hover .bar {
+  background-color: #3b4fa0;
+}
+
+.barGroup .chapterLabel {
+  font-size: 9px;
+  color: #999;
+  margin-top: 3px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  height: 18px;
+  line-height: 12px;
+}
+
+/* Loading / error states */
+.topicMapLoading,
+.topicMapError,
+.topicMapEmpty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 15px;
+}
+
+.topicMapError {
+  color: #c00;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .topicMapLayout {
+    flex-direction: column;
+  }
+
+  .topicMapLeft {
+    flex: none;
+  }
+
+  .topicMapRight {
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    padding-left: 0;
+    padding-top: 20px;
+  }
+}
+
+/* RTL support */
+.interface-hebrew #topicMapPageContent {
+  direction: rtl;
+}
+
+.interface-hebrew .topicMapRight {
+  border-left: none;
+  border-right: 1px solid #e0e0e0;
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+.interface-hebrew .topicBooksList .bookCount {
+  margin-left: 0;
+  margin-right: auto;
+}

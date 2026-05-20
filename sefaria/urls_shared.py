@@ -46,6 +46,7 @@ shared_patterns = [
     re_path(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     path('api/user_history/saved', reader_views.saved_history_for_ref),
 
+    re_path(r'^topic-map/?$', reader_views.topic_map_page),
     re_path(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     re_path(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     re_path(r'^topics/?$', reader_views.topics_page),
@@ -168,6 +169,8 @@ shared_patterns = [
     re_path(r'^api/(?P<action>(block|unblock))/(?P<uid>\d+)$', reader_views.block_api),
 
     re_path(r'^api/authors/(?P<author_slug>[^/]+)/indexes/?$', reader_views.author_indexes_api),
+    path('api/book-topics/<path:book_title>', reader_views.book_topics_api),
+    path('api/topic-books/<path:slug>', reader_views.topic_books_api),
     path('api/topics', reader_views.topics_list_api),
     path('api/topics/generate-prompts/<path:slug>', reader_views.generate_topic_prompts_api),
     path('api/topics-graph/<path:topic>', reader_views.topic_graph_api),

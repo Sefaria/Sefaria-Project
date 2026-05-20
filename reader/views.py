@@ -82,7 +82,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
-    get_author_indexes
+    get_author_indexes, get_topics_for_book_with_chapters, get_books_for_topic
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
@@ -3380,6 +3380,33 @@ def topics_list_api(request):
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
+
+
+@catch_error_as_json
+def book_topics_api(request, book_title):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
+    book_title = book_title.replace("_", " ")
+    n = min(int(request.GET.get("n", 60)), 100)
+    return jsonResponse(get_topics_for_book_with_chapters(book_title, n=n),
+                        callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def topic_books_api(request, slug):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
+    n = min(int(request.GET.get("n", 30)), 50)
+    return jsonResponse(get_books_for_topic(slug, n=n),
+                        callback=request.GET.get("callback", None))
+
+
+@ensure_csrf_cookie
+def topic_map_page(request):
+    return render_template(request, "topic_map.html", None, {
+        "title": "Topic Map | Sefaria",
+        "desc": "Explore how topics appear across Jewish texts.",
+    })
 
 
 @catch_error_as_json

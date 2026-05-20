@@ -6,7 +6,7 @@ from collections import defaultdict
 from functools import cmp_to_key, partial
 from sefaria.model import *
 from sefaria.model.place import process_topic_place_change
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BookNameError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
 from sefaria.system.cache import django_cache
@@ -490,6 +490,101 @@ def get_topics_for_book(title: str, annotate=False, n=18) -> list:
     topic_order = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
 
     return [topic_data[topic[0]] for topic in topic_order][:n]
+
+
+@django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book_with_chapters")
+def get_topics_for_book_with_chapters(title: str, n: int = 60) -> dict:
+    """
+    Returns top-N topics for a book with per-chapter appearance counts.
+    Data shape: {"book": title, "topics": [{"slug", "en", "he", "count", "chapters": {ch_str: count}}]}
+    """
+    try:
+        library.get_index(title)
+    except (BookNameError, AttributeError):
+        return {"error": f"Book not found: {title}", "topics": []}
+
+    try:
+        links = list(Ref(title).topiclinkset())
+    except InputError:
+        return {"error": f"Invalid reference: {title}", "topics": []}
+
+    topic_total = defaultdict(int)
+    topic_chapters = defaultdict(lambda: defaultdict(int))
+
+    for link in links:
+        if link.is_sheet:
+            continue
+        slug = link.toTopic
+        if slug.startswith("parashat-"):
+            continue
+        topic_total[slug] += 1
+        try:
+            r = Ref(link.ref)
+            chapter = r.sections[0] if r.sections else 0
+        except (InputError, IndexError):
+            chapter = 0
+        topic_chapters[slug][str(chapter)] += 1
+
+    top_slugs = sorted(topic_total, key=lambda s: topic_total[s], reverse=True)[:n]
+    topic_objects = {t.slug: t for t in TopicSet({"slug": {"$in": top_slugs}})}
+
+    topics = []
+    for slug in top_slugs:
+        t = topic_objects.get(slug)
+        if not t:
+            continue
+        topics.append({
+            "slug": slug,
+            "en": t.get_primary_title("en") or slug,
+            "he": t.get_primary_title("he") or slug,
+            "count": topic_total[slug],
+            "chapters": dict(topic_chapters[slug]),
+        })
+
+    return {"book": title, "topics": topics}
+
+
+@django_cache(timeout=24 * 60 * 60, cache_prefix="get_books_for_topic")
+def get_books_for_topic(slug: str, n: int = 30) -> dict:
+    """
+    Returns books ranked by how often this topic appears in them.
+    Data shape: {"slug", "en", "he", "books": [{"title", "heTitle", "count", "category"}]}
+    """
+    topic_obj = Topic.init(slug)
+    if not topic_obj:
+        return {"error": f"Topic not found: {slug}", "books": []}
+
+    links = RefTopicLinkSet({"toTopic": slug, "is_sheet": False})
+    book_counts = defaultdict(int)
+    for link in links:
+        try:
+            book_counts[Ref(link.ref).book] += 1
+        except (InputError, AttributeError):
+            continue
+
+    top_books = sorted(book_counts, key=lambda b: book_counts[b], reverse=True)[:n]
+    books = []
+    for book_title in top_books:
+        try:
+            idx = library.get_index(book_title)
+            he_title = idx.get_title("he") or book_title
+            category = idx.categories[0] if idx.categories else ""
+        except Exception:
+            he_title = book_title
+            category = ""
+        books.append({
+            "title": book_title,
+            "heTitle": he_title,
+            "count": book_counts[book_title],
+            "category": category,
+        })
+
+    return {
+        "slug": slug,
+        "en": topic_obj.get_primary_title("en") or slug,
+        "he": topic_obj.get_primary_title("he") or slug,
+        "books": books,
+    }
 
 
 """
