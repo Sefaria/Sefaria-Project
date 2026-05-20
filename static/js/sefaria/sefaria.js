@@ -2595,9 +2595,9 @@ _media: {},
           notes: this._saveNoteData(inputRef, data.notes),
           sheets: this.sheets._saveSheetsByRefData(inputRef, data.sheets),
           topics: this._saveTopicByRef(inputRef, data.topics || []),
-          media: this._saveItemsByRef(data.media, this._media),
-          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts),
-          guides: this._saveItemsByRef(data.guides, this._guides)
+          media: this._saveItemsByRef(data.media || [], this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts || [], this._manuscripts),
+          guides: this._saveItemsByRef(data.guides || [], this._guides)
       };
 
        // Build split related data from individual split data arrays
@@ -4105,15 +4105,13 @@ _media: {},
               }
 
               return Sefaria._ApiPromise(url)
-                  .then(data => {
+                  .then(async data => {
                       if (processor) { data = processor(data); }
                       if (typeof data === 'undefined') {
                           return data;
                       }
                       store[key] = data;
-                      Promise.resolve()
-                          .then(() => persistentStore.put(persistentCacheKey, data))
-                          .catch(() => undefined);
+                      await persistentStore.put(persistentCacheKey, data);
                       return data;
                   });
           })
