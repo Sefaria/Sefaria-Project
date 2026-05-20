@@ -5544,6 +5544,9 @@ big {
   width: 18px;
   margin-top: 3px;
 }
+.downloadButton.downloading img {
+  opacity: 0.5;
+}
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
   left: -50px;

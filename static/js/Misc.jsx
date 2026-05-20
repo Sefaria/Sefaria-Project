@@ -1378,6 +1378,47 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+function DownloadButton({bookTitle, currVersions, translationLanguagePreference, tooltip}) {
+  const [status, setStatus] = useState("idle");
+  const [progress, setProgress] = useState(null);
+  const disabled = !bookTitle || status === "downloading";
+  const classes = classNames({saveButton: 1, downloadButton: 1, "tooltip-toggle": tooltip, downloading: status === "downloading"});
+  const style = !bookTitle ? {visibility: 'hidden'} : {};
+  const altText = status === "downloading" && progress ?
+      `Downloading "${bookTitle}" ${progress.completed}/${progress.total}` :
+      status === "complete" ? `Downloaded "${bookTitle}"` :
+      status === "error" ? `Download failed for "${bookTitle}"` :
+      bookTitle ? `Download "${bookTitle}"` : "Download button";
+
+  function onClick(event) {
+    event.preventDefault();
+    if (disabled) { return; }
+    setStatus("downloading");
+    setProgress(null);
+    Sefaria.track.event("Reader", "Download Book", bookTitle);
+    Sefaria.downloadBookForOffline(bookTitle, {onProgress: setProgress, currVersions, translationLanguagePreference})
+        .then(result => {
+          setProgress(result);
+          setStatus("complete");
+        })
+        .catch(() => {
+          setStatus("error");
+        });
+  }
+
+  return (
+    <ToolTipped {...{ altText, classes, style, onClick }}>
+      <img src="/static/icons/download.svg" alt={altText}/>
+    </ToolTipped>
+  );
+}
+DownloadButton.propTypes = {
+  bookTitle: PropTypes.string,
+  currVersions: PropTypes.object,
+  translationLanguagePreference: PropTypes.string,
+  tooltip: PropTypes.bool,
+};
+
 /**
  * A button that shows a guide for the given guide type
  * @param {function} onShowGuide - A function to call when the button is clicked
@@ -3641,6 +3682,7 @@ export {
   SearchButton,
   SaveButton,
   SaveButtonWithText,
+  DownloadButton,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
