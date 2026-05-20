@@ -319,3 +319,157 @@ def confirm(request):
     })
 
     return JsonResponse({"status": "submitted", "index_title": idx.title}, status=201)
+
+
+def list_books(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "GET required"}, status=405)
+
+    from sefaria.system.database import db
+
+    mine = request.GET.get("mine") == "true"
+    status_filter = request.GET.get("status")
+    page = max(1, int(request.GET.get("page", 1)))
+    limit = min(100, max(1, int(request.GET.get("limit", 20))))
+    skip = (page - 1) * limit
+
+    query = {"communityBook": {"$exists": True}}
+
+    if mine and request.user.is_authenticated:
+        query["communityBook.submittedBy"] = request.user.id
+    elif request.user.is_authenticated and request.user.is_staff and status_filter:
+        query["communityBook.status"] = status_filter
+    elif not (request.user.is_authenticated and request.user.is_staff):
+        query["communityBook.status"] = "approved"
+
+    total = db.index.count_documents(query)
+    cursor = db.index.find(query).sort("communityBook.submittedAt", -1).skip(skip).limit(limit)
+
+    books = []
+    for doc in cursor:
+        cb = doc.get("communityBook", {})
+        submitter_id = cb.get("submittedBy")
+        submitter_name = ""
+        if submitter_id:
+            try:
+                user = User.objects.get(id=submitter_id)
+                submitter_name = user.first_name or user.username
+            except User.DoesNotExist:
+                submitter_name = "Unknown"
+
+        version_doc = db.texts.find_one({"title": doc.get("title")}, {"actualLanguage": 1})
+        book_language = version_doc.get("actualLanguage", "en") if version_doc else "en"
+
+        books.append({
+            "title": doc.get("title"),
+            "submitter": submitter_name,
+            "description": {
+                "en": doc.get("enDesc", ""),
+                "he": doc.get("heDesc", ""),
+            },
+            "language": book_language,
+            "status": cb.get("status"),
+            "submittedAt": cb.get("submittedAt").isoformat() if cb.get("submittedAt") else None,
+            "categories": doc.get("categories", []),
+        })
+
+    return JsonResponse({
+        "books": books,
+        "total": total,
+        "page": page,
+        "pages": math.ceil(total / limit) if total > 0 else 0,
+    })
+
+
+@csrf_exempt
+@staff_member_required
+def approve(request, title):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    idx = Index().load({"title": title})
+    if not idx:
+        return JsonResponse({"error": "Book not found"}, status=404)
+    if not idx.is_community_book:
+        return JsonResponse({"error": "Not a community book"}, status=400)
+    if idx.communityBook.get("status") != "submitted":
+        return JsonResponse({"error": "Can only approve submitted books"}, status=400)
+
+    idx.communityBook["status"] = "approved"
+    idx.communityBook["reviewedBy"] = request.user.id
+    idx.hidden = False
+    idx.save(override_dependencies=True)
+
+    submitter_id = idx.communityBook.get("submittedBy")
+    if submitter_id:
+        _notify_user(submitter_id, "community_book_approved", {
+            "title": idx.title,
+            "en": f"Your book '{idx.title}' has been approved and is now publicly visible.",
+            "he": f"הספר שלך '{idx.title}' אושר וכעת גלוי לציבור.",
+        })
+
+    return JsonResponse({"status": "approved"})
+
+
+@csrf_exempt
+@staff_member_required
+def reject(request, title):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        body = {}
+
+    reason = body.get("reason", "").strip()
+    if not reason:
+        return JsonResponse({"error": "Rejection reason is required"}, status=400)
+
+    idx = Index().load({"title": title})
+    if not idx:
+        return JsonResponse({"error": "Book not found"}, status=404)
+    if not idx.is_community_book:
+        return JsonResponse({"error": "Not a community book"}, status=400)
+    if idx.communityBook.get("status") != "submitted":
+        return JsonResponse({"error": "Can only reject submitted books"}, status=400)
+
+    idx.communityBook["status"] = "rejected"
+    idx.communityBook["rejectionReason"] = reason
+    idx.communityBook["reviewedBy"] = request.user.id
+    idx.save(override_dependencies=True)
+
+    submitter_id = idx.communityBook.get("submittedBy")
+    if submitter_id:
+        _notify_user(submitter_id, "community_book_rejected", {
+            "title": idx.title,
+            "reason": reason,
+            "en": f"Your book '{idx.title}' was not approved. Reason: {reason}",
+            "he": f"הספר שלך '{idx.title}' לא אושר. סיבה: {reason}",
+        })
+
+    return JsonResponse({"status": "rejected"})
+
+
+@csrf_exempt
+def withdraw(request, title):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    auth_err = _require_auth(request)
+    if auth_err:
+        return auth_err
+
+    idx = Index().load({"title": title})
+    if not idx:
+        return JsonResponse({"error": "Book not found"}, status=404)
+    if not idx.is_community_book:
+        return JsonResponse({"error": "Not a community book"}, status=400)
+    if idx.communityBook.get("submittedBy") != request.user.id:
+        return JsonResponse({"error": "You can only withdraw your own books"}, status=403)
+
+    idx.communityBook["status"] = "withdrawn"
+    idx.hidden = True
+    idx.save(override_dependencies=True)
+
+    return JsonResponse({"status": "withdrawn"})

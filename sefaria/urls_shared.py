@@ -149,6 +149,10 @@ shared_patterns = [
     # Community Books API
     path('api/community-books/upload', community_book_views.upload, name='community_books_upload'),
     path('api/community-books/confirm', community_book_views.confirm, name='community_books_confirm'),
+    path('api/community-books/', community_book_views.list_books, name='community_books_list'),
+    path('api/community-books/<path:title>/approve', community_book_views.approve, name='community_books_approve'),
+    path('api/community-books/<path:title>/reject', community_book_views.reject, name='community_books_reject'),
+    path('api/community-books/<path:title>/withdraw', community_book_views.withdraw, name='community_books_withdraw'),
 
     path('api/collections/user-collections/<int:user_id>', sheets_views.user_collections_api),
     path('api/collections/upload', sefaria_views.collections_image_upload),
