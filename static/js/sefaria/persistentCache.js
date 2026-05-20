@@ -37,6 +37,10 @@ export class PersistentApiCache {
     db.version(1).stores({
       [this.tableName]: 'url, cachedAt, schemaVersion',
     });
+    db.version(2).stores({
+      [this.tableName]: 'url, cachedAt, schemaVersion',
+      downloadedBooks: 'title, downloadedAt',
+    });
     this._db = db;
     return this._db;
   }
@@ -86,6 +90,30 @@ export class PersistentApiCache {
       await db[this.tableName].clear();
     } catch (e) {
       return;
+    }
+  }
+
+  async putDownloadedBook(book) {
+    try {
+      const db = this._getDB();
+      if (!db) { return; }
+      await db.downloadedBooks.put({
+        ...book,
+        downloadedAt: Date.now(),
+        schemaVersion: this.schemaVersion,
+      });
+    } catch (e) {
+      return;
+    }
+  }
+
+  async getDownloadedBooks() {
+    try {
+      const db = this._getDB();
+      if (!db) { return []; }
+      return await db.downloadedBooks.orderBy('downloadedAt').reverse().toArray();
+    } catch (e) {
+      return [];
     }
   }
 

@@ -96,4 +96,21 @@ describe("PersistentApiCache", function() {
     await expect(cache.get('/api/v3/texts/middle')).resolves.toEqual({ref: 'middle'});
     await expect(cache.get('/api/v3/texts/newest')).resolves.toEqual({ref: 'newest'});
   });
+
+  it("records downloaded books for offline navigation", async function() {
+    const cache = new PersistentApiCache({dbName: dbName()});
+
+    await cache.putDownloadedBook({
+      title: 'Genesis',
+      sectionRefs: ['Genesis 1'],
+      urls: ['/texts', '/texts/Tanakh', '/Genesis?tab=contents'],
+    });
+
+    await expect(cache.getDownloadedBooks()).resolves.toMatchObject([{
+      title: 'Genesis',
+      sectionRefs: ['Genesis 1'],
+      urls: ['/texts', '/texts/Tanakh', '/Genesis?tab=contents'],
+      schemaVersion: cache.schemaVersion,
+    }]);
+  });
 });

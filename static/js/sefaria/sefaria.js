@@ -926,6 +926,12 @@ Sefaria = extend(Sefaria, {
       await Sefaria._persistentVersionsStore.put(url, versions);
       return versions;
   },
+  downloadIndexDetailsForOffline: async function(bookTitle) {
+      const url = Sefaria._indexDetailsUrl(bookTitle);
+      const indexDetails = await Sefaria.getIndexDetails(bookTitle);
+      await Sefaria._persistentIndexDetailsStore.put(url, indexDetails);
+      return indexDetails;
+  },
   _offlineDownloadConcurrency: 4,
   _contentCountIsEmpty: function(count) {
       if (Array.isArray(count)) {
@@ -993,9 +999,52 @@ Sefaria = extend(Sefaria, {
       return schema.wholeRef ? [Sefaria.splitSpanningRefNaive(schema.wholeRef)[0]] : [];
   },
   getBookSectionRefsForDownload: async function(bookTitle) {
-      const indexDetails = await Sefaria.getIndexDetails(bookTitle);
+      const indexDetails = await Sefaria.downloadIndexDetailsForOffline(bookTitle);
       const refs = Sefaria._sectionRefsFromSchema(indexDetails.schema, indexDetails.title || bookTitle);
       return refs.unique();
+  },
+  _offlineNavigationUrlsForBook: function(bookTitle, indexDetails=null) {
+      const urls = ['/texts'];
+      const index = indexDetails || Sefaria.index(bookTitle) || {};
+      const categories = index.categories || [];
+      for (let i = 0; i < categories.length; i++) {
+          urls.push(`/texts/${categories.slice(0, i + 1).map(encodeURIComponent).join('/')}`);
+      }
+      urls.push(`/${Sefaria.normRef(bookTitle)}?tab=contents`);
+      return urls.unique();
+  },
+  _offlineShellAssetUrls: function() {
+      if (typeof document === 'undefined') { return []; }
+      const urls = [];
+      document.querySelectorAll('script[src], link[rel="stylesheet"][href], link[rel="icon"][href], link[rel="apple-touch-icon"][href], link[rel="manifest"][href]').forEach(node => {
+          const attr = node.src ? 'src' : 'href';
+          try {
+              const url = new URL(node[attr], window.location.origin);
+              if (url.origin === window.location.origin) {
+                  urls.push(url.pathname + url.search);
+              }
+          } catch (e) {
+              return;
+          }
+      });
+      return urls.unique();
+  },
+  cacheOfflineUrls: async function(urls) {
+      if (typeof caches === 'undefined') { return; }
+      const cache = await caches.open('sefaria-offline-v1');
+      const uniqueUrls = urls.filter(url => !!url).unique();
+      await Promise.all(uniqueUrls.map(url =>
+          fetch(url, {credentials: 'same-origin'})
+              .then(response => {
+                  if (response.ok) {
+                      return cache.put(url, response.clone());
+                  }
+              })
+              .catch(() => undefined)
+      ));
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({type: 'CACHE_URLS', urls: uniqueUrls});
+      }
   },
   _downloadRefForOffline: async function(ref, {currVersions={}, translationLanguagePreference=null}={}) {
       await Sefaria.downloadVersionsForOffline(ref);
@@ -1004,7 +1053,9 @@ Sefaria = extend(Sefaria, {
       return ref;
   },
   downloadBookForOffline: async function(bookTitle, {onProgress, concurrency=Sefaria._offlineDownloadConcurrency, currVersions={}, translationLanguagePreference=null}={}) {
-      const refs = await Sefaria.getBookSectionRefsForDownload(bookTitle);
+      const indexDetails = await Sefaria.downloadIndexDetailsForOffline(bookTitle);
+      await Sefaria.cacheOfflineUrls(Sefaria._offlineShellAssetUrls().concat(Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails)));
+      const refs = Sefaria._sectionRefsFromSchema(indexDetails.schema, indexDetails.title || bookTitle).unique();
       let completed = 0;
       onProgress && onProgress({bookTitle, total: refs.length, completed, currentRef: null});
       for (let i = 0; i < refs.length; i += concurrency) {
@@ -1014,6 +1065,11 @@ Sefaria = extend(Sefaria, {
               onProgress && onProgress({bookTitle, total: refs.length, completed, currentRef: ref});
           })));
       }
+      await Sefaria._persistentTextsStore.putDownloadedBook({
+          title: bookTitle,
+          sectionRefs: refs,
+          urls: Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails),
+      });
       return {bookTitle, total: refs.length, completed};
   },
   _portals: {},
@@ -1494,14 +1550,20 @@ Sefaria = extend(Sefaria, {
   },
 
   _indexDetails: {},
+  _persistentIndexDetailsStore: persistentApiStore,
   getIndexDetailsFromCache: function(title){
     return this._cachedApi(title, this._indexDetails, null);
   },
+  _indexDetailsUrl: function(title) {
+    return Sefaria.apiHost + "/api/v2/index/" + encodeURIComponent(title) + "?with_content_counts=1&with_related_topics=1";
+  },
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
-        url:   Sefaria.apiHost + "/api/v2/index/" + encodeURIComponent(title) + "?with_content_counts=1&with_related_topics=1",
+        url:   Sefaria._indexDetailsUrl(title),
         key:   title,
-        store: this._indexDetails
+        store: this._indexDetails,
+        persistentStore: this._persistentIndexDetailsStore,
+        persistentKey: Sefaria._indexDetailsUrl(title),
     });
   },
   titleIsTorah: function(title){

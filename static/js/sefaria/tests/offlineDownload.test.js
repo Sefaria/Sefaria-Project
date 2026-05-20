@@ -3,10 +3,14 @@ import Sefaria from '../sefaria';
 
 describe("offline book download helpers", function() {
   const originalGetIndexDetails = Sefaria.getIndexDetails;
+  const originalDownloadIndexDetailsForOffline = Sefaria.downloadIndexDetailsForOffline;
+  const originalCacheOfflineUrls = Sefaria.cacheOfflineUrls;
   const originalDownloadRefForOffline = Sefaria._downloadRefForOffline;
   const originalGetVersions = Sefaria.getVersions;
   const originalDownloadVersionsForOffline = Sefaria.downloadVersionsForOffline;
   const originalPersistentVersionsStore = Sefaria._persistentVersionsStore;
+  const originalPersistentTextsStore = Sefaria._persistentTextsStore;
+  const originalPersistentIndexDetailsStore = Sefaria._persistentIndexDetailsStore;
   const originalGetTextsFromAPIV3 = Sefaria.getTextsFromAPIV3;
   const originalGetTextFromCurrVersions = Sefaria.getTextFromCurrVersions;
   const originalRelatedApi = Sefaria.relatedApi;
@@ -18,14 +22,22 @@ describe("offline book download helpers", function() {
     Sefaria.apiHost = '';
     Sefaria.virtualBooks = [];
     Sefaria.booksDict = {Genesis: 1};
+    Sefaria.cacheOfflineUrls = jest.fn(() => Promise.resolve());
+    Sefaria._persistentTextsStore = {
+      putDownloadedBook: jest.fn(() => Promise.resolve()),
+    };
   });
 
   afterEach(function() {
     Sefaria.getIndexDetails = originalGetIndexDetails;
+    Sefaria.downloadIndexDetailsForOffline = originalDownloadIndexDetailsForOffline;
+    Sefaria.cacheOfflineUrls = originalCacheOfflineUrls;
     Sefaria._downloadRefForOffline = originalDownloadRefForOffline;
     Sefaria.getVersions = originalGetVersions;
     Sefaria.downloadVersionsForOffline = originalDownloadVersionsForOffline;
     Sefaria._persistentVersionsStore = originalPersistentVersionsStore;
+    Sefaria._persistentTextsStore = originalPersistentTextsStore;
+    Sefaria._persistentIndexDetailsStore = originalPersistentIndexDetailsStore;
     Sefaria.getTextsFromAPIV3 = originalGetTextsFromAPIV3;
     Sefaria.getTextFromCurrVersions = originalGetTextFromCurrVersions;
     Sefaria.relatedApi = originalRelatedApi;
@@ -36,7 +48,7 @@ describe("offline book download helpers", function() {
   });
 
   it("derives section refs from simple book content counts", async function() {
-    Sefaria.getIndexDetails = jest.fn(() => Promise.resolve({
+    Sefaria.downloadIndexDetailsForOffline = jest.fn(() => Promise.resolve({
       title: 'Genesis',
       schema: {
         nodeType: 'JaggedArrayNode',
@@ -51,7 +63,7 @@ describe("offline book download helpers", function() {
   });
 
   it("derives section refs from nested content counts", async function() {
-    Sefaria.getIndexDetails = jest.fn(() => Promise.resolve({
+    Sefaria.downloadIndexDetailsForOffline = jest.fn(() => Promise.resolve({
       title: 'Complex Text',
       schema: {
         nodes: [{
@@ -70,8 +82,9 @@ describe("offline book download helpers", function() {
 
   it("downloads every derived ref with progress updates", async function() {
     const progress = jest.fn();
-    Sefaria.getIndexDetails = jest.fn(() => Promise.resolve({
+    Sefaria.downloadIndexDetailsForOffline = jest.fn(() => Promise.resolve({
       title: 'Genesis',
+      categories: ['Tanakh', 'Torah'],
       schema: {
         nodeType: 'JaggedArrayNode',
         depth: 2,
@@ -99,6 +112,49 @@ describe("offline book download helpers", function() {
       completed: 2,
       currentRef: 'Genesis 2',
     });
+    expect(Sefaria.cacheOfflineUrls).toHaveBeenCalledWith([
+      '/texts',
+      '/texts/Tanakh',
+      '/texts/Tanakh/Torah',
+      '/Genesis?tab=contents',
+    ]);
+    expect(Sefaria._persistentTextsStore.putDownloadedBook).toHaveBeenCalledWith({
+      title: 'Genesis',
+      sectionRefs: ['Genesis 1', 'Genesis 2'],
+      urls: [
+        '/texts',
+        '/texts/Tanakh',
+        '/texts/Tanakh/Torah',
+        '/Genesis?tab=contents',
+      ],
+    });
+  });
+
+  it("persists index details for offline book contents pages", async function() {
+    const indexDetails = {
+      title: 'Genesis',
+      schema: {nodeType: 'JaggedArrayNode'},
+    };
+    Sefaria.getIndexDetails = jest.fn(() => Promise.resolve(indexDetails));
+    Sefaria._persistentIndexDetailsStore = {
+      put: jest.fn(() => Promise.resolve()),
+    };
+
+    await expect(Sefaria.downloadIndexDetailsForOffline('Genesis')).resolves.toEqual(indexDetails);
+
+    expect(Sefaria.getIndexDetails).toHaveBeenCalledWith('Genesis');
+    expect(Sefaria._persistentIndexDetailsStore.put)
+      .toHaveBeenCalledWith('/api/v2/index/Genesis?with_content_counts=1&with_related_topics=1', indexDetails);
+  });
+
+  it("builds navigation urls required for offline browsing into a downloaded book", function() {
+    expect(Sefaria._offlineNavigationUrlsForBook('Genesis', {categories: ['Tanakh', 'Torah']}))
+      .toEqual([
+        '/texts',
+        '/texts/Tanakh',
+        '/texts/Tanakh/Torah',
+        '/Genesis?tab=contents',
+      ]);
   });
 
   it("persists versions to IndexedDB even when versions are already in memory", async function() {
