@@ -19070,7 +19070,7 @@
         "parameters": [
           {
             "name": "lang",
-            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to `en` if omitted. `bi` is accepted and returns English. ",
+            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to the language associated with the request host if omitted. `bi` is accepted but does not return a bilingual image; it uses the language associated with the request host.",
             "schema": {
               "enum": [
                 "he",

@@ -5,9 +5,21 @@ Covers the lang parameter normalization added to fix cases where a missing,
 empty, or unrecognized lang value caused the wrong language to be used when
 generating social share images.
 """
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 from reader import views
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+
+DOMAIN_MODULES = {
+    "en": {
+        "library": "http://localsefaria.xyz:8000",
+        "voices": "http://voices.localsefaria.xyz:8000",
+    },
+    "he": {
+        "library": "http://localsefaria-il.xyz:8000",
+        "voices": "http://chiburim.localsefaria-il.xyz:8000",
+    },
+}
 
 
 class DummyRef:
@@ -34,15 +46,18 @@ class DummyTextFamily:
         }
 
 
-def _request(path):
-    return RequestFactory().get(path)
+def _request(path, active_module=None, host=None):
+    request = RequestFactory().get(path, HTTP_HOST=host or "localsefaria.xyz:8000")
+    if active_module:
+        request.active_module = active_module
+    return request
 
 
-def _capture_social_image_call(monkeypatch, path):
+def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1"):
     captured = {}
     DummyTextFamily.captured_kwargs = {}
 
-    def fake_response(text, category, ref_str, lang, platform):
+    def fake_response(text, category, ref_str, lang, platform, module):
         captured.update(
             {
                 "text": text,
@@ -50,16 +65,22 @@ def _capture_social_image_call(monkeypatch, path):
                 "ref_str": ref_str,
                 "lang": lang,
                 "platform": platform,
+                "module": module,
             }
         )
         captured["text_family_kwargs"] = DummyTextFamily.captured_kwargs
         return captured
 
-    monkeypatch.setattr(views, "Ref", lambda tref: DummyRef())
+    def fake_ref(tref):
+        if not tref:
+            raise ValueError("empty tref")
+        return DummyRef()
+
+    monkeypatch.setattr(views, "Ref", fake_ref)
     monkeypatch.setattr(views, "TextFamily", DummyTextFamily)
     monkeypatch.setattr(views, "make_img_http_response", fake_response)
 
-    return views.social_image_api(_request(path), "Genesis.1.1")
+    return views.social_image_api(_request(path, active_module, host), tref)
 
 
 def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
@@ -67,6 +88,71 @@ def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
 
     assert result["lang"] == "en"
     assert result["platform"] == "facebook"
+    assert result["text"] == "In the beginning"
+    assert result["ref_str"] == "Genesis 1:1"
+
+
+def test_social_image_api_empty_path_uses_host_fallback_image(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/?lang=en", tref="")
+
+    assert result["lang"] == "en"
+    assert result["text"] is None
+    assert result["category"] is None
+    assert result["ref_str"] is None
+
+
+@override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
+def test_social_image_api_defaults_missing_lang_to_host_language(monkeypatch):
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1",
+        active_module=VOICES_MODULE,
+        host="chiburim.localsefaria-il.xyz:8000",
+    )
+
+    assert result["lang"] == "he"
+    assert result["text"] == "בראשית"
+    assert result["ref_str"] == "בראשית א׳:א׳"
+
+
+@override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
+def test_social_image_api_lang_param_overrides_host_language(monkeypatch):
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1?lang=en",
+        active_module=VOICES_MODULE,
+        host="chiburim.localsefaria-il.xyz:8000",
+    )
+
+    assert result["lang"] == "en"
+    assert result["text"] == "In the beginning"
+    assert result["ref_str"] == "Genesis 1:1"
+
+
+@override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
+def test_social_image_api_hebrew_lang_param_overrides_english_voices_host(monkeypatch):
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1?lang=he",
+        active_module=VOICES_MODULE,
+        host="voices.localsefaria.xyz:8000",
+    )
+
+    assert result["lang"] == "he"
+    assert result["text"] == "בראשית"
+    assert result["ref_str"] == "בראשית א׳:א׳"
+
+
+@override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
+def test_social_image_api_english_lang_param_overrides_hebrew_library_host(monkeypatch):
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1?lang=en",
+        active_module=LIBRARY_MODULE,
+        host="localsefaria-il.xyz:8000",
+    )
+
+    assert result["lang"] == "en"
     assert result["text"] == "In the beginning"
     assert result["ref_str"] == "Genesis 1:1"
 
@@ -79,7 +165,7 @@ def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):
     assert result["ref_str"] == "Genesis 1:1"
 
 
-def test_social_image_api_defaults_invalid_lang_to_english(monkeypatch):
+def test_social_image_api_defaults_invalid_lang_to_host_language(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=english")
 
     assert result["lang"] == "en"
@@ -87,12 +173,18 @@ def test_social_image_api_defaults_invalid_lang_to_english(monkeypatch):
     assert result["ref_str"] == "Genesis 1:1"
 
 
-def test_social_image_api_maps_bilingual_lang_to_english(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=bi")
+@override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
+def test_social_image_api_uses_host_language_for_bilingual_lang_param(monkeypatch):
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1?lang=bi",
+        active_module=VOICES_MODULE,
+        host="chiburim.localsefaria-il.xyz:8000",
+    )
 
-    assert result["lang"] == "en"
-    assert result["text"] == "In the beginning"
-    assert result["ref_str"] == "Genesis 1:1"
+    assert result["lang"] == "he"
+    assert result["text"] == "בראשית"
+    assert result["ref_str"] == "בראשית א׳:א׳"
 
 
 def test_social_image_api_preserves_hebrew_lang(monkeypatch):
@@ -125,6 +217,24 @@ def test_social_image_api_preserves_twitter_platform(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter")
 
     assert result["platform"] == "twitter"
+
+
+def test_social_image_api_defaults_missing_module_to_library(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1")
+
+    assert result["module"] == LIBRARY_MODULE
+
+
+def test_social_image_api_uses_request_active_module(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module=VOICES_MODULE)
+
+    assert result["module"] == VOICES_MODULE
+
+
+def test_social_image_api_defaults_invalid_active_module_to_library(monkeypatch):
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module="something-else")
+
+    assert result["module"] == LIBRARY_MODULE
 
 
 def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatch):

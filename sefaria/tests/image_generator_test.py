@@ -4,7 +4,17 @@ import pytest
 from bidi.algorithm import get_display
 
 from sefaria import image_generator
-from sefaria.image_generator import generate_image, get_category_colors, palette, platforms
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.image_generator import (
+    generate_image,
+    get_category_colors,
+    make_img_http_response,
+    open_social_image_logo,
+    palette,
+    platforms,
+    social_image_fallback_bg_color,
+    social_image_logo_path,
+)
 
 
 def _pixel_variance(img, box):
@@ -148,6 +158,87 @@ def test_generate_social_image_renders_logo_in_header():
     )
 
     _assert_logo_rendered(img)
+
+
+@pytest.mark.parametrize(
+    ("module", "lang", "expected_logo"),
+    [
+        (LIBRARY_MODULE, "en", "static/img/library-logo-english.png"),
+        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew.png"),
+        (VOICES_MODULE, "en", "static/img/voices-logo-english.png"),
+        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew.png"),
+    ],
+)
+def test_generate_social_image_uses_module_and_language_header_logo(monkeypatch, module, lang, expected_logo):
+    opened_paths = []
+    original_open = image_generator.Image.open
+
+    def capture_open(path, *args, **kwargs):
+        opened_paths.append(path)
+        return original_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(image_generator.Image, "open", capture_open)
+
+    generate_image(
+        text="In the beginning God created the heaven and the earth.",
+        category="Tanakh",
+        ref_str="Genesis 1:1",
+        lang=lang,
+        platform="facebook",
+        module=module,
+    )
+
+    assert expected_logo in opened_paths
+
+
+@pytest.mark.parametrize(
+    ("module", "lang", "expected_logo"),
+    [
+        (LIBRARY_MODULE, "en", "static/img/library-logo-english-white.png"),
+        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew-white.png"),
+        (VOICES_MODULE, "en", "static/img/voices-logo-english-white.png"),
+        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew-white.png"),
+    ],
+)
+def test_social_image_exception_fallback_uses_module_and_language_logo(monkeypatch, module, lang, expected_logo):
+    opened_paths = []
+    original_open = image_generator.Image.open
+
+    def capture_open(path, *args, **kwargs):
+        opened_paths.append(path)
+        return original_open(path, *args, **kwargs)
+
+    def fail_generation(*args, **kwargs):
+        raise RuntimeError("force fallback")
+
+    monkeypatch.setattr(image_generator.Image, "open", capture_open)
+    monkeypatch.setattr(image_generator, "generate_image", fail_generation)
+
+    response = make_img_http_response(
+        text=None,
+        category=None,
+        ref_str=None,
+        lang=lang,
+        platform="facebook",
+        module=module,
+    )
+
+    assert response["Content-Type"] == "image/png"
+    assert expected_logo in opened_paths
+
+
+def test_voices_social_image_exception_fallback_uses_voices_background_color():
+    assert social_image_fallback_bg_color(VOICES_MODULE) == "#518159"
+
+
+def test_social_image_logo_path_defaults_unknown_module_to_library():
+    assert social_image_logo_path("unknown", "en", "header") == "static/img/library-logo-english.png"
+
+
+def test_social_image_logo_assets_are_converted_to_rgba_before_resizing():
+    logo = open_social_image_logo("static/img/library-logo-english-white.png")
+
+    assert logo.mode == "RGBA"
 
 
 def test_generate_social_image_renders_unknown_category_with_stable_fallback_color():

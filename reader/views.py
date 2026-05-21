@@ -84,7 +84,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
-from sefaria.image_generator import make_img_http_response
+from sefaria.image_generator import make_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
@@ -1785,15 +1785,18 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang") or "en"
-    if lang not in {"en", "he", "bi"}:
-        lang = "en"
+    domain_lang = current_domain_lang(request)
+    default_lang = "he" if domain_lang == "hebrew" else "en"
+    lang = request.GET.get("lang") or default_lang
     if lang == "bi":
-        lang = "en"
+        lang = default_lang
+    if lang not in {"en", "he"}:
+        lang = default_lang
     version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
     platform = request.GET.get("platform") or "facebook"
     if platform not in {"facebook", "twitter"}:
         platform = "facebook"
+    module = normalize_social_image_module(getattr(request, "active_module", None))
 
     try:
         ref = Ref(tref)
@@ -1814,7 +1817,7 @@ def social_image_api(request, tref):
         ref_str = None
 
 
-    res = make_img_http_response(text, cat, ref_str, lang, platform)
+    res = make_img_http_response(text, cat, ref_str, lang, platform, module)
 
     return res
 

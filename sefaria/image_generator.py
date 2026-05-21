@@ -5,6 +5,37 @@ import re
 from django.http import HttpResponse
 import io
 from bs4 import BeautifulSoup
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+
+SUPPORTED_SOCIAL_IMAGE_MODULES = {LIBRARY_MODULE, VOICES_MODULE}
+
+SOCIAL_IMAGE_LOGOS = {
+    LIBRARY_MODULE: {
+        "en": {
+            "header": "static/img/library-logo-english.png",
+            "fallback": "static/img/library-logo-english-white.png",
+        },
+        "he": {
+            "header": "static/img/library-logo-hebrew.png",
+            "fallback": "static/img/library-logo-hebrew-white.png",
+        },
+    },
+    VOICES_MODULE: {
+        "en": {
+            "header": "static/img/voices-logo-english.png",
+            "fallback": "static/img/voices-logo-english-white.png",
+        },
+        "he": {
+            "header": "static/img/voices-logo-hebrew.png",
+            "fallback": "static/img/voices-logo-hebrew-white.png",
+        },
+    },
+}
+
+SOCIAL_IMAGE_FALLBACK_BG_COLORS = {
+    LIBRARY_MODULE: "#18345D",
+    VOICES_MODULE: "#518159",
+}
 
 palette = { # [(bg), (font)]
     "Commentary": [(75, 113, 183), (255, 255, 255)],
@@ -22,8 +53,8 @@ palette = { # [(bg), (font)]
     "Responsa":    [(203, 97, 88), (255, 255, 255)],
     "Second Temple": [(198, 167, 180), (0, 0, 0)],
     "Quoting Commentary": [(203, 97, 88), (255, 255, 255)],
-    "Sheets":    [(24, 52, 93), (255, 255, 255)],
-    "Sheet":    [(24, 52, 93), (255, 255, 255)],
+    "Sheets":    [(81, 129, 89), (255, 255, 255)],
+    "Sheet":    [(81, 129, 89), (255, 255, 255)],
     "Targum":    [(59, 88, 73), (255, 255, 255)],
     "Modern Commentary":    [(184, 212, 211), (255, 255, 255)],
     "Reference":    [(212, 137, 108), (255, 255, 255)],
@@ -59,6 +90,27 @@ def get_category_colors(category):
     category = category if isinstance(category, str) else ""
     index = sum(ord(char) for char in category) % len(fallback_palette_colors)
     return [fallback_palette_colors[index], (255, 255, 255)]
+
+
+def normalize_social_image_module(module):
+    return module if module in SUPPORTED_SOCIAL_IMAGE_MODULES else LIBRARY_MODULE
+
+
+def social_image_logo_path(module=LIBRARY_MODULE, lang="en", variant="header"):
+    module = normalize_social_image_module(module)
+    lang = "he" if lang == "he" else "en"
+    return SOCIAL_IMAGE_LOGOS[module][lang][variant]
+
+
+def social_image_fallback_bg_color(module=LIBRARY_MODULE):
+    module = normalize_social_image_module(module)
+    return SOCIAL_IMAGE_FALLBACK_BG_COLORS[module]
+
+
+def open_social_image_logo(path):
+    # Logo assets may be paletted PNGs. Convert before resizing so antialiased
+    # transparent edges stay smooth when composited onto the generated image.
+    return Image.open(path).convert("RGBA")
 
 platforms = {
     "facebook": {
@@ -169,8 +221,9 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
+def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter", module=LIBRARY_MODULE):
     bg_color, text_color = get_category_colors(category)
+    module = normalize_social_image_module(module)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -182,14 +235,14 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     if lang == "en":
         align = "left"
-        logo_url = "static/img/logo.png"
+        logo_url = social_image_logo_path(module, lang, "header")
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "right"
-        logo_url = "static/img/logo-hebrew.png"
+        logo_url = social_image_logo_path(module, lang, "header")
         spacing = platforms[platform]["he_spacing"]
         ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
@@ -224,8 +277,8 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
 
     #add sefaria logo
-    logo = Image.open(logo_url)
-    logo.thumbnail((width, int(height*.06)))
+    logo = open_social_image_logo(logo_url)
+    logo.thumbnail((width, int(height*.06)), Image.LANCZOS)
     logo_padded = Image.new('RGBA', (width, height))
     logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
 
@@ -234,16 +287,17 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     return(img)
 
-def make_img_http_response(text, category, ref_str, lang, platform):
+def make_img_http_response(text, category, ref_str, lang, platform, module=LIBRARY_MODULE):
+    module = normalize_social_image_module(module)
     try:
-        img = generate_image(text, category, ref_str, lang, platform)
+        img = generate_image(text, category, ref_str, lang, platform, module)
     except Exception as e:
         print(e)
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
-        img = Image.new('RGBA', (width, height), color="#18345D")
-        logo = Image.open("static/img/logo-white.png")
-        logo.thumbnail((400, 400))
+        img = Image.new('RGBA', (width, height), color=social_image_fallback_bg_color(module))
+        logo = open_social_image_logo(social_image_logo_path(module, lang, "fallback"))
+        logo.thumbnail((400, 400), Image.LANCZOS)
         logo_padded = Image.new('RGBA', (width, height))
         logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
         img = Image.alpha_composite(img, logo_padded)
