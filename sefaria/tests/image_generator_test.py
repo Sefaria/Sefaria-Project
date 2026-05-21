@@ -23,6 +23,13 @@ def _rms_brightness_delta(img, box_a, box_b):
     return diff.rms[0]
 
 
+def _rms_image_delta(img_a, img_b, box):
+    region_a = img_a.crop(box).convert("L")
+    region_b = img_b.crop(box).convert("L")
+    diff = ImageStat.Stat(ImageChops.difference(region_a, region_b))
+    return diff.rms[0]
+
+
 def _text_box(img):
     # Central body area where the main quote should be drawn.
     width, height = img.size
@@ -162,6 +169,58 @@ def test_generate_social_image_renders_unknown_category_with_stable_fallback_col
 def test_unknown_category_color_fallback_is_deterministic():
     assert get_category_colors("New Category") == get_category_colors("New Category")
     assert get_category_colors("New Category") != palette["System"]
+
+
+@pytest.mark.parametrize(
+    ("html_text", "expected_drawn_text"),
+    [
+        ("First line<br>Second line<br />Third line", "First line\nSecond line\nThird line"),
+        ("<p>First paragraph</p><p>Second paragraph</p>", "First paragraph\nSecond paragraph\n"),
+        ("<div>First block</div><div>Second block</div>", "First block\nSecond block\n"),
+    ],
+)
+def test_generate_social_image_preserves_linebreaks_created_from_html(monkeypatch, html_text, expected_drawn_text):
+    drawn_texts = []
+    original_text = image_generator.ImageDraw.ImageDraw.text
+
+    def capture_text(self, *args, **kwargs):
+        drawn_texts.append(kwargs.get("text"))
+        return original_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(image_generator.ImageDraw.ImageDraw, "text", capture_text)
+
+    generate_image(
+        text=html_text,
+        category="Tanakh",
+        ref_str="Genesis 1:1",
+        lang="en",
+        platform="facebook",
+    )
+
+    # Literal source newlines are stripped during HTML cleanup, but HTML layout
+    # tags become real line breaks and should not be flattened by text wrapping.
+    assert drawn_texts[0] == expected_drawn_text
+
+
+def test_generate_social_image_visually_renders_br_linebreaks():
+    image_with_break = generate_image(
+        text="First line<br>Second line",
+        category="Tanakh",
+        ref_str="Genesis 1:1",
+        lang="en",
+        platform="facebook",
+    )
+    image_with_space = generate_image(
+        text="First line Second line",
+        category="Tanakh",
+        ref_str="Genesis 1:1",
+        lang="en",
+        platform="facebook",
+    )
+
+    # If <br> is flattened to a space, these two images are identical in the
+    # quote area. A preserved line break moves text onto a second visual line.
+    assert _rms_image_delta(image_with_break, image_with_space, _text_box(image_with_break)) > 1
 
 
 def test_hebrew_text_keeps_logical_order_when_pillow_supports_rtl(monkeypatch):

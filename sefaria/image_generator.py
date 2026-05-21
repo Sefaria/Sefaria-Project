@@ -105,6 +105,15 @@ def calc_letters_per_line(text, font, img_width):
     return max(1, max_char_count)
 
 
+def wrap_text_preserving_linebreaks(text, width):
+    # HTML cleanup turns <br> and block boundaries into "\n". Wrap each line
+    # independently so those intentional breaks survive textwrap's whitespace handling.
+    return "\n".join(
+        textwrap.fill(text=line, width=width, replace_whitespace=False)
+        for line in text.split("\n")
+    )
+
+
 def supports_rtl_text_layout():
     return features.check("raqm")
 
@@ -186,7 +195,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
     text = cleanup_and_format_text(text, lang)
-    text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
+    text = wrap_text_preserving_linebreaks(text, calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
     text = prepare_text_for_drawing(text, lang)
     direction = get_text_direction(lang)
 
