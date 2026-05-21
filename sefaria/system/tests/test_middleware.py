@@ -8,9 +8,9 @@ from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
-from sefaria.system.middleware import SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware
 from sefaria.utils.chatbot import build_chatbot_user_token
-
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
 # TEST CONFIGURATIONS
@@ -56,10 +56,10 @@ EMPTY_CONFIG = {}
 # HELPER FUNCTIONS
 # ============================================================================
 
-def create_request(host):
+def create_request(host, path='/'):
     """Create a mock request with the specified host."""
     factory = RequestFactory()
-    request = factory.get('/')
+    request = factory.get(path)
     request.META['HTTP_HOST'] = host
     return request
 
@@ -80,6 +80,40 @@ def create_response_without_cookies():
 # ============================================================================
 # TESTS: APPROVED DOMAIN LIST BUILDING
 # ============================================================================
+
+
+class TestModuleMiddleware:
+    """Test active module detection for regular pages and social image API requests."""
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
+    def test_social_image_api_uses_host_module(self):
+        captured = {}
+
+        def get_response(request):
+            captured["active_module"] = request.active_module
+            return HttpResponse()
+
+        middleware = ModuleMiddleware(get_response=get_response)
+        request = create_request('voices.localsefaria.xyz:8000', '/api/img-gen/not-a-ref')
+
+        middleware(request)
+
+        assert captured["active_module"] == VOICES_MODULE
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
+    def test_other_api_paths_use_default_module(self):
+        captured = {}
+
+        def get_response(request):
+            captured["active_module"] = request.active_module
+            return HttpResponse()
+
+        middleware = ModuleMiddleware(get_response=get_response)
+        request = create_request('voices.localsefaria.xyz:8000', '/api/texts/Genesis.1.1')
+
+        middleware(request)
+
+        assert captured["active_module"] == LIBRARY_MODULE
 
 class TestBuildApprovedDomains:
     """Test the _build_approved_domains method."""
