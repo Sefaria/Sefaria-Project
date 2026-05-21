@@ -1,9 +1,11 @@
 """
 Tests for the social_image_api view.
 
-Covers the lang parameter normalization added to fix cases where a missing,
-empty, or unrecognized lang value caused the wrong language to be used when
-generating social share images.
+These tests describe the routing decisions made before an image is generated:
+text refs render only for the Library module, static pages use the shared
+static fallback image, and unsupported module pages use the module fallback.
+They also cover lang parameter normalization so missing, empty, bilingual, or
+unrecognized lang values still produce an image in the expected language.
 """
 from django.test import RequestFactory, override_settings
 
@@ -54,12 +56,15 @@ def _request(path, active_module=None, host=None):
 
 
 def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1"):
+    # Replace the image builders with small recorders. These tests care about
+    # which kind of image the view chooses, not about Pillow drawing pixels.
     captured = {}
     DummyTextFamily.captured_kwargs = {}
 
     def fake_response(text, category, ref_str, lang, platform, module):
         captured.update(
             {
+                "kind": "ref",
                 "text": text,
                 "category": category,
                 "ref_str": ref_str,
@@ -71,6 +76,32 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host=None,
         captured["text_family_kwargs"] = DummyTextFamily.captured_kwargs
         return captured
 
+    def fake_module_fallback(lang, platform, module):
+        captured.update(
+            {
+                "kind": "module_fallback",
+                "text": None,
+                "category": None,
+                "ref_str": None,
+                "lang": lang,
+                "platform": platform,
+                "module": module,
+            }
+        )
+        return captured
+
+    def fake_static(platform):
+        captured.update(
+            {
+                "kind": "static",
+                "text": None,
+                "category": "Static",
+                "ref_str": None,
+                "platform": platform,
+            }
+        )
+        return captured
+
     def fake_ref(tref):
         if not tref:
             raise ValueError("empty tref")
@@ -79,13 +110,34 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host=None,
     monkeypatch.setattr(views, "Ref", fake_ref)
     monkeypatch.setattr(views, "TextFamily", DummyTextFamily)
     monkeypatch.setattr(views, "make_img_http_response", fake_response)
+    monkeypatch.setattr(views, "make_module_fallback_img_http_response", fake_module_fallback)
+    monkeypatch.setattr(views, "make_static_img_http_response", fake_static)
 
     return views.social_image_api(_request(path, active_module, host), tref)
+
+
+def test_social_image_path_classification_caches_common_paths(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+    resolve_calls = []
+    real_resolve = views.resolve
+
+    def counting_resolve(*args, **kwargs):
+        resolve_calls.append(args[0])
+        return real_resolve(*args, **kwargs)
+
+    monkeypatch.setattr(views, "resolve", counting_resolve)
+
+    assert views._classify_social_image_path("jobs", LIBRARY_MODULE) == views.SocialImagePageType.STATIC
+    assert views._classify_social_image_path("jobs", LIBRARY_MODULE) == views.SocialImagePageType.STATIC
+    assert len(resolve_calls) == 1
+    assert views._classify_social_image_path.cache_info().maxsize == 512
+    views._classify_social_image_path.cache_clear()
 
 
 def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1")
 
+    assert result["kind"] == "ref"
     assert result["lang"] == "en"
     assert result["platform"] == "facebook"
     assert result["text"] == "In the beginning"
@@ -95,6 +147,7 @@ def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
 def test_social_image_api_empty_path_uses_host_fallback_image(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/?lang=en", tref="")
 
+    assert result["kind"] == "module_fallback"
     assert result["lang"] == "en"
     assert result["text"] is None
     assert result["category"] is None
@@ -110,9 +163,9 @@ def test_social_image_api_defaults_missing_lang_to_host_language(monkeypatch):
         host="chiburim.localsefaria-il.xyz:8000",
     )
 
+    assert result["kind"] == "module_fallback"
     assert result["lang"] == "he"
-    assert result["text"] == "בראשית"
-    assert result["ref_str"] == "בראשית א׳:א׳"
+    assert result["module"] == VOICES_MODULE
 
 
 @override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
@@ -124,9 +177,9 @@ def test_social_image_api_lang_param_overrides_host_language(monkeypatch):
         host="chiburim.localsefaria-il.xyz:8000",
     )
 
+    assert result["kind"] == "module_fallback"
     assert result["lang"] == "en"
-    assert result["text"] == "In the beginning"
-    assert result["ref_str"] == "Genesis 1:1"
+    assert result["module"] == VOICES_MODULE
 
 
 @override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
@@ -138,9 +191,9 @@ def test_social_image_api_hebrew_lang_param_overrides_english_voices_host(monkey
         host="voices.localsefaria.xyz:8000",
     )
 
+    assert result["kind"] == "module_fallback"
     assert result["lang"] == "he"
-    assert result["text"] == "בראשית"
-    assert result["ref_str"] == "בראשית א׳:א׳"
+    assert result["module"] == VOICES_MODULE
 
 
 @override_settings(DOMAIN_MODULES=DOMAIN_MODULES)
@@ -182,9 +235,9 @@ def test_social_image_api_uses_host_language_for_bilingual_lang_param(monkeypatc
         host="chiburim.localsefaria-il.xyz:8000",
     )
 
+    assert result["kind"] == "module_fallback"
     assert result["lang"] == "he"
-    assert result["text"] == "בראשית"
-    assert result["ref_str"] == "בראשית א׳:א׳"
+    assert result["module"] == VOICES_MODULE
 
 
 def test_social_image_api_preserves_hebrew_lang(monkeypatch):
@@ -228,13 +281,61 @@ def test_social_image_api_defaults_missing_module_to_library(monkeypatch):
 def test_social_image_api_uses_request_active_module(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module=VOICES_MODULE)
 
+    assert result["kind"] == "module_fallback"
     assert result["module"] == VOICES_MODULE
 
 
 def test_social_image_api_defaults_invalid_active_module_to_library(monkeypatch):
     result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module="something-else")
 
+    assert result["kind"] == "ref"
     assert result["module"] == LIBRARY_MODULE
+
+
+def test_social_image_api_static_page_uses_static_image_on_library(monkeypatch):
+    # Static pages are not module-specific, so they use the shared static image
+    # even when requested from the Library host.
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/jobs", tref="jobs")
+
+    assert result["kind"] == "static"
+    assert result["category"] == "Static"
+
+
+def test_social_image_api_static_page_uses_static_image_on_voices(monkeypatch):
+    # Static pages are not module-specific, so they use the shared static image
+    # even when requested from the Voices host.
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/jobs",
+        active_module=VOICES_MODULE,
+        tref="jobs",
+    )
+
+    assert result["kind"] == "static"
+    assert result["category"] == "Static"
+
+
+def test_social_image_api_topics_page_uses_module_fallback(monkeypatch):
+    # Topic pages have module-specific branding, but they do not have a custom
+    # image renderer yet. They should fall back to the module image.
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/topics", tref="topics")
+
+    assert result["kind"] == "module_fallback"
+    assert result["module"] == LIBRARY_MODULE
+
+
+def test_social_image_api_voices_topic_page_uses_voices_fallback(monkeypatch):
+    # Voices topic pages should not be treated as Library refs. They use the
+    # Voices fallback until a custom topic/social image renderer exists.
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/topics/shabbat",
+        active_module=VOICES_MODULE,
+        tref="topics/shabbat",
+    )
+
+    assert result["kind"] == "module_fallback"
+    assert result["module"] == VOICES_MODULE
 
 
 def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatch):

@@ -11,6 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
+from enum import Enum
 import pytz
 from html import unescape
 import redis
@@ -18,6 +19,7 @@ import os
 import re
 import uuid
 from dataclasses import asdict
+from functools import lru_cache
 
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
@@ -29,6 +31,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict, FileResponse
+from django.urls import Resolver404, resolve
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -84,7 +87,8 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
-from sefaria.image_generator import make_img_http_response, normalize_social_image_module
+from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
+    make_static_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
@@ -104,6 +108,13 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+class SocialImagePageType(Enum):
+    """Kinds of social images supported by /api/img-gen/."""
+    REF = "ref"
+    STATIC = "static"
+    MODULE_FALLBACK = "module_fallback"
 
 
 class PageTypes:
@@ -655,7 +666,7 @@ def _extract_version_params(request, key):
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
 
-def _extract_version_title_param(request, key):
+def _extract_version_title_param(request, key: str) -> str | None:
     """
     Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
     and older links that pass only the version title.
@@ -668,6 +679,56 @@ def _extract_version_title_param(request, key):
         _, version_title = params.split("|", 1)
         return version_title or None
     return params
+
+
+def _social_image_urlconf_for_module(module: str) -> str:
+    # The same path can mean different things on different Sefaria modules.
+    # Resolve against the module's URLConf so /topics, /sheets, etc. are
+    # classified the same way Django would classify them for that host.
+    return "sefaria.urls_sheets" if module == VOICES_MODULE else "sefaria.urls_library"
+
+
+@lru_cache(maxsize=512)
+def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
+    """
+    Decide what kind of image /api/img-gen/ should return for this path.
+
+    The image API receives one free-form path string. It may be a text ref
+    like "Genesis.1.1", a normal static page like "jobs", or a module page
+    like "topics/shabbat". We classify the string with Django routing before
+    trying Ref(...), so non-text pages do not accidentally become broken ref
+    images.
+    """
+    # Cache common paths to avoid repeating Django route resolution for every
+    # social image request.
+    if not tref:
+        # /api/img-gen/ with no path is valid. It means "give me the default
+        # fallback image for the current host/module."
+        return SocialImagePageType.MODULE_FALLBACK
+
+    path = f"/{tref.lstrip('/')}"
+    try:
+        match = resolve(path, urlconf=_social_image_urlconf_for_module(module))
+    except Resolver404:
+        # Unknown paths get the module fallback instead of raising an error.
+        # This keeps Open Graph images available even when a page cannot be
+        # represented by a custom image.
+        return SocialImagePageType.MODULE_FALLBACK
+
+    if match.func in {serve_static, serve_static_by_lang}:
+        # Static pages are shared between modules and should use the simple
+        # Sefaria fallback image, not Library or Voices module branding.
+        return SocialImagePageType.STATIC
+
+    if module == LIBRARY_MODULE and match.func == catchall:
+        # Only the Library module should generate text-ref images. A ref-like
+        # string on Voices should stay module-branded because Voices pages are
+        # not currently supported by the text image generator.
+        return SocialImagePageType.REF
+
+    # Topics, sheets, and other module pages do not have custom image builders
+    # yet, so they use the module fallback image.
+    return SocialImagePageType.MODULE_FALLBACK
 
 
 @sanitize_get_params
@@ -1787,6 +1848,9 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
+    # Host language is the safest default because crawlers hit this endpoint
+    # directly. lang=en/he may override it, but lang=bi is not a real image
+    # mode yet, so it falls back to the host language.
     domain_lang = current_domain_lang(request)
     default_lang = "he" if domain_lang == "hebrew" else "en"
     lang = request.GET.get("lang") or default_lang
@@ -1799,6 +1863,13 @@ def social_image_api(request, tref):
     if platform not in {"facebook", "twitter"}:
         platform = "facebook"
     module = normalize_social_image_module(getattr(request, "active_module", None))
+    page_type = _classify_social_image_path(tref, module)
+
+    if page_type == SocialImagePageType.STATIC:
+        return make_static_img_http_response(platform)
+
+    if page_type == SocialImagePageType.MODULE_FALLBACK:
+        return make_module_fallback_img_http_response(lang, platform, module)
 
     try:
         ref = Ref(tref)

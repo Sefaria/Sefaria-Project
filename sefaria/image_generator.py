@@ -6,6 +6,14 @@ from django.http import HttpResponse
 import io
 from bs4 import BeautifulSoup
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from typing import Literal, TypeAlias, cast
+
+SocialImageLang: TypeAlias = Literal["en", "he"]
+SocialImagePlatform: TypeAlias = Literal["facebook", "twitter"]
+SocialImageLogoVariant: TypeAlias = Literal["header", "fallback"]
+SocialImageModule: TypeAlias = Literal["library", "voices"]
+ColorRGB: TypeAlias = tuple[int, int, int]
+CategoryColors: TypeAlias = list[ColorRGB]
 
 SUPPORTED_SOCIAL_IMAGE_MODULES = {LIBRARY_MODULE, VOICES_MODULE}
 
@@ -84,33 +92,94 @@ fallback_palette_colors = [
 ]
 
 
-def get_category_colors(category):
+def get_category_colors(category: str | None) -> CategoryColors:
     if category in palette:
         return palette[category]
     category = category if isinstance(category, str) else ""
+    # Unknown categories still need a stable color. This simple hash picks one
+    # fallback color based on the category name, so the same category does not
+    # change color between requests.
     index = sum(ord(char) for char in category) % len(fallback_palette_colors)
     return [fallback_palette_colors[index], (255, 255, 255)]
 
 
-def normalize_social_image_module(module):
-    return module if module in SUPPORTED_SOCIAL_IMAGE_MODULES else LIBRARY_MODULE
+def normalize_social_image_module(module: str | None) -> SocialImageModule:
+    # Only modules with logo assets are supported here. Anything else uses the
+    # Library image style until a module-specific image is intentionally added.
+    # This makes sure future modules if they are ever added to still produce an image.
+    if module in SUPPORTED_SOCIAL_IMAGE_MODULES:
+        return cast(SocialImageModule, module)
+    return cast(SocialImageModule, LIBRARY_MODULE)
 
 
-def social_image_logo_path(module=LIBRARY_MODULE, lang="en", variant="header"):
+def social_image_logo_path(
+    module: str | None = LIBRARY_MODULE,
+    lang: str = "en",
+    variant: SocialImageLogoVariant = "header",
+) -> str:
     module = normalize_social_image_module(module)
-    lang = "he" if lang == "he" else "en"
-    return SOCIAL_IMAGE_LOGOS[module][lang][variant]
+    normalized_lang: SocialImageLang = "he" if lang == "he" else "en"
+    return SOCIAL_IMAGE_LOGOS[module][normalized_lang][variant]
 
 
-def social_image_fallback_bg_color(module=LIBRARY_MODULE):
+def social_image_fallback_bg_color(module: str | None = LIBRARY_MODULE) -> str:
     module = normalize_social_image_module(module)
     return SOCIAL_IMAGE_FALLBACK_BG_COLORS[module]
 
 
-def open_social_image_logo(path):
+def open_social_image_logo(path: str) -> Image.Image:
     # Logo assets may be paletted PNGs. Convert before resizing so antialiased
     # transparent edges stay smooth when composited onto the generated image.
     return Image.open(path).convert("RGBA")
+
+
+def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | ColorRGB, logo_path: str) -> Image.Image:
+    # Used for fallback images that only show a centered logo. The caller
+    # chooses the color and logo so static pages can keep the old Sefaria logo
+    # while module pages can use Library or Voices branding.
+    height = platforms[platform]["height"]
+    width = platforms[platform]["width"]
+    img = Image.new('RGBA', (width, height), color=bg_color)
+    logo = open_social_image_logo(logo_path)
+    logo.thumbnail((400, 400), Image.LANCZOS)
+    logo_padded = Image.new('RGBA', (width, height))
+    logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
+    return Image.alpha_composite(img, logo_padded)
+
+
+def make_png_http_response(img: Image.Image) -> HttpResponse:
+    buf = io.BytesIO()
+    img.save(buf, format='png')
+    response = HttpResponse(buf.getvalue(), content_type="image/png")
+    # Social images are mostly stable, so cache briefly to avoid unnecessary
+    # image rendering while still allowing text or asset corrections to appear.
+    response["Cache-Control"] = "public, max-age=3600"
+    return response
+
+
+def make_module_fallback_img_http_response(
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+) -> HttpResponse:
+    # Module fallbacks are for pages that do not have a custom renderer, such
+    # as topics or sheets. They use module-specific color and logo assets.
+    module = normalize_social_image_module(module)
+    img = generate_centered_logo_image(
+        platform,
+        social_image_fallback_bg_color(module),
+        social_image_logo_path(module, lang, "fallback"),
+    )
+    return make_png_http_response(img)
+
+
+def make_static_img_http_response(platform: SocialImagePlatform) -> HttpResponse:
+    # Static marketing/about pages are shared by modules. Keep these visually
+    # neutral by using the Static category color and original white Sefaria logo.
+    bg_color, _ = get_category_colors("Static")
+    img = generate_centered_logo_image(platform, bg_color, "static/img/logo-white.png")
+    return make_png_http_response(img)
+
 
 platforms = {
     "facebook": {
@@ -132,13 +201,13 @@ platforms = {
 
 }
 
-def smart_truncate(content, length=180, suffix='...'):
+def smart_truncate(content: str, length: int = 180, suffix: str = '...') -> str:
     if len(content) <= length:
         return content
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
-def get_text_width(text, font):
+def get_text_width(text: str, font: ImageFont.FreeTypeFont) -> float:
     if hasattr(font, "getlength"):
         return font.getlength(text)
     if hasattr(font, "getbbox"):
@@ -147,7 +216,7 @@ def get_text_width(text, font):
     return font.getsize(text)[0]
 
 
-def calc_letters_per_line(text, font, img_width):
+def calc_letters_per_line(text: str, font: ImageFont.FreeTypeFont, img_width: int) -> int:
     if not text:
         return 1
     avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
@@ -157,7 +226,7 @@ def calc_letters_per_line(text, font, img_width):
     return max(1, max_char_count)
 
 
-def wrap_text_preserving_linebreaks(text, width):
+def wrap_text_preserving_linebreaks(text: str, width: int) -> str:
     # HTML cleanup turns <br> and block boundaries into "\n". Wrap each line
     # independently so those intentional breaks survive textwrap's whitespace handling.
     return "\n".join(
@@ -166,23 +235,23 @@ def wrap_text_preserving_linebreaks(text, width):
     )
 
 
-def supports_rtl_text_layout():
+def supports_rtl_text_layout() -> bool:
     return features.check("raqm")
 
 
-def prepare_text_for_drawing(text, lang):
+def prepare_text_for_drawing(text: str, lang: str) -> str:
     if lang == "en" or supports_rtl_text_layout():
         return text
     return get_display(text)
 
 
-def get_text_direction(lang):
+def get_text_direction(lang: str) -> Literal["rtl"] | None:
     if lang != "en" and supports_rtl_text_layout():
         return "rtl"
     return None
 
 
-def html_to_text_canonical(html):
+def html_to_text_canonical(html: str | None) -> str:
     """
     Canonical HTML-to-text normalization matching Sefaria-Project `Sefaria.util.htmlToText`.
     """
@@ -208,7 +277,7 @@ def html_to_text_canonical(html):
     text = re.sub(r"\n\s*\n", "\n", text)
     return text
 
-def cleanup_and_format_text(text, language):
+def cleanup_and_format_text(text: str | None, language: str) -> str:
     # Removes HTML tags/entities according to canonical web copy behavior,
     # then removes nikkudot and taamim.
     text = html_to_text_canonical(text)
@@ -221,8 +290,16 @@ def cleanup_and_format_text(text, language):
     return text
 
 
-def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter", module=LIBRARY_MODULE):
+def generate_image(
+    text: str | None = "",
+    category: str | None = "System",
+    ref_str: str | None = "",
+    lang: str = "he",
+    platform: SocialImagePlatform = "twitter",
+    module: str | None = LIBRARY_MODULE,
+) -> Image.Image:
     bg_color, text_color = get_category_colors(category)
+    ref_str = ref_str or ""
     module = normalize_social_image_module(module)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
@@ -231,7 +308,6 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     padding_x = platforms[platform]["padding"]
     padding_y = padding_x/2
     img = Image.new('RGBA', (width, height), color=bg_color)
-
 
     if lang == "en":
         align = "left"
@@ -256,27 +332,24 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align,
               fill=text_color, anchor='mm', direction=direction)
 
-
-    #category line
+    # category line
     draw.line(cat_border_pos, fill=bg_color, width=int(width*.02))
 
-    #header white
+    # header white
     draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
     draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
-    #write ref
+    # write ref
     ref_text = prepare_text_for_drawing(ref_str.upper(), lang)
     draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=ref_text, font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm', direction=direction)
 
-
-    #border
+    # border
     draw.line((0, 0, width, 0), fill="#666666", width=1)
     draw.line((0, 0, 0, height), fill="#666666", width=1)
     draw.line((width-1, 0, width-1, height), fill="#666666", width=1)
     draw.line((0, height-1, width, height-1), fill="#666666", width=1)
 
-
-    #add sefaria logo
+    # add sefaria logo
     logo = open_social_image_logo(logo_url)
     logo.thumbnail((width, int(height*.06)), Image.LANCZOS)
     logo_padded = Image.new('RGBA', (width, height))
@@ -284,26 +357,22 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     img = Image.alpha_composite(img, logo_padded)
 
-
     return(img)
 
-def make_img_http_response(text, category, ref_str, lang, platform, module=LIBRARY_MODULE):
+
+def make_img_http_response(
+    text: str | None,
+    category: str | None,
+    ref_str: str | None,
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+) -> HttpResponse:
     module = normalize_social_image_module(module)
     try:
         img = generate_image(text, category, ref_str, lang, platform, module)
     except Exception as e:
         print(e)
-        height = platforms[platform]["height"]
-        width = platforms[platform]["width"]
-        img = Image.new('RGBA', (width, height), color=social_image_fallback_bg_color(module))
-        logo = open_social_image_logo(social_image_logo_path(module, lang, "fallback"))
-        logo.thumbnail((400, 400), Image.LANCZOS)
-        logo_padded = Image.new('RGBA', (width, height))
-        logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
-        img = Image.alpha_composite(img, logo_padded)
+        return make_module_fallback_img_http_response(lang, platform, module)
 
-    buf = io.BytesIO()
-    img.save(buf, format='png')
-
-    res = HttpResponse(buf.getvalue(), content_type="image/png")
-    return res
+    return make_png_http_response(img)
