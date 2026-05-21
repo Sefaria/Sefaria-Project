@@ -118,12 +118,10 @@ docopt==0.4.0
     # via mailchimp
 elastic-transport==8.17.0
     # via elasticsearch
-elasticsearch==8.8.2
+elasticsearch==8.18.1
     # via
     #   -r ./requirements.txt
     #   elasticsearch-dsl
-elasticsearch-dsl @ git+https://github.com/Sefaria/elasticsearch-dsl-py@v8.0.0
-    # via -r ./requirements.txt
 geographiclib==2.0
     # via geopy
 geojson==2.5.0
