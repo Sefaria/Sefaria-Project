@@ -1,4 +1,6 @@
-from PIL import ImageChops, ImageStat
+import io
+
+from PIL import Image, ImageChops, ImageStat
 
 import pytest
 from bidi.algorithm import get_display
@@ -9,12 +11,20 @@ from sefaria.image_generator import (
     generate_image,
     get_category_colors,
     make_img_http_response,
+    make_png_http_response,
+    make_static_img_http_response,
     open_social_image_logo,
     palette,
     platforms,
     social_image_fallback_bg_color,
     social_image_logo_path,
 )
+
+
+def test_png_response_sets_short_cache_header():
+    response = make_png_http_response(Image.new("RGBA", (10, 10), color="#18345D"))
+
+    assert response["Cache-Control"] == "public, max-age=3600"
 
 
 def _pixel_variance(img, box):
@@ -229,6 +239,25 @@ def test_social_image_exception_fallback_uses_module_and_language_logo(monkeypat
 
 def test_voices_social_image_exception_fallback_uses_voices_background_color():
     assert social_image_fallback_bg_color(VOICES_MODULE) == "#518159"
+
+
+def test_static_social_image_uses_static_color_and_original_fallback_logo(monkeypatch):
+    opened_paths = []
+    original_open = image_generator.Image.open
+
+    def capture_open(path, *args, **kwargs):
+        opened_paths.append(path)
+        return original_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(image_generator.Image, "open", capture_open)
+
+    response = make_static_img_http_response("facebook")
+    img = Image.open(io.BytesIO(response.content))
+
+    assert response["Content-Type"] == "image/png"
+    assert img.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
+    assert img.getpixel((100, 100))[:3] == palette["Static"][0]
+    assert "static/img/logo-white.png" in opened_paths
 
 
 def test_social_image_logo_path_defaults_unknown_module_to_library():

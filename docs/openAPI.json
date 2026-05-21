@@ -19130,7 +19130,7 @@
           }
         },
         "summary": "Social Media Image",
-        "description": "Given a Sefaria text `Ref` and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page."
+        "description": "Given a Sefaria text `Ref` or page path and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page. If no path is provided, the endpoint returns a fallback image for the request host."
       },
       "parameters": [
         {
@@ -19143,7 +19143,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
+          "description": "A valid Sefaria ref or page path. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
