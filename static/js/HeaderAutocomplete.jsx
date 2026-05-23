@@ -81,8 +81,8 @@ function sortByTypeOrder(array) {
         const typeBIndex = typesOrder.indexOf(b.type);
 
         // If types are in the provided list, compare their index
-        if (typeAIndex !== undefined && typeBIndex !== undefined) {
-            return typeBIndex - typeAIndex
+        if (typeAIndex !== -1 && typeBIndex !== -1) {
+            return typeAIndex - typeBIndex
         }
 
         // If one of the types is not in the list, fallback to alphanumeric sorting
