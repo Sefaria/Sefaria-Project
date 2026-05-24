@@ -179,7 +179,7 @@ spec:
           httpGet:
             path: /healthz-rollout
             port: 80
-          failureThreshold: 80 # 80 attempts x 15 secs = 20 minutes for the pod to successfully start
+          failureThreshold: 160 # 160 attempts x 15 secs = 40 minutes for the pod to successfully start
           periodSeconds: 15
           timeoutSeconds: 10
         livenessProbe:
