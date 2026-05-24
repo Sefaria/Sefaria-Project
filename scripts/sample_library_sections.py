@@ -1,3 +1,20 @@
+"""
+Sample Hebrew section-level refs from the library and upload the resulting JSON to GCS.
+
+The sampler:
+- uniformly samples eligible sections via reservoir sampling
+- excludes sheet/dictionary/reference works
+- groups dependent texts one structural level higher by dropping the final address component
+- keeps only sections whose sampled Hebrew version has non-empty text for every included segment
+- writes the JSON locally and uploads it to `custom_embeddings/<output filename>` in GCS
+
+Examples:
+    python scripts/sample_library_sections.py 10
+    python scripts/sample_library_sections.py 100 --seed 613
+    python scripts/sample_library_sections.py 100 --output scripts/output/my_sample.json
+    python scripts/sample_library_sections.py 100 --bucket development-research
+"""
+
 import argparse
 import json
 import random
