@@ -349,7 +349,7 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.12.2
+typing-extensions>=4.13.0
     # via
     #   beautifulsoup4
     #   kombu
