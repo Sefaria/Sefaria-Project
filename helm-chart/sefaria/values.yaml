@@ -146,6 +146,7 @@ chroma:
   containerImage:
     imageRegistry: chromadb/chroma
     tag: latest
+  storage: 5Gi
   resources:
     requests:
       memory: "512Mi"

@@ -1,0 +1,16 @@
+{{- if .Values.chroma.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.deployEnv }}-chroma-data"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.chroma.storage }}
+  storageClassName: standard-rwo
+{{- end }}

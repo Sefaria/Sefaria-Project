@@ -32,5 +32,17 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
+          env:
+            - name: IS_PERSISTENT
+              value: "1"
+            - name: ANONYMIZED_TELEMETRY
+              value: "false"
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /chroma/chroma
           resources: {{ toYaml .Values.chroma.resources | nindent 12 }}
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: "{{ .Values.deployEnv }}-chroma-data"
 {{- end }}
