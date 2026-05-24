@@ -343,7 +343,7 @@ structlog==25.1.0
     # via django-structlog
 tomli==2.2.1
     # via pytest
-tqdm==4.51.0
+tqdm>=4.65.0
     # via -r ./requirements.txt
 traitlets==5.14.3
     # via
