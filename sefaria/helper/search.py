@@ -144,7 +144,7 @@ def make_filter(type, agg_type, agg_key):
         agg_key = re.escape(agg_key)
         reg = f"{agg_key}|{agg_key}/.*"
         return Regexp(path=reg)
-    elif type == "sheet":
+    else:
         return Term(**{agg_type: agg_key})
 
 

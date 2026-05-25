@@ -400,6 +400,9 @@ def put_text_mapping(index_name):
                         'analyzer': 'exact_english'
                     }
                 }
+            },
+            "linked_refs": {
+                'type': 'keyword'
             }
         }
     }
@@ -891,6 +894,12 @@ class TextIndexer(object):
 
         oref = Ref(tref)
 
+        linked_refs = []
+        for link in LinkSet(oref):
+            linked_refs.extend(link.expandedRefs0)
+            linked_refs.extend(link.expandedRefs1)
+        linked_refs = list({r for r in linked_refs if r != tref})
+
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
@@ -916,6 +925,7 @@ class TextIndexer(object):
             'hebrew_version_title': hebrew_version_title,
             "languageFamilyName": language_family_name,
             "isPrimary": is_primary,
+            "linked_refs": linked_refs,
         }
 
 
