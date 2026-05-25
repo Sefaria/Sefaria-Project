@@ -28,7 +28,7 @@ const MODULE_URLS = {
  * keeps us comfortably below that threshold and exercises the same mobile-only
  * components rendered by `Header.jsx` (`<MobileNavMenu>`, `<MobileInterfaceLanguageToggle>`).
  *
- * Run with: `npx playwright test --config=playwright.mobile.config.ts`
+ * Run with: `npx playwright test --config=playwright.mobileweb.config.ts`
  */
 export default defineConfig({
   testDir: './e2e-tests/mobile web',

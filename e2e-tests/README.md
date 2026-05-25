@@ -90,8 +90,8 @@ npx playwright test --project=chrome-assistant
 npx playwright test --project=chrome-resource-panel
 
 # Mobile suite (separate config — Pixel 5 Chrome + iPhone 13 Safari)
-npx playwright test --config=playwright.mobile.config.ts
-npx playwright test --config=playwright.mobile.config.ts --project=chrome-mobile-library
+npx playwright test --config=playwright.mobileweb.config.ts
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library
 
 # A single spec file
 npx playwright test library/header.spec.ts
@@ -147,14 +147,14 @@ e2e-tests/
 ├── assistant/             ← Library Assistant (<lc-chatbot>) tests
 │   └── README.md          ← Library Assistant-specific guide
 ├── mobile/                ← Mobile-viewport tests (hamburger drawer, auth flow)
-│   └── README.md          ← Mobile-specific guide; runs via playwright.mobile.config.ts
+│   └── README.md          ← Mobile-specific guide; runs via playwright.mobileweb.config.ts
 ├── Full testing by Feature/
 │   └── Resource Panel/    ← Resource Panel (ConnectionsPanel) tests, RP-001 → RP-212
 │       └── README.md      ← Resource Panel-specific guide (navigation map, gotchas, reference texts)
 └── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
 ```
 
-> Mobile tests live under a **separate Playwright config** ([../playwright.mobile.config.ts](../playwright.mobile.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`. The desktop projects in [../playwright.config.ts](../playwright.config.ts) never exercise it. See [mobile/README.md](mobile/README.md).
+> Mobile tests live under a **separate Playwright config** ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`. The desktop projects in [../playwright.config.ts](../playwright.config.ts) never exercise it. See [mobile/README.md](mobile/README.md).
 
 ---
 
@@ -170,7 +170,7 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<SANDBOX_URL domain>` |
 | `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<SANDBOX_URL domain>` |
 | `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<SANDBOX_URL domain>` |
-| `mobile/` *(separate config — [`playwright.mobile.config.ts`](../playwright.mobile.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<SANDBOX_URL domain>` |
+| `mobile/` *(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<SANDBOX_URL domain>` |
 
 Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used inside tests when asserting Hebrew-site behavior — not as separate Playwright projects.
 
@@ -182,7 +182,7 @@ Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are deriv
 | Voices-specific UI (sheet editor, trending, chiburim pages) | `voices/` |
 | Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` |
 | Connections sidebar / Resource Panel (RP-NNN tests) | `Full testing by Feature/Resource Panel/` |
-| Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile/` *(run via `--config=playwright.mobile.config.ts`)* |
+| Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile/` *(run via `--config=playwright.mobileweb.config.ts`)* |
 | End-to-end release-gate smoke (login → profile → settings → logout, cross-module auth) | `Sanity/` |
 | Platform-level invariants, cross-module URL redirects, static-route assertions | `Misc/` |
 
@@ -677,7 +677,7 @@ Desktop tests should pass at full parallelism. CI runs `workers: 1` from [../pla
 
 If a test flakes only when other tests run alongside it, the cause is in the test, not in the worker count. Fix the test rather than capping workers — see CLAUDE.md rule 20 for the diagnostic checklist (too-short timeouts on async fetches, sequential `isVisible` races, redirect-tolerant URL matching, `test.slow()` on known-heavy describes).
 
-The one sanctioned exception is the mobile config ([../playwright.mobile.config.ts](../playwright.mobile.config.ts)), which caps non-CI workers at 2 — staging returns 5xx on `/login` under 5+ concurrent mobile-emulation workers. That cap is config-level and applies automatically when you run with `--config=playwright.mobile.config.ts`.
+The one sanctioned exception is the mobile config ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)), which caps non-CI workers at 2 — staging returns 5xx on `/login` under 5+ concurrent mobile-emulation workers. That cap is config-level and applies automatically when you run with `--config=playwright.mobileweb.config.ts`.
 
 ---
 
@@ -758,5 +758,5 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly and get auto
 - [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) — Resource Panel testing guide: mode navigation map, per-mode selector reference, auth-gated features, and the full Common-gotchas catalogue (8.1–8.13) accumulated across Parts 1 and 2
 - [mobile/README.md](mobile/README.md) — Mobile-viewport testing guide: hamburger drawer, auth flow, staging cookies banner, WebKit popup/cookie quirks
 - [../playwright.config.ts](../playwright.config.ts) — Playwright configuration (desktop projects)
-- [../playwright.mobile.config.ts](../playwright.mobile.config.ts) — Playwright configuration (mobile projects)
+- [../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts) — Playwright configuration (mobile projects)
 - [Playwright official docs](https://playwright.dev/docs/intro) — upstream framework reference

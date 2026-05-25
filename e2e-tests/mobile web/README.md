@@ -10,17 +10,17 @@ These tests run under a dedicated config so they don't share viewport / project 
 
 ```bash
 # Both mobile projects (Pixel 5 Chrome + iPhone 13 Safari)
-npx playwright test --config=playwright.mobile.config.ts
+npx playwright test --config=playwright.mobileweb.config.ts
 
 # Single project
-npx playwright test --config=playwright.mobile.config.ts --project=chrome-mobile-library
-npx playwright test --config=playwright.mobile.config.ts --project=safari-mobile-library
+npx playwright test --config=playwright.mobileweb.config.ts --project=chrome-mobile-library
+npx playwright test --config=playwright.mobileweb.config.ts --project=safari-mobile-library
 
 # Single test by ID
-npx playwright test --config=playwright.mobile.config.ts -g 'HAM-M001'
+npx playwright test --config=playwright.mobileweb.config.ts -g 'HAM-M001'
 
 # Slow environment
-TIMEOUT_MULTIPLIER=2 npx playwright test --config=playwright.mobile.config.ts
+TIMEOUT_MULTIPLIER=2 npx playwright test --config=playwright.mobileweb.config.ts
 ```
 
 ---
@@ -29,7 +29,7 @@ TIMEOUT_MULTIPLIER=2 npx playwright test --config=playwright.mobile.config.ts
 
 Sefaria's mobile chrome (the entire `<MobileNavMenu>` component) only mounts when `Sefaria.getBreakpoint() === MOBILE`, which is gated on `window.innerWidth < 843px`. The desktop projects in `playwright.config.ts` use `Desktop Chrome` / `Desktop Firefox` / `Desktop Safari` device descriptors — all wider than 843px — so they never exercise the mobile components at all.
 
-[../../playwright.mobile.config.ts](../../playwright.mobile.config.ts) defines two device-based projects below the breakpoint:
+[../../playwright.mobileweb.config.ts](../../playwright.mobileweb.config.ts) defines two device-based projects below the breakpoint:
 
 | Project | Device | Width |
 |---|---|---|
@@ -165,7 +165,7 @@ Per the user's "I want the tests to be reliable and not pass if something doesn'
 1. Decide the group — Structure, Search, In-module nav, External-tab, Cross-module — and ID it (`HAM-<G>00N`).
 2. If a needed action isn't on `MobileHamburgerPage`, add a method there. Prefer role/label/href locators.
 3. Add any new shared selector / URL to `constants.ts` under `MOBILE_HAMBURGER` / `MOBILE_PAGE_URLS`. Don't inline magic strings in the POM.
-4. Run a single test: `npx playwright test --config=playwright.mobile.config.ts -g 'HAM-<your-id>'`.
+4. Run a single test: `npx playwright test --config=playwright.mobileweb.config.ts -g 'HAM-<your-id>'`.
 5. If it fails, work outside-in: modal blocking → wrong URL pattern → locator drift → slow env (`TIMEOUT_MULTIPLIER=2`).
 
 ---
@@ -185,7 +185,7 @@ e2e-tests/pages/
 e2e-tests/
 └── constants.ts                  ← MOBILE_HAMBURGER, MOBILE_PAGE_URLS
 
-playwright.mobile.config.ts       ← Pixel 5 + iPhone 13 projects, workers capped at 2
+playwright.mobileweb.config.ts       ← Pixel 5 + iPhone 13 projects, workers capped at 2
 ```
 
 ---
@@ -216,4 +216,4 @@ The auth pages live at `/login`, `/register`, and `/password/reset/` in Django's
 
 ### Worker cap and retries
 
-`playwright.mobile.config.ts` caps non-CI workers at **2** and retries failed tests **once**. Six tests in parallel reliably triggered staging 5xx and stalled `/login` requests; capping at 2 keeps the suite deterministic without bumping `TIMEOUT_MULTIPLIER` globally. The one retry covers transient WebKit popup-race flakes in cross-module tests.
+`playwright.mobileweb.config.ts` caps non-CI workers at **2** and retries failed tests **once**. Six tests in parallel reliably triggered staging 5xx and stalled `/login` requests; capping at 2 keeps the suite deterministic without bumping `TIMEOUT_MULTIPLIER` globally. The one retry covers transient WebKit popup-race flakes in cross-module tests.
