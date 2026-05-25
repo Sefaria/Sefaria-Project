@@ -31,7 +31,7 @@ const MODULE_URLS = {
  * Run with: `npx playwright test --config=playwright.mobile.config.ts`
  */
 export default defineConfig({
-  testDir: './e2e-tests/mobile',
+  testDir: './e2e-tests/mobile web',
   outputDir: './e2e-tests/e2e-test-logs/test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -73,7 +73,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chrome-mobile-library',
-      testDir: './e2e-tests/mobile',
+      testDir: './e2e-tests/mobile web',
       use: {
         ...devices['Pixel 5'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -81,7 +81,7 @@ export default defineConfig({
     },
     {
       name: 'safari-mobile-library',
-      testDir: './e2e-tests/mobile',
+      testDir: './e2e-tests/mobile web',
       use: {
         ...devices['iPhone 13'],
         baseURL: MODULE_URLS.EN.LIBRARY,
