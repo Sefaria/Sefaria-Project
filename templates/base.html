@@ -31,7 +31,7 @@
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=facebook&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+        <meta property="og:image" content="{% social_image_url request 'facebook' %}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -42,7 +42,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     {# Sefaria is stopping use of its Twitter account. However, according to Twitter dev docs, an account to reference as an attribute is still necessary for cards usage #}
     <meta name="twitter:site" content="@sefariaproject" />
-    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+    <meta name="twitter:image" content="{% social_image_url request 'twitter' %}" />
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
