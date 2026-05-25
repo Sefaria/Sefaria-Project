@@ -2,11 +2,14 @@ from PIL import Image, ImageDraw, ImageFont, features
 import textwrap
 from bidi.algorithm import get_display
 import re
+import structlog
 from django.http import HttpResponse
 import io
 from bs4 import BeautifulSoup
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from typing import Literal, TypeAlias, cast
+
+logger = structlog.get_logger(__name__)
 
 SocialImageLang: TypeAlias = Literal["en", "he"]
 SocialImagePlatform: TypeAlias = Literal["facebook", "twitter"]
@@ -17,32 +20,26 @@ CategoryColors: TypeAlias = list[ColorRGB]
 
 SUPPORTED_SOCIAL_IMAGE_MODULES = {LIBRARY_MODULE, VOICES_MODULE}
 
-SOCIAL_IMAGE_LOGOS = {
-    LIBRARY_MODULE: {
-        "en": {
-            "header": "static/img/library-logo-english.png",
-            "fallback": "static/img/library-logo-english-white.png",
-        },
-        "he": {
-            "header": "static/img/library-logo-hebrew.png",
-            "fallback": "static/img/library-logo-hebrew-white.png",
-        },
-    },
-    VOICES_MODULE: {
-        "en": {
-            "header": "static/img/voices-logo-english.png",
-            "fallback": "static/img/voices-logo-english-white.png",
-        },
-        "he": {
-            "header": "static/img/voices-logo-hebrew.png",
-            "fallback": "static/img/voices-logo-hebrew-white.png",
-        },
-    },
-}
-
 SOCIAL_IMAGE_FALLBACK_BG_COLORS = {
     LIBRARY_MODULE: "#18345D",
     VOICES_MODULE: "#518159",
+}
+
+# Per-language render settings. spacing_key, when set, indexes into platforms[platform] for an extra inter-line spacing nudge needed by Hebrew. 
+# cat_border_side selects which edge of the image gets the colored category accent stripe.
+LANG_RENDER_CONFIG = {
+    "en": {
+        "align": "left",
+        "ref_font_file": "static/fonts/Roboto-Regular.ttf",
+        "spacing_key": None,
+        "cat_border_side": "left",
+    },
+    "he": {
+        "align": "right",
+        "ref_font_file": "static/fonts/Heebo-Regular.ttf",
+        "spacing_key": "he_spacing",
+        "cat_border_side": "right",
+    },
 }
 
 palette = { # [(bg), (font)]
@@ -103,6 +100,17 @@ def get_category_colors(category: str | None) -> CategoryColors:
     return [fallback_palette_colors[index], (255, 255, 255)]
 
 
+def social_image_color_category_for_path(category_path: list[str] | tuple[str, ...]) -> str | None:
+    # Use the most specific category that has an explicit image color. This
+    # lets /texts/Tanakh/Targum use the Targum color while /texts/Tanakh uses
+    # Tanakh. If no category is configured, get_category_colors() will use a
+    # stable fallback color based on the returned category name.
+    for category in reversed(category_path):
+        if category in palette:
+            return category
+    return category_path[0] if category_path else None
+
+
 def normalize_social_image_module(module: str | None) -> SocialImageModule:
     # Only modules with logo assets are supported here. Anything else uses the
     # Library image style until a module-specific image is intentionally added.
@@ -119,7 +127,8 @@ def social_image_logo_path(
 ) -> str:
     module = normalize_social_image_module(module)
     normalized_lang: SocialImageLang = "he" if lang == "he" else "en"
-    return SOCIAL_IMAGE_LOGOS[module][normalized_lang][variant]
+    variant_suffix = "-white" if variant == "fallback" else ""
+    return f"static/img/{module}/{module}-logo-{normalized_lang}{variant_suffix}.png"
 
 
 def social_image_fallback_bg_color(module: str | None = LIBRARY_MODULE) -> str:
@@ -133,7 +142,12 @@ def open_social_image_logo(path: str) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
-def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | ColorRGB, logo_path: str) -> Image.Image:
+def generate_centered_logo_image(
+    platform: SocialImagePlatform,
+    bg_color: str | ColorRGB,
+    logo_path: str,
+    max_logo_size: int = 400,
+) -> Image.Image:
     # Used for fallback images that only show a centered logo. The caller
     # chooses the color and logo so static pages can keep the old Sefaria logo
     # while module pages can use Library or Voices branding.
@@ -141,9 +155,36 @@ def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | 
     width = platforms[platform]["width"]
     img = Image.new('RGBA', (width, height), color=bg_color)
     logo = open_social_image_logo(logo_path)
-    logo.thumbnail((400, 400), Image.LANCZOS)
+    logo.thumbnail((max_logo_size, max_logo_size), Image.LANCZOS)
     logo_padded = Image.new('RGBA', (width, height))
     logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
+    return Image.alpha_composite(img, logo_padded)
+
+
+def add_social_image_header(
+    img: Image.Image, lang: str, platform: SocialImagePlatform, module: str | None
+) -> Image.Image:
+    # All non-fallback social images share the same white header. Keeping this
+    # in one helper prevents the quote and TOC renderers from drifting apart.
+    width, height = img.size
+    draw = ImageDraw.Draw(im=img)
+    draw.line(
+        (0, int(height * 0.05), width, int(height * 0.05)),
+        fill=(255, 255, 255),
+        width=int(height * 0.1),
+    )
+    draw.line(
+        (0, int(height * 0.1), width, int(height * 0.1)),
+        fill="#CCCCCC",
+        width=int(height * 0.0025),
+    )
+
+    logo = open_social_image_logo(social_image_logo_path(module, lang, "header"))
+    logo.thumbnail((width, int(height * 0.06)), Image.LANCZOS)
+    logo_padded = Image.new("RGBA", (width, height))
+    logo_padded.paste(
+        logo, (int(width / 2 - logo.size[0] / 2), int(height * 0.05 - logo.size[1] / 2))
+    )
     return Image.alpha_composite(img, logo_padded)
 
 
@@ -169,6 +210,7 @@ def make_module_fallback_img_http_response(
         platform,
         social_image_fallback_bg_color(module),
         social_image_logo_path(module, lang, "fallback"),
+        max_logo_size=500,
     )
     return make_png_http_response(img)
 
@@ -178,6 +220,129 @@ def make_static_img_http_response(platform: SocialImagePlatform) -> HttpResponse
     # neutral by using the Static category color and original white Sefaria logo.
     bg_color, _ = get_category_colors("Static")
     img = generate_centered_logo_image(platform, bg_color, "static/img/logo-white.png")
+    return make_png_http_response(img)
+
+
+def generate_toc_image(
+    title: str | None,
+    subtitle: str | None,
+    category: str | None,
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+    category_path: tuple[str, ...] = (),
+) -> Image.Image:
+    bg_color, text_color = get_category_colors(category)
+    width = platforms[platform]["width"]
+    height = platforms[platform]["height"]
+    img = Image.new("RGBA", (width, height), color=bg_color)
+
+    lang_config = LANG_RENDER_CONFIG["en"] if lang == "en" else LANG_RENDER_CONFIG["he"]
+    align = lang_config["align"]
+    direction = get_text_direction(lang)
+    spacing_key = lang_config["spacing_key"]
+    spacing = platforms[platform][spacing_key] if spacing_key else 0
+
+    # Primary category pages (/texts/Tanakh, /texts/Mishnah, etc.) get larger,
+    # vertically-centered text. Nested categories and book-level TOC pages use
+    # the standard quote-image layout.
+    is_primary_category = len(category_path) == 1
+
+    if is_primary_category:
+        title_font = ImageFont.truetype(
+            font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=90
+        )
+        subtitle_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=38)
+    else:
+        title_font = ImageFont.truetype(
+            font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=72
+        )
+        subtitle_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=30)
+
+    title_text = prepare_text_for_drawing(title or "", lang)
+    subtitle_text = prepare_text_for_drawing((subtitle or "").upper(), lang)
+
+    if is_primary_category:
+
+        def _bbox_h(text, font):
+            b = font.getbbox(text)
+            return b[3] - b[1]
+
+        title_h = _bbox_h(title_text, title_font) if title_text else 0
+        sub_h = _bbox_h(subtitle_text, subtitle_font) if subtitle_text else 0
+        gap = int(height * 0.04) if subtitle_text else 0
+        block_h = title_h + gap + sub_h
+        content_center_y = (height * 0.1 + height) / 2
+        block_top = content_center_y - block_h / 2
+        title_y = block_top + title_h / 2
+        subtitle_y = block_top + title_h + gap + sub_h / 2
+    else:
+        title_y = height * 0.47
+        subtitle_y = height * 0.61
+
+    draw = ImageDraw.Draw(im=img)
+    draw.text(
+        xy=(width / 2, title_y),
+        text=title_text,
+        font=title_font,
+        spacing=spacing,
+        align=align,
+        fill=text_color,
+        anchor="mm",
+        direction=direction,
+    )
+    if subtitle_text:
+        draw.text(
+            xy=(width / 2, subtitle_y),
+            text=subtitle_text,
+            font=subtitle_font,
+            spacing=spacing,
+            align=align,
+            fill=text_color,
+            anchor="mm",
+            direction=direction,
+        )
+
+    cat_border_x = 0 if lang_config["cat_border_side"] == "left" else width
+    draw.line(
+        (cat_border_x, 0, cat_border_x, height), fill=bg_color, width=int(width * 0.02)
+    )
+    draw.line((0, 0, width, 0), fill="#666666", width=1)
+    draw.line((0, 0, 0, height), fill="#666666", width=1)
+    draw.line((width - 1, 0, width - 1, height), fill="#666666", width=1)
+    draw.line((0, height - 1, width, height - 1), fill="#666666", width=1)
+
+    return add_social_image_header(img, lang, platform, module)
+
+
+def make_toc_img_http_response(
+    title: str | None,
+    subtitle: str | None,
+    category: str | None,
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+    category_path: tuple[str, ...] = (),
+) -> HttpResponse:
+    try:
+        img = generate_toc_image(
+            title,
+            subtitle,
+            category,
+            lang,
+            platform,
+            module,
+            category_path=category_path,
+        )
+    except Exception:
+        logger.exception(
+            "social_toc_image_generation_failed",
+            lang=lang,
+            platform=platform,
+            module=module,
+            category=category,
+        )
+        return make_module_fallback_img_http_response(lang, platform, module)
     return make_png_http_response(img)
 
 
@@ -207,19 +372,10 @@ def smart_truncate(content: str, length: int = 180, suffix: str = '...') -> str:
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
-def get_text_width(text: str, font: ImageFont.FreeTypeFont) -> float:
-    if hasattr(font, "getlength"):
-        return font.getlength(text)
-    if hasattr(font, "getbbox"):
-        left, _, right, _ = font.getbbox(text)
-        return right - left
-    return font.getsize(text)[0]
-
-
 def calc_letters_per_line(text: str, font: ImageFont.FreeTypeFont, img_width: int) -> int:
     if not text:
         return 1
-    avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
+    avg_char_width = sum(font.getlength(char) for char in text) / len(text)
     if avg_char_width <= 0:
         return len(text)
     max_char_count = int(img_width / avg_char_width)
@@ -277,9 +433,10 @@ def html_to_text_canonical(html: str | None) -> str:
     text = re.sub(r"\n\s*\n", "\n", text)
     return text
 
-def cleanup_and_format_text(text: str | None, language: str) -> str:
+def cleanup_and_format_text(text: str | None) -> str:
     # Removes HTML tags/entities according to canonical web copy behavior,
-    # then removes nikkudot and taamim.
+    # then removes nikkudot and taamim. The cantillation strip is Hebrew-specific
+    # but a safe no-op on English text since the regex only matches Hebrew/CJK ranges.
     text = html_to_text_canonical(text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
@@ -300,7 +457,6 @@ def generate_image(
 ) -> Image.Image:
     bg_color, text_color = get_category_colors(category)
     ref_str = ref_str or ""
-    module = normalize_social_image_module(module)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -309,21 +465,17 @@ def generate_image(
     padding_y = padding_x/2
     img = Image.new('RGBA', (width, height), color=bg_color)
 
-    if lang == "en":
-        align = "left"
-        logo_url = social_image_logo_path(module, lang, "header")
-        spacing = 0
-        ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
-        cat_border_pos = (0, 0, 0, img.size[1])
+    lang_config = LANG_RENDER_CONFIG["en"] if lang == "en" else LANG_RENDER_CONFIG["he"]
+    align = lang_config["align"]
+    spacing_key = lang_config["spacing_key"]
+    spacing = platforms[platform][spacing_key] if spacing_key else 0
+    ref_font = ImageFont.truetype(
+        font=lang_config["ref_font_file"], size=platforms[platform]["ref_font_size"]
+    )
+    cat_border_x = 0 if lang_config["cat_border_side"] == "left" else img.size[0]
+    cat_border_pos = (cat_border_x, 0, cat_border_x, img.size[1])
 
-    else:
-        align = "right"
-        logo_url = social_image_logo_path(module, lang, "header")
-        spacing = platforms[platform]["he_spacing"]
-        ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
-        cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
-
-    text = cleanup_and_format_text(text, lang)
+    text = cleanup_and_format_text(text)
     text = wrap_text_preserving_linebreaks(text, calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
     text = prepare_text_for_drawing(text, lang)
     direction = get_text_direction(lang)
@@ -335,9 +487,8 @@ def generate_image(
     # category line
     draw.line(cat_border_pos, fill=bg_color, width=int(width*.02))
 
-    # header white
-    draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
-    draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
+    img = add_social_image_header(img, lang, platform, module)
+    draw = ImageDraw.Draw(im=img)
 
     # write ref
     ref_text = prepare_text_for_drawing(ref_str.upper(), lang)
@@ -349,15 +500,7 @@ def generate_image(
     draw.line((width-1, 0, width-1, height), fill="#666666", width=1)
     draw.line((0, height-1, width, height-1), fill="#666666", width=1)
 
-    # add sefaria logo
-    logo = open_social_image_logo(logo_url)
-    logo.thumbnail((width, int(height*.06)), Image.LANCZOS)
-    logo_padded = Image.new('RGBA', (width, height))
-    logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
-
-    img = Image.alpha_composite(img, logo_padded)
-
-    return(img)
+    return img
 
 
 def make_img_http_response(
@@ -368,11 +511,16 @@ def make_img_http_response(
     platform: SocialImagePlatform,
     module: str | None = LIBRARY_MODULE,
 ) -> HttpResponse:
-    module = normalize_social_image_module(module)
     try:
         img = generate_image(text, category, ref_str, lang, platform, module)
-    except Exception as e:
-        print(e)
+    except Exception:
+        logger.exception(
+            "social_image_generation_failed",
+            lang=lang,
+            platform=platform,
+            module=module,
+            category=category,
+        )
         return make_module_fallback_img_http_response(lang, platform, module)
 
     return make_png_http_response(img)
