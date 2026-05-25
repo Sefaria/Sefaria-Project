@@ -648,4 +648,3 @@ class TestCsrfTrustedOrigins:
             request = self._post_request(host=self.UNRELATED_HOST, origin=origin)
             assert self._check_referer(request) is None, \
                 f"Origin {origin} should be trusted via wildcard but was rejected"
->>>>>>> master
