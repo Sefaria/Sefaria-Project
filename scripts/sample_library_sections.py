@@ -35,6 +35,7 @@ DEFAULT_BUCKET = "development-research"
 DEFAULT_OUTPUT = Path("scripts/output/sampled_library_sections.json")
 EXCLUDED_CATEGORIES = {"Sheets", "Dictionary", "Reference"}
 BUCKET_PREFIX = "custom_embeddings"
+LANGUAGE = "he"
 
 
 def build_sefaria_url(oref):
@@ -110,6 +111,7 @@ def iter_section_payloads_for_index(index, versions_by_title):
             "ref": section_ref.normal(),
             "url": build_sefaria_url(section_ref),
             "versionTitle": version.versionTitle,
+            "language": LANGUAGE,
             "segments": dict(grouped_section["segments"]),
         }
 
