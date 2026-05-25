@@ -18,7 +18,7 @@ const SemanticSearchResult = ({ result }) => {
             </a>
             {snippet && (
                 <ColorBarBox tref={result.ref}>
-                    <div className={`snippet ${snippetLang}`}>{snippet}</div>
+                    <div className={`snippet ${snippetLang}`} dangerouslySetInnerHTML={{__html: snippet}} />
                 </ColorBarBox>
             )}
             {result.keyphrases_matched?.length > 0 && (
