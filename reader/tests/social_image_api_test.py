@@ -25,6 +25,15 @@ DOMAIN_MODULES = {
 
 
 class DummyRef:
+    def __init__(self, tref="Genesis.1.1", book_level=None):
+        self.tref = tref
+        self.index = DummyIndex()
+        # Real Ref.is_book_level() inspects section structure, not string shape.
+        # The dot heuristic holds for standard refs but breaks for Talmud-style
+        # refs like "Sukkah 2a" (space, no dot). Pass book_level explicitly for
+        # those cases via _capture_social_image_call(book_level=...).
+        self._book_level = ("." not in tref) if book_level is None else book_level
+
     def normal(self):
         return "Genesis 1:1"
 
@@ -32,6 +41,19 @@ class DummyRef:
         # Stub — tests assert against this exact string to verify the view
         # picks ref.he_normal() when lang="he".
         return "בראשית א׳:א׳"
+
+    def is_book_level(self):
+        return self._book_level
+
+
+class DummyIndex:
+    categories = ["Tanakh", "Torah"]
+
+    def get_title(self, lang="en"):
+        return "בראשית" if lang == "he" else "Genesis"
+
+    def get_primary_category(self):
+        return "Tanakh"
 
 
 class DummyTextFamily:
@@ -55,7 +77,7 @@ def _request(path, active_module=None, host=None):
     return request
 
 
-def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1"):
+def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1", book_level=None):
     # Replace the image builders with small recorders. These tests care about
     # which kind of image the view chooses, not about Pillow drawing pixels.
     captured = {}
@@ -102,16 +124,32 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host=None,
         )
         return captured
 
+    def fake_toc(title, subtitle, category, lang, platform, module, category_path=()):
+        captured.update(
+            {
+                "kind": "toc",
+                "title": title,
+                "subtitle": subtitle,
+                "category": category,
+                "lang": lang,
+                "platform": platform,
+                "module": module,
+                "category_path": category_path,
+            }
+        )
+        return captured
+
     def fake_ref(tref):
         if not tref:
             raise ValueError("empty tref")
-        return DummyRef()
+        return DummyRef(tref, book_level=book_level)
 
     monkeypatch.setattr(views, "Ref", fake_ref)
     monkeypatch.setattr(views, "TextFamily", DummyTextFamily)
     monkeypatch.setattr(views, "make_img_http_response", fake_response)
     monkeypatch.setattr(views, "make_module_fallback_img_http_response", fake_module_fallback)
     monkeypatch.setattr(views, "make_static_img_http_response", fake_static)
+    monkeypatch.setattr(views, "make_toc_img_http_response", fake_toc)
 
     return views.social_image_api(_request(path, active_module, host), tref)
 
@@ -127,8 +165,8 @@ def test_social_image_path_classification_caches_common_paths(monkeypatch):
 
     monkeypatch.setattr(views, "resolve", counting_resolve)
 
-    assert views._classify_social_image_path("jobs", LIBRARY_MODULE) == views.SocialImagePageType.STATIC
-    assert views._classify_social_image_path("jobs", LIBRARY_MODULE) == views.SocialImagePageType.STATIC
+    assert views._classify_social_image_path("jobs", LIBRARY_MODULE).page_type == views.SocialImagePageType.STATIC
+    assert views._classify_social_image_path("jobs", LIBRARY_MODULE).page_type == views.SocialImagePageType.STATIC
     assert len(resolve_calls) == 1
     assert views._classify_social_image_path.cache_info().maxsize == 512
     views._classify_social_image_path.cache_clear()
@@ -313,6 +351,124 @@ def test_social_image_api_static_page_uses_static_image_on_voices(monkeypatch):
 
     assert result["kind"] == "static"
     assert result["category"] == "Static"
+
+
+def test_social_image_api_book_level_ref_uses_toc_image_on_library(monkeypatch):
+    # A whole-book path like /Genesis is a valid ReaderApp TOC page, but it is
+    # not a segment ref with preview text. Render the title/category instead.
+    views._classify_social_image_path.cache_clear()
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis", tref="Genesis")
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "Genesis"
+    assert result["subtitle"] == "Tanakh"
+    assert result["category"] == "Tanakh"
+    assert result["module"] == LIBRARY_MODULE
+
+
+def test_social_image_api_book_level_ref_uses_hebrew_title_when_requested(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis?lang=he", tref="Genesis")
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "בראשית"
+    assert result["lang"] == "he"
+
+
+def test_social_image_api_category_toc_path_uses_toc_image(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+
+    class DummyTocNode:
+        def primary_title(self, lang="en"):
+            return "תלמוד" if lang == "he" else "Talmud"
+
+    class DummyTocTree:
+        def lookup(self, category_path):
+            assert category_path == ("Talmud",)
+            return DummyTocNode()
+
+    monkeypatch.setattr(views.library, "get_toc_tree", lambda: DummyTocTree())
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/texts/Talmud", tref="texts/Talmud")
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "Talmud"
+    assert result["subtitle"] is None
+    assert result["category"] == "Talmud"
+
+
+def test_social_image_api_nested_category_toc_path_uses_specific_category_color(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+
+    class DummyTocNode:
+        def primary_title(self, lang="en"):
+            return "תרגום" if lang == "he" else "Targum"
+
+    class DummyTocTree:
+        def lookup(self, category_path):
+            assert category_path == ("Tanakh", "Targum")
+            return DummyTocNode()
+
+    monkeypatch.setattr(views.library, "get_toc_tree", lambda: DummyTocTree())
+    monkeypatch.setattr(views, "hebrew_term", lambda category: f"he:{category}")
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/texts/Tanakh/Targum",
+        tref="texts/Tanakh/Targum",
+    )
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "Targum"
+    assert result["subtitle"] == "Tanakh"
+    assert result["category"] == "Targum"
+
+
+def test_social_image_api_nested_category_toc_uses_hebrew_subtitle_when_requested(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+
+    class DummyTocNode:
+        def primary_title(self, lang="en"):
+            return "תרגום" if lang == "he" else "Targum"
+
+    class DummyTocTree:
+        def lookup(self, category_path):
+            return DummyTocNode()
+
+    monkeypatch.setattr(views.library, "get_toc_tree", lambda: DummyTocTree())
+    monkeypatch.setattr(views, "hebrew_term", lambda category: f"he:{category}")
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/texts/Tanakh/Targum?lang=he",
+        tref="texts/Tanakh/Targum",
+    )
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "תרגום"
+    assert result["subtitle"] == "he:Tanakh"
+    assert result["lang"] == "he"
+
+
+def test_social_image_api_category_toc_path_decodes_url_encoded_spaces(monkeypatch):
+    views._classify_social_image_path.cache_clear()
+
+    class DummyTocNode:
+        def primary_title(self, lang="en"):
+            return "Aramaic Targum"
+
+    class DummyTocTree:
+        def lookup(self, category_path):
+            assert category_path == ("Tanakh", "Targum", "Aramaic Targum")
+            return DummyTocNode()
+
+    monkeypatch.setattr(views.library, "get_toc_tree", lambda: DummyTocTree())
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/texts/Tanakh/Targum/Aramaic%20Targum",
+        tref="texts/Tanakh/Targum/Aramaic%20Targum",
+    )
+
+    assert result["kind"] == "toc"
+    assert result["title"] == "Aramaic Targum"
+    assert result["category"] == "Targum"
 
 
 def test_social_image_api_topics_page_uses_module_fallback(monkeypatch):

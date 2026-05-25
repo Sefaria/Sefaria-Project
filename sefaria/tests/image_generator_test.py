@@ -1,4 +1,5 @@
 import io
+from pathlib import Path
 
 from PIL import Image, ImageChops, ImageStat
 
@@ -9,13 +10,17 @@ from sefaria import image_generator
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from sefaria.image_generator import (
     generate_image,
+    generate_toc_image,
     get_category_colors,
     make_img_http_response,
+    make_module_fallback_img_http_response,
     make_png_http_response,
     make_static_img_http_response,
+    make_toc_img_http_response,
     open_social_image_logo,
     palette,
     platforms,
+    social_image_color_category_for_path,
     social_image_fallback_bg_color,
     social_image_logo_path,
 )
@@ -170,13 +175,73 @@ def test_generate_social_image_renders_logo_in_header():
     _assert_logo_rendered(img)
 
 
+def test_generate_toc_social_image_uses_category_color_and_header_logo():
+    img = generate_toc_image(
+        title="Genesis",
+        subtitle="Tanakh",
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh", "Torah"),
+    )
+
+    assert img.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
+    assert img.getpixel((100, 200))[:3] == palette["Tanakh"][0]
+    _assert_text_rendered(img)
+    _assert_logo_rendered(img)
+
+
+def test_generate_toc_primary_category_uses_larger_centered_text():
+    # Primary category pages (/texts/Tanakh) use larger fonts and vertically
+    # centered layout vs. the standard quote-image positioning.
+    img_primary = generate_toc_image(
+        title="Tanakh",
+        subtitle=None,
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh",),
+    )
+    img_standard = generate_toc_image(
+        title="Tanakh",
+        subtitle=None,
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh", "Torah"),
+    )
+
+    assert img_primary.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
+    # The two images differ because font size and vertical position differ.
+    assert list(img_primary.getdata()) != list(img_standard.getdata())
+
+
+def test_make_toc_social_image_response_renders_png():
+    response = make_toc_img_http_response(
+        title="Talmud",
+        subtitle=None,
+        category="Talmud",
+        lang="en",
+        platform="twitter",
+        module=LIBRARY_MODULE,
+    )
+    img = Image.open(io.BytesIO(response.content))
+
+    assert response["Content-Type"] == "image/png"
+    assert img.size == (platforms["twitter"]["width"], platforms["twitter"]["height"])
+    assert img.getpixel((100, 200))[:3] == palette["Talmud"][0]
+
+
 @pytest.mark.parametrize(
     ("module", "lang", "expected_logo"),
     [
-        (LIBRARY_MODULE, "en", "static/img/library-logo-english.png"),
-        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew.png"),
-        (VOICES_MODULE, "en", "static/img/voices-logo-english.png"),
-        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew.png"),
+        (LIBRARY_MODULE, "en", "static/img/library/library-logo-en.png"),
+        (LIBRARY_MODULE, "he", "static/img/library/library-logo-he.png"),
+        (VOICES_MODULE, "en", "static/img/voices/voices-logo-en.png"),
+        (VOICES_MODULE, "he", "static/img/voices/voices-logo-he.png"),
     ],
 )
 def test_generate_social_image_uses_module_and_language_header_logo(monkeypatch, module, lang, expected_logo):
@@ -204,10 +269,10 @@ def test_generate_social_image_uses_module_and_language_header_logo(monkeypatch,
 @pytest.mark.parametrize(
     ("module", "lang", "expected_logo"),
     [
-        (LIBRARY_MODULE, "en", "static/img/library-logo-english-white.png"),
-        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew-white.png"),
-        (VOICES_MODULE, "en", "static/img/voices-logo-english-white.png"),
-        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew-white.png"),
+        (LIBRARY_MODULE, "en", "static/img/library/library-logo-en-white.png"),
+        (LIBRARY_MODULE, "he", "static/img/library/library-logo-he-white.png"),
+        (VOICES_MODULE, "en", "static/img/voices/voices-logo-en-white.png"),
+        (VOICES_MODULE, "he", "static/img/voices/voices-logo-he-white.png"),
     ],
 )
 def test_social_image_exception_fallback_uses_module_and_language_logo(monkeypatch, module, lang, expected_logo):
@@ -241,6 +306,28 @@ def test_voices_social_image_exception_fallback_uses_voices_background_color():
     assert social_image_fallback_bg_color(VOICES_MODULE) == "#518159"
 
 
+def test_module_fallback_uses_slightly_larger_centered_logo(monkeypatch):
+    calls = []
+
+    def fake_centered_logo(platform, bg_color, logo_path, max_logo_size=400):
+        calls.append(
+            {
+                "platform": platform,
+                "bg_color": bg_color,
+                "logo_path": logo_path,
+                "max_logo_size": max_logo_size,
+            }
+        )
+        return Image.new("RGBA", (platforms[platform]["width"], platforms[platform]["height"]), color=bg_color)
+
+    monkeypatch.setattr(image_generator, "generate_centered_logo_image", fake_centered_logo)
+
+    response = make_module_fallback_img_http_response("en", "facebook", LIBRARY_MODULE)
+
+    assert response["Content-Type"] == "image/png"
+    assert calls[0]["max_logo_size"] == 500
+
+
 def test_static_social_image_uses_static_color_and_original_fallback_logo(monkeypatch):
     opened_paths = []
     original_open = image_generator.Image.open
@@ -260,12 +347,42 @@ def test_static_social_image_uses_static_color_and_original_fallback_logo(monkey
     assert "static/img/logo-white.png" in opened_paths
 
 
+def test_static_social_image_keeps_default_centered_logo_size(monkeypatch):
+    calls = []
+
+    def fake_centered_logo(platform, bg_color, logo_path, max_logo_size=400):
+        calls.append(
+            {
+                "platform": platform,
+                "bg_color": bg_color,
+                "logo_path": logo_path,
+                "max_logo_size": max_logo_size,
+            }
+        )
+        return Image.new("RGBA", (platforms[platform]["width"], platforms[platform]["height"]), color=bg_color)
+
+    monkeypatch.setattr(image_generator, "generate_centered_logo_image", fake_centered_logo)
+
+    response = make_static_img_http_response("facebook")
+
+    assert response["Content-Type"] == "image/png"
+    assert calls[0]["max_logo_size"] == 400
+    assert calls[0]["logo_path"] == "static/img/logo-white.png"
+
+
 def test_social_image_logo_path_defaults_unknown_module_to_library():
-    assert social_image_logo_path("unknown", "en", "header") == "static/img/library-logo-english.png"
+    assert social_image_logo_path("unknown", "en", "header") == "static/img/library/library-logo-en.png"
+
+
+@pytest.mark.parametrize("module", [LIBRARY_MODULE, VOICES_MODULE])
+@pytest.mark.parametrize("lang", ["en", "he"])
+@pytest.mark.parametrize("variant", ["header", "fallback"])
+def test_social_image_logo_path_asset_exists(module, lang, variant):
+    assert Path(social_image_logo_path(module, lang, variant)).exists()
 
 
 def test_social_image_logo_assets_are_converted_to_rgba_before_resizing():
-    logo = open_social_image_logo("static/img/library-logo-english-white.png")
+    logo = open_social_image_logo("static/img/library/library-logo-en-white.png")
 
     assert logo.mode == "RGBA"
 
@@ -289,6 +406,11 @@ def test_generate_social_image_renders_unknown_category_with_stable_fallback_col
 def test_unknown_category_color_fallback_is_deterministic():
     assert get_category_colors("New Category") == get_category_colors("New Category")
     assert get_category_colors("New Category") != palette["System"]
+
+
+def test_social_image_color_category_for_path_prefers_deepest_configured_category():
+    assert social_image_color_category_for_path(("Tanakh", "Targum", "Aramaic Targum")) == "Targum"
+    assert social_image_color_category_for_path(("Tanakh", "Torah")) == "Tanakh"
 
 
 @pytest.mark.parametrize(
