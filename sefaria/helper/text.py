@@ -319,7 +319,8 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
     # Rewrite History
     ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
     query = {"$or": ref_regex_queries}
-    db.history.update(query, {"$set": {"version": new_version_title}}, upsert=False, multi=True)
+    # Note: update() deprecated in PyMongo 4.x, use update_many() instead
+    db.history.update_many(query, {"$set": {"version": new_version_title}})
 
     # Remove content from old version
     old_chunk.text = JaggedTextArray(old_chunk.text).constant_mask(constant="").array()
