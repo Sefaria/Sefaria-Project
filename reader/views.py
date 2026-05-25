@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -67,7 +67,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL
+    CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -361,6 +361,7 @@ def base_props(request):
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
+        'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
@@ -1924,67 +1925,21 @@ def index_api(request, title, raw=False):
                 
         return None, None
 
-    def index_post(request, uid, json_data, method, raw):
-        # NOTE: The enhanced error handling and new format support below was added for
-        # NodeTitleEditor and BulkIndexEditor, which are currently disabled in ModeratorToolsPanel.
-        # The changes are backward-compatible and provide better error messages for all callers.
-        # This function should be reviewed when used
-        #
-        # Handle both old format (with 'update' key) and new format (direct index data)
-        # If the JSON contains a 'title' field but no 'update' key, assume it's an update
-        is_update = 'update' in json_data or ('title' in json_data and json_data.get('title'))
-        tracker_func = tracker.update if is_update else tracker.add
-
-        # For updates, ensure we have the proper data structure
-        if is_update and 'update' not in json_data:
-            # This is direct index data from NodeTitleEditor - wrap it properly
-            update_data = json_data
-        else:
-            # This is the old format with explicit 'update' key
-            update_data = json_data
-
-        try:
-            # Check if this is a main title change that might have dependencies
-            if is_update and 'title' in update_data:
-                original_index = Index().load({"title": update_data['title']})
-                if original_index:
-                    # Check for dependencies before attempting the update
-                    dependent_indices = library.get_dependant_indices(original_index.title, full_records=False)
-                    if dependent_indices:
-                        # For now, warn about dependencies but allow the update
-                        # The dependency system will handle the cascading updates
-                        pass
-
-            result = tracker_func(uid, Index, update_data, raw=raw, method=method)
-            return jsonResponse(result.contents(raw=raw))
-
-        except Exception as e:
-            # Provide more detailed error information
-            error_msg = str(e)
-            if "dependencies" in error_msg.lower() or "dependant" in error_msg.lower():
-                return jsonResponse({
-                    "error": f"Cannot update due to dependencies: {error_msg}",
-                    "type": "dependency_error",
-                    "details": "This text has dependent commentaries or other texts that reference it."
-                })
-            elif "validation" in error_msg.lower() or "invalid" in error_msg.lower():
-                return jsonResponse({
-                    "error": f"Validation error: {error_msg}",
-                    "type": "validation_error",
-                    "details": "The provided data does not meet validation requirements."
-                })
-            elif "ascii" in error_msg.lower():
-                return jsonResponse({
-                    "error": f"Title validation error: {error_msg}",
-                    "type": "title_validation_error",
-                    "details": "English titles must contain only ASCII characters and cannot have special characters like periods, hyphens, or slashes."
-                })
-            else:
-                return jsonResponse({
-                    "error": f"Update failed: {error_msg}",
-                    "type": "general_error",
-                    "details": "An unexpected error occurred during the update."
-                })
+    def index_post(request, uid, j, method, raw):
+        is_title_change = bool(j.get("oldTitle") and j.get("oldTitle") != j.get("title"))
+        if is_title_change and CELERY_ENABLED:
+            from sefaria.helper.texts.tasks import update_index_title
+            from sefaria.celery_setup.config import CeleryQueue
+            async_result = update_index_title.apply_async(
+                args=(uid, j, raw, method),
+                queue=CeleryQueue.TASKS.value,
+            )
+            logger.info("index_api:title_change_enqueued",
+                        old_title=j["oldTitle"], new_title=j.get("title"),
+                        uid=uid, task_id=async_result.id)
+            return jsonResponse({"task_id": async_result.id}, status=202)
+        func = tracker.update if 'update' in j else tracker.add
+        return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
     def handle_delete_request(request, title):
         if not request.user.is_staff:

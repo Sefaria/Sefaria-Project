@@ -1230,7 +1230,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleModuleLinkRightClick(e) {
     /*
-    Handle right-clicks on links with data-target-module to ensure correct subdomain.
+    Handle right-clicks on links with data-target-module to ensure correct subdomain
     Especially for library links when in the sheets module (see Parsha Topic pages)
     */
     const link = e.target.closest('a[data-target-module]');
@@ -2450,7 +2450,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner />}
+              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}

@@ -31,6 +31,7 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 
 import structlog
+from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -893,7 +894,7 @@ def annotate_user_list(uids):
 
 
 def process_index_title_change_in_user_history(indx, **kwargs):
-    print("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg
