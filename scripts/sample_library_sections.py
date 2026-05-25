@@ -4,7 +4,6 @@ Sample Hebrew section-level refs from the library and upload the resulting JSON 
 The sampler:
 - uniformly samples eligible sections via reservoir sampling
 - excludes sheet/dictionary/reference works
-- groups dependent texts one structural level higher by dropping the final address component
 - keeps only sections whose sampled Hebrew version has non-empty text for every included segment
 - writes the JSON locally and uploads it to `custom_embeddings/<output filename>` in GCS
 
@@ -18,7 +17,7 @@ Examples:
 import argparse
 import json
 import random
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from pathlib import Path
 
 import django
@@ -34,7 +33,7 @@ from tqdm import tqdm
 DEFAULT_BUCKET = "development-research"
 DEFAULT_OUTPUT = Path("scripts/output/sampled_library_sections.json")
 EXCLUDED_CATEGORIES = {"Sheets", "Dictionary", "Reference"}
-BUCKET_PREFIX = "custom_embeddings"
+BLOB_PREFIX = "custom_embeddings"
 LANGUAGE = "he"
 
 
@@ -46,43 +45,25 @@ def is_supported_index(index):
     categories = set(index.categories or [])
     return categories.isdisjoint(EXCLUDED_CATEGORIES)
 
-
-def parent_section_ref(oref):
-    if len(oref.sections) <= 1:
-        return oref
-    d = oref._core_dict()
-    d["sections"] = d["sections"][:-1]
-    d["toSections"] = d["toSections"][:-1]
-    return Ref(_obj=d)
-
-
-def normalize_sample_ref(section_ref):
-    if section_ref.is_dependant() and len(section_ref.sections) > 1:
-        return parent_section_ref(section_ref)
-    return section_ref
-
-
 def build_hebrew_version_map(indexes):
     titles = [index.title for index in indexes]
-    versions_by_title = defaultdict(list)
+    version_by_title = {}
     version_set = VersionSet({"title": {"$in": titles}, "language": "he"})
     for version in tqdm(version_set, desc="Loading Hebrew versions"):
-        versions_by_title[version.title].append(version)
-    return versions_by_title
+        version_by_title.setdefault(version.title, version)
+    return version_by_title
 
 
-def iter_section_payloads_for_index(index, versions_by_title):
-    versions = versions_by_title.get(index.title, [])
-    if not versions:
+def iter_section_payloads_for_title(index_title, version):
+    if version is None:
         return
-    version = versions[0]
 
     grouped_segments = OrderedDict()
-    empty_segment_refs = set()
+    partially_empty_sections = set()
 
     def action(segment_text, en_tref, he_tref, _version):
         segment_ref = Ref(en_tref)
-        section_ref = normalize_sample_ref(segment_ref.section_ref())
+        section_ref = segment_ref.section_ref()
         section_key = section_ref.normal()
         section_bucket = grouped_segments.setdefault(
             section_key,
@@ -94,17 +75,17 @@ def iter_section_payloads_for_index(index, versions_by_title):
 
         normalized_text = segment_text.strip()
         if not normalized_text:
-            empty_segment_refs.add(section_key)
+            partially_empty_sections.add(section_key)
         section_bucket["segments"][segment_ref.normal()] = normalized_text
 
     try:
         version.walk_thru_contents(action)
     except Exception as exc:
-        print(f"Skipping index={index.title!r}: failed to walk Hebrew version {version.versionTitle!r}: {exc}")
+        print(f"Skipping title={index_title!r}: failed to walk Hebrew version {version.versionTitle!r}: {exc}")
         return
 
     for section_key, grouped_section in grouped_segments.items():
-        if section_key in empty_segment_refs or len(grouped_section["segments"]) == 0:
+        if section_key in partially_empty_sections or len(grouped_section["segments"]) == 0:
             continue
         section_ref = grouped_section["ref_obj"]
         yield {
@@ -116,9 +97,9 @@ def iter_section_payloads_for_index(index, versions_by_title):
         }
 
 
-def iter_section_payloads(indexes, versions_by_title):
+def iter_section_payloads(indexes, version_by_title):
     for index in tqdm(indexes, desc="Scanning indexes"):
-        yield from iter_section_payloads_for_index(index, versions_by_title)
+        yield from iter_section_payloads_for_title(index.title, version_by_title.get(index.title))
 
 
 def sample_section_payloads(sample_size, seed=None):
@@ -130,9 +111,9 @@ def sample_section_payloads(sample_size, seed=None):
     total_seen = 0
 
     indexes = [index for index in library.all_index_records() if is_supported_index(index)]
-    versions_by_title = build_hebrew_version_map(indexes)
+    version_by_title = build_hebrew_version_map(indexes)
 
-    for payload in iter_section_payloads(indexes, versions_by_title):
+    for payload in iter_section_payloads(indexes, version_by_title):
         total_seen += 1
         if len(reservoir) < sample_size:
             reservoir.append(payload)
@@ -159,7 +140,7 @@ def write_json(section_payloads, output_path):
 
 
 def build_bucket_filename(output_path):
-    return f"{BUCKET_PREFIX}/{output_path.name}"
+    return f"{BLOB_PREFIX}/{output_path.name}"
 
 
 def upload_output(output_path, bucket_name):
@@ -172,7 +153,7 @@ def parse_args():
         description=(
             "Uniformly sample section-level refs from one selected Hebrew version per index, "
             "write JSON containing per-segment Hebrew text, and upload the JSON to GCS under "
-            f"{BUCKET_PREFIX}/<filename>."
+            f"{BLOB_PREFIX}/<filename>."
         )
     )
     parser.add_argument("n", type=int, help="Number of section refs to sample.")
