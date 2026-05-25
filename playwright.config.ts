@@ -139,6 +139,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Voices Topics feature-coverage tests — Voices module
+    {
+      name: 'chrome-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -191,6 +200,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    {
+      name: 'firefox-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -241,6 +258,14 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
 

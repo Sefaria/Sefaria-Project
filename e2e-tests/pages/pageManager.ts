@@ -20,6 +20,7 @@ import { AccountSettingsPage } from "./accountSettingsPage"
 import { LibraryAssistantPage } from "./libraryAssistantPage"
 import { ResourcePanelPage } from "./resourcePanelPage"
 import { MobileHamburgerPage } from "./mobileHamburgerPage"
+import { VoicesTopicPage } from "./voicesTopicPage"
 
 
 export class PageManager {
@@ -43,6 +44,7 @@ export class PageManager {
     private readonly libraryAssistantPage: LibraryAssistantPage
     private readonly resourcePanelPage: ResourcePanelPage
     private readonly mobileHamburgerPage: MobileHamburgerPage
+    private readonly voicesTopicPage: VoicesTopicPage
 
 
 
@@ -67,6 +69,7 @@ export class PageManager {
         this.libraryAssistantPage = new LibraryAssistantPage(page, language)
         this.resourcePanelPage = new ResourcePanelPage(page, language)
         this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
+        this.voicesTopicPage = new VoicesTopicPage(page, language)
 
     }
 
@@ -145,6 +148,10 @@ export class PageManager {
 
     onMobileHamburger() {
         return this.mobileHamburgerPage
+    }
+
+    onVoicesTopic() {
+        return this.voicesTopicPage
     }
 
 

@@ -43,6 +43,7 @@ Sefaria ships two independent web modules and two embedded products that share a
 - **Voices** — the sheet-editing / community / trending-topics experience. Hosted at `voices.<sandbox-domain>` (English) and `chiburim.<sandbox-domain-il>` (Hebrew).
 - **Library Assistant** — `<lc-chatbot>` Svelte custom element embedded on the Library module for whitelisted users. See [assistant/README.md](assistant/README.md).
 - **Resource Panel** — the connections sidebar (`ConnectionsPanel`) that opens when a reader segment is clicked. Covers RP-001 → RP-212 across 19 spec files. See [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
+- **Voices Topics** — topic pages on the Voices module (`voices.<sandbox>/topics/<slug>`) plus the topic landing page (`/topics`). Covers TOV-001 → TOV-019 (non-skipped) across 2 spec files. See [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md).
 
 Because the two modules share authentication but live on different subdomains, many tests exercise **cross-module** behavior (logging in on one module and verifying state on the other, following redirects, etc.). The suite is organised by folder (`library/`, `voices/`, `Sanity/`, `Misc/`, `assistant/`, `Full testing by Feature/<feature>/`); each folder maps to one or more Playwright projects, and each project pairs that folder with a specific browser and baseURL. See the [project matrix](#project-matrix).
 
@@ -88,6 +89,7 @@ npx playwright test
 npx playwright test --project=chrome-library
 npx playwright test --project=chrome-assistant
 npx playwright test --project=chrome-resource-panel
+npx playwright test --project=chrome-voices-topics
 
 # Mobile suite (separate config — Pixel 5 Chrome + iPhone 13 Safari)
 npx playwright test --config=playwright.mobileweb.config.ts
@@ -149,8 +151,10 @@ e2e-tests/
 ├── mobile/                ← Mobile-viewport tests (hamburger drawer, auth flow)
 │   └── README.md          ← Mobile-specific guide; runs via playwright.mobileweb.config.ts
 ├── Full testing by Feature/
-│   └── Resource Panel/    ← Resource Panel (ConnectionsPanel) tests, RP-001 → RP-212
-│       └── README.md      ← Resource Panel-specific guide (navigation map, gotchas, reference texts)
+│   ├── Resource Panel/    ← Resource Panel (ConnectionsPanel) tests, RP-001 → RP-212
+│   │   └── README.md      ← Resource Panel-specific guide (navigation map, gotchas, reference texts)
+│   └── Voices Topics/     ← Voices topic pages + landing, TOV-001 → TOV-019 (non-skipped)
+│       └── README.md      ← Voices Topics-specific guide (source map, design decisions, CSV adaptations)
 └── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
 ```
 
@@ -170,6 +174,7 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<SANDBOX_URL domain>` |
 | `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<SANDBOX_URL domain>` |
 | `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<SANDBOX_URL domain>` |
+| `Full testing by Feature/Voices Topics/` | `chrome-voices-topics` | `firefox-voices-topics` | `safari-voices-topics` | `voices.<SANDBOX_URL domain>` |
 | `mobile/` *(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<SANDBOX_URL domain>` |
 
 Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used inside tests when asserting Hebrew-site behavior — not as separate Playwright projects.
@@ -182,6 +187,7 @@ Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are deriv
 | Voices-specific UI (sheet editor, trending, chiburim pages) | `voices/` |
 | Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` |
 | Connections sidebar / Resource Panel (RP-NNN tests) | `Full testing by Feature/Resource Panel/` |
+| Voices topic pages or `/topics` landing (TOV-NNN tests) | `Full testing by Feature/Voices Topics/` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile/` *(run via `--config=playwright.mobileweb.config.ts`)* |
 | End-to-end release-gate smoke (login → profile → settings → logout, cross-module auth) | `Sanity/` |
 | Platform-level invariants, cross-module URL redirects, static-route assertions | `Misc/` |
@@ -769,6 +775,7 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly and get auto
 - [Sanity/SANITY.md](Sanity/SANITY.md) — per-test inventory for the Sanity release-gate suite
 - [assistant/README.md](assistant/README.md) — Library Assistant (`<lc-chatbot>`) testing guide
 - [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) — Resource Panel testing guide: mode navigation map, per-mode selector reference, auth-gated features, and the full Common-gotchas catalogue (8.1–8.13) accumulated across Parts 1 and 2
+- [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) — Voices Topics testing guide: per-test detail, CSV-vs-product adaptations, source-component map, reference topic (`torah`)
 - [mobile/README.md](mobile/README.md) — Mobile-viewport testing guide: hamburger drawer, auth flow, staging cookies banner, WebKit popup/cookie quirks
 - [../playwright.config.ts](../playwright.config.ts) — Playwright configuration (desktop projects)
 - [../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts) — Playwright configuration (mobile projects)
