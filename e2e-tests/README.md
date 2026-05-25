@@ -468,7 +468,20 @@ The auth layer is a **one-time global setup, read-only thereafter** model — th
 - You can run the suite at full parallelism (no `--workers=N` cap, no `retries`) and auth-gated tests will not race on a shared auth file, because the file is read-only during the test phase.
 - If your test needs to assert both the logged-out and logged-in states, use the helper `pm.onModuleHeader().testWithAuthStates(...)` in [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) — it logs out, runs the logged-out branch, logs in as superuser, runs the logged-in branch.
 - For tests that create destructive state on the QA user (notes, sheets, feedback), intercept the relevant `/api/...` endpoints with `page.route()` so production stays clean. See [Resource Panel/README.md §8.8](Full%20testing%20by%20Feature/Resource%20Panel/README.md) for the canonical pattern.
-- The Sanity "logout" test (Sanity 7) drives logout through the UI dropdown and works unchanged — Sefaria's actual `/logout` endpoint still clears `sessionid` normally.
+- The Sanity "logout" test (Sanity 7) drives logout through the UI dropdown and works unchanged — Sefaria's actual `/logout` endpoint still clears `sessionid` normally. See "Destructive auth tests" below for the constraint this places on which profile Sanity 7 (and any future destructive-auth test) can use.
+
+### Destructive auth tests
+
+The shared-session model has a sharp edge: tests that destroy or rotate the server-side session (UI logout, UI re-login as a globalSetup-managed account, password change) **cannot use a profile that other concurrent tests read**. The on-disk `sessionid` is shared across workers; when one worker hits `/logout`, Django's `session.flush()` deletes the row, and every other worker holding that `sessionid` is silently logged out on its next HTTP request.
+
+**Currently in the suite:** the only destructive-auth test is **Sanity 7** ("User can logout successfully" in [Sanity/user-flow-sanity.spec.ts](Sanity/user-flow-sanity.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` for exactly this reason. `enAdmin` is unused elsewhere in `Sanity/`, so destroying its session every run has no cross-test impact. This was a real flake — `Sanity 8h` and `8i` intermittently failed with "User Logged out" pills until Sanity 7 was moved off `enUser` on 2026-05-20.
+
+**When writing a new destructive-auth test, either:**
+
+- **Use a profile no other concurrent test depends on.** Today that means `enAdmin` for any non-admin destructive flow (since Sanity 7 already destroys it every run). For an admin-dependent destructive flow you'd need a dedicated 4th account; flag this before merging so the team can add it to globalSetup. Do not use `enUser` for a destructive flow — many tests depend on it.
+- **Intercept the destructive request.** `page.route('**/logout', route => route.fulfill({ status: 302, headers: { Location: '/' } }))` keeps the server-side session alive while preserving the UI redirect behavior. Same pattern as the destructive-API interception in [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
+
+**Existing tripwire:** `cross-module-login.spec.ts` Scenarios 4-7 perform parallel UI logins as the same QA user. They currently pass only because Sefaria's Django config does not regenerate sibling sessions on fresh login. If that policy ever tightens upstream (`SESSION_SAVE_EVERY_REQUEST=True` with a session-regeneration policy, or stricter same-email enforcement), those scenarios become the next flake. Flagged at the top of that spec file.
 
 ### Credentials
 

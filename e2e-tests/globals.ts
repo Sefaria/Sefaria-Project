@@ -44,6 +44,15 @@ export const AUTH_PATHS = {
 }
 
 export const BROWSER_SETTINGS = {
+    // ⚠️ enAdmin (and heAdmin, same account) is the de-facto destructive-auth
+    // throwaway profile: Sanity 7 in Sanity/user-flow-sanity.spec.ts performs
+    // a real UI logout against this account every run, which destroys its
+    // server-side session row and invalidates this storage state for any
+    // concurrently-running worker still reading it. No other Sanity test
+    // currently depends on enAdmin's session, so the destruction is harmless.
+    // DO NOT add a Sanity-suite test that depends on enAdmin staying alive
+    // without first moving Sanity 7 to a dedicated throwaway account. See
+    // CLAUDE.md rule §2.21 and README §14 "Destructive auth tests".
     enAdmin: {
         file: AUTH_PATHS.enAdminFile,
         lang: LANGUAGES.EN,

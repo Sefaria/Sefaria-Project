@@ -4,6 +4,17 @@ import { BROWSER_SETTINGS, LANGUAGES, testUser, t } from '../globals';
 import { MODULE_URLS, MODULE_SELECTORS } from '../constants';
 import { PageManager } from '../pages/pageManager';
 
+// ⚠️ Tripwire: Scenarios 4-7 perform parallel UI logins as testUser. This works
+// today only because Sefaria's Django config does NOT regenerate sibling
+// sessions on fresh login — the new session is created without invalidating
+// the on-disk sessionid that other concurrent workers are using. If Sefaria
+// ever tightens that policy (e.g. SESSION_SAVE_EVERY_REQUEST=True with session
+// regeneration, or stricter same-email enforcement), this file becomes the
+// next chrome-sanity flake. Mitigation when that happens: switch the UI
+// logins to enAdmin (already the destructive-auth throwaway profile per
+// CLAUDE.md rule §2.21) or page.route-intercept /login. See README §14
+// "Destructive auth tests".
+
 test.describe('Cross-Module Login Scenarios', () => {
 
   test('Scenario 1: Login on Library, verify logged in state and remain on Library', async ({ context }) => {
