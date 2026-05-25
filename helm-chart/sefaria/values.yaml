@@ -146,13 +146,13 @@ chroma:
   containerImage:
     imageRegistry: chromadb/chroma
     tag: latest
-  storage: 5Gi
+  storage: 10Gi
   resources:
     requests:
-      memory: "512Mi"
+      memory: "4Gi"
       cpu: "250m"
     limits:
-      memory: "2Gi"
+      memory: "6Gi"
       cpu: "1000m"
 
 redis:

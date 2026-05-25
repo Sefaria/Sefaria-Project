@@ -39,7 +39,7 @@ spec:
               value: "false"
           volumeMounts:
             - name: chroma-data
-              mountPath: /chroma/chroma
+              mountPath: /data
           resources: {{ toYaml .Values.chroma.resources | nindent 12 }}
       volumes:
         - name: chroma-data
