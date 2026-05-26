@@ -33,7 +33,7 @@ Tab hydration is lazy — detail requests (`getTopic`, `getIndexDetails`) fire o
 
 The API returns both index-level refs (whole books) and section-level refs (e.g. "Genesis 3") under the single type `ref`. This is confusing — the tab intends to show Books, not arbitrary refs.
 
-**Recommended data refactor (post-POC):** Split the `ref` type into `index` (book-level) and `ref` (section-level) in the Name API. This makes intent explicit and removes the need for the confirmation round-trip. (i.e. "Covenant and Conversation, Genesis 3" currently passes through as a book, returned with type `ref`)
+**Recommended data refactor (post-POC):** Split the `ref` type into `index` (book-level) and `ref` (section-level) in the Name API. This makes intent explicit and removes the need for the confirmation round-trip. (i.e. "Covenant and Conversation, Genesis 3" currently passes through as a book, returned with type `ref`)  Another option is to simply use a filter on the front-end that uses ref parsing functions in sefaria.js to remove duplicate books (for example, if there are two refs "Covenant and Conversation, Genesis 3" and "Covenant and Conversation, Genesis 2:4", we would use the ref parsing in sefaria.js to know that these two have the same book and we would only display one book).
 
 We have FE utilities in `Sefaria.js` for ref parsing that can help bridge the gap in the interim.
 
