@@ -69,7 +69,7 @@ The `TabView` component is currently managing this implicitly. Our inclination i
 - **Empty results** — what should each tab show when there are no matches? Fall through to another tab? Show a zero-state message?
 - **Categorical collapsing** — should similar topic clusters be collapsed?
 - **Language filtering** — expose a UI control to restrict results to a single language?
-- **Topic descriptions** — currently fetched per card on hydration. Worth batching via API or pre-caching?
+- **Topic descriptions** — currently fetched per card on hydration. Worth batching via API or pre-caching?  (Downside to pre-caching is this could significantly slow down page load.  We should probably create a new API to batch all of the relevant topics and get back their descriptions)
 - **Ranking** - is a more intuitive ranking of relevant matches (a bigger, data/API overhaul) part of this work?
 
 ---
