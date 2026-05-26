@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 import threading
-from django.db.utils import OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 
 
 class RemoteConfigCache:
@@ -44,7 +44,7 @@ class RemoteConfigCache:
                 if self._cache is None:  # double-checked locking for minimal contention
                     try:
                         self._cache = self._build_cache()
-                    except (OperationalError, RuntimeError):
+                    except (OperationalError, ProgrammingError, RuntimeError):
                         self._cache = {}
         return self._cache
 

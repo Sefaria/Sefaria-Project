@@ -190,7 +190,6 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
         'display_start_date_diaspora',
         'display_end_date_diaspora'
     )
-    raw_id_fields = ('topic', 'secondary_topic')
     list_filter = (
         'start_date',
         'display_start_date_israel',
