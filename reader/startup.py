@@ -40,7 +40,15 @@ def init_library_cache():
 
     from sefaria.model.text import library
     from sefaria.system.multiserver.coordinator import server_coordinator
+    from sefaria.system.database import ensure_indices
     from django.conf import settings
+
+    # Self-heal missing Mongo indexes. mongorestore can silently drop index metadata
+    # for some collections (notably topic_links), which causes init_shared_cache to
+    # collection-scan under contention and stall startup for tens of minutes. createIndex
+    # is idempotent, so this is a fast no-op when the indexes already exist.
+    with _timed_step(logger, "ensure_indices"):
+        ensure_indices()
 
     with _timed_step(logger, "topic_pools_cache"):
         DjangoTopic.objects.build_slug_to_pools_cache()
