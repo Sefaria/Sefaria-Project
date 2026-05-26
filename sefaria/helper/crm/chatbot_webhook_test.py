@@ -64,13 +64,14 @@ def test_extract_error_detail_generic_exception():
 def test_webhook_success(mock_post):
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
 
-    result = send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    result = send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     assert result.successful()
     mock_post.assert_called_once()
     payload = mock_post.call_args.kwargs["json"]
     assert payload["data"]["email"] == "user@example.com"
     assert payload["data"]["optIn"] is True
+    assert payload["data"]["interfaceLanguage"] == "english"
     assert "id" in payload
 
 
@@ -80,7 +81,7 @@ def test_webhook_success_false_triggers_retry(mock_post):
         200, json_body={"success": False, "error": "invalid email"}
     )
 
-    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     # initial attempt + 1 retry = 2 calls
     assert mock_post.call_count == 2
@@ -91,7 +92,7 @@ def test_webhook_success_false_triggers_retry(mock_post):
 def test_webhook_final_failure_reports_to_sentry(mock_post, mock_capture):
     mock_post.side_effect = ConnectionError("connection refused")
 
-    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     assert mock_post.call_count == 2
     mock_capture.assert_called_once()
@@ -104,7 +105,7 @@ def test_webhook_http_500_flow_exception(mock_post, mock_capture):
     resp.raise_for_status.side_effect = requests.HTTPError(response=resp)
     mock_post.return_value = resp
 
-    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     assert mock_post.call_count == 2
     mock_capture.assert_called_once()
@@ -118,7 +119,7 @@ def test_webhook_first_fail_second_succeeds(mock_post):
 
     mock_post.side_effect = [fail_resp, ok_resp]
 
-    result = send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    result = send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     assert mock_post.call_count == 2
     assert result.successful()
@@ -128,10 +129,11 @@ def test_webhook_first_fail_second_succeeds(mock_post):
 def test_webhook_opt_out_sends_false(mock_post):
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
 
-    send_chatbot_opt_in_webhook.apply(args=["user@example.com", False])
+    send_chatbot_opt_in_webhook.apply(args=["user@example.com", False, "hebrew"])
 
     payload = mock_post.call_args.kwargs["json"]
     assert payload["data"]["optIn"] is False
+    assert payload["data"]["interfaceLanguage"] == "hebrew"
 
 
 @patch("sefaria.helper.crm.tasks.sentry_sdk.capture_exception")
@@ -144,7 +146,7 @@ def test_webhook_rejects_get_with_400(mock_post, mock_capture):
     resp.raise_for_status.side_effect = requests.HTTPError(response=resp)
     mock_post.return_value = resp
 
-    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True])
+    send_chatbot_opt_in_webhook.apply(args=["user@example.com", True, "english"])
 
     assert mock_post.call_count == 2
     mock_capture.assert_called_once()
@@ -159,7 +161,7 @@ def test_dispatch_celery_enabled_uses_apply_async(mock_task):
     from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
 
     with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", True):
-        dispatch_chatbot_opt_in_webhook("user@example.com", True)
+        dispatch_chatbot_opt_in_webhook("user@example.com", True, "english")
 
     mock_task.apply_async.assert_called_once()
 
@@ -171,7 +173,7 @@ def test_dispatch_celery_disabled_calls_synchronously(mock_post):
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
 
     with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", False):
-        dispatch_chatbot_opt_in_webhook("user@example.com", True)
+        dispatch_chatbot_opt_in_webhook("user@example.com", True, "hebrew")
 
     mock_post.assert_called_once()
 
@@ -235,7 +237,7 @@ class TestExperimentsOptInWebhook:
         response = client.post("/api/profile/experiments/opt-in")
 
         assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(test_user.email, True)
+        mock_dispatch.assert_called_once_with(test_user.email, True, "english")
 
     @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_repeated_opt_in_does_not_refire(self, mock_dispatch, client, test_user):
@@ -269,7 +271,7 @@ class TestProfileExperimentsToggleWebhook:
         )
 
         assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(user.email, False)
+        mock_dispatch.assert_called_once_with(user.email, False, "english")
 
     @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
     def test_same_value_does_not_fire_webhook(self, mock_dispatch, client, test_user_with_profile):

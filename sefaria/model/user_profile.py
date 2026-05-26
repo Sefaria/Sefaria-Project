@@ -6,7 +6,7 @@ import sys
 import json
 import csv
 from datetime import datetime
-from django.utils.translation import ugettext as _, ungettext_lazy
+from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
@@ -31,6 +31,7 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 
 import structlog
+from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -893,7 +894,7 @@ def annotate_user_list(uids):
 
 
 def process_index_title_change_in_user_history(indx, **kwargs):
-    print("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading User History from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg

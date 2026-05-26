@@ -5,9 +5,11 @@ Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
 from unittest.mock import patch
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
-from sefaria.system.middleware import SessionCookieDomainMiddleware
+from sefaria.system.middleware import SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from sefaria.utils.chatbot import build_chatbot_user_token
 
 
 # ============================================================================
@@ -408,9 +410,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # No legacy cookie headers should be added
-        assert 'set-cookie-legacy-sessionid' not in result._headers
-        assert 'set-cookie-legacy-csrftoken' not in result._headers
+        # No legacy expiry morsels should be added to response.cookies
+        assert '_legacy_expire_sessionid' not in result.cookies
+        assert '_legacy_expire_csrftoken' not in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -429,9 +431,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Legacy cookie headers should be added
-        assert 'set-cookie-legacy-sessionid' in result._headers
-        assert 'set-cookie-legacy-csrftoken' in result._headers
+        # Legacy expiry morsels should be in response.cookies under unique keys
+        assert '_legacy_expire_sessionid' in result.cookies
+        assert '_legacy_expire_csrftoken' in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -450,20 +452,18 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Check the Set-Cookie header format for CSRF token
-        header_name, header_value = result._headers['set-cookie-legacy-csrftoken']
-        assert header_name == 'Set-Cookie'
-        assert 'csrftoken=' in header_value
-        assert 'expires=Thu, 01 Jan 1970 00:00:00 GMT' in header_value
-        assert 'Max-Age=0' in header_value
-        assert 'Path=/' in header_value
+        # Check the legacy expiry morsel for CSRF token
+        csrf_morsel = result.cookies['_legacy_expire_csrftoken']
+        assert csrf_morsel._key == 'csrftoken'        # outputs real cookie name
+        assert csrf_morsel['expires'] == 'Thu, 01 Jan 1970 00:00:00 GMT'
+        assert csrf_morsel['max-age'] == '0'
+        assert csrf_morsel['path'] == '/'
         # Crucially, no Domain attribute
-        assert 'Domain=' not in header_value
+        assert csrf_morsel['domain'] == ''
 
-        # Check session cookie header
-        header_name, header_value = result._headers['set-cookie-legacy-sessionid']
-        assert header_name == 'Set-Cookie'
-        assert 'sessionid=' in header_value
+        # Check session cookie legacy morsel
+        session_morsel = result.cookies['_legacy_expire_sessionid']
+        assert session_morsel._key == 'sessionid'
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -482,9 +482,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # No legacy cookie headers should be added for unapproved domains
-        assert 'set-cookie-legacy-sessionid' not in result._headers
-        assert 'set-cookie-legacy-csrftoken' not in result._headers
+        # No legacy expiry morsels should be added for unapproved domains
+        assert '_legacy_expire_sessionid' not in result.cookies
+        assert '_legacy_expire_csrftoken' not in result.cookies
 
     @override_settings(
         DOMAIN_MODULES=LOCAL_CONFIG,
@@ -509,3 +509,142 @@ class TestLegacyCookieExpiration:
         # Only CSRF legacy header should be added
         assert 'set-cookie-legacy-csrftoken' in result._headers
         assert 'set-cookie-legacy-sessionid' not in result._headers
+
+
+class TestSessionIDAuthMiddleware:
+    secret = "test-session-id-secret"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def test_valid_header_authenticates_anonymous_request(self, django_user_model):
+        user = django_user_model.objects.create_user(username="header-auth-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.is_authenticated
+        assert request.user.id == user.id
+        assert request.user_id == user.id
+        assert request._cached_user.id == user.id
+
+    def test_invalid_header_leaves_request_anonymous(self):
+        request = self.factory.get("/", HTTP_X_SESSION_ID="not-a-valid-token")
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+    def test_existing_session_user_takes_precedence(self, django_user_model):
+        session_user = django_user_model.objects.create_user(username="session-user", password="pass")
+        other_user = django_user_model.objects.create_user(username="header-other-user", password="pass")
+        token = build_chatbot_user_token(other_user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = session_user
+        request._cached_user = session_user
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.id == session_user.id
+        assert request._cached_user.id == session_user.id
+
+    def test_expired_header_leaves_request_anonymous(self, django_user_model):
+        user = django_user_model.objects.create_user(username="expired-header-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret, ttl_hours=-1)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+
+# ============================================================================
+# CSRF TRUSTED ORIGINS TESTS
+# ============================================================================
+
+class TestCsrfTrustedOrigins:
+    """Tests that CSRF_TRUSTED_ORIGINS allows POST requests when Origin differs from Host.
+
+    The wildcard-trusted-origins behavior only matters when the request Origin/Referer
+    does NOT match the request Host — same-host requests pass via Django's same-origin
+    fallback regardless of CSRF_TRUSTED_ORIGINS. So we deliberately set Host to an
+    unrelated value and Origin/Referer to the sefaria.org subdomain we want to test.
+
+    Calls _check_referer directly to isolate the Origin/Referer logic from the token
+    check — a fully-mocked CSRF token round-trip is out of scope here.
+    """
+
+    def _make_csrf_middleware(self):
+        from django.middleware.csrf import CsrfViewMiddleware
+        return CsrfViewMiddleware(get_response=lambda r: HttpResponse())
+
+    def _post_request(self, host, origin, referer=None):
+        """Create a secure POST request with Origin and Referer headers."""
+        referer = referer or f'{origin}/login/'
+        return RequestFactory().post(
+            '/login/',
+            secure=True,
+            HTTP_HOST=host,
+            HTTP_ORIGIN=origin,
+            HTTP_REFERER=referer,
+        )
+
+    def _check_referer(self, request):
+        """Run only the Origin/Referer half of CSRF validation.
+
+        Returns None if the referer is accepted, the RejectRequest exception otherwise.
+        """
+        from django.middleware.csrf import RejectRequest
+        middleware = self._make_csrf_middleware()
+        try:
+            middleware._check_referer(request)
+        except RejectRequest as e:
+            return e
+        return None
+
+    # Host is an unrelated value so the same-host fallback never short-circuits the check.
+    # Anything that passes here passes specifically because of CSRF_TRUSTED_ORIGINS.
+    UNRELATED_HOST = 'internal-proxy.example'
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_sefaria_subdomain_origin_is_trusted_when_host_differs(self):
+        """Origin under *.sefaria.org should be accepted via CSRF_TRUSTED_ORIGINS, not host-match."""
+        request = self._post_request(
+            host=self.UNRELATED_HOST,
+            origin='https://www.django6.cauldron.sefaria.org',
+        )
+        assert self._check_referer(request) is None, \
+            "Cauldron origin should be trusted via CSRF_TRUSTED_ORIGINS but was rejected"
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_untrusted_origin_is_rejected_when_host_differs(self):
+        """Origin outside *.sefaria.org should be rejected when host doesn't match either."""
+        request = self._post_request(
+            host=self.UNRELATED_HOST,
+            origin='https://evil.example.com',
+        )
+        assert self._check_referer(request) is not None, \
+            "External origin should be rejected by CSRF middleware"
+
+    @override_settings(CSRF_TRUSTED_ORIGINS=['https://*.sefaria.org'], ALLOWED_HOSTS=['*'])
+    def test_sefaria_org_subdomains_are_trusted_via_wildcard(self):
+        """Various sefaria.org subdomains should all be accepted via the wildcard."""
+        trusted_origins = [
+            'https://www.sefaria.org',
+            'https://voices.sefaria.org',
+            'https://www.django6.cauldron.sefaria.org',
+            'https://staging.cauldron.sefaria.org',
+        ]
+        for origin in trusted_origins:
+            request = self._post_request(host=self.UNRELATED_HOST, origin=origin)
+            assert self._check_referer(request) is None, \
+                f"Origin {origin} should be trusted via wildcard but was rejected"

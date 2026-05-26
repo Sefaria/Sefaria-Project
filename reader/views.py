@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from elasticsearch_dsl import Search
 from random import choice
 import json
@@ -20,7 +20,7 @@ import uuid
 from dataclasses import asdict
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -32,7 +32,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
@@ -67,14 +67,13 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL
+    CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
-from chatbot.models import get_chatbot_welcome_messages
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -84,7 +83,6 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_random_topic_source, edit_topic_source, \
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
-from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
@@ -363,9 +361,9 @@ def base_props(request):
         "chatbot_version": chatbot_version,
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
+        'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
-        "chatbot_welcome_messages": get_chatbot_welcome_messages(),
     }
     if user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
@@ -381,7 +379,7 @@ def user_credentials(request):
         return {"user_type": "session", "user_id": request.user.id}
     else:
         req_key = request.POST.get("apikey", None)
-        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
+        header_key = request.headers.get("x-api-key", None) #request.META["HTTP_AUTHORIZATION"]?
         key = req_key if req_key else header_key
         if not key:
             return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
@@ -578,6 +576,8 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
 
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
+    # Django 6.0: path('sheets/<int:sheet_id>') passes an int; coerce so the "." substring check below is safe.
+    sheet_id = str(sheet_id)
     highlighted_node = None
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
@@ -653,6 +653,22 @@ def _extract_version_params(request, key):
     params = params.replace("_", " ")
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
+
+
+def _extract_version_title_param(request, key):
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
 
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
@@ -1154,6 +1170,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
+        "page":           page,
     })
 
 
@@ -1244,6 +1261,7 @@ def notifications(request):
     return menu_page(request, props, page="notifications", title=title)
 
 
+@ensure_csrf_cookie
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
@@ -1470,7 +1488,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next")
 
-    if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
+    if not next or not url_has_allowed_host_and_scheme(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
         next = "/"
 
     # Look up the target domain based on current module + target language
@@ -1769,11 +1787,15 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    lang = request.GET.get("lang") or "en"
+    if lang not in {"en", "he", "bi"}:
+        lang = "en"
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
 
     try:
         ref = Ref(tref)
@@ -1836,12 +1858,7 @@ def find_holiday_in_hebcal_results(response):
 @catch_error_as_json
 def table_of_contents_api(request):
     include_authors = bool(int(request.GET.get("include_authors", False)))
-    toc = library.get_toc(serialization_options=TocSerializationOptions(
-        include_first_section=False,
-        include_flags=False,
-        include_base_texts=True,
-        include_authors=include_authors,
-    ))
+    toc = library.get_toc_with_authors() if include_authors else library.get_toc()
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
@@ -1903,18 +1920,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
     def handle_post_request(request, title, raw):
-        j = json.loads(request.POST.get("json"))
-        if not j:
+        json_data = json.loads(request.POST.get("json"))
+        if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
         if uid is None:
             return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
         elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
+            return index_post(request, uid, json_data, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
+            return admin_post(request, uid, json_data, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:
@@ -1929,6 +1946,18 @@ def index_api(request, title, raw=False):
         return None, None
 
     def index_post(request, uid, j, method, raw):
+        is_title_change = bool(j.get("oldTitle") and j.get("oldTitle") != j.get("title"))
+        if is_title_change and CELERY_ENABLED:
+            from sefaria.helper.texts.tasks import update_index_title
+            from sefaria.celery_setup.config import CeleryQueue
+            async_result = update_index_title.apply_async(
+                args=(uid, j, raw, method),
+                queue=CeleryQueue.TASKS.value,
+            )
+            logger.info("index_api:title_change_enqueued",
+                        old_title=j["oldTitle"], new_title=j.get("title"),
+                        uid=uid, task_id=async_result.id)
+            return jsonResponse({"task_id": async_result.id}, status=202)
         func = tracker.update if 'update' in j else tracker.add
         return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
@@ -2541,11 +2570,11 @@ def lock_text_api(request, title, lang, version):
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
 
     if request.GET.get("action", None) == "unlock":
-        vobj.status = None
+        updates = {"status": None}  # None signals deletion in tracker
     else:
-        vobj.status = "locked"
+        updates = {"status": "locked"}
 
-    vobj.save()
+    tracker.update_version_metadata(request.user.id, vobj, updates)
     return jsonResponse({"status": "ok"})
 
 
@@ -2561,23 +2590,28 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    def update_version(request, title, lang, version):
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+
+    def update_version(request, title, lang, version, user_id):
         flags = json.loads(request.POST.get("json"))
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
+        # Build updates dict for tracker function
+        updates = {}
         if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
+            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
-                    delattr(vobj, flag)
+                    updates[flag] = None  # None signals deletion in tracker
                 else:
-                    setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+                    updates[flag] = flags[flag]
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+        if updates:
+            tracker.update_version_metadata(user_id, vobj, updates)
+        return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2590,9 +2624,11 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        return update_version(request, title, lang, version)
+        return update_version(request, title, lang, version, apikey["uid"])
     elif request.user.is_staff:
-        protected_post = csrf_protect(update_version)
+        def update_version_with_user(request, title, lang, version):
+            return update_version(request, title, lang, version, request.user.id)
+        protected_post = csrf_protect(update_version_with_user)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
@@ -3222,7 +3258,11 @@ def background_data_api(request):
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
-    data.update(community_page_data(request, language=language))
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        data["followRecommendations"] = profile.follow_recommendations(lang=language)
+    else:
+        data["followRecommendations"] = general_follow_recommendations(lang=language)
 
     return jsonResponse(data)
 
@@ -4277,60 +4317,6 @@ def home(request):
     return redirect("/texts")
 
 
-def community_page(request, props={}):
-    """
-    Community Page
-    """
-    title = get_page_title("From the Community: Today on Sefaria", module=request.active_module)
-    desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
-    data  = community_page_data(request, language=request.interfaceLang)
-    data.update(props) # don't overwrite data that was passed n with props
-    return menu_page(request, page="community", props=data, title=title, desc=desc)
-
-
-def community_page_data(request, language="english"):
-    data = {
-        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
-    }
-    if request.user.is_authenticated:
-        profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
-    else:
-        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
-
-    return data
-
-
-@staff_member_required
-def community_preview(request):
-    """
-    Preview the community page as it will appear at some date in the future
-    """
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("date", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
-
-
-@staff_member_required
-def community_reset(request):
-    """
-    Reset the cache of the community page content from Google sheet
-    """
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
-
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("next", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
-
-
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
     return redirect("/")
@@ -4725,7 +4711,8 @@ def annual_report(request, report_year):
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
         '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
-        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf'
+        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf',
+		'2025': 'https://issuu.com/sefariaimpact/docs/sefaria_impact_report_2025?fr=xKAE9_zU1NQ',
     }
     # Assume the most recent year as default when one is not provided
     if not report_year:

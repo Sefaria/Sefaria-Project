@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endmeta_desc %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v3.min.js"></script>
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
 

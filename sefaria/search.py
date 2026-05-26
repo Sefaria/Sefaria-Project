@@ -14,6 +14,7 @@ import pymongo
 from collections import defaultdict
 import time as pytime
 
+from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -25,7 +26,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from sefaria.helper.search import get_elasticsearch_client
+from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
@@ -46,13 +47,12 @@ def setup_logging(debug=False):
 # Initial setup with default level
 setup_logging(False)
 
-# Set up logger for this module
 logger = logging.getLogger(__name__)
 
 es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
+_indexer_es_client = get_elasticsearch_client_for_indexer()
 
-# Constants for retry logic and progress logging
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
 PROGRESS_LOG_EVERY_N = 100
@@ -529,6 +529,32 @@ class TextIndexer(object):
             'reason': reason
         })
 
+    @classmethod
+    def _flush_bulk_actions(cls, in_flight_versions):
+        """Flush bulk actions; absorb connection failures, propagate everything else.
+
+        Returns the number of versions reclassified as failed.
+        """
+        if not cls._bulk_actions:
+            return 0
+        try:
+            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
+                 raise_on_error=False, request_timeout=120)
+            cls._bulk_actions = []
+            return 0
+        except (ESConnectionError, ConnectionTimeout) as e:
+            # Both are siblings under TransportError, not parent/child — list explicitly.
+            logger.warning(
+                f"Bulk indexing failed: {type(e).__name__}: {e}; "
+                f"continuing with next index"
+            )
+            for v in in_flight_versions:
+                cls._add_failed_version(
+                    v, f"Bulk write failed: {e}", type(e).__name__
+                )
+            cls._bulk_actions = []
+            return len(in_flight_versions)
+
 
     @classmethod
     def create_terms_dict(cls):
@@ -697,14 +723,15 @@ class TextIndexer(object):
                     for v in vlist:
                         cls._add_failed_version(v, f"Failed to get best_time_period: {str(e)}", type(e).__name__)
                     continue
-                    
+
+            in_flight_versions = []
             for v in vlist:
                 # Validate critical fields
                 if not v.title or not v.versionTitle or not v.language:
                     failed += 1
                     cls._add_failed_version(v, 'Missing critical field (title, versionTitle, or language)', 'ValidationError')
                     continue
-                
+
                 if cls.excluded_from_search(v):
                     skipped += 1
                     cls._add_skipped_version(v, 'excluded_from_search')
@@ -713,12 +740,16 @@ class TextIndexer(object):
                 try:
                     cls.index_version(v, action=action)
                     vcount += 1
+                    in_flight_versions.append(v)
                 except Exception as e:
                     failed += 1
                     cls._add_failed_version(v, str(e), type(e).__name__)
-                    
+
             if for_es:
-                bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
+                rolled_back = cls._flush_bulk_actions(in_flight_versions)
+                if rolled_back:
+                    vcount -= rolled_back
+                    failed += rolled_back
         
         elapsed = datetime.now() - start_time
         # Only log if there are failures or skips
@@ -776,7 +807,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, doc, id=id)
+        es_client.index(index=index_name, document=doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
