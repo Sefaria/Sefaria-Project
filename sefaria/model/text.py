@@ -5104,27 +5104,41 @@ class Library(object):
         self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        import time
+        import structlog
         from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
-        
-        self.get_toc(rebuild=rebuild)
-        self.get_toc_with_authors(rebuild=rebuild)
-        self.get_toc_json(rebuild=rebuild)
-        self.get_topic_mapping(rebuild=rebuild)
-        self.get_topic_toc(rebuild=rebuild)
-        self.get_topic_toc_json(rebuild=rebuild)
-        self.get_topic_toc_category_mapping(rebuild=rebuild)
-        self.get_text_titles_json(rebuild=rebuild)
-        self.get_simple_term_mapping(rebuild=rebuild)
-        self.get_simple_term_mapping_json(rebuild=rebuild)
-        self.get_virtual_books(rebuild=rebuild)
-        
+
+        log = structlog.get_logger("reader.startup.shared_cache")
+
+        substeps = [
+            ("toc",                        lambda: self.get_toc(rebuild=rebuild)),
+            ("toc_with_authors",           lambda: self.get_toc_with_authors(rebuild=rebuild)),
+            ("toc_json",                   lambda: self.get_toc_json(rebuild=rebuild)),
+            ("topic_mapping",              lambda: self.get_topic_mapping(rebuild=rebuild)),
+            ("topic_toc",                  lambda: self.get_topic_toc(rebuild=rebuild)),
+            ("topic_toc_json",             lambda: self.get_topic_toc_json(rebuild=rebuild)),
+            ("topic_toc_category_mapping", lambda: self.get_topic_toc_category_mapping(rebuild=rebuild)),
+            ("text_titles_json",           lambda: self.get_text_titles_json(rebuild=rebuild)),
+            ("simple_term_mapping",        lambda: self.get_simple_term_mapping(rebuild=rebuild)),
+            ("simple_term_mapping_json",   lambda: self.get_simple_term_mapping_json(rebuild=rebuild)),
+            ("virtual_books",              lambda: self.get_virtual_books(rebuild=rebuild)),
+        ]
+        for name, fn in substeps:
+            t0 = time.monotonic()
+            fn()
+            log.info("substep", step=name, elapsed_sec=round(time.monotonic() - t0, 2))
+
         # functions backed by lru cache
         if rebuild:
             get_talmud_perek_ref_set.cache_clear()
             get_parasha_ref_set.cache_clear()
+        t0 = time.monotonic()
         get_talmud_perek_ref_set()
+        log.info("substep", step="talmud_perek_ref_set", elapsed_sec=round(time.monotonic() - t0, 2))
+        t0 = time.monotonic()
         get_parasha_ref_set()
-        
+        log.info("substep", step="parasha_ref_set", elapsed_sec=round(time.monotonic() - t0, 2))
+
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
