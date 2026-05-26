@@ -543,6 +543,8 @@ keda:
     statusCodes:
       - type: Value
         value: 502
+      - type: Value
+        value: 503
     body: |
       <!DOCTYPE html>
       <html lang="en">
