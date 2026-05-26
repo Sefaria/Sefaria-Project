@@ -590,7 +590,8 @@ keda:
           }
 
           function fmt(s) {
-            return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+            var m = Math.floor(s / 60);
+            return m + ':' + ('0' + (s - m * 60)).slice(-2);
           }
 
           var countdown = RELOAD_INTERVAL;
