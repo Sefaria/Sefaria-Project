@@ -153,6 +153,9 @@ def test_get_abbr(abbr, unabbr, match):
     # multi-char prefix excluded: שב blocked but single-letter ש still applies
     ('שבת', {'שב'}, [1]),
     ('שבת', None, [1, 2]),  # ש → index 1, שב → index 2
+    # single-char word that is itself a prefix must not produce empty-string match
+    ('ה', None, []),
+    ('ב', None, []),
 ])
 def test_get_prefixless_inds_exclusion(word, exclusions, expected_inds):
     assert sorted(h.get_prefixless_inds(word, exclusions)) == sorted(expected_inds)
