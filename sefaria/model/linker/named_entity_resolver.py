@@ -140,6 +140,8 @@ class TopicMatcher:
         unique_topics = {t.slug: t for t in topics}.values()
         for topic in unique_topics:
             for title in self._title_expander.expand(topic):
+                if not title:
+                    continue
                 title_slug_map[title].add(topic.slug)
         return title_slug_map
 
