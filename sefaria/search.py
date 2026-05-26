@@ -349,6 +349,9 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
+        '_source': {
+            'excludes': ['linked_refs']
+        },
         'properties' : {
             'categories': {
                 'type': 'keyword',
