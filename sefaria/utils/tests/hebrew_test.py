@@ -141,3 +141,35 @@ def test_get_abbr(abbr, unabbr, match):
     if match is not None:
         match = match.split()
     assert test_match == match
+
+
+@pytest.mark.parametrize(('word', 'exclusions', 'expected_inds'), [
+    # ע is in PREFIXES but should be excluded for proper names
+    ('עמוס', {'ע'}, []),
+    # without exclusion, ע is stripped normally
+    ('עמוס', None, [1]),
+    # exclusion only blocks the listed prefix; others still apply
+    ('במוס', {'ע'}, [1]),
+    # multi-char prefix excluded: שב blocked but single-letter ש still applies
+    ('שבת', {'שב'}, [1]),
+    ('שבת', None, [1, 2]),  # ש → index 1, שב → index 2
+])
+def test_get_prefixless_inds_exclusion(word, exclusions, expected_inds):
+    assert sorted(h.get_prefixless_inds(word, exclusions)) == sorted(expected_inds)
+
+
+def test_get_matches_with_prefixes_ayin_excluded():
+    """Verify that prefix_exclusion_set prevents ע from being stripped, so proper names starting with ayin aren't matched via their stripped form."""
+    matches_map = {'עמוס': ['Amos']}
+    results = h.get_matches_with_prefixes('עמוס', matches_map=matches_map)
+    assert results == ['Amos']
+
+    results_excluded = h.get_matches_with_prefixes('עמוס', matches_map=matches_map, prefix_exclusion_set={'ע'})
+    assert results_excluded == ['Amos']
+
+    stripped_only_map = {'מוס': ['phantom']}
+    results_stripped = h.get_matches_with_prefixes('עמוס', matches_map=stripped_only_map)
+    assert results_stripped == ['phantom']
+
+    results_excluded_stripped = h.get_matches_with_prefixes('עמוס', matches_map=stripped_only_map, prefix_exclusion_set={'ע'})
+    assert results_excluded_stripped == []
