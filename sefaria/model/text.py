@@ -5454,14 +5454,19 @@ class Library(object):
             logger.warning("Built full {} auto completer.".format(lang))
             return self._full_auto_completer[lang]
 
-    def recount_index_in_toc(self, indx):
+    def recount_index_in_toc(self, indx, skip_toc_refresh=False):
         # This is used in the case of a remotely triggered multiserver update
         if isinstance(indx, str):
             indx = Index().load({"title": indx})
 
         self.get_toc_tree().update_title(indx, recount=True)
 
-        self.rebuild_toc(skip_toc_tree=True)
+        if not skip_toc_refresh:
+            # `rebuild_toc(skip_toc_tree=True)` re-serializes the full ToC and rebuilds
+            # the topic ToC from MongoDB. Callers doing a batch of edits can pass
+            # skip_toc_refresh=True and trigger a single `library.rebuild_toc()` at the
+            # end of the batch instead of paying that cost per index.
+            self.rebuild_toc(skip_toc_tree=True)
 
     def delete_category_from_toc(self, category):
         # This is used in the case of a remotely triggered multiserver update

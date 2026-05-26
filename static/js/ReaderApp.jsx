@@ -1175,6 +1175,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const detail = event.detail;
     const url = (typeof detail === "string") ? detail : detail.url;
     if (!url) { return; }
+    try {
+      new URL(url, window.location.href);
+    } catch {
+      return;
+    }
     const replaceHistory = (typeof detail === "object") ? detail.replaceHistory : false;
     this.bootstrapUrl(url, {replaceHistory: replaceHistory});
   }
