@@ -2225,14 +2225,16 @@ def links_api(request, link_id_or_ref=None):
         return categories or None
 
     if request.method == "GET":
-        callback=request.GET.get("callback", None)
+        callback = request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        Ref(link_id_or_ref)
+        #The Ref instantiation is also used to validate the Ref and let an error bubble up.
+        oref = Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        if with_text and oref.is_book_level():
+            error_msg = "with_text is not supported for whole-book refs. Request a specific section or segment.  Alternatively, the whole database is available as a downloadable export."
+            return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
         categories = _get_requested_categories(request)
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 
