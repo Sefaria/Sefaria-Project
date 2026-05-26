@@ -680,6 +680,7 @@ def get_prefixless_inds(st: str, prefix_exclusion_set: set = None) -> List[int]:
     starti_list = []
     for prefix in PREFIXES:
         if not st.startswith(prefix): continue
+        if prefix_exclusion_set and prefix in prefix_exclusion_set: continue
         starti_list += [len(prefix)]
     return starti_list
 
