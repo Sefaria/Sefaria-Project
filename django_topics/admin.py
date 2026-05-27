@@ -55,7 +55,10 @@ class PoolFilter(admin.SimpleListFilter):
         pool_name = self.value()
         if pool_name == 'all':
             return queryset
-        pool = TopicPool.objects.get(name=pool_name)
+        try:
+            pool = TopicPool.objects.get(name=pool_name)
+        except TopicPool.DoesNotExist:
+            return queryset
         return queryset.filter(pools=pool)
 
     def value(self):
@@ -238,7 +241,7 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
             kwargs["label"] = "Topic slug"
-            kwargs["help_text"] = "Use the magnifying glass button to select a topic."
+            kwargs["help_text"] = "Type to search for a topic by slug or title."
         if db_field.name == "secondary_topic":
             kwargs["label"] = "Secondary topic slug"
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
