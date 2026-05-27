@@ -63,7 +63,7 @@ const SiteWideBanner = ({
             target="_blank"
             onClick={() => trackBannerInteraction("learn_more")}
           >
-            {learnMoreText || "Learn More"}
+            {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
           </a>
         )}
         <button
