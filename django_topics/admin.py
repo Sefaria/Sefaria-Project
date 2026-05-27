@@ -64,6 +64,10 @@ class PoolFilter(admin.SimpleListFilter):
     def value(self):
         value = super().value()
         if value is None:
+            # In a raw_id_fields popup, default to all topics so users can find
+            # any topic regardless of pool membership.
+            if self.request.GET.get('_popup'):
+                return 'all'
             return PoolType.LIBRARY.value
         return value
 
@@ -201,7 +205,7 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
     )
     ordering = ['-start_date']
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title', 'secondary_topic__slug')
-    autocomplete_fields = ('topic', 'secondary_topic')
+    raw_id_fields = ('topic', 'secondary_topic')
     date_hierarchy = 'start_date'
     fieldsets = (
         (None, {
@@ -242,7 +246,7 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "topic":
             kwargs["label"] = "Topic slug"
-            kwargs["help_text"] = "Type to search for a topic by slug or title."
+            kwargs["help_text"] = "Use the magnifying glass button to select a topic."
         if db_field.name == "secondary_topic":
             kwargs["label"] = "Secondary topic slug"
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
