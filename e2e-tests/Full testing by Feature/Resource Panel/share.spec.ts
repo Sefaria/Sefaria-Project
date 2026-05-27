@@ -61,7 +61,10 @@ test.describe('Resource Panel — Share — English', () => {
     expect(fb).not.toBeNull();
     await expect(fb!).toHaveURL(/facebook\.com\/(sharer\/sharer\.php|sharer\.php|dialog\/share)/, { timeout: t(15000) });
     // The Sefaria page URL must be present in the share endpoint (as `u=…`).
-    expect(fb!.url()).toMatch(/sefaria\.org/);
+    // Match `sefaria` (case-insensitive) rather than `sefaria.org` literally
+    // — sandboxes (sefariastaging.org, modularization.cauldron.sefaria.org)
+    // don't have `.org` immediately after `sefaria`.
+    expect(fb!.url()).toMatch(/sefaria/i);
     await fb!.close();
 
     // X (Twitter) — `twitter.com/share?url=…` redirects unauthenticated
@@ -76,7 +79,9 @@ test.describe('Resource Panel — Share — English', () => {
     // Must carry the Sefaria URL through (decoded once unwraps the URL param;
     // a second decode unwraps the `redirect_after_login` nesting).
     const decoded = decodeURIComponent(decodeURIComponent(xUrl));
-    expect(decoded).toContain('sefaria.org');
+    // See note on line 64 — match `sefaria` (case-insensitive) to stay
+    // sandbox-portable (sefariastaging.org, cauldron, etc.).
+    expect(decoded).toMatch(/sefaria/i);
     await x!.close();
   });
 
