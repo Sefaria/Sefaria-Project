@@ -2440,8 +2440,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && Sefaria.interfaceLang === "english" && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
