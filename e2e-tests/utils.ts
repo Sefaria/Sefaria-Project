@@ -126,11 +126,16 @@ export const installOverlaySuppression = async (context: BrowserContext) => {
   // renders. Without this, the banner appears post-hydration (after
   // hideAllModalsAndPopups has already run) when the storage-state lacks the
   // accepted cookie — observed mid-test on Voices during the Sanity suite.
-  // Set for both production hosts (.sefaria.org / .sefaria.org.il) so the
-  // cookie applies across all subdomains the tests visit.
+  // Cookie domains are derived from SANDBOX_URL / SANDBOX_URL_IL (via
+  // MODULE_URLS) and prepended with `.` so they apply across all subdomains
+  // (www, voices, chiburim) the tests visit. This keeps the suppression
+  // working on every configured sandbox — production (.sefaria.org), staging
+  // (.sefariastaging.org), and cauldron branches alike.
+  const cookieDomainEN = '.' + new URL(MODULE_URLS.EN.LIBRARY).hostname.replace(/^www\./, '');
+  const cookieDomainIL = '.' + new URL(MODULE_URLS.HE.LIBRARY).hostname.replace(/^www\./, '');
   await context.addCookies([
-    { name: 'cookiesNotificationAccepted', value: '1', domain: '.sefaria.org',    path: '/' },
-    { name: 'cookiesNotificationAccepted', value: '1', domain: '.sefaria.org.il', path: '/' },
+    { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainEN, path: '/' },
+    { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainIL, path: '/' },
   ]);
 };
 

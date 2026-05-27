@@ -11,12 +11,6 @@ export const SOURCE_LANGUAGES = {
     'BI': /^(מקור ותרגום|Source with Translation)$/
 }
 
-export const cookieObject = {
-    "name": "interfaceLang",
-    "value": DEFAULT_LANGUAGE,
-    "url": "https://sefaria.org",
-}
-
 export const testUser = {
     // These environment variables should be set in your local .env file
     email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
