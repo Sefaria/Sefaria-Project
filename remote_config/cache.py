@@ -4,8 +4,11 @@ Process-local cache for remote configuration values.
 from __future__ import annotations
 
 from typing import Any, Optional
+import logging
 import threading
 from django.db.utils import OperationalError, ProgrammingError
+
+logger = logging.getLogger(__name__)
 
 
 class RemoteConfigCache:
@@ -44,7 +47,8 @@ class RemoteConfigCache:
                 if self._cache is None:  # double-checked locking for minimal contention
                     try:
                         self._cache = self._build_cache()
-                    except (OperationalError, ProgrammingError, RuntimeError):
+                    except (OperationalError, ProgrammingError, RuntimeError) as e:
+                        logger.warning("RemoteConfigCache: could not load from DB, using empty cache (%s: %s)", type(e).__name__, e)
                         self._cache = {}
         return self._cache
 
