@@ -77,6 +77,7 @@ class TopicAdmin(admin.ModelAdmin):
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
+    ordering = ['slug']
     readonly_fields = ('slug', 'en_title', 'he_title')
     actions = [
         create_add_to_pool_action(PoolType.LIBRARY.value),
@@ -90,6 +91,13 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.GENERAL_HE.value),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
+    def get_queryset(self, request):
+        # The PoolFilter adds an INNER JOIN on the M2M through table which can
+        # produce duplicate rows if the through table has duplicate entries.
+        # Django admin only auto-deduplicates when search_fields contain __ lookups;
+        # our direct-field searches don't trigger that, so we call distinct() here.
+        return super().get_queryset(request).distinct()
+
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         Topic.objects.build_slug_to_pools_cache(rebuild=True)
