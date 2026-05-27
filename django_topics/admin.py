@@ -64,7 +64,9 @@ class PoolFilter(admin.SimpleListFilter):
     def value(self):
         value = super().value()
         if value is None:
-            return 'all'
+            # When a search query is active, search across all topics so results
+            # aren't silently restricted to one pool. Otherwise default to Library.
+            return 'all' if self.request.GET.get('q') else PoolType.LIBRARY.value
         return value
 
 
