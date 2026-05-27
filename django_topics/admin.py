@@ -64,7 +64,7 @@ class PoolFilter(admin.SimpleListFilter):
     def value(self):
         value = super().value()
         if value is None:
-            return PoolType.LIBRARY.value
+            return 'all'
         return value
 
 
