@@ -173,31 +173,30 @@ export class ModuleHeaderPage extends HelperBase {
     }
   }
 
+  /**
+   * Open the logged-in user menu. Targets the DropdownMenu button wrapper
+   * (`.dropdownLinks-button:has(.profile-pic)`), which is always visible while
+   * logged in — unlike `.default-profile-img`, which is conditionally hidden
+   * via `display: none` when the user has uploaded a real profile photo
+   * (see ProfilePic.jsx `showDefault` state).
+   */
+  async openUserMenu(): Promise<void> {
+    await hideAllModalsAndPopups(this.page);
+    const trigger = this.page.locator(MODULE_SELECTORS.HEADER.USER_MENU_BUTTON_LOGGED_IN);
+    await expect(trigger).toBeVisible({ timeout: t(10000) });
+    await trigger.click();
+  }
+
   async logout() {
-    if (!(await this.isLoggedIn())) {
-      // console.log('User is not logged in, skipping logout');
-      return;
-    }
-    // console.log('User is logged in, proceeding with logout');
-    const userProfile = this.header.locator('.default-profile-img');
-    let userMenuClicked = false;
+    if (!(await this.isLoggedIn())) return;
 
-    if (await userProfile.isVisible()) {
-      await userProfile.click();
-      console.log('Clicked user profile icon to open menu');
-      userMenuClicked = true;
-    }
+    await this.openUserMenu();
 
-    if (userMenuClicked) {
-      const logoutOption = this.page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
-        .filter({ hasText: /log out|sign out|logout/i });
-      if (await logoutOption.isVisible()) {
-        await logoutOption.click();
-        await this.page.waitForLoadState('domcontentloaded');
-        console.log('Clicked logout option and waited for page to load');
-      }
-    }
-    console.log('Logout process completed, verifying logged out state');
+    const logoutOption = this.page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
+      .filter({ hasText: /log out|sign out|logout/i });
+    await expect(logoutOption).toBeVisible({ timeout: t(5000) });
+    await logoutOption.click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async testWithAuthStates(
