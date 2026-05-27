@@ -64,10 +64,6 @@ class PoolFilter(admin.SimpleListFilter):
     def value(self):
         value = super().value()
         if value is None:
-            # In a raw_id_fields popup, default to all topics so users can find
-            # any topic regardless of pool membership.
-            if self.request.GET.get('_popup'):
-                return 'all'
             return PoolType.LIBRARY.value
         return value
 
