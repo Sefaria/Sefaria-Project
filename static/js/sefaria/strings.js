@@ -50,7 +50,7 @@ const Strings = {
     "Categories": "קטגוריות",
 
     // Landing Pages
-    "Learn More": "למדו עוד",
+    "Learn More": "למידע נוסף",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
