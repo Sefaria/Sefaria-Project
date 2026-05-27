@@ -1199,7 +1199,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const path = decodeURI(url.pathname);
     const ref = path.slice(1).replace(/%3F/g, '?');
-    return {path, ref};
+    return {path, ref, url};
   }
   bootstrapUrl(href, options) {
     if (this.shouldAlertBeforeCloseEditor()) {
@@ -1208,7 +1208,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
     const opts = options || {};
-    const {path, ref} = this._getPathAndRefFromUrl(href);
+    const result = this._getPathAndRefFromUrl(href);
+    if (!result) { return false; }
+    const {path, ref, url} = result;
     if (Sefaria.isRef(ref)) {
       // Route bot refs through the same path as Header search ref navigation.
       this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
