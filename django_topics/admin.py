@@ -64,14 +64,13 @@ class PoolFilter(admin.SimpleListFilter):
     def value(self):
         value = super().value()
         if value is None:
-            # When a search query is active, search across all topics so results
-            # aren't silently restricted to one pool. Otherwise default to Library.
-            return 'all' if self.request.GET.get('q') else PoolType.LIBRARY.value
+            return PoolType.LIBRARY.value
         return value
 
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
+    search_help_text = "Searching within the active pool filter. Select 'All Topics' in the filter panel to search all topics."
     list_display = ['slug', 'en_title', 'he_title', 'sefaria_link']
     for pool_type in PoolType:
         list_display.append(f'is_in_pool_{pool_type.value}')
