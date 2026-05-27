@@ -1476,11 +1476,34 @@ export class ResourcePanelPage extends HelperBase {
     await this.expectMode('Guide');
   }
 
-  /** Whether the Guided Learning button is present in Resources hub. */
+  /**
+   * Whether the Guided Learning button is present in Resources hub.
+   *
+   * Gated in two phases to survive full-parallel load (CLAUDE.md §2.20):
+   * production rate-limits `/api/related` and queues requests when multiple
+   * workers fan out — observed 20-30s tail latency under the resource-panel
+   * suite. ConnectionsPanel renders `<LoadingMessage />` while
+   * `state.linksLoaded === false` (ConnectionsPanel.jsx:270); the
+   * `.topToolsButtons` container only mounts once data has arrived. The
+   * previous one-shot wait on the *button* with `.catch(() => false)`
+   * silently masked the race as "button absent" when `/api/related` was
+   * still in flight, failing `toBeTruthy()`.
+   *
+   * 1. Wait up to 40s for `.topToolsButtons` to render (linksLoaded gate).
+   * 2. Then check Guided Learning visibility with a short budget — at this
+   *    point the button is either rendered or definitively absent. RP-194
+   *    (Genesis, no guide) returns false in ~1s instead of after the long wait.
+   */
   async hasGuideButton(): Promise<boolean> {
-    // 15s budget: under full-parallel load, /api/related (which feeds
-    // Sefaria.guidesByRef and gates the button's render) sometimes takes >3s.
-    return await this.toolsButton('Guided Learning').isVisible({ timeout: t(15000) }).catch(() => false);
+    const buttonsContainer = this.panel.locator('.topToolsButtons').first();
+    try {
+      await expect(buttonsContainer).toBeVisible({ timeout: t(40000) });
+    } catch {
+      return false;
+    }
+    return await this.toolsButton('Guided Learning')
+      .isVisible({ timeout: t(2000) })
+      .catch(() => false);
   }
 
   /** Selectors and counts within the Guide. */

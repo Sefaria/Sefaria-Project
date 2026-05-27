@@ -24,6 +24,13 @@ test.describe('Resource Panel — Guide — Pirkei Avot', () => {
   let page: Page;
   let pm: PageManager;
 
+  // Guided Learning render is gated on `/api/related/Pirkei_Avot.1.1`, which
+  // production rate-limits under full-parallel load (CLAUDE.md §2.20). The
+  // hasGuideButton gate waits up to 40s for `.topToolsButtons` to mount; once
+  // setup + reader + panel waits stack on top, the default 50s test budget is
+  // too tight. `test.slow()` triples it.
+  test.slow();
+
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Pirkei_Avot.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
@@ -80,6 +87,8 @@ test.describe('Resource Panel — Guide — Pirkei Avot', () => {
 });
 
 test.describe('Resource Panel — Guide — Hidden when no guide content', () => {
+  test.slow();
+
   test('RP-194: Guided Learning button is hidden on a text without guide content', async ({ context }) => {
     // Genesis.1 has no guide content (per `Sefaria.guidesByRef`); the
     // Guided Learning button should not render.
