@@ -294,14 +294,12 @@ function BulkUploadCSV() {
           onChange={handleFiles}
         />
         {isReady && (
-          <a>
-            <div className="modtoolsButton" onClick={uploadFiles}>
-              <div className="modtoolsButtonInner">
-                <span className="int-en">Upload</span>
-                <span className="int-he">העלאה</span>
-              </div>
+          <button type="button" className="modtoolsButton" onClick={uploadFiles}>
+            <div className="modtoolsButtonInner">
+              <span className="int-en">Upload</span>
+              <span className="int-he">העלאה</span>
             </div>
-          </a>
+          </button>
         )}
       </form>
       {uploadMessage && <div className="message">{uploadMessage}</div>}

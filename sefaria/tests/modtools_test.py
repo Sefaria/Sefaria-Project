@@ -127,7 +127,7 @@ class TestVersionBulkEditAPI:
             data=json.dumps({
                 'versionTitle': 'NonexistentVersion12345',
                 'language': 'en',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
                 'updates': {'license': 'CC-BY'}
             }),
             content_type='application/json'
@@ -146,6 +146,8 @@ class TestVersionBulkEditAPI:
     def test_bulk_edit_null_clears_field(self, staff_client):
         """Sending null value should remove field from version entirely."""
         from sefaria.model import VersionSet, Version
+        
+        VersionSet({"versionTitle": "TestVersionForClearing"}).delete()
 
         # Create a test version with purchaseInformationURL set
         test_version = Version({
@@ -157,11 +159,24 @@ class TestVersionBulkEditAPI:
             'purchaseInformationURL': 'https://example.com/buy'
         })
         test_version.save()
+        
+        test_version2 = Version({
+            'versionTitle': 'TestVersionForClearing',
+            'language': 'en',
+            'title': 'Exodus',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+            'purchaseInformationURL': 'https://example.com/buy'
+        })
+        test_version2.save()
 
         # Verify field exists before clearing
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
         assert hasattr(v, 'purchaseInformationURL'), "Field should exist before clearing"
         assert v.purchaseInformationURL == 'https://example.com/buy'
+        v2 = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Exodus'})
+        assert hasattr(v2, 'purchaseInformationURL'), "Field should exist before clearing"
+        assert v2.purchaseInformationURL == 'https://example.com/buy'
 
         # Send null value to clear the field
         response = staff_client.post(
@@ -169,7 +184,7 @@ class TestVersionBulkEditAPI:
             data=json.dumps({
                 'versionTitle': 'TestVersionForClearing',
                 'language': 'en',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
                 'updates': {'purchaseInformationURL': None}
             }),
             content_type='application/json'
@@ -178,7 +193,7 @@ class TestVersionBulkEditAPI:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['status'] == 'ok'
-        assert len(data['successes']) == 1
+        assert len(data['successes']) == 2
 
         # Verify field was removed (not just set to null or empty string)
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
@@ -186,6 +201,11 @@ class TestVersionBulkEditAPI:
 
         # Cleanup
         v.delete()
+        v2 = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Exodus'})
+        assert not hasattr(v2, 'purchaseInformationURL'), "Field should be completely removed after clearing"
+        # Cleanup
+        v.delete()
+        v2.delete()
 
     @pytest.mark.django_db
     def test_bulk_edit_mixed_updates_and_clears(self, staff_client):
@@ -204,6 +224,17 @@ class TestVersionBulkEditAPI:
             'versionNotes': 'Old notes'
         })
         test_version.save()
+        test_version2 = Version({
+            'versionTitle': 'TestVersionMixed',
+            'language': 'en',
+            'title': 'Exodus',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+            'license': 'PD',
+            'purchaseInformationURL': 'https://example.com/buy',
+            'versionNotes': 'Old notes'
+        })
+        test_version2.save()
 
         # Update some fields, clear others
         response = staff_client.post(
@@ -211,7 +242,7 @@ class TestVersionBulkEditAPI:
             data=json.dumps({
                 'versionTitle': 'TestVersionMixed',
                 'language': 'en',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
                 'updates': {
                     'license': 'CC-BY',  # Update this field
                     'purchaseInformationURL': None,  # Clear this field
@@ -234,6 +265,15 @@ class TestVersionBulkEditAPI:
         # Cleanup
         v.delete()
 
+        v2 = Version().load({'versionTitle': 'TestVersionMixed', 'language': 'en', 'title': 'Exodus'})
+        assert v2.license == 'CC-BY', "License should be updated"
+        assert v2.versionNotes == 'New notes', "Notes should be updated"
+        assert not hasattr(v2, 'purchaseInformationURL'), "purchaseInformationURL should be removed"
+
+        # Cleanup
+        v.delete()
+        v2.delete()
+        
     @pytest.mark.django_db
     def test_bulk_edit_clear_nonexistent_field(self, staff_client):
         """Clearing a field that doesn't exist should not error."""
@@ -249,13 +289,21 @@ class TestVersionBulkEditAPI:
         })
         test_version.save()
 
+        test_version2 = Version({
+            'versionTitle': 'TestVersionNoField',
+            'language': 'en',
+            'title': 'Exodus',
+            'chapter': [],
+            'versionSource': 'https://test.com'
+        })
+        test_version2.save()
         # Try to clear a field that doesn't exist
         response = staff_client.post(
             '/api/version-bulk-edit',
             data=json.dumps({
                 'versionTitle': 'TestVersionNoField',
                 'language': 'en',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
                 'updates': {'purchaseInformationURL': None}
             }),
             content_type='application/json'
@@ -274,6 +322,14 @@ class TestVersionBulkEditAPI:
         # Cleanup
         v.delete()
 
+        v2 = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Exodus'})
+        assert v2 is not None
+        assert not hasattr(v2, 'purchaseInformationURL')
+
+        # Cleanup
+        v.delete()
+        v2.delete()
+        
     @pytest.mark.django_db
     def test_bulk_edit_without_language_parameter(self, staff_client):
         """Language parameter should be optional since title+versionTitle is unique.
@@ -393,7 +449,7 @@ class TestVersionBulkDeleteAPI:
             '/api/version-bulk-delete',
             data=json.dumps({
                 'versionTitle': 'NonexistentVersion12345',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
             }),
             content_type='application/json'
         )
@@ -403,9 +459,10 @@ class TestVersionBulkDeleteAPI:
         assert 'successes' in data
         assert 'failures' in data
         assert data['status'] == 'error'
-        assert len(data['failures']) == 1
+        assert len(data['failures']) == 2
         assert data['failures'][0]['index'] == 'Genesis'
-
+        assert data['failures'][1]['index'] == 'Exodus'
+        
     @pytest.mark.django_db
     def test_bulk_delete_hard_deletes_version_and_records_history(self, staff_client):
         """Successful delete should remove the Version and write a 'delete text' history record."""
@@ -420,6 +477,14 @@ class TestVersionBulkDeleteAPI:
             'versionSource': 'https://test.com',
         })
         test_version.save()
+        test_version2 = Version({
+            'versionTitle': 'TestVersionForBulkDelete',
+            'language': 'en',
+            'title': 'Exodus',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        test_version2.save()
 
         # Verify version exists before delete
         v = Version().load({
@@ -427,12 +492,17 @@ class TestVersionBulkDeleteAPI:
             'title': 'Genesis',
         })
         assert v is not None
+        v2 = Version().load({
+            'versionTitle': 'TestVersionForBulkDelete',
+            'title': 'Exodus',
+        })
+        assert v2 is not None
 
         response = staff_client.post(
             '/api/version-bulk-delete',
             data=json.dumps({
                 'versionTitle': 'TestVersionForBulkDelete',
-                'indices': ['Genesis'],
+                'indices': ['Genesis', 'Exodus'],
             }),
             content_type='application/json'
         )
@@ -440,7 +510,7 @@ class TestVersionBulkDeleteAPI:
         assert response.status_code == 200
         data = json.loads(response.content)
         assert data['status'] == 'ok'
-        assert data['successes'] == ['Genesis']
+        assert data['successes'] == ['Genesis', 'Exodus']
         assert data['failures'] == []
 
         # Version should be gone

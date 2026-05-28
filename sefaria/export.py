@@ -708,13 +708,15 @@ def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
+    :param user_id: the ID of the user importing the versions
+    :param csv_filename: the filename of the CSV file to import
     :return:
     """
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
 def _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=False):

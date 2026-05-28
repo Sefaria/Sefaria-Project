@@ -882,7 +882,6 @@ const BulkVersionEditor = () => {
               </button>
             </div>
           )}
-
           {/* Delete section - separated at bottom */}
           <div className="deleteSectionSeparator" />
 

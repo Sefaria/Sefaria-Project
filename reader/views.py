@@ -654,6 +654,22 @@ def _extract_version_params(request, key):
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
+
+def _extract_version_title_param(request, key):
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
+
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -1771,11 +1787,15 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    lang = request.GET.get("lang") or "en"
+    if lang not in {"en", "he", "bi"}:
+        lang = "en"
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
 
     try:
         ref = Ref(tref)
@@ -2205,14 +2225,16 @@ def links_api(request, link_id_or_ref=None):
         return categories or None
 
     if request.method == "GET":
-        callback=request.GET.get("callback", None)
+        callback = request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        Ref(link_id_or_ref)
+        #The Ref instantiation is also used to validate the Ref and let an error bubble up.
+        oref = Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        if with_text and oref.is_book_level():
+            error_msg = "with_text is not supported for whole-book refs. Request a specific section or segment, or set with_text to 0.  Alternatively, the whole database is available as a downloadable export."
+            return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
         categories = _get_requested_categories(request)
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 

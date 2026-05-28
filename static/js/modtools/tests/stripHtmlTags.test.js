@@ -4,7 +4,7 @@
  * This function is security-critical for XSS prevention.
  * It safely extracts text content from HTML strings.
  */
-import { stripHtmlTags } from '../components/shared';
+import stripHtmlTags from '../utils/stripHtmlTags';
 
 describe('stripHtmlTags', () => {
   describe('basic HTML removal', () => {

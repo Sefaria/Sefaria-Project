@@ -162,6 +162,7 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
         The updated Version object
     """
     old_dict = version.contents()
+    old_dict.pop('chapter', None)  # don't log text itself, just log the metadata
 
     for field_name, field_value in updates.items():
         if field_value is None:
@@ -172,7 +173,9 @@ def update_version_metadata(user: int, version: model.Version, updates: dict, **
             setattr(version, field_name, field_value)
 
     version.save()
-    model.log_version_metadata(user, old_dict, version.contents(), **kwargs)
+    new_dict = version.contents()
+    new_dict.pop('chapter', None)  # again,don't log text itself, just log the metadata
+    model.log_version_metadata(user, old_dict, new_dict, **kwargs)
     return version
 
 
