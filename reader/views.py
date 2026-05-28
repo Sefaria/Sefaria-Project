@@ -654,6 +654,22 @@ def _extract_version_params(request, key):
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
+
+def _extract_version_title_param(request, key):
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
+
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -1154,6 +1170,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
+        "page":           page,
     })
 
 
@@ -1244,6 +1261,7 @@ def notifications(request):
     return menu_page(request, props, page="notifications", title=title)
 
 
+@ensure_csrf_cookie
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
@@ -1769,11 +1787,15 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    lang = request.GET.get("lang") or "en"
+    if lang not in {"en", "he", "bi"}:
+        lang = "en"
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
 
     try:
         ref = Ref(tref)
@@ -1898,18 +1920,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
     def handle_post_request(request, title, raw):
-        j = json.loads(request.POST.get("json"))
-        if not j:
+        json_data = json.loads(request.POST.get("json"))
+        if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
         if uid is None:
             return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
         elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
+            return index_post(request, uid, json_data, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
+            return admin_post(request, uid, json_data, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:
@@ -2203,14 +2225,16 @@ def links_api(request, link_id_or_ref=None):
         return categories or None
 
     if request.method == "GET":
-        callback=request.GET.get("callback", None)
+        callback = request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        Ref(link_id_or_ref)
+        #The Ref instantiation is also used to validate the Ref and let an error bubble up.
+        oref = Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        if with_text and oref.is_book_level():
+            error_msg = "with_text is not supported for whole-book refs. Request a specific section or segment, or set with_text to 0.  Alternatively, the whole database is available as a downloadable export."
+            return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
         categories = _get_requested_categories(request)
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 
@@ -2548,11 +2572,11 @@ def lock_text_api(request, title, lang, version):
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
 
     if request.GET.get("action", None) == "unlock":
-        vobj.status = None
+        updates = {"status": None}  # None signals deletion in tracker
     else:
-        vobj.status = "locked"
+        updates = {"status": "locked"}
 
-    vobj.save()
+    tracker.update_version_metadata(request.user.id, vobj, updates)
     return jsonResponse({"status": "ok"})
 
 
@@ -2568,23 +2592,28 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    def update_version(request, title, lang, version):
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+
+    def update_version(request, title, lang, version, user_id):
         flags = json.loads(request.POST.get("json"))
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
+        # Build updates dict for tracker function
+        updates = {}
         if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
+            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
-                    delattr(vobj, flag)
+                    updates[flag] = None  # None signals deletion in tracker
                 else:
-                    setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+                    updates[flag] = flags[flag]
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+        if updates:
+            tracker.update_version_metadata(user_id, vobj, updates)
+        return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2597,9 +2626,11 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        return update_version(request, title, lang, version)
+        return update_version(request, title, lang, version, apikey["uid"])
     elif request.user.is_staff:
-        protected_post = csrf_protect(update_version)
+        def update_version_with_user(request, title, lang, version):
+            return update_version(request, title, lang, version, request.user.id)
+        protected_post = csrf_protect(update_version_with_user)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})

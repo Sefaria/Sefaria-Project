@@ -19070,25 +19070,27 @@
         "parameters": [
           {
             "name": "lang",
-            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. ",
+            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to `en` if omitted. `bi` is accepted and returns English. ",
             "schema": {
               "enum": [
                 "he",
                 "en"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "en"
             },
             "in": "query"
           },
           {
             "name": "platform",
-            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation.",
+            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation. Defaults to `facebook` if omitted or invalid. Use `twitter` for X/Twitter cards.",
             "schema": {
               "enum": [
                 "facebook",
                 "twitter"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "facebook"
             },
             "in": "query"
           },
