@@ -23,6 +23,7 @@ import {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
 } from './StaticPages';
 import UpdatesPanel from './UpdatesPanel';
 import {
@@ -2550,5 +2551,6 @@ export {
   ProductsPage,
   SheetsLandingPage,
   NewsletterPage,
+  MobileAppPage,
   UpdatesPanel
 };

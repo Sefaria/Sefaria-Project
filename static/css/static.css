@@ -2963,6 +2963,153 @@ display: none;
   background-position: bottom right;
 }
 
+.staticPage .staticPageHeader.mobile {
+  background-color: #18345D;
+  padding: 70px 0;
+}
+.staticPage .staticPageHeader.mobile h1 {
+  color: #FFFFFF;
+  text-align: center;
+}
+.staticPage .staticPageHeader.mobile .staticPageHeaderTextBox {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.staticPage .staticPageHeader.mobile .staticPageHeaderText {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.staticPage .staticPageHeader.mobile .staticPageHeaderImg img {
+  max-height: 420px;
+  max-width: 100%;
+}
+.staticPage .mobileHeaderButtons {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+.staticPage .mobileDownloadButton {
+  width: 228px;
+  height: 59px;
+  background: #EDEDEC;
+  color: #18345D;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+}
+.staticPage .mobileDownloadButton:hover {
+  background: #DEDEDC;
+  color: #18345D;
+}
+.staticPage .mobileDownloadButton img {
+  height: 32px;
+  width: auto;
+  flex-shrink: 0;
+}
+.staticPage.mobile .mobileDownloadButton.dark {
+  width: 300px;
+  height: 72px;
+  background: #212E50;
+  color: #FFFFFF;
+  font-size: 18px;
+}
+.staticPage.mobile .mobileDownloadButton.dark:hover {
+  background: #18345D;
+  color: #FFFFFF;
+}
+.staticPage.mobile .mobileDownloadButton.dark img {
+  height: 36px;
+}
+.staticPage.mobile .feature .featureImage img {
+  width: auto;
+  height: 350px;
+  box-shadow: none;
+  border-radius: 0;
+}
+.staticPage.mobile .mobileDownloadCTA {
+  padding: 50px 0;
+  text-align: center;
+}
+.staticPage.mobile .mobileDownloadCTA h3 {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 36px;
+  font-weight: normal;
+  border-bottom: none;
+  margin-bottom: 30px;
+  color: var(--dark-grey);
+}
+.staticPage.mobile .mobileDownloadCTA .mobileDownloadCtaButtons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+.staticPage .mobileTestimonialsSection {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 40px 0;
+}
+.staticPage .mobileTestimonialItem {
+  flex: 0 0 30%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.staticPage .mobileTestimonialIconHolder {
+  height: 50px;
+  width: 50px;
+  margin-bottom: 14px;
+}
+.staticPage .mobileTestimonialIcon {
+  height: 50px;
+  width: 50px;
+}
+.staticPage .mobileTestimonialHeader {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 1.3;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000000;
+  margin-bottom: 14px;
+  border: none;
+}
+.staticPage .mobileTestimonialContent {
+  text-align: left;
+}
+.interface-hebrew .staticPage .mobileTestimonialContent {
+  text-align: right;
+}
+.staticPage .mobileTestimonialText {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #000000;
+  margin-bottom: 10px;
+}
+.staticPage .mobileTestimonialAttribution {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: bold;
+  color: #000000;
+}
+.staticPage .mobileTestimonialAttribution::before {
+  content: '— ';
+}
+
 .staticPage .staticPageHeader.wordbyword {
   background-image: url("/static/img/word-by-word-bg.png");
   background-repeat: no-repeat;
@@ -3000,6 +3147,9 @@ display: none;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
   color: white;
+}
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox {
+  max-width: 160px;
 }
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
@@ -3365,6 +3515,31 @@ display: none;
 
   .staticPage .staticPageCallToActionFooter .callToActionText {
     padding-bottom: 20px;
+  }
+  .staticPage .mobileTestimonialsSection {
+    flex-direction: column;
+    align-items: center;
+  }
+  .staticPage .mobileTestimonialItem {
+    flex: none;
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  .staticPage.mobile .mobileDownloadCTA .mobileDownloadCtaButtons {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .staticPage .mobileDownloadButton,
+  .staticPage.mobile .mobileDownloadButton.dark {
+    flex-direction: row;
+    width: 280px;
+    justify-content: center;
+    align-items: center;
+  }
+  .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+    align-items: center;
+    text-align: center;
   }
 }
 
