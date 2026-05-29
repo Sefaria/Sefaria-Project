@@ -2967,9 +2967,16 @@ display: none;
   background-color: #18345D;
   padding: 70px 0;
 }
+.staticPage .staticPageHeader.mobile .staticPageBlockInner {
+  width: 100%;
+  max-width: 1200px;
+}
 .staticPage .staticPageHeader.mobile h1 {
   color: #FFFFFF;
   text-align: center;
+  font-size: 64px;
+  line-height: 77px;
+  letter-spacing: 2px;
 }
 .staticPage .staticPageHeader.mobile .staticPageHeaderTextBox {
   text-align: center;
@@ -2979,13 +2986,43 @@ display: none;
 }
 .staticPage .staticPageHeader.mobile .staticPageHeaderText {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 20px;
-  letter-spacing: 1px;
+  font-size: 22px;
+  letter-spacing: 2px;
   text-align: center;
+  text-transform: uppercase;
+  max-width: none;
 }
-.staticPage .staticPageHeader.mobile .staticPageHeaderImg img {
-  max-height: 420px;
-  max-width: 100%;
+.staticPage .staticPageHeader.mobile .staticPageHeaderImg {
+  min-height: unset;
+  display: flex;
+  align-items: center;
+}
+.staticPage .staticPageHeader.mobile .mobileHeaderImages {
+  position: relative;
+  width: 450px;
+  height: 430px;
+  margin: 0 auto;
+}
+.staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet {
+  position: absolute;
+  width: 335px;
+  height: 419px;
+  left: 115px;
+  top: 0;
+}
+.staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone {
+  position: absolute;
+  width: 207px;
+  height: 335px;
+  z-index: 1;
+  left: 0;
+  top: 87px;
+}
+.staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet.int-he {
+  left: 0;
+}
+.staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone.int-he {
+  left: 243px;
 }
 .staticPage .mobileHeaderButtons {
   margin-top: 24px;
@@ -3003,10 +3040,13 @@ display: none;
   align-items: center;
   gap: 12px;
   padding: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 .staticPage .mobileDownloadButton:hover {
   background: #DEDEDC;
   color: #18345D;
+  text-decoration: none;
 }
 .staticPage .mobileDownloadButton img {
   height: 32px;
@@ -3023,6 +3063,7 @@ display: none;
 .staticPage.mobile .mobileDownloadButton.dark:hover {
   background: #18345D;
   color: #FFFFFF;
+  text-decoration: none;
 }
 .staticPage.mobile .mobileDownloadButton.dark img {
   height: 36px;
@@ -3033,17 +3074,31 @@ display: none;
   box-shadow: none;
   border-radius: 0;
 }
+.staticPage.mobile .feature .featureImage {
+  width: 65%;
+}
+.staticPage.mobile .feature .staticPageBlockInner {
+  gap: 40px;
+}
+.staticPage.mobile .feature .featureText {
+  flex: 1;
+  width: auto;
+}
 .staticPage.mobile .mobileDownloadCTA {
   padding: 50px 0;
   text-align: center;
 }
 .staticPage.mobile .mobileDownloadCTA h3 {
   font-family: "adobe-garamond-pro", Georgia, serif;
-  font-size: 36px;
+  font-size: 48px;
+  line-height: 58px;
   font-weight: normal;
   border-bottom: none;
   margin-bottom: 30px;
   color: var(--dark-grey);
+}
+.staticPage.mobile .mobileDownloadCTA h3 span {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage.mobile .mobileDownloadCTA .mobileDownloadCtaButtons {
   display: flex;
@@ -3148,9 +3203,11 @@ display: none;
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
   color: white;
 }
-.staticPage .staticPageCallToActionFooter .newsletterSignUpBox {
-  max-width: 160px;
+.interface-english .staticPage .staticPageCallToActionFooter .newsletterSignUpBox span.int-en,
+.interface-hebrew .staticPage .staticPageCallToActionFooter .newsletterSignUpBox span.int-he {
+  display: block;
 }
+
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
@@ -3476,7 +3533,7 @@ display: none;
     flex-direction: column;
   }
   .staticPage .staticPageBlockInner {
-    width: auto;
+    width: auto !important;
     max-width: none;
     margin: 0 30px;
   }
@@ -3525,6 +3582,10 @@ display: none;
     width: 100%;
     margin-bottom: 30px;
   }
+  .staticPage.mobile .mobileDownloadCTA h3 {
+    font-size: 30px;
+    line-height: 36px;
+  }
   .staticPage.mobile .mobileDownloadCTA .mobileDownloadCtaButtons {
     flex-direction: column;
     align-items: center;
@@ -3540,6 +3601,54 @@ display: none;
   .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
     align-items: center;
     text-align: center;
+  }
+  .staticPage .staticPageHeader.mobile .staticPageBlockInner {
+    max-width: 100%;
+  }
+  .staticPage .staticPageHeader.mobile h1 {
+    font-size: 40px;
+    line-height: 48px;
+  }
+  .staticPage .staticPageHeader.mobile .staticPageHeaderText {
+    font-size: 16px;
+    line-height: 19px;
+    letter-spacing: 0;
+  }
+  .staticPage .staticPageHeader.mobile .staticPageHeaderTextBox {
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+  .staticPage .staticPageHeader.mobile .staticPageHeaderImg {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+  }
+  .staticPage .staticPageHeader.mobile .mobileHeaderImages {
+    width: 326px;
+    height: 332px;
+  }
+  .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet {
+    width: 245px;
+    height: 306px;
+    left: 81px;
+    top: 0;
+  }
+  .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet.int-he {
+    left: 0;
+  }
+  .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone {
+    width: 151px;
+    height: 245px;
+    left: 0;
+    top: 87px;
+  }
+  .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone.int-he {
+    left: 175px;
+  }
+  .staticPage .feature .featureImage {
+    margin: 0 auto;
   }
 }
 

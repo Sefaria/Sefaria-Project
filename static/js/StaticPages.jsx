@@ -3188,7 +3188,7 @@ const MobilePageHeader = () => (
         <div className="staticPageBlockInner flexContainer">
             <div className="staticPageHeaderTextBox">
                 <h1>
-                    <span className="int-en">The Sefaria App</span>
+                    <span className="int-en">The Sefaria Library App</span>
                     <span className="int-he">האפליקציה של ספריא לנייד</span>
                 </h1>
                 <SimpleInterfaceBlock classes="staticPageHeaderText mobile"
@@ -3197,8 +3197,12 @@ const MobilePageHeader = () => (
                 <MobileDownloadButtons />
             </div>
             <div className="staticPageHeaderImg">
-                <img className="int-en" src="/static/img/mobile-landing-page/tablet.png" alt="Sefaria app on tablet" />
-                <img className="int-he" src="/static/img/mobile-landing-page/tabletHEB.png" alt="Sefaria app on tablet" />
+                <div className="mobileHeaderImages">
+                    <img className="mobileHeaderPhone int-en" src="/static/img/mobile-landing-page/headerphone.png" alt="Sefaria app on phone" />
+                    <img className="mobileHeaderPhone int-he" src="/static/img/mobile-landing-page/headerphoneHEB.png" alt="Sefaria app on phone" />
+                    <img className="mobileHeaderTablet int-en" src="/static/img/mobile-landing-page/tablet.png" alt="Sefaria app on tablet" />
+                    <img className="mobileHeaderTablet int-he" src="/static/img/mobile-landing-page/tabletHEB.png" alt="Sefaria app on tablet" />
+                </div>
             </div>
         </div>
     </div>
@@ -3209,7 +3213,7 @@ const MobileAppPage = () => (
         <MobilePageHeader />
         <EnBlock padded={true}>
             <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
-                Explore Sefaria&#39;s entire free library of Jewish texts in Hebrew and English translation — Torah, Talmud, Mishnah, Kabbalah, Siddur and more. Discover 3,000 years of texts with all of their links, interconnections, and commentaries. Download the entire library to learn offline, anywhere, anytime.
+                Explore Sefaria&#39;s free library of Jewish texts in original langauges and translation — Torah, Talmud, Mishnah, Kabbalah, siddur and more. Discover 3,000 years of texts with links, interconnections, and commentaries. Download nearly the entire library to learn offline, anywhere, anytime.
             </p>
         </EnBlock>
         <HeBlock padded={true}>
@@ -3231,7 +3235,7 @@ const MobileAppPage = () => (
                 />
                 <MobileTestimonial
                     icon="/static/img/mobile-landing-page/educate.png"
-                    enTitle="Look up education resources on-the-go"
+                    enTitle="Look up education resources on the go"
                     heTitle="מצאו חומר ומקורות ללימוד בכל מקום"
                     enText={`"I use Sefaria all the time - prepping for class, learning on the go, in the middle of a conversation and want to find a source. It has been an amazing tool in my life."`}
                     heText={`"אני משתמשת בספריא כל הזמן – בהכנת מערכי לימוד, בלימוד תוך כדי נסיעה, או כשאני באמצע שיחה ורוצה תוך כדי למצוא מקור מסוים. זה הפך לכלי עזר מדהים בחיים שלי".`}
@@ -3275,7 +3279,7 @@ const MobileAppPage = () => (
         <Feature
             enTitle="Search"
             heTitle="חיפוש"
-            enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance. Search results include primary sources and user-created source sheets."
+            enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
             heText="השתמשו בפונקציית החיפוש על מנת למצוא נושאים, מילים וביטויים – גם בעברית וגם באנגלית. ניתן להוסיף לחיפוש סינון לפי ספרים, קטגוריות או מידת רלוונטיות. תוצאות החיפוש יכללו מקורות ראשוניים וכן דפי מקורות שנוצרו ע&quot;י המשתמשים."
             enImg="/static/img/mobile-landing-page/searchmock.png"
             enImgAlt="Screenshot of search on app"
@@ -3285,28 +3289,16 @@ const MobileAppPage = () => (
         />
         <Feature
             reverse
-            enTitle="Source Sheets"
+            enTitle="Account Features"
             heTitle="דפי מקורות"
-            enText="Explore thousands of user-created source sheets by topic or search directly for your favorite contributor."
+            enText="Log in with a free Sefaria account to bookmark texts, sync your reading history across devices, and customize your settings."
             heText="תוכלו להיעזר באלפי דפי מקורות שנוצרו ע&quot;י המשתמשים לפי נושאים, או לחפש באופן ישיר לפי יוצרי דפי המקורות המועדפים עליכם."
-            enImg="/static/img/mobile-landing-page/sheetsmock.png"
-            enImgAlt="Screenshot of sheets on app"
-            heImg="/static/img/mobile-landing-page/sheetsmockHEB.png"
-            heImgAlt="Screenshot of sheets on app"
+            enImg="/static/img/mobile-landing-page/accountfeaturesmock.png"
+            enImgAlt="Screenshot of settigns on app"
+            heImg="/static/img/mobile-landing-page/accountfeaturesmockHEB.png"
+            heImgAlt="Screenshot of settings on app"
             borderColor={palette.colors.red}
         />
-        <GreyBox>
-            <Feature
-                enTitle="Introducing: Account Login on the App"
-                heTitle="כעת בגירסה 5.4.0 – חדש! כניסה לחשבון מהאפליקציה"
-                enText="You can now log into your Sefaria account on the mobile app to sync your reading history and saved texts on your mobile device."
-                heText="מעתה תוכלו להיכנס לחשבונכם בספריא מהטלפון הנייד על מנת לסנכרן את היסטוריית הקריאה שלכם והטקסטים ששמרתם לעצמכם גם במכשיר הנייד."
-                enImg="/static/img/mobile-landing-page/newapp.gif"
-                enImgAlt="Screenshot of latest app update"
-                heImg="/static/img/mobile-landing-page/newappHEB.gif"
-                heImgAlt="Screenshot of latest app update"
-            />
-        </GreyBox>
         <div className="mobileDownloadCTA staticPageBlockInner">
             <h3>
                 <span className="int-en">Download the app and start exploring today</span>
