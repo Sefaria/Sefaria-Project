@@ -3189,11 +3189,11 @@ const MobilePageHeader = () => (
             <div className="staticPageHeaderTextBox">
                 <h1>
                     <span className="int-en">The Sefaria Library App</span>
-                    <span className="int-he">האפליקציה של ספריא לנייד</span>
+                    <span className="int-he">יישומון ספריית ספריא</span>
                 </h1>
                 <SimpleInterfaceBlock classes="staticPageHeaderText mobile"
                     en="The Jewish Library — Free, Anywhere, Anytime."
-                    he="ארון הספרים היהודי – בחינם, בכל מקום ובכל זמן" />
+                    he="ספריית מקורות היהדות זמין בכללותו, בכל עת ובכל מקום." />
                 <MobileDownloadButtons />
             </div>
             <div className="staticPageHeaderImg">
@@ -3218,7 +3218,7 @@ const MobileAppPage = () => (
         </EnBlock>
         <HeBlock padded={true}>
             <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
-                גלו את ספריא - ספריה שלמה וחינמית של הכתבים והספרים היהודיים – בעברית ובתרגום לאנגלית: תורה, משנה, גמרא, קבלה, סידור התפילה ועוד. לרשותכם 3,000 שנה של כל ארון הספרים היהודי - עם כל הקישורים, מראי המקום והפרשנים. ניתן להוריד את הספריה כולה ללימוד בלתי-מקוון בכל מקום שתרצו, בזמנכם הפנוי.
+                תהנו מגישה חופשית למאגר נרחב של כותרים בשפות המקור ובמגוון תרגומים. ספריית ספריא כוללת מקורות ממיני קטגוריות טקסט – תנ״ך, תלמוד, משנה, קבלה, ליטורגיה ועוד. יישומון ספריית ספריא מאפשר לכם להתעמק במקורות החוצים את גבולות הזמן והמקום, כולם מקושרים ומצוטטים על מנת לאפשר למידה עשירה. בנוסף, ניתן להוריד את מרבית הכותרים למכשיר האישי על מנת ללמוד בכל מקום – גם ללא חיבור לאינטרנט.
             </p>
         </HeBlock>
         <div className="colorLine" />
@@ -3227,37 +3227,37 @@ const MobileAppPage = () => (
                 <MobileTestimonial
                     icon="/static/img/mobile-landing-page/siddur.png"
                     enTitle="Always have a siddur in your pocket"
-                    heTitle="תמיד יהיה לכם סידור בכיס"
+                    heTitle="עם סידור בכיס, אפשר להתפלל בכל מקום"
                     enText={`"I can look up anything in an easy format. You never know when you might need to find a prayer or a passage, and it's all sitting there on my phone."`}
-                    heText={`"אני יכולה לחפש ולמצוא כל דבר בפורמט נוח. לעולם אין לדעת מתי תצטרך למצוא תפילה או קטע מסוים, וכאן כל זה נמצא קבוע בתוך הטלפון שלך".`}
+                    heText={`״אני תמיד יכולה לחפש מקורות או תפילות, וכולם נגישים בפורמט נוח. אף פעם אני לא יכולה לדעת מתי אצטרך לחפש תפילה או כמה פסוקים על הדרך – ועכשיו הכל נמצא אצלי בטלפון״`}
                     enAttrib="Jessica L, User"
-                    heAttrib="ג'סיקה ל., משתמשת"
+                    heAttrib="ג׳סיקה ל., משתמשת בספריא"
                 />
                 <MobileTestimonial
                     icon="/static/img/mobile-landing-page/educate.png"
                     enTitle="Look up education resources on the go"
-                    heTitle="מצאו חומר ומקורות ללימוד בכל מקום"
+                    heTitle="חיפוש מהיר של מקורות, בכל זמן"
                     enText={`"I use Sefaria all the time - prepping for class, learning on the go, in the middle of a conversation and want to find a source. It has been an amazing tool in my life."`}
-                    heText={`"אני משתמשת בספריא כל הזמן – בהכנת מערכי לימוד, בלימוד תוך כדי נסיעה, או כשאני באמצע שיחה ורוצה תוך כדי למצוא מקור מסוים. זה הפך לכלי עזר מדהים בחיים שלי".`}
+                    heText={`״אני משתמשת ב[יישומון של] ספריא כל הזמן – בין אם אני מתכננת שיעור, לומדת על הדרך, או פתאום צריכה לחפש מקור באמצע שיחה. זה כלי מדהים שממש מעשיר את החיים שלי.״`}
                     enAttrib="Jaclyn S, Educator"
-                    heAttrib="ג'קלין ס., מחנכת"
+                    heAttrib="ג׳קלין ס., מחנכת"
                 />
                 <MobileTestimonial
                     icon="/static/img/mobile-landing-page/commute.png"
                     enTitle="Learn on your commute"
-                    heTitle="לימוד תוך כדי נסיעה לעבודה או לימודים"
+                    heTitle="ללמוד בדרך לעבודה או ללימודים? אין בעיה!"
                     enText={`"I am constantly on the app during my NYC subway commute, whether I'm reviewing texts for class, reading the day's 929 chapter, or studying parshat hashavua."`}
-                    heText={`"אני משתמשת באופן קבוע באפליקציה תוך כדי הנסיעה היומיומית שלי ברכבת התחתית ללימודים בניו-יורק, בין אם לשינון חומר לימודי, או לקרוא את פרק התנ"ך היומי במסגרת פרוייקט 929, או ללמוד את פרשת השבוע".`}
+                    heText={`״אני כל הזמן פותחת את היישומון של ספריא בזמן שאני נוסעת ברכבת התחתית בניו יורק. לפעמים אני עוברת על מקורות לפני השיעור הבא, לפעמים אני קוראת את הפרק היומי ב-929 ולפעמים אני לומדת את פרשת השבוע.״`}
                     enAttrib="Vanessa H, Rabbinical Student"
-                    heAttrib="ונסה ה., תלמידת בית מדרש לרבנים"
+                    heAttrib="וונסה ה, סטודנטית לרבנות"
                 />
             </div>
         </GreyBox>
         <Feature
             enTitle="Calendar"
-            heTitle="לוח שנה"
+            heTitle="לוח השנה העברי בגישה מהירה"
             enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more."
-            heText="לרשותכם לוחות יומיים כדי לגשת בקלות לקריאות בתורה ופרשת השבוע, דף יומי, פרק היום בתנ&quot;ך (929) ועוד."
+            heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
             enImg="/static/img/mobile-landing-page/calmock.png"
             enImgAlt="Screenshot of calendar on app"
             heImg="/static/img/mobile-landing-page/calmockHEB.png"
@@ -3267,9 +3267,9 @@ const MobileAppPage = () => (
         <Feature
             reverse
             enTitle="Commentaries"
-            heTitle="פרשנים"
+            heTitle="פרשנויות, מדרשים ועוד"
             enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
-            heText="תוכלו להיעזר במגוון של פרשנים בזמן הלימוד העצמי – ולגלות את הקישורים בין טקסטים שונים בעזרת מראי מקום. פרשני התורה כוללים את רש&quot;י, אבן עזרא, רמב&quot;ן, ספורנו, אברבנאל ועוד. פרשני התלמוד הבבלי כוללים רש&quot;י, תוספות, רשב&quot;א, רא&quot;ש ועוד."
+            heText="בספריית ספריא תוכלו לעיין במגוון פרשנויות, מדרשים ועוד ולהנות מקישוריות המחברות בין מקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלו כוללים את כתביהם של רש״י, אבן עזרא, רמב״ן, ספורנו, אברבנאל ועוד אודות התנ״ך, ואת כתבים של רש״י, רשב״א, ועוד אודות התלמוד."
             enImg="/static/img/mobile-landing-page/commmock.png"
             enImgAlt="Screenshot of commentary panel on app"
             heImg="/static/img/mobile-landing-page/commmockHEB.png"
@@ -3278,9 +3278,9 @@ const MobileAppPage = () => (
         />
         <Feature
             enTitle="Search"
-            heTitle="חיפוש"
+            heTitle="חיפוש מקיף בכמה הקשות מהירות"
             enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
-            heText="השתמשו בפונקציית החיפוש על מנת למצוא נושאים, מילים וביטויים – גם בעברית וגם באנגלית. ניתן להוסיף לחיפוש סינון לפי ספרים, קטגוריות או מידת רלוונטיות. תוצאות החיפוש יכללו מקורות ראשוניים וכן דפי מקורות שנוצרו ע&quot;י המשתמשים."
+            heText="בעזרת שורת החיפוש, תוכלו לחפש נושאים, מילות מפתח ופראזות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש על ידי בחירה בתנאי חיפוש מסוימים, כגון כרונולוגיה, רלוונטיות או השתייכות לכותר מסוים."
             enImg="/static/img/mobile-landing-page/searchmock.png"
             enImgAlt="Screenshot of search on app"
             heImg="/static/img/mobile-landing-page/searchmockHEB.png"
@@ -3290,9 +3290,9 @@ const MobileAppPage = () => (
         <Feature
             reverse
             enTitle="Account Features"
-            heTitle="דפי מקורות"
+            heTitle="מאפיינים אישיים לבעלי חשבון אישי"
             enText="Log in with a free Sefaria account to bookmark texts, sync your reading history across devices, and customize your settings."
-            heText="תוכלו להיעזר באלפי דפי מקורות שנוצרו ע&quot;י המשתמשים לפי נושאים, או לחפש באופן ישיר לפי יוצרי דפי המקורות המועדפים עליכם."
+            heText="התחברו לחשבון האישי שלכם בספריא על מנת לשמור מקורות ברשימת המועדפים, לסנכרן את היסטוריית הקריאה שלכם במספר מכשירים במקביל ולעדכן את הגדרות הפרופיל שלכם."
             enImg="/static/img/mobile-landing-page/accountfeaturesmock.png"
             enImgAlt="Screenshot of settigns on app"
             heImg="/static/img/mobile-landing-page/accountfeaturesmockHEB.png"
@@ -3302,7 +3302,7 @@ const MobileAppPage = () => (
         <div className="mobileDownloadCTA staticPageBlockInner">
             <h3>
                 <span className="int-en">Download the app and start exploring today</span>
-                <span className="int-he">הורידו את האפליקציה והתחילו לגלות אותה כבר היום!</span>
+                <span className="int-he">למה אתם מחכים? הורידו היום את היישומון של ספריית ספריא והתחילו במסע למידה מעמיק ומעשיר.</span>
             </h3>
             <div className="mobileDownloadCtaButtons">
                 <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
