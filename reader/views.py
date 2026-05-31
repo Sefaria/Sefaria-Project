@@ -365,7 +365,12 @@ def base_props(request):
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
+    from django.conf import settings as django_settings
+    force_enable = getattr(django_settings, 'CHATBOT_FORCE_ENABLE', False)
+    if force_enable and request.user.is_authenticated:
+        chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+        chatbot_data["chatbot_enabled"] = True
+    elif user_has_experiments(request.user):
         chatbot_data["in_chatbot_experiment"] = True
         if _is_user_in_experiment(request):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
