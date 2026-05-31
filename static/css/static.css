@@ -3602,7 +3602,7 @@ display: none;
     justify-content: center;
     align-items: center;
   }
-  .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+  .staticPage.mobile .staticPageCallToActionFooter .staticPageBlockInner {
     align-items: center;
     text-align: center;
   }
@@ -3651,7 +3651,7 @@ display: none;
   .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone.int-he {
     left: 175px;
   }
-  .staticPage .feature .featureImage {
+  .staticPage.mobile .feature .featureImage {
     margin: 0 auto;
   }
 }
