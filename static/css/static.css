@@ -3200,8 +3200,12 @@ display: none;
 .staticPage .staticPageCallToActionFooter .callToActionText .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox {
+  width: 200px;
+}
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
   color: white;
+  word-break: break-word;
 }
 .interface-english .staticPage .staticPageCallToActionFooter .newsletterSignUpBox span.int-en,
 .interface-hebrew .staticPage .staticPageCallToActionFooter .newsletterSignUpBox span.int-he {
