@@ -32,6 +32,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict, FileResponse
 from django.urls import Resolver404, resolve
+from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -681,13 +682,6 @@ def _extract_version_title_param(request, key: str) -> str | None:
     return params
 
 
-def _social_image_urlconf_for_module(module: str) -> str:
-    # The same path can mean different things on different Sefaria modules.
-    # Resolve against the module's URLConf so /topics, /sheets, etc. are
-    # classified the same way Django would classify them for that host.
-    return "sefaria.urls_sheets" if module == VOICES_MODULE else "sefaria.urls_library"
-
-
 @lru_cache(maxsize=512)
 def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
     """
@@ -708,7 +702,13 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
 
     path = f"/{tref.lstrip('/')}"
     try:
-        match = resolve(path, urlconf=_social_image_urlconf_for_module(module))
+        # The same path can mean different things on different Sefaria modules.
+        # Resolve against the module's own URLconf (defined in sefaria/hosts.py)
+        # so that /topics, /sheets, etc. are classified the same way Django
+        # would classify them for that host. get_host() looks up the host
+        # definition by module name — 'library' or 'voices' — and .urlconf
+        # gives the dotted path of the URLconf it uses (e.g. sefaria.urls_library).
+        match = resolve(path, urlconf=get_host(module).urlconf)
     except Resolver404:
         # Unknown paths get the module fallback instead of raising an error.
         # This keeps Open Graph images available even when a page cannot be
