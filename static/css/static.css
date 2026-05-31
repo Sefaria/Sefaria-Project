@@ -3068,6 +3068,9 @@ display: none;
 .staticPage.mobile .mobileDownloadButton.dark img {
   height: 36px;
 }
+.staticPage.mobile .feature {
+  background-color: #fff;
+}
 .staticPage.mobile .feature .featureImage img {
   width: auto;
   height: 350px;
@@ -3075,14 +3078,22 @@ display: none;
   border-radius: 0;
 }
 .staticPage.mobile .feature .featureImage {
-  width: 65%;
+  /* width: 65%; */
+  flex: 0 0 45%;
 }
 .staticPage.mobile .feature .staticPageBlockInner {
-  gap: 40px;
+  gap: 24px;
 }
 .staticPage.mobile .feature .featureText {
-  flex: 1;
+  /* flex: 1; */
+  flex: 0 0 45%;
   width: auto;
+}
+.staticPage.mobile .mobileFeatures {
+  position: relative;
+  max-width: 640px;
+  margin: auto;
+  background-color: #FBFBFA;
 }
 .staticPage.mobile .mobileDownloadCTA {
   padding: 50px 0;
@@ -3096,6 +3107,9 @@ display: none;
   border-bottom: none;
   margin-bottom: 30px;
   color: var(--dark-grey);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .staticPage.mobile .mobileDownloadCTA h3 span {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -3612,6 +3626,7 @@ display: none;
   .staticPage .staticPageHeader.mobile h1 {
     font-size: 40px;
     line-height: 48px;
+    padding-top: 25px;
   }
   .staticPage .staticPageHeader.mobile .staticPageHeaderText {
     font-size: 16px;
@@ -3628,6 +3643,7 @@ display: none;
     order: -1;
     width: 100%;
     justify-content: center;
+    padding-top: -25px;
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages {
     width: 326px;

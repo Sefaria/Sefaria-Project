@@ -3253,52 +3253,54 @@ const MobileAppPage = () => (
                 />
             </div>
         </GreyBox>
-        <Feature
-            enTitle="Calendar"
-            heTitle="לוח השנה העברי בגישה מהירה"
-            enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more."
-            heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
-            enImg="/static/img/mobile-landing-page/calmock.png"
-            enImgAlt="Screenshot of calendar on app"
-            heImg="/static/img/mobile-landing-page/calmockHEB.png"
-            heImgAlt="Screenshot of calendar on app"
-            borderColor={palette.colors.yellow}
-        />
-        <Feature
-            reverse
-            enTitle="Commentaries"
-            heTitle="פרשנויות, מדרשים ועוד"
-            enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
-            heText="בספריית ספריא תוכלו לעיין במגוון פרשנויות, מדרשים ועוד ולהנות מקישוריות המחברות בין מקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלו כוללים את כתביהם של רש״י, אבן עזרא, רמב״ן, ספורנו, אברבנאל ועוד אודות התנ״ך, ואת כתבים של רש״י, רשב״א, ועוד אודות התלמוד."
-            enImg="/static/img/mobile-landing-page/commmock.png"
-            enImgAlt="Screenshot of commentary panel on app"
-            heImg="/static/img/mobile-landing-page/commmockHEB.png"
-            heImgAlt="Screenshot of commentary panel on app"
-            borderColor={palette.colors.blue}
-        />
-        <Feature
-            enTitle="Search"
-            heTitle="חיפוש מקיף בכמה הקשות מהירות"
-            enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
-            heText="בעזרת שורת החיפוש, תוכלו לחפש נושאים, מילות מפתח ופראזות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש על ידי בחירה בתנאי חיפוש מסוימים, כגון כרונולוגיה, רלוונטיות או השתייכות לכותר מסוים."
-            enImg="/static/img/mobile-landing-page/searchmock.png"
-            enImgAlt="Screenshot of search on app"
-            heImg="/static/img/mobile-landing-page/searchmockHEB.png"
-            heImgAlt="Screenshot of search on app"
-            borderColor={palette.colors.green}
-        />
-        <Feature
-            reverse
-            enTitle="Account Features"
-            heTitle="מאפיינים אישיים לבעלי חשבון אישי"
-            enText="Log in with a free Sefaria account to bookmark texts, sync your reading history across devices, and customize your settings."
-            heText="התחברו לחשבון האישי שלכם בספריא על מנת לשמור מקורות ברשימת המועדפים, לסנכרן את היסטוריית הקריאה שלכם במספר מכשירים במקביל ולעדכן את הגדרות הפרופיל שלכם."
-            enImg="/static/img/mobile-landing-page/accountfeaturesmock.png"
-            enImgAlt="Screenshot of settigns on app"
-            heImg="/static/img/mobile-landing-page/accountfeaturesmockHEB.png"
-            heImgAlt="Screenshot of settings on app"
-            borderColor={palette.colors.red}
-        />
+        <div class="mobileFeatures">
+            <Feature
+                enTitle="Calendar"
+                heTitle="לוח השנה העברי בגישה מהירה"
+                enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more."
+                heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
+                enImg="/static/img/mobile-landing-page/calmock.png"
+                enImgAlt="Screenshot of calendar on app"
+                heImg="/static/img/mobile-landing-page/calmockHEB.png"
+                heImgAlt="Screenshot of calendar on app"
+                borderColor={palette.colors.yellow}
+            />
+            <Feature
+                reverse
+                enTitle="Commentaries"
+                heTitle="פרשנויות, מדרשים ועוד"
+                enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
+                heText="בספריית ספריא תוכלו לעיין במגוון פרשנויות, מדרשים ועוד ולהנות מקישוריות המחברות בין מקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלו כוללים את כתביהם של רש״י, אבן עזרא, רמב״ן, ספורנו, אברבנאל ועוד אודות התנ״ך, ואת כתבים של רש״י, רשב״א, ועוד אודות התלמוד."
+                enImg="/static/img/mobile-landing-page/commmock.png"
+                enImgAlt="Screenshot of commentary panel on app"
+                heImg="/static/img/mobile-landing-page/commmockHEB.png"
+                heImgAlt="Screenshot of commentary panel on app"
+                borderColor={palette.colors.blue}
+            />
+            <Feature
+                enTitle="Search"
+                heTitle="חיפוש מקיף בכמה הקשות מהירות"
+                enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
+                heText="בעזרת שורת החיפוש, תוכלו לחפש נושאים, מילות מפתח ופראזות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש על ידי בחירה בתנאי חיפוש מסוימים, כגון כרונולוגיה, רלוונטיות או השתייכות לכותר מסוים."
+                enImg="/static/img/mobile-landing-page/searchmock.png"
+                enImgAlt="Screenshot of search on app"
+                heImg="/static/img/mobile-landing-page/searchmockHEB.png"
+                heImgAlt="Screenshot of search on app"
+                borderColor={palette.colors.green}
+            />
+            <Feature
+                reverse
+                enTitle="Account Features"
+                heTitle="מאפיינים אישיים לבעלי חשבון אישי"
+                enText="Log in with a free Sefaria account to bookmark texts, sync your reading history across devices, and customize your settings."
+                heText="התחברו לחשבון האישי שלכם בספריא על מנת לשמור מקורות ברשימת המועדפים, לסנכרן את היסטוריית הקריאה שלכם במספר מכשירים במקביל ולעדכן את הגדרות הפרופיל שלכם."
+                enImg="/static/img/mobile-landing-page/accountfeaturesmock.png"
+                enImgAlt="Screenshot of settigns on app"
+                heImg="/static/img/mobile-landing-page/accountfeaturesmockHEB.png"
+                heImgAlt="Screenshot of settings on app"
+                borderColor={palette.colors.red}
+            />
+        </div>
         <div className="mobileDownloadCTA staticPageBlockInner">
             <h3>
                 <span className="int-en">Download the app and start exploring today</span>
