@@ -540,9 +540,9 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Only CSRF legacy header should be added
-        assert 'set-cookie-legacy-csrftoken' in result._headers
-        assert 'set-cookie-legacy-sessionid' not in result._headers
+        # Only CSRF legacy morsel should be added — session cookie was not in the response
+        assert '_legacy_expire_csrftoken' in result.cookies
+        assert '_legacy_expire_sessionid' not in result.cookies
 
 
 class TestSessionIDAuthMiddleware:
