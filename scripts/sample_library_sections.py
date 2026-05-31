@@ -18,6 +18,7 @@ import argparse
 import json
 import random
 from collections import OrderedDict
+from functools import lru_cache
 from pathlib import Path
 
 import django
@@ -26,7 +27,8 @@ django.setup()
 
 from google.cloud.exceptions import GoogleCloudError
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model import Ref, VersionSet, library
+from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.model import LinkSet, Ref, TextChunk, VersionSet, library
 from tqdm import tqdm
 
 
@@ -39,6 +41,64 @@ LANGUAGE = "he"
 
 def build_sefaria_url(oref):
     return f"https://www.sefaria.org/{oref.url()}"
+
+
+def flatten_text(text_value):
+    if isinstance(text_value, str):
+        return text_value.strip()
+    return JaggedTextArray(text_value).flatten_to_string().strip()
+
+
+@lru_cache(maxsize=20000)
+def get_hebrew_text_for_tref(tref):
+    try:
+        oref = Ref(tref)
+        return flatten_text(TextChunk(oref, lang=LANGUAGE).text)
+    except Exception as exc:
+        print(f"Could not load Hebrew base text for {tref!r}: {exc}")
+        return ""
+
+
+@lru_cache(maxsize=20000)
+def get_verified_base_text_mapping(commentary_segment_ref):
+    commentary_segment_ref = Ref(commentary_segment_ref)
+    if not commentary_segment_ref.is_commentary():
+        return None
+
+    base_text_titles = set(getattr(commentary_segment_ref.index, "base_text_titles", []) or [])
+    if not base_text_titles:
+        return None
+
+    for link in LinkSet(commentary_segment_ref):
+        if link.type != "commentary":
+            continue
+        base_ref = link.ref_opposite(commentary_segment_ref)
+        if base_ref is None or base_ref.index.title not in base_text_titles:
+            continue
+        return {
+            "ref": base_ref.normal(),
+            "url": build_sefaria_url(base_ref),
+            "indexTitle": base_ref.index.title,
+            "text": get_hebrew_text_for_tref(base_ref.normal()),
+        }
+
+    return None
+
+
+def build_base_text_mappings(segment_trefs):
+    mappings = OrderedDict()
+    for segment_tref in segment_trefs:
+        mapping = get_verified_base_text_mapping(segment_tref)
+        if mapping is not None:
+            mappings[segment_tref] = mapping
+    return mappings
+
+
+def add_base_text_mappings(section_payload):
+    base_text_mappings = build_base_text_mappings(section_payload["segments"].keys())
+    if base_text_mappings:
+        section_payload["baseTextMappings"] = dict(base_text_mappings)
+    return section_payload
 
 
 def is_supported_index(index):
@@ -129,6 +189,9 @@ def sample_section_payloads(sample_size, seed=None):
         raise ValueError(
             f"Requested {sample_size} section refs, but only found {total_seen} eligible Hebrew sections."
         )
+
+    for payload in tqdm(reservoir, desc="Loading base text mappings"):
+        add_base_text_mappings(payload)
 
     return reservoir, total_seen
 
