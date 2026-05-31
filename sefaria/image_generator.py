@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
 import textwrap
 from bidi.algorithm import get_display
 import re
@@ -20,14 +20,45 @@ palette = { # [(bg), (font)]
     "Chasidut":    [(151, 179, 134), (0, 0, 0)],
     "Musar":    [(124, 65, 111), (255, 255, 255)],
     "Responsa":    [(203, 97, 88), (255, 255, 255)],
+    "Second Temple": [(198, 167, 180), (0, 0, 0)],
     "Quoting Commentary": [(203, 97, 88), (255, 255, 255)],
     "Sheets":    [(24, 52, 93), (255, 255, 255)],
     "Sheet":    [(24, 52, 93), (255, 255, 255)],
     "Targum":    [(59, 88, 73), (255, 255, 255)],
     "Modern Commentary":    [(184, 212, 211), (255, 255, 255)],
     "Reference":    [(212, 137, 108), (255, 255, 255)],
-    "System":    [(24, 52, 93), (255, 255, 255)]
+    "System":    [(24, 52, 93), (255, 255, 255)],
+    "Static":    [(0, 80, 94), (255, 255, 255)]
 }
+
+fallback_palette_colors = [
+    (0, 78, 95),
+    (124, 65, 111),
+    (93, 149, 111),
+    (154, 184, 203),
+    (72, 113, 191),
+    (203, 97, 88),
+    (199, 167, 180),
+    (7, 53, 112),
+    (171, 78, 102),
+    (127, 133, 169),
+    (204, 180, 121),
+    (89, 65, 118),
+    (90, 153, 183),
+    (151, 179, 134),
+    (128, 47, 62),
+    (0, 130, 127),
+    (184, 212, 211),
+    (212, 137, 108),
+]
+
+
+def get_category_colors(category):
+    if category in palette:
+        return palette[category]
+    category = category if isinstance(category, str) else ""
+    index = sum(ord(char) for char in category) % len(fallback_palette_colors)
+    return [fallback_palette_colors[index], (255, 255, 255)]
 
 platforms = {
     "facebook": {
@@ -55,10 +86,48 @@ def smart_truncate(content, length=180, suffix='...'):
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
+def get_text_width(text, font):
+    if hasattr(font, "getlength"):
+        return font.getlength(text)
+    if hasattr(font, "getbbox"):
+        left, _, right, _ = font.getbbox(text)
+        return right - left
+    return font.getsize(text)[0]
+
+
 def calc_letters_per_line(text, font, img_width):
-    avg_char_width = sum(font.getsize(char)[0] for char in text) / len(text)
-    max_char_count = int(img_width / avg_char_width )
-    return max_char_count
+    if not text:
+        return 1
+    avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
+    if avg_char_width <= 0:
+        return len(text)
+    max_char_count = int(img_width / avg_char_width)
+    return max(1, max_char_count)
+
+
+def wrap_text_preserving_linebreaks(text, width):
+    # HTML cleanup turns <br> and block boundaries into "\n". Wrap each line
+    # independently so those intentional breaks survive textwrap's whitespace handling.
+    return "\n".join(
+        textwrap.fill(text=line, width=width, replace_whitespace=False)
+        for line in text.split("\n")
+    )
+
+
+def supports_rtl_text_layout():
+    return features.check("raqm")
+
+
+def prepare_text_for_drawing(text, lang):
+    if lang == "en" or supports_rtl_text_layout():
+        return text
+    return get_display(text)
+
+
+def get_text_direction(lang):
+    if lang != "en" and supports_rtl_text_layout():
+        return "rtl"
+    return None
 
 
 def html_to_text_canonical(html):
@@ -94,15 +163,14 @@ def cleanup_and_format_text(text, language):
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
 
-    strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
+    strip_cantillation_vowel_regex = re.compile("[^\u05d0-\u05f4\\s^\x00-\x7F\x80-\xFF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u2000-\u206f]")
     text = strip_cantillation_vowel_regex.sub('', text)
     text = smart_truncate(text)
     return text
 
 
 def generate_image(text="", category="System", ref_str="", lang="he", platform="twitter"):
-    text_color = palette[category][1]
-    bg_color = palette[category][0]
+    bg_color, text_color = get_category_colors(category)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -127,23 +195,25 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
 
     text = cleanup_and_format_text(text, lang)
-    text = textwrap.fill(text=text, width= calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
-    text = get_display(text) # Applies BIDI algorithm to text so that letters aren't reversed in PIL.
+    text = wrap_text_preserving_linebreaks(text, calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
+    text = prepare_text_for_drawing(text, lang)
+    direction = get_text_direction(lang)
 
     draw = ImageDraw.Draw(im=img)
     draw.text(xy=(img.size[0] / 2, img.size[1] / 2), text=text, font=font, spacing=spacing, align=align,
-              fill=text_color, anchor='mm')
+              fill=text_color, anchor='mm', direction=direction)
 
 
     #category line
-    draw.line(cat_border_pos, fill=palette[category][0], width=int(width*.02))
+    draw.line(cat_border_pos, fill=bg_color, width=int(width*.02))
 
     #header white
     draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
     draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
 
     #write ref
-    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=get_display(ref_str.upper()), font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm')
+    ref_text = prepare_text_for_drawing(ref_str.upper(), lang)
+    draw.text(xy=(img.size[0] / 2, img.size[1]-padding_y/2), text=ref_text, font=ref_font, spacing=spacing, align=align, fill=text_color, anchor='mm', direction=direction)
 
 
     #border
