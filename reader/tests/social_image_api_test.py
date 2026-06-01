@@ -48,14 +48,27 @@ class DummyTextFamily:
         }
 
 
-def _request(path, active_module=None, host=None):
-    request = RequestFactory().get(path, HTTP_HOST=host or "localsefaria.xyz:8000")
+def _request(path, active_module=None, host="localsefaria.xyz:8000"):
+    """
+    Build a fake Django request aimed at the given path.
+
+    ``host`` sets the HTTP Host header so the view can figure out which Sefaria
+    module (Library vs Voices) the request came from. It defaults to the
+    standard local development Library domain so most tests don't have to
+    supply it. Pass a Voices domain (e.g. ``voices.localsefaria.xyz:8000``)
+    when the test needs to simulate a request from the Voices module.
+
+    ``active_module`` is set directly on the request object because the
+    django-hosts middleware normally sets it during request processing — tests
+    skip that middleware, so we set it manually here.
+    """
+    request = RequestFactory().get(path, HTTP_HOST=host)
     if active_module:
         request.active_module = active_module
     return request
 
 
-def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1"):
+def _capture_social_image_call(monkeypatch, path, active_module=None, host="localsefaria.xyz:8000", tref=None):
     # Replace the image builders with small recorders. These tests care about
     # which kind of image the view chooses, not about Pillow drawing pixels.
     captured = {}
@@ -134,8 +147,36 @@ def test_social_image_path_classification_caches_common_paths(monkeypatch):
     views._classify_social_image_path.cache_clear()
 
 
+def test_classify_social_image_path_serve_static_route_is_static():
+    # "jobs" is registered in sites/sefaria/urls.py under serve_static,
+    # which appears before catchall in shared_patterns.
+    views._classify_social_image_path.cache_clear()
+    result = views._classify_social_image_path("jobs", LIBRARY_MODULE)
+    assert result == views.SocialImagePageType.STATIC
+    views._classify_social_image_path.cache_clear()
+
+
+def test_classify_social_image_path_serve_static_by_lang_route_is_static():
+    # "about" is registered under serve_static_by_lang, which is also
+    # classified as STATIC so all marketing pages share the same neutral image.
+    views._classify_social_image_path.cache_clear()
+    result = views._classify_social_image_path("about", LIBRARY_MODULE)
+    assert result == views.SocialImagePageType.STATIC
+    views._classify_social_image_path.cache_clear()
+
+
+def test_classify_social_image_path_catchall_ref_on_library_is_ref():
+    # A Sefaria text ref like "Genesis.1.1" does not match any named URL
+    # pattern, so it falls through to the catchall at the end of shared_patterns.
+    # On the Library module that catchall match means the path is a text ref.
+    views._classify_social_image_path.cache_clear()
+    result = views._classify_social_image_path("Genesis.1.1", LIBRARY_MODULE)
+    assert result == views.SocialImagePageType.REF
+    views._classify_social_image_path.cache_clear()
+
+
 def test_social_image_api_defaults_missing_lang_to_english(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", tref="Genesis.1.1")
 
     assert result["kind"] == "ref"
     assert result["lang"] == "en"
@@ -161,6 +202,7 @@ def test_social_image_api_defaults_missing_lang_to_host_language(monkeypatch):
         "/api/img-gen/Genesis.1.1",
         active_module=VOICES_MODULE,
         host="chiburim.localsefaria-il.xyz:8000",
+        tref="Genesis.1.1",
     )
 
     assert result["kind"] == "module_fallback"
@@ -175,6 +217,7 @@ def test_social_image_api_lang_param_overrides_host_language(monkeypatch):
         "/api/img-gen/Genesis.1.1?lang=en",
         active_module=VOICES_MODULE,
         host="chiburim.localsefaria-il.xyz:8000",
+        tref="Genesis.1.1",
     )
 
     assert result["kind"] == "module_fallback"
@@ -189,6 +232,7 @@ def test_social_image_api_hebrew_lang_param_overrides_english_voices_host(monkey
         "/api/img-gen/Genesis.1.1?lang=he",
         active_module=VOICES_MODULE,
         host="voices.localsefaria.xyz:8000",
+        tref="Genesis.1.1",
     )
 
     assert result["kind"] == "module_fallback"
@@ -203,6 +247,7 @@ def test_social_image_api_english_lang_param_overrides_hebrew_library_host(monke
         "/api/img-gen/Genesis.1.1?lang=en",
         active_module=LIBRARY_MODULE,
         host="localsefaria-il.xyz:8000",
+        tref="Genesis.1.1",
     )
 
     assert result["lang"] == "en"
@@ -211,7 +256,7 @@ def test_social_image_api_english_lang_param_overrides_hebrew_library_host(monke
 
 
 def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=", tref="Genesis.1.1")
 
     assert result["lang"] == "en"
     assert result["text"] == "In the beginning"
@@ -219,7 +264,7 @@ def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):
 
 
 def test_social_image_api_defaults_invalid_lang_to_host_language(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=english")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=english", tref="Genesis.1.1")
 
     assert result["lang"] == "en"
     assert result["text"] == "In the beginning"
@@ -233,6 +278,7 @@ def test_social_image_api_uses_host_language_for_bilingual_lang_param(monkeypatc
         "/api/img-gen/Genesis.1.1?lang=bi",
         active_module=VOICES_MODULE,
         host="chiburim.localsefaria-il.xyz:8000",
+        tref="Genesis.1.1",
     )
 
     assert result["kind"] == "module_fallback"
@@ -241,7 +287,7 @@ def test_social_image_api_uses_host_language_for_bilingual_lang_param(monkeypatc
 
 
 def test_social_image_api_preserves_hebrew_lang(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=he")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=he", tref="Genesis.1.1")
 
     assert result["lang"] == "he"
     assert result["text"] == "בראשית"
@@ -249,44 +295,54 @@ def test_social_image_api_preserves_hebrew_lang(monkeypatch):
 
 
 def test_social_image_api_defaults_empty_platform_to_facebook(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=", tref="Genesis.1.1")
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_defaults_invalid_platform_to_facebook(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=linkedin")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=linkedin", tref="Genesis.1.1")
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_preserves_facebook_platform(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=facebook")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=facebook", tref="Genesis.1.1")
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_preserves_twitter_platform(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter", tref="Genesis.1.1")
 
     assert result["platform"] == "twitter"
 
 
 def test_social_image_api_defaults_missing_module_to_library(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1")
+    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", tref="Genesis.1.1")
 
     assert result["module"] == LIBRARY_MODULE
 
 
 def test_social_image_api_uses_request_active_module(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module=VOICES_MODULE)
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1",
+        active_module=VOICES_MODULE,
+        tref="Genesis.1.1",
+    )
 
     assert result["kind"] == "module_fallback"
     assert result["module"] == VOICES_MODULE
 
 
 def test_social_image_api_defaults_invalid_active_module_to_library(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module="something-else")
+    result = _capture_social_image_call(
+        monkeypatch,
+        "/api/img-gen/Genesis.1.1",
+        active_module="something-else",
+        tref="Genesis.1.1",
+    )
 
     assert result["kind"] == "ref"
     assert result["module"] == LIBRARY_MODULE
@@ -343,20 +399,20 @@ def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatc
         "/api/img-gen/Genesis.1.1?"
         "lang=en&ven=english%7CThe_Contemporary_Torah,_Jewish_Publication_Society,_2006"
     )
-    result = _capture_social_image_call(monkeypatch, path)
+    result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
     assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
 
 
 def test_social_image_api_extracts_hebrew_version_title_from_vhe(monkeypatch):
     path = "/api/img-gen/Genesis.1.1?lang=he&vhe=hebrew%7CTanach_with_Ta%27amei_Hamikra"
-    result = _capture_social_image_call(monkeypatch, path)
+    result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
     assert result["text_family_kwargs"]["version"] == "Tanach with Ta'amei Hamikra"
 
 
 def test_social_image_api_accepts_legacy_version_title_without_language_prefix(monkeypatch):
     path = "/api/img-gen/Genesis.1.1?lang=en&ven=The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
-    result = _capture_social_image_call(monkeypatch, path)
+    result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
     assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
