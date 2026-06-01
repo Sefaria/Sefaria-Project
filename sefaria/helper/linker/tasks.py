@@ -267,6 +267,9 @@ def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bo
 
 def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
     """Upsert citation span + link for a resolved non-segment reference."""
+    if result and not result.resolved_ref:
+        _update_linker_output_resolution_fields(payload, result)
+        return
     if not result or not result.resolved_ref:
         return
 
@@ -332,6 +335,9 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
 
 def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
     """Upsert citation span + link and record temp data for a resolved non-segment reference."""
+    if result and not result.resolved_ref:
+        _update_linker_output_resolution_fields(payload, result)
+        return
     if not result or not result.resolved_ref:
         return
 
@@ -508,9 +514,12 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
             if span.get("ambiguous"):
                 if not span.get("llm_ambiguous_option_valid"):
                     continue
-            span["llm_resolved_ref_non_segment"] = result.resolved_ref
-            span["llm_resolved_method_non_segment"] = result.method
-            span["llm_resolved_phrase_non_segment"] = result.llm_resolved_phrase
+            if result.resolved_ref:
+                span["llm_resolved_ref_non_segment"] = result.resolved_ref
+                span["llm_resolved_method_non_segment"] = result.method
+                span["llm_resolved_phrase_non_segment"] = result.llm_resolved_phrase
+            if getattr(result, "rejected_ref", None):
+                span["llm_resolved_ref_but_rejected"] = result.rejected_ref
         updated = True
 
     if updated:
