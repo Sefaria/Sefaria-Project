@@ -65,6 +65,7 @@ node_modules
 .cursor/
 .claude/
 CLAUDE.md
+!e2e-tests/CLAUDE.md
 
 # pystest cache #
 #####################
