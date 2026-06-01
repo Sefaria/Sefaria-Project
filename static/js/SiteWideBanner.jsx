@@ -19,8 +19,8 @@ const getPromoStorageKeys = (cookieName) => {
   };
 };
 
-const getPromoSessionLengthSeconds = (remoteConfig) => {
-  const configuredSessionLengthSeconds = Number(remoteConfig?.chatbotPromo?.sessionLengthSeconds);
+const getPromoSessionLengthSeconds = (promoSessionLength) => {
+  const configuredSessionLengthSeconds = Number(promoSessionLength);
   return Number.isFinite(configuredSessionLengthSeconds) && configuredSessionLengthSeconds > 0
     ? configuredSessionLengthSeconds
     : DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
@@ -68,12 +68,12 @@ const SiteWideBanner = ({
   learnMoreText,
   cookieName,
   gtagParams,
-  remoteConfig,
+  promoSessionLength,
   useBackoffDismissal,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
-  const sessionLengthSeconds = getPromoSessionLengthSeconds(remoteConfig);
+  const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLength);
   const promoSessionCounter = useBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
     : null;
@@ -191,7 +191,7 @@ SiteWideBanner.propTypes = {
   learnMoreText: PropTypes.string,
   cookieName: PropTypes.string.isRequired,
   gtagParams: PropTypes.object.isRequired,
-  remoteConfig: PropTypes.object,
+  promoSessionLength: PropTypes.number,
   useBackoffDismissal: PropTypes.bool,
 };
 
@@ -204,7 +204,7 @@ const CHATBOT_BANNER_LEARN_MORE_URLS = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, remoteConfig }) => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoSessionLength }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
   const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
@@ -248,7 +248,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, remoteConfig }) => {
       learnMoreUrl={learnMoreUrl}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
-      remoteConfig={remoteConfig}
+      promoSessionLength={promoSessionLength}
       useBackoffDismissal={true}
     />
   );
@@ -256,7 +256,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, remoteConfig }) => {
 
 ChatbotExperimentBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
-  remoteConfig: PropTypes.object,
+  promoSessionLength: PropTypes.number,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };
