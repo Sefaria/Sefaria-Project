@@ -15,6 +15,6 @@ ENV DEBUG=false
 # git + build toolchain (gcc/libc6-dev/libpq-dev) needed to build C-extensions
 # (datrie, lxml, gevent, psycopg2) from source on Python 3.12 when no wheels exist.
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends git npm varnish gcc libc6-dev libpq-dev curl \
+    && apt-get install -y --no-install-recommends git npm varnish gcc libc6-dev libpq-dev curl libraqm-dev \
     && apt-get clean
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log
