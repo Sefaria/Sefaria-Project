@@ -1,445 +1,139 @@
-# Sanity Test Suite
+# Sanity — Release-gate E2E Tests
 
-This directory contains critical sanity tests that validate core functionality across the Sefaria platform. These tests should be run before every release to ensure essential user workflows remain functional.
+The **release-gate smoke suite**. These tests validate the core user-facing workflows and cross-module integration that must work before every release — authentication state, navigation, profile/settings, the full sheet lifecycle, search, and URL redirects across the Library and Voices modules. A failing Sanity test is a blocking issue.
 
-## Overview
-
-The sanity test suite is organized into focused test files, each covering a specific domain of functionality. Tests validate both single-module behavior and cross-module integration, ensuring authentication state, navigation, and data persist correctly across the Library and Voices modules.
-
-## Test Organization
-
-### Core Sanity Tests
-
-Located in the main `Sanity/` directory, these tests cover critical user-facing workflows and release-gate smoke scenarios across the Library and Voices modules.
-
-### Cross-Module Redirect Tests
-
-Located directly in `Sanity/` (`cross-module-redirects.spec.ts`), these tests validate redirect behavior between Library and Voices and were originally drafted for launch-day validation.
-
-### Help Sheet Redirect Tests
-
-Located in `Misc/` (`help-sheet-redirects.spec.ts`), these tests validate that legacy help-sheet URLs redirect correctly to the new Zendesk Help Center. They run under the `chrome-misc` / `firefox-misc` / `safari-misc` Playwright projects rather than the `-sanity` projects.
+Runs under the `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects (`baseURL` = `www.<sandbox-domain>`). New here? Read the root [handbook](../README.md) first — it covers setup, the PageManager pattern, and the conventions these specs follow.
 
 ---
 
-## Test Files
+## 1. What it covers
 
-### cross-module-login.spec.ts
-
-**Purpose**: Validates authentication state persistence across Library and Voices modules, preventing authentication bugs that could break the user experience.
-
-**Test Scenarios**:
-
-1. **Login on Library, verify logged in state and remain on Library**
-   - Verifies basic login functionality works on the Library module
-   - Confirms user remains on Library after successful authentication
-   - Validates profile picture and logout option appear in user menu
-
-2. **Login on Library, switch to Voices via Module Switcher, verify logged in on Voices**
-   - Tests that authentication state transfers when switching from Library to Voices
-   - Validates module switcher navigation functionality
-   - Ensures logged-in UI elements appear correctly on Voices after switch
-
-3. **Login on Voices, switch to Library via Module Switcher, verify logged in on Library**
-   - Tests reverse direction: authentication transfer from Voices to Library
-   - Validates bidirectional authentication state persistence
-   - Confirms logged-in status displays correctly on Library module
-
-4. **Multiple Library tabs - attempt login on second tab shows error**
-   - Validates concurrent session handling within Library module
-   - Tests that logging in on one tab prevents duplicate login attempts on another
-   - Confirms appropriate error message displays: "You are already logged in as"
-
-5. **Multiple Voices tabs - attempt login on second tab shows error**
-   - Validates concurrent session handling within Voices module
-   - Ensures consistent behavior with Library module session management
-   - Verifies error messaging matches expected UX patterns
-
-6. **Login on Library, try login on previously opened Voices tab**
-   - Tests cross-module session detection with multiple tabs
-   - Validates that logging in on Library prevents duplicate login on Voices tab
-   - Ensures authentication state synchronizes across different module tabs
-
-7. **Login on Voices, try login on previously opened Library tab**
-   - Tests reverse cross-module session detection
-   - Validates authentication synchronization from Voices to Library tabs
-   - Confirms consistent error handling across module boundaries
-
-8. **Logged in Library user navigates to sheet link, opens in Voices while logged in**
-   - Simulates external navigation scenario (e.g., Google search result to sheet)
-   - Validates authentication persists when navigating from Library to Voices content
-   - Tests real-world user journey: starting on Library, clicking sheet link
-
-9. **Logged in Voices user navigates to text link, opens in Library while logged in**
-   - Simulates external navigation from Voices to Library content
-   - Validates authentication persists in reverse direction
-   - Tests cross-module deep linking while maintaining session state
+| Spec file | IDs | Area |
+| --- | --- | --- |
+| [cross-module-login.spec.ts](cross-module-login.spec.ts) | Scenarios 1–9 | Auth-state persistence across Library ↔ Voices: login, module-switch, multi-tab concurrent-session handling, cross-module deep links. |
+| [user-flow-sanity.spec.ts](user-flow-sanity.spec.ts) | Sanity 1–7 | Core user workflows: login, view profile, edit profile, edit account settings, change language, module switcher, logout. |
+| [sheet-workflow-sanity.spec.ts](sheet-workflow-sanity.spec.ts) | Sanity 8a–8j | Full sheet lifecycle (serial): create → title → add source/image/YouTube/reader-source → publish → unpublish → add to collection → delete. |
+| [search-sanity.spec.ts](search-sanity.spec.ts) | Sanity 9a–9f | Search across both modules: suggestion click-through, results submission, dropdown section/icon validation (module-specific). |
+| [cross-module-redirects.spec.ts](cross-module-redirects.spec.ts) | 4 suites | Library→Voices URL redirects, query-param preservation, 301 status codes, no-redirect-loop on Voices. |
+| [../Misc/help-sheet-redirects.spec.ts](../Misc/help-sheet-redirects.spec.ts) | data-driven | Legacy help-sheet URLs → Zendesk (EN + HE). **Runs under the `*-misc` projects**, documented here for completeness. |
 
 ---
 
-### user-flow-sanity.spec.ts
+## 2. Per-spec detail
 
-**Purpose**: Validates essential user workflows that represent the most common and critical user interactions with the platform.
+### cross-module-login.spec.ts — Scenarios 1–9
 
-**Test Cases**:
+| # | Scenario | Asserts |
+| --- | --- | --- |
+| 1 | Login on Library, stay on Library | Login works; user stays on Library; profile pic + logout in user menu. |
+| 2 | Login on Library → switch to Voices | Auth transfers Library→Voices via module switcher; logged-in UI on Voices. |
+| 3 | Login on Voices → switch to Library | Reverse direction; bidirectional auth persistence. |
+| 4 | Two Library tabs, login on 2nd | Concurrent-session handling; "You are already logged in as" error. |
+| 5 | Two Voices tabs, login on 2nd | Same, on Voices. |
+| 6 | Login on Library, then login on open Voices tab | Cross-module session detection prevents duplicate login. |
+| 7 | Login on Voices, then login on open Library tab | Reverse cross-module session detection. |
+| 8 | Logged-in Library user opens a sheet link in Voices | Auth persists on external→Voices deep link. |
+| 9 | Logged-in Voices user opens a text link in Library | Auth persists on external→Library deep link. |
 
-1. **Sanity 1: User can login successfully**
-   - Validates end-to-end login flow: opening menu, navigating to login, entering credentials
-   - Confirms profile picture appears after successful authentication
-   - Ensures login redirects user back to original page
+> ⚠️ **Tripwire:** Scenarios 4–7 perform parallel UI logins as the same QA user. They pass only because Sefaria's Django config doesn't regenerate sibling sessions on fresh login; if that policy tightens upstream, these become the next flake (flagged at the top of the spec, and in [../CLAUDE.md](../CLAUDE.md) rule 21).
 
-2. **Sanity 2: User can view profile with correct artifacts**
-   - Tests navigation to user profile via Voices module user menu (Profile option only exists on Voices)
-   - Validates profile page loads and displays expected user information
-   - Confirms profile artifacts appear: name, position, organization, bio, profile image
-   - Verifies edit button is visible on own profile
+### user-flow-sanity.spec.ts — Sanity 1–7
 
-3. **Sanity 3: User can edit profile successfully**
-   - Tests complete profile editing workflow on Voices module
-   - Validates form fields can be modified: position, organization, location
-   - Confirms save functionality works and updates are reflected on profile page
-   - Handles modularization popups and overlays that may block interaction
+| ID | Test | Asserts |
+| --- | --- | --- |
+| Sanity 1 | Login | End-to-end UI login (open menu → login → credentials); profile pic appears; redirected back to origin. |
+| Sanity 2 | View profile | Profile via the **Voices** user menu (Profile only exists on Voices); name/position/org/bio/image; edit button on own profile. |
+| Sanity 3 | Edit profile | Edit position/org/location on Voices; save persists to profile page. |
+| Sanity 4 | Edit account settings | Account Settings via **Library** (Library-only); email shown; toggle notifications/reading-history/customs; save-success dialog. |
+| Sanity 5 | Change language | EN↔HE toggle; `body` class + UI text update; round-trips back. |
+| Sanity 6 | Module switcher | Reaches Voices, Developers (external), More-from-Sefaria products, and back to Library — each in a new tab with the correct URL. |
+| Sanity 7 | Logout | UI logout terminates the session; logged-out UI (profile pic gone, user icon shown). **Uses `BROWSER_SETTINGS.enAdmin` — see the destructive-auth gotcha in §5.** |
 
-4. **Sanity 4: User can edit account settings**
-   - Tests account settings page access via Library module (Account Settings only exists on Library)
-   - Validates settings form displays current user email
-   - Confirms ability to modify settings: email notifications, reading history, textual customs
-   - Verifies save dialog appears with success confirmation
+### sheet-workflow-sanity.spec.ts — Sanity 8a–8j (serial)
 
-5. **Sanity 5: User can change site language**
-   - Tests language toggle between English and Hebrew
-   - Validates body class updates to reflect interface language
-   - Confirms UI text changes to selected language
-   - Tests bidirectional switch: English to Hebrew and back to English
+Runs `test.describe.configure({ mode: 'serial' })` with **shared state**: 8a creates one sheet that 8b–8j operate on.
 
-6. **Sanity 6: Module switcher reaches all destinations**
-   - Validates module switcher can navigate to all four destinations:
-     - Voices module
-     - Developers site (external)
-     - More from Sefaria products page
-     - Library module (validates return to original module)
-   - Confirms each destination opens in new tab with correct URL
-   - Ensures original Library page remains accessible
+| ID | Step | ID | Step |
+| --- | --- | --- | --- |
+| 8a | Login + create sheet (Voices Create button; unique ID) | 8f | Add source from the Library reader's connections panel |
+| 8b | Give the sheet a title (auto-save via content) | 8g | Publish with title/description/tags; Unpublish appears |
+| 8c | Add source via text lookup (e.g. "Genesis 1:1") | 8h | Unpublish; Publish button reappears |
+| 8d | Add an image (file upload) | 8i | Add to a new collection (unique name) |
+| 8e | Add a YouTube video (embed) | 8j | Delete the sheet; redirect to profile; gone from list |
 
-7. **Sanity 7: User can logout successfully**
-   - Tests complete logout workflow via user menu
-   - Validates user session is terminated
-   - Confirms logged-out UI state: profile picture removed, user icon visible
-   - Ensures logout redirects appropriately
+### search-sanity.spec.ts — Sanity 9a–9f
 
----
+| ID | Test | Asserts |
+| --- | --- | --- |
+| 9a | Library — suggestion click-through | Type a term (e.g. "abraham"), click a topic suggestion, land on the topic page. |
+| 9b | Library — submit search | Press Enter (e.g. "avraham"); results page with the query param; results visible. |
+| 9c | Library — dropdown sections/icons | Present: Authors/Topics/Categories/Books; **absent: Users**; correct icons. Term "mid" triggers all four. |
+| 9d | Voices — suggestion click-through | Type (e.g. "rashi"), click a suggestion, land on topic/profile. |
+| 9e | Voices — submit search | Press Enter (e.g. "shabbat"); Voices results page; may include sheets/topics/users. |
+| 9f | Voices — dropdown sections/icons | Present: Topics/Authors/Users; **absent: Categories/Books**; correct icons. Term "rashi" triggers all three. |
 
-### sheet-workflow-sanity.spec.ts
+### cross-module-redirects.spec.ts — 4 suites
 
-**Purpose**: Validates the complete sheet lifecycle from creation through deletion, covering all major sheet operations users perform.
+- **Suite 1 — Library→Voices redirects:** `/settings/profile`, `/community`, `/collections` (+ specific collection), `/profile` (+ specific user), `/sheets` (+ specific sheet ID) each redirect to the Voices equivalent with no 404/5xx and path preserved.
+- **Suite 2 — Query-param preservation:** redirects keep `?tab=…&test=…` and `?sort=recent`.
+- **Suite 3 — 301 status:** `/settings/profile` and `/community` return permanent 301s.
+- **Suite 4 — No loops on Voices:** direct Voices URLs don't redirect; `settings/account` correctly 404s on Voices (Library-only feature).
 
-**Note**: This test suite uses serial execution with shared state. Test 8a creates a single sheet that tests 8b-8j operate on.
+### ../Misc/help-sheet-redirects.spec.ts
 
-**Test Cases**:
-
-1. **Sanity 8a: Login and create sheet**
-   - Validates sheet creation via Create button in Voices module header
-   - Confirms new sheet loads in editor with unique ID
-   - Verifies sheet editor interface renders correctly
-   - Creates foundation sheet for subsequent workflow tests
-
-2. **Sanity 8b: Give sheet a title**
-   - Tests sheet title editing functionality
-   - Validates title persists after save (auto-save triggered by content addition)
-   - Confirms title displays correctly in editor
-   - Adds initial content to trigger auto-save mechanism
-
-3. **Sanity 8c: Add source using text lookup in Voices**
-   - Tests source addition via text lookup within Voices sheet editor
-   - Validates text lookup functionality (e.g., "Genesis 1:1")
-   - Confirms source appears in sheet with correct content
-   - Tests in-editor source addition workflow
-
-4. **Sanity 8d: Add image to sheet**
-   - Tests image upload functionality in sheet editor
-   - Validates file upload dialog and image selection process
-   - Confirms uploaded image displays correctly in sheet
-   - Tests rich media integration for visual content
-
-5. **Sanity 8e: Add YouTube video to sheet**
-   - Tests YouTube video embedding functionality
-   - Validates media link input and embed generation
-   - Uses test video URL: https://youtu.be/oRXVtpUCSGM
-   - Confirms YouTube player container renders correctly
-   - Tests multimedia content integration in sheets
-
-6. **Sanity 8f: Add source from Library reader to sheet**
-   - Tests adding source from Library reader's connections panel
-   - Validates cross-module source addition: from Library to Voices sheet
-   - Confirms source appears in sheet after navigation back
-   - Tests real-world workflow: reading text, adding to existing sheet
-
-7. **Sanity 8g: Publish sheet with metadata**
-   - Tests complete sheet publishing workflow
-   - Validates publish form accepts title, description, and tags
-   - Confirms sheet transitions to published state
-   - Verifies Unpublish option appears in menu after publishing
-
-8. **Sanity 8h: Unpublish sheet**
-   - Tests sheet unpublishing functionality
-   - Validates sheet returns to draft/unpublished state
-   - Confirms Publish button reappears after unpublishing
-   - Tests state transition: published to unpublished
-
-9. **Sanity 8i: Add sheet to a new collection**
-   - Tests collection creation and sheet association
-   - Validates new collection creation with unique name
-   - Confirms sheet appears in collection (checkbox checked in modal)
-   - Tests collections feature integration with sheets
-
-10. **Sanity 8j: Delete sheet**
-   - Tests complete sheet deletion workflow
-   - Validates deletion confirmation and execution
-   - Confirms redirect to user profile after deletion
-   - Verifies sheet no longer appears in user's profile sheet list
+Two describes (English + Hebrew), each **data-driven from [../helpDeskLinksConstants.ts](../helpDeskLinksConstants.ts)** — every legacy `/sheets/*` link must 301 to its exact `help.sefaria.org/hc/...` article with no error status. Runs under `*-misc`. (See [../Misc/README.md](../Misc/README.md).)
 
 ---
 
-### search-sanity.spec.ts
-
-**Purpose**: Validates critical search functionality across Library and Voices modules, ensuring users can discover content through search suggestions and search results.
-
-**Test Cases**:
-
-1. **Sanity 9a: Library - Click search suggestion and arrive at destination**
-   - Tests autocomplete suggestion functionality in Library module
-   - User types search term (e.g., "abraham") and clicks on a topic suggestion
-   - Validates navigation to correct topic page after clicking suggestion
-   - Ensures search suggestions are clickable and lead to appropriate destinations
-
-2. **Sanity 9b: Library - Submit search and get results**
-   - Tests full-text search submission in Library module
-   - User types search query (e.g., "avraham") and presses Enter
-   - Validates navigation to search results page with correct query parameter
-   - Confirms search results are displayed and visible to user
-   - Tests real-world search workflow: query submission and result display
-
-3. **Sanity 9c: Library - Search dropdown sections and icons validation**
-   - Validates Library-specific search dropdown UI elements
-   - Confirms presence of expected sections: Authors, Topics, Categories, Books
-   - Confirms absence of excluded sections: Users (Library doesn't show user results)
-   - Validates correct icons appear for each result type: AuthorTopic, Topic, TocCategory, ref
-   - Uses test term "mid" which reliably triggers all four Library sections
-
-4. **Sanity 9d: Voices - Click search suggestion and arrive at destination**
-   - Tests autocomplete suggestion functionality in Voices module
-   - User types search term (e.g., "rashi") and clicks on suggestion
-   - Validates navigation to correct topic or profile page
-   - Ensures Voices search suggestions work consistently with Library pattern
-
-5. **Sanity 9e: Voices - Submit search and get results**
-   - Tests full-text search submission in Voices module
-   - User types search query (e.g., "shabbat") and presses Enter
-   - Validates navigation to Voices search results page
-   - Confirms search results display correctly in Voices context
-   - Verifies Voices search results may include sheets, topics, and users
-
-6. **Sanity 9f: Voices - Search dropdown sections and icons validation**
-   - Validates Voices-specific search dropdown UI elements
-   - Confirms presence of expected sections: Topics, Authors, Users
-   - Confirms absence of excluded sections: Categories, Books (Voices doesn't show Library-specific results)
-   - Validates correct icons appear for each result type: Topic, AuthorTopic, User
-   - Uses test term "rashi" which reliably triggers all three Voices sections
-   - Demonstrates module-specific search behavior differences
-
----
-
-## Redirect Suite
-
-### cross-module-redirects.spec.ts
-
-**Location:** `Sanity/cross-module-redirects.spec.ts`
-
-**Purpose**: Validates URL redirect behavior between Library and Voices modules, ensuring legacy URLs redirect correctly and query parameters are preserved.
-
-**Test Suites**:
-
-#### Suite 1: Cross-Module Redirects - Library to Voices
-
-Tests that verify Library URLs redirect to their Voices equivalents:
-
-- **Settings Profile Redirect**: `/settings/profile` on Library redirects to Voices
-- **Community Page Redirect**: `/community` on Library redirects to Voices home
-- **Collections Redirect**: `/collections` on Library redirects to Voices collections
-- **Collections Redirect - Specific collection**: Specific collection URLs preserve path during redirect
-- **Profile Redirect**: `/profile` on Library redirects to user's profile on Voices
-- **Profile Redirect - With User**: Specific user profiles redirect with username preserved
-- **Sheets Redirect - Get Started Page**: `/sheets` on Library redirects to Voices get started page
-- **Sheets Redirect - Specific Sheet ID**: Specific sheet IDs redirect with ID preserved
-
-Each test validates:
-- No 404 or server error status codes
-- Redirect to correct Voices module URL
-- Path preservation where applicable
-
-#### Suite 2: Query Parameter Preservation
-
-Tests that verify URL query parameters are maintained during redirects:
-
-- **Query Parameters Preserved**: Settings profile redirect maintains `?tab=notifications&test=123`
-- **Collections Query Parameters Preserved**: Collections redirect maintains `?sort=recent`
-
-Ensures user state and context encoded in URLs is not lost during navigation.
-
-#### Suite 3: 301 Status Codes
-
-Tests that verify redirects use proper HTTP 301 (Permanent Redirect) status:
-
-- **Settings Profile Returns 301 Permanent Redirect**: `/settings/profile` returns 301 status
-- **Community Returns 301 Permanent Redirect**: `/community` returns 301 status
-
-Validates SEO best practices and proper HTTP semantics.
-
-#### Suite 4: No Redirect Loops on Voices
-
-Tests that verify accessing Voices URLs directly does not cause redirect loops:
-
-- **No Redirect When Already on Voices - Settings Profile**: Direct access to Voices settings profile stays on Voices
-- **No Redirect When Already on Voices - Home**: Voices home page does not redirect
-- **No Redirect When Already on Voices - Get Started Page**: Get started page accessible without redirect
-- **No Redirect When Already on Voices - Specific Sheet**: Sheet URLs work directly on Voices
-- **Settings Account Returns 404 on Voices**: Account settings correctly returns 404 on Voices (Library-only feature)
-
-Prevents infinite redirect loops and confirms module-specific content restrictions.
-
----
-
-### help-sheet-redirects.spec.ts
-
-**Location:** `Misc/help-sheet-redirects.spec.ts` (runs under the `*-misc` Playwright projects, not the `*-sanity` projects)
-
-**Purpose**: Validates that legacy help sheet URLs redirect correctly to the new Zendesk Help Center, ensuring users can still access help documentation via old links.
-
-**Test Suites**:
-
-#### Suite 1: Help Sheet to Zendesk Redirects - English
-
-Dynamically generates tests for each English help sheet redirect mapping defined in `helpDeskLinksConstants.ts`.
-
-Each test validates:
-- Old sheet URL (`www.sefaria.org/sheets/*`) redirects successfully
-- New destination is Zendesk Help Center (`help.sefaria.org/hc/en-us/*`)
-- No error status codes during redirect
-- Exact Zendesk article URL matches expected destination
-
-Ensures English-speaking users find correct help articles.
-
-#### Suite 2: Help Sheet to Zendesk Redirects - Hebrew
-
-Dynamically generates tests for each Hebrew help sheet redirect mapping.
-
-Each test validates:
-- Old Hebrew sheet URL (`www.sefaria.org.il/sheets/*`) redirects successfully
-- New destination is Hebrew Zendesk Help Center (`help.sefaria.org/hc/he/*`)
-- No error status codes during redirect
-- Exact Hebrew Zendesk article URL matches expected destination
-
-Ensures Hebrew-speaking users find correct localized help articles.
-
----
-
-## Running the Tests
-
-### Run All Sanity Tests
+## 3. Running
 
 ```bash
-npx playwright test Sanity
-```
+# Whole Sanity suite
+npx playwright test --project=chrome-sanity
 
-### Run Specific Test File
+# One spec
+npx playwright test Sanity/user-flow-sanity.spec.ts --project=chrome-sanity
 
-```bash
-npx playwright test Sanity/user-flow-sanity.spec.ts
-npx playwright test Sanity/cross-module-login.spec.ts
-npx playwright test Sanity/sheet-workflow-sanity.spec.ts
-npx playwright test Sanity/search-sanity.spec.ts
-```
+# One test / scenario by name
+npx playwright test -g 'Sanity 8a'
+npx playwright test -g 'Sanity 9c'
 
-### Run Redirect Suite
-
-```bash
-# Cross-module redirects (under Sanity)
-npx playwright test Sanity/cross-module-redirects.spec.ts
-
-# Help sheet redirects (under Misc)
-npx playwright test Misc/help-sheet-redirects.spec.ts
-```
-
-### Run Specific Test by Name
-
-```bash
-npx playwright test -g "User can login successfully"
-npx playwright test -g "Scenario 1"
-npx playwright test -g "Sanity 8a"
-npx playwright test -g "Sanity 9a"
+# Redirect suites
+npx playwright test Sanity/cross-module-redirects.spec.ts --project=chrome-sanity
+npx playwright test Misc/help-sheet-redirects.spec.ts --project=chrome-misc
 ```
 
 ---
 
-## Test Architecture
+## 4. Architecture
 
-### Module-Specific Navigation
-
-Tests account for module-specific UI elements:
-- **Profile menu**: Only available on Voices module
-- **Account Settings menu**: Only available on Library module
-
-Tests navigate to the appropriate module before interacting with module-specific features.
-
-### Authentication Strategy
-
-Tests use two authentication approaches:
-
-- `goToPageWithLang()`: Starts unauthenticated. Sanity 1 (UI login) and the cross-module multi-tab scenarios enter through this path so they can drive the real login form.
-- `goToPageWithUser()`: Reads a pre-authenticated storage state file (typically `auth_english_user.json` via `BROWSER_SETTINGS.enUser`) that [global-setup.ts](../global-setup.ts) writes once at run start. Every Sanity test that needs to *start* logged in uses this — no per-test login, no race between workers.
-
-### Test Isolation
-
-Most tests use independent execution:
-- Each test creates its own browser context
-- No shared state between tests
-- Clear failure isolation
-
-Exception: `sheet-workflow-sanity.spec.ts` uses serial execution with shared sheet state for efficiency.
+- **Module-specific UI:** the **Profile** menu exists only on Voices; **Account Settings** only on Library. Tests navigate to the right module before touching module-specific features.
+- **Auth strategy:** anonymous-start tests (Sanity 1 UI login, the multi-tab cross-module scenarios) enter via `goToPageWithLang(...)` so they can drive the real login form; logged-in-start tests use `goToPageWithUser(...)`, which reads the read-only storage state [global-setup.ts](../global-setup.ts) writes once at run start (no per-test login, no worker race).
+- **Isolation:** most tests are independent (fresh context per test). The one exception is `sheet-workflow-sanity.spec.ts`, which is **serial with shared sheet state** (8a → 8j).
+- **Page objects / constants:** all interaction goes through `PageManager`; URLs/selectors/data come from `constants.ts` and `globals.ts`.
 
 ---
 
-## Key Dependencies
+## 5. Gotchas & maintenance notes
 
-- **Page Objects**: Tests use Page Object Model pattern via `PageManager`
-- **Utilities**: Common functions in `utils.ts` for navigation, modal handling, authentication checks
-- **Constants**: Module URLs, selectors, and test data defined in `constants.ts` and `globals.ts`
-
----
-
-## Maintenance Notes
-
-### Known Test Behaviors
-
-1. **Language Switch Test**: Uses cookie fallback mechanism with page reload due to Strict Mode warnings
-2. **Profile Edit Test**: Includes workaround to remove modularization popups that may block save button
-3. **Sheet Workflow Tests**: Uses keyboard navigation workaround for plus button positioning issue
-
-### Test Data
-
-- **Test User**: `testUser` defined in `globals.ts` (credentials: QA Automation account)
-- **Test Sheet**: Sheet workflow creates unique sheet with timestamp ID
-- **Test Collection**: Collection created with unique timestamp name
+- ⚠️ **Sanity 7 (logout) must use `BROWSER_SETTINGS.enAdmin`, not `enUser`.** A UI logout destroys the server-side Django session row, which would invalidate the shared `auth_*.json` for every concurrent worker reading it. `enAdmin` is the de-facto destructive-auth throwaway — no other Sanity test depends on the admin session staying alive. This was a real flake (Sanity 8h/8i intermittently failed with "User Logged out" pills until Sanity 7 was moved off `enUser`). Any **new** destructive-auth test must use a profile no other concurrent test reads, or intercept the destructive request. Full treatment: root handbook [Destructive-auth tests](../README.md#destructive-auth-tests) and [../CLAUDE.md](../CLAUDE.md) rule 21.
+- **Language switch (Sanity 5)** uses a cookie fallback + page reload to dodge Strict Mode locator warnings.
+- **Profile edit (Sanity 3)** includes a workaround to clear modularization popups that can block the save button.
+- **Sheet workflow (8a–8j)** uses keyboard-navigation workarounds for the plus-button positioning issue, and relies on auto-save triggered by content addition.
+- **Test data:** `testUser` (QA Automation account) from `globals.ts`; the sheet-workflow suite creates a unique timestamped sheet and collection each run.
 
 ---
 
-## Success Criteria
+## 6. Adding a Sanity test
 
-All sanity tests passing indicates:
-- Core authentication flows work across modules
-- Essential user workflows (profile, settings, sheets) function correctly
-- Cross-module navigation and redirects work properly
-- Legacy help documentation URLs redirect successfully
-- No critical regressions in user-facing functionality
+1. Decide it's genuinely **release-gate** material — a core workflow or cross-module invariant. Narrow feature coverage belongs in a module folder or a `Full testing by Feature/` suite, not here.
+2. Give it the next `Sanity N` (or `Scenario N`) label in the relevant spec.
+3. If it **destroys or rotates a session** (logout, re-login of a globalSetup profile, password change), read §5 first — use `enAdmin` or intercept the request.
+4. Keep it independent unless it genuinely needs shared state (then opt into `serial`, like the sheet workflow).
 
-Failing sanity tests indicate a blocking issue that should prevent release.
+## 7. Related
+
+- [../README.md](../README.md) — the suite handbook
+- [../Misc/README.md](../Misc/README.md) — the help-sheet redirect suite
+- [../pages/README.md](../pages/README.md) — page-object index
+- [../CLAUDE.md](../CLAUDE.md) — prescriptive rules (incl. destructive-auth)

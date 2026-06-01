@@ -12,7 +12,7 @@ This README is the **handbook for humans**. Read it cover-to-cover when you join
 | --- | --- |
 | A **human** joining the team or writing/running tests | **This file** — the full handbook |
 | An **AI agent** operating in this directory | [CLAUDE.md](CLAUDE.md) — the same conventions, compressed into prescriptive rules, plus agent-specific patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception) |
-| Running the **release-gate** suite | [Sanity/SANITY.md](Sanity/SANITY.md) — per-test inventory |
+| Running the **release-gate** suite | [Sanity/README.md](Sanity/README.md) — per-test inventory |
 | Testing the **Library Assistant** chatbot | [assistant/README.md](assistant/README.md) |
 | Testing the **Resource Panel** (RP-NNN) | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Testing **Voices Topics** (TOV-NNN) | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
@@ -133,28 +133,33 @@ e2e-tests/
 ├── helpDeskLinksConstants.ts ← data driving Misc/help-sheet-redirects.spec.ts
 ├── auth_*.json            ← generated storage-state files (gitignored; written by global-setup)
 ├── pages/
+│   ├── README.md          ← page-object index (canonical models, accessors, legacy/orphans)
 │   ├── pageManager.ts     ← single entry point that mounts all 20 page objects
 │   ├── helperBase.ts      ← base class providing `this.page` and `this.language`
 │   └── <Feature>Page.ts   ← 20 mounted page objects, one per feature area (+ a couple of
 │                            unregistered cleanup-candidate files — see Legacy §18)
 ├── library/               ← Library-module UI tests (header, sidebar, texts-tree)
+│   └── README.md          ← Library folder guide (MOD-H/MOD-S IDs; legacy texts-tree note)
 ├── voices/                ← Voices-module UI tests (header, sidebar)
+│   └── README.md          ← Voices folder guide
 ├── Sanity/                ← Release-gate smoke suite + redirect tests
-│   └── SANITY.md          ← per-test inventory for this suite
+│   └── README.md          ← per-test inventory for this suite
 ├── Misc/                  ← Cross-cutting / platform-level tests (help-sheet redirects)
+│   └── README.md          ← Misc folder guide
 ├── assistant/             ← Library Assistant (<lc-chatbot>) tests
 │   └── README.md          ← Library Assistant-specific guide
 ├── mobile web/            ← Mobile-viewport tests (hamburger drawer, auth flow)
 │   └── README.md          ← Mobile-specific guide; runs via playwright.mobileweb.config.ts
 ├── Full testing by Feature/
+│   ├── README.md          ← index: when a feature earns its own folder + project
 │   ├── Resource Panel/    ← Resource Panel (ConnectionsPanel) tests, RP-001 → RP-212
 │   │   └── README.md      ← Resource Panel guide (mode map, gotchas, reference texts)
 │   └── Voices Topics/     ← Voices topic pages + landing, TOV-001 → TOV-019
 │       └── README.md      ← Voices Topics guide (source map, design decisions, CSV adaptations)
 ├── fixtures/              ← shared test assets: test-image.jpg (image-upload tests) + its README
 ├── fixtures.ts            ← empty placeholder (cleanup candidate — see Legacy §18)
-├── archived-tests/        ← retired specs kept for reference (e.g. voices/trending-topics.spec.ts);
-│                            not run by any project
+├── archived-tests/        ← retired specs (e.g. voices/trending-topics.spec.ts); not run by any project
+│   └── README.md          ← why tests are archived + how to run them locally
 └── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
 ```
 
@@ -759,11 +764,15 @@ export { expect } from '@playwright/test';
 ## Related docs
 
 - [CLAUDE.md](CLAUDE.md) — the same conventions compressed for AI agents, plus universal patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception, worker tuning) and the API-driven data-verification catalogue
-- [Sanity/SANITY.md](Sanity/SANITY.md) — per-test inventory for the Sanity release-gate suite
+- [pages/README.md](pages/README.md) — page-object index: canonical models (`resourcePanelPage`, `voicesTopicPage`), every `pm.onX()` accessor, and the legacy/orphan markers
+- [library/README.md](library/README.md), [voices/README.md](voices/README.md), [Misc/README.md](Misc/README.md) — per-folder guides for the module and cross-cutting test folders
+- [Full testing by Feature/README.md](Full%20testing%20by%20Feature/README.md) — index of the deep, plan-driven feature suites and when a feature earns its own folder
+- [Sanity/README.md](Sanity/README.md) — per-test inventory for the Sanity release-gate suite
 - [assistant/README.md](assistant/README.md) — Library Assistant (`<lc-chatbot>`) testing guide
 - [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) — Resource Panel guide: mode-navigation map, per-mode selector reference, auth-gated features, and the Common-gotchas catalogue
 - [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) — Voices Topics guide: per-test detail, CSV-vs-product adaptations, source-component map, reference topic (`torah`)
 - [mobile web/README.md](mobile%20web/README.md) — Mobile-viewport guide: hamburger drawer, auth flow, staging cookies banner, WebKit popup/cookie quirks
+- [archived-tests/README.md](archived-tests/README.md) — why specs are archived (CI-unsafe / data-mutating) and how to run them locally
 - [fixtures/README.md](fixtures/README.md) — shared test assets (`test-image.jpg`) and image-testing best practices
 - [../playwright.config.ts](../playwright.config.ts) — Playwright configuration (desktop projects)
 - [../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts) — Playwright configuration (mobile projects)
