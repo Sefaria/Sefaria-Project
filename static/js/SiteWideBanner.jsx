@@ -3,6 +3,63 @@ import PropTypes from "prop-types";
 import $ from "./sefaria/sefariaJquery";
 import Sefaria from "./sefaria/sefaria";
 
+const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 30 * 60;
+const MAX_MAYBE_LATER_CLICKS = 3;
+const NUDGE_SCHEDULE = {
+  1: { sessions: 2, days: 7 },
+  2: { sessions: 4, days: 21 },
+};
+
+const getPromoStorageKeys = (cookieName) => {
+  const storagePrefix = `promo_backoff_${cookieName}`;
+  return {
+    state: `${storagePrefix}_state`,
+    sessionCounter: `${storagePrefix}_session_counter`,
+    lastSessionAtSec: `${storagePrefix}_last_session_at_sec`,
+  };
+};
+
+const getPromoSessionLengthSeconds = (remoteConfig) => {
+  const configuredSessionLengthSeconds = Number(remoteConfig?.chatbotPromo?.sessionLengthSeconds);
+  return Number.isFinite(configuredSessionLengthSeconds) && configuredSessionLengthSeconds > 0
+    ? configuredSessionLengthSeconds
+    : DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
+};
+
+const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const lastSessionAtSec = Number(localStorage.getItem(storageKeys.lastSessionAtSec));
+  const currentSessionCounter = Number(localStorage.getItem(storageKeys.sessionCounter)) || 0;
+  const isNewSession = !Number.isFinite(lastSessionAtSec) || (nowSec - lastSessionAtSec) >= sessionLengthSeconds;
+
+  if (!isNewSession) {
+    return currentSessionCounter;
+  }
+  const nextSessionCounter = currentSessionCounter + 1;
+  localStorage.setItem(storageKeys.sessionCounter, String(nextSessionCounter));
+  localStorage.setItem(storageKeys.lastSessionAtSec, String(nowSec));
+  return nextSessionCounter;
+};
+
+const shouldHideForBackoff = ({ state, sessionCounter }) => {
+  if (!state) {
+    return false;
+  }
+  if (state.dismissedForever || state.maybeLaterCount >= MAX_MAYBE_LATER_CLICKS) {
+    return true;
+  }
+  const nudgeRule = NUDGE_SCHEDULE[state.maybeLaterCount];
+  if (!nudgeRule) {
+    return false;
+  }
+  const sessionsSinceDismissal = sessionCounter - Number(state.sessionCountAtLastMaybeLater || 0);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const lastMaybeLaterAtSec = Number(state.lastMaybeLaterAtSec || 0)
+    || Math.floor(Number(state.lastMaybeLaterAtMs || 0) / 1000);
+  const secondsSinceDismissal = nowSec - lastMaybeLaterAtSec;
+  return !(sessionsSinceDismissal >= nudgeRule.sessions && secondsSinceDismissal >= (nudgeRule.days * 24 * 60 * 60));
+};
+
 const SiteWideBanner = ({
   mainText,
   secondaryText,
@@ -11,17 +68,34 @@ const SiteWideBanner = ({
   learnMoreText,
   cookieName,
   gtagParams,
+  remoteConfig,
+  useBackoffDismissal,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
+  const storageKeys = getPromoStorageKeys(cookieName);
+  const sessionLengthSeconds = getPromoSessionLengthSeconds(remoteConfig);
+  const promoSessionCounter = useBackoffDismissal
+    ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
+    : null;
 
   useEffect(() => {
-    if (!sessionStorage.getItem("promo_viewed")) {
-      sessionStorage.setItem("promo_viewed", "1");
+    const promoViewedSessionKey = `promo_viewed_${cookieName}`;
+    if (!sessionStorage.getItem(promoViewedSessionKey)) {
+      sessionStorage.setItem(promoViewedSessionKey, "1");
       gtag("event", "promo_viewed", gtagParams);
     }
-  }, []);
+  }, [cookieName, gtagParams]);
 
   const isDismissed = () => {
+    if (useBackoffDismissal) {
+      let backoffState = {};
+      try {
+        backoffState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
+      } catch (e) {
+        backoffState = {};
+      }
+      return shouldHideForBackoff({ state: backoffState, sessionCounter: promoSessionCounter });
+    }
     return document.cookie.includes(cookieName);
   };
 
@@ -40,6 +114,27 @@ const SiteWideBanner = ({
 
   const closeBanner = () => {
     setBannerVisibility("hidden");
+    if (useBackoffDismissal) {
+      let previousState = {};
+      try {
+        previousState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
+      } catch (e) {
+        previousState = {};
+      }
+      const nextMaybeLaterCount = Math.min(
+        Number(previousState.maybeLaterCount || 0) + 1,
+        MAX_MAYBE_LATER_CLICKS,
+      );
+      const nextState = {
+        maybeLaterCount: nextMaybeLaterCount,
+        lastMaybeLaterAtSec: Math.floor(Date.now() / 1000),
+        sessionCountAtLastMaybeLater: promoSessionCounter,
+        dismissedForever: nextMaybeLaterCount >= MAX_MAYBE_LATER_CLICKS,
+      };
+      localStorage.setItem(storageKeys.state, JSON.stringify(nextState));
+      trackBannerInteraction("maybe_later");
+      return;
+    }
     dismiss();
     trackBannerInteraction("close");
   };
@@ -55,6 +150,14 @@ const SiteWideBanner = ({
         </div>
         <div className="siteWideBannerButtonBox">
           {actionButtons(trackBannerInteraction)}
+          {useBackoffDismissal && (
+            <button
+              className="button small white siteWideBannerMaybeLater"
+              onClick={closeBanner}
+            >
+              <span>{Sefaria._("Maybe later")}</span>
+            </button>
+          )}
         </div>
         {learnMoreUrl && (
           <a
@@ -66,13 +169,15 @@ const SiteWideBanner = ({
             {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
           </a>
         )}
-        <button
-          className="siteWideBannerClose"
-          onClick={closeBanner}
-          aria-label="Close banner"
-        >
-          &times;
-        </button>
+        {!useBackoffDismissal && (
+          <button
+            className="siteWideBannerClose"
+            onClick={closeBanner}
+            aria-label="Close banner"
+          >
+            &times;
+          </button>
+        )}
       </div>
     </div>
   );
@@ -86,6 +191,8 @@ SiteWideBanner.propTypes = {
   learnMoreText: PropTypes.string,
   cookieName: PropTypes.string.isRequired,
   gtagParams: PropTypes.object.isRequired,
+  remoteConfig: PropTypes.object,
+  useBackoffDismissal: PropTypes.bool,
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Try Sefaria's new Library Assistant [Experimental]");
@@ -97,7 +204,7 @@ const CHATBOT_BANNER_LEARN_MORE_URLS = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls, remoteConfig }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
   const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
@@ -141,12 +248,15 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
       learnMoreUrl={learnMoreUrl}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
+      remoteConfig={remoteConfig}
+      useBackoffDismissal={true}
     />
   );
 };
 
 ChatbotExperimentBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
+  remoteConfig: PropTypes.object,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };

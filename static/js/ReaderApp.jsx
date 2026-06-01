@@ -2455,7 +2455,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
+              {showChatbotBanner && (
+                <ChatbotExperimentBanner
+                  promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls}
+                  remoteConfig={this.props.remoteConfig}
+                />
+              )}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
