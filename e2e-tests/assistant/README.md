@@ -1,12 +1,12 @@
 # Library Assistant — E2E Test Guide
 
-> Practical reference for writing Playwright tests against the Sefaria Library Assistant (LA) chatbot on `www.sefaria.org`. Last verified 2026-04-14 against branch `mdl-playwright`.
+> Practical reference for writing Playwright tests against the Sefaria Library Assistant (LA) chatbot on `www.sefaria.org`. Last verified 2026-06-01 against branch `mdl-playwright`.
 
 ---
 
 ## 1. What the LA is
 
-The Library Assistant is a Svelte-based custom element `<lc-chatbot>` embedded on `www.sefaria.org`. It talks to the backend at `https://chat.sefaria.org/api`. The UX spec lives in [ai-chatbot.csv](ai-chatbot.csv).
+The Library Assistant is a Svelte-based custom element `<lc-chatbot>` embedded on `www.sefaria.org`. It talks to the backend at `https://chat.sefaria.org/api`. The implemented tests live in [library-assistant.spec.ts](library-assistant.spec.ts) — the source of truth for what's covered. Tests still worth adding are noted in §10.
 
 Key facts that shape how we test it:
 
@@ -73,8 +73,8 @@ All locators pierce the open shadow root. Use role/label over CSS when possible.
 | Close button (X) | `page.getByRole('button', { name: 'Close assistant' })` | header |
 | Dock → side | `page.getByRole('button', { name: 'Dock assistant to side' })` | visible in floating mode |
 | Undock → floating | `page.getByRole('button', { name: 'Undock assistant' })` | visible in docked mode |
-| More options (ellipsis) | `page.getByRole('button', { name: 'More options' })` | opens dropdown: `Restart conversation`, `Give feedback`, `Help`, `Opt-out in Settings` |
-| Prompt textarea | `page.getByLabel('Prompt input')` | `maxlength="10000"` (CSV UX-021's "500 chars" is wrong — comment in the CSV agrees) |
+| More options (ellipsis) | `page.getByRole('button', { name: 'More options' })` | opens dropdown: `Settings` (staff/moderator users only — see UX-057), `Restart conversation`, `Give feedback`, `Help`, `Opt-out in Settings` |
+| Prompt textarea | `page.getByLabel('Prompt input')` | `maxlength="10000"` (the UX-021 test-plan figure of "500 chars" is wrong — the DOM is authoritative) |
 | Send button | `page.getByRole('button', { name: 'Send message' })` | disabled when textarea is empty |
 | User message bubble | `page.locator('.message.user')` | use `.last()` for the most recent |
 | Assistant message bubble | `page.locator('.message.assistant')` | use `.last()` for the most recent |
@@ -103,6 +103,13 @@ Method map by UX ID:
 | UX-024 (Enter sends) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
 | UX-026 (send button sends) | `ensureOpen()`, `typeMessage()`, `sendViaButton()`, `expectUserMessageShown()`, `expectInputCleared()`, `waitForResponse()` |
 | UX-027 (input disabled during send) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectInputDisabledDuringSend()`, `waitForResponse()` |
+| UX-036 (thinking indicator appears then clears) | `ensureOpen()`, `typeMessage()`, `sendViaEnter()`, `expectThinkingVisible()`, `waitForResponse()`, `expectThinkingGone()` |
+| UX-057 (header menu opens with expected items) | `openHeaderMenu()`, `expectMenuVisible()`, `expectMenuItemTexts([...])` |
+| UX-058 (outside click closes menu) | `openHeaderMenu()`, `clickOutsideMenu()`, `expectMenuHidden()` |
+| UX-059 (Escape closes menu) — **`test.fixme`**: component does not yet handle Escape | `openHeaderMenu()`, `closeMenuWithEscape()`, `expectMenuHidden()` |
+| UX-060 (Restart conversation clears messages) | `typeMessage()`, `sendViaEnter()`, `waitForResponse()`, `openHeaderMenu()`, `clickRestartConversation()`, `expectEmptyState()`, `expectNoUserMessages()` |
+| UX-085 (LA hidden at 375px mobile viewport) | `waitForReady()`, then `page.setViewportSize({ width: 375, height: 667 })` + assert `lc-chatbot` hidden |
+| LA-NEG-001 → 004 (LA absent off its intended surface) | `expectNotPresent()` — on `voices.*` home, a voices sheet, and logged-out Library/reader pages |
 
 State helpers (use these liberally at the top of a test to reach a known state):
 
@@ -162,7 +169,7 @@ npx playwright test --project=chrome-assistant -g 'UX-025'
 3. **Svelte input binding requires real input events.** `page.fill()` and `page.type()` work. Setting `textarea.value` via `page.evaluate(...)` does *not* flip the send button to enabled.
 4. **Send round-trip is long.** Global test timeout is `t(50000)` — any test that actually sends must bump with `test.setTimeout(t(90000))`. The `waitForResponse()` helper expects the textarea to re-enable within that window.
 5. **Use `.last()` on message selectors.** `BROWSER_SETTINGS.enLAUser` persists storage state (including any chat localStorage written at login), so historical messages may be present. Latest-match assertions are robust to that.
-6. **The CSV is the spec; the CSV can also be wrong.** UX-021 claims 500-char limit; the actual `maxlength` on the textarea is 10000. When the CSV contradicts observed DOM, trust the DOM and note it.
+6. **The written test plan can be wrong — trust the DOM.** UX-021 claims a 500-char limit; the actual `maxlength` on the textarea is 10000. When the plan contradicts the observed DOM, trust the DOM and note it in a comment.
 7. **Cross-test isolation works out of the box** because each Playwright worker gets its own `BrowserContext`. Running 10 tests in parallel sends at most 3 real prompts — no rate-limit issues observed.
 8. **Only the LA-whitelisted account sees the chatbot.** Standard automation accounts (`qa+automation@sefaria.org`) will not, so reusing `BROWSER_SETTINGS.enUser` / `.heUser` / `.enAdmin` will silently make `waitForReady()` time out. Always go through `enLAUser`.
 9. **Trigger is absent, not hidden, when the panel is open.** Expect `toBeHidden()` (which also accepts absent/detached) rather than `not.toBeVisible()` for precision.
@@ -215,8 +222,7 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 
 | File | Purpose |
 | --- | --- |
-| [library-assistant.spec.ts](library-assistant.spec.ts) | Spec implementing UX-001, UX-003, UX-004, UX-013, UX-014, UX-022, UX-023, UX-024, UX-026, UX-027 |
-| [ai-chatbot.csv](ai-chatbot.csv) | Full UX test plan (source of truth for new tests) |
+| [library-assistant.spec.ts](library-assistant.spec.ts) | Spec implementing 16 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060, 085) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
 | [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions live here |
 | [../pages/pageManager.ts](../pages/pageManager.ts) | Registers `pm.onLibraryAssistant()` |
 | [../globals.ts](../globals.ts) | `testLAUser`, `AUTH_PATHS.enLAUserFile`, `BROWSER_SETTINGS.enLAUser` |
@@ -225,19 +231,19 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 
 ---
 
-## 10. What's still TODO from the CSV
+## 10. What's still TODO
 
-These UX IDs are spec'd in the CSV but *not* yet implemented. Add them following the recipe in §6:
+These UX IDs are planned but *not* yet implemented (the ranges below exclude everything already covered in §5 / §9). Add them following the recipe in §6:
 
 - Panel layout / resize: UX-005 — UX-012
 - Empty state, placeholder, draft persistence, char limit: UX-017 — UX-021
 - Message rendering (markdown, links, citations, sanitization): UX-028 — UX-035
-- Thinking / tool progress states: UX-036 — UX-039
+- Thinking / tool progress states: UX-037 — UX-039 *(UX-036 done)*
 - Error + retry: UX-040, UX-041
 - Conversation history / scroll: UX-042 — UX-045
 - Feedback (inline + modal): UX-046 — UX-056
-- Header menu deep dives: UX-057 — UX-064
-- Moderator settings panel (requires `is-moderator` attribute — not yet available on this QA user): UX-065 — UX-070
-- Accessibility, theming, session, embedding, responsive: UX-071 — UX-085
+- Header menu deep dives: UX-061 — UX-064 *(UX-057 → UX-060 done; UX-059 is implemented but `test.fixme` pending a component Escape-to-close fix)*
+- Moderator settings panel: UX-065 — UX-070. The QA user *is* staff/moderator and already sees the `Settings` menu entry (covered by UX-057), so the deeper settings-panel flows are reachable and just need writing.
+- Accessibility, theming, session, embedding, responsive: UX-071 — UX-084 *(UX-085 done)*
 
 When tackling any of these, first check whether the page object already covers the interaction. If so, just write the spec. If not, add a small, named method — don't inline raw locators in the spec file (per [../CLAUDE.md](../CLAUDE.md) §2).

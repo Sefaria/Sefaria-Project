@@ -36,7 +36,7 @@ Sefaria's mobile chrome (the entire `<MobileNavMenu>` component) only mounts whe
 | `chrome-mobile-library` | Pixel 5 | 393 × 851 |
 | `safari-mobile-library` | iPhone 13 | 390 × 844 |
 
-Tests live under `e2e-tests/mobile/`; the POM is shared (`pages/mobileHamburgerPage.ts`) and accessed via `pm.onMobileHamburger()` like every other page object.
+Tests live under `e2e-tests/mobile web/`; the POM is shared (`pages/mobileHamburgerPage.ts`) and accessed via `pm.onMobileHamburger()` like every other page object.
 
 ---
 
@@ -173,7 +173,7 @@ Per the user's "I want the tests to be reliable and not pass if something doesn'
 ## File map
 
 ```
-e2e-tests/mobile/
+e2e-tests/mobile web/
 ├── README.md                     ← you are here
 ├── hamburger-menu.spec.ts        ← 12 tests, 5 describe blocks (Part 1)
 └── auth-flow.spec.ts             ← 6 tests, 2 describe blocks  (Part 2)

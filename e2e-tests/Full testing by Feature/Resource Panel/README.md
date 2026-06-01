@@ -1,6 +1,6 @@
 # Resource Panel — E2E Tests
 
-End-to-end tests for the Sefaria **Resource Panel** (a.k.a. `ConnectionsPanel`) — the right-side sidebar that opens when a reader segment is clicked. Covers test IDs **RP-001 → RP-212** from [`e2e-tests/.claude/Resource.csv`](../../.claude/Resource.csv).
+End-to-end tests for the Sefaria **Resource Panel** (a.k.a. `ConnectionsPanel`) — the right-side sidebar that opens when a reader segment is clicked. Covers test IDs **RP-001 → RP-212** from the Resource Panel test plan.
 
 Parts 1 and 2 together cover opening behavior, the Resources hub, TOC navigation, About-This-Text, Translations, the Lexicon (Part 1) plus Connections List, Text List, Topics, Web Pages, Sheets, Manuscripts, Notes, Add to Sheet, Share, Search in Text, Feedback, Guide, and Hebrew UI (Part 2). The remaining areas (Advanced Tools, Add Connection, Divine Name, Auth State, Cross-Module — RP-140 → RP-232) will land in subsequent parts.
 
@@ -471,6 +471,5 @@ Clicking a snippet's TEXT in TextList does nothing — only internal `.refLink` 
 - [`pages/resourcePanelPage.ts`](../../pages/resourcePanelPage.ts) — the page object
 - [`pages/pageManager.ts`](../../pages/pageManager.ts) — `pm.onResourcePanel()` registered here
 - [`playwright.config.ts`](../../../playwright.config.ts) — `chrome-resource-panel` project
-- [`.claude/Resource.csv`](../../.claude/Resource.csv) — source test matrix (RP-001 → RP-232)
 - [`CLAUDE.md`](../../CLAUDE.md) — house rules for this suite
 - [`assistant/library-assistant.spec.ts`](../../assistant/library-assistant.spec.ts) — the closest stylistic precedent (also a shadow-DOM-ish feature)

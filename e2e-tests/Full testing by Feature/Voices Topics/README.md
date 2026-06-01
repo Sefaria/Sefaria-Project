@@ -1,6 +1,6 @@
 # Voices Topics — E2E Tests
 
-End-to-end tests for **Voices topic pages** (`voices.<sandbox>/topics/<slug>`). Covers test IDs **TOV-001 → TOV-019** from [`e2e-tests/.claude/VOICES_TOPICS_TEST_PLAN.csv`](../../.claude/VOICES_TOPICS_TEST_PLAN.csv) — the non-skipped subset (rows annotated `SKIP` / `SKIP FROM HERE DOWN` are intentionally excluded).
+End-to-end tests for **Voices topic pages** (`voices.<sandbox>/topics/<slug>`). Covers test IDs **TOV-001 → TOV-019** — the non-skipped subset of the Voices Topics test plan (rows annotated `SKIP` / `SKIP FROM HERE DOWN` are intentionally excluded).
 
 ---
 
@@ -18,7 +18,7 @@ End-to-end tests for **Voices topic pages** (`voices.<sandbox>/topics/<slug>`). 
 | **TOV-001** | `/topics/torah` loads with `<h1>Torah</h1>`, `.topicDescription` populated (>100 chars), `.topicImage img.imageWithCaptionPhoto` visible with non-empty `src` and `alt`. URL matches `/topics/torah` |
 | **TOV-002a** | English interface: `body.interface-english`, title text "Torah", description present |
 | **TOV-002b** | Hebrew interface (`chiburim.<sandbox-il>/topics/torah`): `body.interface-hebrew`, title text "תורה" |
-| **TOV-003** | Topic image visible at default desktop, after resize to tablet (768×1024), and after resize to mobile (375×667). Deep mobile chrome coverage still lives in the mobile suite per [`e2e-tests/mobile/README.md`](../../mobile/README.md); here we only assert the `<img>` itself survives the breakpoint crossing and keeps its `src`/`alt` |
+| **TOV-003** | Topic image visible at default desktop, after resize to tablet (768×1024), and after resize to mobile (375×667). Deep mobile chrome coverage still lives in the mobile suite per [`e2e-tests/mobile web/README.md`](../../mobile%20web/README.md); here we only assert the `<img>` itself survives the breakpoint crossing and keeps its `src`/`alt` |
 | **TOV-004** | The CSV item targeted page-level "creation date / view count / contributor" metadata — Voices does not surface those at the topic-page level (only per-sheet inside `.authorByLine`). The test adapts to assert the observable contract: ≥1 `.storySheetListItem` renders, each with `.sheetTitle a` and `.authorName a` |
 | **TOV-005** | Site header is `position: static` (not sticky). Test scopes the assertion to: after `window.scrollTo(0, document.body.scrollHeight)`, the topic `<h1>` remains attached to the DOM. The literal "header sticky on scroll" UX from the CSV is not implemented by the product (and the CSV row already noted "I'm not sure this is true") |
 | **TOV-006** | First 3 sheet blocks each expose: `.sheetTitle a` (non-empty), `.authorName a` (visible). Source: `Story.jsx` `SheetBlock` (line 318) |
@@ -140,6 +140,5 @@ This suite follows the canonical conventions in [`e2e-tests/CLAUDE.md`](../../CL
 - [`pages/voicesTopicPage.ts`](../../pages/voicesTopicPage.ts) — the page object
 - [`pages/pageManager.ts`](../../pages/pageManager.ts) — `pm.onVoicesTopic()` registered here
 - [`playwright.config.ts`](../../../playwright.config.ts) — `chrome-voices-topics`, `firefox-voices-topics`, `safari-voices-topics` projects
-- [`.claude/VOICES_TOPICS_TEST_PLAN.csv`](../../.claude/VOICES_TOPICS_TEST_PLAN.csv) — source test matrix (TOV-001 → TOV-029)
 - [`CLAUDE.md`](../../CLAUDE.md) — house rules for this suite
 - [`Full testing by Feature/Resource Panel/README.md`](../Resource%20Panel/README.md) — closest stylistic precedent; the same iterative-research / API-first / mode-anchor playbook applies here
