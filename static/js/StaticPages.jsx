@@ -1201,7 +1201,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
                     heTitle=""
-                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a> (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information.)</p>"
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong> and <strong>stock</strong>. For more information, please email <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a></p>"
                     heText=""
                     colorBar="#97B386"
                 />

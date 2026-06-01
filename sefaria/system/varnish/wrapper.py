@@ -33,12 +33,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         version = urllib.parse.quote(version.replace(" ", "_").encode("utf-8"))
     if purge:
         # Purge this section level ref, so that immediate responses will return good results
-        purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
-        if version and lang:
-            try:
-                purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
-            except Exception as e:
-                logger.exception(e)
+        purge_url("{}/api/v3/texts/{}".format(FRONT_END_URL, oref.url()))
         # Hacky to add these
         purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
@@ -57,7 +52,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url("{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
-    ban_url("/api/texts/{}".format(url_regex(oref)))
+    ban_url("/api/v3/texts/{}".format(url_regex(oref)))
     ban_url("/api/links/{}".format(url_regex(oref)))
     ban_url("/api/related/{}".format(url_regex(oref)))
 
@@ -97,7 +92,7 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warn(f"In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {(indx.title)}")
             return
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
@@ -116,7 +111,7 @@ def invalidate_title(title):
     title = title.replace(" ", "_").replace(":", ".")
     invalidate_index(title)
     invalidate_counts(title)
-    ban_url("/api/texts/{}".format(title))
+    ban_url("/api/v3/texts/{}".format(title))
     ban_url("/api/links/{}".format(title))
 
 

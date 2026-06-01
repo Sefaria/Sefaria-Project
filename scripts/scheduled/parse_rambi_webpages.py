@@ -3,6 +3,7 @@ django.setup()
 from sefaria.model import *
 from sefaria.model.linker.ref_resolver import AmbiguousResolvedRef
 from sefaria.model.webpage import WebSite
+from sefaria.helper.webpages import normalize_url, domain_for_url
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import gematria
 from roman import fromRoman as roman_to_int
@@ -252,7 +253,7 @@ class Parser():
                 for attr in ['url', 'title', 'description', 'authors', 'articleSource']:
                     setattr(wp, attr, getattr(record, attr))
             else:
-                self.websites.add(WebPage.domain_for_url(WebPage.normalize_url(record.url)))
+                self.websites.add(domain_for_url(normalize_url(record.url)))
                 wp = WebPage({
                     'url': record.url,
                     'title': record.title,

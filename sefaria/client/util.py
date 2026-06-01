@@ -1,12 +1,13 @@
 
 import json
 from datetime import datetime
+from urllib.parse import urlparse
 
 from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
 from webpack_loader import utils as webpack_utils
 
-from django.conf import settings as sls
+from sefaria.settings import relative_to_abs_path
 # from sefaria.model.user_profile import UserProfile
 
 
@@ -52,8 +53,22 @@ def send_email(subject, message_html, from_email, to_email):
     return True
 
 
-def read_webpack_bundle(config_name):
+def _webpack_bundle_path(config_name):
     webpack_files = webpack_utils.get_files('main', config=config_name)
-    bundle_path = sls.relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
+    url = webpack_files[0]["url"]
+    # Handle both relative paths and full URLs
+    # In production, STATIC_URL can be a full URL like https://www.sefaria.org/static/
+    # which makes webpack_files return full URLs instead of relative paths
+    parsed = urlparse(url)
+    path = parsed.path if parsed.scheme else url
+    return relative_to_abs_path('..' + path)
+
+
+def read_webpack_bundle(config_name):
+    with open(_webpack_bundle_path(config_name), 'r') as file:
+        return file.read()
+
+
+def read_webpack_bundle_map(config_name):
+    with open(_webpack_bundle_path(config_name) + '.map', 'r') as file:
         return file.read()

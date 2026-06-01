@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from elasticsearch_dsl import Search
 from random import choice
 import json
@@ -19,6 +19,9 @@ import re
 import uuid
 from dataclasses import asdict
 
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
+from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from rest_framework.decorators import api_view, permission_classes
@@ -29,7 +32,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect, requires_csrf_token
 from django.contrib.auth.models import User
 from django import http
@@ -42,6 +45,7 @@ from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
+from sefaria.model.text import TocSerializationOptions
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -56,18 +60,20 @@ from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
-from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
+    CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
+from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -75,8 +81,8 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
     get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
     get_random_topic_source, edit_topic_source, \
-    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics
-from sefaria.helper.community_page import get_community_page_items
+    update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
+    get_author_indexes
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
@@ -84,6 +90,7 @@ import sefaria.tracker as tracker
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
+from sefaria.utils.chatbot import build_chatbot_user_token
 from PIL import Image
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
@@ -282,6 +289,7 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
+            "experiments": profile.experiments,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -303,6 +311,7 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
+            "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -341,6 +350,27 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
     })
+    chatbot_version = request.session.get("chatbot_version")
+    chatbot_version = chatbot_version if is_int(chatbot_version) else None
+
+    # Chatbot props (passed through base_props for ReaderApp)
+    chatbot_data = {
+        "chatbot_user_token": None,
+        "chatbot_enabled": False,
+        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_version": chatbot_version,
+        'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
+        'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
+        'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
+    }
+    if user_has_experiments(request.user):
+        chatbot_data["in_chatbot_experiment"] = True
+        if _is_user_in_experiment(request):
+            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+            chatbot_data["chatbot_enabled"] = True
+    user_data.update(chatbot_data)
     return user_data
 
 
@@ -349,7 +379,7 @@ def user_credentials(request):
         return {"user_type": "session", "user_id": request.user.id}
     else:
         req_key = request.POST.get("apikey", None)
-        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
+        header_key = request.headers.get("x-api-key", None) #request.META["HTTP_AUTHORIZATION"]?
         key = req_key if req_key else header_key
         if not key:
             return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
@@ -382,15 +412,6 @@ def catchall(request, tref, sheet=None):
     Handle any URL not explicitly covers in urls.py.
     Catches text refs for text content and text titles for text table of contents.
     """
-    def reader_redirect(uref):
-        # Redirect to standard URLs
-        url = "/" + uref
-
-        response = redirect(iri_to_uri(url), permanent=True)
-        params = request.GET.urlencode()
-        response['Location'] += "?%s" % params if params else ""
-        return response
-
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
     for version in ['ven', 'vhe']:
@@ -398,16 +419,20 @@ def catchall(request, tref, sheet=None):
             return _reader_redirect_add_languages(request, tref)
 
     if sheet is None:
-        if active_module != LIBRARY_MODULE:
-            raise Http404
+        # Validate ref first
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
+        # If on wrong module, redirect to library module
+        if active_module != LIBRARY_MODULE:
+            return redirect_to_module(request, f"/{tref}", LIBRARY_MODULE)
+
+        # Normal processing for library module
         uref = oref.url(False)
         if uref and tref != uref:
-            return reader_redirect(uref)
+            return redirect_to_module(request, uref, target_module=None)
 
         return text_panels(request, ref=tref)
     else:
@@ -551,6 +576,8 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 
 
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
+    # Django 6.0: path('sheets/<int:sheet_id>') passes an int; coerce so the "." substring check below is safe.
+    sheet_id = str(sheet_id)
     highlighted_node = None
     if "." in sheet_id:
         highlighted_node = int(sheet_id.split(".")[1])
@@ -626,6 +653,22 @@ def _extract_version_params(request, key):
     params = params.replace("_", " ")
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
+
+
+def _extract_version_title_param(request, key):
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
 
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
@@ -1127,6 +1170,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
+        "page":           page,
     })
 
 
@@ -1217,6 +1261,7 @@ def notifications(request):
     return menu_page(request, props, page="notifications", title=title)
 
 
+@ensure_csrf_cookie
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
@@ -1443,7 +1488,7 @@ def interface_language_redirect(request, language):
     """
     next = request.GET.get("next")
 
-    if not next or not is_safe_url(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
+    if not next or not url_has_allowed_host_and_scheme(url=next, allowed_hosts=set(ALLOWED_HOSTS)):
         next = "/"
 
     # Look up the target domain based on current module + target language
@@ -1547,6 +1592,11 @@ def texts_api(request, tref):
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
         fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
+
+        # Guard against pathologically expensive link-expansion requests.
+        # e.g. /api/texts/Deuteronomy?commentary=1&pad=0 fetches every link in the book.
+        if commentary and not pad and oref.is_book_level():
+            return jsonResponse({"error": "commentary=1 and pad=0 is not supported for whole-book refs. Request a specific section or segment.", "ref": oref.normal()}, cb, 400)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
@@ -1737,11 +1787,15 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    lang = request.GET.get("lang") or "en"
+    if lang not in {"en", "he", "bi"}:
+        lang = "en"
     if lang == "bi":
         lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
 
     try:
         ref = Ref(tref)
@@ -1803,7 +1857,9 @@ def find_holiday_in_hebcal_results(response):
 
 @catch_error_as_json
 def table_of_contents_api(request):
-    return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
+    include_authors = bool(int(request.GET.get("include_authors", False)))
+    toc = library.get_toc_with_authors() if include_authors else library.get_toc()
+    return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1864,18 +1920,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
     def handle_post_request(request, title, raw):
-        j = json.loads(request.POST.get("json"))
-        if not j:
+        json_data = json.loads(request.POST.get("json"))
+        if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
         if uid is None:
             return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
         elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
+            return index_post(request, uid, json_data, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
+            return admin_post(request, uid, json_data, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:
@@ -1890,6 +1946,18 @@ def index_api(request, title, raw=False):
         return None, None
 
     def index_post(request, uid, j, method, raw):
+        is_title_change = bool(j.get("oldTitle") and j.get("oldTitle") != j.get("title"))
+        if is_title_change and CELERY_ENABLED:
+            from sefaria.helper.texts.tasks import update_index_title
+            from sefaria.celery_setup.config import CeleryQueue
+            async_result = update_index_title.apply_async(
+                args=(uid, j, raw, method),
+                queue=CeleryQueue.TASKS.value,
+            )
+            logger.info("index_api:title_change_enqueued",
+                        old_title=j["oldTitle"], new_title=j.get("title"),
+                        uid=uid, task_id=async_result.id)
+            return jsonResponse({"task_id": async_result.id}, status=202)
         func = tracker.update if 'update' in j else tracker.add
         return jsonResponse(func(uid, Index, j, raw=raw, method=method).contents(raw=raw))
 
@@ -2147,16 +2215,28 @@ def links_api(request, link_id_or_ref=None):
         obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
+    def _get_requested_categories(request):
+        categories = []
+        categories += request.GET.getlist("category")
+        raw_categories = request.GET.get("categories", "")
+        if raw_categories:
+            categories += re.split(r"[|,]", raw_categories)
+        categories = [c.strip() for c in categories if c and c.strip()]
+        return categories or None
+
     if request.method == "GET":
-        callback=request.GET.get("callback", None)
+        callback = request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        Ref(link_id_or_ref)
+        #The Ref instantiation is also used to validate the Ref and let an error bubble up.
+        oref = Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
-        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
+        if with_text and oref.is_book_level():
+            error_msg = "with_text is not supported for whole-book refs. Request a specific section or segment, or set with_text to 0.  Alternatively, the whole database is available as a downloadable export."
+            return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
+        categories = _get_requested_categories(request)
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 
     if not request.user.is_authenticated:
         delete_query = QueryDict(request.body)
@@ -2353,7 +2433,6 @@ def related_api(request, tref):
             "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
-            "webpages": get_webpages_for_ref(tref) if remoteConfigCache.get(ENABLE_WEBPAGES, True) else [],
             "topics": get_topics_for_ref(tref, request.interfaceLang, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
@@ -2364,6 +2443,20 @@ def related_api(request, tref):
                 if 'expandedRefs' in item:
                     del item['expandedRefs']
     return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def websites_api(request, tref):
+    """
+    API for retrieving related webpages for a segment-level ref.
+    """
+    if not remoteConfigCache.get(ENABLE_WEBPAGES, True):
+        return jsonResponse([], callback=request.GET.get("callback", None))
+    webpages = get_webpages_for_ref(tref)
+    for item in webpages:
+        if 'expandedRefs' in item:
+            del item['expandedRefs']
+    return jsonResponse(webpages, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2479,11 +2572,11 @@ def lock_text_api(request, title, lang, version):
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
 
     if request.GET.get("action", None) == "unlock":
-        vobj.status = None
+        updates = {"status": None}  # None signals deletion in tracker
     else:
-        vobj.status = "locked"
+        updates = {"status": "locked"}
 
-    vobj.save()
+    tracker.update_version_metadata(request.user.id, vobj, updates)
     return jsonResponse({"status": "ok"})
 
 
@@ -2499,23 +2592,28 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    def update_version(request, title, lang, version):
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+
+    def update_version(request, title, lang, version, user_id):
         flags = json.loads(request.POST.get("json"))
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
+        # Build updates dict for tracker function
+        updates = {}
         if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
+            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
-                    delattr(vobj, flag)
+                    updates[flag] = None  # None signals deletion in tracker
                 else:
-                    setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+                    updates[flag] = flags[flag]
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+        if updates:
+            tracker.update_version_metadata(user_id, vobj, updates)
+        return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2528,9 +2626,11 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        return update_version(request, title, lang, version)
+        return update_version(request, title, lang, version, apikey["uid"])
     elif request.user.is_staff:
-        protected_post = csrf_protect(update_version)
+        def update_version_with_user(request, title, lang, version):
+            return update_version(request, title, lang, version, request.user.id)
+        protected_post = csrf_protect(update_version_with_user)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
@@ -3160,7 +3260,11 @@ def background_data_api(request):
     # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
-    data.update(community_page_data(request, language=language))
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        data["followRecommendations"] = profile.follow_recommendations(lang=language)
+    else:
+        data["followRecommendations"] = general_follow_recommendations(lang=language)
 
     return jsonResponse(data)
 
@@ -3297,10 +3401,11 @@ def topics_list_api(request):
     API used by the topics A-Z page.
     """
     limit = int(request.GET.get("limit", 1000))
+    minify = bool(int(request.GET.get("minify", 1)))
     all_topics = get_all_topics(limit, active_module=request.active_module)
     all_topics_json = []
     for topic in all_topics:
-        topic_json = topic.contents(minify=True, with_html=True)
+        topic_json = topic.contents(minify=minify, with_html=True)
         topic_json["titles"] = topic.titles
         all_topics_json.append(topic_json)
     response = jsonResponse(all_topics_json, callback=request.GET.get("callback", None))
@@ -3308,11 +3413,27 @@ def topics_list_api(request):
     return response
 
 
+@catch_error_as_json
+def author_indexes_api(request, author_slug):
+    if request.method != "GET":
+        return jsonResponse({"error": "This API only accepts GET requests."}, status=405)
+    include_aggregations = bool(int(request.GET.get("include_aggregations", False)))
+    include_descriptions = bool(int(request.GET.get("include_descriptions", False)))
+    response = get_author_indexes(
+        author_slug,
+        include_aggregations=include_aggregations,
+        include_descriptions=include_descriptions,
+    )
+    if response is None:
+        return jsonResponse({"error": f"Author slug '{author_slug}' does not exist"}, status=404)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 @staff_member_required
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         task_ids = []
-        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.tasks.topic_prompts import generate_and_save_topic_prompts
         from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
         post_body = json.loads(request.body)
@@ -3509,7 +3630,7 @@ def topic_ref_bulk_api(request):
 def seasonal_topic_api(request):
     from django_topics.models import SeasonalTopic
 
-    lang = request.LANGUAGE_CODE
+    lang = request.GET.get("lang")
     cb = request.GET.get("callback", None)
     diaspora = request.GET.get("diaspora", False)
 
@@ -3826,6 +3947,8 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        if "experiments" in profileUpdate and not user_has_experiments(request.user):
+            profileUpdate.pop("experiments", None)
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -3836,9 +3959,25 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            if "experiments" in profileUpdate:
+                _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@catch_error_as_json
+def experiments_opt_in_api(request):
+    """
+    API endpoint for users to self-enroll in the experiments whitelist.
+    This enables the experiments toggle in their settings menu.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to join experiments.")})
+    _set_user_experiments(request.user, True)
+    return jsonResponse({"status": "ok"})
 
 
 @login_required
@@ -4160,11 +4299,14 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
+        'experiments_available': experiments_available,
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
+        'diaspora': request.diaspora,
         "renderStatic": True
     })
 
@@ -4175,60 +4317,6 @@ def home(request):
     Homepage (which is the texts page)
     """
     return redirect("/texts")
-
-
-def community_page(request, props={}):
-    """
-    Community Page
-    """
-    title = get_page_title("From the Community: Today on Sefaria", module=request.active_module)
-    desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
-    data  = community_page_data(request, language=request.interfaceLang)
-    data.update(props) # don't overwrite data that was passed n with props
-    return menu_page(request, page="community", props=data, title=title, desc=desc)
-
-
-def community_page_data(request, language="english"):
-    data = {
-        "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
-    }
-    if request.user.is_authenticated:
-        profile = UserProfile(user_obj=request.user)
-        data["followRecommendations"] = profile.follow_recommendations(lang=request.interfaceLang)
-    else:
-        data["followRecommendations"] = general_follow_recommendations(lang=request.interfaceLang)
-
-    return data
-
-
-@staff_member_required
-def community_preview(request):
-    """
-    Preview the community page as it will appear at some date in the future
-    """
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("date", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
-
-
-@staff_member_required
-def community_reset(request):
-    """
-    Reset the cache of the community page content from Google sheet
-    """
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-english", None])
-        server_coordinator.publish_event("in_memory_cache", "set", ["community-page-data-hebrew", None])
-
-    datetime_obj = datetime(2021,7, 25) + timedelta(days=1)
-    tomorrow = datetime_obj.strftime("%-m/%-d/%y")
-    date = request.GET.get("next", tomorrow)
-    community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
-
-    return community_page(request, props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):
@@ -4316,7 +4404,7 @@ def digitized_by_sefaria(request):
     """
     Metrics page. Shows graphs of core metrics.
     """
-    texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
+    texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]], proj={"title": 1, "versionTitle": 1, "heVersionTitle": 1, "language": 1})
     return render_template(request,'static/digitized-by-sefaria.html', None, {
         "texts": texts,
     })
@@ -4619,13 +4707,14 @@ def serve_static_by_lang(request, page):
 
 
 # TODO: This really should be handled by a CMS :)
-def annual_report(request, report_year):
+def annual_report(request, report_year=None):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
         '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
         '2023': 'https://issuu.com/sefariaimpact/docs/sefaria_2023_impact_report?fr=sMmRkNTcyMzMyNTk',
-        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf'
+        '2024': STATIC_URL + 'files/Sefaria_Impact_Report_2024.pdf',
+		'2025': 'https://issuu.com/sefariaimpact/docs/sefaria_impact_report_2025?fr=xKAE9_zU1NQ',
     }
     # Assume the most recent year as default when one is not provided
     if not report_year:
@@ -4760,34 +4849,53 @@ def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
-def redirect_to_voices(request, target_path):
+def redirect_to_module(request, target_path, target_module=None):
     """
-    Redirect from library module to voices module
+    Redirect to a path, optionally to a different module (library or voices).
+    
+    Args:
+        request: Django request object
+        target_path: Path to redirect to (e.g., "/Jeremiah.16.19-17.14" or "Jeremiah.16.19-17.14")
+        target_module: Optional target module constant (LIBRARY_MODULE or VOICES_MODULE).
+                      If None, redirects within the same module.
+    
+    Returns:
+        HttpResponseRedirect to the target URL
     """
-    # Get the voices domain from settings
-    lang_code = get_short_lang(request.interfaceLang)
-    voices_domain = DOMAIN_MODULES.get(lang_code, {}).get(VOICES_MODULE)
-    target_url = urllib.parse.urljoin(voices_domain, target_path)
-
     # Preserve query parameters
-    if params := request.GET.urlencode():
-        target_url += f"?{params}"
-
-    return redirect(target_url, permanent=True)
+    params = request.GET.urlencode()
+    
+    if target_module is None:
+        # Same-module redirect (URL normalization)
+        # Ensure path starts with "/"
+        url = target_path if target_path.startswith("/") else f"/{target_path}"
+        response = redirect(iri_to_uri(url), permanent=True)
+        if params:
+            response['Location'] += f"?{params}"
+        return response
+    else:
+        # Cross-module redirect
+        # Get the target domain from settings
+        lang_code = get_short_lang(request.interfaceLang)
+        target_domain = DOMAIN_MODULES.get(lang_code, {}).get(target_module)
+        target_url = urllib.parse.urljoin(target_domain, target_path)
+        if params:
+            target_url += f"?{params}"
+        return redirect(target_url, permanent=True)
 
 
 def settings_profile_redirect(request):
     """
     Redirect /settings/profile from library module to voices module
     """
-    return redirect_to_voices(request, "/settings/profile/")
+    return redirect_to_module(request, "/settings/profile/", VOICES_MODULE)
 
 
 def community_to_voices_redirect(request):
     """
     Redirect /community from library module to voices module root
     """
-    return redirect_to_voices(request, "/")
+    return redirect_to_module(request, "/", VOICES_MODULE)
 
 
 def collections_redirect(request, slug=None):
@@ -4800,7 +4908,7 @@ def collections_redirect(request, slug=None):
     else:
         target_path = "/collections"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def profile_redirect_to_voices(request, username=None):
@@ -4813,7 +4921,7 @@ def profile_redirect_to_voices(request, username=None):
     else:
         target_path = "/profile"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def sheets_redirect_to_voices(request, sheet_id=None):
@@ -4826,7 +4934,7 @@ def sheets_redirect_to_voices(request, sheet_id=None):
     else:
         target_path = "/sheets"
 
-    return redirect_to_voices(request, target_path)
+    return redirect_to_module(request, target_path, VOICES_MODULE)
 
 
 def _get_sheet_tag_garden(tag):

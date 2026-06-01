@@ -3,14 +3,20 @@
 """
 Djagno Context Processors, for decorating all HTTP requests with common data.
 """
+import time
 import json
 from functools import wraps
 
+from reader.models import user_has_experiments
 from sefaria.settings import *
+from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
+from sefaria.model.user_profile import UserProfile
 
 import structlog
+
+from sefaria.utils.util import is_int
 logger = structlog.get_logger(__name__)
 
 
@@ -107,3 +113,61 @@ def large_data(request):
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
+
+
+def _chatbot_script_url_and_type(chatbot_version):
+    """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
+    if chatbot_version:
+        # is_int check is a safeguard to ensure chatbot_version is a valid integer before using it,
+        # as it is used for a script insersion and we want to avoid any potential security issues with malicious input.
+        if not is_int(chatbot_version):
+            return None, None
+        return (
+            f"https://{chatbot_version}.ai-server.coolifydev.sefaria.org/static/js/lc-chatbot.umd.cjs?rand={int(time.time())}",
+            None,
+        )
+    if settings.CHATBOT_USE_LOCAL_SCRIPT:
+        return ("http://localhost:5173/src/main.js", "module")
+    
+    if settings.CHATBOT_API_BASE_URL:
+        chatbot_base = settings.CHATBOT_API_BASE_URL.replace("/api", "")
+    else:
+        chatbot_base = "https://chat-dev.sefaria.org"
+    return (
+        f"{chatbot_base}/static/js/lc-chatbot.umd.cjs",
+        None,
+    )
+
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
+        return False
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return False
+    return True
+
+@user_only
+def chatbot_user_token(request):
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+    # if chatbot_version add it to cookies so it can be used in subsequent requests
+    if chatbot_version:
+        if chatbot_version == "clear":
+            if "chatbot_version" in request.session:
+                del request.session["chatbot_version"]
+        else:
+            request.session["chatbot_version"] = chatbot_version
+    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
+    elif "chatbot_version" in request.session:
+        chatbot_version = request.session["chatbot_version"]
+
+    if not _is_user_in_experiment(request):
+        return {
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
+
+    script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
+    return {
+        "chatbot_script_url": script_url,
+        "chatbot_script_type": script_type,
+    }

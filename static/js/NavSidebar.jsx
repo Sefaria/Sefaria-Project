@@ -293,6 +293,8 @@ const getSidebarFooterData = () => [{'he': 'אודות','en': 'About', 'url': `$
                                     {'he': 'פייסבוק','en':'Facebook', 'url': 'https://www.facebook.com/sefaria.org'},
                                     {'he': 'יוטיוב','en':'YouTube', 'url':'https://www.youtube.com/user/SefariaProject'},
                                     {'he': 'חנות','en':'Shop', 'url': 'https://store.sefaria.org/'},
+                                    {'he': 'תנאים','en':'Terms', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/terms`},
+                                    {'he': 'מדיניות פרטיות','en':'Privacy Policy', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/privacy-policy`},
                                     {'he': 'אפשרויות תרומה','en':'Ways to Give', 'url': `${Sefaria.getModuleURL(Sefaria.LIBRARY_MODULE).origin}/ways-to-give`},
                                     {'he': 'תרומות','en':'Donate', 'url': Sefaria._v({en: 'https://donate.sefaria.org/give/451346/#!/donation/checkout?c_src=Footer', he: 'https://donate.sefaria.org/give/468442/#!/donation/checkout?c_src=Footer'})},
                                   ];
@@ -745,8 +747,8 @@ const JoinTheCommunity = ({wide}) => {
         <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
       </div>
       <div>
-        <a className="button small" href="/community">
-          <img src="/static/icons/community-black.svg" alt={Sefaria._("make a sheet icon")} />
+        <a className="button small" href={`${Sefaria.getModuleURL(Sefaria.VOICES_MODULE).origin}/`}>
+          <img src="/static/icons/community-black.svg" alt={Sefaria._("community")} />
           <InterfaceText>Explore the Community</InterfaceText>
         </a>
       </div>

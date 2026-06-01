@@ -22,7 +22,6 @@ import CollectionPage from "./CollectionPage"
 import EditCollectionPage from "./EditCollectionPage";
 import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
-import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
@@ -149,7 +148,7 @@ class ReaderPanel extends Component {
     const {mode, menuOpen, connectionsMode} = this.state;
     const originalLanguage = this.state.settings.language;
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
+    if (["topics", "allTopics", "calendars", "collection" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -200,7 +199,7 @@ class ReaderPanel extends Component {
      * depending on whether we're in multi-panel mode
      */
     if (this.props.multiPanel) {
-      this.props.openConnectionsPanel(ref, null, additionalState);
+      this.props.openConnectionsPanel(ref, additionalState);
     } else {
       this.openConnectionsInPanel(ref, additionalState);
     }
@@ -230,8 +229,7 @@ class ReaderPanel extends Component {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
-    e.preventDefault();
+  handleSheetClick(sheet, highlightedNode, highlightedRefsInSheet) {
     this.conditionalSetState({
       mode: "Sheet",
       sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID
@@ -1075,15 +1073,7 @@ class ReaderPanel extends Component {
         />
       );
     }
-    else if (this.state.menuOpen === "community") {
-      menu = (
-        <CommunityPage
-          multiPanel={this.props.multiPanel}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          initialWidth={this.state.width} />
-      );
-
-    } else if (this.state.menuOpen === "user_stats") {
+    else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
 
     } else if (this.state.menuOpen === "modtools") {

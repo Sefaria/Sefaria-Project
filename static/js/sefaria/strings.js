@@ -37,7 +37,12 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
     "Skip to main content": "דלגו לתוכן האתר",
-
+    "Try Sefaria's new Library Assistant [Experimental]": "נסו את עוזר הספרייה החדש של ספריא [ניסיוני]",
+    "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.": "התחילו ללמוד ולגלות מקורות בספריית ספריא בעזרת העוזר החדש שלנו המופעל על ידי בינה מלאכותית",
+    "Log in to Join": "התחברות כדי להצטרף", 
+    "Create an Account": "יצירת חשבון",
+    "Join the Experiment": "הצטרפו לניסוי",
+    "Joining...": "מצרפים אותך...",
     //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
@@ -45,7 +50,7 @@ const Strings = {
     "Categories": "קטגוריות",
 
     // Landing Pages
-    "Learn More": "למדו עוד",
+    "Learn More": "למידע נוסף",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
@@ -197,6 +202,12 @@ const Strings = {
     "Copy" : "העתקה",
     "Edit": "עריכה",
     "View in Editor": "לתצוגת עריכה",
+    "Exporting to Google Docs...": "מייצא לגוגל דוקס...",
+    "Success!": "ייצוא הסתיים!",
+    "You declined permission to connect with Google. Export requires Google Drive access.": "סירבת לתת הרשאה להתחבר לגוגל. הייצוא דורש גישה ל-Google Drive.",
+    "The authorization expired or was already used. Please try again.": "ההרשאה פגה או כבר נוצלה. אנא נסה שוב.",
+    "There was a permission mismatch. Please try again.": "הייתה אי התאמה בהרשאות. אנא נסה שוב.",
+    "A network error occurred. Please check your connection and try again.": "אירעה שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב.",
      "Enter link URL": "הכנס קישור",
     "Copied" : "הועתק",
     "Copying..." : "מעתיק...",
@@ -710,6 +721,7 @@ const Strings = {
 
     "Toggle Reader Menu Display Settings": "הגדרות תצוגת תפריט קורא",
     "AI Info Icon": "סמל מידע AI",
+    'These sheet results are ranked by AI relevance.': 'תוצאות הדפים מסודרות לפי רלוונטיות על בסיס בינה מלאכותית.',
     "Not published": "לא פורסם",
     "Note author profile picture": "תמונת פרופיל כותב ההערה",
     "Open dropdown": "פתח תפריט נפתח",

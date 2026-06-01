@@ -1467,14 +1467,16 @@ const AiFeedbackLink = ({lang}) => {
   );
 }
 
-const AiInfoTooltip = ({ displayText = "Some of the text on this page has been AI generated." }) => {
+const AiInfoTooltip = ({ displayText, variant, size }) => {
   const [showMessage, setShowMessage] = useState(false);
+  const iconSrc = `/static/icons/ai-star-${variant}-${size}.svg`;
+  const altKey = variant === "solid" ? "AI generated" : "AI assisted";
   const aiInfoIcon = (
       <img
           className="ai-info-icon"
           data-anl-event="ai_marker_hover:mouseover"
-          src="/static/icons/ai-info.svg"
-          alt={Sefaria._("AI Info Icon")} onMouseEnter={() => setShowMessage(true)}
+          src={iconSrc}
+          alt={Sefaria._(altKey)} onMouseEnter={() => setShowMessage(true)}
           onMouseLeave={() => setShowMessage(false)}
       />
     );
@@ -1485,6 +1487,7 @@ const AiInfoTooltip = ({ displayText = "Some of the text on this page has been A
             <InterfaceText context="AiInfoTooltip">
                 {displayText}
             </InterfaceText>
+            &nbsp;
             <AiLearnMoreLink />
         </div>
         <hr className="ai-info-messages-hr" />
@@ -1507,6 +1510,19 @@ const AiInfoTooltip = ({ displayText = "Some of the text on this page has been A
   );
 };
 
+AiInfoTooltip.propTypes = {
+  enText: PropTypes.string,
+  heText: PropTypes.string,
+  variant: PropTypes.oneOf(["solid", "outline"]),
+  size: PropTypes.oneOf([18, 24]),
+};
+
+AiInfoTooltip.defaultProps = {
+  enText: 'Some of the text on this page has been AI generated.',
+  heText: 'חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית.',
+  variant: "solid",
+  size: 24,
+};
 
 class FollowButton extends Component {
   constructor(props) {
@@ -1674,7 +1690,7 @@ const SheetListing = ({
     }
     if (handleSheetClick) {
       Sefaria.track.sheets("Opened via Connections Panel", connectedRefs.toString());
-      handleSheetClick(e, sheet, null, connectedRefs);
+      handleSheetClick(sheet, null, connectedRefs);
       e.preventDefault();
     }
   };
@@ -2290,6 +2306,7 @@ const Banner = ({ onClose }) => {
       !strapi.banner.locales.includes("he")
     )
       return false;
+    if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
 
@@ -2880,45 +2897,6 @@ class CookiesNotification extends Component {
   }
 }
 
-
-const CommunityPagePreviewControls = ({date}) => {
-
-  const dateStr = (date, offset) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + offset)
-
-    return (
-      (d.getMonth() + 1) + "/" +
-      d.getDate() + "/" +
-      d.getFullYear().toString().slice(2)
-    );
-  };
-
-  const tomorrow = dateStr(date, 1);
-  const yesterday = dateStr(date, -1)
-
-  return (
-    <div id="communityPagePreviewControls">
-      <InterfaceText>You are previewing the Community page for </InterfaceText>
-      <a className="date" href={"/admin/community-preview?date=" + date}>
-        <InterfaceText>{date}</InterfaceText>
-      </a>
-      <div>
-        <a href={"/admin/community-preview?date=" + yesterday}>
-          <InterfaceText>{"« " + yesterday}</InterfaceText>
-        </a>
-        <a href={"/admin/community-preview?date=" + tomorrow}>
-          <InterfaceText>{tomorrow + " »"}</InterfaceText>
-        </a>
-      </div>
-      <div>
-        <a href={"/admin/reset/community?next=" + date}>
-          <InterfaceText>Refresh Cache</InterfaceText>
-        </a>
-      </div>
-    </div>
-  );
-};
 
 
 const SheetTitle = (props) => (
@@ -3648,7 +3626,6 @@ export {
   InterfaceText,
   EnglishText,
   HebrewText,
-  CommunityPagePreviewControls,
   LanguageToggleButton,
   Link,
   LoadingMessage,

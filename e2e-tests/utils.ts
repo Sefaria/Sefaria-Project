@@ -1,10 +1,13 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS} from './globals'
-import {BrowserContext}  from '@playwright/test';
+import { DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS, t } from './globals'
+import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
+import { MODULE_URLS, MODULE_SELECTORS } from './constants';
 import path from 'path';
 import fs from 'fs';
+
+// NOTE: per simplification, modal-close attempts are inlined in hideAllModalsAndPopups
 
 let currentLocation: string = '';
 
@@ -49,220 +52,105 @@ export const getTestImagePath = (imageName: string = 'test-image.jpg'): string =
  * rather than only calling hideAllModalsAndPopups()
 */
 
-const updateStorageState = async (storageState: any, key: string, value: any) => {
+interface Cookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expires: number;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'Strict' | 'Lax' | 'None';
+}
+
+interface StorageState {
+  cookies: Cookie[];
+  origins: any[];
+}
+
+/**
+ * Fixes cookie domains to use parent domain for cross-subdomain access
+ * Converts subdomain-specific cookies (e.g., www.example.com) to parent domain (.example.com)
+ * This allows cookies to work across all subdomains (www, voices, etc.)
+ */
+const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
+  return cookies.map((cookie: Cookie) => {
+    // Extract parent domain from subdomain-specific domain
+    // e.g., "www.baseurl.org" -> ".baseurl.org"
+    // e.g., "baseurl.org" -> ".baseurl.org"
+
+    let domain = cookie.domain;
+
+    // Remove leading dot if present
+    if (domain.startsWith('.')) {
+      domain = domain.substring(1);
+    }
+
+    // Split domain into parts
+    const parts = domain.split('.');
+
+    // If domain has subdomain (more than 2 parts, accounting for multi-level TLDs)
+    // e.g., www.modularization.cauldron.sefaria.org has 5 parts
+    // We want to remove the first subdomain (www, voices, etc.) and keep the rest
+    if (parts.length >= 3) {
+      // Remove first subdomain and create parent domain with leading dot
+      const parentDomain = '.' + parts.slice(1).join('.');
+      return { ...cookie, domain: parentDomain };
+    }
+
+    // If already a parent domain or no subdomain, add leading dot if not present
+    if (!cookie.domain.startsWith('.')) {
+      return { ...cookie, domain: '.' + cookie.domain };
+    }
+
+    return cookie;
+  });
+};
+
+const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
   // Modify the cookies as needed
-  interface Cookie {
-    name: string;
-    value: string;
-    domain: string;
-    path: string;
-    expires: number;
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: 'Strict' | 'Lax' | 'None';
-  }
+  storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
+    if (cookie.name === key) {
+      return { ...cookie, value: value };
+    }
+    return cookie;
+  });
 
-  interface StorageState {
-    cookies: Cookie[];
-    origins: any[];
-  }
+  // Fix cookie domains for cross-subdomain access
+  storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
 
-  const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
-    // Modify the cookies as needed
-    storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
-      if (cookie.name === key) {
-        return { ...cookie, value: value };
-      }
-      return cookie;
-    });
-    return storageState.cookies;
-  }
   return storageState.cookies;
 }
 
-// Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
-export const hideModals = async (page: Page) => {
-    //await page.waitForLoadState('networkidle'); 
-      try {
-        const closeButton = page.locator('#interruptingMessageClose');
-        if (await closeButton.isVisible({ timeout: 2000 })) {
-            await closeButton.click();
-            return;
-        }
-    } catch (error) {
-    }
-    await page.evaluate(() => {
-        const style = document.createElement('style');
-        style.innerHTML = '#interruptingMessageBox, #interruptingMessageOverlay, #interruptingMessage {display: none !important;}';
-        document.head.appendChild(style); 
-    });
-}
-
-export const hideTipsAndTricks = async (page: Page) => {
-  // First try to click the close button if visible
-  try {
-    const closeButton = page.locator('.guideOverlay .readerNavMenuCloseButton.circledX');
-    if (await closeButton.isVisible({ timeout: 2000 })) {
-      await closeButton.click();
-      await page.waitForTimeout(500); // Allow overlay to close
-      // console.log('Guide overlay closed via close button');
-      return;
-    }
-  } catch (error) {
-    console.log('Failed to close guide overlay via button, falling back to CSS hiding');
-  }
-  
-  // If not visible, inject CSS to hide the overlay
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide the tips and tricks overlay
-    style.innerHTML = `
-      .guideOverlay,
-      .guideOverlayContent,
-      .guideOverlayHeader,
-      .guideOverlayBody,
-      .guideOverlayFooter,
-      .guideOverlayCenteredContent,
-      .guideOverlayVideoContainer,
-      .guideOverlayTextContainer,
-      .guide-overlay,
-      .quickStartGuide,
-      .tourOverlay,
-      [class*="guide"][class*="overlay"],
-      [class*="tour"][class*="overlay"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        z-index: -1 !important;
-      }
-      
-      /* Ensure body doesn't have overlay-related classes that might affect interaction */
-      body.guide-active,
-      body.overlay-active {
-        pointer-events: auto !important;
-      }
-      
-      /* Ensure videos in the overlay are stopped */
-      .guideOverlayVideo {
-        display: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-//try clicking the close button, else hide the modal and overlay forcibly
-export const hideExploreTopicsModal = async (page: Page) => {
-  await page.evaluate(() => {
-    const closeBtn = document.querySelector('.ub-emb-close');
-    if (closeBtn) {
-      (closeBtn as HTMLElement).click();
-    } else {
-      const modal = document.querySelector('.ub-emb-iframe-wrapper');
-      if (modal) {
-        (modal as HTMLElement).style.display = 'none';
-        (modal as HTMLElement).style.visibility = 'hidden';
-        (modal as HTMLElement).style.pointerEvents = 'none';
-      }
-      const iframe = document.querySelector('.ub-emb-iframe');
-      if (iframe) {
-        (iframe as HTMLElement).style.display = 'none';
-        (iframe as HTMLElement).style.visibility = 'hidden';
-        (iframe as HTMLElement).style.pointerEvents = 'none';
-      }
-    }
-  });
-}
-
-export const dismissNewsletterPopupIfPresent = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide all known newsletter popup elements and overlays; !important ensures they are not shown
-    style.innerHTML = `
-      .ub-emb-scroll-wrapper,
-      .ub-emb-iframe-wrapper,
-      .ub-emb-iframe,
-      iframe[src*="ubembed.com"],
-      .ub-emb-close,
-      div[class*="ub-emb"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important; // Prevents interaction with hidden elements
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-//method to hide Welcome to New Editor banner
-export const hideGenericBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .genericBanner {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
-
-export const hideCookiesPopup = async (page: Page) => {
-    await page.evaluate(() => {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        .cookiesNotification {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-    });
-  };
-  
-export const hideTopUnbounceBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      #bannerMessage { display: none !important;}
-    `;
-    document.head.appendChild(style);
-  });
-}
-
-export const hideTopBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .readerControlsOuter {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+// Individual hide helpers removed — use hideAllModalsAndPopups(page) instead.
 
 /**
  * Hides all common popups, modals, and banners that might interfere with tests
  * This is called automatically by navigation functions but can also be called manually
  */
 export const hideAllModalsAndPopups = async (page: Page) => {
-  await hideModals(page);
-  await dismissNewsletterPopupIfPresent(page);
-  await hideGenericBanner(page);
-  await hideCookiesPopup(page);
-  await hideExploreTopicsModal(page);
-  await hideTipsAndTricks(page);
-  await hideTopUnbounceBanner(page);
-  // Additional wait to ensure all overlays are fully dismissed
-  await page.waitForTimeout(1000);
+  const selectors = [
+    '#interruptingMessageClose', '.ub-emb-close', '.genericBanner .close, .genericBanner button.close',
+    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close', '#interruptingMessageBox #interruptingMessageClose',
+    '.guideOverlay .readerNavMenuCloseButton.circledX', '#bannerMessage .close, #bannerMessage button.close','.siteWideBannerContent .siteWideBannerClose',
+    '.readerControlsOuter .close, .readerControlsOuter button.close .floating-ui-popover', 'floating-ui-popover .popover-actions .accessible-touch-target',
+    'small.popover-button.accessible-touch-target', '#bannerMessageClose', '.cookiesNotification', 'cookiesNotification.button.small.white.int-en',
+    'button[data-active-module="voices"].popover-button', '#readerAppWrap > div.readerApp.multiPanel.interface-english > div.cookiesNotification > span.int-en > div',
+    'button.popover-button:has-text("Got it!")', '.ub-emb-iframe-wrapper .ub-emb-visible'
+  ];
+  for (const s of selectors) {
+    try {
+      const el = page.locator(s);
+      if (await el.isVisible({ timeout: t(1500) })) {
+        await el.click({ timeout: t(2000) }).catch(() => {});
+      }
+    } catch (e) { console.log(e); }
+  }
+  // await page.evaluate(() => {
+  //   const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2, [id^="interruptingMessage"], [class*="genericBanner"]');
+  //   overlays.forEach(el => el.remove());
+  // }).catch(() => { });
+  await page.waitForTimeout(t(300));
 };
 
 /**
@@ -272,62 +160,69 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguage = async (page: Page, language: string) => {
-    await toggleLanguage(page, language)
-  };
+  await toggleLanguage(page, language)
+};
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
-    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
-    const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
-    const langParam = language === LANGUAGES.HE ? 'he' : 'en';
-    // Helper function to verify language is correct
-    const verifyLanguage = async (): Promise<boolean> => {
-        await page.waitForLoadState('domcontentloaded');
-        const elementVisible = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible().catch(() => false);
-        const bodyClass = await page.locator('body').getAttribute('class') || '';
-        return elementVisible && bodyClass.includes(expectedBodyClass);
-    };
-    // Check if we're already in the correct language
-    if (await verifyLanguage()) {
-        return;
+  await hideAllModalsAndPopups(page);
+
+  const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+  const languageClass = language === LANGUAGES.HE ? '.hebrewLanguageLink' : '.englishLanguageLink';
+  const langParam = language === LANGUAGES.HE ? 'he' : 'en';
+
+  // Check if already in target language
+  const body = page.locator('body');
+  const currentClasses = await body.getAttribute('class') || '';
+  if (currentClasses.includes(expectedBodyClass)) {
+    return;
+  }
+
+  try {
+    // Use dropdown menu to toggle language
+    await openHeaderDropdown(page, 'user');
+    await page.waitForTimeout(t(1000));
+
+
+
+    const languageToggle = page.locator(`.header .headerDropdownMenu .dropdownLinks-menu.open .dropdownLinks-options .dropdownLanguageToggle`);
+    await languageToggle.waitFor({ state: 'visible', timeout: t(5000) });
+    const languageToggleClass = languageToggle.locator(languageClass);
+    await languageToggleClass.waitFor({ state: 'visible', timeout: t(5000) });
+    await languageToggleClass.click();
+
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(t(500));
+
+    // Verify language changed
+    const newBodyClass = await body.getAttribute('class') || '';
+    if (!newBodyClass.includes(expectedBodyClass)) {
+      throw new Error(`Language toggle failed. Expected ${expectedBodyClass}`);
     }
+  } catch (error) {
+    console.error('Dropdown language toggle failed, using cookie fallback:', error);
+    // Fallback: cookie + URL navigation
     const currentUrl = page.url();
-    // Strategy 1: Direct URL navigation with lang parameter (most reliable for staging)
+    const urlObj = new URL(currentUrl);
+    urlObj.searchParams.set('lang', langParam);
+
     try {
-        const urlObj = new URL(currentUrl);
-        urlObj.searchParams.set('lang', langParam);
-        await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            return;
-        }
-    } catch (error) {
-        console.log('Strategy 1 (URL navigation) failed:', error);
-    }
-    // Strategy 2: UI-based language change
-    try {
-        const isLoggedIn = await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible().catch(() => false);
-        if (isLoggedIn) {
-            await page.locator('.myProfileBox .profile-pic').click();
-            await expect(page.locator('.interfaceLinks-menu.profile-menu')).toBeVisible({ timeout: 3000 });
-        } else {
-            await page.locator('.interfaceLinks-button').click();
-        }
-        if (language === LANGUAGES.EN) {
-            await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-        } else if (language === LANGUAGES.HE) {
-            await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click();
-        }
-        await page.waitForTimeout(1000);
-        await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            console.log(`Strategy 2: UI-based language change succeeded`);
-            return;
-        }
-    } catch (error) {
-        console.log(`Strategy 2: UI-based language change failed:`, error);
-    }
-    throw new Error(`All language change strategies failed for ${language}. Current URL: ${page.url()}`);
+      const cookie = {
+        name: 'interfaceLang',
+        value: langParam,
+        domain: urlObj.hostname,
+        path: '/',
+        httpOnly: false,
+        secure: urlObj.protocol === 'https:',
+        sameSite: 'Lax' as const,
+        expires: Math.floor(Date.now() / 1000) + 3600
+      };
+      await page.context().addCookies([cookie]);
+    } catch (e) { }
+
+    await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: t(30000) });
+    await page.waitForLoadState('domcontentloaded');
+  }
 };
 
 
@@ -360,113 +255,132 @@ export const expireLogoutCookie = async (context: BrowserContext) => {
     return false;
   }
 };
-        
+
 /*METHODS TO NAVIGATE TO A PAGE */
 
-export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    let page: Page = await context.newPage();
-    const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
-    const filePath = path.join(__dirname, settings.file);
-    if (!fs.existsSync(filePath)) {
-      await page.goto(url);
-      await changeLanguage(page, language);
-      await page.context().storageState({ path: filePath });
-      await page.goto(url);
-    } else {
-      const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-      if (storageCookies == null) {
-          throw new Error(`No cookies found in storage state for language ${language}`);
-      }
-      await page.context().addCookies(storageCookies);
-      await page.goto(url);
-    }
+export const goToPageWithLang = async (context: BrowserContext, url: string, language = DEFAULT_LANGUAGE) => {
+  let page: Page = await context.newPage();
+  const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
+  const filePath = path.join(__dirname, settings.file);
+  if (!fs.existsSync(filePath)) {
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await changeLanguage(page, language);
 
-    //await hideAllModalsAndPopups(page);
+    // Save storage state and fix cookie domains for cross-subdomain access
+    const storageState = await page.context().storageState();
+    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+    fs.writeFileSync(filePath, JSON.stringify(storageState, null, 2));
+
+    // Also fix cookies in current context for immediate use
+    await page.context().addCookies(storageState.cookies);
+
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(1500));
     await hideAllModalsAndPopups(page);
-    return page
+  } else {
+    const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
+    if (storageCookies == null) {
+      throw new Error(`No cookies found in storage state for language ${language}`);
+    }
+    await page.context().addCookies(storageCookies);
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(1500));
+    await hideAllModalsAndPopups(page);
+  }
+
+  await hideAllModalsAndPopups(page);
+  return page
 }
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
-    // Use a persistent auth file to store/reuse login state
-    const language = settings.lang;
-    const user = settings.user;
-    const authPath = path.join(__dirname, settings.file);
-    let page: Page;
-    if (!fs.existsSync(authPath)) {
-        // No auth file, perform login and save storage state
-        page = await context.newPage();
-        await page.goto('/login', {waitUntil: 'domcontentloaded'});
-        const loginPage = new LoginPage(page, language);
-        await changeLanguage(page, language);
-        await loginPage.loginAs(user);
-        // Save storage state for future reuse
-        await page.context().storageState({ path: authPath });
-        await page.goto(url, {waitUntil: 'domcontentloaded'});
-        return page;
-    }
-    // If auth file exists, create a new context with storageState and open the page
-    const browser = context.browser();
-    if (!browser) {
-        throw new Error('Browser instance is null. Cannot create a new context.');
-    }
-    page = await browser.newPage();
-    // Load the storage state from the auth file
-    const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
-    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-    if (storageCookies == null) {
-        throw new Error(`No cookies found in storage state for language ${language}`);
-    }
-    await page.context().addCookies(storageCookies);
-    // Navigate to the desired URL
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
+  // Use a persistent auth file to store/reuse login state
+  const language = settings.lang;
+  const user = settings.user;
+  const authPath = path.join(__dirname, settings.file);
+  let page: Page;
+  if (!fs.existsSync(authPath)) {
+    // No auth file, perform login and save storage state
+    page = await context.newPage();
+    await gotoOrThrow(page, `/login`, { waitUntil: 'domcontentloaded' });
+    const loginPage = new LoginPage(page, language);
     await changeLanguage(page, language);
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
+    await loginPage.loginAs(user);
+
+    // Save storage state and fix cookie domains for cross-subdomain access
+    const storageState = await page.context().storageState();
+    storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+    fs.writeFileSync(authPath, JSON.stringify(storageState, null, 2));
+
+    // Also fix cookies in current context for immediate use
+    await page.context().addCookies(storageState.cookies);
+
+    await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(t(2000));
+    // await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     return page;
+  }
+  // If auth file exists, add cookies to the provided context and create page from it
+  const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+  const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
+  if (storageCookies == null) {
+    throw new Error(`No cookies found in storage state for language ${language}`);
+  }
+  // Add cookies to the provided context so all pages created from it will have auth
+  await context.addCookies(storageCookies);
+
+  page = await context.newPage();
+  // Navigate to the desired URL
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await changeLanguage(page, language);
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(t(2000));
+  await hideAllModalsAndPopups(page);
+  return page;
 }
 
 export const getPathAndParams = (url: string) => {
-    const urlObj = new URL(url);
-    return urlObj.pathname + urlObj.search;
+  const urlObj = new URL(url);
+  return urlObj.pathname + urlObj.search;
 }
 
 
 export const getCountryByIp = async (page: Page) => {
-    const services = [
-        {
-            url: 'https://ipapi.co/json/',
-            extract: (data: any) => data.country
-        },
-        {
-            url: 'https://api.ipbase.com/v1/json/',
-            extract: (data: any) => data.country_code
-        }
-    ];
-
-    for (const service of services) {
-        try {
-            const data = await page.evaluate(async (url) => {
-                const response = await fetch(url);
-                return await response.json();
-            }, service.url);
-            
-            if (data) {
-                return service.extract(data);
-            }
-        } catch (e) {
-            console.log(`Failed to get country from ${service.url}`, e);
-            continue;
-        }
+  const services = [
+    {
+      url: 'https://ipapi.co/json/',
+      extract: (data: any) => data.country
+    },
+    {
+      url: 'https://api.ipbase.com/v1/json/',
+      extract: (data: any) => data.country_code
     }
-    return null;
+  ];
+
+  for (const service of services) {
+    try {
+      const data = await page.evaluate(async (url) => {
+        const response = await fetch(url);
+        return await response.json();
+      }, service.url);
+
+      if (data) {
+        return service.extract(data);
+      }
+    } catch (e) {
+      console.log(`Failed to get country from ${service.url}`, e);
+      continue;
+    }
+  }
+  return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    if (!currentLocation) {
-        currentLocation = await getCountryByIp(page);
-    }
-    return currentLocation === "IL";
+  if (!currentLocation) {
+    currentLocation = await getCountryByIp(page);
+  }
+  return currentLocation === "IL";
 }
 
 
@@ -501,4 +415,290 @@ export const simulateOfflineMode = async (page: Page) => {
 
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
+};
+
+/**
+ * Wrapper for page.goto that throws on 404 responses.
+ * @param page - Playwright page
+ * @param url - URL to navigate to
+ * @param options - optional goto options
+ */
+export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<Page['goto']>[1]) => {
+  let response = await page.goto(url, options);
+  // Retry once on transient 5xx — sandbox occasionally throttles under parallel-worker burst load.
+  if (response && response.status() >= 500 && response.status() < 600) {
+    await page.waitForTimeout(t(1500));
+    response = await page.goto(url, options);
+  }
+  if (response && response.status() === 404) {
+    throw new Error(`Error 404: Navigation to ${url} returned 404`);
+  }
+  else if (response && response.status() >= 400) {
+    throw new Error(`Error ${response.status()}: Navigation to ${url} returned status ${response.status()}`);
+  }
+
+  return response;
+};
+
+// ==============================================================================
+// MDL HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Open a dropdown menu in header
+ * @param page - Playwright page
+ * @param dropdownType - Type of dropdown: 'user' | 'module'
+ */
+export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'module') => {
+  await hideAllModalsAndPopups(page);
+
+  let button;
+  if (dropdownType === 'user') {
+    // Click the user menu icon (works for both logged-in and logged-out states)
+    // For logged-out: clicks the profile_loggedout_mdl.svg icon
+    // For logged-in: clicks the profile pic
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
+
+    // Check which one is visible
+    const isLoggedOut = await loggedOutIcon.isVisible().catch(() => false);
+    button = isLoggedOut ? loggedOutIcon : profilePic;
+  } else {
+    // Module switcher - use the icon directly as it's always visible
+    button = page.locator(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
+  }
+
+  await button.waitFor({ state: 'visible', timeout: t(5000) });
+  await hideAllModalsAndPopups(page);
+  await button.click();
+
+  // Wait for dropdown to appear (use .open to avoid strict mode violation with multiple dropdowns)
+  await page.locator(`${MODULE_SELECTORS.DROPDOWN}.open`).waitFor({ state: 'visible', timeout: t(5000) });
+};
+
+/**
+ * Select an option from a dropdown menu
+ * @param page - Playwright page
+ * @param optionText - Text of the option to select (supports regex)
+ * @param openNewTab - Whether the option opens in a new tab
+ */
+export const selectDropdownOption = async (
+  page: Page,
+  optionText: string | RegExp,
+  openNewTab: boolean = false
+) => {
+  const option = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
+  await option.waitFor({ state: 'visible', timeout: t(5000) });
+
+  if (openNewTab) {
+    const [newPage] = await Promise.all([
+      page.context().waitForEvent('page'),
+      option.click()
+    ]);
+    await newPage.waitForLoadState('domcontentloaded');
+    return newPage;
+  } else {
+    await option.click();
+    await page.waitForLoadState('domcontentloaded');
+    return null;
+  }
+};
+
+/**
+ * Check if user is logged in
+ * @param page - Playwright page
+ * @returns true if logged in, false otherwise
+ */
+export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
+  try {
+    // Wait for potential logged-out icon or profile pic to load (whichever appears first)
+    await page.waitForLoadState('domcontentloaded', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
+
+    // Check if logged-out icon is visible
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: t(2000) });
+    if (isLoggedOut) {
+      // log that logged out icon is visible for debugging purposes
+      // console.log(`User is not logged in (logged-out icon visible)`);
+      return false;
+    }
+
+    // Check if profile pic is visible (logged in)
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
+    const isLoggedIn = await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
+    if (isLoggedIn) {
+      console.log('User is logged in (profile pic visible)');
+    }
+    return isLoggedIn;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Log out via dropdown menu
+ * @param page - Playwright page
+ */
+export const logout = async (page: Page) => {
+  if (!(await isUserLoggedIn(page))) {
+    // console.log('User is not logged in, skipping logout. Check if test was supposed to be logged in or not.');
+    return;
+  }
+
+  await openHeaderDropdown(page, 'user');
+  const logoutOption = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
+    .filter({ hasText: /log out|sign out|logout|ניתוק/i });
+
+  await logoutOption.waitFor({ state: 'visible', timeout: t(5000) });
+  await logoutOption.click();
+  await page.waitForLoadState('domcontentloaded');
+};
+
+/**
+ * Create a new sheet using the "Create" button in header
+ * @param page - Playwright page (should be on Voices module)
+ * @returns The sheet URL
+ */
+export const createNewSheet = async (page: Page): Promise<string> => {
+  await hideAllModalsAndPopups(page);
+
+  const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
+  const createLink = page.getByRole('banner').getByRole('link', { name: /create/i });
+
+  const initialUrl = page.url();
+
+  if (await createButton.isVisible({ timeout: t(2000) })) {
+    await createButton.click();
+  } else if (await createLink.isVisible({ timeout: t(2000) })) {
+    await createLink.click();
+  } else {
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/new`);
+  }
+
+  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
+  await page.waitForLoadState('domcontentloaded');
+  await hideAllModalsAndPopups(page);
+
+  const currentUrl = page.url();
+  if (!/\/sheets\/(new|\d+)/.test(currentUrl)) {
+    throw new Error(`Failed to create sheet. Current URL: ${currentUrl}`);
+  }
+
+  return currentUrl;
+};
+
+/**
+ * Switch between Library and Voices modules
+ * @param page - Playwright page
+ * @param targetModule - 'Library' or 'Voices'
+ * @returns New page if opened in new tab, null otherwise
+ */
+export const switchModule = async (
+  page: Page,
+  targetModule: 'Library' | 'Voices'
+): Promise<Page | null> => {
+  await openHeaderDropdown(page, 'module');
+
+  const currentUrl = page.url();
+  const isOnLibrary = currentUrl.includes(MODULE_URLS.EN.LIBRARY);
+  const isOnVoices = currentUrl.includes(MODULE_URLS.EN.VOICES);
+
+  const needsNewTab = (targetModule === 'Library' && isOnVoices) ||
+    (targetModule === 'Voices' && isOnLibrary);
+
+  return await selectDropdownOption(page, targetModule, needsNewTab);
+};
+
+/**
+ * Wait for a text segment to be visible
+ * @param page - Playwright page
+ * @param selector - Selector for the segment
+ */
+export const waitForSegment = async (page: Page, selector: string) => {
+  const loadingHeading = page.getByRole('heading', { name: 'Loading...' });
+  await loadingHeading.waitFor({ state: 'detached', timeout: t(15000) }).catch(() => { });
+
+  const segment = page.locator(selector);
+  await segment.waitFor({ state: 'visible', timeout: t(10000) });
+  return segment;
+};
+
+/**
+ * Get module name from URL
+ * @param url - Page URL
+ * @returns 'library' | 'voices' | 'unknown'
+ */
+export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'unknown' => {
+  if (url.includes(MODULE_URLS.EN.LIBRARY) || url.includes('www.')) {
+    return 'library';
+  } else if (url.includes(MODULE_URLS.EN.VOICES) || url.includes('voices.')) {
+    return 'voices';
+  }
+  return 'unknown';
+};
+
+// ==============================================================================
+// CROSS-MODULE REDIRECT HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Normalize URLs for comparison (handles trailing slashes and query params)
+ * @param url - The URL to normalize
+ * @param options - Options for normalization
+ * @returns Normalized URL string
+ */
+export const normalizeUrl = (url: string, options: { ignoreQueryParams?: boolean, ignoreTrailingSlash?: boolean } = {}) => {
+  const urlObj = new URL(url);
+  let normalized = `${urlObj.origin}${urlObj.pathname}`;
+
+  if (!options.ignoreTrailingSlash && !normalized.endsWith('/') && urlObj.pathname !== '/') {
+    // Keep trailing slashes as-is for exact matching
+  }
+
+  if (!options.ignoreQueryParams && urlObj.search) {
+    normalized += urlObj.search;
+  }
+
+  return normalized;
+};
+
+/**
+ * Check if URLs match (with optional query param ignoring)
+ * @param actual - The actual URL
+ * @param expected - The expected URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @returns true if URLs match, false otherwise
+ */
+export const urlMatches = (actual: string, expected: string, ignoreQueryParams: boolean = false) => {
+  if (ignoreQueryParams) {
+    return normalizeUrl(actual, { ignoreQueryParams: true }) === normalizeUrl(expected, { ignoreQueryParams: true });
+  }
+  return normalizeUrl(actual) === normalizeUrl(expected);
+};
+
+/**
+ * Assert that URLs match, throwing a detailed error if they don't
+ * @param actual - The actual URL
+ * @param expectedBase - The expected base URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @throws Error with expected vs actual URL details if URLs don't match
+ */
+export const assertUrlMatches = (actual: string, expectedBase: string, ignoreQueryParams: boolean = false) => {
+  if (!urlMatches(actual, expectedBase, ignoreQueryParams)) {
+    throw new Error(`URL mismatch — expected base: "${expectedBase}" (ignoreQuery=${ignoreQueryParams})\nActual: "${actual}"`);
+  }
+};
+
+/**
+ * Assert that a response status is NOT one of the error codes
+ * @param status - The response status code
+ * @param errorCodes - Array of error codes to check against
+ * @param url - Optional URL that was being navigated to
+ * @throws Error if status is one of the error codes
+ */
+export const assertStatusNotError = (status: number, errorCodes: number[] = [404, 500, 502, 503, 504], url?: string) => {
+  if (errorCodes.includes(status)) {
+    const urlPart = url ? ` from URL: ${url}` : '';
+    throw new Error(`Response returned error status: ${status} (expected one of: ${errorCodes.join(', ')})${urlPart}`);
+  }
 };

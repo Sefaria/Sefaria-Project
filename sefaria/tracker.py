@@ -10,10 +10,8 @@ logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
+from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
@@ -38,8 +36,13 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
-        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, str(chunk.full_version._id), **kwargs)
+        skip_links = kwargs.pop('skip_links', False) or chunk.has_manually_wrapped_refs()
+        count_after = kwargs.pop("count_after", 1)
+        version_id = str(chunk.full_version._id)
+
+        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
+
+        count_and_index(oref, lang, vtitle, to_count=count_after)
 
     return chunk
 
@@ -50,7 +53,9 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
     version: version object of text being modified
     text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored. The key should be the tref, and the value the text, ex: {'Mishnah Berakhot 1:1': 'Text of the Mishnah goes here'}
     vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
+    skip_toc_refresh: if True, refresh the persisted VersionState and the in-memory ToC node for this index but skip the global `library.rebuild_toc` (which re-serializes the full ToC and rebuilds the topic ToC). Use this when the caller will trigger a single `library.rebuild_toc` at the end of a batch of edits.
     """
+    skip_toc_refresh = kwargs.pop('skip_toc_refresh', False)
     def populate_change_map(old_text, en_tref, he_tref, _):
         nonlocal change_map, existing_tref_set
         existing_tref_set.add(en_tref)
@@ -81,15 +86,14 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
             error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
+    skip_links = kwargs.pop('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
     for old_text, new_text, oref in change_map.values():
         if oref.normal() in error_map: continue
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
-        kwargs['count_after'] = False
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), **kwargs)
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, str(version._id), skip_links=skip_links, count_after=False, **kwargs)
 
-    count_segments(version.get_index())
+    count_segments(version.get_index(), skip_toc_refresh=skip_toc_refresh)
     return error_map
 
 
@@ -140,7 +144,42 @@ def modify_version(user: int, version_dict: dict, patch=True, **kwargs):
     count_segments(version.get_index())
 
 
-def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
+def update_version_metadata(user: int, version: model.Version, updates: dict, **kwargs) -> model.Version:
+    """
+    Update version metadata fields and log the change to history.
+
+    Use this for metadata-only changes (license, status, priority, etc.) that should
+    be tracked separately from text content changes. Creates 'edit version_metadata'
+    history records.
+
+    Args:
+        user: User ID making the change
+        version: Loaded Version object to update
+        updates: dict of {field_name: new_value}, use None to delete a field
+        **kwargs: Optional 'method' (defaults to "Site") for history record
+
+    Returns:
+        The updated Version object
+    """
+    old_dict = version.contents()
+    old_dict.pop('chapter', None)  # don't log text itself, just log the metadata
+
+    for field_name, field_value in updates.items():
+        if field_value is None:
+            # None is sentinel for "delete this field"
+            if hasattr(version, field_name):
+                delattr(version, field_name)
+        else:
+            setattr(version, field_name, field_value)
+
+    version.save()
+    new_dict = version.contents()
+    new_dict.pop('chapter', None)  # again,don't log text itself, just log the metadata
+    model.log_version_metadata(user, old_dict, new_dict, **kwargs)
+    return version
+
+
+def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, skip_links=False, count_after=1, **kwargs) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:
         invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
@@ -148,16 +187,31 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
         if oref.prev_section_ref():
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-    if not kwargs.get("skip_links", None):
-        from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
-        from sefaria.model import Version
+    if not skip_links:
+        if CELERY_ENABLED:
+            generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
+            generator.generate_from_ref_and_version_id(oref, version_id)
+        # Some commentaries can generate links to their base text automatically
+        autolinker = oref.autolinker(user=user)
+        if autolinker:
+            autolinker.refresh_links(**kwargs)
 
-        generator = MarkedUpTextChunkGenerator(user_id=user, **kwargs)
-        generator.generate_from_ref_and_version_id(oref, version_id)
-        # # Some commentaries can generate links to their base text automatically
-        # linker = oref.autolinker(user=user)
+    count_and_index(oref, lang, vtitle, to_count=count_after)
 
-    count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
+
+def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=False, **kwargs):
+    """Recursively walk old_text/new_text and call post_modify_text only for changed segments."""
+    if isinstance(new_text, list):
+        if not isinstance(old_text, list):
+            old_text = []
+        padded_old = old_text + [""] * max(0, len(new_text) - len(old_text))
+        for i in range(len(new_text)):
+            if padded_old[i] != new_text[i]:
+                _post_modify_changed_segments(user, action, oref.subref(i + 1), lang, vtitle, padded_old[i], new_text[i], version_id, skip_links=skip_links, **kwargs)
+    else:
+        # Segment level — call post_modify_text if changed
+        if old_text != new_text:
+            post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
 
 
 def count_and_index(oref, lang, vtitle, to_count=1):
@@ -176,12 +230,15 @@ def count_and_index(oref, lang, vtitle, to_count=1):
         }).save()
 
 
-def count_segments(index):
+def count_segments(index, skip_toc_refresh=False):
     from sefaria.settings import MULTISERVER_ENABLED
     from sefaria.system.multiserver.coordinator import server_coordinator
 
-    model.library.recount_index_in_toc(index)
-    if MULTISERVER_ENABLED:
+    model.library.recount_index_in_toc(index, skip_toc_refresh=skip_toc_refresh)
+    if MULTISERVER_ENABLED and not skip_toc_refresh:
+        # When deferring, the caller is responsible for triggering one global
+        # `library.rebuild_toc` at the end of the batch (which itself publishes a
+        # multiserver event), so we skip the per-index publish here.
         server_coordinator.publish_event("library", "recount_index_in_toc", [index.title])
 
 

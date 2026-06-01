@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/react";
 
 
 $(function() {
+  const remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
   // Initialize Sentry, sentryDSN is defined in base.html
   if (sentryDSN) {
     Sentry.init({

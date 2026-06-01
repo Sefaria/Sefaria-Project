@@ -88,3 +88,30 @@ def save_version(raw_version_change: dict):
     patch = raw_version_change['patch']
     kwargs = {'skip_links': raw_version_change['skip_links'], 'count_after': raw_version_change['count_after']}
     tracker.modify_version(uid, version, patch, **kwargs)
+
+
+@app.task(name="web.update_index_title", bind=True, acks_late=True)
+def update_index_title(self, uid: int, attrs: dict, raw: bool, method) -> dict:
+    """Rename an Index and cascade all dependent records.
+
+    Wraps the full tracker.update() call so that every subscriber in
+    dependencies.py (versions, links, notes, history, sheets, ref data,
+    user history, topic links, manuscripts, marked-up chunks, cache, TOC)
+    runs in the Celery worker rather than blocking the request.
+    """
+    from sefaria.system.progress_context import set_progress_reporter, reset_progress_reporter
+    old_title = attrs.get("oldTitle")
+    new_title = attrs.get("title")
+    logger.info("update_index_title:start", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id)
+    token = set_progress_reporter(
+        lambda step: self.update_state(state='PROGRESS', meta={'step': step})
+    )
+    try:
+        index_obj = tracker.update(uid, Index, attrs, raw=raw, method=method)
+        logger.info("update_index_title:complete", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id)
+        return {"status": "ok", "title": index_obj.title}
+    except Exception as e:
+        logger.error("update_index_title:failed", old_title=old_title, new_title=new_title, uid=uid, task_id=self.request.id, error=str(e))
+        raise
+    finally:
+        reset_progress_reporter(token)

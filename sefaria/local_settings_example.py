@@ -53,10 +53,10 @@ DOMAIN_MODULES = {
     }
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
-
+CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+     'you@example.com',
 )
 ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
 
@@ -147,6 +147,7 @@ STRAPI_PORT = None
 MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
+CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
 
 
 EMAIL_HOST = 'localhost'
@@ -352,3 +353,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
+
+CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
+# Use the local Vite dev server script instead of the hosted UMD bundle.
+CHATBOT_USE_LOCAL_SCRIPT = True

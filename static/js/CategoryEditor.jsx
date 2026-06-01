@@ -84,7 +84,7 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        Sefaria.adminEditorApiRequest(postURL, null, postCategoryData)
+        Sefaria.apiRequestWithBodyAndAlert(postURL, null, postCategoryData)
             .then(() => window.location.href = redirect)
             .finally(() => setSavingStatus(false));
     }
@@ -189,7 +189,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        Sefaria.adminEditorApiRequest(url, null, postCategoryData)
+        Sefaria.apiRequestWithBodyAndAlert(url, null, postCategoryData)
             .then(() => window.location.href = "/texts/"+fullPath)
             .finally(() => setSavingStatus(false));
     }
@@ -201,7 +201,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
-        Sefaria.adminEditorApiRequest(url, null, null, "DELETE")
+        Sefaria.apiRequestWithBodyAndAlert(url, null, null, "DELETE")
             .then(() => window.location.href = `/texts`);
     }
     const primaryOptions = [

@@ -15,7 +15,7 @@ from . import abstract
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, blocking, user_profile, \
     version_state, lexicon, place, timeperiod, garden, collection, topic, manuscript, guide
 
-from .history import History, HistorySet, log_add, log_delete, log_update, log_text
+from .history import History, HistorySet, log_add, log_delete, log_update, log_text, log_version_metadata
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
     ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode, NonUniqueTerm, NonUniqueTermSet
 from .text import library, Index, IndexSet, Version, VersionSet, TextChunk, TextRange, TextFamily, Ref, merge_texts
@@ -39,6 +39,7 @@ from .category import Category, CategorySet
 from .passage import Passage, PassageSet
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
+from .webpage_text import WebPageText, WebPageTextSet
 from .media import Media, MediaSet
 from .guide import Guide, GuideSet
 from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper

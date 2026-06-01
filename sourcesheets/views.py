@@ -17,7 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -38,7 +38,7 @@ from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
 from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
 from sefaria.sheets import clean_source, bleach_text
 from bs4 import BeautifulSoup
 
@@ -48,7 +48,7 @@ import sefaria.model.dependencies
 
 
 from sefaria.gauth.decorators import gauth_required
-from reader.views import menu_page
+
 
 def annotate_user_links(sources):
     """
@@ -62,8 +62,6 @@ def annotate_user_links(sources):
 
     return sources
 
-from django.utils.translation import ugettext as _
-from reader.views import menu_page
 
 @ensure_csrf_cookie
 def sheets_home_page(request):
@@ -1056,6 +1054,7 @@ def export_to_drive(request, credential, sheet_id):
     # Using credentials in google-api-python-client.
     service = build('drive', 'v3', credentials=credential, cache_discovery=False)
     user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
+
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
         return jsonResponse({'error': {'message': sheet["error"]}})
