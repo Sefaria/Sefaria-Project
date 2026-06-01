@@ -93,6 +93,16 @@ fallback_palette_colors = [
 
 
 def get_category_colors(category: str | None) -> CategoryColors:
+    """
+    Return ``[background_color, font_color]`` for the given category name.
+
+    Colors are defined in the ``palette`` dict above. 
+    If ``category`` is not in the palette (or is ``None``), a fallback color is chosen deterministically by hashing the category string — 
+    so the same unknown category always gets the same color on every request rather than a random one.
+
+    The return value is always a two-element list of RGB tuples:
+    ``[(R, G, B), (R, G, B)]``, background first, font color second.
+    """
     if category in palette:
         return palette[category]
     category = category if isinstance(category, str) else ""
@@ -104,6 +114,15 @@ def get_category_colors(category: str | None) -> CategoryColors:
 
 
 def normalize_social_image_module(module: str | None) -> SocialImageModule:
+    """
+    Validate that ``module`` is one of the two supported module names
+    (``"library"`` or ``"voices"``) and return it unchanged if so.
+
+    If the value is anything else — including ``None`` or an unrecognised
+    future module name — ``LIBRARY_MODULE`` (``"library"``) is returned as a
+    safe default. This is called before any logo lookup or URL-conf resolution
+    so those functions never receive an invalid module name.
+    """
     # Only modules with logo assets are supported here. Anything else uses the
     # Library image style until a module-specific image is intentionally added.
     # This makes sure future modules if they are ever added to still produce an image.
@@ -117,23 +136,53 @@ def social_image_logo_path(
     lang: str = "en",
     variant: SocialImageLogoVariant = "header",
 ) -> str:
+    """
+    Return the relative file path for the logo asset to use in a social image.
+
+    ``module`` is either ``"library"`` or ``"voices"``; anything else is normalised to ``"library"``.
+    ``lang`` selects the English or Hebrew version of the logo (anything that is not ``"he"`` is treated as English).
+    ``variant`` is ``"header"`` for the coloured logo shown at the top of a text image, or ``"fallback"`` for the white logo shown on the solid-colour fallback images.
+
+    All logo paths are defined in ``SOCIAL_IMAGE_LOGOS`` at the top of this file.
+    """
     module = normalize_social_image_module(module)
     normalized_lang: SocialImageLang = "he" if lang == "he" else "en"
     return SOCIAL_IMAGE_LOGOS[module][normalized_lang][variant]
 
 
 def social_image_fallback_bg_color(module: str | None = LIBRARY_MODULE) -> str:
+    """
+    Return the CSS hex color string (e.g. ``"#18345D"``) to use as the background of a module fallback image.
+
+    Each Sefaria module has its own brand color defined in ``SOCIAL_IMAGE_FALLBACK_BG_COLORS``. 
+    This is used when there is no category-specific color available — for example on a Voices page that does not map to a text ref.
+    """
     module = normalize_social_image_module(module)
     return SOCIAL_IMAGE_FALLBACK_BG_COLORS[module]
 
 
 def open_social_image_logo(path: str) -> Image.Image:
+    """
+    Open a logo PNG from ``path`` and convert it to RGBA mode.
+
+    The conversion matters because logo files may be saved in palette mode (``"P"``). 
+    Resizing a palette-mode image produces jagged transparent edges; converting to RGBA first lets Pillow antialias the edges smoothly when the logo is composited onto the generated image.
+    """
     # Logo assets may be paletted PNGs. Convert before resizing so antialiased
     # transparent edges stay smooth when composited onto the generated image.
     return Image.open(path).convert("RGBA")
 
 
 def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | ColorRGB, logo_path: str) -> Image.Image:
+    """
+    Create a plain solid-color image with a single logo centered on it.
+
+    Used for fallback images — pages that don't have a custom image renderer (e.g. topic pages, Voices pages). 
+    The logo is scaled to fit within a 400×400 pixel box while preserving its aspect ratio, then pasted exactly in the middle of the canvas.
+
+    ``bg_color`` can be an RGB tuple or a CSS hex string (Pillow accepts both).
+    ``logo_path`` should be a path returned by ``social_image_logo_path``.
+    """
     # Used for fallback images that only show a centered logo. The caller
     # chooses the color and logo so static pages can keep the old Sefaria logo
     # while module pages can use Library or Voices branding.
@@ -148,6 +197,13 @@ def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | 
 
 
 def make_png_http_response(img: Image.Image) -> HttpResponse:
+    """
+    Encode a Pillow ``Image`` as a PNG and return it as a Django
+    ``HttpResponse`` with the correct ``Content-Type``.
+
+    The response includes a one-hour ``Cache-Control`` header so CDNs and browsers can reuse cached images without re-rendering on every page load,
+    while still allowing corrections to appear within a reasonable time.
+    """
     buf = io.BytesIO()
     img.save(buf, format='png')
     response = HttpResponse(buf.getvalue(), content_type="image/png")
@@ -162,6 +218,15 @@ def make_module_fallback_img_http_response(
     platform: SocialImagePlatform,
     module: str | None = LIBRARY_MODULE,
 ) -> HttpResponse:
+    """
+    Generate and return the fallback social image for a specific Sefaria module.
+
+    This is shown for pages that belong to Library or Voices but do not have a custom image renderer (e.g. topic pages, sheet pages). 
+    It shows the module's brand color as the background with its white logo centered on top.
+
+    ``lang`` picks the Hebrew or English version of the logo.
+    ``platform`` sets the canvas dimensions (Facebook vs Twitter).
+    """
     # Module fallbacks are for pages that do not have a custom renderer, such
     # as topics or sheets. They use module-specific color and logo assets.
     module = normalize_social_image_module(module)
@@ -174,6 +239,13 @@ def make_module_fallback_img_http_response(
 
 
 def make_static_img_http_response(platform: SocialImagePlatform) -> HttpResponse:
+    """
+    Generate and return the fallback social image for static marketing pages
+    (About, Jobs, etc.).
+
+    Static pages are shared across all modules, so this image is deliberately module-neutral: 
+    it uses the ``"Static"`` category color and the original white Sefaria logo rather than a Library- or Voices-specific asset.
+    """
     # Static marketing/about pages are shared by modules. Keep these visually
     # neutral by using the Static category color and original white Sefaria logo.
     bg_color, _ = get_category_colors("Static")
@@ -202,12 +274,25 @@ platforms = {
 }
 
 def smart_truncate(content: str, length: int = 180, suffix: str = '...') -> str:
+    """
+    Shorten ``content`` to at most ``length`` characters without cutting a word in half.
+
+    If the text is already within ``length``, it is returned unchanged.
+    Otherwise the text is trimmed to ``length`` characters, the last (potentially partial) word is dropped, and ``suffix`` (default ``"..."``) is appended. 
+    This keeps image text readable rather than ending mid-word.
+    """
     if len(content) <= length:
         return content
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
 def get_text_width(text: str, font: ImageFont.FreeTypeFont) -> float:
+    """
+    Return the rendered pixel width of ``text`` in the given ``font``.
+
+    Pillow's API for measuring text has changed across versions. This function tries ``getlength`` first (the modern API), then ``getbbox`` (intermediate), 
+    then falls back to ``getsize`` (legacy) so the code works on any installed version of Pillow.
+    """
     if hasattr(font, "getlength"):
         return font.getlength(text)
     if hasattr(font, "getbbox"):
@@ -217,6 +302,13 @@ def get_text_width(text: str, font: ImageFont.FreeTypeFont) -> float:
 
 
 def calc_letters_per_line(text: str, font: ImageFont.FreeTypeFont, img_width: int) -> int:
+    """
+    Estimate how many characters fit on one line of ``img_width`` pixels wide in the given ``font``.
+
+    Uses the average character width across all characters in ``text`` as a rough measure. 
+    The result is passed to ``textwrap.fill`` so the text wraps before reaching the image edge. 
+    Returns at least ``1`` to avoid a zero-width wrap that would produce an infinite loop.
+    """
     if not text:
         return 1
     avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
@@ -227,8 +319,13 @@ def calc_letters_per_line(text: str, font: ImageFont.FreeTypeFont, img_width: in
 
 
 def wrap_text_preserving_linebreaks(text: str, width: int) -> str:
-    # HTML cleanup turns <br> and block boundaries into "\n". Wrap each line
-    # independently so those intentional breaks survive textwrap's whitespace handling.
+    """
+    Wrap ``text`` to ``width`` characters per line while keeping any existing newline characters in place.
+
+    ``html_to_text_canonical`` converts HTML block tags (``</p>``, ``<br>``, etc.) into ``"\\n"`` before this function is called. 
+    Passing the whole string to ``textwrap.fill`` would collapse those intentional breaks.
+    Instead this function splits on ``"\\n"`` first, wraps each segment independently, then rejoins them so the original paragraph structure survives.
+    """
     return "\n".join(
         textwrap.fill(text=line, width=width, replace_whitespace=False)
         for line in text.split("\n")
@@ -236,16 +333,44 @@ def wrap_text_preserving_linebreaks(text: str, width: int) -> str:
 
 
 def supports_rtl_text_layout() -> bool:
+    """
+    Return ``True`` if the Raqm library is available on this system.
+
+    Raqm is a C library that handles complex text layout including right-to-left scripts. 
+    When it is present, Pillow can draw Hebrew text directly in the correct visual order. 
+    When it is absent, the ``python-bidi`` library is used as a fallback to reorder the characters before passing them to Pillow.
+    """
     return features.check("raqm")
 
 
 def prepare_text_for_drawing(text: str, lang: str) -> str:
+    """
+    Reorder ``text`` so Pillow draws Hebrew characters in the correct
+    visual sequence, if necessary.
+
+    When Raqm is available (``supports_rtl_text_layout()`` returns ``True``),
+    Pillow handles RTL reordering internally and the text can be passed
+    through unchanged. When Raqm is absent, ``python-bidi``'s
+    ``get_display()`` reorders the characters so that Pillow — which draws
+    glyphs strictly left-to-right — still produces readable Hebrew output.
+
+    English text is never reordered.
+    """
     if lang == "en" or supports_rtl_text_layout():
         return text
     return get_display(text)
 
 
 def get_text_direction(lang: str) -> Literal["rtl"] | None:
+    """
+    Return the ``direction`` keyword argument to pass to Pillow's
+    ``draw.text()``.
+
+    Returns ``"rtl"`` for Hebrew when Raqm is available, which tells Pillow
+    to lay out glyphs right-to-left. Returns ``None`` otherwise — either
+    because the language is English, or because Raqm is absent and
+    ``prepare_text_for_drawing`` has already reordered the characters manually.
+    """
     if lang != "en" and supports_rtl_text_layout():
         return "rtl"
     return None
@@ -253,7 +378,16 @@ def get_text_direction(lang: str) -> Literal["rtl"] | None:
 
 def html_to_text_canonical(html: str | None) -> str:
     """
-    Canonical HTML-to-text normalization matching Sefaria-Project `Sefaria.util.htmlToText`.
+    Strip HTML tags from ``html`` and return plain text, matching the
+    behaviour of ``Sefaria.util.htmlToText`` in the JavaScript frontend.
+
+    Block-level tags (``</p>``, ``</div>``, ``<br>``, ``</tr>``, etc.) are
+    converted to newlines before parsing so paragraph structure is preserved.
+    Consecutive blank lines are collapsed to a single newline. Returns an
+    empty string if ``html`` is ``None`` or empty.
+
+    Keeping this in sync with the JS function matters because the same text
+    is rendered in both the browser and in generated social images.
     """
     if not html:
         return ""
@@ -278,8 +412,18 @@ def html_to_text_canonical(html: str | None) -> str:
     return text
 
 def cleanup_and_format_text(text: str | None, language: str) -> str:
-    # Removes HTML tags/entities according to canonical web copy behavior,
-    # then removes nikkudot and taamim.
+    """
+    Prepare raw Sefaria text for rendering inside a social image.
+
+    Applies the following steps in order:
+
+    1. Strips HTML tags via ``html_to_text_canonical``.
+    2. Replaces em-dashes and Hebrew maqafs (``\\u05BE``) with plain ASCII equivalents so the image font renders them correctly.
+    3. Strips Hebrew cantillation marks (ta'amei hamikra) and nikud (vowel points) using a Unicode range regex — 
+    these are decorative in the source text but make social image text harder to read.
+    4. Truncates to 180 characters at a word boundary via ``smart_truncate``.
+    """
+    # Removes HTML tags/entities according to canonical web copy behavior, then removes nikkudot and taamim.
     text = html_to_text_canonical(text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
@@ -298,6 +442,23 @@ def generate_image(
     platform: SocialImagePlatform = "twitter",
     module: str | None = LIBRARY_MODULE,
 ) -> Image.Image:
+    """
+    Render and return a social-sharing image as a Pillow ``Image``.
+
+    The image has three visible regions:
+
+    - A white header bar at the top containing the module logo (Library, Voices, or Sefaria depending on ``module``).
+    - A colored body area (color determined by ``category``) containing the passage text centered vertically.
+    - A footer area showing ``ref_str`` (the source reference) in small caps.
+
+    A thin colored bar on the left edge (English) or right edge (Hebrew) marks the category, and a thin grey border frames the whole image.
+
+    ``text`` is the passage body — raw HTML is accepted and cleaned internally via ``cleanup_and_format_text``.
+    ``category`` picks the background/font color pair from the ``palette`` dict above. Unknown categories get a stable hash-based fallback color.
+    ``lang`` controls font choice, text alignment, and RTL handling.
+    ``platform`` sets canvas dimensions (``"facebook"`` = 1200×630, ``"twitter"`` = 1200×600).
+    ``module`` selects which logo appears in the header.
+    """
     bg_color, text_color = get_category_colors(category)
     ref_str = ref_str or ""
     module = normalize_social_image_module(module)
@@ -368,6 +529,14 @@ def make_img_http_response(
     platform: SocialImagePlatform,
     module: str | None = LIBRARY_MODULE,
 ) -> HttpResponse:
+    """
+    Top-level entry point: render a social image and return it as an HTTP
+    response.
+
+    Delegates to ``generate_image`` for the actual drawing. 
+    If anything goes wrong (e.g. a font file is missing, a text processing step raises), the exception is caught, printed to the server log, 
+    and the module fallback image is returned instead so the caller always gets a valid PNG response.
+    """
     module = normalize_social_image_module(module)
     try:
         img = generate_image(text, category, ref_str, lang, platform, module)
