@@ -105,10 +105,6 @@ spec:
           - name: ENABLE_LINKER
             value: "True"
           {{- end }}
-          {{- if .Values.dictaProxy.enabled }}
-          - name: DICTA_PARALLELS_URL
-            value: "http://dicta-proxy-{{ .Values.deployEnv }}:{{ .Values.dictaProxy.port }}/parallels/api/findincorpus"
-          {{- end }}
           - name: SLACK_URL
             valueFrom:
               secretKeyRef:
