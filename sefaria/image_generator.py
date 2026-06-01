@@ -345,35 +345,39 @@ def supports_rtl_text_layout() -> bool:
 
 def prepare_text_for_drawing(text: str, lang: str) -> str:
     """
-    Reorder ``text`` so Pillow draws Hebrew characters in the correct
-    visual sequence, if necessary.
+    Reorder ``text`` so Pillow draws characters in the correct visual sequence, including Hebrew words embedded inside English passages.
 
     When Raqm is available (``supports_rtl_text_layout()`` returns ``True``),
-    Pillow handles RTL reordering internally and the text can be passed
-    through unchanged. When Raqm is absent, ``python-bidi``'s
-    ``get_display()`` reorders the characters so that Pillow — which draws
-    glyphs strictly left-to-right — still produces readable Hebrew output.
+    Pillow handles all BiDi reordering internally, so the text is passed through unchanged. 
+    The ``direction`` hint returned by ``get_text_direction()`` tells Raqm the paragraph base direction so it can correctly place neutral characters (commas, spaces) at LTR/RTL boundaries.
 
-    English text is never reordered.
+    When Raqm is absent, ``python-bidi``'s ``get_display()`` applies the Unicode Bidirectional Algorithm manually. 
+    ``base_dir`` is set to ``'L'`` for English so neutral characters at Hebrew/English boundaries are resolved with left-to-right as the paragraph direction, 
+    matching how the text looks when read as English with embedded Hebrew words.
+    Hebrew-primary text uses automatic base-direction detection (which will resolve to right-to-left for Hebrew).
     """
-    if lang == "en" or supports_rtl_text_layout():
+    if supports_rtl_text_layout():
+        # Raqm handles all layout; direction hint is in get_text_direction().
         return text
-    return get_display(text)
+    base_dir = 'L' if lang == "en" else 'R'
+    return get_display(text, base_dir=base_dir)
 
 
-def get_text_direction(lang: str) -> Literal["rtl"] | None:
+def get_text_direction(lang: str) -> Literal["rtl", "ltr"] | None:
     """
     Return the ``direction`` keyword argument to pass to Pillow's
     ``draw.text()``.
 
-    Returns ``"rtl"`` for Hebrew when Raqm is available, which tells Pillow
-    to lay out glyphs right-to-left. Returns ``None`` otherwise — either
-    because the language is English, or because Raqm is absent and
-    ``prepare_text_for_drawing`` has already reordered the characters manually.
+    When Raqm is available, this hint tells Raqm the paragraph base direction so it resolves neutral characters (commas, spaces) at LTR/RTL boundaries correctly:
+    - ``"rtl"`` for Hebrew text.
+    - ``"ltr"`` for English text (even English that contains Hebrew words — a comma in "fathers ,יהוה" should stay on the English side of the Hebrew word, not drift to the far side).
+
+    When Raqm is absent, ``prepare_text_for_drawing`` has already reordered the characters to visual order, 
+    so no direction hint is needed and ``None`` is returned.
     """
-    if lang != "en" and supports_rtl_text_layout():
-        return "rtl"
-    return None
+    if not supports_rtl_text_layout():
+        return None
+    return "rtl" if lang == "he" else "ltr"
 
 
 def html_to_text_canonical(html: str | None) -> str:
