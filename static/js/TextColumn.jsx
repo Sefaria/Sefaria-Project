@@ -532,6 +532,7 @@ class TextColumn extends Component {
       onTouchStart={this.handleTouchStart}
       onTouchMove={this.handleTouchMove}
       onTouchEnd={this.handleTouchEnd}
+      onTouchCancel={this.handleTouchEnd}
       onPointerDown={this.handlePointerDown}
       onPointerMove={this.handlePointerMove}
       onPointerLeave={this.handlePointerLeave}

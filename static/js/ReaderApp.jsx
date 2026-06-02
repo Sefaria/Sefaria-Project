@@ -1815,11 +1815,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setState({panels: this.state.panels});
   }
   setSelectedWords(n, words){
-    //console.log(this.state.panels[n].refs);
     const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
+    } else if (!next && this.state.panels.length === 1) {
+      const refs = this.state.panels[n].highlightedRefs?.length
+        ? this.state.panels[n].highlightedRefs
+        : this.state.panels[n].refs;
+      const hebrewOrWhitespace = new RegExp("[\\s:\\u0590-\\u05ff.]+");
+      const shouldOpenLexicon = words &&
+        hebrewOrWhitespace.test(words) &&
+        words.split(" ").length < 3 &&
+        refs.length === 1;
+      this.openTextListAt(n + 1, refs, {
+        selectedWords: words,
+        connectionsMode: shouldOpenLexicon ? "Lexicon" : undefined,
+      });
     }
   }
   setUnreadNotificationsCount(n) {
