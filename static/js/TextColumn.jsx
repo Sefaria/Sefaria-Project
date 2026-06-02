@@ -23,6 +23,12 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
+    this._touchStartTime = 0;
+    this._touchStartX    = 0;
+    this._touchStartY    = 0;
+    this._penDownTime    = 0;
+    this._penDownX       = 0;
+    this._penDownY       = 0;
   }
   componentDidMount() {
     this._isMounted          = true;
@@ -111,6 +117,55 @@ class TextColumn extends Component {
         event.preventDefault();
       }
     }
+  }
+
+  handleTouchStart(event) {
+    const touch = event.touches[0];
+    this._touchStartTime = Date.now();
+    this._touchStartX    = touch ? touch.clientX : 0;
+    this._touchStartY    = touch ? touch.clientY : 0;
+  }
+  handleTouchMove(event) {
+    const touch = event.touches[0];
+    if (!touch) return;
+    const dx = touch.clientX - this._touchStartX;
+    const dy = touch.clientY - this._touchStartY;
+    if (Math.sqrt(dx * dx + dy * dy) > 8) {
+      this._touchStartTime = 0;
+    }
+  }
+  handleTouchEnd(event) {
+    if (this._touchStartTime && Date.now() - this._touchStartTime >= 500) {
+      this.handleTextSelection();
+    }
+    this._touchStartTime = 0;
+  }
+  handlePointerDown(event) {
+    if (event.pointerType === 'pen') {
+      this._penDownTime = Date.now();
+      this._penDownX    = event.clientX;
+      this._penDownY    = event.clientY;
+    }
+  }
+  handlePointerMove(event) {
+    if (event.pointerType === 'pen' && this._penDownTime) {
+      const dx = event.clientX - this._penDownX;
+      const dy = event.clientY - this._penDownY;
+      if (Math.sqrt(dx * dx + dy * dy) > 8) {
+        this._penDownTime = 0;
+      }
+    }
+  }
+  handlePointerLeave(event) {
+    if (event.pointerType === 'pen') {
+      this._penDownTime = 0;
+    }
+  }
+  handlePointerUp(event) {
+    if (event.pointerType === 'pen' && this._penDownTime && Date.now() - this._penDownTime >= 500) {
+      this.handleTextSelection();
+    }
+    this._penDownTime = 0;
   }
 
   handleTextSelection() {
@@ -470,7 +525,18 @@ class TextColumn extends Component {
         <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
+    return (<div className={classes}
+      onMouseUp={this.handleTextSelection}
+      onClick={this.handleClick}
+      onMouseDown={this.handleDoubleClick}
+      onTouchStart={this.handleTouchStart}
+      onTouchMove={this.handleTouchMove}
+      onTouchEnd={this.handleTouchEnd}
+      onPointerDown={this.handlePointerDown}
+      onPointerMove={this.handlePointerMove}
+      onPointerLeave={this.handlePointerLeave}
+      onPointerUp={this.handlePointerUp}
+    >
       {pre}
       {content}
       {post}
