@@ -78,6 +78,16 @@ This document covers the supporting infrastructure files in the `sefaria/` packa
 - Category-specific color palette (e.g., Talmud = gold, Tanakh = teal, Kabbalah = purple)
 - Handles Hebrew text with BiDi algorithm and cantillation/vowel stripping
 - Platform-specific dimensions (1200x630 for Facebook, 1200x600 for Twitter)
+- Module-aware: Library and Voices modules each have distinct logo assets and fallback background
+  colors. `normalize_social_image_module()` guards all entry points so an unknown module name
+  always falls back to Library branding.
+- `make_module_fallback_img_http_response()` -- centered white logo on the module's brand color,
+  used for topic pages, sheet pages, and any path without a custom renderer.
+- `make_static_img_http_response()` -- neutral Sefaria logo on the "Static" palette color, used
+  for marketing pages (About, Jobs, etc.) shared across all modules.
+- Hebrew RTL rendering: uses Raqm (via Pillow's `features.check("raqm")`) when available; falls
+  back to `python-bidi`'s `get_display()`. Production (`build/base-web/Dockerfile`) does not
+  install `libraqm`, so the fallback path runs in production.
 
 **`google_storage_manager.py`** -- `GoogleStorageManager` class wrapping Google Cloud Storage:
 - Named buckets for collections, profiles, UGC sheets, and topics (from `SITE_SETTINGS`)

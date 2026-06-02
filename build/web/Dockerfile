@@ -6,6 +6,9 @@ WORKDIR /app/
 COPY requirements.txt /app/requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
+# temp debugging binary for datadog investigation
+RUN curl https://dd-trace-py-builds.s3.amazonaws.com/116310691/install-manylinux2014_x86_64.sh | bash
+
 COPY package*.json /app/
 RUN npm install --unsafe-perm
 

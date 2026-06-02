@@ -27,6 +27,7 @@
 *.log
 *.sql
 *.sqlite
+*.db
 
 # OS generated files #
 ######################
@@ -157,3 +158,4 @@ env/*
 dump/*
 .env
 static_collected/*
+scripts/debug_cache/

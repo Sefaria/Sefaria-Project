@@ -9,15 +9,15 @@ def get_domain_reg(url):
 
 # Build domain patterns for all configured languages
 library_domains = []
-sheets_domains = []
+voices_domains = []
 
 for lang in settings.DOMAIN_MODULES.keys():
     library_domains.append(get_domain_reg(settings.DOMAIN_MODULES[lang][LIBRARY_MODULE]))
-    sheets_domains.append(get_domain_reg(settings.DOMAIN_MODULES[lang][VOICES_MODULE]))
+    voices_domains.append(get_domain_reg(settings.DOMAIN_MODULES[lang][VOICES_MODULE]))
 
 library_domain = '|'.join(library_domains)
-sheets_domain = '|'.join(sheets_domains)
+voices_domain = '|'.join(voices_domains)
 host_patterns = patterns('',
-    host(library_domain, 'sefaria.urls_library', name='library'),
-    host(sheets_domain, 'sefaria.urls_sheets', name='sheets'),
+    host(library_domain, 'sefaria.urls_library', name=LIBRARY_MODULE),
+    host(voices_domain, 'sefaria.urls_sheets', name=VOICES_MODULE),
 )
