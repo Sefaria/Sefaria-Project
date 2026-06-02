@@ -42,14 +42,20 @@ spec:
                         value: "{{`{{args.version}}`}}" # {{`...`}}
                       - name: CHART_VERSION
                         value: "{{`{{args.chartVersion}}`}}"
+                      # SLACK_URL and the target channel both come from local-settings-secrets
+                      # (SLACK_CHANNEL added there in the infra repo); the dedicated slack-webhook
+                      # secret has been retired (SC-44609). optional: keeps the post-promotion
+                      # notification non-fatal if a key is absent (the curl is also `|| /bin/true`).
                       - name: SLACK_URL
                         valueFrom:
                           secretKeyRef:
-                            name: {{ template "sefaria.secrets.slackWebhook" . }}
-                            key: slack-webhook
+                            name: local-settings-secrets-{{ .Values.deployEnv }}
+                            key: SLACK_URL
+                            optional: true
                       - name: CHANNEL
                         valueFrom:
                           secretKeyRef:
-                            name: {{ template "sefaria.secrets.slackWebhook" . }}
-                            key: channel
+                            name: local-settings-secrets-{{ .Values.deployEnv }}
+                            key: SLACK_CHANNEL
+                            optional: true
                 restartPolicy: Never
