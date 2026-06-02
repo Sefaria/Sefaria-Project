@@ -2042,10 +2042,11 @@ Sefaria = extend(Sefaria, {
     return true;
   },
   addPrivateNote: function(note) {
-    // Add a single private note to the cache of private notes.
+    // Add a single private note to the caches of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
     notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
+    Sefaria._allPrivateNotes = null; // The note format in _allPrivateNotes is different from in _privateNotes. Clearing it ensures we'll get a fresh data from API next time.
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
