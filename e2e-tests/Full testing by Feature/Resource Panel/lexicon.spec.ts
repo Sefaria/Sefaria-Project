@@ -43,6 +43,18 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
     await pm.onResourcePanel().expectLexiconHasResults();
   });
 
+  test('RP-050b: Long press 1 Hebrew word auto-opens the Lexicon with definitions', async () => {
+    await pm.onResourcePanel().selectHebrewWordByLongPress();
+    await pm.onResourcePanel().expectLexiconOpen();
+    await pm.onResourcePanel().expectLexiconHasResults();
+  });
+
+  test('RP-050c: Stylus press and hold 1 Hebrew word auto-opens the Lexicon with definitions', async () => {
+    await pm.onResourcePanel().selectHebrewWordByStylusHold();
+    await pm.onResourcePanel().expectLexiconOpen();
+    await pm.onResourcePanel().expectLexiconHasResults();
+  });
+
   test('RP-051: Selecting 2 Hebrew words auto-opens the Lexicon for the phrase', async () => {
     await pm.onResourcePanel().selectHebrewWords(2);
     await pm.onResourcePanel().expectLexiconOpen();

@@ -508,6 +508,94 @@ export class ResourcePanelPage extends HelperBase {
   }
 
   /**
+   * Shared implementation for gesture-based word selection (long-press and stylus).
+   * Fires the gesture start event, waits `holdMs`, sets the text selection on the
+   * first Hebrew word (replicating what the OS text-selection mechanism does during
+   * a hold), fires the gesture end event, then fires `mouseup` on `.textColumn`
+   * to trigger React's `handleTextSelection` (TextColumn.jsx:116).
+   */
+  private async dispatchSelectionWithGesture(gestureType: 'touch' | 'pen'): Promise<string> {
+    await this.waitForReaderReady();
+    const heSpan = this.page.locator('.readerPanelBox:not(.sidebar) .segment .he').first();
+    await expect(heSpan).toBeVisible({ timeout: t(10000) });
+
+    return await heSpan.evaluate((el: HTMLElement, { gestureType }): Promise<string> => {
+      function pickFirstWord(root: Element): { node: Text; start: number; end: number; text: string } | null {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let cur: Node | null;
+        while ((cur = walker.nextNode())) {
+          const node = cur as Text;
+          const raw = node.textContent ?? '';
+          if (!raw.trim()) continue;
+          let i = 0;
+          while (i < raw.length) {
+            while (i < raw.length && /\s/.test(raw[i])) i++;
+            if (i >= raw.length) break;
+            const wordStart = i;
+            while (i < raw.length && !/\s/.test(raw[i])) i++;
+            if (i > wordStart) return { node, start: wordStart, end: i, text: raw.slice(wordStart, i) };
+          }
+        }
+        return null;
+      }
+
+      return new Promise((resolve) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const holdMs = gestureType === 'touch' ? 600 : 500;
+
+        if (gestureType === 'touch') {
+          el.dispatchEvent(new TouchEvent('touchstart', {
+            bubbles: true, cancelable: true,
+            touches: [new Touch({ identifier: 1, target: el, clientX: cx, clientY: cy })],
+          }));
+        } else {
+          el.dispatchEvent(new PointerEvent('pointerdown', {
+            bubbles: true, cancelable: true, pointerType: 'pen',
+            clientX: cx, clientY: cy, pressure: 0.5,
+          }));
+        }
+
+        setTimeout(() => {
+          const entry = pickFirstWord(el);
+          if (entry) {
+            const sel = window.getSelection();
+            sel?.removeAllRanges();
+            const range = document.createRange();
+            range.setStart(entry.node, entry.start);
+            range.setEnd(entry.node, entry.end);
+            sel?.addRange(range);
+          }
+
+          // Fire only the gesture-native end event — no synthetic mouseup.
+          // If the app does not handle touchend / pointerup(pen) itself, the
+          // lexicon will not open and the test will fail, which is correct.
+          if (gestureType === 'touch') {
+            el.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [] }));
+          } else {
+            el.dispatchEvent(new PointerEvent('pointerup', {
+              bubbles: true, cancelable: true, pointerType: 'pen', clientX: cx, clientY: cy,
+            }));
+          }
+
+          resolve(entry?.text ?? '');
+        }, holdMs);
+      });
+    }, { gestureType });
+  }
+
+  /** Simulate a mobile long-press (touchstart → 600ms hold → touchend → mouseup). */
+  async selectHebrewWordByLongPress(): Promise<string> {
+    return this.dispatchSelectionWithGesture('touch');
+  }
+
+  /** Simulate a stylus press-and-hold (pointerdown pen → 500ms hold → pointerup pen → mouseup). */
+  async selectHebrewWordByStylusHold(): Promise<string> {
+    return this.dispatchSelectionWithGesture('pen');
+  }
+
+  /**
    * Clear the word selection and notify React. Sefaria reads the selection
    * inside `handleTextSelection` (TextColumn.jsx:140) and only updates the
    * panel's `selectedWords` prop if the new value differs from the old one.
