@@ -144,6 +144,13 @@ export class ResourcePanelPage extends HelperBase {
     await expect(seg).toBeVisible({ timeout: t(10000) });
     await seg.click();
     await expect(this.panel).toBeVisible({ timeout: t(15000) });
+    // Wait for the URL to reflect this segment ref so that ConnectionsPanel's
+    // `srefs` prop is updated before any word selection fires. Without this,
+    // a slow local server can leave srefs=[] when mouseup is dispatched,
+    // silently failing the `srefs.length === 1` guard in componentDidUpdate.
+    // Sefaria URLs use dot-notation: "Genesis 1:1" → "Genesis.1.1"
+    const urlRef = ref.replace(/ /g, '.').replace(/:/g, '.');
+    await this.page.waitForURL(url => url.toString().includes(urlRef), { timeout: t(10000) }).catch(() => { /* best-effort */ });
   }
 
   /** Assert panel is open in the given mode (by mode-specific outer class). */

@@ -49,19 +49,40 @@ export const SaveStates: Record<string, SaveState> = {
 // MODULE-SPECIFIC CONSTANTS (Library and Voices)
 // ==============================================================================
 
-// Fetch sandbox domain from environment variable and construct module URLs
-const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
+// Fetch sandbox domain from environment variable and construct module URLs.
+// If the URL already contains a port (e.g. http://localhost:8000) use it
+// directly for all modules instead of prepending subdomain + https://.
+const rawSandboxUrl    = process.env.SANDBOX_URL    ?? '';
+const rawSandboxUrlIL  = process.env.SANDBOX_URL_IL ?? '';
+
+function buildModuleUrls(raw: string): { LIBRARY: string; VOICES: string } {
+  if (/:\d+/.test(raw)) {
+    // localhost-style URL — use as-is for all module variants
+    const base = raw.replace(/\/$/, '');
+    return { LIBRARY: base, VOICES: base };
+  }
+  const domain = raw.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  return {
+    LIBRARY: `https://www.${domain}`,
+    VOICES:  `https://voices.${domain}`,
+  };
+}
+
+function buildModuleUrlsIL(raw: string): { LIBRARY: string; VOICES: string } {
+  if (/:\d+/.test(raw)) {
+    const base = raw.replace(/\/$/, '');
+    return { LIBRARY: base, VOICES: base };
+  }
+  const domain = raw.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  return {
+    LIBRARY: `https://www.${domain}`,
+    VOICES:  `https://chiburim.${domain}`,
+  };
+}
 
 export const MODULE_URLS = {
-  EN : {
-    LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-    VOICES:  `https://voices.${SANDBOX_DOMAIN}`
-  },
-  HE : {
-    LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES:  `https://chiburim.${SANDBOX_DOMAIN_IL}`
-  }
+  EN: buildModuleUrls(rawSandboxUrl),
+  HE: buildModuleUrlsIL(rawSandboxUrlIL),
 } as const;
 
 export const MODULE_SELECTORS = {
