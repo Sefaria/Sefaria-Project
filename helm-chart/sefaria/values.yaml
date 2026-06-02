@@ -90,6 +90,18 @@ postgres:
   restore: false
   sync: false
 
+qdrant:
+  enabled: false
+  image: qdrant/qdrant:latest
+  storageSize: 50Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "2Gi"
+      cpu: "500m"
+
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings

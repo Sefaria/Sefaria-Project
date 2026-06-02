@@ -1,0 +1,78 @@
+{{- if .Values.qdrant.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-qdrant"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: qdrant-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: qdrant-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: qdrant
+        {{- include "sefaria.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: qdrant
+        image: "{{ .Values.qdrant.image }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6333
+          name: http
+        - containerPort: 6334
+          name: grpc
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        resources: {{ toYaml .Values.qdrant.resources | nindent 10 }}
+      volumes:
+      - name: qdrant-storage
+        persistentVolumeClaim:
+          claimName: "{{ .Values.deployEnv }}-qdrant-pvc"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.deployEnv }}-qdrant-pvc"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ .Values.qdrant.storageSize }}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.deployEnv }}-qdrant"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: qdrant-{{ .Values.deployEnv }}
+    {{- include "sefaria.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: http
+    port: 6333
+    targetPort: 6333
+  - name: grpc
+    port: 6334
+    targetPort: 6334
+{{- end }}

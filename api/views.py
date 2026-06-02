@@ -1,3 +1,4 @@
+import json
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
@@ -67,3 +68,38 @@ class Text(View):
             return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
+
+
+class VectorSearch(View):
+
+    def post(self, request, backend, *args, **kwargs):
+        from sefaria.helper.vector_search import pgvector_search, qdrant_search
+        backends = {'pgvector': pgvector_search, 'qdrant': qdrant_search}
+        if backend not in backends:
+            return jsonResponse({'error': f'Unknown backend "{backend}". Choose pgvector or qdrant.'}, status=400)
+        try:
+            body = json.loads(request.body)
+            embedding = body['embedding']
+            top_k = int(body.get('top_k', 10))
+        except (KeyError, ValueError, json.JSONDecodeError) as e:
+            return jsonResponse({'error': str(e)}, status=400)
+        results = backends[backend](embedding, top_k)
+        return jsonResponse({'results': results})
+
+
+class VectorIndex(View):
+
+    def post(self, request, backend, *args, **kwargs):
+        from sefaria.helper.vector_search import pgvector_index, qdrant_index
+        backends = {'pgvector': pgvector_index, 'qdrant': qdrant_index}
+        if backend not in backends:
+            return jsonResponse({'error': f'Unknown backend "{backend}". Choose pgvector or qdrant.'}, status=400)
+        try:
+            body = json.loads(request.body)
+            records = body['records']
+            if not isinstance(records, list):
+                raise ValueError('records must be a list')
+        except (KeyError, ValueError, json.JSONDecodeError) as e:
+            return jsonResponse({'error': str(e)}, status=400)
+        count = backends[backend](records)
+        return jsonResponse({'indexed': count})
