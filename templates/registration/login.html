@@ -30,6 +30,8 @@
                 <span class="int-en">Log in to Sefaria</span>
                 <span class="int-he">התחברות לספריא</span>
             </h1>
+            {% url "register" as register_url %}
+            {% include "registration/_cross_flow_nav.html" with link_href=register_url next=next prompt_en="Don't have an account?" link_en="Sign Up" prompt_he="אין לכם חשבון?" link_he="להרשמה" %}
             {% if form.errors %}
             <p class="error">
                 <span class="int-en">Your username and password didn't match. Please try again.</span>
@@ -59,11 +61,6 @@
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
-            <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span class="int-en">Create a new account</span>
-                <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
-
-            </a>
 	    </div>
     </div>
 {% endif %}
