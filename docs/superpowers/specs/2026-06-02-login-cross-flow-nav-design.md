@@ -23,13 +23,38 @@ English and Hebrew.
 ### Acceptance Criteria (from the story)
 
 - Change **placement** of the navigation to the registration page.
-- Change **styling** of the link (standard link convention: underlined, blue — per Figma annotation).
+- Change **styling** of the link (standard link convention: underlined, sefaria-blue — per Figma annotation).
 - Slight **copy** changes:
   - English: `Don't have an account? Sign Up`
   - Hebrew: `אין לכם חשבון? להרשמה`
 - Requires EN and HE.
 
-> **The story is the source of truth for the strings, not Figma.**
+> **Source-of-truth split:** the **story** is authoritative for the *strings*; **Figma**
+> (file `2WflG98PDhWQ7OKrDkaCPb`, node `35:425`) is authoritative for *layout, styling, and CSS
+> tokens*, including its dev-mode annotations. The story strings and the Figma text agree, so
+> there is no conflict.
+
+### Figma annotations (dev-mode notes) — incorporated as source of truth
+
+- **Note `35:653` — "Change: Placement & Styling of the cross-flow navigation to the registration page":**
+  Placement to increase visibility · standard link conventions (underlined) to improve
+  discoverability · minor copy changes.
+- **Note `35:905` — "Mobile implementation":** same component, mobile frame (`35:742`). The line sits
+  under the title, above the form, at mobile widths too.
+- **Note `35:914` — "Hebrew version":** RTL variant (frame `35:931`) — same prompt-then-link order,
+  laid out RTL.
+
+### Exact visual spec from Figma (`35:430`, the prompt + link)
+
+| Element | Figma token / value | General var |
+|---------|---------------------|-------------|
+| Prompt "Don't have an account?" | Roboto Regular, 14px / 18px, color `#575757` (`Semantic/Action/Secondary`), centered | `var(--darker-grey)` |
+| Link "Sign Up" | Roboto **SemiBold (600)**, 14px / 18px, color `#18345d` (`Semantic/Text/Link` = brand sefaria-blue), **underlined** | `var(--sefaria-blue)` |
+| Gap between prompt and link | `4px` | — |
+
+> The link is **sefaria-blue `#18345D`** per Figma's `Semantic/Text/Link` token — *not* the
+> `--inline-link-blue` (#4871bf) assumed in an earlier draft. Both general-vars already exist in
+> `static/css/color-palette.css` (`--darker-grey: #575757`, `--sefaria-blue: #18345D`).
 
 ### Out of scope
 
@@ -96,72 +121,87 @@ It is parameterized via `{% include ... with %}` so it carries no page-specific 
 {% comment %}
 Cross-flow navigation between auth pages (login <-> register).
 Params:
-  link_href  - URL for the link (caller builds it, including any ?next=)
+  link_href             - base URL for the link (caller passes via {% url ... as %})
+  next                  - optional ?next= value to preserve redirect-back (raw, matches existing)
   prompt_en / prompt_he - plain-text prompt preceding the link
   link_en    / link_he  - the linked call-to-action text
 {% endcomment %}
 <p class="registration-prompt control-elem">
-    <span class="int-en">{{ prompt_en }} <a href="{{ link_href }}">{{ link_en }}</a></span>
-    <span class="int-he">{{ prompt_he }} <a href="{{ link_href }}">{{ link_he }}</a></span>
+    <span class="int-en">{{ prompt_en }} <a href="{{ link_href }}{% if next %}?next={{ next }}{% endif %}">{{ link_en }}</a></span>
+    <span class="int-he">{{ prompt_he }} <a href="{{ link_href }}{% if next %}?next={{ next }}{% endif %}">{{ link_he }}</a></span>
 </p>
 ```
 
 Notes:
-- The `<a>` text is the only part that is a link (matches the Figma "Small text + Link button"
-  split and the "blue + underlined, inline" decision).
-- Strings are passed in by the caller (hard-coded EN/HE spans in the caller-supplied params),
-  keeping the partial reusable and the strings co-located with the page that owns them. The login
-  caller uses the exact story strings.
+- The `<a>` text is the only part that is a link (matches the Figma `35:430` "Small text" +
+  "Link button" split and the "underlined sefaria-blue, inline" decision).
+- Strings are passed in by the caller, keeping the partial reusable and the strings co-located with
+  the page that owns them. The login caller uses the exact story strings.
+- `?next=` uses raw `{{ next }}` to match the existing link and the form's hidden `next` input
+  exactly (no behavior drift). `|urlencode` is a possible hardening follow-up, applied consistently
+  across both, but is out of scope here.
 
 ### 4.2 `templates/registration/login.html`
 
-1. **Add**, directly after the `<h1>Log in to Sefaria</h1>` block and before the error/form block:
+1. **Add**, directly after the `<h1>Log in to Sefaria</h1>` block and before the error/form block,
+   using Django's standard `{% url ... as %}` assignment (valid and idiomatic in **Django 6.0**):
 
    ```django
-   {% include "registration/_cross_flow_nav.html" with link_href="register"|... %}
+   {% url "register" as register_url %}
+   {% include "registration/_cross_flow_nav.html" with link_href=register_url next=next prompt_en="Don't have an account?" link_en="Sign Up" prompt_he="אין לכם חשבון?" link_he="להרשמה" %}
    ```
 
-   The `link_href` must preserve the existing `next` behavior. Because `{% url %}` cannot be
-   composed inside `with` cleanly alongside the conditional `?next=`, the caller builds the href
-   inline. Concretely, the include is wrapped so the href equals:
-   `{% url "register" %}{% if next %}?next={{ next }}{% endif %}` — identical to today's link.
-
-   Strings passed:
-   - `prompt_en = "Don't have an account?"`, `link_en = "Sign Up"`
-   - `prompt_he = "אין לכם חשבון?"`, `link_he = "להרשמה"`
-
-   > Implementation note for the plan: if passing a pre-built URL string through `with` proves
-   > awkward in the Django template language, the acceptable fallback is to inline the partial's
-   > markup in the two callers but keep `.registration-prompt` styling shared — reuse of the
-   > **style** is the non-negotiable part; the partial is the preferred-but-not-load-bearing part.
+   `{% url "register" as register_url %}` resolves the base URL into a variable cleanly (no awkward
+   string-building); the partial appends `?next=` only when `next` is set, preserving today's
+   redirect-back behavior exactly. The included template still inherits the parent context, but the
+   params are passed explicitly for clarity. (Django 6's `{% querystring %}` tag was considered but
+   isn't needed — it operates on the *current request's* query string, whereas here we set `next`
+   on the register link.)
 
 2. **Remove** the old bottom registration link (the `<a class="registration-links control-elem"
    href="...register...">Create a new account</a>` block). "Forgot your password?" remains under
    the Login button.
 
-### 4.3 `static/css/static.css`
+### 4.3 `static/css/static.css` (global CSS, general vars)
+
+The login page is styled by `static/css/static.css` — a hand-written **global** stylesheet that
+already uses native CSS custom properties (e.g. `var(--medium-grey)`). It is **not** processed by
+the project's PostCSS step (PostCSS is configured only for the React bundle's CSS-modules, via
+css-loader). So the styling uses CSS custom properties resolved at runtime, sourced from the
+**general vars** in `static/css/color-palette.css`. **No hardcoded hex** — reference the tokens that
+match Figma's values.
 
 Add a new, scoped rule (placed near the existing `.registration-links` rules, ~line 620) so the
-existing `register.html` links are **not** affected:
+existing `register.html` links are **not** affected. Values come from the Figma `35:430` spec:
 
 ```css
 .registrationContent p.registration-prompt {
-  margin: 8px 0 0;            /* sits snug under the H1, above the form */
+  margin: 8px 0 0;                  /* directly under the H1, above the form */
   text-align: center;
-  color: var(--medium-grey);
+  color: var(--darker-grey);        /* #575757 — Figma Semantic/Action/Secondary */
   font-size: 14px;
+  line-height: 18px;
 }
 .registrationContent p.registration-prompt a {
-  color: var(--inline-link-blue);   /* #4871bf — standard inline link blue */
+  color: var(--sefaria-blue);       /* #18345D — Figma Semantic/Text/Link */
+  font-weight: 600;                 /* Roboto SemiBold per Figma "Link button" */
+  font-size: 14px;                  /* overrides base.css `.registrationContent a { font-size:16px }` */
   text-decoration: underline;
+  margin-inline-start: 4px;         /* 4px gap between prompt and link (RTL-safe) */
 }
 .registrationContent p.registration-prompt a:hover {
   text-decoration: underline;
 }
 ```
 
-(Exact margins to be confirmed visually against the Figma frame `35:425`; the values above are a
-starting point matching the design's "directly under the title" placement.)
+Notes:
+- `font-weight: 600` + the explicit `font-size: 14px` are required because `base.css:564`
+  (`.registrationContent a { font-size: 16px; }`) would otherwise apply; the
+  `p.registration-prompt a` selector is more specific and wins.
+- `margin-inline-start` (logical property) keeps the 4px gap correct in both LTR and RTL, so the
+  Hebrew variant (Figma note `35:914`) needs no separate rule.
+- Exact top margin to be confirmed visually against Figma frame `35:425` during implementation;
+  `8px` is the starting value for "directly under the title".
 
 ---
 
@@ -188,10 +228,15 @@ partial is simply the place any future copy tweak ("Sign up to try the Library A
 
 ## 7. Testing
 
-- **Manual / visual:** Load `/login` logged-out in EN and HE; confirm the prompt sits under the
-  title, the link is blue + underlined, copy matches the story strings exactly, and RTL renders
-  correctly in Hebrew. Confirm `?next=` is preserved through the link.
-- **Regression:** Confirm `register.html` links are visually unchanged (new class is scoped).
+- **Manual / visual (against Figma `35:425`):** Load `/login` logged-out in EN and HE; confirm the
+  prompt sits directly under the title above the form; prompt text is `--darker-grey` 14px; the
+  "Sign Up" / "להרשמה" link is `--sefaria-blue`, SemiBold, underlined, with a 4px gap; copy matches
+  the story strings exactly; RTL renders correctly in Hebrew (prompt-then-link, gap on the correct
+  side). Check **mobile** width too (Figma note `35:905`).
+- **Behavior:** Confirm `?next=` is preserved through the link and the credential POST to Django's
+  `LoginView` is unchanged.
+- **Regression:** Confirm `register.html` links are visually unchanged (the new class is scoped to
+  `.registration-prompt`).
 - **E2E:** The repo has `e2e-tests/pages/loginPage.ts` and
   `e2e-tests/Sanity/cross-module-login.spec.ts`. Check whether either asserts on the old
   "Create a new account" link text/placement; update selectors/assertions if so.
@@ -204,14 +249,18 @@ partial is simply the place any future copy tweak ("Sign up to try the Library A
 |------|--------|
 | `templates/registration/_cross_flow_nav.html` | **New** — reusable cross-flow nav partial |
 | `templates/registration/login.html` | Add include under `<h1>`; remove old bottom link |
-| `static/css/static.css` | Add scoped `.registration-prompt` rule (blue underlined link) |
+| `static/css/static.css` | Add scoped `.registration-prompt` rule (SemiBold, underlined, `--sefaria-blue` link) |
 | `e2e-tests/...` (conditional) | Update selectors if they target the old link |
 
 ---
 
 ## 9. Open Questions / Risks
 
-- **Django `{% include ... with %}` + composed `{% url %}?next=` ergonomics.** If passing a
-  pre-built href through `with` is awkward, fall back to inline markup in the caller while keeping
-  the shared `.registration-prompt` CSS (see §4.2 note). Low risk either way.
-- **Exact spacing** under the H1 — confirm against Figma `35:425` during implementation.
+- **Django 6 template approach (resolved):** use `{% url "register" as register_url %}` +
+  `{% include ... with link_href=register_url next=next ... %}`. Standard, idiomatic, and valid in
+  Django 6.0.4 (the project's version, per `requirements.txt:80`). No awkward string-building; the
+  fallback of inlining the markup is no longer needed.
+- **Exact spacing** under the H1 — confirm `8px` against Figma `35:425` during implementation.
+- **CSS pipeline assumption:** styling is added to the global `static/css/static.css` using native
+  CSS custom properties from `color-palette.css`. There is no global PostCSS transform (PostCSS is
+  CSS-modules-only, for the React bundle). If a different convention is expected, flag before build.
