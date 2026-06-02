@@ -637,6 +637,23 @@ p.registration-links a:hover{
   color: var(--dark-grey);
   text-decoration: none;
 }
+.registrationContent p.registration-prompt {
+  margin: 8px 0 0;                  /* directly under the H1, above the form (confirm vs Figma 35:425) */
+  text-align: center;
+  color: var(--darker-grey);        /* #575757 — Figma Semantic/Action/Secondary */
+  font-size: 14px;
+  line-height: 18px;
+}
+.registrationContent p.registration-prompt a {
+  color: var(--sefaria-blue);       /* #18345D — Figma Semantic/Text/Link */
+  font-weight: 600;                 /* Roboto SemiBold per Figma "Link button" */
+  font-size: 14px;                  /* overrides base.css `.registrationContent a { font-size: 16px }` */
+  text-decoration: underline;
+  margin-inline-start: 4px;         /* 4px gap between prompt and link; RTL-safe */
+}
+.registrationContent p.registration-prompt a:hover {
+  text-decoration: underline;
+}
 #visualizationsPage {
   text-align: left;
 }
