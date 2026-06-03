@@ -28,9 +28,9 @@ spec:
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
               limits:
-                memory: 13Gi
+                memory: 20Gi
               requests:
-                memory: 10Gi
+                memory: 15Gi
             env:
             - name: SEARCH_HOST
               value: "elasticsearch-1b-es-http.elasticsearch.svc"
