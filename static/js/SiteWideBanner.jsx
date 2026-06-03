@@ -3,8 +3,9 @@ import PropTypes from "prop-types";
 import $ from "./sefaria/sefariaJquery";
 import Sefaria from "./sefaria/sefaria";
 
-const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 30 * 60;
+const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 5;//30 * 60;
 const MAX_MAYBE_LATER_CLICKS = 3;
+const SECONDS_PER_DAY = 24 * 60 * 60;
 const NUDGE_SCHEDULE = {
   1: { sessions: 2, days: 7 },
   2: { sessions: 4, days: 21 },
@@ -17,13 +18,6 @@ const getPromoStorageKeys = (cookieName) => {
     sessionCounter: `${storagePrefix}_session_counter`,
     lastSessionAtSec: `${storagePrefix}_last_session_at_sec`,
   };
-};
-
-const getPromoSessionLengthSeconds = (promoSessionLength) => {
-  const configuredSessionLengthSeconds = Number(promoSessionLength);
-  return Number.isFinite(configuredSessionLengthSeconds) && configuredSessionLengthSeconds > 0
-    ? configuredSessionLengthSeconds
-    : DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
 };
 
 const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
@@ -42,22 +36,31 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
 };
 
 const shouldHideForBackoff = ({ state, sessionCounter }) => {
+  // No dismissal history yet — show the banner.
   if (!state) {
     return false;
   }
+
+  // User opted out for good (explicitly, or by hitting the click cap) — hide permanently.
   if (state.dismissedForever || state.maybeLaterCount >= MAX_MAYBE_LATER_CLICKS) {
     return true;
   }
+
+  // No nudge rule for this dismissal count means there's nothing left to wait on — show it.
   const nudgeRule = NUDGE_SCHEDULE[state.maybeLaterCount];
   if (!nudgeRule) {
     return false;
   }
+
+  // Otherwise, re-show only once BOTH gates since the last "Maybe later" have cleared.
   const sessionsSinceDismissal = sessionCounter - Number(state.sessionCountAtLastMaybeLater || 0);
-  const nowSec = Math.floor(Date.now() / 1000);
-  const lastMaybeLaterAtSec = Number(state.lastMaybeLaterAtSec || 0)
-    || Math.floor(Number(state.lastMaybeLaterAtMs || 0) / 1000);
-  const secondsSinceDismissal = nowSec - lastMaybeLaterAtSec;
-  return !(sessionsSinceDismissal >= nudgeRule.sessions && secondsSinceDismissal >= (nudgeRule.days * 24 * 60 * 60));
+  const secondsSinceDismissal = Math.floor(Date.now() / 1000) - Number(state.lastMaybeLaterAtSec || 0);
+
+  const enoughSessionsHavePassed = sessionsSinceDismissal >= nudgeRule.sessions;
+  const enoughTimeHasPassed = secondsSinceDismissal >= nudgeRule.days * SECONDS_PER_DAY;
+  const isReadyToReShow = enoughSessionsHavePassed && enoughTimeHasPassed;
+
+  return !isReadyToReShow;
 };
 
 const SiteWideBanner = ({
@@ -68,12 +71,11 @@ const SiteWideBanner = ({
   learnMoreText,
   cookieName,
   gtagParams,
-  promoSessionLength,
   useBackoffDismissal,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
-  const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLength);
+  const sessionLengthSeconds = DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
   const promoSessionCounter = useBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
     : null;
@@ -191,7 +193,6 @@ SiteWideBanner.propTypes = {
   learnMoreText: PropTypes.string,
   cookieName: PropTypes.string.isRequired,
   gtagParams: PropTypes.object.isRequired,
-  promoSessionLength: PropTypes.number,
   useBackoffDismissal: PropTypes.bool,
 };
 
@@ -204,7 +205,7 @@ const CHATBOT_BANNER_LEARN_MORE_URLS = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoSessionLength }) => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
   const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
@@ -248,7 +249,6 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoSessionLength }) => 
       learnMoreUrl={learnMoreUrl}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
-      promoSessionLength={promoSessionLength}
       useBackoffDismissal={true}
     />
   );
@@ -256,7 +256,6 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoSessionLength }) => 
 
 ChatbotExperimentBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
-  promoSessionLength: PropTypes.number,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };
