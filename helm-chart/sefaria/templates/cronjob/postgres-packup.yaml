@@ -73,8 +73,7 @@ spec:
               value: {{ .Values.backup.postgres.bucket }}
             - name: ARCHIVE_BUCKET
               value: {{ .Values.backup.postgres.archiveBucket }}
-            # upload-dumps.sh posts to ${SLACK_URL}; source it from local-settings-secrets
-            # (via the configured localSettings ref) instead of the retired slack-webhook secret (SC-44609).
+            # SLACK_URL is used by upload-dumps.sh (this container has no envFrom).
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:

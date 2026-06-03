@@ -42,10 +42,7 @@ spec:
                         value: "{{`{{args.version}}`}}" # {{`...`}}
                       - name: CHART_VERSION
                         value: "{{`{{args.chartVersion}}`}}"
-                      # SLACK_URL comes from local-settings-secrets (via the configured localSettings
-                      # ref); the dedicated slack-webhook secret has been retired (SC-44609). No channel
-                      # override is sent — the incoming webhook posts to its own configured channel.
-                      # optional + `|| /bin/true` keep the post-promotion notification non-fatal.
+                      # No channel override: the incoming webhook posts to its own configured channel.
                       - name: SLACK_URL
                         valueFrom:
                           secretKeyRef:

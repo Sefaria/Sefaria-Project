@@ -109,8 +109,6 @@ spec:
           - name: ENABLE_LINKER
             value: "True"
           {{- end }}
-          # SLACK_URL is provided via local-settings-secrets (envFrom below).
-          # Do not re-add an explicit env here: it would override the envFrom value (SC-44609).
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo

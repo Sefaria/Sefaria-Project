@@ -80,8 +80,6 @@ spec:
               value: {{ .Values.backup.mongo.bucket }}
             - name: ARCHIVE_BUCKET
               value: {{ .Values.backup.mongo.archiveBucket }}
-            # No SLACK_URL here: upload-dumps.sh (mongo) does not use it. The explicit env that
-            # previously sourced it from the retired slack-webhook secret was dead (SC-44609).
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
             resources:
