@@ -660,7 +660,7 @@ p.registration-links a:hover{
   width: 300px;
   max-width: calc(100% - 32px);
 }
-#login .inner { padding: 0; width: 100%; }
+#login .inner { width: 100%; }
 #login h1 { margin: 0 0 16px; }
 #login .registration-prompt { margin: 0 0 24px; }
 #login #login-form { margin: 0; }
