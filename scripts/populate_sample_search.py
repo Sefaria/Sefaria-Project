@@ -225,6 +225,92 @@ def sample_text_docs():
                 "linked_refs": [],
             },
         },
+        {
+            "_index": "text-a",
+            "_id": "Mishneh Torah, Prayer and the Priestly Blessing 1:1 (Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007 [en])",
+            "_source": {
+                "ref": "Mishneh Torah, Prayer and the Priestly Blessing 1:1",
+                "heRef": "משנה תורה, הלכות תפילה וברכת כהנים א׳:א׳",
+                "version": "Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007",
+                "lang": "en",
+                "version_priority": 0,
+                "titleVariants": [
+                    "Mishneh Torah, Prayer and the Priestly Blessing",
+                    "Mishneh Torah, Laws of Prayer and the Priestly Blessing",
+                    "Rambam, Prayer and the Priestly Blessing",
+                    "Rambam, Hilkhot Tefillah",
+                    "Hilchot Tefilah and Birkat Kohanim",
+                ],
+                "categories": ["Halakhah", "Mishneh Torah", "Sefer Ahavah"],
+                "category": "Halakhah",
+                "he_category": "הלכה",
+                "index_title": "Mishneh Torah, Prayer and the Priestly Blessing",
+                "he_index_title": "משנה תורה, הלכות תפילה וברכת כהנים",
+                "path": "Halakhah/Mishneh Torah/Sefer Ahavah/Mishneh Torah, Prayer and the Priestly Blessing",
+                "he_path": "הלכה/משנה תורה/ספר אהבה/משנה תורה, הלכות תפילה וברכת כהנים",
+                "order": "11-02-001-001",
+                "pagesheetrank": 0.2,
+                "comp_date": 1180,
+                "exact": (
+                    "It is a positive Torah commandment to pray every day, as Exodus 23:25 states: "
+                    '"You shall serve God, your Lord." Tradition teaches us that this service is prayer. '
+                    "The number of prayers is not prescribed in the Torah, nor does it prescribe a specific "
+                    "formula for prayer. Also, according to Torah law, there are no fixed times for prayers."
+                ),
+                "naive_lemmatizer": (
+                    "It is a positive Torah commandment to pray every day, as Exodus 23:25 states: "
+                    '"You shall serve God, your Lord." Tradition teaches us that this service is prayer. '
+                    "The number of prayers is not prescribed in the Torah, nor does it prescribe a specific "
+                    "formula for prayer. Also, according to Torah law, there are no fixed times for prayers."
+                ),
+                "hebrew_version_title": None,
+                "languageFamilyName": "english",
+                "isPrimary": False,
+                "linked_refs": ["Exodus 23:25", "Deuteronomy 11:13"],
+            },
+        },
+        {
+            "_index": "text-a",
+            "_id": "Mishneh Torah, Prayer and the Priestly Blessing 1:5 (Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007 [en])",
+            "_source": {
+                "ref": "Mishneh Torah, Prayer and the Priestly Blessing 1:5",
+                "heRef": "משנה תורה, הלכות תפילה וברכת כהנים א׳:ה׳",
+                "version": "Mishneh Torah, trans. by Eliyahu Touger. Jerusalem, Moznaim Pub. c1986-c2007",
+                "lang": "en",
+                "version_priority": 0,
+                "titleVariants": [
+                    "Mishneh Torah, Prayer and the Priestly Blessing",
+                    "Mishneh Torah, Laws of Prayer and the Priestly Blessing",
+                    "Rambam, Prayer and the Priestly Blessing",
+                    "Rambam, Hilkhot Tefillah",
+                    "Hilchot Tefilah and Birkat Kohanim",
+                ],
+                "categories": ["Halakhah", "Mishneh Torah", "Sefer Ahavah"],
+                "category": "Halakhah",
+                "he_category": "הלכה",
+                "index_title": "Mishneh Torah, Prayer and the Priestly Blessing",
+                "he_index_title": "משנה תורה, הלכות תפילה וברכת כהנים",
+                "path": "Halakhah/Mishneh Torah/Sefer Ahavah/Mishneh Torah, Prayer and the Priestly Blessing",
+                "he_path": "הלכה/משנה תורה/ספר אהבה/משנה תורה, הלכות תפילה וברכת כהנים",
+                "order": "11-02-001-005",
+                "pagesheetrank": 0.16,
+                "comp_date": 1180,
+                "exact": (
+                    "They also decreed that the number of prayers correspond to the number of sacrifices, "
+                    "two prayers every day corresponding to the two daily sacrifices. The prayer that "
+                    "corresponds to the daily morning sacrifice is called the Shacharit Prayer."
+                ),
+                "naive_lemmatizer": (
+                    "They also decreed that the number of prayers correspond to the number of sacrifices, "
+                    "two prayers every day corresponding to the two daily sacrifices. The prayer that "
+                    "corresponds to the daily morning sacrifice is called the Shacharit Prayer."
+                ),
+                "hebrew_version_title": None,
+                "languageFamilyName": "english",
+                "isPrimary": False,
+                "linked_refs": [],
+            },
+        },
     ]
 
 
@@ -272,6 +358,33 @@ def sample_sheet_docs(now):
                 "topic_slugs": ["torah", "pirkei-avot"],
                 "collections": ["Sample Collection"],
                 "views": 18,
+                "datePublished": now,
+                "dateCreated": now,
+                "dateModified": now,
+                "version": "1",
+            },
+        },
+        {
+            "_index": "sheet-a",
+            "_id": "100003",
+            "_source": {
+                "sheetId": 100003,
+                "title": "Sample Sources on Rambam and Prayer",
+                "summary": "A local sample source sheet using Mishneh Torah, Prayer and the Priestly Blessing.",
+                "content": (
+                    "Rambam Mishneh Torah prayer daily commandment Shacharit Minchah Musaf "
+                    "Hilchot Tefillah source sheet sample."
+                ),
+                "owner_name": "Local Dev User",
+                "owner_image": "",
+                "owner_id": 1,
+                "profile_url": "/profile/local-dev-user",
+                "tags": ["rambam", "mishneh torah", "prayer", "sample"],
+                "topics_en": ["Rambam", "Prayer", "Mishneh Torah"],
+                "topics_he": ["רמב״ם", "תפילה", "משנה תורה"],
+                "topic_slugs": ["rambam", "prayer", "mishneh-torah"],
+                "collections": ["Sample Collection"],
+                "views": 27,
                 "datePublished": now,
                 "dateCreated": now,
                 "dateModified": now,
