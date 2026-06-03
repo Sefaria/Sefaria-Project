@@ -160,8 +160,7 @@ def chatbot_user_token(request):
     elif "chatbot_version" in request.session:
         chatbot_version = request.session["chatbot_version"]
 
-    force_enable = getattr(settings, 'CHATBOT_FORCE_ENABLE', False)
-    if not force_enable and not _is_user_in_experiment(request):
+    if not _is_user_in_experiment(request):
         return {
             "chatbot_script_url": None,
             "chatbot_script_type": None,
