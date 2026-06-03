@@ -8,7 +8,7 @@ import secrets
 from datetime import datetime
 
 from django.utils import translation
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data

@@ -22,8 +22,10 @@ beautifulsoup4==4.13.3
     # via bs4
 billiard<5.0,>=4.2.1
     # via celery
-bleach==1.4.2
+bleach==6.1.0
     # via -r ./requirements.txt
+tinycss2==1.5.1
+    # via bleach[css]  # required by bleach.css_sanitizer (sefaria/sheets.py)
 boto3==1.16.6
     # via -r ./requirements.txt
 botocore==1.19.63
@@ -59,7 +61,7 @@ click-repl==0.3.0
     # via celery
 convertdate==2.2.2
     # via -r ./requirements.txt
-cython==0.29.14
+cython==3.0.11
     # via -r ./requirements.txt
 dateutils==0.6.12
     # via -r ./requirements.txt
@@ -67,7 +69,7 @@ datrie==0.8.2
     # via -r ./requirements.txt
 decorator==5.1.1
     # via ipython
-deepdiff==3.3.0
+deepdiff==7.0.1
     # via -r ./requirements.txt
 diff-match-patch==20200713
     # via -r ./requirements.txt
@@ -75,7 +77,7 @@ dill==0.3.9
     # via
     #   multiprocess
     #   pathos
-django==2.2.28
+django==6.0.4
     # via
     #   -r ./requirements.txt
     #   django-anymail
@@ -87,30 +89,28 @@ django==2.2.28
     #   djangorestframework
     #   djangorestframework-simplejwt
 django-admin-sortable==2.3
-django-anymail==8.6
+django-anymail==10.3
     # via -r ./requirements.txt
-django-debug-toolbar==2.2
+django-debug-toolbar==4.4.6
     # via -r ./requirements.txt
 django-hosts==7.0.0
 django-ipware==7.0.1
     # via django-structlog
-django-mobile==0.7.0
+django-recaptcha==4.0.0
     # via -r ./requirements.txt
-django-recaptcha==2.0.6
+django-redis==5.4.0
     # via -r ./requirements.txt
-django-redis==4.11.0
-    # via -r ./requirements.txt
-django-structlog==1.6.2
+django-structlog==5.1.0
     # via -r ./requirements.txt
 django-user-agents==0.4.0
     # via -r ./requirements.txt
-django-webpack-loader==1.4.1
+django-webpack-loader==3.1.1
     # via -r ./requirements.txt
-djangorestframework==3.13.1
+djangorestframework==3.15.2
     # via
     #   -r ./requirements.txt
     #   djangorestframework-simplejwt
-djangorestframework-simplejwt==5.2.2
+djangorestframework-simplejwt==5.3.1
     # via -r ./requirements.txt
 dnspython==2.5.0
     # via -r ./requirements.txt
@@ -130,7 +130,7 @@ geojson==2.5.0
     # via -r ./requirements.txt
 geopy==2.3.0
     # via -r ./requirements.txt
-gevent==20.12.0; sys_platform != 'darwin'
+gevent==24.2.1; sys_platform != 'darwin'
 google-analytics-data==0.9.0
 google-api-core[grpc]==1.27.0
     # via
@@ -172,7 +172,7 @@ grpcio==1.70.0
     # via google-api-core
 gunicorn==23.0.0
     # via -r ./requirements.txt
-html5lib==0.9999999
+html5lib==1.1
     # via
     #   -r ./requirements.txt
     #   bleach
@@ -203,7 +203,7 @@ jsonpickle==1.4.1
     #   deepdiff
 kombu<5.6,>=5.5.2
     # via celery
-lxml==4.6.1
+lxml==5.3.0
     # via -r ./requirements.txt
 mailchimp==2.0.9
     # via -r ./requirements.txt
@@ -227,8 +227,7 @@ pexpect==4.9.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==10.0.1; sys_platform != 'linux'
-pillow==8.0.1; sys_platform == 'linux'
+pillow==10.4.0
     # via -r ./requirements.txt
 pluggy==1.5.0
     # via pytest
@@ -244,7 +243,7 @@ protobuf==5.29.3
     # via
     #   google-api-core
     #   googleapis-common-protos
-psycopg2-binary==2.8.6 #for dev: psycopg2-binary==2.8.6
+psycopg2-binary==2.9.9 #for dev: psycopg2-binary==2.9.9
 ptyprocess==0.7.0
     # via pexpect
 py==1.11.0
@@ -398,6 +397,7 @@ cryptography==42.0.7
 # Additional packages from master
 redis==5.2.1
 git+https://github.com/Sefaria/ne_span.git@v1.0.2
+levenshtein==0.27.1
 langchain-openai==0.2.14
 langchain-anthropic==0.3.22
 langchain-core==0.3.83

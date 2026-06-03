@@ -172,6 +172,7 @@ def test_multiple_ambiguities():
     [crrd(['@שבועות', '#דף כה ע"א', '@תוד"ה', '*חומר']), ("Tosafot on Shevuot 25a:11:1",)],
     [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
     [crrd(["@רש\"י", "@בראשית", "#פרק א", "#פסוק א", "*ד\"ה בראשית"]), ("Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2")],
+    [crrd(["@תוספות", "@ברכות", '#י"ג ע"א', '''*ד"ה 'עד כאן\'''']), ("Tosafot on Berakhot 13a:36:1",)],
 
     # Ranged refs
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א', '^עד', '#פרק יד', '#פסוק ד']), ("Genesis 13:1-14:4",)],
@@ -223,6 +224,7 @@ def test_multiple_ambiguities():
     [crrd(["@Yoma", "&ibid"], lang="en", prev_trefs=["Yoma 86"]), ("Yoma 86",)],  # respect the amud-less ibid
     [crrd(['@והשולחן ערוך', '#סימן א', '#סעיף ב'], context_tref='Arukh HaShulchan, Orach Chaim 75:11'), ("Shulchan Arukh, Orach Chayim 1:2",)],  # pull context from lower node to use to resolve book title
     [crrd(["#verse 2"], lang='en', context_tref="Rashi on Genesis 1:1:1"), ("Rashi on Genesis 1:2", "Genesis 1:2")],  # ibid that can refer to either commentary or base text
+    [crrd(["@משנה ברורה", "&שם", "#א"]), tuple()],  # no ibid context, shouldn't match MB 340
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH

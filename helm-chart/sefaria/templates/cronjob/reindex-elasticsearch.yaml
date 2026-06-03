@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
-  schedule: "15 22 * * 2"
+  schedule: "0 21 * * 5"
   jobTemplate:
     spec:
       backoffLimit: 1
@@ -28,9 +28,9 @@ spec:
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
               limits:
-                memory: 10Gi
+                memory: 20Gi
               requests:
-                memory: 7Gi
+                memory: 15Gi
             env:
             - name: SEARCH_HOST
               value: "elasticsearch-1b-es-http.elasticsearch.svc"

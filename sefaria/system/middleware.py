@@ -7,6 +7,7 @@ from io import StringIO
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
@@ -14,6 +15,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
@@ -64,7 +66,7 @@ class LocationSettingsMiddleware(MiddlewareMixin):
         Determines if the user should see diaspora content or Israeli.
     """
     def process_request(self, request):
-        loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+        loc = request.headers.get("cf-ipcountry", None)
         if not loc:
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
@@ -96,7 +98,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
+            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
             interface = 'english' if interface not in ('english', 'hebrew') else interface
@@ -109,7 +111,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
+            if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
                 target_domain = get_redirect_domain_for_language(request, interface)
@@ -138,7 +140,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         # TRANSLATION LANGUAGE PREFERENCE
         translation_language_preference = (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
-        langs_in_country = get_lang_codes_for_territory(request.META.get("HTTP_CF_IPCOUNTRY", None))
+        langs_in_country = get_lang_codes_for_territory(request.headers.get("cf-ipcountry", None))
         translation_language_preference_suggestion = None
         trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested", False)
         if translation_language_preference is None and not trans_lang_pref_suggested:
@@ -269,13 +271,22 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         cookies by browsers. When transitioning to domain-scoped cookies, we need to
         expire the old domain-less cookies.
 
-        Uses a workaround for Django's limitation of not supporting multiple cookies
-        with the same name (see https://code.djangoproject.com/ticket/10554):
-        adds an extra header via _headers with a unique internal key.
+        Works around Django's limitation of not supporting multiple cookies with the same
+        name (see https://code.djangoproject.com/ticket/10554) by storing the expiry
+        morsel under a unique internal key while setting the morsel's actual output key
+        to the real cookie name. Django's WSGI handler serializes cookies via
+        morsel.output(), which uses morsel._key (the real name), not the SimpleCookie
+        dict key.
         """
-        expire_value = f'{cookie_name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/'
-        header_key = f'set-cookie-legacy-{cookie_name}'
-        response._headers[header_key] = ('Set-Cookie', expire_value)
+        unique_key = f'_legacy_expire_{cookie_name}'
+        response.cookies[unique_key] = ''
+        morsel = response.cookies[unique_key]
+        morsel._key = cookie_name  # output the real cookie name, not the unique key
+        morsel._coded_value = ''
+        morsel['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        morsel['max-age'] = '0'
+        morsel['path'] = '/'
+        # No 'domain' attribute — this targets the legacy domain-less cookie
 
     def process_response(self, request, response):
         """
@@ -303,6 +314,44 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
                     self._expire_legacy_cookie(response, settings.CSRF_COOKIE_NAME)
 
         return response
+
+
+class SessionIDAuthMiddleware(MiddlewareMixin):
+    """
+    Authenticates anonymous requests from an encrypted X-Session-ID header.
+
+    This supplements Django's normal session auth. If the request already has an
+    authenticated user from the session, this middleware leaves it untouched.
+    """
+
+    def process_request(self, request):
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            return
+
+        header_name = getattr(settings, "SESSION_ID_AUTH_HEADER", "HTTP_X_SESSION_ID")
+        encrypted_session_id = request.META.get(header_name)
+        if not encrypted_session_id:
+            return
+
+        user_id = get_user_id_from_chatbot_user_token(
+            encrypted_session_id,
+            getattr(settings, "CHATBOT_USER_ID_SECRET", None),
+        )
+        if not user_id:
+            return
+
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return
+
+        if getattr(user, "is_active", True) is False:
+            return
+
+        request.user = user
+        request._cached_user = user
+        request.user_id = user.id
 
 
 class CORSDebugMiddleware(MiddlewareMixin):
@@ -388,6 +437,11 @@ class ModuleMiddleware(MiddlewareURLMixin):
     def __init__(self, get_response):
         self.get_response = get_response
         self.default_module = LIBRARY_MODULE
+
+    def should_process_request(self, request):
+        if request.path.startswith('/api/img-gen/'):
+            return True
+        return super().should_process_request(request)
 
     def _set_active_module(self, request):
         """
