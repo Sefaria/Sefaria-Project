@@ -66,8 +66,10 @@ export default defineConfig({
     permissions: ['geolocation'],
     extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' },
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'retain-on-failure',
+    // See the desktop config: retain-on-failure records video for every test
+    // then discards it on pass — overhead with little payoff over the trace.
+    video: 'off',
+    trace: 'on-first-retry',
   },
 
   projects: [

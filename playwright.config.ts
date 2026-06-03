@@ -48,7 +48,7 @@ export default defineConfig({
 
 
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -79,10 +79,14 @@ export default defineConfig({
 
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    /* Record video on failure */
-    video: 'retain-on-failure',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'retain-on-failure',
+    /* Video is recorded for EVERY test under retain-on-failure (Playwright can't
+     * know which will fail), then discarded on pass — pure overhead on the happy
+     * path and largely redundant with the trace viewer's DOM snapshots. Off by
+     * default; the trace on first retry covers debugging. */
+    video: 'off',
+    /* No artifacts on the first pass (fast, low contention); a full trace is
+     * captured only when a failed test is retried. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
   },
 
   /* Configure projects for major browsers */
