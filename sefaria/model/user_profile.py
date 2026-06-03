@@ -642,9 +642,6 @@ class UserProfile(object):
         if not len(options):
             return []
         filtered_options = [u for u in options if not self.follows(u["uid"])]
-        if not filtered_options:
-            return []
-
         return choices(filtered_options, k=min(n, len(filtered_options)))
 
     def to_mongo_dict(self):
