@@ -2,8 +2,28 @@
 instead of aborting the entire multi-hour run."""
 import pytest
 from elastic_transport import ApiError, ConnectionTimeout
+from elasticsearch_dsl.query import Bool, Regexp, Term
 
 from sefaria.search import TextIndexer
+from sefaria.helper.search import get_filter_obj, make_filter
+
+
+@pytest.mark.parametrize("type,agg_type,agg_key,expected", [
+    ("text", None,          "Mishnah",             Regexp),  # regression: null agg_type must not reach Term(**{None: ...})
+    ("text", "path",        "Mishnah",             Regexp),
+    ("text", "linked_refs", "Mishnah Berakhot 1:1", Term),
+    ("sheet", "group",      "some-group",           Term),
+])
+def test_make_filter(type, agg_type, agg_key, expected):
+    assert isinstance(make_filter(type, agg_type, agg_key), expected)
+
+
+@pytest.mark.parametrize("filter_fields", [
+    [None, None],  # regression: explicit JSON nulls from client raised TypeError
+    [],
+])
+def test_get_filter_obj(filter_fields):
+    assert isinstance(get_filter_obj("text", ["Mishnah", "Talmud"], filter_fields), Bool)
 
 
 class _FakeIndex:
