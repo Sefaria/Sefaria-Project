@@ -138,8 +138,11 @@ def get_filter_obj(type, filters, filter_fields):
 
 
 def make_filter(type, agg_type, agg_key):
-    if type == "text" and agg_type == "path":
-        # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
+    if type == "text" and agg_type in (None, "path"):
+        # "path" is the standard text filter field (regexp over category path).
+        # None is accepted as a defensive fallback for callers that pass an empty filter_fields list,
+        # which get_filter_obj normalises to [None] (see line 129).
+        # filters with '/' might be leading to books. also, very unlikely they'll match any false positives
         agg_key = agg_key.rstrip('/')
         agg_key = re.escape(agg_key)
         reg = f"{agg_key}|{agg_key}/.*"
