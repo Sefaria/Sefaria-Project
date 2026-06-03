@@ -1,5 +1,9 @@
 # apiVersion: apps/v1
 # kind: Deployment
+# The nginx (asset) image bakes a copy of the static bundles from the web image at
+# build time. That copy is now built cache-free (see scripts/release-prepare.sh) so it
+# always matches the web build. Bumping the chart forces a rollout, which re-pulls the
+# corrected v*-prod.* asset image and keeps served static in sync with the served HTML.
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
