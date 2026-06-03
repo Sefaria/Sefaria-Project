@@ -76,6 +76,29 @@ test.describe('Search Filter Sanity Tests', () => {
     await expect(page.locator('.searchResultCount')).toContainText(/\d/, { timeout: t(20000) });
     await expect(page.locator('.result.textResult').first()).toBeVisible({ timeout: t(20000) });
   });
+
+  // =================================================================
+  // TEST 3: An applied filter shows its real count, not "(0)" (sc-44603)
+  // =================================================================
+  test('Library - Applied filter shows its real count, not (0)', async ({ context }) => {
+    const url = `${MODULE_URLS.EN.LIBRARY}/search?q=${encodeURIComponent('מעל')}`
+      + `&tab=text&tpathFilters=${encodeURIComponent('Tanakh/Writings/Psalms')}`
+      + `&tvar=1&tsort=relevance`;
+    const page = await goToPageWithLang(context, url, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+
+    await expect(page.locator('.result.textResult').first()).toBeVisible({ timeout: t(20000) });
+
+    // Expand Tanakh -> Writings to reveal the selected Psalms filter.
+    await page.locator('.searchFilterTitle', { hasText: /^\s*Tanakh\b/ }).first().click();
+    await page.locator('.searchFilterTitle', { hasText: /^\s*Writings\b/ }).first().click();
+
+    // The selected Psalms filter must show a real count, not "(0)".
+    const psalms = page.locator('.searchFilterTitle', { hasText: /Psalms/ }).first();
+    await expect(psalms).toBeVisible({ timeout: t(20000) });
+    await expect(psalms).not.toContainText('(0)');
+    await expect(psalms).toContainText(/\([1-9]\d*\)/);
+  });
 });
 
 /**
