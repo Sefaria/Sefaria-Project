@@ -131,13 +131,9 @@ test.describe('Library Assistant — header menu', () => {
     // in LCChatbot.svelte).
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
-    await pm.onLibraryAssistant().expectMenuItemTexts([
-      'Settings',
-      'Restart conversation',
-      'Give feedback',
-      'Help',
-      'Opt-out in Settings',
-    ]);
+    await pm.onLibraryAssistant().expectMenuItemTexts(
+      pm.onLibraryAssistant().expectedMenuTexts(BROWSER_SETTINGS.enLAUser.isModerator),
+    );
   });
 
   test('UX-058: Clicking outside the menu closes it', async () => {
@@ -171,8 +167,7 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectEmptyState();
     await pm.onLibraryAssistant().expectNoUserMessages();
     // Textarea should be focused and re-enabled
-    const textarea = page.getByLabel('Prompt input');
-    await expect(textarea).toBeEnabled({ timeout: t(5000) });
+    await pm.onLibraryAssistant().expectTextareaEnabled();
   });
 });
 

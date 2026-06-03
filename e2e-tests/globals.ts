@@ -24,9 +24,18 @@ export const testAdminUser = {
 };
 
 export const testLAUser = {
-    // Whitelisted for the Library Assistant on www.sefaria.org.
+    // Whitelisted for the Library Assistant on www.sefaria.org (English).
     email: process.env.PLAYWRIGHT_LA_USER_EMAIL ?? '',
     password: process.env.PLAYWRIGHT_LA_USER_PASSWORD ?? '',
+};
+
+export const testHeLAUser = {
+    // Whitelisted for the Library Assistant, with account Site-Language = Hebrew,
+    // so it lives on the www.sefaria.org.il domain. A separate account from
+    // testLAUser because one account has a single language preference and the
+    // server routes a logged-in user to that language's domain.
+    email: process.env.PLAYWRIGHT_LA_USER_HE_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_LA_USER_HE_PASSWORD ?? '',
 };
 
 export const AUTH_PATHS = {
@@ -35,6 +44,7 @@ export const AUTH_PATHS = {
     enUserFile: `auth_english_user.json`,
     heUserFile: `auth_hebrew_user.json`,
     enLAUserFile: `auth_english_la_user.json`,
+    heLAUserFile: `auth_hebrew_la_user.json`,
 }
 
 export const BROWSER_SETTINGS = {
@@ -71,6 +81,20 @@ export const BROWSER_SETTINGS = {
         file: AUTH_PATHS.enLAUserFile,
         lang: LANGUAGES.EN,
         user: testLAUser,
+        // Account is Django staff → the LA More-options menu shows the extra
+        // "Settings" item (the chatbot's `is-moderator` branch).
+        isModerator: true,
+    },
+    // Logs in natively on the Hebrew (.org.il) domain — see global-setup.ts.
+    heLAUser: {
+        file: AUTH_PATHS.heLAUserFile,
+        lang: LANGUAGES.HE,
+        user: testHeLAUser,
+        site: 'IL' as const,
+        // Set to match the account's Django staff status. qa+automationLAHebrew is
+        // NOT currently staff, so the LA menu shows 4 items (no "Settings"). Flip
+        // to true once the account is made staff (then it sees 5, like enLAUser).
+        isModerator: false,
     },
 };
 

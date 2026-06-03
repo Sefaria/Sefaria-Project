@@ -43,7 +43,6 @@
     "postinstall": "patch-package",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-<<<<<<< HEAD
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --config=playwright.mobileweb.config.ts",
     "test:library": "playwright test --project=chrome-library",
@@ -62,24 +61,6 @@
     "test:assistant": "playwright test --project=chrome-assistant",
     "test:resource-panel": "playwright test --project=chrome-resource-panel",
     "test:voices-topics": "playwright test --project=chrome-voices-topics",
-=======
-    "test:chromium": "playwright test --project=chromium",
-    "test:firefox": "playwright test --project=firefox",
-    "test:webkit": "playwright test --project=webkit",
-    "test:all-browsers": "playwright test --project=chromium --project=firefox --project=webkit",
-    "test:library": "playwright test --project=library",
-    "test:library:firefox": "playwright test --project=firefox-library",
-    "test:library:webkit": "playwright test --project=webkit-library",
-    "test:library:all": "playwright test --project=library --project=firefox-library --project=webkit-library",
-    "test:voices": "playwright test --project=voices",
-    "test:voices:firefox": "playwright test --project=firefox-voices",
-    "test:voices:webkit": "playwright test --project=webkit-voices",
-    "test:voices:all": "playwright test --project=voices --project=firefox-voices --project=webkit-voices",
-    "test:misc": "playwright test --project=misc",
-    "test:misc:firefox": "playwright test --project=firefox-misc",
-    "test:misc:webkit": "playwright test --project=webkit-misc",
-    "test:misc:all": "playwright test --project=misc --project=firefox-misc --project=webkit-misc",
->>>>>>> origin/master
     "scss": "sass --watch static/css:static/css",
     "scss-compile": "sass static/css:static/css",
     "prepare": "husky install"

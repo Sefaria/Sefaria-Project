@@ -41,21 +41,29 @@ export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] =
     // Split domain into parts
     const parts = domain.split('.');
 
-    // If domain has subdomain (more than 2 parts, accounting for multi-level TLDs)
-    // e.g., www.modularization.cauldron.sefaria.org has 5 parts
-    // We want to remove the first subdomain (www, voices, etc.) and keep the rest
-    if (parts.length >= 3) {
-      // Remove first subdomain and create parent domain with leading dot
-      const parentDomain = '.' + parts.slice(1).join('.');
-      return { ...cookie, domain: parentDomain };
+    // Determine the registrable domain so we only strip a leftmost *subdomain*
+    // label (www, voices, chiburim, …) and never a label that belongs to the
+    // registrable domain itself. Israeli domains use a 2-level public suffix
+    // (.org.il / .co.il / .ac.il / …), so their registrable domain is the last
+    // THREE labels (sefaria.org.il); everywhere else it's the last two
+    // (sefaria.org). Without this, "sefaria.org.il" would be wrongly reduced to
+    // the public suffix ".org.il" — a domain browsers reject, silently dropping
+    // the session on the Hebrew site.
+    const isIsraeliCompoundTld =
+      parts.length >= 3 &&
+      parts[parts.length - 1] === 'il' &&
+      /^(org|co|ac|gov|net|k12|muni|idf)$/.test(parts[parts.length - 2]);
+    const minRegistrableLabels = isIsraeliCompoundTld ? 3 : 2;
+
+    if (parts.length > minRegistrableLabels) {
+      // Strip the leftmost subdomain label, keep the rest as the parent domain.
+      // e.g. www.sefaria.org -> .sefaria.org ; www.sefaria.org.il -> .sefaria.org.il ;
+      //      www.modularization.cauldron.sefaria.org -> .modularization.cauldron.sefaria.org
+      return { ...cookie, domain: '.' + parts.slice(1).join('.') };
     }
 
-    // If already a parent domain or no subdomain, add leading dot if not present
-    if (!cookie.domain.startsWith('.')) {
-      return { ...cookie, domain: '.' + cookie.domain };
-    }
-
-    return cookie;
+    // Already at the registrable domain — just ensure a leading dot.
+    return { ...cookie, domain: '.' + domain };
   });
 };
 

@@ -107,9 +107,10 @@ Key infrastructure files:
 | Logged-in primary user, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heUser)` |
 | Logged-in admin, EN | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)` |
 | Logged-in admin, HE | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)` |
-| LA-whitelisted user (for `<lc-chatbot>` tests) | `goToPageWithUser(context, url, BROWSER_SETTINGS.enLAUser)` — see [assistant/README.md](assistant/README.md) |
+| LA-whitelisted user, EN (for `<lc-chatbot>` tests) | `goToPageWithUser(context, url, BROWSER_SETTINGS.enLAUser)` — see [assistant/README.md](assistant/README.md) |
+| LA-whitelisted user, HE (Hebrew `<lc-chatbot>`) | `goToPageWithUser(context, MODULE_URLS.HE.LIBRARY, BROWSER_SETTINGS.heLAUser)` — dedicated Hebrew-preference account logged in natively on `.org.il`; see [assistant/README.md](assistant/README.md) §12 |
 
-**How auth works (read this once):** [global-setup.ts](global-setup.ts) runs **before any worker starts**, logs each unique account in exactly once, and writes one read-only `auth_*.json` file per profile. Workers (each a separate Node process) only ever **read** those files. No per-test login, no file-write race at full parallelism. EN/HE variants of the same account share one session (Sefaria invalidates concurrent sessions for the same user, so logging the QA user in twice — once for EN, once for HE — would kill the first). The two variants are stamped from the same captured cookie set with different `interfaceLang` values.
+**How auth works (read this once):** [global-setup.ts](global-setup.ts) runs **before any worker starts**, logs each unique account in exactly once, and writes one read-only `auth_*.json` file per profile. Workers (each a separate Node process) only ever **read** those files. No per-test login, no file-write race at full parallelism. For the standard user and admin, the EN/HE variants are stamped from a single captured login (one login per account keeps setup fast), differing only by the `interfaceLang` cookie — Hebrew runs *anonymously* on the `.org.il` domain, since the `.org` session cookie isn't sent cross-TLD. The Hebrew Library Assistant is the exception: it needs a logged-in session **on** the Hebrew domain, so it uses a separate Hebrew-preference account logged in directly on `.org.il` (see `heLAUser` in §10).
 
 > ⚠️ **`BROWSER_SETTINGS.english` / `.hebrew` no longer exist** (removed in the auth refactor). Anonymous tests must call `goToPageWithLang(context, url, LANGUAGES.EN | LANGUAGES.HE)`; logged-in tests must use `enUser` / `heUser` / `enAdmin` / `heAdmin` / `enLAUser`.
 
@@ -287,19 +288,20 @@ for (const { label, lang } of configs) {
 
 ## 10. Auth state system
 
-**Pre-seeded storage states** keyed by `BROWSER_SETTINGS.<name>` (five profiles — see §4):
+**Pre-seeded storage states** keyed by `BROWSER_SETTINGS.<name>` (six profiles — see §4):
 
 - `enUser`, `heUser` — standard test user (`testUser`)
 - `enAdmin`, `heAdmin` — admin / superuser (`testAdminUser`); also the de-facto destructive-auth throwaway (see rule §2.21)
-- `enLAUser` — Library Assistant whitelisted user (`testLAUser`). Only this account sees the `<lc-chatbot>` element. Do **not** reuse `enUser` for LA tests — the element won't mount and `waitForReady()` will time out.
+- `enLAUser` — Library Assistant whitelisted user (`testLAUser`), English. Only LA-whitelisted accounts see the `<lc-chatbot>` element. Do **not** reuse `enUser` for LA tests — the element won't mount and `waitForReady()` will time out.
+- `heLAUser` — **separate** LA-whitelisted account whose account Site-Language is **Hebrew** (creds `PLAYWRIGHT_LA_USER_HE_*`, `testHeLAUser`). Hebrew runs on the `.org.il` domain, and a logged-in user is server-side-routed to their account-language's domain — so this must be its own Hebrew-preference account (not the English `enLAUser`/`testLAUser`). [global-setup.ts](global-setup.ts) logs it in **natively on `.org.il`** (`site: 'IL'`), so `goToPageWithUser(MODULE_URLS.HE.LIBRARY, heLAUser)` lands logged-in in Hebrew with no special machinery. The Hebrew LA suite runs fully parallel. See [assistant/README.md](assistant/README.md) §12.
 
-> The pre-refactor `BROWSER_SETTINGS.english` / `.hebrew` profiles **no longer exist**. Anonymous tests use `goToPageWithLang(...)`; logged-in tests use the five profiles above.
+> The pre-refactor `BROWSER_SETTINGS.english` / `.hebrew` profiles **no longer exist**. Anonymous tests use `goToPageWithLang(...)`; logged-in tests use the six profiles above.
 
 **How it works** (the current global-setup model — see §4 for the full version):
 
-1. **Before any worker starts**, [global-setup.ts](global-setup.ts) wipes every `auth_*.json` from the previous run, logs each *unique* account in exactly once, and writes one **read-only** file per profile: `auth_english_user.json`, `auth_hebrew_user.json`, `auth_english_admin.json`, `auth_hebrew_admin.json`, `auth_english_la_user.json`.
+1. **Before any worker starts**, [global-setup.ts](global-setup.ts) wipes every `auth_*.json` from the previous run, logs each *unique* account in exactly once, and writes one **read-only** file per profile: `auth_english_user.json`, `auth_hebrew_user.json`, `auth_english_admin.json`, `auth_hebrew_admin.json`, `auth_english_la_user.json`, `auth_hebrew_la_user.json`. The English accounts log in on the English (`.org`) domain; the Hebrew LA account logs in natively on the Hebrew (`.org.il`) domain (`site: 'IL'`).
 2. **Each worker** (a separate Node process) only ever **reads** those files via `goToPageWithUser` — no per-test login, no file-write race at full parallelism.
-3. EN/HE variants of one account **share** a single session (Sefaria invalidates concurrent sessions for the same user), stamped with different `interfaceLang` values.
+3. For the standard user/admin, the EN/HE variants are **stamped from one captured login** (one login per account), differing only in the `interfaceLang` cookie. (The Hebrew LA account is logged in separately on the `.org.il` domain — see §10.)
 4. Cross-subdomain cookies are fixed up via `fixCookieDomainsForCrossSubdomain` so a login on `www.*` also authenticates `voices.*`.
 
 **Credentials** come from `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` / `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD` / `PLAYWRIGHT_LA_USER_EMAIL` / `PLAYWRIGHT_LA_USER_PASSWORD` env vars.
@@ -442,8 +444,12 @@ npx playwright test library/header.spec.ts
 
 # One test by name
 npx playwright test -g 'MOD-H002'
-npx playwright test -g 'UX-003'        # LA behavioral
+npx playwright test -g 'UX-003'        # LA behavioral (matches EN + HE)
 npx playwright test -g 'LA-NEG-001'    # LA visibility boundary
+
+# LA by language (English + Hebrew specs both live under chrome-assistant)
+npx playwright test --project=chrome-assistant library-assistant.spec.ts          # English LA
+npx playwright test --project=chrome-assistant library-assistant-hebrew.spec.ts    # Hebrew LA
 
 # Interactive UI
 npx playwright test --ui
@@ -523,7 +529,7 @@ The LA chatbot (`<lc-chatbot>`) is a Svelte custom element with an **open shadow
 **Locators:**
 
 - Playwright's `getByRole`, `getByLabel`, `getByText`, and default CSS all pierce the open shadow root. No special syntax.
-- Stable labels: `Open Library Assistant`, `Close assistant`, `Dock assistant to side`, `Undock assistant`, `More options`, `Send message`, `Prompt input`, dialog name `Chat window`.
+- **Labels are language-specific** (the component is i18n'd) — never hardcode them in a test; go through the page object, which resolves them from `LA_LABELS[this.language]`. The live-verified English/Hebrew strings are tabulated in [assistant/README.md](assistant/README.md) §11 (e.g. EN `Close` / `Send` / `Dock Assistant`; HE `סגירה` / `שליחה` / `הצמדת עוזר הספרייה`). The old pre-i18n labels (`Close assistant`, `Send message`, `Dock assistant to side`, …) are gone from prod.
 - Do not reach for `page.evaluate(host.shadowRoot.querySelector(...))` unless role/label/CSS truly can't reach the element.
 
 **Quirks that bite tests if you don't know them:**
@@ -533,6 +539,8 @@ The LA chatbot (`<lc-chatbot>`) is a Svelte custom element with an **open shadow
 - Send round-trip hits the real `chat.sefaria.org` backend (~10–20s). Send-oriented tests must bump timeout via `test.setTimeout(t(90000))`.
 - Storage state captured by `goToPageWithUser` may include chat localStorage from the first login. Use `.last()` on `.message.user` / `.message.assistant` rather than strict counts.
 - The LA is **absent** on `voices.*` and for logged-out users — that's intentional behavior, covered by `LA-NEG-*` tests in [assistant/library-assistant.spec.ts](assistant/library-assistant.spec.ts).
+
+**Bilingual:** The LA is now bilingual (English on `www.*`, Hebrew on `www.*.il`). The deployed component runs a `svelte-i18n` build, so labels are language-specific — the page object is parameterized (`LA_LABELS[this.language]` in [pages/libraryAssistantPage.ts](pages/libraryAssistantPage.ts)) with strings **verified against the live component** in both languages. Hebrew coverage mirrors the English suite in [assistant/library-assistant-hebrew.spec.ts](assistant/library-assistant-hebrew.spec.ts). Testing the Hebrew LA requires a logged-in session on the `.org.il` domain, which is why it uses a dedicated Hebrew-preference account logged in natively there (`heLAUser`, §10) — documented fully in [assistant/README.md](assistant/README.md) §12.
 
 **Organization:**
 

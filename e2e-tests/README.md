@@ -107,7 +107,7 @@ Sefaria ships two independent web modules plus several embedded products that sh
 
 - **Library** — the traditional reader, topics, and texts experience. Hosted at `www.<sandbox-domain>` (English) and `www.<sandbox-domain-il>` (Hebrew).
 - **Voices** — the sheet-editing / community / trending-topics experience. Hosted at `voices.<sandbox-domain>` (English) and `chiburim.<sandbox-domain-il>` (Hebrew).
-- **Library Assistant** — a `<lc-chatbot>` Svelte custom element embedded on the Library module for whitelisted users. 16 behavioral + 4 visibility-boundary tests. See [assistant/README.md](assistant/README.md).
+- **Library Assistant** — a `<lc-chatbot>` Svelte custom element embedded on the Library module for whitelisted users, in **both languages** (English on `www.<sandbox>`, Hebrew on `www.<sandbox-il>`). English + Hebrew suites (`library-assistant.spec.ts` + `library-assistant-hebrew.spec.ts`), each ~20 tests. See [assistant/README.md](assistant/README.md).
 - **Resource Panel** — the connections sidebar (`ConnectionsPanel`) that opens when a reader segment is clicked. Covers RP-001 → RP-212 (79 active tests across 19 spec files). See [Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
 - **Voices Topics** — topic pages on the Voices module (`voices.<sandbox>/topics/<slug>`) plus the topic landing page (`/topics`). Covers TOV-001 → TOV-019 (17 active tests across 2 spec files). See [Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md).
 - **Mobile** — the hamburger drawer that only renders below the 843 px breakpoint. 18 tests (HAM-*) across 2 spec files, run under a separate config. See [mobile web/README.md](mobile%20web/README.md).
@@ -610,13 +610,14 @@ The `<lc-chatbot>` element only mounts for the whitelisted account. Enter via `B
 | --- | --- | --- |
 | `BROWSER_SETTINGS.enUser` / `.heUser` | Standard test user (`testUser`) | Default profile for any logged-in test |
 | `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser (`testAdminUser`) | Moderator / editor flows (e.g. create topic, edit text). Also the de-facto destructive-auth throwaway — see below. |
-| `BROWSER_SETTINGS.enLAUser` | Library Assistant whitelisted user (`testLAUser`) | LA-specific — `<lc-chatbot>` only mounts for this account |
+| `BROWSER_SETTINGS.enLAUser` | Library Assistant whitelisted user (`testLAUser`) | English LA — `<lc-chatbot>` only mounts for a whitelisted account |
+| `BROWSER_SETTINGS.heLAUser` | Separate Hebrew-preference LA account (`testHeLAUser`, `PLAYWRIGHT_LA_USER_HE_*`) | Hebrew LA — logged in natively on `www.*.il`; see [assistant/README.md](assistant/README.md) §12 |
 
-> The pre-refactor `BROWSER_SETTINGS.english` / `.hebrew` profiles **no longer exist**. Anonymous tests use `goToPageWithLang(...)`; logged-in tests use the five profiles above.
+> The pre-refactor `BROWSER_SETTINGS.english` / `.hebrew` profiles **no longer exist**. Anonymous tests use `goToPageWithLang(...)`; logged-in tests use the profiles above.
 
 **How the flow works** — a one-time global setup, read-only thereafter (the textbook parallel-safe Playwright pattern):
 
-1. **Before any worker starts**, Playwright invokes [global-setup.ts](global-setup.ts). It wipes every `auth_*.json` from the previous run, logs in each *unique account* exactly once (`testUser`, `testAdminUser`, `testLAUser`), calls `fixCookieDomainsForCrossSubdomain` so `sessionid` lives on the parent domain and authenticates both `www.*` and `voices.*`, and writes one `auth_<lang>_<role>.json` per profile. EN and HE variants of one account **share** that login (Sefaria invalidates concurrent sessions for the same user), stamped with different `interfaceLang` values.
+1. **Before any worker starts**, Playwright invokes [global-setup.ts](global-setup.ts). It wipes every `auth_*.json` from the previous run, logs in each *unique account* exactly once (`testUser`, `testAdminUser`, `testLAUser`, plus the Hebrew-preference `testHeLAUser`), calls `fixCookieDomainsForCrossSubdomain` so `sessionid` lives on the parent domain and authenticates both `www.*` and `voices.*`, and writes one `auth_<lang>_<role>.json` per profile. For the standard user/admin, the EN and HE variants are **stamped from one captured login** (one login per account), differing only by the `interfaceLang` cookie. The Hebrew Library-Assistant account logs in separately on the `www.*.il` domain (`site: 'IL'`), because the LA needs a logged-in session on the Hebrew domain.
 2. **Each worker** (a separate Node process) calls `goToPageWithUser(...)`, which reads the file (throws with a clear pointer if it's missing), re-applies the cookie fixups defensively, opens a page, navigates once, and hides modals.
 3. **Anonymous tests** use `goToPageWithLang(...)` — no file, no login.
 
