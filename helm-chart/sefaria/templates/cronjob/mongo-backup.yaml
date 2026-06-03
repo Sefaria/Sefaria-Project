@@ -80,8 +80,8 @@ spec:
               value: {{ .Values.backup.mongo.bucket }}
             - name: ARCHIVE_BUCKET
               value: {{ .Values.backup.mongo.archiveBucket }}
-            # SLACK_URL is provided via local-settings-secrets (envFrom).
-            # Do not re-add an explicit env here: it would override the envFrom value (SC-44609).
+            # No SLACK_URL here: upload-dumps.sh (mongo) does not use it. The explicit env that
+            # previously sourced it from the retired slack-webhook secret was dead (SC-44609).
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
             resources:

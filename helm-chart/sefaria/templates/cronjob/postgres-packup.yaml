@@ -73,8 +73,13 @@ spec:
               value: {{ .Values.backup.postgres.bucket }}
             - name: ARCHIVE_BUCKET
               value: {{ .Values.backup.postgres.archiveBucket }}
-            # SLACK_URL is provided via local-settings-secrets (envFrom).
-            # Do not re-add an explicit env here: it would override the envFrom value (SC-44609).
+            # upload-dumps.sh posts to ${SLACK_URL}; source it from local-settings-secrets
+            # (via the configured localSettings ref) instead of the retired slack-webhook secret (SC-44609).
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  key: SLACK_URL
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
             resources:
