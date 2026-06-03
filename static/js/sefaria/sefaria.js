@@ -2046,7 +2046,7 @@ Sefaria = extend(Sefaria, {
     var notes = this.privateNotes(note["anchorRef"]) || [];
     notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
-    Sefaria._allPrivateNotes = null; // The note format in _allPrivateNotes is different from in _privateNotes. Clearing it ensures we'll get a fresh data from API next time.
+    this._allPrivateNotes = null; // Note format in _allPrivateNotes differs from _privateNotes; clearing it ensures we'll fetch fresh data from the API next time.
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
