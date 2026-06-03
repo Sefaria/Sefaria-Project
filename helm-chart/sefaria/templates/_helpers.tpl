@@ -38,13 +38,6 @@ school-lookup-data-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "sefaria.secrets.slackWebhook" }}
-{{- if .Values.secrets.slackWebhook.ref -}}
-{{- .Values.secrets.slackWebhook.ref }}
-{{- else -}}
-slack-webhook-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
 
 {{- define "sefaria.secrets.elasticCertificate" }}
 {{- if .Values.web.secrets.elasticCertificate.ref -}}
