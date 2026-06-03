@@ -76,11 +76,15 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
 
   test('RP-056: Manual lexicon search rejects non-Hebrew input with an invalid-entry message', async () => {
     await pm.onResourcePanel().openLexiconManual();
-    await pm.onResourcePanel().typeInLexiconSearch('xqzqz1234');
-    const invalidMessage = page.locator(
-      '.connectionsPanel :text-matches("Invalid entry", "i")'
-    ).first();
-    await expect(invalidMessage).toBeVisible({ timeout: t(10000) });
+    // The "Invalid entry" rejection lives in the jQuery UI autocomplete
+    // dropdown (DictionarySearch.jsx:106), surfaced by the 330ms polling loop
+    // as the user types. Do NOT submit: Enter would close that dropdown
+    // (line 132) and the message could vanish before assertion. The matcher
+    // (expectInvalidLexiconEntry) scopes to the widget's own class rather than
+    // `.connectionsPanel`, so it holds even on builds where jQuery mounts the
+    // dropdown on <body>.
+    await pm.onResourcePanel().typeInLexiconSearch('xqzqz1234', false);
+    await pm.onResourcePanel().expectInvalidLexiconEntry();
   });
 
   test('RP-057: Clearing the selection returns the panel to Resources mode', async () => {

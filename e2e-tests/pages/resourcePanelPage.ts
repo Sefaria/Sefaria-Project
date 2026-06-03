@@ -564,12 +564,41 @@ export class ResourcePanelPage extends HelperBase {
    * Type a word into the manual lexicon search box. Rendered by
    * `<DictionarySearch>` inside `LexiconBox` (LexiconBox.jsx:188). The actual
    * input is `input.search` inside a `.dictionarySearchBox` wrapper.
+   *
+   * `submit` controls the trailing Enter press. Enter runs `submitSearch`
+   * (DictionarySearch.jsx:133) AND `autocomplete("close")` (line 132). The
+   * submit is required to render `.lexicon-results` for a valid word (RP-058),
+   * but it is harmful when the assertion targets the autocomplete dropdown
+   * itself (RP-056): if the dropdown is already open when Enter fires, the
+   * close resyncs `state.val` (lines 86-90) and the 330ms polling loop will not
+   * reopen it — the message can vanish before it is asserted. Pass
+   * `submit: false` whenever the dropdown is the thing under test.
    */
-  async typeInLexiconSearch(word: string): Promise<void> {
+  async typeInLexiconSearch(word: string, submit: boolean = true): Promise<void> {
     const input = this.panel.locator('.lexicon-content .dictionarySearchBox input.search, .lexicon-content input.search').first();
     await expect(input).toBeVisible({ timeout: t(10000) });
     await input.fill(word);
-    await input.press('Enter');
+    if (submit) {
+      await input.press('Enter');
+    }
+  }
+
+  /**
+   * The "Invalid entry. Please type a Hebrew word." rejection for non-Hebrew
+   * input. This message is NOT React-rendered into `.lexicon-results` — it is a
+   * jQuery UI autocomplete suggestion (DictionarySearch.jsx:106). jQuery UI
+   * mounts the widget on the input's nearest `.ui-front` ancestor — here
+   * `.dictionarySearchBox` inside `.connectionsPanel` (verified via DOM dump) —
+   * but falls back to `<body>` when no `.ui-front` ancestor exists, which is
+   * what some local builds with an older jQuery UI do. Scoping to the widget's
+   * own stable class (`dictionary-toc-autocomplete`, set in initAutocomplete's
+   * `classes` option, DictionarySearch.jsx:93) matches the message wherever
+   * jQuery mounts it, so this stays green against a localhost install too.
+   */
+  async expectInvalidLexiconEntry(): Promise<void> {
+    await expect(
+      this.page.locator('.dictionary-toc-autocomplete :text-matches("Invalid entry", "i")').first()
+    ).toBeVisible({ timeout: t(10000) });
   }
 
   // ============================================================

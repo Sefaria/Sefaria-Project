@@ -158,7 +158,7 @@ e2e-tests/
 │       └── README.md      ← Voices Topics guide (source map, design decisions, CSV adaptations)
 ├── fixtures/              ← shared test assets: test-image.jpg (image-upload tests) + its README
 ├── fixtures.ts            ← empty placeholder (cleanup candidate — see Legacy §18)
-├── archived-tests/        ← retired specs (e.g. voices/trending-topics.spec.ts); not run by any project
+├── archived-tests/        ← retired specs or production altering tests (e.g. voices/trending-topics.spec.ts); not run by any project
 │   └── README.md          ← why tests are archived + how to run them locally
 └── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
 ```
