@@ -43,12 +43,10 @@
                 {% csrf_token %}
 
                 <p>
-                    {{ form.email.label_tag }}
-                    <td>{{ form.email }}</td>
+                    {{ form.email.label_tag }}{{ form.email }}
                 </p>
                 <p>
-                    {{ form.password.label_tag }}
-                    <td>{{ form.password }}</td>
+                    {{ form.password.label_tag }}{{ form.password }}
                 </p>
 
                 <button type="submit" class="button control-elem" id="login-submit-button">

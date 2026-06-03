@@ -654,6 +654,22 @@ p.registration-links a:hover{
 .registrationContent p.registration-prompt a:hover {
   text-decoration: underline;
 }
+
+/* SC-44545: login form layout to match Figma 35:425 (desktop) / 35:742 (mobile) */
+#login.registrationContent {
+  width: 300px;
+  max-width: calc(100% - 32px);
+}
+#login .inner { padding: 0; width: 100%; }
+#login h1 { margin: 0 0 16px; }
+#login .registration-prompt { margin: 0 0 24px; }
+#login #login-form { margin: 0; }
+#login #login-form > p { margin: 0; padding: 0; }
+#login #login-form > p + p { margin-top: 16px; }
+#login #login-form input { height: 48px; margin: 0; width: 100%; box-sizing: border-box; }
+#login #login-submit-button { height: 48px; margin: 24px 0 0; width: 100%; }
+#login #resetLink { display: block; text-align: center; margin: 16px 0 0; }
+
 #visualizationsPage {
   text-align: left;
 }
