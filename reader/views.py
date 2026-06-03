@@ -998,7 +998,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
