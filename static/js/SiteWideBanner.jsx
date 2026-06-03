@@ -20,6 +20,13 @@ const getPromoStorageKeys = (cookieName) => {
   };
 };
 
+const getPromoSessionLengthSeconds = (promoSessionLengthSeconds) => {
+  const configuredSessionLengthSeconds = Number(promoSessionLengthSeconds);
+  return Number.isFinite(configuredSessionLengthSeconds) && configuredSessionLengthSeconds > 0
+    ? configuredSessionLengthSeconds
+    : DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
+};
+
 const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
   const nowSec = Math.floor(Date.now() / 1000);
   const lastSessionAtSec = Number(localStorage.getItem(storageKeys.lastSessionAtSec));
@@ -77,7 +84,7 @@ const SiteWideBanner = ({
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
   const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
-  const sessionLengthSeconds = DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
+  const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
   const promoSessionCounter = useBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
     : null;
@@ -197,6 +204,7 @@ SiteWideBanner.propTypes = {
   gtagParams: PropTypes.object.isRequired,
   useBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
+  promoSessionLengthSeconds: PropTypes.number,
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Try Sefaria's new Library Assistant [Experimental]");
@@ -254,6 +262,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON }) =>
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
       useBackoffDismissal={true}
       nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
+      promoSessionLengthSeconds={promoSessionLengthSeconds}
     />
   );
 };
@@ -261,6 +270,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON }) =>
 ChatbotExperimentBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
   promoMaybeLaterJSON: PropTypes.object,
+  promoSessionLengthSeconds: PropTypes.number,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };

@@ -2459,6 +2459,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 <ChatbotExperimentBanner
                   promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls}
                   promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
+                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
                 />
               )}
               <main id="main" role="main">
