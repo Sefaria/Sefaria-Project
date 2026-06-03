@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import $ from "./sefaria/sefariaJquery";
 import Sefaria from "./sefaria/sefaria";
 
-const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 5;//30 * 60;
+const DEFAULT_PROMO_SESSION_LENGTH_SECONDS = 30 * 60;
 const MAX_MAYBE_LATER_CLICKS = 3;
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const NUDGE_SCHEDULE = {
@@ -35,7 +35,7 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
   return nextSessionCounter;
 };
 
-const shouldHideForBackoff = ({ state, sessionCounter }) => {
+const shouldHideForBackoff = ({ state, sessionCounter, nudgeSchedule = NUDGE_SCHEDULE }) => {
   // No dismissal history yet — show the banner.
   if (!state) {
     return false;
@@ -47,7 +47,7 @@ const shouldHideForBackoff = ({ state, sessionCounter }) => {
   }
 
   // No nudge rule for this dismissal count means there's nothing left to wait on — show it.
-  const nudgeRule = NUDGE_SCHEDULE[state.maybeLaterCount];
+  const nudgeRule = nudgeSchedule[state.maybeLaterCount];
   if (!nudgeRule) {
     return false;
   }
@@ -72,9 +72,11 @@ const SiteWideBanner = ({
   cookieName,
   gtagParams,
   useBackoffDismissal,
+  nudgeSchedule,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
+  const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
   const sessionLengthSeconds = DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
   const promoSessionCounter = useBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
@@ -96,7 +98,7 @@ const SiteWideBanner = ({
       } catch (e) {
         backoffState = {};
       }
-      return shouldHideForBackoff({ state: backoffState, sessionCounter: promoSessionCounter });
+      return shouldHideForBackoff({ state: backoffState, sessionCounter: promoSessionCounter, nudgeSchedule: effectiveNudgeSchedule });
     }
     return document.cookie.includes(cookieName);
   };
@@ -194,6 +196,7 @@ SiteWideBanner.propTypes = {
   cookieName: PropTypes.string.isRequired,
   gtagParams: PropTypes.object.isRequired,
   useBackoffDismissal: PropTypes.bool,
+  nudgeSchedule: PropTypes.object,
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Try Sefaria's new Library Assistant [Experimental]");
@@ -205,7 +208,7 @@ const CHATBOT_BANNER_LEARN_MORE_URLS = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
   const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
@@ -250,12 +253,14 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
       useBackoffDismissal={true}
+      nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
     />
   );
 };
 
 ChatbotExperimentBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
+  promoMaybeLaterJSON: PropTypes.object,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };
