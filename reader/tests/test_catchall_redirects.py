@@ -133,6 +133,41 @@ def test_redirect_to_module_cross_module(client):
 
 @pytest.mark.django_db
 @override_settings(DOMAIN_MODULES=TEST_DOMAIN_MODULES, ALLOWED_HOSTS=TEST_ALLOWED_HOSTS)
+def test_voices_about_sidebar_page_redirects_to_library(client):
+    """
+    Test that accessing an about-sidebar page from voices redirects to library.
+    """
+    response = client.get("/about", HTTP_HOST="voices.modularization.testing.sefaria.org")
+    assert response.status_code == 301
+    assert "www.modularization.testing.sefaria.org" in response["Location"]
+    assert "/about" in response["Location"]
+    assert "voices" not in response["Location"]
+
+
+@pytest.mark.django_db
+@override_settings(DOMAIN_MODULES=TEST_DOMAIN_MODULES, ALLOWED_HOSTS=TEST_ALLOWED_HOSTS)
+def test_voices_about_sidebar_page_preserves_query_params(client):
+    """
+    Test that the redirect preserves query parameters.
+    """
+    response = client.get("/terms", {"foo": "bar"}, HTTP_HOST="voices.modularization.testing.sefaria.org")
+    assert response.status_code == 301
+    assert "www.modularization.testing.sefaria.org" in response["Location"]
+    assert "foo=bar" in response["Location"]
+
+
+@pytest.mark.django_db
+@override_settings(DOMAIN_MODULES=TEST_DOMAIN_MODULES, ALLOWED_HOSTS=TEST_ALLOWED_HOSTS)
+def test_library_about_sidebar_page_no_redirect(client):
+    """
+    Test that accessing an about-sidebar page from library does NOT redirect.
+    """
+    response = client.get("/about", HTTP_HOST="www.modularization.testing.sefaria.org")
+    assert response.status_code != 301 or "voices" not in response.get("Location", "")
+
+
+@pytest.mark.django_db
+@override_settings(DOMAIN_MODULES=TEST_DOMAIN_MODULES, ALLOWED_HOSTS=TEST_ALLOWED_HOSTS)
 def test_redirect_to_module_same_module(client):
     """
     Test redirect_to_module function for same-module redirects (URL normalization).
