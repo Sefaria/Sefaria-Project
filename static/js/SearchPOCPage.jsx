@@ -30,15 +30,17 @@ function fetchSources(query, { onSuccess, onError }) {
 }
 
 async function fetchNameResults(query) {
-  const res = await fetch(`/api/name/${encodeURIComponent(query)}?limit=50`);
+  const res = await fetch(`/api/name/${encodeURIComponent(query)}?limit=50&get_author_books=1`);
   if (!res.ok) {
     throw new Error("Name lookup failed");
   }
   const data = await res.json();
   console.log("fetchNameResults raw response", data);
   const completionObjects = data.completion_objects || [];
+  const authorIndexes = data.author_indexes || [];
   console.log("fetchNameResults completion_objects", completionObjects);
-  return completionObjects;
+  console.log("fetchNameResults author_indexes", authorIndexes);
+  return { completionObjects, authorIndexes };
 }
 
 function filterAuthors(completionObjects) {
@@ -47,9 +49,22 @@ function filterAuthors(completionObjects) {
   return results;
 }
 
-function filterBooks(completionObjects) {
+function filterBooks({ completionObjects, authorIndexes }) {
+  if (authorIndexes.length > 0) {
+    const results = authorIndexes.map(item => ({
+      type: "ref",
+      title: item.title.en,
+      heTitle: item.title.he,
+      key: item.title.en,
+      enDesc: item.description?.en || undefined,
+      heDesc: item.description?.he || undefined,
+      _directUrl: item.url,
+    }));
+    console.log("filterBooks (author_indexes)", results);
+    return results;
+  }
   const results = completionObjects.filter(o => o.type === "ref");
-  console.log("filterBooks", results);
+  console.log("filterBooks (refs)", results);
   return results;
 }
 
@@ -63,6 +78,7 @@ function filterTopics(completionObjects) {
 
 const getURLForNameResult = (item) => {
   if (item.type === "ref") {
+    if (item._directUrl) return item._directUrl;
     return `/${item.key.replace(/ /g, "_")}`;
   }
   if (item.type === "Topic" || item.type === "PersonTopic" || item.type === "AuthorTopic") {
@@ -87,7 +103,7 @@ const getSearchTopicCategory = (item) => {
 
 const getSearchTopicForNameResult = item => {
   const category = getSearchTopicCategory(item);
-  return {
+  const result = {
     analyticCat: category.en,
     sourceKey: item.key,
     sourceType: item.type,
@@ -99,6 +115,10 @@ const getSearchTopicForNameResult = item => {
     numSources: 0,
     numSheets: 0,
   };
+  if (item._directUrl) result._directUrl = item._directUrl;
+  if (item.enDesc) result.enDesc = item.enDesc;
+  if (item.heDesc) result.heDesc = item.heDesc;
+  return result;
 };
 
 const getSearchTopicsForNameResults = results => results.map(getSearchTopicForNameResult);
@@ -113,7 +133,7 @@ const getHydratedBookSearchTopic = async searchTopic => {
     heTitle: book.heTitle || searchTopic.heTitle,
     topicCat: primaryCategory || searchTopic.topicCat,
     heTopicCat: tocCategory?.heCategory || searchTopic.heTopicCat,
-    url: `/${(book.title || searchTopic.title).replace(/ /g, "_")}`,
+    url: searchTopic._directUrl || `/${(book.title || searchTopic.title).replace(/ /g, "_")}`,
   };
   if (book.enDesc || book.enShortDesc) {
     hydratedTopic.enDesc = book.enDesc || book.enShortDesc;
@@ -284,9 +304,9 @@ const SearchPOCPage = ({ searchQuery }) => {
     });
 
     fetchNameResults(query)
-      .then(completionObjects => {
+      .then(({ completionObjects, authorIndexes }) => {
         const authors = getSearchTopicsForNameResults(filterAuthors(completionObjects));
-        const books = dedupeSearchTopics(getSearchTopicsForNameResults(filterBooks(completionObjects)));
+        const books = dedupeSearchTopics(getSearchTopicsForNameResults(filterBooks({ completionObjects, authorIndexes })));
         const topics = getSearchTopicsForNameResults(filterTopics(completionObjects));
         if (isCurrent) {
           setResults(prevResults => ({
