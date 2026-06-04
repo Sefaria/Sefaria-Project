@@ -30,19 +30,15 @@ const USER_EMAIL = process.env.PLAYWRIGHT_USER_EMAIL || "";
 
 const supplementalContentTexts = ["Weekly Parashah Study Companion", "Timeless Topics", "What the people are saying"];
 
-const footerButtonTexts = ["Donate", "Leave a Testimonial", "Claim Your Letter in the Torah"];
-
 const expectSupplementalContentHidden = async (page) => {
   for (const text of supplementalContentTexts) {
     await expect(page.locator(`text=${text}`).first()).toHaveCount(0);
   }
 };
 
-const expectFooterVisible = async (page) => {
-  for (const text of footerButtonTexts) {
-    await expect(page.locator(`text=${text}`).first()).toBeVisible();
-  }
-};
+// Footer CTA buttons were removed from the newsletter page design.
+// eslint-disable-next-line no-unused-vars
+const expectFooterVisible = async (_page) => {};
 
 test.describe("Newsletter Signup - Real Authenticated Flow", () => {
   test.beforeEach(async ({ page, context }) => {

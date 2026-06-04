@@ -177,9 +177,6 @@ export default function NewsletterFormView({
         {!isLoggedIn && (
           <>
             <div className="formSection">
-              <h3 className="sectionHeader">
-                <InterfaceText text={BILINGUAL_TEXT.NAME_SECTION} />
-              </h3>
               {/* Errors hoisted outside flex row so both inputs stay aligned */}
               <InlineError fieldName="firstName" errors={fieldErrors} />
               <InlineError fieldName="lastName" errors={fieldErrors} />
@@ -205,10 +202,7 @@ export default function NewsletterFormView({
               </div>
             </div>
 
-            <div className="formSection">
-              <h3 className="sectionHeader">
-                <InterfaceText text={BILINGUAL_TEXT.CONTACT_SECTION} />
-              </h3>
+            <div className="formSection contactFormSection">
               <InlineError fieldName="email" errors={fieldErrors} />
               <FormInput
                 id="email"
@@ -237,9 +231,9 @@ export default function NewsletterFormView({
 
         {/* NEWSLETTER SELECTION SECTION */}
         <div className="formSection newsletterSelectionSection" id="newsletters">
-          <h3 className="sectionHeader">
+          <p className="newsletterSelectionLabel">
             <InterfaceText text={BILINGUAL_TEXT.SELECT_LISTS_SECTION} />
-          </h3>
+          </p>
 
           {/* INLINE ERROR FOR NEWSLETTERS */}
           <InlineError fieldName="newsletters" errors={fieldErrors} />
@@ -283,22 +277,15 @@ export default function NewsletterFormView({
           )}
         </div>
 
-        {/* FINISHED SECTION */}
-        <div className="formSection finishedSection">
-          <h3 className="sectionHeader">
-            <InterfaceText text={BILINGUAL_TEXT.FINISHED_SECTION} />
-          </h3>
-          <div className="formActions">
-            <SubmitButton isSubmitting={isSubmitting} isLoggedIn={isLoggedIn} />
-          </div>
+        <div className="formActions">
+          <SubmitButton isSubmitting={isSubmitting} isLoggedIn={isLoggedIn} />
         </div>
       </form>
 
       {/* PRIVACY NOTE */}
       <div className="privacyNote">
-        <p className="small">
-          <InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE} />
-        </p>
+        <p className="small"><InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE_1} /></p>
+        <p className="small"><InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE_2} /></p>
       </div>
     </div>
   );

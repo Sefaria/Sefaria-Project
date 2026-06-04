@@ -3161,19 +3161,13 @@ const EnhancedFeature = ({ enTitle, enText, enImg, enImgAlt, borderColor, link, 
   </div>
 );
 
-const EnhancedUserQuote = ({ enText, heText, enImage, heImage, enName, heName }) => (
-  <div className="staticPageUserQuote">
-    <div className="staticPageUserQuoteContent">
+const EnhancedUserQuote = ({ enText, heText, enImage, heImage }) => (
+  <div className="enhancedUserQuote">
+    <img className="int-en" src={enImage} />
+    <img className="int-he" src={heImage} />
+    <div className="enhancedUserQuoteContent">
       <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
       <div className="int-he" dangerouslySetInnerHTML={{ __html: heText }} />
-    </div>
-    <div className="staticPageUserQuoteNameBox">
-      <img className="int-en" src={enImage} style={{ backgroundColor: "white" }} />
-      <img className="int-he" src={heImage} style={{ backgroundColor: "white" }} />
-      <div className="staticPageUserQuoteName">
-        <span className="int-en" dangerouslySetInnerHTML={{ __html: enName }} />
-        <span className="int-he" dangerouslySetInnerHTML={{ __html: heName }} />
-      </div>
     </div>
   </div>
 );
@@ -3196,13 +3190,13 @@ const NewsletterPage = () => {
               </GreyBox>
               <EnhancedFeature
                 enTitle="Weekly Parashah Study Companion"
-                enText="<p>Each week we send out a guide to help you learn the weekly Torah reading. This resource includes historical context, discussion questions, and connections to other texts in our library.</p><p>These study guides support curious readers of all levels, from those who are encountering Jewish texts for the first time to experienced learners seeking new perspectives.</p>"
+                enText="<p>Plug into the rhythm of Torah with our free study guide to the weekly reading. Each guide includes an overview of the Torah portion’s key themes, curated commentaries, and ideas for deeper independent learning.</p><p>Over 25,000 learners of all levels use this guide to explore new perspectives, inspire discussion, or prepare sermons and Torah study classes.</p>"
                 borderColor="var(--sefaria-blue)"
                 iframeSrc="/static/files/email-examples/weekly-parashah-bereshit-email-example.html"
               />
               <EnhancedFeature
                 enTitle="Timeless Topics"
-                enText="<p>Discover the connections between ancient wisdom and contemporary life with our topic guides. Each issue explores a theme through multiple lenses, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
+                enText="<p>Discover the connections between ancient wisdom and contemporary life with this weekly series. Each issue explores Jewish sources on a different everyday theme, drawing from various periods and perspectives in Jewish thought.</p><p>Whether you're interested in ethics, philosophy, or practical life guidance, these emails help you explore how Jewish texts speak to timeless questions.</p>"
                 borderColor="var(--talmud-gold)"
                 iframeSrc="/static/files/email-examples/topics-silence-email-example.html"
               />
@@ -3216,36 +3210,28 @@ const NewsletterPage = () => {
                 threshold3={Number.POSITIVE_INFINITY}
                 content={[
                   <EnhancedUserQuote
-                    enText="“I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do.”"
-                    heText='"תודה על כל השפע, החידושים וההתחדשות!"'
+                    enText="I want to thank you for the great new resource! While I am excited to utilize Sefaria for all my teaching, this new newsletter helped me directly create my latest d’var Torah blog entry, focused on the need for silence. Deeply appreciate all the work y’all do."
+                    heText="תודה על כל השפע, החידושים וההתחדשות!"
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                    enName=""
-                    heName=""
                   />,
                   <EnhancedUserQuote
-                    enText="“The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study.”"
-                    heText='"הדף מהקישור המצורף הוא יפה וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."'
+                    enText="The Sefaria Parashah weekly series has been an invaluable resource to ground me in the weekly rhythm of the Torah cycle and to prepare me for the weekly Torah study at my synagogue. I look forward to receiving the email every Monday, so that I know I am on track in the Torah cycle. The summary, the commentaries, and the reflection questions are super helpful for letting me deepen my thoughts for the group study."
+                    heText="הדף מהקישור המצורף הוא יפה וודאי שניתן לקחת משם גם לימינו שלנו. אשמח להשתמש בחומרים אילו בכיתה שלי."
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                    enName=""
-                    heName=""
                   />,
                   <EnhancedUserQuote
-                    enText="“Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources”"
-                    heText='"ממש מרגש ונוגע, הבאתם עם הרבה מגוון ונגיעות, תודה רבה."'
+                    enText="Finding time to study and learn can be very difficult when time is limited and direction difficult. I have found the material sent out each week very helpful in both getting me to study/learn and giving my learning direction by sending topics and useful links to materials and sources"
+                    heText="ממש מרגש ונוגע, הבאתם עם הרבה מגוון ונגיעות, תודה רבה."
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                    enName=""
-                    heName=""
                   />,
                   <EnhancedUserQuote
-                    enText="“I look forward to receiving these emails each week to kick off my Torah study and explore new and refreshing topics”"
-                    heText='"תודה על המייל המתומצת, והעיון בתוב"'
+                    enText="I look forward to receiving these emails each week to kick off my Torah study and explore new and refreshing topics"
+                    heText="תודה על המייל המתומצת, והעיון בתוב"
                     enImage="/static/img/newsletter-signup-page/quote-en.svg"
                     heImage="/static/img/newsletter-signup-page/quote-he.svg"
-                    enName=""
-                    heName=""
                   />,
                 ]}
               />
@@ -3253,31 +3239,6 @@ const NewsletterPage = () => {
           </WhiteBox>
         </>
       ) : null}
-      <ButtonRow white={true} optionalClass="newsletterFooterButtons">
-        <SimpleButton
-          href="https://donate.sefaria.org"
-          he_href="https://donate.sefaria.org/he"
-          en="Donate"
-          he="לתרומה"
-          white={true}
-          newTab={true}
-        />
-        <SimpleButton
-          href="/testimonials"
-          he_href="/testimonials"
-          en="Leave a Testimonial"
-          he="כתבו המלצה"
-          white={true}
-        />
-        <SimpleButton
-          href="https://torah.sefaria.org"
-          he_href="https://torah.sefaria.org/he"
-          en="Claim Your Letter in the Torah"
-          he="הוסיפו את האות שלכם בתורה"
-          white={true}
-          newTab={true}
-        />
-      </ButtonRow>
     </StaticPage>
   );
 };

@@ -15,13 +15,13 @@ export const BILINGUAL_TEXT = {
     he: "הישארו מחוברים",
   },
   HERO_DESCRIPTION: {
-    en: "Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria.",
-    he: "הרשמו לרשימת התפוצה שלנו כדי לקבל משאבי לימוד ולהתעדכן במה שקורה בספריא.",
+    en: "Enjoy free learning resources and be the first to hear about new texts and product updates from Sefaria.",
+    he: "מוזמנים ליהנות בחינם מתכנים ומשאבי למידה ולהיות הראשונים לשמוע על מקורות חדשים ועדכוני מוצרים בניוזלטרים השונים של ספריא.",
   },
 
   // Header text
   SUBSCRIBE_TITLE: {
-    en: "Sign Up for Emails",
+    en: "Sign up for Emails",
     he: "הירשם לאימיילים",
   },
   MANAGE_TITLE: {
@@ -31,7 +31,7 @@ export const BILINGUAL_TEXT = {
 
   // Subtitle/description
   SUBSCRIBE_SUBTITLE: {
-    en: "Let us know how we can best contact you and what you would like to hear from us!",
+    en: "Let us know how to reach you and what information you’d like to receive!",
     he: "ספרו לנו איך נוכל ליצור אתכם קשר בצורה הטובה ביותר ומה תרצו לשמוע מאיתנו!",
   },
   MANAGE_SUBTITLE: {
@@ -48,30 +48,17 @@ export const BILINGUAL_TEXT = {
     he: "(אופציונלי)",
   },
 
-  // Form section headers
-  NAME_SECTION: {
-    en: "Name",
-    he: "שם",
-  },
-  CONTACT_SECTION: {
-    en: "Contact",
-    he: "יצירת קשר",
-  },
   SELECT_LISTS_SECTION: {
-    en: "Select the lists you wish to subscribe to:",
-    he: "בחר את הרשימות שאליהן ברצונך להירשם:",
-  },
-  FINISHED_SECTION: {
-    en: "Finished?",
-    he: "סיימת?",
+    en: "Select the newsletters you wish to subscribe to:",
+    he: "בחר/י את הרשימות שאליהן ברצונך להירשם:",
   },
   EMAIL_EXAMPLES_HEADER: {
     en: "Learn about our weekly study emails...",
     he: "למדו על הדואר השבועי שלנו שעוזר לכם להעמיק בטקסטים.",
   },
   TESTIMONIALS_HEADER: {
-    en: "What the people are saying about our emails...",
-    he: "תגובות לאימיילים של ספריא...",
+    en: "What people are saying about our emails...",
+    he: "מה אנשים אומרים על המיילים שלנו...",
   },
 
   // Button text
@@ -167,9 +154,13 @@ export const BILINGUAL_TEXT = {
   },
 
   // Privacy
-  PRIVACY_NOTE: {
-    en: "We respect your privacy. You can unsubscribe from any newsletter at any time.",
-    he: "אנחנו מכבדים את הפרטיות שלך. אתה יכול להתנתק מכל ניוזלטר בכל עת.",
+  PRIVACY_NOTE_1: {
+    en: "We respect your privacy.",
+    he: "אנחנו מכבדים את הפרטיות שלך.",
+  },
+  PRIVACY_NOTE_2: {
+    en: "You can unsubscribe from any newsletter at any time.",
+    he: "אתה יכול להתנתק מכל ניוזלטר בכל עת.",
   },
 
   // Marketing email opt-out toggle (logged-in users only)

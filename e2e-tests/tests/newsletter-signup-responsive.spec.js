@@ -190,15 +190,16 @@ test.describe("Newsletter Signup - Mobile Responsiveness", () => {
       });
 
       test("should have readable form labels", async ({ page }) => {
-        // Check section headers are readable (form now uses section headers instead of input labels)
-        const sectionHeaders = page.locator("form h3.sectionHeader").first();
-        const headerText = await sectionHeaders.textContent();
+        // Check newsletter selection label is readable at this viewport
+        const selectionLabel = page.locator(".newsletterSelectionLabel").first();
+        await expect(selectionLabel).toBeVisible();
+        const labelText = await selectionLabel.textContent();
 
-        expect(headerText).toBeTruthy();
-        expect(headerText.length).toBeGreaterThan(0);
+        expect(labelText).toBeTruthy();
+        expect(labelText.length).toBeGreaterThan(0);
 
-        // Header should not be too small to read
-        const fontSize = await sectionHeaders.evaluate((el) => {
+        // Label should not be too small to read
+        const fontSize = await selectionLabel.evaluate((el) => {
           const computed = window.getComputedStyle(el);
           return parseFloat(computed.fontSize);
         });

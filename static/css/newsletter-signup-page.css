@@ -97,7 +97,7 @@
 
 .newsletterFormHeader {
   text-align: start;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
 .newsletterConfirmationView .confirmationContent,
@@ -112,7 +112,7 @@
   font-size: var(--sans-serif-h2-font-size);
   font-weight: 500;
   color: var(--dark-grey);
-  margin: 0 0 15px 0;
+  margin: 0 0 16px 0;
   line-height: 1.3;
 }
 .newsletterFormTitle {
@@ -125,6 +125,13 @@
   margin: 0 0 25px 0;
   line-height: 1.6;
 }
+
+.newsletterSelectionLabel {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
 /* ============================================
    FORM FIELDS - Extend existing .newsletterInput
    ============================================ */
@@ -135,7 +142,12 @@
 
 /* Base section container */
 .newsletterFormView .formSection {
-  margin-bottom: 30px;
+  margin-bottom: 16px;
+}
+
+/* Extra space before the newsletter selection */
+.newsletterFormView .contactFormSection {
+  margin-bottom: 40px;
 }
 
 /* Section headers - left aligned by default */
@@ -350,9 +362,6 @@ span.errorIcon {
   border-bottom: none;
 }
 
-.newsletterSelectionSection .sectionHeader {
-  margin-bottom: 20px;
-}
 
 /* ============================================
    SELECTABLE OPTION - Shared radio/checkbox button style
@@ -473,12 +482,11 @@ span.errorIcon {
   width: var(--newsletter-cta-width);
   min-width: var(--newsletter-cta-width);
   height: var(--newsletter-cta-height);
-  padding: 12px 40px;
+  padding: 16px 30px;
   border: none;
   border-radius: 6px;
   font-size: 22px;
   font-weight: 400;
-  text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
@@ -510,12 +518,20 @@ span.errorIcon {
   box-shadow: none;
 }
 
-/* Form actions container - start aligned (works for both LTR and RTL) */
+/* Submit button size override */
+.newsletterFormView .submitButton {
+  width: 200px;
+  min-width: 200px;
+  height: auto;
+  min-height: 50px;
+}
+
+/* Form actions container */
 .formActions {
-  margin: 0;
+  margin-top: 40px;
   display: flex;
   gap: 15px;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .newsletterCheckboxes .selectableOptionWrapper {
@@ -532,7 +548,6 @@ span.errorIcon {
 }
 
 /* Section dividers — top border + spacing */
-.finishedSection,
 .marketingEmailToggleSection {
   margin-top: 30px;
   padding-top: 30px;
@@ -654,7 +669,7 @@ span.errorIcon {
 
 .privacyNote {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .privacyNote .small {
@@ -820,14 +835,30 @@ span.errorIcon {
   outline-offset: 2px;
 }
 
-/* Testimonial separators */
-.gridBoxRow:not(:last-child) .staticPageUserQuote {
-  border-bottom: 1px solid #cccccc;
+/* Testimonials */
+.enhancedUserQuote {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 0;
 }
 
-/* Keep newsletter quote logos opaque without affecting quote images on other static pages. */
-#NewsletterInner .staticPageUserQuote img {
-  background-color: white !important;
+/* Reduce inherited Section padding-top so header → first testimonial = 40px
+   (h2 padding-bottom: 10px + this 10px + quote padding-top: 20px = 40px) */
+#NewsletterInner .staticPageBlockInner.staticPageSection {
+  padding-top: 10px;
+}
+
+.enhancedUserQuote img {
+  height: 46px;
+  width: 46px;
+  flex-shrink: 0;
+  background-color: white;
+}
+
+.gridBoxRow:not(:last-child) .enhancedUserQuote {
+  border-bottom: 1px solid #cccccc;
 }
 
 /* Mobile layout */
@@ -865,15 +896,6 @@ span.errorIcon {
   .newsletterFormView .submitButton {
     width: 100%;
     min-width: unset;
-  }
-
-  .newsletterFormView .formSection {
-    margin-bottom: 25px;
-  }
-
-  .finishedSection {
-    margin-top: 25px;
-    padding-top: 25px;
   }
 
   .newsletterConfirmationView .embeddedLearningLevel {
@@ -993,38 +1015,6 @@ span.errorIcon {
   border-radius: 6px;
 }
 
-#NewsletterInner .staticPage .buttonRow.newsletterFooterButtons {
-  background-color: var(--sefaria-blue);
-}
-
-#NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper {
-  width: 257px;
-}
-
-#NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper .button {
-  width: 257px;
-  min-height: 78px;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-#NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper .button span {
-  font-weight: 700;
-}
-
-@media screen and (max-width: 856px) {
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .staticPageBlockInner.flexContainer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper,
-  #NewsletterInner .staticPage .buttonRow.newsletterFooterButtons .simpleButtonWrapper .button {
-    width: 100%;
-    max-width: none;
-  }
-}
 
 @media screen and (max-width: 440px) {
   #NewsletterInner .staticPage .feature .featureText,

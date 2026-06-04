@@ -205,15 +205,15 @@ test.describe("Newsletter Signup - Accessibility", () => {
     const heading = page.locator("h2, h1").first();
     await expect(heading).toBeVisible();
 
-    // Check form has section headers (h3 elements for Name, Contact, etc.)
-    const sectionHeaders = page.locator("form h3.sectionHeader");
-    const headerCount = await sectionHeaders.count();
-    expect(headerCount).toBeGreaterThan(0);
+    // Check form has a newsletter selection label (replaces old h3 section headers)
+    const selectionLabel = page.locator(".newsletterSelectionLabel");
+    const labelCount = await selectionLabel.count();
+    expect(labelCount).toBeGreaterThan(0);
 
     // Check form has newsletter checkbox labels
     const checkboxLabels = page.locator("form label.selectableOptionLabel");
-    const labelCount = await checkboxLabels.count();
-    expect(labelCount).toBeGreaterThan(0);
+    const checkboxLabelCount = await checkboxLabels.count();
+    expect(checkboxLabelCount).toBeGreaterThan(0);
   });
 
   test("should have button labels and be keyboard accessible", async ({ page }) => {
@@ -290,8 +290,9 @@ test.describe("Newsletter Signup - Accessibility", () => {
     const headingCount = await headings.count();
     expect(headingCount).toBeGreaterThan(0);
 
-    // Form should have a heading
-    const formHeading = page.locator("form h2, form h3");
+    // The form title h2 lives in .newsletterFormHeader (outside the <form> element but
+    // within the .newsletterFormView wrapper), so select from the component root.
+    const formHeading = page.locator(".newsletterFormView h2");
     const count = await formHeading.count();
     expect(count).toBeGreaterThan(0);
 
@@ -302,22 +303,20 @@ test.describe("Newsletter Signup - Accessibility", () => {
   });
 
   test("should have readable form labels and instructions", async ({ page }) => {
-    // Get all section headers (form now uses section headers instead of input labels)
-    const sectionHeaders = page.locator("form h3.sectionHeader");
-    const headerTexts = await sectionHeaders.allTextContents();
+    // The newsletter selection label (replacing the old h3 section headers)
+    const selectionLabels = page.locator(".newsletterSelectionLabel");
+    const labelTexts = await selectionLabels.allTextContents();
 
-    expect(headerTexts.length).toBeGreaterThan(0);
-
-    // Each header should have meaningful text
-    for (const text of headerTexts.slice(0, 3)) {
+    expect(labelTexts.length).toBeGreaterThan(0);
+    for (const text of labelTexts) {
       expect(text).toBeTruthy();
       expect(text.length).toBeGreaterThan(0);
     }
 
     // Also verify newsletter checkbox labels are readable
     const checkboxLabels = page.locator("form label.selectableOptionLabel");
-    const labelTexts = await checkboxLabels.allTextContents();
-    expect(labelTexts.length).toBeGreaterThan(0);
+    const checkboxTexts = await checkboxLabels.allTextContents();
+    expect(checkboxTexts.length).toBeGreaterThan(0);
   });
 
   test("should have proper form field ordering", async ({ page }) => {
