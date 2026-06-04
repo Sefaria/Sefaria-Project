@@ -3050,6 +3050,7 @@ def name_api(request, name):
     LIMIT = int(request.GET.get("limit", 10))
     types = request.GET.getlist("type", None)
     topic_pool = request.GET.get("topic_pool", None)
+    get_author_books = request.GET.get("get_author_books", "0") == "1"
     exact_continuations = bool(int(request.GET.get("exact_continuations", False)))
     order_by_matched_length = bool(int(request.GET.get("order_by_matched_length", False)))
     completions_dict = get_name_completions(name, LIMIT, topic_override, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
@@ -3090,11 +3091,17 @@ def name_api(request, name):
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
     elif topic:
         d['topic_slug'] = topic.slug
+        if isinstance(topic, AuthorTopic) and get_author_books:
+            d['author_indexes'] = topic.get_aggregated_urls_for_authors_indexes()
     elif completions_dict["object_data"]:
         # let's see if it's a known name of another sort
         d["type"] = completions_dict["object_data"]["type"]
         d["key"] = completions_dict["object_data"]["key"]
-
+        if d["type"] == "AuthorTopic":
+            author_topic = Topic.init(d["key"])
+            if isinstance(author_topic, AuthorTopic) and get_author_books:
+                d['author_indexes'] = author_topic.get_aggregated_urls_for_authors_indexes()
+        
     return jsonResponse(d)
 
 
