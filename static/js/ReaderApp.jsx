@@ -1260,6 +1260,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return true;
     }
     const path = decodeURI(url.pathname);
+    if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+      const sidebarPaths = new Set(
+        (Sefaria._siteSettings.ABOUT_SIDEBAR_PAGES || []).map(p => '/' + p.path)
+      );
+      if (sidebarPaths.has(path)) {
+        window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank');
+        return true;
+      }
+    }
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
