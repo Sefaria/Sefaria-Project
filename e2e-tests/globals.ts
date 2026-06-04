@@ -19,14 +19,20 @@ export const cookieObject = {
 
 export const testUser = {
     // These environment variables should be set in your local .env file
-     email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
-     password: process.env.PLAYWRIGHT_USER_PASSWORD ?? '',
+    email: process.env.PLAYWRIGHT_USER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_USER_PASSWORD ?? '',
 }
 
 export const testAdminUser = {
     // These environment variables should be set in your local .env file
     email: process.env.PLAYWRIGHT_SUPERUSER_EMAIL ?? '',
     password: process.env.PLAYWRIGHT_SUPERUSER_PASSWORD ?? '',
+};
+
+export const testLAUser = {
+    // Whitelisted for the Library Assistant on www.sefaria.org.
+    email: process.env.PLAYWRIGHT_LA_USER_EMAIL ?? '',
+    password: process.env.PLAYWRIGHT_LA_USER_PASSWORD ?? '',
 };
 
 export const AUTH_PATHS = {
@@ -36,6 +42,7 @@ export const AUTH_PATHS = {
     heUserFile: `auth_hebrew_user.json`,
     heNoUserFile: `auth_hebrew_no_user.json`,
     enNoUserFile: `auth_english_no_user.json`,
+    enLAUserFile: `auth_english_la_user.json`,
 }
 
 export const BROWSER_SETTINGS = {
@@ -69,4 +76,18 @@ export const BROWSER_SETTINGS = {
         lang: LANGUAGES.HE,
         user: null,
     },
+    enLAUser: {
+        file: AUTH_PATHS.enLAUserFile,
+        lang: LANGUAGES.EN,
+        user: testLAUser,
+    },
 };
+
+// Parse and validate TIMEOUT_MULTIPLIER from environment
+const rawMultiplier = parseFloat(process.env.TIMEOUT_MULTIPLIER || '1.0');
+const clampedMultiplier = Math.min(3.0, Math.max(0.1, isNaN(rawMultiplier) ? 1.0 : rawMultiplier));
+// Round to 1 decimal place
+export const TIMEOUT_MULTIPLIER = Math.round(clampedMultiplier * 10) / 10;
+
+/** Apply TIMEOUT_MULTIPLIER to a timeout value in ms */
+export const t = (ms: number): number => Math.round(ms * TIMEOUT_MULTIPLIER);

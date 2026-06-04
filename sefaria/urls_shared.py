@@ -68,7 +68,6 @@ shared_patterns = [
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
-
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
@@ -118,7 +117,10 @@ shared_patterns = [
     re_path(r'^api/site_stats/?$', reader_views.site_stats_api),
     re_path(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     re_path(r'^api/background-data', reader_views.background_data_api),
-
+    re_path(r'^api/version-indices$', sefaria_views.version_indices_api),
+    re_path(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
+    re_path(r'^api/version-bulk-delete$', sefaria_views.version_bulk_delete_api),
+    re_path(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     re_path(r'^api/sheets/?$', sheets_views.save_sheet_api),
     path('api/sheets/<int:sheet_id>/delete', sheets_views.delete_sheet_api),
     path('api/sheets/<int:sheet_id>/add', sheets_views.add_source_to_sheet_api),
@@ -204,6 +206,7 @@ shared_patterns = [
 
     re_path(r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', reader_views.revert_api),
 
+    path('api/img-gen/', reader_views.social_image_api, {"tref": ""}),
     path('api/img-gen/<path:tref>', reader_views.social_image_api),
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),

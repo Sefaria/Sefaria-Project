@@ -1,414 +1,713 @@
-# Sefaria E2E Testing Guide
+# Sefaria E2E Tests
 
-A comprehensive guide for writing Playwright tests for Sefaria.
-Note, there are currently many inconsistencies in the tests and a general need for a refactor.
+A Playwright end-to-end test suite covering the **Library** and **Voices** web modules across Chromium, Firefox, and WebKit, in both English and Hebrew interfaces.
 
-## 🏗️ Core Architecture
-
-### PageManager Pattern (Standard for New Tests)
-
-**PageManager** is the unified entry point to all page objects with built-in language awareness:
-
-```typescript
-const pm = new PageManager(page, language);
-
-// Navigation methods
-await pm.navigateFromBannerTo().textsPageFromLogo();
-await pm.navigateFromBannerTo().topicsPage();
-
-// Page-specific methods  
-await pm.onUserMenu().clickProfile();
-await pm.onSourceTextPage().changeTextLanguage(SOURCE_LANGUAGES.HE);
-await pm.onSearchPage().searchFor('query');
-
-// Language switching
-await pm.toggleLanguage(LANGUAGES.HE);
-```
-
-### Universal Entry Point: `goToPage*` Functions
-
-> **📋 Future State**: These functions will be consolidated into a single `goToPage()` function with parameters for language, user authentication, modal hiding, etc.
-
-**Current State**: Every test must start with one of the available `goToPage*` functions:
-
-#### Available Functions:
-- **`goToPageWithLang(context, path, language)`** - Sets up language and handles geo-location
-- **`goToPageWithUser(context, path)`** - Handles authentication and login flow
-
-#### Current Limitations:
-- ⚠️ **Cannot combine functions**: You cannot use both `goToPageWithLang` and `goToPageWithUser` together
-- Must choose either language setup OR user authentication, not both simultaneously
-
-#### What They Handle:
-- Language cookie setup (when using `goToPageWithLang`)
-- Geo-location detection (Israel vs. non-Israel IPs)  
-- Automatic language switching when needed
-- Modal hiding (for authenticated users)
-- User authentication flow (when using `goToPageWithUser`)
-
-```typescript
-// Language-aware navigation
-const page = await goToPageWithLang(context, '/texts', LANGUAGES.EN);
-
-// Authenticated user navigation
-const page = await goToPageWithUser(context, '/profile');
-```
-
-### Language-Aware Page Objects
-
-All page objects extend `HelperBase` and handle Hebrew/English interfaces:
-
-```typescript
-// Standard pattern used throughout all page objects
-async clickProfile(){
-    if(this.language == LANGUAGES.HE){
-        await this.page.getByRole('link', {name: 'פרופיל'}).click()
-    }
-    else{
-        await this.page.getByRole('link', {name: 'Profile'}).click()
-    }
-}
-```
-
-## 🚀 Quick Start Templates
-
-### New Page Test Template
-```typescript
-import { test, expect } from '@playwright/test';
-import { goToPageWithLang } from '../utils';
-import { LANGUAGES } from '../globals';
-import { PageManager } from '../pages/pageManager';
-
-test('Your new page functionality', async ({ context }) => {
-  // Current: Choose appropriate goToPage* function based on needs
-  const page = await goToPageWithLang(context, '/your-path', LANGUAGES.EN);
-  const pm = new PageManager(page, LANGUAGES.EN);
-  
-  await pm.onYourPage().doSomething();
-});
-```
-
-### Multi-Language Test Template
-```typescript
-const testLanguageConfigs = [
-  { testLanguage: "English", interfaceLanguage: LANGUAGES.EN },
-  { testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE }
-];
-
-testLanguageConfigs.forEach(({ testLanguage, interfaceLanguage }) => {
-  test(`Your feature - ${testLanguage}`, async ({ context }) => {
-    const page = await goToPageWithLang(context, '/path', interfaceLanguage);
-    const pm = new PageManager(page, interfaceLanguage);
-    
-    // Language-aware test logic
-  });
-});
-```
-
-### Adding to Existing Page Template
-```typescript
-// 1. Add method to existing page object (e.g., pages/userMenu.ts)
-async yourNewMethod(){
-    if(this.language == LANGUAGES.HE){
-        await this.page.getByRole('link', {name: 'Hebrew Text'}).click()
-    }
-    else{
-        await this.page.getByRole('link', {name: 'English Text'}).click()
-    }
-}
-
-// 2. Use in tests
-await pm.onUserMenu().yourNewMethod();
-```
-
-## 🔧 Setup & Configuration
-
-### Environment Setup
-
-Note - Currently local development could have problems with language changes.
-
-Create an `.env` file in the project root (gitignored):
-You can use the example.env in the /e2e-tests folder as a template.
-
-```bash
-# Run tests
-npx playwright test
-```
-
-### Key Commands
-
-```bash
-# All tests
-npx playwright test
-
-# All tests with the results inline in the terminal
-npx playwright test --reporter=list
-
-# Specific test file
-npx playwright test tests/banner.spec.ts
-
-# Specific test by line number  
-npx playwright test tests/banner.spec.ts:18
-
-# With debugging
-npx playwright test --debug
-
-# With UI mode
-npx playwright test --ui
-
-# Generate test report
-npx playwright show-report
-```
-
-### Test Structure Basics
-
-```typescript
-import { test, expect } from '@playwright/test';
-import { goToPageWithLang } from '../utils';
-import { LANGUAGES } from '../globals';
-import { PageManager } from '../pages/pageManager';
-
-test('Descriptive test name', async ({ context }) => {
-  // 1. Setup - Always start with appropriate goToPage* function
-  const page = await goToPageWithLang(context, '/path', LANGUAGES.EN);
-  // Note: Use goToPageWithUser() for authenticated tests (no language control)
-  
-  // 2. Create PageManager instance
-  const pm = new PageManager(page, LANGUAGES.EN);
-  
-  // 3. Test actions using PageManager
-  await pm.onSourceTextPage().doSomething();
-  
-  // 4. Assertions
-  await expect(page.locator('selector')).toBeVisible();
-});
-```
-
-## 🌍 Multi-language Testing
-
-### Language Constants
-```typescript
-import { LANGUAGES, SOURCE_LANGUAGES } from '../globals';
-
-// Interface languages
-LANGUAGES.EN  // 'english'
-LANGUAGES.HE  // 'hebrew'
-
-// Source text languages (used as regex patterns)
-SOURCE_LANGUAGES.EN  // /^(תרגום|Translation)$/
-SOURCE_LANGUAGES.HE  // /^(מקור|Source)$/
-SOURCE_LANGUAGES.BI  // /^(מקור ותרגום|Source with Translation)$/
-```
-
-### Geo-Location Handling
-
-Sefaria automatically detects user location and sets interface language:
-- **Israel IPs** → Hebrew interface by default
-- **Non-Israel IPs** → English interface by default
-
-```typescript
-import { isIsraelIp } from '../utils';
-
-// Check if test is running from Israel IP
-const inIsrael = await isIsraelIp(page);
-```
-
-### Source Text Language Testing
-
-```typescript
-// Change source text language (Hebrew/English/Bilingual)
-await pm.onSourceTextPage().changeTextLanguage(SOURCE_LANGUAGES.HE);
-
-// Validate content in expected language
-await pm.onSourceTextPage().validateFirstLineOfContent('רֵאשִׁ֖ית בָּרָ֣א');
-```
-
-### Multi-Language Test Patterns
-
-**Pattern 1: Interface Language Loop**
-```typescript
-const testLanguageConfigs = [
-  { testLanguage: "English", interfaceLanguage: LANGUAGES.EN },
-  { testLanguage: "Hebrew", interfaceLanguage: LANGUAGES.HE }
-];
-
-testLanguageConfigs.forEach(({ testLanguage, interfaceLanguage }) => {
-  test(`Feature - ${testLanguage}`, async ({ context }) => {
-    const page = await goToPageWithLang(context, '/path', interfaceLanguage);
-    const pm = new PageManager(page, interfaceLanguage);
-    // Test logic
-  });
-});
-```
-
-**Pattern 2: Combined Interface + Source Language**
-```typescript
-const languageInterfaceAndSourceConfig = [
-  {
-    interfaceLanguage: 'Hebrew', 
-    interfaceLanguageToggle: LANGUAGES.HE,
-    sourceLanguage: 'English', 
-    sourceLanguageToggle: SOURCE_LANGUAGES.EN,
-    expectedSourceText: 'When God began to create',
-    expectedInterfaceText: 'מקורות'
-  },
-  // ... more combinations
-];
-```
-
-## 🛠️ Adding Methods to Existing Pages
-
-Most development involves adding new methods to existing page objects rather than creating entirely new ones:
-
-```typescript
-// Example: Adding a method to pages/userMenu.ts
-async clickNewFeature(){
-    if(this.language == LANGUAGES.HE){
-        await this.page.getByRole('button', {name: 'Hebrew Button'}).click()
-    }
-    else{
-        await this.page.getByRole('button', {name: 'English Button'}).click()
-    }
-}
-```
-
-Then use it in tests:
-```typescript
-await pm.onUserMenu().clickNewFeature();
-```
-
-## 🧪 Common Utilities & Patterns
-
-### Authentication
-```typescript
-// For authenticated user tests (current limitation: no language control)
-import { goToPageWithUser } from '../utils';
-
-const page = await goToPageWithUser(context, '/profile');
-// Automatically handles login and modal hiding
-```
-
-### Common Utilities
-```typescript
-import { 
-  goToPageWithLang,      // Language-aware entry point
-  goToPageWithUser,      // Authenticated user entry
-  changeLanguage,        // Manual language switching
-  getPathAndParams,      // URL validation helper
-  isIsraelIp            // Geo-location detection
-} from '../utils';
-
-// Future: Single consolidated function will replace the above two
-// goToPage(context, path, { language?, authenticated?, hideModals? })
-```
-
-### Best Practices
-
-**Locators**: Role-based preferred
-```typescript
-// Good
-await page.getByRole('button', { name: 'Submit' });
-await page.getByRole('link', { name: 'Texts' });
-
-// Acceptable for complex cases
-await page.locator('div.segmentNumber').first().locator('..').locator('p');
-```
-
-**Assertions**: Web-first (automatically retry)
-```typescript
-// Good
-await expect(page.getByText('welcome')).toBeVisible();
-await expect(page.locator('.content')).toContainText('expected');
-
-// Avoid
-expect(await page.getByText('welcome').isVisible()).toBe(true);
-```
-
-**Avoid Manual Waits**: Playwright has built-in auto-waiting and retries
-```typescript
-// Avoid - Manual waits are unreliable and slow tests
-await page.waitForTimeout(2000);
-
-// Good - Use Playwright's built-in waiting
-await page.getByText('Loading...').waitFor({ state: 'detached' });
-await expect(page.locator('.content')).toBeVisible();
-
-// Good - Wait for specific conditions
-await page.waitForResponse(resp => resp.url().includes('/api/data'));
-```
-
-**URL Validation**:
-```typescript
-import { getPathAndParams } from '../utils';
-expect(getPathAndParams(page.url())).toEqual("/texts");
-```
-
-### Network Waiting
-```typescript
-// Wait for loading states
-await page.getByText('Loading...').waitFor({ state: 'detached' });
-
-// Wait for specific API responses
-await page.waitForResponse(resp => 
-  resp.url().includes('/api/profile/sync') && resp.status() === 200
-);
-```
-
-### Standard Naming Conventions
-
-**Test Files**: `feature-name.spec.ts`
-- `banner.spec.ts`
-- `interface-language-is-sticky.spec.ts` 
-- `translation-version-name-appears-in-title.spec.ts`
-
-**Test Names**: Descriptive with scenario
-```typescript
-test('Navigate to bereshit', async ({ context }) => {});
-test('Hebrew Interface Language with English Source', async ({ context }) => {});
-```
-
-**Page Objects**: PascalCase + "Page" suffix
-- `SourceTextPage.ts`
-- `PageManager.ts`
-- `LoginPage.ts`
-
-## ⚠️ Current Non-Standards
-
-The following patterns exist in the codebase but should be migrated to PageManager for consistency:
-
-### Tests Not Using PageManager
-These tests use direct page interactions instead of PageManager:
-
-- **`reader.spec.ts`** - Uses direct `page.getByRole()` calls
-- **`search.spec.ts`** - Uses direct navigation and element interaction  
-- **`topics.spec.ts`** - Mixes direct interaction with some PageManager usage
-- **`sheets.spec.ts`** - Uses direct page interactions
-
-**Migration Example**:
-```typescript
-// Current (non-standard)
-const page = await goToPageWithLang(context, '/texts');
-await page.getByRole('link', { name: 'Tanakh' }).click();
-
-// Preferred (PageManager)
-const page = await goToPageWithLang(context, '/texts');
-const pm = new PageManager(page, LANGUAGES.EN);
-await pm.onTextsPage().clickTanakh(); // This method already exists
-```
-
-### Inconsistent Language Switching
-- Some tests use `pm.toggleLanguage()`
-- Others use direct `changeLanguage()` from utils
-- **Standard**: Use `pm.toggleLanguage()` for PageManager tests
-
-## 📋 Configuration Reference
-
-### Playwright Config Highlights
-- **Base URL**: Configurable via `SANDBOX_URL` environment variable
-- **Timeout**: 30 seconds per test, 5 seconds per expect
-- **Retries**: 2 on CI, 0 locally
-- **Trace**: Enabled on first retry for debugging
+This guide is the single source of truth for humans. Read it cover-to-cover when joining the team — it covers everything from environment setup through writing and auditing tests. If you're an AI agent operating in this directory, see [CLAUDE.md](CLAUDE.md) for the prescriptive rules variant; if you're running the sanity release-gate suite, see [Sanity/SANITY.md](Sanity/SANITY.md) for the per-test inventory.
 
 ---
 
-**Need help?** Follow the PageManager patterns for new tests and gradually migrate existing tests for consistency.
+## Table of contents
+
+1. [What this suite covers](#what-this-suite-covers)
+2. [Prerequisites](#prerequisites)
+3. [Environment setup](#environment-setup)
+4. [Running tests](#running-tests)
+5. [Directory map](#directory-map)
+6. [Project matrix](#project-matrix)
+7. [Architecture in one diagram](#architecture-in-one-diagram)
+8. [Core conventions](#core-conventions)
+9. [Entry-point helpers](#entry-point-helpers)
+10. [The PageManager pattern](#the-pagemanager-pattern)
+11. [Canonical page-object style](#canonical-page-object-style)
+12. [Canonical spec structure](#canonical-spec-structure)
+13. [Multi-language testing](#multi-language-testing)
+14. [Authentication and storage state](#authentication-and-storage-state)
+15. [Timeouts and the `t()` wrapper](#timeouts-and-the-t-wrapper)
+16. [Locator priority](#locator-priority)
+17. [Constants catalogue](#constants-catalogue)
+18. [Worked example — adding a test end-to-end](#worked-example--adding-a-test-end-to-end)
+19. [Reviewing an existing test — checklist](#reviewing-an-existing-test--checklist)
+20. [Reports, traces, and artifacts](#reports-traces-and-artifacts)
+21. [CI behavior](#ci-behavior)
+22. [Troubleshooting](#troubleshooting)
+23. [Legacy patterns to recognise](#legacy-patterns-to-recognise)
+24. [Future direction](#future-direction)
+
+---
+
+## What this suite covers
+
+Sefaria ships two independent web modules that share a session and a user base:
+
+- **Library** — the traditional reader, topics, and texts experience. Hosted at `www.<sandbox-domain>` (English) and `www.<sandbox-domain-il>` (Hebrew).
+- **Voices** — the sheet-editing / community / trending-topics experience. Hosted at `voices.<sandbox-domain>` (English) and `chiburim.<sandbox-domain-il>` (Hebrew).
+
+Because the two modules share authentication but live on different subdomains, many tests exercise **cross-module** behavior (logging in on one module and verifying state on the other, following redirects, etc.). The suite is organised by folder (`library/`, `voices/`, `Sanity/`, `Misc/`); each folder maps to one or more Playwright projects, and each project pairs that folder with a specific browser and baseURL. See the [project matrix](#project-matrix).
+
+---
+
+## Prerequisites
+
+- Node.js (version pinned by the root `package.json`)
+- Run `npm install` at the repo root once
+- Run `npx playwright install` once to download browser binaries (Chromium, Firefox, WebKit)
+
+---
+
+## Environment setup
+
+Copy the template to create your local env file:
+
+```bash
+cp e2e-tests/example.env e2e-tests/.env
+```
+
+The `.env` file is gitignored — never commit credentials.
+
+| Variable | What it does |
+| --- | --- |
+| `SANDBOX_URL` | Base URL for the English sandbox (e.g. `https://modularization.cauldron.sefaria.org/`). `MODULE_URLS.EN.LIBRARY` and `.VOICES` are derived from this domain. |
+| `SANDBOX_URL_IL` | Base URL for the Hebrew/IL sandbox. `MODULE_URLS.HE.LIBRARY` and `.VOICES` are derived from this. |
+| `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` | Credentials for the standard test user. Used by `goToPageWithUser` and `BROWSER_SETTINGS.english / .hebrew / .enUser / .heUser`. |
+| `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD` | Credentials for admin flows (`BROWSER_SETTINGS.enAdmin / .heAdmin`) and Django admin endpoints (e.g. the trending-tags reset used by `voices/trending-topics.spec.ts`). |
+| `TIMEOUT_MULTIPLIER` | Scales every timeout in the suite. Range `0.1–3.0`, default `1.0`. Set to `2` or `3` on a slow CI runner or while debugging. See [Timeouts](#timeouts-and-the-t-wrapper). |
+| `CI` | When truthy, Playwright runs with `forbidOnly`, `retries: 2`, `workers: 1`, and the GitHub reporter. |
+| `GENERATE_REPORTS` | When truthy (and not CI), emits HTML + JUnit + `list` reporters to `e2e-tests/e2e-test-logs/`. |
+
+---
+
+## Running tests
+
+```bash
+# Every Playwright project (chrome/firefox/safari × library/voices/Sanity/Misc)
+npx playwright test
+
+# A single project
+npx playwright test --project=chrome-library
+
+# A single spec file
+npx playwright test library/header.spec.ts
+
+# A single test by name (grep-style)
+npx playwright test -g 'MOD-H002'
+
+# Interactive UI mode — easiest way to iterate on a flaky test
+npx playwright test --ui
+
+# Step-through debugger (opens Playwright Inspector)
+npx playwright test --debug library/header.spec.ts
+
+# Slow environment — scale every t()-wrapped timeout 2x
+TIMEOUT_MULTIPLIER=2 npx playwright test
+
+# Emit HTML + JUnit reports locally
+GENERATE_REPORTS=1 npx playwright test
+
+# Open the last HTML report
+npx playwright show-report e2e-tests/e2e-test-logs/html-report
+
+# Replay a saved trace from a failed run
+npx playwright show-trace e2e-tests/e2e-test-logs/test-results/<run>/trace.zip
+```
+
+---
+
+## Directory map
+
+```text
+e2e-tests/
+├── README.md              ← you are here — the human-facing guide
+├── CLAUDE.md              ← same rules, compressed for AI agents
+├── example.env            ← template for .env
+├── globals.ts             ← LANGUAGES, SOURCE_LANGUAGES, BROWSER_SETTINGS, t(), testUser, testAdminUser
+├── utils.ts               ← goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, MDL helpers,
+│                            geo-location, cross-subdomain cookie fixup, clearAuthFiles
+├── constants.ts           ← MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS, SITE_CONFIGS,
+│                            VALID_TOPICS, SEARCH_DROPDOWN, SaveStates, and more
+├── helpDeskLinksConstants.ts ← data driving Misc/help-sheet-redirects.spec.ts
+├── pages/
+│   ├── pageManager.ts     ← single entry point that mounts all page objects
+│   ├── helperBase.ts      ← base class providing `page` and `language`
+│   └── <Feature>Page.ts   ← 15 page objects, one per feature area
+├── library/               ← Library-module UI tests
+├── voices/                ← Voices-module UI tests
+├── Sanity/                ← Release-gate smoke suite + redirect tests
+│   └── SANITY.md          ← per-test inventory for this suite
+├── Misc/                  ← Cross-cutting / platform-level tests
+└── e2e-test-logs/         ← reports, traces, screenshots, videos (gitignored)
+```
+
+---
+
+## Project matrix
+
+Each test folder is run by three browser-specific Playwright projects defined in [../playwright.config.ts](../playwright.config.ts). When you run `npx playwright test`, every project runs.
+
+| Folder | Chromium project | Firefox project | WebKit project | baseURL |
+| --- | --- | --- | --- | --- |
+| `library/` | `chrome-library` | `firefox-library` | `safari-library` | `www.<SANDBOX_URL domain>` |
+| `voices/` | `chrome-voices` | `firefox-voices` | `safari-voices` | `voices.<SANDBOX_URL domain>` |
+| `Sanity/` | `chrome-sanity` | `firefox-sanity` | `safari-sanity` | `www.<SANDBOX_URL domain>` |
+| `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<SANDBOX_URL domain>` |
+
+Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used inside tests when asserting Hebrew-site behavior — not as separate Playwright projects.
+
+**Choosing where your new test lives:**
+
+| What your test exercises | Put it in |
+| --- | --- |
+| Library-specific UI (reader, texts, topics, library header/sidebar) | `library/` |
+| Voices-specific UI (sheet editor, trending, chiburim pages) | `voices/` |
+| End-to-end release-gate smoke (login → profile → settings → logout, cross-module auth) | `Sanity/` |
+| Platform-level invariants, cross-module URL redirects, static-route assertions | `Misc/` |
+
+When in doubt: if the feature ships in one module only, use that folder; if it crosses modules, use `Sanity/`.
+
+---
+
+## Architecture in one diagram
+
+```text
+spec.ts (in library/ | voices/ | Sanity/ | Misc/)
+    │
+    ├── new PageManager(page, language)
+    │         │
+    │         └── mounts 15 page objects, each extending HelperBase
+    │                   (constructor receives `page` and `language`)
+    │
+    ├── goToPageWithLang(context, url, language)
+    │   goToPageWithUser(context, url, BROWSER_SETTINGS.x)   ← from utils.ts
+    │
+    ├── hideAllModalsAndPopups(page)                          ← from utils.ts
+    │
+    ├── t(ms)   ← timeout wrapper from globals.ts
+    │
+    └── MODULE_URLS / MODULE_SELECTORS / EXTERNAL_URLS / ...   ← from constants.ts
+                                   │
+                                   ▼
+                        Playwright Page API
+```
+
+Every test reaches the site through one of the entry-point helpers, builds a `PageManager`, and then drives the browser through high-level page-object methods. No test file should talk to `page.locator(...)` directly for product UI — that belongs inside a page object.
+
+---
+
+## Core conventions
+
+These eight rules govern every new test and page object. Violations are the most common cause of flakes and inconsistency.
+
+1. **Always go through `PageManager`.** In a `.spec.ts` file, prefer `pm.onX().someAction()` over raw `page.locator(...)`. Raw locators belong inside a page object, not a spec.
+2. **Always wrap timeouts with `t()`** from [globals.ts](globals.ts). No hardcoded `5000`, `10000`, etc. Example: `await expect(x).toBeVisible({ timeout: t(10000) })`.
+3. **Always call `hideAllModalsAndPopups(page)`** after every navigation (`goto`, module switch, login redirect). The site has ~13 overlay types that can appear unpredictably and block clicks.
+4. **Always enter via `goToPageWithLang` or `goToPageWithUser`** for the first navigation in `test.beforeEach`. Do not start a test with a bare `page.goto(...)`.
+5. **Locator priority:** `getByRole` > `getByLabel` > `getByText` > `getByTestId` > CSS. Avoid brittle CSS like `.react-tags__search-input` in new code.
+6. **Never use `page.waitForTimeout(ms)` to wait for state.** Use web-first assertions (`await expect(locator).toBeVisible()`) — they auto-retry. `waitForTimeout` is acceptable only for deliberate pacing (e.g. after dismissing a modal) and, if used, must be wrapped with `t()`.
+7. **New page objects must extend `HelperBase`** and follow the [canonical style](#canonical-page-object-style).
+8. **Respect the [legacy list](#legacy-patterns-to-recognise).** Do not model new code on files flagged there.
+
+---
+
+## Entry-point helpers
+
+[utils.ts](utils.ts) exposes two entry points. Every test's first navigation must go through one of them — do not use raw `page.goto` for the initial visit.
+
+| Scenario | Helper |
+| --- | --- |
+| Anonymous user, English UI | `goToPageWithLang(context, url, LANGUAGES.EN)` |
+| Anonymous user, Hebrew UI | `goToPageWithLang(context, url, LANGUAGES.HE)` |
+| Logged-in primary user | `goToPageWithUser(context, url, BROWSER_SETTINGS.english)` |
+| Logged-in admin | `goToPageWithUser(context, url, BROWSER_SETTINGS.enAdmin)` |
+| Secondary user (e.g. for multi-user trending-topic tests) | `goToPageWithUser(context, url, BROWSER_SETTINGS.enUser)` |
+| Hebrew-UI admin | `goToPageWithUser(context, url, BROWSER_SETTINGS.heAdmin)` |
+
+**What they handle for you:**
+
+- `goToPageWithLang` — sets the interface-language cookie, handles geo-location (NYC by default — see [playwright.config.ts](../playwright.config.ts) `use.geolocation`), and returns a `Page` ready to drive.
+- `goToPageWithUser` — creates or reuses a storage-state JSON for that user/language combo, applies it to a new context, handles cross-subdomain cookie fixup so the session works on both `www.*` and `voices.*`, and returns a logged-in `Page`.
+
+**Current limitation:** the two cannot be combined in a single call. If you need a logged-in Hebrew user, use `BROWSER_SETTINGS.hebrew` / `.heAdmin` / `.heUser` (which bake the Hebrew preference into the auth state) or call `changeLanguage(page, LANGUAGES.HE)` after the user helper.
+
+Subsequent navigations within the same test may use `page.goto(...)` directly — but **always call `hideAllModalsAndPopups(page)` afterward.**
+
+---
+
+## The PageManager pattern
+
+[pages/pageManager.ts](pages/pageManager.ts) is the single entry point to the 15 page objects that model the site's feature areas. Each page object encapsulates the locators and actions for one area (header, sidebar, sheet editor, search, profile, etc.).
+
+```ts
+import { PageManager } from '../pages/pageManager';
+
+const pm = new PageManager(page, LANGUAGES.EN);
+
+await pm.onModuleHeader().clickAndVerifyNavigation('Topics', /topics/);
+await pm.onModuleSidebar().verifyStandardFooterLinks();
+await pm.onSearchPage().searchFor('genesis');
+await pm.onUserMenu().clickProfile();
+```
+
+The `language` parameter propagates into every page object so that methods can branch on interface language without each method re-receiving it.
+
+**Available accessors** (from [pages/pageManager.ts](pages/pageManager.ts)):
+
+- `navigateFromBannerTo()` — banner / module-header navigation shortcuts
+- `onTextsPage()`, `onTopicsPage()`, `onCommunityPage()`, `onDonatePage()`
+- `onLoginPage()`, `onSignUpPage()`, `onUserMenu()`
+- `onSearchPage()`, `onSourceTextPage()`, `onSourceSheetEditorPage()`
+- `onModuleHeader()`, `onModuleSidebar()`
+- `onProfilePage()`, `onEditProfilePage()`, `onAccountSettingsPage()`
+
+**When to extend vs. create:** Most new tests add methods to existing page objects rather than creating new ones. Only create a new page object when the feature area doesn't fit cleanly into any existing one.
+
+---
+
+## Canonical page-object style
+
+**Reference implementations:** [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts), [pages/moduleSidebarPage.ts](pages/moduleSidebarPage.ts). Model new page objects on these.
+
+Rules:
+
+- Extends `HelperBase` — inherits `this.page` and `this.language`.
+- Constructor: `constructor(page: Page, language: string) { super(page, language); }`.
+- Locators: use **private `get` accessors** for reusable element lookups. Don't expose raw locators as public fields.
+- Public methods are async actions returning `void` or relevant data (new pages, extracted text, etc.).
+- Import `t` from [globals.ts](globals.ts) and wrap every explicit timeout.
+- Import `hideAllModalsAndPopups` from [utils.ts](utils.ts) and call it defensively before interacting with header / overlay-prone areas.
+- Branch on `this.language` for language-specific visible text.
+
+**Skeleton:**
+
+```ts
+import { expect, Page } from '@playwright/test';
+import { HelperBase } from './helperBase';
+import { hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t } from '../globals';
+import { MODULE_SELECTORS } from '../constants';
+
+export class SomeFeaturePage extends HelperBase {
+  constructor(page: Page, language: string) {
+    super(page, language);
+  }
+
+  private get container() {
+    return this.page.getByRole('region', { name: /feature/i });
+  }
+
+  private get submitButton() {
+    const label = this.language === LANGUAGES.HE ? 'שלח' : 'Submit';
+    return this.container.getByRole('button', { name: label });
+  }
+
+  async submitForm() {
+    await hideAllModalsAndPopups(this.page);
+    await expect(this.submitButton).toBeVisible({ timeout: t(5000) });
+    await this.submitButton.click();
+  }
+}
+```
+
+After creating a new page object, **register it in [pages/pageManager.ts](pages/pageManager.ts)**: import the class, add a `private readonly` field, instantiate in the constructor, and expose an `onSomeFeaturePage()` accessor.
+
+---
+
+## Canonical spec structure
+
+**Reference implementation:** [library/header.spec.ts](library/header.spec.ts).
+
+```ts
+import { test, expect, Page } from '@playwright/test';
+import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t } from '../globals';
+import { PageManager } from '../pages/pageManager';
+import { MODULE_URLS } from '../constants';
+
+test.describe('Library Feature X — English', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+  });
+
+  test('MOD-X001: does the thing', async () => {
+    await pm.onSomeFeaturePage().doTheThing();
+    await expect(page).toHaveURL(/expected-path/);
+  });
+});
+```
+
+Conventions:
+
+- **Filename:** `kebab-case.spec.ts` (e.g. `sidebar-help-link.spec.ts`).
+- **`test.describe` string:** `'<Module> <Feature> — <Language>'` when the suite is language-scoped. Keep it human-readable.
+- **Test names / IDs:** prefix with a stable identifier when appropriate (`MOD-H###` for header tests, `MOD-S###` for sidebar tests, `Sanity N` for sanity-suite tests). This makes it easy to run one test via `-g 'MOD-H002'`.
+- **`test.beforeEach`** re-creates `page` and `pm` per test for isolation. Don't share state across tests unless you deliberately opt into `test.describe.configure({ mode: 'serial' })` (as the sheet-workflow sanity suite does).
+
+---
+
+## Multi-language testing
+
+### Interface-language constants
+
+```ts
+import { LANGUAGES } from '../globals';
+
+LANGUAGES.EN   // 'english'
+LANGUAGES.HE   // 'hebrew'
+```
+
+### Source-text language constants (regex patterns)
+
+Used when asserting on source-text-page UI that shows the original Hebrew, a translation, or both:
+
+```ts
+import { SOURCE_LANGUAGES } from '../globals';
+
+SOURCE_LANGUAGES.EN   // /^(תרגום|Translation)$/
+SOURCE_LANGUAGES.HE   // /^(מקור|Source)$/
+SOURCE_LANGUAGES.BI   // /^(מקור ותרגום|Source with Translation)$/
+```
+
+### Mid-test switching
+
+Use `changeLanguage(page, LANGUAGES.HE)` from [utils.ts](utils.ts). It tries the UI dropdown first and falls back to cookie-based switching with a reload if the UI is flaky.
+
+### Running the same test in both languages
+
+The tidy way to exercise both interface languages is a describe-per-language loop:
+
+```ts
+const configs = [
+  { label: 'English', lang: LANGUAGES.EN, baseUrl: MODULE_URLS.EN.LIBRARY },
+  { label: 'Hebrew',  lang: LANGUAGES.HE, baseUrl: MODULE_URLS.HE.LIBRARY },
+];
+
+for (const { label, lang, baseUrl } of configs) {
+  test.describe(`Feature X — ${label}`, () => {
+    let page: Page;
+    let pm: PageManager;
+
+    test.beforeEach(async ({ context }) => {
+      page = await goToPageWithLang(context, baseUrl, lang);
+      pm = new PageManager(page, lang);
+      await hideAllModalsAndPopups(page);
+    });
+
+    test('behaves correctly', async () => {
+      // language-aware assertions via pm.onX()
+    });
+  });
+}
+```
+
+### Geo-location caveat
+
+Playwright defaults to NYC coordinates (set in [playwright.config.ts](../playwright.config.ts) `use.geolocation`), which steers Sefaria's auto-detection toward the English interface. If your test must simulate an Israeli IP, use the utility `isIsraelIp(page)` to check, and be aware that passing `LANGUAGES.HE` through `goToPageWithLang` will explicitly set the Hebrew interface regardless of detected geo.
+
+---
+
+## Authentication and storage state
+
+### `BROWSER_SETTINGS` — named auth profiles
+
+[globals.ts](globals.ts) exposes storage-state profiles keyed by name:
+
+| Profile | Purpose |
+| --- | --- |
+| `BROWSER_SETTINGS.english` / `.hebrew` | Standard test user with the named interface language |
+| `BROWSER_SETTINGS.enUser` / `.heUser` | Secondary user for multi-user scenarios (e.g. two users publishing to the same topic) |
+| `BROWSER_SETTINGS.enAdmin` / `.heAdmin` | Admin / superuser |
+
+### How the flow works
+
+1. On any `import` of `utils.ts`, `clearAuthFiles()` runs and wipes all `auth_*.json` temp files from the previous run. This guarantees a fresh login per suite run.
+2. When `goToPageWithUser(context, url, BROWSER_SETTINGS.english)` is called, it logs the user in and writes `auth_english.json`.
+3. Subsequent calls for the same profile within the same run reuse the JSON via `context.storageState()`.
+4. `fixCookieDomainsForCrossSubdomain` rewrites session cookies from `www.*` to `.<parent>` so the same login authenticates `voices.*` without a second login.
+
+### What this means in practice
+
+- You do **not** manually delete `auth_*.json` between tests — the import-time cleanup handles it.
+- You can run multiple tests that each call `goToPageWithUser(..., BROWSER_SETTINGS.english)` and only incur the login cost once per run.
+- If your test needs to assert both the logged-out and logged-in states, use the helper `pm.onModuleHeader().testWithAuthStates(...)` in [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) — it logs out, runs the logged-out branch, logs in as superuser, runs the logged-in branch.
+
+### Credentials
+
+Credentials come from the env vars described in [Environment setup](#environment-setup). Never hardcode.
+
+---
+
+## Timeouts and the `t()` wrapper
+
+Two global timeouts are set in [playwright.config.ts](../playwright.config.ts):
+
+- **Per-test timeout:** `t(50000)` — 50 seconds × `TIMEOUT_MULTIPLIER`
+- **Per-assertion timeout:** `t(10000)` — 10 seconds × `TIMEOUT_MULTIPLIER`
+
+The `t()` function in [globals.ts](globals.ts) is just `ms * TIMEOUT_MULTIPLIER` rounded. Wrap every explicit timeout:
+
+```ts
+import { t } from '../globals';
+
+// ✅ Correct — scales with TIMEOUT_MULTIPLIER
+await expect(element).toBeVisible({ timeout: t(10000) });
+test.setTimeout(t(120000));
+await page.waitForTimeout(t(500));   // only when deliberate pacing is required
+
+// ❌ Wrong — ignores TIMEOUT_MULTIPLIER; breaks on slow CI
+await expect(element).toBeVisible({ timeout: 10000 });
+```
+
+When a test is flaky on CI but passes locally, the first knob to turn is `TIMEOUT_MULTIPLIER=2` in `.env`. Only start debugging individual waits once you've ruled out a global timing issue.
+
+**Avoid `page.waitForTimeout` for state waits.** Use web-first assertions; they auto-retry until the expect timeout expires. The only legitimate uses of `waitForTimeout` are:
+
+- Deliberate pacing after dismissing a transient overlay
+- Known animation / transition window before a programmatic screenshot
+
+Both cases still require the `t()` wrap.
+
+---
+
+## Locator priority
+
+Playwright's [user-facing locators](https://playwright.dev/docs/locators) are resilient to DOM refactors. Prefer, in order:
+
+1. `page.getByRole('button', { name: /submit/i })`
+2. `page.getByLabel('Email address')`
+3. `page.getByText('Welcome back')`
+4. `page.getByTestId('submit-btn')` (add `data-testid` on the app side if a role locator isn't reliable)
+5. CSS as a last resort — `page.locator('.some-class')`
+
+Tests and page objects in this repo have historically drifted toward CSS (e.g. `.react-tags__suggestions li`). **Do not replicate that in new code.** When you must touch legacy CSS selectors, leave them; when you write new code, use role-based locators.
+
+---
+
+## Constants catalogue
+
+[constants.ts](constants.ts) centralises every site-wide string, regex, and selector. Before inlining a magic string in your test, check whether it already lives here.
+
+| Export | Reach for it when |
+| --- | --- |
+| `MODULE_URLS.EN.LIBRARY` / `.VOICES` / `MODULE_URLS.HE.LIBRARY` / `.VOICES` | You need a base URL for a module × language combination |
+| `MODULE_SELECTORS` | Interacting with the module header — logo, icons, dropdowns |
+| `READER_SELECTORS` | Asserting on reader-page DOM structure |
+| `SHEET_EDITOR_SELECTORS`, `SaveStates` | Driving sheet-editor flows (publish / save / unpublish / deletion) |
+| `SIDEBAR_SELECTORS` | Navigating the sticky nav sidebar and its modules |
+| `TOPIC_SELECTORS` | Topic pages, trending blocks, autocomplete |
+| `EXTERNAL_URLS.DONATE` / `.HELP` / `.DEVELOPERS` | Asserting that a link opens an external destination |
+| `SEARCH_DROPDOWN` | Search autocomplete sections, icons, and test search terms per module |
+| `VALID_TOPICS` | Voices trending-topic workflows — pick a known-valid slug |
+| `SITE_CONFIGS.LIBRARY` / `.VOICES` | Tab order, main navigation links per module (used by header / a11y tests) |
+| `MODULE_SWITCHER`, `MODULE_TEXTS` | Cross-module switcher menu validation |
+
+**Rule of thumb:** if you find yourself defining a string or regex that feels site-wide, add it to `constants.ts` instead of inlining. The next test to need it will thank you.
+
+---
+
+## Worked example — adding a test end-to-end
+
+**Task:** Add a test that verifies the Library sidebar footer's "Help" link opens the Zendesk help center in a new tab.
+
+### Step 1 — decide where it lives
+
+This is Library-module-specific UI, so it belongs in `e2e-tests/library/`. By the project matrix it will run under `chrome-library`, `firefox-library`, and `safari-library`.
+
+### Step 2 — pick a filename
+
+Kebab-case, descriptive: `sidebar-help-link.spec.ts`.
+
+### Step 3 — inventory what already exists
+
+- `pm.onModuleSidebar()` from [pages/moduleSidebarPage.ts](pages/moduleSidebarPage.ts) already exposes `clickAndVerifyLink(spec: FooterLinkSpec)`. No new page-object method needed.
+- [constants.ts](constants.ts) already has `EXTERNAL_URLS.HELP` — a regex matching the Zendesk URL. Use it.
+
+### Step 4 — write the spec
+
+```ts
+// e2e-tests/library/sidebar-help-link.spec.ts
+
+import { test, expect, Page } from '@playwright/test';
+import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t } from '../globals';
+import { PageManager } from '../pages/pageManager';
+import { MODULE_URLS, EXTERNAL_URLS } from '../constants';
+
+test.describe('Library Sidebar — Help link', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+  });
+
+  test('MOD-S017: Help link opens Zendesk in a new tab', async () => {
+    const newPage = await pm.onModuleSidebar().clickAndVerifyLink({
+      name: 'Help',
+      href: EXTERNAL_URLS.HELP,
+      opensNewTab: true,
+    });
+
+    expect(newPage).not.toBeNull();
+    await expect(newPage!).toHaveURL(EXTERNAL_URLS.HELP, { timeout: t(10000) });
+    await newPage!.close();
+  });
+});
+```
+
+### Step 5 — run it
+
+```bash
+npx playwright test library/sidebar-help-link.spec.ts --project=chrome-library
+```
+
+### Step 6 — when it fails, diagnose in this order
+
+1. **Modal blocking clicks?** Confirm `hideAllModalsAndPopups(page)` runs in `beforeEach` and also after any programmatic `page.goto(...)` in the test.
+2. **URL regex too tight?** `console.log(newPage.url())` and refine `EXTERNAL_URLS.HELP` in `constants.ts` — do not inline a different regex in the test.
+3. **Slow environment?** Set `TIMEOUT_MULTIPLIER=2` in `.env`.
+4. **Locator changed upstream?** Update the page object (`moduleSidebarPage.ts`), not the test.
+5. **Auth required?** If the link only renders for logged-in users, switch the entry-point helper to `goToPageWithUser(context, url, BROWSER_SETTINGS.english)`.
+
+That's the whole flow: pick folder and filename, reuse existing page objects and constants, follow the canonical skeleton, diagnose failures from the outside in.
+
+---
+
+## Reviewing an existing test — checklist
+
+When code-reviewing a PR that touches tests, verify each of:
+
+- [ ] **PageManager used?** Specs should call `pm.onX()`, not raw `page.locator()`.
+- [ ] **Timeouts wrapped with `t()`?** Any bare `5000`, `10000`, `timeout: 2000` is a defect.
+- [ ] **`hideAllModalsAndPopups` after navigation?** Missing calls cause `element intercepts pointer events` flakes.
+- [ ] **Entry-point helper used?** First navigation should be `goToPageWithLang` or `goToPageWithUser`, not `page.goto`.
+- [ ] **Locators role-based?** `getByRole`, `getByLabel`, `getByText` preferred. Brittle CSS in spec files is a red flag.
+- [ ] **`page.waitForTimeout`?** If unwrapped or used to wait for state, flag it. Replace with an assertion.
+- [ ] **Magic strings / URLs?** Should be in `constants.ts`.
+- [ ] **Page object extends `HelperBase`?** If not, flag it unless the file is on the [legacy list](#legacy-patterns-to-recognise).
+- [ ] **Test isolation?** Unless explicitly `serial`, each test should work independently.
+- [ ] **Credentials hardcoded?** Must come via `testUser` / `testAdminUser` / `BROWSER_SETTINGS`.
+- [ ] **`console.log` left in?** Debug output in spec or page-object code should be removed before merge.
+
+---
+
+## Reports, traces, and artifacts
+
+All test artifacts land in `e2e-tests/e2e-test-logs/` (gitignored):
+
+- `test-results/` — raw Playwright output, including `trace.zip`, screenshots, and videos
+- `html-report/` — HTML reporter output (emitted only when `GENERATE_REPORTS=1`)
+- `junit-results.xml` — JUnit XML (emitted only when `GENERATE_REPORTS=1`)
+
+**Retention policy** (from [../playwright.config.ts](../playwright.config.ts)):
+
+- Screenshots: `only-on-failure`
+- Videos: `retain-on-failure`
+- Traces: `retain-on-failure`
+
+Open a trace with `npx playwright show-trace <path-to-trace.zip>` — it gives you a frame-by-frame replay of the failing run with DOM snapshots, network activity, and console output.
+
+---
+
+## CI behavior
+
+When `process.env.CI` is truthy:
+
+- `forbidOnly: true` — CI fails if `test.only()` was left in source
+- `retries: 2` — each failing test retries up to two times
+- `workers: 1` — serial execution for determinism
+- Reporter: `github` (inline annotations on PRs)
+
+Locally: `retries: 0`, `workers: undefined` (full parallelism via `fullyParallel: true`).
+
+Before opening a PR:
+
+```bash
+# Run the project that matches your change
+npx playwright test --project=chrome-library
+
+# If you touched cross-module behavior, also run Sanity
+npx playwright test --project=chrome-sanity
+```
+
+---
+
+## Troubleshooting
+
+**Tests fail with `element intercepts pointer events` or modals blocking clicks.**
+Call `await hideAllModalsAndPopups(page)` after every navigation. The site has ~13 overlay types that appear unpredictably.
+
+**Auth state seems corrupted between runs.**
+`clearAuthFiles()` runs automatically on import of `utils.ts` and wipes all `auth_*.json` temp files. Do not manually delete them mid-run.
+
+**Timeouts flaky on a slow machine.**
+Set `TIMEOUT_MULTIPLIER=2` (or `3`) in your `.env` — it scales every `t()`-wrapped timeout globally.
+
+**A test passes locally but fails in `--ui` mode** (or vice versa).
+Check the Playwright trace (`--trace on` or inspect `e2e-test-logs/test-results/`) for the actual timing. Usually a missing `hideAllModalsAndPopups` call or a state-dependent `waitForTimeout`.
+
+**Hebrew tests fail even though English passes.**
+Verify `SANDBOX_URL_IL` is set correctly in `.env`. `MODULE_URLS.HE.*` are derived from it.
+
+**Authentication errors / "fields must not be empty".**
+Check that `PLAYWRIGHT_USER_EMAIL` / `PLAYWRIGHT_USER_PASSWORD` (and `PLAYWRIGHT_SUPERUSER_*` if your test uses admin flows) are set in `.env`.
+
+**`voices/trending-topics.spec.ts` complains about superuser credentials.**
+That test hits the Django admin `/admin/reset/api/sheets/trending-tags` endpoint, which requires `PLAYWRIGHT_SUPERUSER_EMAIL` / `PLAYWRIGHT_SUPERUSER_PASSWORD`.
+
+**The `chrome-all` / `firefox-all` / `safari-all` projects run zero tests.**
+Known — they point to `./e2e-tests/tests` which does not exist. They're listed in the [cleanup candidates in CLAUDE.md §16](CLAUDE.md) for future removal.
+
+---
+
+## Legacy patterns to recognise
+
+The codebase contains a handful of files that predate the current conventions. They **work**, but they don't reflect the patterns above. When you encounter them, don't copy the shape — follow the canonical examples instead.
+
+| File | What's different | What to do |
+| --- | --- | --- |
+| [pages/banner.ts](pages/banner.ts) | Does not extend `HelperBase` | New page objects extend `HelperBase` |
+| [pages/sheetEditorPage.ts](pages/sheetEditorPage.ts) | Uses `locator = () => page.locator(...)` arrow-function fields | Use private `get` accessors |
+| [pages/accountSettingsPage.ts](pages/accountSettingsPage.ts), [pages/profilePage.ts](pages/profilePage.ts), [pages/editProfilePage.ts](pages/editProfilePage.ts) | Public `get foo()` getters — acceptable but not canonical | Prefer private `get` |
+| [library/texts-tree-traversal.spec.ts](library/texts-tree-traversal.spec.ts) | Bypasses `PageManager`; raw `page.getByRole()` throughout | All new specs go through `pm.onX()` |
+| [pages/moduleHeaderPage.ts](pages/moduleHeaderPage.ts) | Contains leftover `console.log` statements | Don't add new `console.log` in page objects |
+
+**Do not refactor these files as part of unrelated work.** Refactor opportunistically only when you're already editing the file for another reason.
+
+---
+
+## Future direction
+
+Playwright's official 2024/2025 guidance (see the [official docs](https://playwright.dev/docs/test-fixtures)) recommends **`test.extend()` custom fixtures** over a constructor-based page-manager class. A hypothetical fixture-based version would look like:
+
+```ts
+import { test as base } from '@playwright/test';
+import { PageManager } from './pages/pageManager';
+import { LANGUAGES } from './globals';
+
+type Fixtures = { pm: PageManager };
+
+export const test = base.extend<Fixtures>({
+  pm: async ({ page }, use) => {
+    await use(new PageManager(page, LANGUAGES.EN));
+  },
+});
+export { expect } from '@playwright/test';
+```
+
+Tests would then declare `async ({ page, pm }) => { ... }` directly and get automatic setup / teardown. The auth system would migrate to a Playwright `setup` project declared as a `dependency` of every other project, emitting `storageState` JSON files — replacing the current hand-rolled `BROWSER_SETTINGS` mechanism.
+
+**This is a future direction, not a required migration.** Current tests should follow the conventions in this document.
+
+---
+
+## Related docs
+
+- [CLAUDE.md](CLAUDE.md) — the same conventions, compressed for AI agents, plus the current cleanup-candidates inventory
+- [Sanity/SANITY.md](Sanity/SANITY.md) — per-test inventory for the Sanity release-gate suite
+- [../playwright.config.ts](../playwright.config.ts) — Playwright configuration
+- [Playwright official docs](https://playwright.dev/docs/intro) — upstream framework reference
