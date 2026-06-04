@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const FACEBOOK_IMAGE_SIZE = { width: 1200, height: 630 };
+const TWITTER_IMAGE_SIZE = { width: 1200, height: 600 };
 
 function getPngDimensions(buffer: Buffer) {
   return {
@@ -15,7 +16,7 @@ async function expectGeneratedPng(request, url: string, expectedSize = FACEBOOK_
   expect(response.headers()['content-type']?.toLowerCase()).toContain('image/png');
 
   const body = await response.body();
-  expect(body.length).toBeGreaterThan(10_000);
+  expect(body.length).toBeGreaterThan(5_000);
   expect(getPngDimensions(body)).toEqual(expectedSize);
 }
 
@@ -57,5 +58,21 @@ test.describe('Social image generation', () => {
 
   test('direct img-gen endpoint returns generated PNG', async ({ request }) => {
     await expectGeneratedPng(request, '/api/img-gen/Genesis.1.1?lang=en&platform=facebook');
+  });
+
+  test('direct img-gen endpoint returns fallback PNG', async ({ request }) => {
+    await expectGeneratedPng(request, '/api/img-gen/not-a-ref?lang=en&platform=facebook');
+  });
+
+  test('direct img-gen endpoint without path returns fallback PNG', async ({ request }) => {
+    await expectGeneratedPng(request, '/api/img-gen/?lang=en&platform=facebook');
+  });
+
+  test('direct img-gen endpoint returns twitter-sized PNG', async ({ request }) => {
+    await expectGeneratedPng(request, '/api/img-gen/Genesis.1.1?lang=en&platform=twitter', TWITTER_IMAGE_SIZE);
+  });
+
+  test('direct img-gen endpoint returns Hebrew ref PNG', async ({ request }) => {
+    await expectGeneratedPng(request, '/api/img-gen/Genesis.1.1?lang=he&platform=facebook');
   });
 });

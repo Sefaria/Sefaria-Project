@@ -136,19 +136,19 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     )
     
     delete_and_save_new_links(asdict(msg))
-    # Temporarily disable disambiguator to speed up link processing
-    #
-    # ambiguous_payloads = _load_recent_ambiguous_cases(linking_args)
-    # for payload in ambiguous_payloads:
-    #     result = disambiguate_ambiguous_ref(payload)
-    #     _apply_ambiguous_resolution(payload, result)
-    #     
-    # 
-    # non_segment_payloads = _load_recent_non_segment_cases(linking_args)
-    # for payload in non_segment_payloads:
-    #     result = disambiguate_non_segment_ref(payload)
-    #     _apply_non_segment_resolution(payload, result)
-        
+    run_disambiguator(linking_args)
+
+
+def run_disambiguator(linking_args: LinkingArgs) -> None:
+    ambiguous_payloads = _load_recent_ambiguous_cases(linking_args)
+    for payload in ambiguous_payloads:
+        result = disambiguate_ambiguous_ref(payload)
+        _apply_ambiguous_resolution(payload, result)
+
+    non_segment_payloads = _load_recent_non_segment_cases(linking_args)
+    for payload in non_segment_payloads:
+        result = disambiguate_non_segment_ref(payload)
+        _apply_non_segment_resolution(payload, result)
 
 
 def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousResolutionPayload]:
@@ -267,6 +267,9 @@ def _is_non_segment_or_perek_ref(ref_str: str, oref: Optional[Ref] = None) -> bo
 
 def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
     """Upsert citation span + link for a resolved non-segment reference."""
+    if result and not result.resolved_ref:
+        _update_linker_output_resolution_fields(payload, result)
+        return
     if not result or not result.resolved_ref:
         return
 
@@ -332,6 +335,9 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
 
 def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPayload, result: Optional[NonSegmentResolutionResult]) -> None:
     """Upsert citation span + link and record temp data for a resolved non-segment reference."""
+    if result and not result.resolved_ref:
+        _update_linker_output_resolution_fields(payload, result)
+        return
     if not result or not result.resolved_ref:
         return
 
@@ -508,9 +514,12 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
             if span.get("ambiguous"):
                 if not span.get("llm_ambiguous_option_valid"):
                     continue
-            span["llm_resolved_ref_non_segment"] = result.resolved_ref
-            span["llm_resolved_method_non_segment"] = result.method
-            span["llm_resolved_phrase_non_segment"] = result.llm_resolved_phrase
+            if result.resolved_ref:
+                span["llm_resolved_ref_non_segment"] = result.resolved_ref
+                span["llm_resolved_method_non_segment"] = result.method
+                span["llm_resolved_phrase_non_segment"] = result.llm_resolved_phrase
+            if getattr(result, "rejected_ref", None):
+                span["llm_resolved_ref_but_rejected"] = result.rejected_ref
         updated = True
 
     if updated:
