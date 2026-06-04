@@ -37,7 +37,12 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
     "Skip to main content": "דלגו לתוכן האתר",
-
+    "Try Sefaria's new Library Assistant [Experimental]": "נסו את עוזר הספרייה החדש של ספריא [ניסיוני]",
+    "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.": "התחילו ללמוד ולגלות מקורות בספריית ספריא בעזרת העוזר החדש שלנו המופעל על ידי בינה מלאכותית",
+    "Log in to Join": "התחברות כדי להצטרף", 
+    "Create an Account": "יצירת חשבון",
+    "Join the Experiment": "הצטרפו לניסוי",
+    "Joining...": "מצרפים אותך...",
     //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
@@ -45,7 +50,7 @@ const Strings = {
     "Categories": "קטגוריות",
 
     // Landing Pages
-    "Learn More": "למדו עוד",
+    "Learn More": "למידע נוסף",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",

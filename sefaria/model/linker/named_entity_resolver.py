@@ -140,6 +140,8 @@ class TopicMatcher:
         unique_topics = {t.slug: t for t in topics}.values()
         for topic in unique_topics:
             for title in self._title_expander.expand(topic):
+                if not title:
+                    continue
                 title_slug_map[title].add(topic.slug)
         return title_slug_map
 
@@ -152,7 +154,11 @@ class TopicMatcher:
         return topics
 
     def match(self, named_entity: RawNamedEntity) -> list[Topic]:
-        slugs = get_matches_with_prefixes(named_entity.text, matches_map=self._title_slug_map_by_type.get(named_entity.type.name, {}))
+        slugs = get_matches_with_prefixes(
+            named_entity.text,
+            matches_map=self._title_slug_map_by_type.get(named_entity.type.name, {}),
+            prefix_exclusion_set={'ע'}  # ayin isn't valid for names
+        )
         return [self._slug_topic_map[slug] for slug in slugs]
 
 
