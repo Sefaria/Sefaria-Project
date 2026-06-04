@@ -42,6 +42,29 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
   return nextSessionCounter;
 };
 
+const migrateLegacyCookieToBackoffState = ({ cookieName, storageKeys }) => {
+  // One-time migration from the old close-button system to the new backoff system.
+  // If backoff state already exists we've migrated (or the user is native to the new
+  // system), so there's nothing to do.
+  if (localStorage.getItem(storageKeys.state)) {
+    return;
+  }
+  // A legacy dismissal is recorded only as `${cookieName}=1` with no timestamp, so we
+  // can't recover when it was set. But any existing legacy cookie necessarily predates
+  // this deploy, so we treat it as a single "Maybe later" from long ago: backdate the
+  // time gate (lastMaybeLaterAtSec: 0) so only the session gate remains before re-showing.
+  if (!document.cookie.includes(cookieName)) {
+    return;
+  }
+  const migratedState = {
+    maybeLaterCount: 1,
+    lastMaybeLaterAtSec: 0,
+    sessionCountAtLastMaybeLater: 0,
+    dismissedForever: false,
+  };
+  localStorage.setItem(storageKeys.state, JSON.stringify(migratedState));
+};
+
 const shouldHideForBackoff = ({ state, sessionCounter, nudgeSchedule = NUDGE_SCHEDULE }) => {
   // No dismissal history yet — show the banner.
   if (!state) {
@@ -86,6 +109,9 @@ const SiteWideBanner = ({
   const storageKeys = getPromoStorageKeys(cookieName);
   const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
   const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
+  if (useBackoffDismissal) {
+    migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
+  }
   const promoSessionCounter = useBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
     : null;
