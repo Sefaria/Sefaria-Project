@@ -90,12 +90,30 @@ def process_version_title_change_in_search(ver, **kwargs):
             )
 
 
+# A versionTitle is only unique within a book (Version.pkeys == ["title", "versionTitle"]),
+# so cascading GlobalNotification changes on content.version alone would clobber notifications
+# for any other book that happens to share the versionTitle. These callbacks scope the query
+# by content.index (the book title), which is available on the Version instance passed by notify().
+def process_version_title_change_in_global_notifications(ver, **kwargs):
+    notification.GlobalNotificationSet({
+        "content.index":   ver.title,
+        "content.version": kwargs["old"],
+    }).update({"content.version": kwargs["new"]})
+
+
+def process_version_delete_in_global_notifications(ver, **kwargs):
+    notification.GlobalNotificationSet({
+        "content.index":   ver.title,
+        "content.version": ver.versionTitle,
+    }).delete()
+
+
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
-subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
+subscribe(process_version_title_change_in_global_notifications,        text.Version, "attributeChange", "versionTitle")
 
-subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
+subscribe(process_version_delete_in_global_notifications,              text.Version, "delete")
 
 
 # Note Delete
