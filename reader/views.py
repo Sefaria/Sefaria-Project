@@ -217,7 +217,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props, request=None):
+def render_react_component(component, props, request):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
