@@ -29,7 +29,7 @@ spec:
                         -X
                         POST
                         --data-urlencode
-                        'payload={"channel": "#'$CHANNEL'", "username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION' using chart '$CHART_VERSION'", "icon_emoji": ":globe_with_meridians:"}'
+                        'payload={"username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION' using chart '$CHART_VERSION'", "icon_emoji": ":globe_with_meridians:"}'
                         $SLACK_URL 
                         ||
                         /bin/true
@@ -42,14 +42,11 @@ spec:
                         value: "{{`{{args.version}}`}}" # {{`...`}}
                       - name: CHART_VERSION
                         value: "{{`{{args.chartVersion}}`}}"
+                      # No channel override: the incoming webhook posts to its own configured channel.
                       - name: SLACK_URL
                         valueFrom:
                           secretKeyRef:
-                            name: {{ template "sefaria.secrets.slackWebhook" . }}
-                            key: slack-webhook
-                      - name: CHANNEL
-                        valueFrom:
-                          secretKeyRef:
-                            name: {{ template "sefaria.secrets.slackWebhook" . }}
-                            key: channel
+                            name: {{ .Values.secrets.localSettings.ref }}
+                            key: SLACK_URL
+                            optional: true
                 restartPolicy: Never
