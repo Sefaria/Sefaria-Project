@@ -161,6 +161,45 @@ class TestMakeRequest:
         call_kwargs = mock_request.call_args
         assert "json" not in call_kwargs[1]
 
+    def test_session_configured_with_connect_retry(self):
+        """HTTPS adapter is mounted with connect=1 retry to handle stale idle sockets.
+
+        After a Django worker sits idle, firewalls silently drop the TCP connection.
+        The next request picks up the dead socket from urllib3's pool and raises
+        ConnectionError. connect=1 tells urllib3 to open a fresh connection and
+        retry transparently before the error reaches make_request.
+
+        read=False is intentional: read failures happen after bytes are sent to AC,
+        so retrying a POST/PUT there could double-submit (e.g. subscribe twice).
+        """
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
+        client = newsletter_service.NewsletterClient("test_token", "test_account")
+        adapter = client._session.get_adapter("https://test_account.api-us1.com/api/3/lists")
+
+        assert isinstance(adapter, HTTPAdapter)
+        retry = adapter.max_retries
+        assert isinstance(retry, Retry)
+        assert retry.connect == 1
+        assert retry.read is False
+
+    def test_connection_error_raised_when_all_retries_exhausted(self):
+        """ActiveCampaignError is raised when the connection fails and retries are exhausted.
+
+        When urllib3 has retried and the connection still fails (e.g. AC is actually
+        down, not just a stale socket), Session.request raises ConnectionError.
+        make_request must surface this as ActiveCampaignError.
+        """
+        client = newsletter_service.NewsletterClient("test_token", "test_account")
+        with mock.patch.object(
+            client._session,
+            "request",
+            side_effect=newsletter_service.requests.exceptions.ConnectionError("Connection refused"),
+        ):
+            with pytest.raises(newsletter_service.ActiveCampaignError, match="Failed to connect"):
+                client.make_request("lists")
+
 
 class TestGetAllLists:
     """Tests for fetching lists from ActiveCampaign"""

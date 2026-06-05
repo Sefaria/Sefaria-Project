@@ -29,6 +29,8 @@ from typing import Any, TypedDict
 from urllib.parse import quote
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email as django_validate_email
@@ -174,6 +176,13 @@ class NewsletterClient:
                 "Content-Type": "application/json",
             }
         )
+        # Retry once on connection-phase failures (stale socket from idle pool).
+        # `connect=1` fires before any bytes reach the server so it is safe for
+        # all HTTP methods including POST/PUT. `read=False` is intentional —
+        # read failures happen after bytes are sent and retrying would risk
+        # double-submitting requests to AC.
+        _retry = Retry(connect=1, read=False, redirect=False, status=False)
+        self._session.mount("https://", HTTPAdapter(max_retries=_retry))
 
     def make_request(
         self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None
