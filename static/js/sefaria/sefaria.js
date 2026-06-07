@@ -2042,10 +2042,11 @@ Sefaria = extend(Sefaria, {
     return true;
   },
   addPrivateNote: function(note) {
-    // Add a single private note to the cache of private notes.
+    // Add a single private note to the caches of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
     notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
+    this._allPrivateNotes = null; // Note format in _allPrivateNotes differs from _privateNotes; clearing it ensures we'll fetch fresh data from the API next time.
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
@@ -3505,6 +3506,46 @@ _media: {},
   getBackgroundData() {
     return Sefaria._ApiPromise("/api/background-data?locale=" + Sefaria.interfaceLang)
       .then(data => { Sefaria = extend(Sefaria, data); });
+  },
+  /**
+   * Poll an async Celery task until it completes.
+   * Returns a Promise that resolves with the task result on success, or rejects
+   * with an Error on task failure or network error. Network errors set
+   * err.isNetworkError = true so callers can show a different message.
+   * @param {string} taskId
+   * @param {number} [interval=3000] ms between polls
+   * @returns {Promise}
+   */
+  pollTask(taskId, { interval = 3000, onProgress } = {}) {
+    return new Promise((resolve, reject) => {
+      const handle = setInterval(async () => {
+        try {
+          const resp = await fetch("/api/async/" + taskId);
+          if (!resp.ok) {
+            clearInterval(handle);
+            const err = new Error("Network error polling task " + taskId);
+            err.isNetworkError = true;
+            reject(err);
+            return;
+          }
+          const data = await resp.json();
+          if (!data.ready) {
+            if (onProgress && data.meta) onProgress(data.meta);
+            return;
+          }
+          clearInterval(handle);
+          if (data.error) {
+            reject(new Error(data.error));
+          } else {
+            resolve(data.result);
+          }
+        } catch (e) {
+          clearInterval(handle);
+          e.isNetworkError = true;
+          reject(e);
+        }
+      }, interval);
+    });
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);

@@ -138,13 +138,13 @@ def get_filter_obj(type, filters, filter_fields):
 
 
 def make_filter(type, agg_type, agg_key):
-    if type == "text":
+    if type == "text" and agg_type == "path":
         # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
         agg_key = agg_key.rstrip('/')
         agg_key = re.escape(agg_key)
         reg = f"{agg_key}|{agg_key}/.*"
         return Regexp(path=reg)
-    elif type == "sheet":
+    else:
         return Term(**{agg_type: agg_key})
 
 
@@ -152,3 +152,15 @@ def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL
     return Elasticsearch(SEARCH_URL)
+
+
+def get_elasticsearch_client_for_indexer():
+    """Must NOT be used on the online request path."""
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=60,
+        retry_on_timeout=True,
+        max_retries=3,
+    )

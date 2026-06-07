@@ -63,7 +63,7 @@ const SiteWideBanner = ({
             target="_blank"
             onClick={() => trackBannerInteraction("learn_more")}
           >
-            {learnMoreText || "Learn More"}
+            {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
           </a>
         )}
         <button
@@ -88,14 +88,19 @@ SiteWideBanner.propTypes = {
   gtagParams: PropTypes.object.isRequired,
 };
 
-const CHATBOT_BANNER_MAIN_TEXT = "Try Sefaria's new Library Assistant [Experimental]";
-const CHATBOT_BANNER_SECONDARY_TEXT = "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.";
-const CHATBOT_BANNER_LEARN_MORE_URL = "https://help.sefaria.org/hc/en-us/articles/26006423836828";
+const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Try Sefaria's new Library Assistant [Experimental]");
+const CHATBOT_BANNER_SECONDARY_TEXT = Sefaria._("Discover & explore texts in the Sefaria Library with our new AI-powered assistant.");
+const CHATBOT_BANNER_LEARN_MORE_URLS = {
+  en: "https://help.sefaria.org/hc/en-us/articles/26006423836828",
+  he: "https://help.sefaria.org/hc/he/articles/26006423836828-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%94%D7%A9%D7%AA%D7%9E%D7%A9-%D7%91%D7%A2%D7%95%D7%96%D7%A8-%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94-%D7%A9%D7%9C-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+};
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = () => {
+const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
   const [isActionPending, setIsActionPending] = useState(false);
+  const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
+  const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
 
   const handleJoin = async () => {
     setIsActionPending(true);
@@ -112,7 +117,7 @@ const ChatbotExperimentBanner = () => {
   };
 
   const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn) { // Temp! will be removed/replaced in the next phase
+  if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
     return null;
   }
   const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -123,21 +128,25 @@ const ChatbotExperimentBanner = () => {
       secondaryText={CHATBOT_BANNER_SECONDARY_TEXT}
       actionButtons={(track) => isLoggedIn ? (
         <button className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
-          <span>{isActionPending ? "Joining..." : "Join the Experiment"}</span>
+          <span>{isActionPending ? Sefaria._("Joining...") : Sefaria._("Join the Experiment")}</span>
         </button>
       ) : (<>
         <a className="button small" href={"/login" + nextParam} onClick={() => track("login")}>
-          <span>Log in to Join</span>
+          <span>{Sefaria._("Log in to Join")}</span>
         </a>
         <a className="button small white" href={"/register" + nextParam} onClick={() => track("create_an_account")}>
-          <span>Create an Account</span>
+          <span>{Sefaria._("Create an Account")}</span>
         </a>
       </>)}
-      learnMoreUrl={CHATBOT_BANNER_LEARN_MORE_URL}
+      learnMoreUrl={learnMoreUrl}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
     />
   );
+};
+
+ChatbotExperimentBanner.propTypes = {
+  promoLearnMoreUrls: PropTypes.object,
 };
 
 export { SiteWideBanner, ChatbotExperimentBanner };

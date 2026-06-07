@@ -38,13 +38,6 @@ school-lookup-data-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "sefaria.secrets.slackWebhook" }}
-{{- if .Values.secrets.slackWebhook.ref -}}
-{{- .Values.secrets.slackWebhook.ref }}
-{{- else -}}
-slack-webhook-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
 
 {{- define "sefaria.secrets.elasticCertificate" }}
 {{- if .Values.web.secrets.elasticCertificate.ref -}}
@@ -191,6 +184,44 @@ affinity:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Render a KEDA ScaledObject for a given workload.
+Defaults to targeting an Argo Rollout; override via $cfg.apiVersion and $cfg.kind for other resource types.
+Usage: include "sefaria.keda.scaledobject" (list . "component" "target-name" .Values.keda.component)
+*/}}
+{{- define "sefaria.keda.scaledobject" -}}
+{{- $ctx := index . 0 -}}
+{{- $component := index . 1 -}}
+{{- $targetName := index . 2 -}}
+{{- $cfg := index . 3 -}}
+{{- $keda := $ctx.Values.keda -}}
+{{- $triggers := $cfg.triggers | default $keda.triggers -}}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $ctx.Values.deployEnv }}-{{ $component }}
+  labels:
+    deployEnv: {{ $ctx.Values.deployEnv | quote }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ $cfg.apiVersion | default "argoproj.io/v1alpha1" }}
+    kind: {{ $cfg.kind | default "Rollout" }}
+    name: {{ $targetName }}
+  minReplicaCount: {{ $cfg.minReplicas | default $keda.minReplicas }}
+  maxReplicaCount: {{ $cfg.maxReplicas | default $keda.maxReplicas }}
+  pollingInterval: {{ $cfg.pollingInterval | default $keda.pollingInterval }}
+  cooldownPeriod: {{ $cfg.cooldownPeriod | default $keda.cooldownPeriod }}
+  triggers:
+  {{- range $triggers }}
+  - type: {{ .type }}
+    metadata:
+    {{- range $k, $v := .metadata }}
+      {{ $k }}: {{ tpl ($v | toString) $ctx | quote }}
+    {{- end }}
+  {{- end }}
+{{ end }}
 
 {{- define "config.domainModules" }}
 {{- $map := dict -}}

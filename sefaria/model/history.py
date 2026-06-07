@@ -12,6 +12,7 @@ Writes to MongoDB Collection: history
 "edit link"     done
 "edit note"     done
 "edit text"     done
+"edit version_metadata"  done
 "publish sheet"
 "revert text"
 "review"
@@ -25,6 +26,7 @@ dmp = diff_match_patch()
 
 from . import abstract as abst
 from sefaria.system.database import db
+from sefaria.system.progress_context import report_progress
 
 
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):
@@ -84,6 +86,34 @@ def log_add(user, klass, new_dict, **kwargs):
     kind = klass.history_noun
     rev_type = "add {}".format(kind)
     return _log_general(user, kind, None, new_dict, rev_type, **kwargs)
+
+
+def log_version_metadata(user, old_dict, new_dict, **kwargs):
+    """
+    Log version metadata changes (license, status, priority, etc.).
+
+    Unlike log_update which uses klass.history_noun, this creates a distinct
+    'edit version_metadata' rev_type to differentiate from text content edits.
+
+    Args:
+        user: User ID making the change
+        old_dict: Version contents before changes
+        new_dict: Version contents after changes
+        **kwargs: Optional 'method' (defaults to "Site")
+    """
+    log = {
+        "user": user,
+        "old": old_dict,
+        "new": new_dict,
+        "rev_type": "edit version_metadata",
+        "date": datetime.now(),
+        # Queryable fields for filtering/display (following index pattern)
+        "title": new_dict.get("title"),
+        "version": new_dict.get("versionTitle"),
+        "language": new_dict.get("language"),
+        "method": kwargs.get("method", "Site"),
+    }
+    return History(log).save()
 
 
 def _log_general(user, kind, old_dict, new_dict, rev_type, **kwargs):
@@ -164,7 +194,7 @@ def process_index_title_change_in_history(indx, **kwargs):
         query_list = [{attribute: {'$regex': query}} for query in queries]
         return {'$or': query_list}
 
-    print("Cascading History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading History {} to {}".format(kwargs['old'], kwargs['new']))
     """
     Update all history entries which reference 'old' to 'new'.
     """
@@ -174,25 +204,25 @@ def process_index_title_change_in_history(indx, **kwargs):
     title_pattern = r'(^{}$)'.format(re.escape(kwargs["old"]))
 
     text_hist = HistorySet(construct_query('ref', queries),  sort=[('ref', 1)])
-    print("Cascading Text History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Text History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in text_hist:
         h.ref = h.ref.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     link_hist = HistorySet(construct_query("new.refs", queries), sort=[('new.refs', 1)])
-    print("Cascading Link History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Link History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in link_hist:
         h.new["refs"] = [r.replace(kwargs["old"], kwargs["new"], 1) for r in h.new["refs"]]
         h.save()
 
     note_hist = HistorySet(construct_query("new.ref", queries), sort=[('new.ref', 1)])
-    print("Cascading Note History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Note History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in note_hist:
         h.new["ref"] = h.new["ref"].replace(kwargs["old"], kwargs["new"], 1)
         h.save()
 
     title_hist = HistorySet({"title": {"$regex": title_pattern}}, sort=[('title', 1)])
-    print("Cascading Index History {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Index History {} to {}".format(kwargs['old'], kwargs['new']))
     for h in title_hist:
         h.title = h.title.replace(kwargs["old"], kwargs["new"], 1)
         h.save()
@@ -207,4 +237,4 @@ def process_version_title_change_in_history(ver, **kwargs):
         "version": kwargs["old"],
         "language": ver.language,
     }
-    db.history.update(query, {"$set": {"version": kwargs["new"]}}, upsert=False, multi=True)
+    db.history.update_many(query, {"$set": {"version": kwargs["new"]}})
