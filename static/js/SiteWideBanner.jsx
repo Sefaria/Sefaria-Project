@@ -189,12 +189,12 @@ const SiteWideBanner = ({
         <div className="siteWideBannerButtonBox">
           {actionButtons(trackBannerInteraction)}
           {useBackoffDismissal && (
-            <button
-              className="button small white siteWideBannerMaybeLater"
+            <a
+              className="button small siteWideBannerMaybeLater"
               onClick={closeBanner}
             >
               <span>{Sefaria._("Maybe later")}</span>
-            </button>
+            </a>
           )}
         </div>
         {learnMoreUrl && (
@@ -235,8 +235,8 @@ SiteWideBanner.propTypes = {
 };
 
 const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Enhance Your Learning Experience");
-const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספריה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים</div>;
-const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts</div>;
+const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
+const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
@@ -270,11 +270,11 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       mainText={CHATBOT_BANNER_MAIN_TEXT}
       secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
       actionButtons={(track) => isLoggedIn ? (
-        <button className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+        <a className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("Loading...") : Sefaria._("Try It")}</span>
-        </button>
+        </a>
       ) : (<>
-        <a className="button small" href={"/login" + nextParam} onClick={() => track("login")}>
+        <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
           <span>{Sefaria._("Log in to Try")}</span>
         </a>
       </>)}
