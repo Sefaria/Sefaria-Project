@@ -37,8 +37,7 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
     "Skip to main content": "דלגו לתוכן האתר",
-    "Enhance your Learning Experience": "העמיקו את הלמידה שלכם",
-    "Try our AI-powered Library Assistant to deepen your understanding and discover new texts": "נסו את עוזר הספריה שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים",
+    "Enhance Your Learning Experience": "העמיקו את הלמידה שלכם",
     "Log in to Join": "התחברות כדי להצטרף", 
     "Maybe later": "אולי מאוחר יותר",
 
