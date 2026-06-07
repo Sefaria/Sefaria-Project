@@ -125,10 +125,12 @@ with open(out, "w", newline="") as f:
 print(f"  Wrote {out}")
 
 
-# ── 5. Category / book helpers ───────────────────────────────────────────────
+# ── 5. Category / book / metadata helpers ────────────────────────────────────
 
 _book_cache: dict = {}
 _cat_cache: dict = {}
+_collective_cache: dict = {}
+_wordcount_cache: dict = {}
 
 
 def get_book(ref_str: str) -> str:
@@ -180,11 +182,47 @@ def get_search_category(book: str) -> str:
     return _cat_cache[book]
 
 
+def get_collective_title(book: str) -> str:
+    if book not in _collective_cache:
+        try:
+            idx = library.get_index(book)
+            _collective_cache[book] = getattr(idx, "collective_title", "") or ""
+        except Exception:
+            _collective_cache[book] = ""
+    return _collective_cache[book]
+
+
+def _count_words(obj) -> int:
+    if isinstance(obj, str):
+        return len(obj.split()) if obj.strip() else 0
+    if isinstance(obj, list):
+        return sum(_count_words(x) for x in obj)
+    return 0
+
+
+def get_word_count(book: str) -> int:
+    """Count Hebrew words from the first Hebrew version's chapter field."""
+    if book not in _wordcount_cache:
+        try:
+            from sefaria.model import VersionSet
+            _wordcount_cache[book] = 0
+            for v in VersionSet({"title": book, "language": "he"}):
+                chapter = getattr(v, "chapter", None)
+                if chapter:
+                    _wordcount_cache[book] = _count_words(chapter)
+                    break  # use the first Hebrew version found
+        except Exception:
+            _wordcount_cache[book] = 0
+    return _wordcount_cache[book]
+
+
 # ── 6. Resolutions by book ───────────────────────────────────────────────────
 
 print("\nBuilding book and category counts...")
 book_counter: Counter = Counter()
 cat_counter: Counter = Counter()
+book_pair_counter: Counter = Counter()   # (source_book, target_book) -> count
+cat_pair_counter: Counter = Counter()    # (source_cat,  target_cat)  -> count
 
 unique_targets = set(t for _, t in mutc_pairs)
 unique_sources = set(s for s, _ in mutc_pairs)
@@ -201,12 +239,24 @@ for book in tqdm.tqdm(unique_books, desc="looking up categories"):
 
 # Now tally counts
 for source, target in tqdm.tqdm(mutc_pairs, desc="tallying pairs"):
+    source_book = _book_cache.get(source, "[error]")
     target_book = _book_cache.get(target, "[error]")
     book_counter[target_book] += 1
     cat_counter[get_search_category(target_book)] += 1
+    book_pair_counter[(source_book, target_book)] += 1
+    cat_pair_counter[(get_search_category(source_book), get_search_category(target_book))] += 1
+
+# Existing links per target book (summed over refs in our mutc target set)
+existing_book_counter: Counter = Counter()
+for ref_str in unique_targets:
+    book = _book_cache.get(ref_str, "[error]")
+    if book != "[error]":
+        existing_book_counter[book] += link_counter.get(ref_str, 0)
 
 print(f"  Unique target books:   {len(book_counter):,}")
 print(f"  Unique categories:     {len(cat_counter):,}")
+print(f"  Unique book pairs:     {len(book_pair_counter):,}")
+print(f"  Unique category pairs: {len(cat_pair_counter):,}")
 
 
 # ── 7. Write resolutions_by_book.csv ────────────────────────────────────────
@@ -250,6 +300,58 @@ with open(out, "w", newline="") as f:
         talmud_label = "Bavli" if cat == "Talmud Bavli" else "Yerushalmi"
         w.writerow([book, talmud_label, cnt])
 print(f"Wrote {out} ({len(talmud_rows)} rows)")
+
+
+# ── 10. Write book_pair_matrix.csv ──────────────────────────────────────────
+
+out = os.path.join(OUTPUT_DIR, "book_pair_matrix.csv")
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["source_book", "target_book", "count"])
+    for (src, tgt), cnt in book_pair_counter.most_common():
+        w.writerow([src, tgt, cnt])
+print(f"\nWrote {out} ({len(book_pair_counter)} rows)")
+
+
+# ── 11. Write cat_pair_matrix.csv ────────────────────────────────────────────
+
+out = os.path.join(OUTPUT_DIR, "cat_pair_matrix.csv")
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["source_cat", "target_cat", "count"])
+    for (src, tgt), cnt in cat_pair_counter.most_common():
+        w.writerow([src, tgt, cnt])
+print(f"Wrote {out} ({len(cat_pair_counter)} rows)")
+
+
+# ── 12. Write new_vs_existing_per_book.csv ───────────────────────────────────
+
+out = os.path.join(OUTPUT_DIR, "new_vs_existing_per_book.csv")
+all_target_books = set(book_counter.keys()) | set(existing_book_counter.keys())
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["book", "new_links", "existing_links"])
+    for book in sorted(all_target_books - {"[error]"},
+                       key=lambda b: book_counter.get(b, 0), reverse=True):
+        w.writerow([book, book_counter.get(book, 0), existing_book_counter.get(book, 0)])
+print(f"Wrote {out} ({len(all_target_books)} rows)")
+
+
+# ── 13. Write book_metadata.csv (collective_title + word_count) ──────────────
+
+print("\nBuilding book metadata (collective_title, word_count)...")
+out = os.path.join(OUTPUT_DIR, "book_metadata.csv")
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["book", "primary_category", "collective_title", "word_count"])
+    for book in tqdm.tqdm(sorted(unique_books), desc="metadata"):
+        w.writerow([
+            book,
+            get_search_category(book),
+            get_collective_title(book),
+            get_word_count(book),
+        ])
+print(f"Wrote {out} ({len(unique_books)} rows)")
 
 
 print("\nDone. All CSVs in", OUTPUT_DIR)
