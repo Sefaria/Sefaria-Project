@@ -32,6 +32,9 @@ data:
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
   FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
+  QDRANT_HOST: "{{ .Values.deployEnv }}-qdrant"
+  QDRANT_PORT: {{ .Values.qdrant.port | default 6333 | quote }}
+  QDRANT_COLLECTION: {{ .Values.qdrant.collection | default "sefaria_texts" | quote }}
   SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}
