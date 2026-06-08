@@ -310,6 +310,11 @@ LOGGING = {
     }
 }
 
+PGVECTOR_HOST = os.getenv("PGVECTOR_HOST", "localhost")
+PGVECTOR_PORT = int(os.getenv("PGVECTOR_PORT", 5432))
+PGVECTOR_DB = os.getenv("PGVECTOR_DB", "sefaria_vectors")
+PGVECTOR_USER = os.getenv("PGVECTOR_USER", "sefaria")
+PGVECTOR_PASSWORD = os.getenv("PGVECTOR_PASSWORD", "sefaria")
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
 QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "sefaria_texts")

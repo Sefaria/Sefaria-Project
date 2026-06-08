@@ -83,6 +83,24 @@ export:
   schedule: "0 3 1 * *"
   serviceAccount: text-export-write
 
+pgvector:
+  enabled: false
+  image: pgvector/pgvector:pg17
+  user: sefaria
+  password: sefaria
+  db: sefaria_vectors
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: "standard-rwo"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "4Gi"
+      cpu: "1000m"
+
 # PostgreSQL configuration - can be overridden per environment
 postgres:
   # host: defaults to DATABASES_HOST from secret if not specified

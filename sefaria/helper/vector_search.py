@@ -1,9 +1,22 @@
 import json
 from django.conf import settings
-from django.db import connection
-from psycopg2.extras import execute_values
 
 _qdrant_client = None
+_pgvector_conn = None
+
+
+def _get_pgvector_conn():
+    global _pgvector_conn
+    if _pgvector_conn is None or _pgvector_conn.closed:
+        import psycopg2
+        _pgvector_conn = psycopg2.connect(
+            host=settings.PGVECTOR_HOST,
+            port=settings.PGVECTOR_PORT,
+            dbname=settings.PGVECTOR_DB,
+            user=settings.PGVECTOR_USER,
+            password=settings.PGVECTOR_PASSWORD,
+        )
+    return _pgvector_conn
 
 
 def _get_qdrant_client():
@@ -15,14 +28,15 @@ def _get_qdrant_client():
 
 
 def pgvector_search(embedding: list, top_k: int = 10) -> list:
+    conn = _get_pgvector_conn()
     embedding_str = json.dumps(embedding)
-    with connection.cursor() as cursor:
-        cursor.execute(
+    with conn.cursor() as cur:
+        cur.execute(
             "SELECT ref, text, 1 - (embedding <=> %s::vector) AS score "
             "FROM sefaria_embeddings ORDER BY embedding <=> %s::vector LIMIT %s",
-            [embedding_str, embedding_str, top_k]
+            [embedding_str, embedding_str, top_k],
         )
-        return [{"ref": row[0], "text": row[1], "score": float(row[2])} for row in cursor.fetchall()]
+        return [{"ref": row[0], "text": row[1], "score": float(row[2])} for row in cur.fetchall()]
 
 
 def qdrant_search(embedding: list, top_k: int = 10) -> list:
@@ -36,15 +50,18 @@ def qdrant_search(embedding: list, top_k: int = 10) -> list:
 
 
 def pgvector_index(records: list) -> int:
+    from psycopg2.extras import execute_values
+    conn = _get_pgvector_conn()
     rows = [(r["ref"], r.get("text", ""), json.dumps(r["embedding"])) for r in records]
-    with connection.cursor() as cursor:
+    with conn.cursor() as cur:
         execute_values(
-            cursor,
+            cur,
             "INSERT INTO sefaria_embeddings (ref, text, embedding) VALUES %s "
             "ON CONFLICT (ref) DO UPDATE SET text = EXCLUDED.text, embedding = EXCLUDED.embedding",
             rows,
             template="(%s, %s, %s::vector)",
         )
+    conn.commit()
     return len(rows)
 
 

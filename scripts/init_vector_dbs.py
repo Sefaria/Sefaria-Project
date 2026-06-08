@@ -10,7 +10,6 @@ import django
 django.setup()
 
 from django.conf import settings
-from django.db import connection
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dimensions", type=int, default=settings.VECTOR_DIMENSIONS)
@@ -19,7 +18,16 @@ dims = args.dimensions
 
 
 def init_pgvector():
-    with connection.cursor() as cur:
+    import psycopg2
+    conn = psycopg2.connect(
+        host=settings.PGVECTOR_HOST,
+        port=settings.PGVECTOR_PORT,
+        dbname=settings.PGVECTOR_DB,
+        user=settings.PGVECTOR_USER,
+        password=settings.PGVECTOR_PASSWORD,
+    )
+    conn.autocommit = True
+    with conn.cursor() as cur:
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
         cur.execute(f"""
             CREATE TABLE IF NOT EXISTS sefaria_embeddings (
@@ -33,7 +41,8 @@ def init_pgvector():
             "CREATE INDEX IF NOT EXISTS sefaria_embeddings_embedding_idx "
             "ON sefaria_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
         )
-    print(f"pgvector: table sefaria_embeddings ready (dimensions={dims})")
+    conn.close()
+    print(f"pgvector: table sefaria_embeddings ready (host={settings.PGVECTOR_HOST}, dimensions={dims})")
 
 
 def init_qdrant():
