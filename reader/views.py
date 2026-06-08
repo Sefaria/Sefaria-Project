@@ -4791,6 +4791,69 @@ def search_path_filter(request, book_title):
     return jsonResponse(path)
 
 
+def search_poc_api(request):
+    """
+    POC entity search over the new `topic` and `book` Elasticsearch indices.
+
+    GET params:
+      q    - the search query string
+      type - one of "topic", "author", or "book"
+             "topic"/"author" both hit the topic index, filtered by the `subtype`
+             field; "book" hits the book index.
+
+    Returns {"hits": [{id, score, ...source fields}]}. Unlike the autocompleter path,
+    the source docs already carry titles, descriptions and numSources, so the client
+    needs no second hydration request.
+    """
+    from sefaria.helper.search import get_elasticsearch_client
+    from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic")
+    if not query:
+        return jsonResponse({"hits": []})
+
+    # Boost titles over alt-titles over descriptions; match across English and Hebrew.
+    fields = [
+        "title_en^3", "title_he^3",
+        "titleVariants^2",
+        "description_en", "description_he",
+    ]
+    if entity_type == "book":
+        index_name = SEARCH_INDEX_NAME_BOOK
+        filters = []
+        # match the author's name too, so e.g. "Rambam" returns Mishneh Torah books
+        # (which carry his name only via the denormalized author_names field).
+        fields.append("author_names^2")
+    elif entity_type == "author":
+        index_name = SEARCH_INDEX_NAME_TOPIC
+        filters = [{"term": {"subtype": "author"}}]
+    else:  # "topic"
+        index_name = SEARCH_INDEX_NAME_TOPIC
+        filters = [{"term": {"subtype": "topic"}}]
+
+    es_query = {
+        "bool": {
+            "must": {
+                "multi_match": {
+                    "query": query,
+                    "fields": fields,
+                    "type": "best_fields",
+                }
+            },
+            "filter": filters,
+        }
+    }
+
+    es_client = get_elasticsearch_client()
+    response = es_client.search(index=index_name, query=es_query, size=100)
+    hits = [
+        {"id": h["_id"], "score": h["_score"], **h["_source"]}
+        for h in response["hits"]["hits"]
+    ]
+    return jsonResponse({"hits": hits})
+
+
 
 @ensure_csrf_cookie
 def serve_static(request, page):

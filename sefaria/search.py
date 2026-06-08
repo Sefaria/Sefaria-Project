@@ -12,6 +12,7 @@ import bleach
 import pymongo
 
 from collections import defaultdict
+from functools import lru_cache
 import time as pytime
 
 from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
@@ -584,6 +585,13 @@ def put_book_mapping(index_name):
             },
             'authors': {
                 'type': 'keyword'  # author slugs - links to the topic index
+            },
+            'author_names': {
+                # denormalized author titles (en + he, incl. variants) so a search for
+                # "Rambam"/"Maimonides" matches his books even when his name isn't in the
+                # title (e.g. "Mishneh Torah, Blessings"), which are linked only by `authors`.
+                'type': 'text',
+                'analyzer': 'stemmed_english'
             },
             'order': {
                 'type': 'keyword'
@@ -1199,6 +1207,17 @@ def index_topics(index_name):
     return failed_slugs
 
 
+@lru_cache(maxsize=None)
+def _author_display_names(slug):
+    """All titles (en + he, including variants) of the author topic with this slug.
+    Cached because the same author authors many books. Used to denormalize author
+    names onto book docs so an author-name search matches their books."""
+    author = Topic.init(slug)
+    if not author:
+        return []
+    return author.get_titles('en') + author.get_titles('he')
+
+
 def make_book_doc(index):
     """
     Build an Elasticsearch document for an Index (book) record.
@@ -1221,6 +1240,11 @@ def make_book_doc(index):
     if isinstance(comp_date, list):
         comp_date = comp_date[0] if comp_date else None
 
+    author_slugs = getattr(index, 'authors', []) or []
+    author_names = []
+    for slug in author_slugs:
+        author_names += _author_display_names(slug)
+
     return {
         "title_en": title_en,
         "title_he": title_he,
@@ -1231,7 +1255,8 @@ def make_book_doc(index):
         "description_he": getattr(index, 'heShortDesc', '') or "",
         "compDate": _safe_int(comp_date),
         "era": getattr(index, 'era', None),
-        "authors": getattr(index, 'authors', []) or [],
+        "authors": author_slugs,
+        "author_names": author_names,
         "order": getattr(index, 'order', None),
     }
 
