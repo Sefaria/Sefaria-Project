@@ -39,6 +39,8 @@ spec:
           value: "{{ .Values.pgvector.password }}"
         - name: POSTGRES_DB
           value: "{{ .Values.pgvector.db }}"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
         volumeMounts:
         - name: pgvector-storage
           mountPath: /var/lib/postgresql/data
