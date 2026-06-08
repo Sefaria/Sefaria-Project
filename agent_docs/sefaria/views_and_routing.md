@@ -10,7 +10,7 @@ Handles all HTTP request routing and the view functions defined in `sefaria/view
 The app routes requests by subdomain using `django_hosts`. Two host patterns are defined:
 
 - **`library`** -- the main site (e.g. `sefaria.org`). Routes to `sefaria.urls_library`.
-- **`sheets`** -- the voices/sheets subdomain (e.g. `sheets.sefaria.org`). Routes to `sefaria.urls_sheets`.
+- **`voices`** -- the voices/sheets subdomain (e.g. `sheets.sefaria.org`). Routes to `sefaria.urls_sheets`.
 
 Domain strings are built dynamically from `settings.DOMAIN_MODULES`, keyed by language. Each language has entries for `LIBRARY_MODULE` and `VOICES_MODULE` (constants from `sefaria.constants.model`). Multiple language domains are OR'd together with `|` in the regex.
 
