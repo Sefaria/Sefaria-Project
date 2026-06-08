@@ -41,9 +41,14 @@ spec:
         resources: {{ toYaml .Values.qdrant.resources | nindent 10 }}
       volumes:
       - name: qdrant-storage
+        {{- if .Values.qdrant.persistence.enabled }}
         persistentVolumeClaim:
           claimName: "{{ .Values.deployEnv }}-qdrant-pvc"
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
 ---
+{{- if .Values.qdrant.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -53,10 +58,14 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  {{- if .Values.qdrant.persistence.storageClass }}
+  storageClassName: "{{ .Values.qdrant.persistence.storageClass }}"
+  {{- end }}
   resources:
     requests:
-      storage: "{{ .Values.qdrant.storageSize }}"
+      storage: "{{ .Values.qdrant.persistence.size }}"
 ---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:

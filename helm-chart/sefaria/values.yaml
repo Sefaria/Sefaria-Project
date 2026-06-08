@@ -95,7 +95,10 @@ qdrant:
   image: qdrant/qdrant:latest
   port: 6333
   collection: sefaria_texts
-  storageSize: 50Gi
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: "standard-rwo"
   resources:
     requests:
       memory: "512Mi"
