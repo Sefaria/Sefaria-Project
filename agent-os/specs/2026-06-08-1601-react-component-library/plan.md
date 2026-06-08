@@ -50,8 +50,8 @@ This plan is the dependency of [`2026-06-08-1602-login-register-ui-react`](../20
 ### Task 5: `Input` stories
 - `stories/common/Input.stories.jsx`: default, focus, filled, error, disabled, password (masked + revealed), EN, HE, and the LTR-in-RTL case. Mirror the `Button.stories.jsx` `argTypes` style.
 
-### Task 6: `FormField`
-- `static/js/common/FormField.jsx`: composes label + `Input` + error region into one labelled unit. Presentational; validation passed in. Story with required/optional + error variants.
+### Task 6: ~~`FormField`~~ — dropped (absorbed into `Input`)
+The Figma `Input Field` already bundles label + control + inline error, so `Input.jsx` is the complete labelled field unit. A separate `FormField` would duplicate it (the "two paths" bloat to avoid). No component created.
 
 ---
 

@@ -1,0 +1,312 @@
+/*
+ * Auth component library styles — Input (and future auth primitives).
+ * Token-driven (see tokens.css). Classes are the shared styling canon: the React
+ * components in static/js/common/ and any server-rendered consumer emit these classes.
+ * Spec: agent-os/specs/2026-06-08-1601-react-component-library
+ */
+
+/* ============================ Input / Input Field ============================ */
+.sefaria-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-1);
+  width: 100%;
+  font-family: var(--sef-font-en);
+}
+.sefaria-input[dir="rtl"],
+[dir="rtl"] .sefaria-input {
+  font-family: var(--sef-font-he);
+}
+
+/* Label row: label on the leading side, optional link on the trailing side */
+.sefaria-input-labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sef-space-2);
+}
+.sefaria-input-label {
+  font-size: var(--sef-font-size-label);
+  line-height: 1.3;
+  color: var(--sef-text-primary);
+}
+.sefaria-input-trailingLink {
+  font-size: var(--sef-font-size-label);
+  color: var(--sef-link-inline);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sefaria-input--disabled .sefaria-input-label {
+  color: var(--sef-text-disabled);
+}
+
+/* Field wrapper holds the control + optional trailing reveal button */
+.sefaria-input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sefaria-input-control {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 var(--sef-space-3);
+  border: var(--sef-stroke) solid var(--sef-border-default);
+  border-radius: var(--sef-radius);
+  background: var(--sef-surface);
+  color: var(--sef-text-primary);
+  font-family: inherit;
+  font-size: var(--sef-font-size-field);
+  line-height: 1.45;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sefaria-input-control::placeholder {
+  color: var(--sef-text-muted);
+  opacity: 1;
+}
+.sefaria-input-control:hover:not(:disabled) {
+  border-color: var(--sef-neutral-400);
+}
+.sefaria-input-control:focus {
+  border-color: var(--sef-border-focus);
+}
+.sefaria-input-control:disabled {
+  background: var(--sef-surface-disabled);
+  color: var(--sef-text-disabled);
+  border-color: var(--sef-border-default);
+  cursor: not-allowed;
+}
+/* leave room for the reveal button on password fields */
+.sefaria-input-field.has-trailing-icon .sefaria-input-control {
+  padding-inline-end: 40px;
+}
+
+/* error state — applies to both empty (placeholder/error) and filled (filled/error) */
+.sefaria-input--error .sefaria-input-control {
+  border-color: var(--sef-error);
+}
+
+/* password reveal toggle */
+.sefaria-input-reveal {
+  position: absolute;
+  inset-inline-end: var(--sef-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sef-text-muted);
+}
+.sefaria-input-reveal img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* inline error message: info icon + text, color is never the sole signal */
+.sefaria-input-error {
+  display: flex;
+  align-items: center;
+  gap: var(--sef-space-1);
+  margin-top: var(--sef-space-1);
+  color: var(--sef-error);
+  font-size: var(--sef-font-size-error);
+  line-height: 1.3;
+}
+.sefaria-input-errorIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+/* ===================== Auth buttons (Figma `Buttons [for now]`) =====================
+ * Modifier classes layered on the existing .sefaria-common-button base (reset + layout
+ * + icon handling live there). Used via Button.jsx's `variant` prop, e.g.
+ *   <Button variant="sefaria-common-button auth-primary" size="fullwidth">.
+ * node 187:76568
+ */
+
+/* Primary — navy fill, white text ("Continue with Email") */
+button.sefaria-common-button.auth-primary,
+a.sefaria-common-button.auth-primary {
+  background-color: var(--sef-action-primary);
+  border: none;
+  border-radius: var(--sef-radius);
+  font-size: var(--sef-font-size-field);
+  font-weight: 500;
+}
+button.sefaria-common-button.auth-primary,
+button.sefaria-common-button.auth-primary *,
+a.sefaria-common-button.auth-primary,
+a.sefaria-common-button.auth-primary * {
+  color: #ffffff;
+}
+button.sefaria-common-button.auth-primary:hover,
+a.sefaria-common-button.auth-primary:hover {
+  background-color: var(--sef-action-primary-hover);
+}
+button.sefaria-common-button.auth-primary:disabled,
+a.sefaria-common-button.auth-primary.is-disabled {
+  background-color: var(--sef-border-default);
+  cursor: not-allowed;
+}
+button.sefaria-common-button.auth-primary:disabled,
+button.sefaria-common-button.auth-primary:disabled * {
+  color: var(--sef-text-disabled);
+}
+
+/* Secondary — white fill, bordered, BLACK text ("Continue with Google/Apple").
+ * Per the Figma note, third-party button text uses Semantic/Text/Primary, not the navy. */
+button.sefaria-common-button.auth-secondary,
+a.sefaria-common-button.auth-secondary {
+  background-color: var(--sef-surface);
+  border: var(--sef-stroke-strong) solid var(--sef-border-default);
+  border-radius: var(--sef-radius);
+  font-size: var(--sef-font-size-field);
+  font-weight: 500;
+}
+button.sefaria-common-button.auth-secondary,
+button.sefaria-common-button.auth-secondary *,
+a.sefaria-common-button.auth-secondary,
+a.sefaria-common-button.auth-secondary * {
+  color: var(--sef-text-primary);
+}
+button.sefaria-common-button.auth-secondary:hover,
+a.sefaria-common-button.auth-secondary:hover {
+  background-color: var(--sef-secondary-hover);
+}
+button.sefaria-common-button.auth-secondary:disabled {
+  background-color: var(--sef-surface-disabled);
+  border-color: var(--sef-border-default);
+  cursor: not-allowed;
+}
+button.sefaria-common-button.auth-secondary:disabled,
+button.sefaria-common-button.auth-secondary:disabled * {
+  color: var(--sef-text-disabled);
+}
+/* keep provider brand-icon colors (do NOT apply the theme recolor filter) */
+button.sefaria-common-button.auth-secondary img.button-icon,
+a.sefaria-common-button.auth-secondary img.button-icon {
+  filter: none;
+  height: 18px;
+  margin-inline-end: var(--sef-space-2);
+}
+
+/* ===================== Divider ("or" / "או") ===================== */
+.sefaria-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sef-space-3);
+  color: var(--sef-text-muted);
+  font-size: var(--sef-font-size-label);
+}
+.sefaria-divider::before,
+.sefaria-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--sef-border-default);
+}
+
+/* ===================== Legal text (ToS / Privacy) ===================== */
+.sefaria-legal-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--sef-text-muted);
+  text-align: center;
+}
+.sefaria-legal-text a {
+  color: var(--sef-text-link);
+  text-decoration: underline;
+}
+
+/* ===================== Auth card (Figma `Form Card`) ===================== */
+.sefaria-auth-card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 460px;
+  background: var(--sef-surface);
+  border-radius: 16px;
+  padding: var(--sef-space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-6);
+  font-family: var(--sef-font-en);
+}
+.sefaria-auth-card[dir="rtl"] { font-family: var(--sef-font-he); }
+
+.sefaria-auth-card-back {
+  position: absolute;
+  inset-inline-start: var(--sef-space-6);
+  top: var(--sef-space-6);
+  display: inline-flex;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sef-text-primary);
+}
+.sefaria-auth-card-back img { width: 24px; height: 24px; display: block; }
+
+.sefaria-auth-card-heading {
+  margin: 0;
+  font-family: var(--english-serif-font-family, Georgia, "Times New Roman", serif);
+  font-size: 40px;
+  font-weight: 400;
+  text-align: center;
+  color: var(--sef-text-primary);
+}
+.sefaria-auth-card[dir="rtl"] .sefaria-auth-card-heading {
+  font-family: var(--hebrew-serif-font-family, "Frank Ruhl Libre", serif);
+}
+.sefaria-auth-card-sub {
+  text-align: center;
+  font-size: var(--sef-font-size-field);
+  color: var(--sef-text-primary);
+}
+.sefaria-auth-card-sub a { color: var(--sef-text-link); text-decoration: underline; }
+
+/* vertical stack of buttons / fields inside the card */
+.sefaria-auth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-3);
+}
+
+@media (max-width: 842px) {
+  .sefaria-auth-card {
+    max-width: 100%;
+    border-radius: 0;
+    padding: var(--sef-space-6);
+  }
+}
+
+/* ===================== Captcha wrapper (adds the missing error state) ===================== */
+.sefaria-captcha { display: flex; flex-direction: column; gap: var(--sef-space-1); }
+.sefaria-captcha-box {
+  display: inline-block;
+  border-radius: var(--sef-radius);
+}
+.sefaria-captcha--error .sefaria-captcha-box {
+  outline: var(--sef-stroke-strong) solid var(--sef-error);
+  outline-offset: 2px;
+}
+.sefaria-captcha-error {
+  display: flex;
+  align-items: center;
+  gap: var(--sef-space-1);
+  color: var(--sef-error);
+  font-size: var(--sef-font-size-error);
+}
+.sefaria-captcha-error img { width: 16px; height: 16px; flex: 0 0 auto; }

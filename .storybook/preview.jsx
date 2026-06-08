@@ -1,6 +1,8 @@
 import React from "react";
 import "@static/css/common.css";
 import "@static/css/s2.css";
+import "@static/css/tokens.css";
+import "@static/css/auth-components.css";
 import {
   ReaderPanelContext,
   AdContext,

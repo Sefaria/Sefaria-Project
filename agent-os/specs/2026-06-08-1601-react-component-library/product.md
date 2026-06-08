@@ -44,8 +44,8 @@ Component names in the right column are the **Figma source-of-truth names** (fil
 | Component | Priority | Figma → notes |
 |---|---|---|
 | **Design tokens** (CSS custom properties) | P0 | Adopt the `Semantic/*` + `Core/*` tokens; replace leaked Figma `sds-*` / `SF Pro` placeholders. |
-| **`Input` / `TextField`** | P0 | Figma **`Input Field`** (`187:76581`). All 10 named states (incl. *with link*, *filled/error*, *placeholder/error*, password mask/unmask) + RTL/LTR + a11y. |
-| **`FormField`** | P0 | Label-above-field + inline error composition. |
+| **`Input` / `TextField`** | P0 ✅ | Figma **`Input Field`** (`187:76581`). All 10 named states (incl. *with link*, *filled/error*, *placeholder/error*, password mask/unmask) + RTL/LTR + a11y. **Built & verified** (`static/js/common/Input.jsx`, stories + Playwright tests). |
+| ~~`FormField`~~ | — | **Dropped — absorbed into `Input`.** The Figma `Input Field` already bundles label + control + inline error, so `Input` is the complete field unit. A separate `FormField` would be a redundant second path. |
 | **`Button`** (consolidation) | P1 | Figma **`Buttons [for now]`** (`187:76568`): primary (navy), secondary (white/bordered), states default/hover/disabled. |
 | **`ProviderButton`** | P1 | **Custom** secondary button + provider icon + **black text**, triggering the Google/Apple SDK programmatically (not SDK-rendered chrome). |
 | **`Captcha`** wrapper | P1 | Figma **`Captcha`** (`192:6701` section) — adds the missing error state. |

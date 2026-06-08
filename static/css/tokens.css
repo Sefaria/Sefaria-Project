@@ -1,0 +1,54 @@
+/*
+ * Design tokens — Auth / Login component library
+ * Source: Figma "Registration & Login — SSO & UI Refresh", via Figma MCP get_variable_defs (2026-06-08).
+ * These are the canonical Semantic/* + Core/* tokens. They REPLACE the leaked Figma
+ * "Simple Design System" placeholders (var(--sds-*), SF Pro) that appeared in the file.
+ * Spec: agent-os/specs/2026-06-08-1601-react-component-library
+ *
+ * Import order: tokens.css BEFORE component CSS (common-components.css / auth-components.css).
+ * Where a Sefaria global already exists (e.g. --sefaria-blue == Semantic/Action/Primary),
+ * the token aliases it rather than redefining the hex.
+ */
+:root {
+  /* --- Action --- */
+  --sef-action-primary:        var(--sefaria-blue, #18345d); /* Semantic/Action/Primary */
+  --sef-action-primary-hover:  #132b4c;                      /* Semantic/Action/Primary hover */
+
+  /* --- Text --- */
+  --sef-text-primary:   #121212;  /* Semantic/Text/Primary (input value, provider-button text) */
+  --sef-text-muted:     #707070;  /* Semantic/Text/Muted (placeholder) */
+  --sef-text-disabled:  #999999;  /* Semantic/Text/Disabled */
+  --sef-text-link:      #18345d;  /* Semantic/Text/Link */
+  --sef-link-inline:    #4871bf;  /* functional/inline-link-blue */
+
+  /* --- Feedback --- */
+  --sef-error:          #c03522;  /* Semantic/Feedback/Error/Border + /Text */
+
+  /* --- Surfaces, borders, neutrals --- */
+  --sef-surface:        #ffffff;  /* Core/Base/White */
+  --sef-border-default: #e6e6e6;  /* Core/Neutral/Gray/250 */
+  --sef-border-focus:   #cccccc;  /* Semantic/Border/Focus */
+  --sef-neutral-400:    #999999;  /* Core/Neutral/Gray/400 */
+  --sef-surface-disabled: #f5f5f5;
+  --sef-secondary-hover:  #f0f7ff; /* Core/blue TBR/100 (secondary-button hover) */
+
+  /* --- Spacing scale (Figma: clean 4/8/12/16/24/48) --- */
+  --sef-space-1: 4px;
+  --sef-space-2: 8px;
+  --sef-space-3: 12px;
+  --sef-space-4: 16px;
+  --sef-space-6: 24px;
+  --sef-space-12: 48px;
+
+  /* --- Radius / stroke --- */
+  --sef-radius:        6px;
+  --sef-stroke:        1px;
+  --sef-stroke-strong: 1.5px;
+
+  /* --- Type --- */
+  --sef-font-en: "Roboto", "Helvetica Neue", sans-serif;
+  --sef-font-he: "Heebo", sans-serif;
+  --sef-font-size-field: 16px;  /* Body/Regular */
+  --sef-font-size-label: 14px;  /* English System Small */
+  --sef-font-size-error: 14px;
+}
