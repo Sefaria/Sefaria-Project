@@ -8,7 +8,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   strategy:
-    type: RollingUpdate
+    type: Recreate
   selector:
     matchLabels:
       app: qdrant-{{ .Values.deployEnv }}
