@@ -401,7 +401,7 @@ levenshtein==0.27.1
 langchain-openai==0.2.14
 langchain-anthropic==0.3.22
 pgvector==0.3.6
-qdrant-client==1.13.3
+qdrant-client==1.18.2
 langchain-core==0.3.83
 langchain-community==0.3.31
 langsmith==0.4.4

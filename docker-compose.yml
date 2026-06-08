@@ -45,7 +45,7 @@ services:
       - postgres-data:/var/lib/postgresql/sefaria_data
 
   qdrant:
-    image: "qdrant/qdrant:latest"
+    image: "qdrant/qdrant:v1.18.2"
     ports:
       - "6333:6333"
       - "6334:6334"

@@ -110,7 +110,7 @@ postgres:
 
 qdrant:
   enabled: false
-  image: qdrant/qdrant:latest
+  image: qdrant/qdrant:v1.18.2
   port: 6333
   collection: sefaria_texts
   persistence:
