@@ -15,6 +15,16 @@
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
         {% csrf_token %}
         {{ form.as_p }}
+        {% if form.sso_only_providers %}
+        <p class="error" id="sso-only-register-error">
+          {% trans "Sign in with a connected provider instead." %}
+          {% for provider in form.sso_only_providers %}
+            <a href="{% if provider == "Google" %}#google-signin-button{% elif provider == "Apple" %}#appleid-signin{% else %}#sso-section{% endif %}">
+              {% trans "Sign in with" %} {{ provider }}
+            </a>
+          {% endfor %}
+        </p>
+        {% endif %}
         {% if next %}
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
@@ -52,11 +62,12 @@
           function handleSSOSuccess() {
             window.location.href = '{{ next|default:"/" }}';
           }
+          window.SefariaAuth.setRedirectState('{{ sso_redirect_state|escapejs }}');
 
           {% if GOOGLE_SSO_CLIENT_ID %}
-          window.addEventListener('load', function() {
+          function initializeGoogleSignInButton() {
             if (window.google && window.google.accounts) {
-              google.accounts.id.initialize({
+              var googleConfig = {
                 client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
                 callback: function(response) {
                   fetch('/api/auth/google/callback', {
@@ -78,14 +89,26 @@
                     console.error('Google SSO error:', err);
                     handleSSOError('Sign in failed. Please try again.');
                   });
-                },
-              });
+                }
+              };
+              if (window.SefariaAuth.useRedirect()) {
+                googleConfig.ux_mode = 'redirect';
+                googleConfig.login_uri = window.location.origin + '/auth/google/redirect';
+                delete googleConfig.callback;
+              } else {
+                googleConfig.ux_mode = 'popup';
+              }
+              google.accounts.id.initialize(googleConfig);
               google.accounts.id.renderButton(
                 document.getElementById('google-signin-button'),
                 {type: 'standard', theme: 'outline', size: 'large', text: 'signup_with', width: 300}
               );
             }
-          });
+          }
+          window.addEventListener('google-identity-loaded', initializeGoogleSignInButton);
+          if (window.google && window.google.accounts) {
+            initializeGoogleSignInButton();
+          }
           {% endif %}
 
           {% if APPLE_SSO_CLIENT_ID %}
@@ -96,8 +119,9 @@
               AppleID.auth.init({
                 clientId: '{{ APPLE_SSO_CLIENT_ID }}',
                 scope: 'name email',
-                redirectURI: window.location.origin + '/register',
-                usePopup: true,
+                redirectURI: window.location.origin + '/auth/apple/redirect',
+                state: '{{ sso_redirect_state|escapejs }}',
+                usePopup: !window.SefariaAuth.useRedirect(),
               });
             };
             document.head.appendChild(appleScript);
@@ -196,11 +220,21 @@
     function displayErrors(errors) {
         form.querySelectorAll('.errorlist').forEach(el => el.remove());
         Object.entries(errors).forEach(([field, message]) => {
+            if (field === '_auth') { return; }
             const ul = document.createElement('ul');
             ul.className = 'errorlist' + (field === '__all__' ? ' nonfield' : '');
             const li = document.createElement('li');
             li.textContent = message;
             ul.appendChild(li);
+            if (errors._auth?.code === 'sso_only_account' && field === 'email') {
+                errors._auth.providers.forEach(provider => {
+                    const link = document.createElement('a');
+                    link.href = provider === 'Google' ? '#google-signin-button' :
+                        provider === 'Apple' ? '#appleid-signin' : '#sso-section';
+                    link.textContent = ` {% trans "Sign in with" %} ${provider}`;
+                    li.appendChild(link);
+                });
+            }
             if (field === '__all__') {
                 form.prepend(ul);
             } else {

@@ -186,16 +186,83 @@
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
 
-    {% if GOOGLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
-    <!-- Google One Tap -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <div id="g_id_onload"
-         data-client_id="{{ GOOGLE_SSO_CLIENT_ID }}"
-         data-callback="handleGoogleOneTapCredential"
-         data-auto_prompt="true"
-         data-cancel_on_tap_outside="false">
-    </div>
     <script>
+      window.SefariaInterruptiveUI = window.SefariaInterruptiveUI || (function() {
+        var storageKey = 'sefaria_interruptive_ui_seen';
+        return {
+          markShown: function() {
+            try { window.sessionStorage.setItem(storageKey, '1'); } catch (e) {}
+          },
+          wasShown: function() {
+            try { return window.sessionStorage.getItem(storageKey) === '1'; } catch (e) { return true; }
+          }
+        };
+      })();
+      document.addEventListener('sefaria:interruptive-ui-shown', function() {
+        window.SefariaInterruptiveUI.markShown();
+      });
+      window.SefariaAuth = window.SefariaAuth || {
+        useRedirect: function() {
+          return window.matchMedia('(max-width: 767px)').matches ||
+            /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+        },
+        setRedirectState: function(state) {
+          document.cookie = 'sso_redirect_state=' + encodeURIComponent(state) + '; Max-Age=900; Path=/; SameSite=Lax';
+        }
+      };
+    </script>
+
+    {% if GOOGLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
+    <script
+      src="https://accounts.google.com/gsi/client"
+      async
+      defer
+      onload="window.dispatchEvent(new Event('google-identity-loaded'))">
+    </script>
+    {% endif %}
+
+    {% if GOOGLE_SSO_CLIENT_ID and not request.user.is_authenticated and not suppress_one_tap %}
+    <!-- Google One Tap -->
+    <script>
+      function hasVisibleInterruptiveUI() {
+        var selectors = [
+          '.cookiesNotification',
+          '.siteWideBanner:not(.hidden)',
+          '.modal',
+          '.ui-widget-overlay',
+          '[role="dialog"][aria-modal="true"]'
+        ];
+        return selectors.some(function(selector) {
+          try {
+            return Array.prototype.some.call(document.querySelectorAll(selector), function(element) {
+              var style = window.getComputedStyle(element);
+              return style.display !== 'none' && style.visibility !== 'hidden' && element.getClientRects().length > 0;
+            });
+          } catch (e) {
+            return false;
+          }
+        });
+      }
+
+      function initializeGoogleOneTap() {
+        if (!window.google || !google.accounts || window.SefariaInterruptiveUI.wasShown()) {
+          return;
+        }
+        window.setTimeout(function() {
+          if (hasVisibleInterruptiveUI()) {
+            window.SefariaInterruptiveUI.markShown();
+            return;
+          }
+          google.accounts.id.initialize({
+            client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
+            callback: handleGoogleOneTapCredential,
+            cancel_on_tap_outside: false
+          });
+          google.accounts.id.prompt();
+        }, 1200);
+      }
+      window.addEventListener('google-identity-loaded', initializeGoogleOneTap);
+
       function handleGoogleOneTapCredential(response) {
         fetch('/api/auth/google/callback', {
           method: 'POST',

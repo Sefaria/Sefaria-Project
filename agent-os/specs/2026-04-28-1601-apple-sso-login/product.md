@@ -73,16 +73,21 @@ Same as Flow 1 via the Apple sign-in button. Apple only returns `email` and `nam
 3. If another login method exists (password or another social identity), the `SocialIdentity` row is deleted.
 4. If this would be the last login method, the action is blocked: "Set a password before removing your only login method."
 
-### Flow 7: Google email matches existing password account (collision)
+### Flow 7: SSO email matches existing password account (auto-link, password erased)
 
-- Backend detects the Google email matches an existing `User` with no linked Google identity.
-- Return error: "An account with this email already exists. Sign in with your password, then connect Google in **Settings → Login Methods**."
-- User logs in with password, then uses Flow 5.
+- Backend detects the SSO email (case-insensitively) matches an existing `User` with no linked identity for this `(provider, uid)`.
+- **The provider has signed a verified email into the ID token, so the SSO user demonstrably controls the mailbox.** The backend therefore **auto-links** a new `SocialIdentity` to the existing account and logs the user in — no error, no separate "connect in Settings" step required.
+- **The legacy password is then disabled** (`set_unusable_password()`): from that point the account is **SSO-only** and can only be accessed via Google/Apple. (The user can later re-add a password via Settings → Login Methods.) Per the product doc, the password is "effectively erased."
+- Implemented in `SocialAuthService.get_or_create_social_user` (`sso/service.py`).
+- **Precondition (hardening):** the provider verifier must assert `email_verified` before this auto-link/password-erase path runs. Auto-linking on an unverified provider email would be an account-takeover surface.
+- Password-erase and the `email_verified` gate are tracked in [`2026-06-08-1603-sso-phase2-linking-onetap`](../2026-06-08-1603-sso-phase2-linking-onetap/plan.md) (Tasks 1, 1b).
 
-### Flow 8: Password registration with an email already used for SSO
+### Flow 8: Email/password attempt for an account already registered via SSO
 
-- Registration form detects the email matches a `User` created via SSO (any provider).
-- Show: "This email is already registered via social login. Use the Sign in button for that provider to access your account."
+- An SSO-registered account is **blocked from the email/password path on both register and login**, informed that the account uses SSO, and given a **link to sign in via the provider**.
+- **Register:** `SefariaNewUserForm.clean_email` checks `social_identities.exists()` (any provider) and shows: "This email is already registered via {provider}. Sign in to access your account." (with a link to `/login`).
+- **Login:** `CustomLoginView` detects an SSO-only account (social identity present, no usable password) on auth failure and shows the same informative message + provider link instead of the generic "username and password didn't match."
+- The login-path handling and the registration link are tracked in [`2026-06-08-1603-sso-phase2-linking-onetap`](../2026-06-08-1603-sso-phase2-linking-onetap/plan.md) (Task 2).
 
 ---
 
@@ -131,7 +136,8 @@ On first SSO login: `assign_slug()`, `join_invited_collections()`, interface lan
 |---|---|
 | New user, no existing account | Create account with full side effects, log in |
 | Returning SSO user | Log in, no new records created |
-| Google/Apple email matches password account | Error with instructions to log in and connect via Settings |
+| Google/Apple email matches password account | Auto-link a new `SocialIdentity`, **disable the password** (`set_unusable_password()`), and log in. Provider email must be verified (`email_verified` gate at the provider boundary). Account becomes SSO-only. |
+| Email/password attempt (login or register) for an SSO account | Blocked, informed it's an SSO account, with a link to sign in via the provider — on **both** the register and login paths. |
 | Password registration with SSO email | Error prompting use of social login button |
 | User dismisses One Tap | No action; Google's default re-prompt behavior applies |
 | JWT verification fails | 401; generic error shown |

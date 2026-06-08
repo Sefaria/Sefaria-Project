@@ -30,7 +30,16 @@
                 <span class="int-en">Log in to Sefaria</span>
                 <span class="int-he">התחברות לספריא</span>
             </h1>
-            {% if form.errors %}
+            {% if form.sso_only_providers %}
+            <p class="error" id="sso-only-login-error">
+                {% trans "This account uses social sign-in. Use one of the connected providers below." %}
+                {% for provider in form.sso_only_providers %}
+                  <a href="{% if provider == "Google" %}#google-signin-button{% elif provider == "Apple" %}#appleid-signin{% else %}#sso-section{% endif %}">
+                    {% trans "Sign in with" %} {{ provider }}
+                  </a>
+                {% endfor %}
+            </p>
+            {% elif form.errors %}
             <p class="error">
                 <span class="int-en">Your username and password didn't match. Please try again.</span>
                 <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסו שוב.</span>
@@ -88,11 +97,12 @@
               function handleSSOSuccess() {
                 window.location.href = '{{ next|default:"/" }}';
               }
+              window.SefariaAuth.setRedirectState('{{ sso_redirect_state|escapejs }}');
 
               {% if GOOGLE_SSO_CLIENT_ID %}
-              window.addEventListener('load', function() {
+              function initializeGoogleSignInButton() {
                 if (window.google && window.google.accounts) {
-                  google.accounts.id.initialize({
+                  var googleConfig = {
                     client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
                     callback: function(response) {
                       fetch('/api/auth/google/callback', {
@@ -114,14 +124,26 @@
                         console.error('Google SSO error:', err);
                         handleSSOError('Sign in failed. Please try again.');
                       });
-                    },
-                  });
+                    }
+                  };
+                  if (window.SefariaAuth.useRedirect()) {
+                    googleConfig.ux_mode = 'redirect';
+                    googleConfig.login_uri = window.location.origin + '/auth/google/redirect';
+                    delete googleConfig.callback;
+                  } else {
+                    googleConfig.ux_mode = 'popup';
+                  }
+                  google.accounts.id.initialize(googleConfig);
                   google.accounts.id.renderButton(
                     document.getElementById('google-signin-button'),
                     {type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', width: 300}
                   );
                 }
-              });
+              }
+              window.addEventListener('google-identity-loaded', initializeGoogleSignInButton);
+              if (window.google && window.google.accounts) {
+                initializeGoogleSignInButton();
+              }
               {% endif %}
 
               {% if APPLE_SSO_CLIENT_ID %}
@@ -132,8 +154,9 @@
                   AppleID.auth.init({
                     clientId: '{{ APPLE_SSO_CLIENT_ID }}',
                     scope: 'name email',
-                    redirectURI: window.location.origin + '/login',
-                    usePopup: true,
+                    redirectURI: window.location.origin + '/auth/apple/redirect',
+                    state: '{{ sso_redirect_state|escapejs }}',
+                    usePopup: !window.SefariaAuth.useRedirect(),
                   });
                 };
                 document.head.appendChild(appleScript);

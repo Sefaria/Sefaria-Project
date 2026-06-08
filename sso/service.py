@@ -3,6 +3,7 @@ import urllib.error
 import urllib.request
 
 from django.db import transaction
+from django.contrib.auth.models import User
 from emailusernames.utils import create_user, get_user, user_exists
 
 from sso.models import SocialIdentity
@@ -27,9 +28,8 @@ class SocialAuthService:
         """Returns (user, is_new_user).
 
         If an existing account matches the SSO email but is not yet linked to this
-        (provider, uid), auto-link it. The provider has already asserted the email
-        is verified (Google/Apple both sign verified emails into the ID token), so
-        the SSO user demonstrably controls the mailbox.
+        (provider, uid), auto-link it. Provider verification must reject missing or
+        unverified email claims before this method is called.
         """
         try:
             identity = SocialIdentity.objects.select_related("user").get(provider=provider, uid=uid)
@@ -38,8 +38,12 @@ class SocialAuthService:
             pass
 
         if user_exists(email):
-            existing_user = get_user(email)
-            SocialIdentity.objects.create(provider=provider, uid=uid, email=email, user=existing_user)
+            with transaction.atomic():
+                existing_user = User.objects.select_for_update().get(pk=get_user(email).pk)
+                SocialIdentity.objects.create(provider=provider, uid=uid, email=email, user=existing_user)
+                if existing_user.has_usable_password():
+                    existing_user.set_unusable_password()
+                    existing_user.save(update_fields=["password"])
             return existing_user, False
 
         with transaction.atomic():
@@ -102,7 +106,7 @@ class SocialAuthService:
 
     @staticmethod
     def unlink_provider(user, provider):
-        """Removes a SocialIdentity. Raises LastLoginMethodError if user has no usable password."""
+        """Removes a SocialIdentity after the user has established a password."""
         if not user.has_usable_password():
             raise LastLoginMethodError()
         user.social_identities.filter(provider=provider).delete()

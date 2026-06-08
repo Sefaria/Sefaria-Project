@@ -76,6 +76,7 @@ from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from remote_config import remoteConfigCache
+from sso.utils import make_redirect_state, read_redirect_state, safe_next_url
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_linked, invalidate_counts, invalidate_all
@@ -93,6 +94,13 @@ class StaticViewMixin:
 
 class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        next_url = self.request.GET.get("next") or self.request.POST.get("next") or "/"
+        context["suppress_one_tap"] = True
+        context["sso_redirect_state"] = make_redirect_state(self.request, next_url)
+        return context
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
@@ -206,9 +214,15 @@ def process_register_form(request, auth_method='session'):
             auth_login(request, user)
         elif auth_method == 'jwt':
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
-    return {
+    errors = {
         k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
-    }, token_dict, form
+    }
+    if getattr(form, "sso_only_providers", None):
+        errors["_auth"] = {
+            "code": "sso_only_account",
+            "providers": form.sso_only_providers,
+        }
+    return errors, token_dict, form
 
 
 @api_view(["POST"])
@@ -254,6 +268,33 @@ def google_sso_callback(request):
 
 
 @csrf_exempt
+def google_sso_redirect(request):
+    from sso.providers.google import verify_token
+    from sso.service import SocialAuthService
+
+    if request.method != "POST":
+        return HttpResponseBadRequest("Google sign-in requires POST")
+    try:
+        payload = verify_token(request.POST.get("credential", ""))
+        user, _ = SocialAuthService.get_or_create_social_user(
+            provider="google",
+            uid=payload["sub"],
+            email=payload["email"],
+            first_name=payload["given_name"],
+            last_name=payload["family_name"],
+            request=request,
+        )
+    except Exception:
+        logger.exception("Google redirect sign-in failed")
+        return redirect("/login?sso_error=google")
+
+    auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
+    response = redirect(read_redirect_state(request, request.COOKIES.get("sso_redirect_state")))
+    response.delete_cookie("sso_redirect_state", path="/")
+    return response
+
+
+@csrf_exempt
 @api_view(["POST"])
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -287,6 +328,35 @@ def apple_sso_callback(request):
     refresh = RefreshToken.for_user(user)
     return jsonResponse({"status": "ok", "is_new_user": is_new_user,
                          "access": str(refresh.access_token), "refresh": str(refresh)})
+
+
+@csrf_exempt
+def apple_sso_redirect(request):
+    from sso.providers.apple import verify_token
+    from sso.service import SocialAuthService
+
+    if request.method != "POST":
+        return HttpResponseBadRequest("Apple sign-in requires POST")
+    try:
+        payload = verify_token(request.POST.get("id_token", ""))
+        user_data = json.loads(request.POST.get("user", "{}") or "{}")
+        name = user_data.get("name") or {}
+        user, _ = SocialAuthService.get_or_create_social_user(
+            provider="apple",
+            uid=payload["sub"],
+            email=payload["email"],
+            first_name=name.get("firstName", ""),
+            last_name=name.get("lastName", ""),
+            request=request,
+        )
+    except Exception:
+        logger.exception("Apple redirect sign-in failed")
+        return redirect("/login?sso_error=apple")
+
+    auth_login(request, user, backend="emailusernames.backends.EmailAuthBackend")
+    response = redirect(read_redirect_state(request, request.POST.get("state")))
+    response.delete_cookie("sso_redirect_state", path="/")
+    return response
 
 
 @login_required
@@ -346,15 +416,15 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next_url = request.GET.get('next', '')
+    next_url = safe_next_url(request, request.GET.get('next', ''), default="")
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
             if "new?assignment=" in request.POST.get("next", ""):
-                next_url = request.POST.get("next", "")
+                next_url = safe_next_url(request, request.POST.get("next", ""), default="/")
             else:
-                next_url = request.POST.get("next", "/")
+                next_url = safe_next_url(request, request.POST.get("next", "/"))
                 parsed = urlparse(next_url)
                 next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
             if "noredirect" in request.POST:
@@ -368,7 +438,13 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {
+        'form': form,
+        'next': next_url,
+        "renderStatic": True,
+        "suppress_one_tap": True,
+        "sso_redirect_state": make_redirect_state(request, next_url or "/"),
+    })
 
 
 def maintenance_message(request):
