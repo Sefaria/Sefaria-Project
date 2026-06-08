@@ -13,7 +13,9 @@ sefaria.search.TextIndexer and sefaria.search.index_sheet closely enough for
 local search-wrapper and UI development.
 """
 import argparse
+import copy
 import os
+import re
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
@@ -394,6 +396,68 @@ def sample_sheet_docs(now):
     ]
 
 
+GENESIS_SAMPLE_REFS = [f"Genesis 1:{verse}" for verse in range(1, 6)]  # Genesis 1:1–1:5
+
+
+def genesis_all_version_docs(backing_index):
+    """
+    Build sample text docs for Genesis 1:1 through Genesis 1:5, in EVERY version
+    Sefaria has, pulled from the real database via VersionSet({"title": "Genesis"}).
+
+    Unlike the synthetic docs above, this reads Mongo, so we set Sefaria up lazily
+    here (rather than at import) to keep the rest of the script DB-free. Each doc
+    reuses the synthetic Genesis 1:1 doc as a template for the shared (book-level)
+    fields, overriding the per-verse fields (ref/heRef/order) and then the per
+    version fields (version/lang/content/...).
+    """
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
+    import django
+    django.setup()
+    from sefaria.model import Ref, VersionSet, TextChunk
+    from sefaria.search import make_text_doc_id
+
+    template = copy.deepcopy(sample_text_docs()[0]["_source"])
+    template["titleVariants"] = Ref("Genesis 1:1").index_node.all_tree_titles("en")
+    template["linked_refs"] = []
+
+    versions = list(VersionSet({"title": "Genesis"}))  # fetch the version list once
+
+    docs = []
+    for tref in GENESIS_SAMPLE_REFS:
+        oref = Ref(tref)
+        verse_base = copy.deepcopy(template)
+        verse_base.update({
+            "ref": oref.normal(),
+            "heRef": oref.he_normal(),
+            "order": oref.order_id(),
+        })
+        for priority, v in enumerate(versions):
+            vtitle, vlang = v.versionTitle, v.language
+            content = TextChunk(oref, vlang, vtitle=vtitle).text
+            if isinstance(content, list):
+                content = " ".join(content)
+            content = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", content or "")).strip()
+            if not content:
+                continue  # this version has no text at this verse
+            source = copy.deepcopy(verse_base)
+            source.update({
+                "version": vtitle,
+                "lang": vlang,
+                "version_priority": priority,
+                "exact": content,
+                "naive_lemmatizer": content,
+                "hebrew_version_title": getattr(v, "versionTitleInHebrew", None),
+                "languageFamilyName": getattr(v, "languageFamilyName", None) or ("hebrew" if vlang == "he" else "english"),
+                "isPrimary": bool(getattr(v, "isPrimary", False)),
+            })
+            docs.append({
+                "_index": backing_index,
+                "_id": make_text_doc_id(oref.normal(), vtitle, vlang),
+                "_source": source,
+            })
+    return docs
+
+
 def main():
     parser = argparse.ArgumentParser(description="Populate local Elasticsearch with tiny Sefaria sample indices.")
     parser.add_argument("--url", default=SEARCH_URL, help="Elasticsearch URL. Defaults to SEARCH_URL or localhost.")
@@ -421,9 +485,14 @@ def main():
     for doc in sheet_docs:
         doc["_index"] = sheet_backing
 
+    # Real Genesis 1:1–1:5 docs, one per version per verse (already _index-tagged).
+    genesis_docs = genesis_all_version_docs(text_backing)
+    text_docs += genesis_docs
+
     bulk(es, text_docs + sheet_docs, refresh=True)
 
-    print(f"Created alias {TEXT_INDEX} -> {text_backing} with {len(text_docs)} text docs")
+    print(f"Created alias {TEXT_INDEX} -> {text_backing} with {len(text_docs)} text docs "
+          f"({len(genesis_docs)} of them Genesis 1:1–1:5 versions)")
     print(f"Created alias {SHEET_INDEX} -> {sheet_backing} with {len(sheet_docs)} sheet docs")
     print("Try: curl 'http://localhost:9200/text/_search?q=beginning&pretty'")
 
