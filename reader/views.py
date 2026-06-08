@@ -4632,8 +4632,10 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    version_param = f'ven={my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{version_param}&lang=bi'
+                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    version_param = f'{my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
+                    params = urllib.parse.urlencode({'ven': version_param, "lang": "bi"})
+                    to_add["url"] = f'/{ref}?{params}'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
