@@ -49,15 +49,21 @@ function entityHitToSearchTopic(hit, type) {
     topicCat = "Authors";
     heTopicCat = Sefaria.hebrewTranslation("Authors");
   } else if (isBook) {
-    topicCat = hit.categories?.[0] || "Books";
-    heTopicCat = topicCat;  // POC: reuse the English category label for Hebrew too
+    // Label a single book with its own category and a category aggregation with its
+    // parent category (both supplied by the backend); flat search hits carry a raw
+    // `categories` path instead. Fall back to "Books" when nothing is available.
+    const topCat = hit.categories?.[0];
+    topicCat = hit.category_en || topCat || "Books";
+    heTopicCat = hit.category_he || hit.category_en || topCat || "Books";
   } else {
     topicCat = "Topics";
     heTopicCat = Sefaria.hebrewTranslation("Topics");
   }
 
   const title = hit.title_en || hit.title_he || hit.slug || "";
-  const url = isBook ? `/${title.replace(/ /g, "_")}` : `/topics/${hit.slug}`;
+  // Aggregated book entries carry their own url (which may be a category page rather
+  // than a single ref); fall back to deriving one from the title for flat results.
+  const url = hit.url || (isBook ? `/${title.replace(/ /g, "_")}` : `/topics/${hit.slug}`);
 
   const searchTopic = {
     analyticCat: topicCat,

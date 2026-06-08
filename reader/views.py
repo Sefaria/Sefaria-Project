@@ -1070,10 +1070,11 @@ def search_poc(request):
     """
     search_params = get_search_params(request.GET)
 
-    props = {
+    props = base_props(request)
+    props.update({
         "initialMenu": "search-poc",
         "initialQuery": search_params["query"],
-    }
+    })
     return render_template(request, 'base.html', props, {
         "title": get_page_title("Search POC", module=request.active_module),
         "desc": _("Search proof-of-concept page."),
@@ -4807,6 +4808,7 @@ def search_poc_api(request):
     """
     from sefaria.helper.search import get_elasticsearch_client
     from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+    from sefaria.model.topic import AuthorTopic
 
     query = request.GET.get("q", "").strip()
     entity_type = request.GET.get("type", "topic")
@@ -4819,38 +4821,69 @@ def search_poc_api(request):
         "titleVariants^2",
         "description_en", "description_he",
     ]
-    if entity_type == "book":
-        index_name = SEARCH_INDEX_NAME_BOOK
-        filters = []
-        # match the author's name too, so e.g. "Rambam" returns Mishneh Torah books
-        # (which carry his name only via the denormalized author_names field).
-        fields.append("author_names^2")
-    elif entity_type == "author":
-        index_name = SEARCH_INDEX_NAME_TOPIC
-        filters = [{"term": {"subtype": "author"}}]
-    else:  # "topic"
-        index_name = SEARCH_INDEX_NAME_TOPIC
-        filters = [{"term": {"subtype": "topic"}}]
-
-    es_query = {
-        "bool": {
-            "must": {
-                "multi_match": {
-                    "query": query,
-                    "fields": fields,
-                    "type": "best_fields",
-                }
-            },
-            "filter": filters,
-        }
-    }
 
     es_client = get_elasticsearch_client()
-    response = es_client.search(index=index_name, query=es_query, size=100)
-    hits = [
-        {"id": h["_id"], "score": h["_score"], **h["_source"]}
-        for h in response["hits"]["hits"]
-    ]
+
+    def entity_search(index_name, search_fields, filters, size=100):
+        es_query = {
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": search_fields,
+                        "type": "best_fields",
+                    }
+                },
+                "filter": filters,
+            }
+        }
+        response = es_client.search(index=index_name, query=es_query, size=size)
+        return response["hits"]["hits"]
+
+    def flat_book_hits():
+        # match the author's name too, so e.g. "Rambam" returns Mishneh Torah books
+        # (which carry his name only via the denormalized author_names field).
+        raw = entity_search(SEARCH_INDEX_NAME_BOOK, fields + ["author_names^2"], [])
+        return [{"id": h["_id"], "score": h["_score"], **h["_source"]} for h in raw]
+
+    if entity_type == "book":
+        # Books tab: if the query resolves to an author, return that author's works
+        # aggregated by category (so e.g. the 88 Mishneh Torah volumes collapse to a
+        # single "Mishneh Torah" entry) via AuthorTopic. When no author matches —
+        # e.g. a plain book-title query like "Genesis" — fall back to a flat text
+        # search over the book index.
+        author_hits = entity_search(
+            SEARCH_INDEX_NAME_TOPIC, fields, [{"term": {"subtype": "author"}}], size=1)
+        if author_hits:
+            slug = author_hits[0]["_source"].get("slug")
+            author = AuthorTopic.init(slug) if slug else None
+            if author and isinstance(author, AuthorTopic):
+                aggregated = author.get_aggregated_urls_for_authors_indexes()
+                if aggregated:
+                    # Category aggregations first, single books at the bottom (stable
+                    # within each group, preserving the model's original ordering).
+                    aggregated = sorted(aggregated, key=lambda agg: not agg.get("isCategory"))
+                    hits = [
+                        {
+                            "id": agg["url"],
+                            "url": agg["url"],
+                            "title_en": agg["title"].get("en", ""),
+                            "title_he": agg["title"].get("he", ""),
+                            "description_en": agg["description"].get("en", ""),
+                            "description_he": agg["description"].get("he", ""),
+                            "isCategory": agg.get("isCategory", False),
+                            "category_en": (agg.get("category") or {}).get("en"),
+                            "category_he": (agg.get("category") or {}).get("he"),
+                        }
+                        for agg in aggregated
+                    ]
+                    return jsonResponse({"hits": hits, "aggregatedByAuthor": author.slug})
+        return jsonResponse({"hits": flat_book_hits()})
+
+    # topic / author tabs both hit the topic index, distinguished by subtype.
+    subtype = "author" if entity_type == "author" else "topic"
+    raw = entity_search(SEARCH_INDEX_NAME_TOPIC, fields, [{"term": {"subtype": subtype}}])
+    hits = [{"id": h["_id"], "score": h["_score"], **h["_source"]} for h in raw]
     return jsonResponse({"hits": hits})
 
 
