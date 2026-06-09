@@ -420,6 +420,7 @@ body.hasBannerMessage #s2.headerOnly {
   font-style: normal;
   font-weight: 600;
   line-height: 18px;
+  margin-bottom: 0;
 }
 .siteWideBanner .siteWideBannerClose {
   margin-inline-start: 70px;
