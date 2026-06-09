@@ -12,6 +12,7 @@ import bleach
 import pymongo
 
 from collections import defaultdict
+from functools import lru_cache
 import time as pytime
 
 from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
@@ -25,7 +26,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
+from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
@@ -340,6 +341,14 @@ def create_index(index_name, type, force=False):
         logger.debug(f"Applying sheet mapping to index - index_name: {index_name}")
         put_sheet_mapping(index_name)
         logger.debug(f"Sheet mapping applied successfully - index_name: {index_name}")
+    elif type == 'topic':
+        logger.debug(f"Applying topic mapping to index - index_name: {index_name}")
+        put_topic_mapping(index_name)
+        logger.debug(f"Topic mapping applied successfully - index_name: {index_name}")
+    elif type == 'book':
+        logger.debug(f"Applying book mapping to index - index_name: {index_name}")
+        put_book_mapping(index_name)
+        logger.debug(f"Book mapping applied successfully - index_name: {index_name}")
     else:
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
@@ -349,6 +358,9 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
+        '_source': {
+            'excludes': ['linked_refs']
+        },
         'properties' : {
             'categories': {
                 'type': 'keyword',
@@ -400,6 +412,9 @@ def put_text_mapping(index_name):
                         'analyzer': 'exact_english'
                     }
                 }
+            },
+            "linked_refs": {
+                'type': 'keyword'
             }
         }
     }
@@ -470,6 +485,121 @@ def put_sheet_mapping(index_name):
         }
     }
     index_client.put_mapping(body=sheet_mapping, index=index_name)
+
+
+def put_topic_mapping(index_name):
+    """
+    Sets mapping for the topic document type. This index holds both topics and
+    authors; the `subtype` field ("topic" or "author") distinguishes them, and the
+    author-only fields (era, birthYear, deathYear, authored_slugs) are simply absent
+    on plain topic documents.
+    """
+    topic_mapping = {
+        'properties': {
+            'slug': {
+                'type': 'keyword'
+            },
+            'subtype': {
+                'type': 'keyword'  # "topic" or "author"
+            },
+            'title_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'fields': {'keyword': {'type': 'keyword'}}  # for exact match / sort
+            },
+            'title_he': {
+                'type': 'text',
+                'fields': {'keyword': {'type': 'keyword'}}
+            },
+            'titleVariants': {
+                'type': 'text',
+                'analyzer': 'stemmed_english'  # alternate titles, drives recall
+            },
+            'description_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english'
+            },
+            'description_he': {
+                'type': 'text'
+            },
+            'numSources': {
+                'type': 'integer'  # popularity signal for default sort
+            },
+            # author-only fields below (sparse - absent on plain topics)
+            'era': {
+                'type': 'keyword'
+            },
+            'birthYear': {
+                'type': 'integer'
+            },
+            'deathYear': {
+                'type': 'integer'
+            },
+            'authored_slugs': {
+                'type': 'keyword'  # slugs of Index records this author wrote
+            }
+        }
+    }
+    index_client.put_mapping(body=topic_mapping, index=index_name)
+
+
+def put_book_mapping(index_name):
+    """
+    Sets mapping for the book document type (one document per Index record).
+    `path` reuses the same hierarchical "Cat/Subcat/Title" pattern as the text index
+    so the existing category-path filter logic can be reused on the query side.
+    """
+    book_mapping = {
+        'properties': {
+            'title_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'fields': {'keyword': {'type': 'keyword'}}
+            },
+            'title_he': {
+                'type': 'text',
+                'fields': {'keyword': {'type': 'keyword'}}
+            },
+            'titleVariants': {
+                'type': 'text',
+                'analyzer': 'stemmed_english'
+            },
+            'categories': {
+                'type': 'keyword'
+            },
+            'path': {
+                'type': 'keyword'  # "Cat/Subcat/Title" - hierarchical, like the text index
+            },
+            'description_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english'
+            },
+            'description_he': {
+                'type': 'text'
+            },
+            'compDate': {
+                'type': 'integer'
+            },
+            'era': {
+                'type': 'keyword'
+            },
+            'authors': {
+                'type': 'keyword'  # author slugs - links to the topic index
+            },
+            'author_names': {
+                # denormalized author titles (en + he, incl. variants) so a search for
+                # "Rambam"/"Maimonides" matches his books even when his name isn't in the
+                # title (e.g. "Mishneh Torah, Blessings"), which are linked only by `authors`.
+                'type': 'text',
+                'analyzer': 'stemmed_english'
+            },
+            'order': {
+                'type': 'keyword'
+            }
+        }
+    }
+    index_client.put_mapping(body=book_mapping, index=index_name)
+
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -750,11 +880,13 @@ class TextIndexer(object):
                 if rolled_back:
                     vcount -= rolled_back
                     failed += rolled_back
-        
+
+            if idx_count % 100 == 0:
+                elapsed_so_far = datetime.now() - start_time
+                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+
         elapsed = datetime.now() - start_time
-        # Only log if there are failures or skips
-        if failed > 0 or skipped > 0:
-            logger.debug(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
@@ -807,7 +939,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, doc, id=id)
+        es_client.index(index=index_name, document=doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
@@ -891,6 +1023,12 @@ class TextIndexer(object):
 
         oref = Ref(tref)
 
+        linked_refs = []
+        for link in LinkSet(oref):
+            linked_refs.extend(link.expandedRefs0)
+            linked_refs.extend(link.expandedRefs1)
+        linked_refs = list({r for r in linked_refs if r != tref})
+
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
@@ -916,6 +1054,7 @@ class TextIndexer(object):
             'hebrew_version_title': hebrew_version_title,
             "languageFamilyName": language_family_name,
             "isPrimary": is_primary,
+            "linked_refs": linked_refs,
         }
 
 
@@ -997,6 +1136,162 @@ def index_public_notes():
     pass
 
 
+def _safe_int(value):
+    """Return value as an int, or None if it can't be coerced (e.g. approximate dates)."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def make_topic_doc(topic):
+    """
+    Build an Elasticsearch document for a Topic. Authors are a subtype of Topic, so
+    this also handles AuthorTopic, adding the author-only fields (era, dates, works).
+    Returns the document dict, or None if critical fields are missing.
+    """
+    primary_en = topic.get_primary_title('en')
+    primary_he = topic.get_primary_title('he')
+    if not topic.slug or not (primary_en or primary_he):
+        return None  # need a slug and a title in at least one language (many topics are Hebrew-only)
+
+    description = getattr(topic, 'description', {}) or {}
+    doc = {
+        "slug": topic.slug,
+        "subtype": "author" if isinstance(topic, AuthorTopic) else "topic",
+        "title_en": primary_en,
+        "title_he": primary_he,
+        "titleVariants": topic.get_titles('en') + topic.get_titles('he'),
+        "description_en": strip_tags(description.get('en') or ""),
+        "description_he": strip_tags(description.get('he') or ""),
+        "numSources": getattr(topic, 'numSources', 0),
+    }
+
+    if isinstance(topic, AuthorTopic):
+        doc["era"] = topic.get_property('era')
+        doc["birthYear"] = _safe_int(topic.get_property('birthYear'))
+        doc["deathYear"] = _safe_int(topic.get_property('deathYear'))
+        doc["authored_slugs"] = [i.title for i in topic.get_authored_indexes()]
+
+    return doc
+
+
+def index_topics(index_name):
+    """
+    Index all topics (including authors) into `index_name`.
+    Returns a list of slugs that failed to index.
+    """
+    start_time = datetime.now()
+    logger.debug(f"Starting index_topics - index_name: {index_name}")
+
+    failed_slugs = []
+    succeeded = 0
+
+    for topic in TopicSet():
+        try:
+            doc = make_topic_doc(topic)
+            if doc is None:
+                failed_slugs.append(getattr(topic, 'slug', 'Unknown'))
+                continue
+            es_client.create(index=index_name, id=topic.slug, body=doc)
+            succeeded += 1
+        except Exception as e:
+            failed_slugs.append(getattr(topic, 'slug', 'Unknown'))
+
+    elapsed = datetime.now() - start_time
+    if failed_slugs:
+        logger.info(f"Completed index_topics - index_name: {index_name}, succeeded: {succeeded}, failed: {len(failed_slugs)}, elapsed: {elapsed}, failed_sample: {failed_slugs[:20]}")
+    else:
+        logger.info(f"Completed index_topics - index_name: {index_name}, succeeded: {succeeded}, elapsed: {elapsed}")
+
+    return failed_slugs
+
+
+@lru_cache(maxsize=None)
+def _author_display_names(slug):
+    """All titles (en + he, including variants) of the author topic with this slug.
+    Cached because the same author authors many books. Used to denormalize author
+    names onto book docs so an author-name search matches their books."""
+    author = Topic.init(slug)
+    if not author:
+        return []
+    return author.get_titles('en') + author.get_titles('he')
+
+
+def make_book_doc(index):
+    """
+    Build an Elasticsearch document for an Index (book) record.
+    Returns the document dict, or None if critical fields are missing.
+    """
+    title_en = index.get_title('en')
+    if not title_en:
+        return None
+
+    try:
+        title_he = index.get_title('he')
+    except Exception:
+        title_he = None
+
+    title_variants = (index.all_titles('en') or []) + (index.all_titles('he') or [])
+    categories = getattr(index, 'categories', []) or []
+
+    # compDate is stored as a list of integers; take the first as a single sortable year.
+    comp_date = getattr(index, 'compDate', None)
+    if isinstance(comp_date, list):
+        comp_date = comp_date[0] if comp_date else None
+
+    author_slugs = getattr(index, 'authors', []) or []
+    author_names = []
+    for slug in author_slugs:
+        author_names += _author_display_names(slug)
+
+    return {
+        "title_en": title_en,
+        "title_he": title_he,
+        "titleVariants": title_variants,
+        "categories": categories,
+        "path": "/".join(categories + [title_en]),  # hierarchical, like the text index
+        "description_en": getattr(index, 'enShortDesc', '') or "",
+        "description_he": getattr(index, 'heShortDesc', '') or "",
+        "compDate": _safe_int(comp_date),
+        "era": getattr(index, 'era', None),
+        "authors": author_slugs,
+        "author_names": author_names,
+        "order": getattr(index, 'order', None),
+    }
+
+
+def index_books(index_name):
+    """
+    Index all Index (book) records into `index_name`.
+    Returns a list of titles that failed to index.
+    """
+    start_time = datetime.now()
+    logger.debug(f"Starting index_books - index_name: {index_name}")
+
+    failed_titles = []
+    succeeded = 0
+
+    for index in library.all_index_records():
+        try:
+            doc = make_book_doc(index)
+            if doc is None:
+                failed_titles.append(getattr(index, 'title', 'Unknown'))
+                continue
+            es_client.create(index=index_name, id=index.title, body=doc)
+            succeeded += 1
+        except Exception as e:
+            failed_titles.append(getattr(index, 'title', 'Unknown'))
+
+    elapsed = datetime.now() - start_time
+    if failed_titles:
+        logger.info(f"Completed index_books - index_name: {index_name}, succeeded: {succeeded}, failed: {len(failed_titles)}, elapsed: {elapsed}, failed_sample: {failed_titles[:20]}")
+    else:
+        logger.info(f"Completed index_books - index_name: {index_name}, succeeded: {succeeded}, elapsed: {elapsed}")
+
+    return failed_titles
+
+
 def clear_index(index_name):
     """
     Delete the search index.
@@ -1067,6 +1362,8 @@ def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
         'text': SEARCH_INDEX_NAME_TEXT,
         'sheet': SEARCH_INDEX_NAME_SHEET,
+        'topic': SEARCH_INDEX_NAME_TOPIC,
+        'book': SEARCH_INDEX_NAME_BOOK,
     }
     debug_suffix = '-debug' if debug else ''
     index_name_a = f"{base_index_name_dict[type]}-a{debug_suffix}"
@@ -1233,6 +1530,14 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         logger.debug("Starting sheet indexing")
         index_public_sheets(index_name)
         logger.debug("Completed sheet indexing")
+    elif type == 'topic':
+        logger.debug("Starting topic indexing")
+        index_topics(index_name)
+        logger.debug("Completed topic indexing")
+    elif type == 'book':
+        logger.debug("Starting book indexing")
+        index_books(index_name)
+        logger.debug("Completed book indexing")
     else:
         logger.error(f"Unknown index type - type: {type}")
         raise ValueError(f"Unknown index type: {type}")

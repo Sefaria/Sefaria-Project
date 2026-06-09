@@ -397,6 +397,7 @@ cryptography==42.0.7
 # Additional packages from master
 redis==5.2.1
 git+https://github.com/Sefaria/ne_span.git@v1.0.2
+levenshtein==0.27.1
 langchain-openai==0.2.14
 langchain-anthropic==0.3.22
 langchain-core==0.3.83

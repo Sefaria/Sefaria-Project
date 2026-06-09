@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test"
-import {changeLanguage} from "../utils"
-import {LANGUAGES} from '../globals'
+import { changeLanguage } from "../utils"
+import { LANGUAGES } from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
 import { TopicsPage } from "./topicsPage"
@@ -11,8 +11,17 @@ import { SearchPage } from "./searchPage"
 import { UserMenu } from "./userMenu"
 import { SourceTextPage } from "./sourceTextPage"
 import { SheetEditorPage } from "./sheetEditorPage"
+import { ModuleHeaderPage } from "./moduleHeaderPage"
+import { ModuleSidebarPage } from "./moduleSidebarPage"
+import { ProfilePage } from "./profilePage"
+import { EditProfilePage } from "./editProfilePage"
+import { AccountSettingsPage } from "./accountSettingsPage"
+import { LibraryAssistantPage } from "./libraryAssistantPage"
+import { ResourcePanelPage } from "./resourcePanelPage"
+import { MobileHamburgerPage } from "./mobileHamburgerPage"
 
-export class PageManager{
+
+export class PageManager {
     private readonly page: Page
     private readonly banner: Banner
     private readonly textsPage: TextsPage
@@ -24,9 +33,18 @@ export class PageManager{
     private readonly userMenu: UserMenu
     private readonly sourceTextPage: SourceTextPage
     private readonly sheetEditorPage: SheetEditorPage
-    
+    private readonly moduleHeaderPage: ModuleHeaderPage
+    private readonly moduleSidebarPage: ModuleSidebarPage
+    private readonly profilePage: ProfilePage
+    private readonly editProfilePage: EditProfilePage
+    private readonly accountSettingsPage: AccountSettingsPage
+    private readonly libraryAssistantPage: LibraryAssistantPage
+    private readonly resourcePanelPage: ResourcePanelPage
+    private readonly mobileHamburgerPage: MobileHamburgerPage
 
-    constructor(page: Page, language: string){
+
+
+    constructor(page: Page, language: string) {
         this.page = page
         this.banner = new Banner(page, language)
         this.textsPage = new TextsPage(page, language)
@@ -38,46 +56,89 @@ export class PageManager{
         this.userMenu = new UserMenu(page, language)
         this.sourceTextPage = new SourceTextPage(page, language)
         this.sheetEditorPage = new SheetEditorPage(page, language)
+        this.moduleHeaderPage = new ModuleHeaderPage(page, language)
+        this.moduleSidebarPage = new ModuleSidebarPage(page, language)
+        this.profilePage = new ProfilePage(page, language)
+        this.editProfilePage = new EditProfilePage(page, language)
+        this.accountSettingsPage = new AccountSettingsPage(page, language)
+        this.libraryAssistantPage = new LibraryAssistantPage(page, language)
+        this.resourcePanelPage = new ResourcePanelPage(page, language)
+        this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
+
     }
 
-    navigateFromBannerTo(){
+    navigateFromBannerTo() {
         // This method is used to navigate to different pages using the banner
         return this.banner
     }
 
-    onTextsPage(){
+    onTextsPage() {
         return this.textsPage
     }
 
-    onTopicsPage(){
+    onTopicsPage() {
         return this.topicsPage
     }
 
-    onDonatePage(){
+    onDonatePage() {
         return this.donatePage
     }
 
-    onLoginPage(){
+    onLoginPage() {
         return this.loginPage
     }
 
-    onSignUpPage(){
+    onSignUpPage() {
         return this.signupPage
     }
 
-    onSearchPage(){
+    onSearchPage() {
         return this.searchPage
     }
 
-    onUserMenu(){
+    onUserMenu() {
         return this.userMenu
     }
 
-    onSourceTextPage(){
+    onSourceTextPage() {
         return this.sourceTextPage
     }
 
-    onSourceSheetEditorPage(){
+    onSourceSheetEditorPage() {
         return this.sheetEditorPage
     }
+
+    onModuleHeader() {
+        return this.moduleHeaderPage
+    }
+
+    onModuleSidebar() {
+        return this.moduleSidebarPage
+    }
+
+    onProfilePage() {
+        return this.profilePage
+    }
+
+    onEditProfilePage() {
+        return this.editProfilePage
+    }
+
+    onAccountSettingsPage() {
+        return this.accountSettingsPage
+    }
+
+    onLibraryAssistant() {
+        return this.libraryAssistantPage
+    }
+
+    onResourcePanel() {
+        return this.resourcePanelPage
+    }
+
+    onMobileHamburger() {
+        return this.mobileHamburgerPage
+    }
+
+
 }

@@ -9,9 +9,6 @@ metadata:
 spec:
   gatewayClassName: {{ .Values.gateway.className }}
   listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
     {{- range .Values.domains.root }}
     {{- $code := .code }}
     {{- if kindIs "slice" $code }}
@@ -20,6 +17,10 @@ spec:
     {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
     {{- $wwwDomain := printf "www.%s" $rootDomain }}
     {{- $secretName := tpl .cert $ | default ( printf "origin-%s-%s-tls"  $.Values.deployEnv $code ) }}
+    - name: http-{{ $code }}
+      protocol: HTTP
+      port: 80
+      hostname: {{ $rootDomain }}
     - name: https-{{ $code }}
       protocol: HTTPS
       port: 443
@@ -30,6 +31,10 @@ spec:
           - kind: Secret
             group: ""
             name: {{ $secretName }}
+    - name: http-www-{{ $code }}
+      protocol: HTTP
+      port: 80
+      hostname: {{ $wwwDomain }}
     - name: https-www-{{ $code }}
       protocol: HTTPS
       port: 443
@@ -43,11 +48,15 @@ spec:
     {{- range $.Values.domains.modules }}
     {{- $subdomain := index .subdomains $code }}
     {{- if $subdomain }}
+    {{- $subdomainURL := printf "%s.%s" $subdomain $rootDomain }}
+    - name: http-{{ $subdomain }}-{{ $code }}
+      protocol: HTTP
+      port: 80
+      hostname: {{ $subdomainURL }}
     - name: https-{{ $subdomain }}-{{ $code }}
       protocol: HTTPS
       port: 443
-      {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
-      hostname: {{ $subdomain }}
+      hostname: {{ $subdomainURL }}
       tls:
         mode: Terminate
         certificateRefs:
