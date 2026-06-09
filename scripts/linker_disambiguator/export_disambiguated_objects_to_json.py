@@ -19,6 +19,8 @@ from datetime import datetime
 import django
 django.setup()
 
+from tqdm import tqdm
+
 from sefaria.system.database import db
 
 
@@ -34,60 +36,94 @@ def _serialize(obj):
     return obj
 
 
+def _open_json_array(f):
+    f.write("[\n")
+
+
+def _write_item(f, item, first):
+    if not first:
+        f.write(",\n")
+    json.dump(item, f, ensure_ascii=False, indent=2)
+
+
+def _close_json_array(f):
+    f.write("\n]\n")
+
+
+LINK_BATCH_SIZE = 1000
+
+
 def main():
     parser = argparse.ArgumentParser(description="Export disambiguated objects to JSON files")
     parser.add_argument("--output-dir", "-o", default=".", help="Output directory (default: current dir)")
     args = parser.parse_args()
 
-    docs = list(db.linker_disambiguation_tmp.find())
-    print(f"Loaded {len(docs)} docs from linker_disambiguation_tmp")
+    os.makedirs(args.output_dir, exist_ok=True)
 
-    mutc_keys = set()  # (ref, versionTitle, language)
-    link_ids = []      # ObjectId, in order (deduplicated)
+    mutc_keys = set()
+    link_ids = []
     seen_link_ids = set()
 
-    for doc in docs:
-        doc_type = doc.get("type")
-        if doc_type == "mutc":
-            ref = doc.get("ref")
-            vtitle = doc.get("versionTitle")
-            lang = doc.get("language")
-            if ref and vtitle and lang:
-                mutc_keys.add((ref, vtitle, lang))
-        elif doc_type == "link" and doc.get("link"):
-            link_id = doc.get("id")
-            if link_id and link_id not in seen_link_ids:
-                link_ids.append(link_id)
-                seen_link_ids.add(link_id)
+    total = db.linker_disambiguation_tmp.count_documents({})
+    cursor = db.linker_disambiguation_tmp.find(
+        {}, {"type": 1, "ref": 1, "versionTitle": 1, "language": 1, "link": 1, "id": 1}
+    )
+    with tqdm(cursor, total=total, desc="Scanning tmp collection", unit="doc") as bar:
+        for doc in bar:
+            doc_type = doc.get("type")
+            if doc_type == "mutc":
+                ref = doc.get("ref")
+                vtitle = doc.get("versionTitle")
+                lang = doc.get("language")
+                if ref and vtitle and lang:
+                    mutc_keys.add((ref, vtitle, lang))
+            elif doc_type == "link" and doc.get("link"):
+                link_id = doc.get("id")
+                if link_id and link_id not in seen_link_ids:
+                    link_ids.append(link_id)
+                    seen_link_ids.add(link_id)
+    del seen_link_ids
 
-    print(f"Unique MUTC keys: {len(mutc_keys)}, unique link IDs: {len(link_ids)}")
+    print(f"Unique MUTC keys: {len(mutc_keys):,}, unique link IDs: {len(link_ids):,}")
 
-    mutc_docs = []
-    linker_output_docs = []
-    for ref, vtitle, lang in mutc_keys:
-        query = {"ref": ref, "versionTitle": vtitle, "language": lang}
-        mutc = db.marked_up_text_chunks.find_one(query)
-        if mutc:
-            mutc_docs.append(_serialize(mutc))
-        lo = db.linker_output.find_one(query)
-        if lo:
-            linker_output_docs.append(_serialize(lo))
+    mutc_path = os.path.join(args.output_dir, "marked_up_text_chunks.json")
+    lo_path = os.path.join(args.output_dir, "linker_output.json")
+    links_path = os.path.join(args.output_dir, "links.json")
 
-    link_docs = []
-    for link_id in link_ids:
-        link = db.links.find_one({"_id": link_id})
-        if link:
-            link_docs.append(_serialize(link))
+    mutc_count = lo_count = 0
+    with open(mutc_path, "w", encoding="utf-8") as mutc_f, \
+         open(lo_path, "w", encoding="utf-8") as lo_f:
+        _open_json_array(mutc_f)
+        _open_json_array(lo_f)
+        with tqdm(mutc_keys, total=len(mutc_keys), desc="Fetching MUTC + linker_output", unit="key") as bar:
+            for ref, vtitle, lang in bar:
+                query = {"ref": ref, "versionTitle": vtitle, "language": lang}
+                mutc = db.marked_up_text_chunks.find_one(query)
+                if mutc:
+                    _write_item(mutc_f, _serialize(mutc), mutc_count == 0)
+                    mutc_count += 1
+                lo = db.linker_output.find_one(query)
+                if lo:
+                    _write_item(lo_f, _serialize(lo), lo_count == 0)
+                    lo_count += 1
+        _close_json_array(mutc_f)
+        _close_json_array(lo_f)
+    del mutc_keys
+    print(f"Saved {mutc_count:,} marked_up_text_chunks to {mutc_path}")
+    print(f"Saved {lo_count:,} linker_output docs to {lo_path}")
 
-    def _write(path, data, label):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"Saved {len(data)} {label} to {path}")
-
-    _write(os.path.join(args.output_dir, "links.json"), link_docs, "links")
-    _write(os.path.join(args.output_dir, "linker_output.json"), linker_output_docs, "linker_output docs")
-    _write(os.path.join(args.output_dir, "marked_up_text_chunks.json"), mutc_docs, "marked_up_text_chunks docs")
+    link_count = 0
+    num_batches = (len(link_ids) + LINK_BATCH_SIZE - 1) // LINK_BATCH_SIZE
+    with open(links_path, "w", encoding="utf-8") as links_f:
+        _open_json_array(links_f)
+        with tqdm(range(0, len(link_ids), LINK_BATCH_SIZE), total=num_batches, desc="Fetching links", unit="batch") as bar:
+            for batch_start in bar:
+                batch = link_ids[batch_start:batch_start + LINK_BATCH_SIZE]
+                for link in db.links.find({"_id": {"$in": batch}}):
+                    _write_item(links_f, _serialize(link), link_count == 0)
+                    link_count += 1
+        _close_json_array(links_f)
+    print(f"Saved {link_count:,} links to {links_path}")
 
 
 if __name__ == "__main__":
