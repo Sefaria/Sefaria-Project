@@ -81,35 +81,38 @@ Point it at a production ES read replica or a staging cluster carrying the real
 
 ---
 
-## 2. No cronjob reindexes the `topic` and `book` indices
+## 2. Entity indices refresh only on the reindex cron — no on-save freshness
 
-### The limitation
+### What changed
 
-The scheduled Elasticsearch reindex only covers **texts and sheets** — not the
-`topic` and `book` indices that the entity-search POC depends on.
-
-The cronjob is defined in
+The scheduled Elasticsearch reindex now rebuilds the `topic` and `book` indices
+alongside texts and sheets. The cronjob is defined in
 [`helm-chart/sefaria/templates/cronjob/reindex-elasticsearch.yaml`](../../helm-chart/sefaria/templates/cronjob/reindex-elasticsearch.yaml),
 which runs
 [`scripts/scheduled/reindex_elasticsearch_cronjob.py`](../../scripts/scheduled/reindex_elasticsearch_cronjob.py).
-That script's work is `index_all()` (text + sheet indices) plus a
-sheets-by-timestamp catch-up. Its own docstring states it "performs a full reindex
-of Elasticsearch indexes for **text and sheet** content." There is **no scheduled
-job** that (re)builds the `topic` or `book` indices.
+That script now adds a `run_index_entities()` step (STEP 3) that calls
+`index_all_of_type()` for `topic` and `book` — each doing its own blue-green index
+creation and alias swap — on top of the existing `index_all()` (text + sheet) and the
+sheets-by-timestamp catch-up.
 
-### Consequences
+### The limitation
 
-- The `topic`/`book` indices are populated only by whatever ad-hoc / manual process
-  built them; they will **drift out of date** as topics, authors, books, and
-  `numSources` change, with no automated refresh.
-- This also explains the stale local state (2 topics / 246 books): nothing keeps
-  these indices current.
+Refresh is **only** as frequent as that scheduled run. Unlike the text index, there is
+**no on-save hook** for entities, so:
+
+- Between scheduled runs the `topic`/`book` indices **drift out of date** as topics,
+  authors, books, and `numSources` change — staleness is bounded by the cron interval,
+  not eliminated.
 - `numSources` — which the new `function_score` ranks on — is exactly the kind of
-  value that goes stale without a refresh, degrading result ranking over time.
+  value that goes stale within an interval, degrading result ranking until the next
+  run.
+- Local/dev environments that never run the cron stay stale indefinitely (this is part
+  of why local state sits at 2 topics / 246 books); they must be rebuilt manually via
+  the `sindex_*` scripts.
 
 ### Recommendation
 
-Before the entity-search POC is promoted to production, add a scheduled reindex for
-the `topic` and `book` indices — either by extending the existing reindex cronjob to
-also rebuild them, or by adding a dedicated cronjob — and decide on an acceptable
-freshness interval for entity data and `numSources`.
+Before promoting the entity-search POC to production, decide on an acceptable freshness
+interval for entity data and `numSources` and tune the cron frequency to it — and, if
+near-real-time freshness is needed, add an on-save hook for entities as exists for
+text rather than relying on the periodic rebuild alone.

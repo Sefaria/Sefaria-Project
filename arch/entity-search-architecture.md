@@ -138,16 +138,29 @@ string and a `type` of `topic`, `author`, or `book`, and returns hits whose
 `_source` already carries the titles, descriptions, and `numSources` the client
 needs — so, unlike the Name API path, **no second hydration request is required**.
 
-Core query shape:
+Core query shape — a `function_score` wrapping a `bool.should` of two `multi_match`
+clauses, all over the same English+Hebrew field set with **field boosting** (titles
+weighted highest, then title variants, then descriptions — a title hit is a better
+match than a description hit):
 
-- A `multi_match` (best-fields) across English and Hebrew, with **field boosting**:
-  titles weighted highest, then title variants, then descriptions. This encodes the
-  intuition that a title hit is a better match than a description hit.
+- **`best_fields`** (boosted ×2) — full-token relevance matching. This is the primary
+  scorer.
+- **`phrase_prefix`** — prefix matching on the final query token, so partial queries
+  like "Mos" match "Moses" before the user finishes typing. The two clauses are
+  combined in a `should` so an entity can match either way.
+- **`function_score` on `numSources`** (`field_value_factor`, `modifier: log1p`,
+  `boost_mode: multiply`, `missing: 1`) wraps the whole thing, multiplying in a
+  popularity signal so well-referenced entities float to the top. `log1p` damps the
+  effect so a high `numSources` boosts rather than dominates.
 - **`topic` vs `author` both hit the `topic` index**, differing only by a `term`
   filter on `subtype`. They are two views of one index.
 - **`book` search additionally boosts `author_names`**, so an author-name query
   surfaces that author's books (the denormalization described above is what makes
   this possible).
+
+The `phrase_prefix` clause is the dominant query cost and the one performance risk
+worth validating at production scale — see
+[limitations.md §1](../agent_docs/sefaria/limitations.md).
 
 **Author-aware book results.** The book tab has special behavior: if the query
 resolves to an author, the endpoint returns that author's works **aggregated by
@@ -170,8 +183,10 @@ the autocomplete path and the POC endpoint can share this data.
 
 ## Operational scripts
 
-Because there is **no freshness/cron mechanism** for these indices yet (unlike the
-text index, which reindexes on save), entity indices are rebuilt on demand:
+The scheduled reindex cronjob rebuilds the entity indices alongside text/sheet (see
+[Scheduled reindex](#scheduled-reindex) below), but there is still **no on-save hook**
+for entities (unlike the text index, which reindexes on save), so between scheduled
+runs they can drift. The entity indices can also be rebuilt on demand:
 
 - **Full reindex** — a script that runs the blue-green reindex for `topic` and/or
   `book`, the entity analog of the text/sheet reindex script.
@@ -183,6 +198,17 @@ text index, which reindexes on save), entity indices are rebuilt on demand:
 - **Synthetic sample data** — a script that creates tiny local `text`/`sheet`
   indices with synthetic-but-realistically-shaped documents, for local
   search-wrapper and UI development without a Mongo-backed reindex.
+
+### Scheduled reindex
+
+The scheduled Elasticsearch reindex cronjob
+(`scripts/scheduled/reindex_elasticsearch_cronjob.py`) rebuilds the entity indices on
+the same schedule as text/sheet. Its `run_index_entities()` step calls
+`index_all_of_type()` for `topic` and `book`, each performing its own blue-green index
+creation and alias swap; a failure in one type is recorded but does not prevent the
+other (or the rest of the job) from running. So entity data is refreshed automatically
+per scheduled run — what remains missing is a finer-grained on-save hook (see
+[Known gaps](#known-gaps-and-future-work)).
 
 ---
 
@@ -200,9 +226,12 @@ the client design and product questions.
 
 ## Known gaps and future work
 
-- **No freshness mechanism.** Entity indices are static between manual reindexes;
-  topic/book edits in Mongo are not reflected until someone reruns the script. A
-  cron job or on-save hook (as exists for text) is future work.
+- **No on-save freshness.** The scheduled cronjob now rebuilds the entity indices
+  (see [Scheduled reindex](#scheduled-reindex)), but there is no on-save hook as there
+  is for text. Between scheduled runs, topic/book edits in Mongo are not reflected, so
+  entity data can lag by up to one reindex interval. A finer-grained refresh (an
+  on-save hook, or simply tuning the cron frequency for an acceptable staleness
+  window) is future work.
 - **Relevance is unproven at scale.** Field boosting is a reasonable first cut, but
   default ranking (e.g. by `numSources` / `compDate`) and cross-language behavior
   still need tuning against real queries — the same ranking questions raised in the
