@@ -404,5 +404,6 @@ langchain-community
 langsmith
 chromadb>=1.5.9
 langchain-google-genai>=4.2.2
+levenshtein==0.27.1
 setuptools==69.5.1
 Pympler==1.1

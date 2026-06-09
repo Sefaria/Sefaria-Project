@@ -697,27 +697,29 @@ def export_merged_csv(index, lang=None):
     return output.getvalue()
 
 
-def import_versions_from_stream(csv_stream, columns, user_id):
+def import_versions_from_stream(csv_stream, columns, user_id, skip_toc_refresh=False):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
     rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns, user_id)
+    return _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=skip_toc_refresh)
 
 
-def import_versions_from_file(csv_filename, columns):
+def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
+    :param user_id: the ID of the user importing the versions
+    :param csv_filename: the filename of the CSV file to import
     :return:
     """
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
-def _import_versions_from_csv(rows, columns, user_id):
+def _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=False):
 
     multi = str(rows[0][0]).strip().lower() == "version title"
     jobs = []  # (idx_title, vt, lang, src, notes, text_map)
@@ -762,4 +764,4 @@ def _import_versions_from_csv(rows, columns, user_id):
                 "versionNotes": notes,
             }).save()
 
-        modify_bulk_text(user_id, v, text_map, type=action)
+        modify_bulk_text(user_id, v, text_map, type=action, skip_toc_refresh=skip_toc_refresh)

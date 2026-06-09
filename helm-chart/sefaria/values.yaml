@@ -407,12 +407,6 @@ secrets:
     # data:
     #   key:
     #   serviceAccount:
-  # This is used in mongobackup & reindex-elasticsearch cron jobs.
-  slackWebhook:
-    # If you're using a reference to an existing secret then the data: section
-    # should be commented out and vice-versa.
-    ref:
-    # data:
   webpageCronjob:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
@@ -506,7 +500,7 @@ keda:
   enabled: false
   # Prometheus server used by all triggers unless overridden per-component.
   # Rendered with tpl, so {{ .Values.deployEnv }} etc. are available if needed.
-  prometheusAddress: http://kube-prometheus-stack-prometheus.monitoring:9090
+  prometheusAddress: http://prometheus-kube-prometheus-prometheus.monitoring:9090
   # How often KEDA polls the trigger (seconds). Up to this long before scale-up begins after first request.
   pollingInterval: 30
   # Seconds of idle trigger before scaling back to minReplicas.
@@ -532,9 +526,11 @@ keda:
     enabled: true
   nginx:
     enabled: true
+    # Never scale to zero — nginx is the direct Envoy downstream and must always have endpoints.
+    minReplicas: 1
   varnish:
     enabled: true
-    # Capped at 1: multiple varnish instances fragment the cache, reducing per-pod effectiveness.
+    # Scale to zero when idle, but never above 1 — multiple instances fragment the cache.
     maxReplicas: 1
   nodejs:
     enabled: true
@@ -542,6 +538,12 @@ keda:
     enabled: true
   tasks:
     enabled: true
+  redis:
+    enabled: true
+    # Redis is a plain Deployment, not an Argo Rollout.
+    apiVersion: apps/v1
+    kind: Deployment
+    maxReplicas: 1
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).
   # Requires Envoy Gateway v1.1+ (BackendTrafficPolicy responseOverride).
   splash:
@@ -562,17 +564,55 @@ keda:
           body { font-family: sans-serif; display: flex; align-items: center; justify-content: center;
                  height: 100vh; margin: 0; background: #f5f5f5; color: #333; }
           .card { text-align: center; background: #fff; padding: 2rem 3rem; border-radius: 8px;
-                  box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+                  box-shadow: 0 2px 8px rgba(0,0,0,.1); max-width: 480px; }
           h2 { margin-top: 0; }
+          .timer { font-size: 2rem; font-weight: bold; margin: 1rem 0; color: #555; }
+          .warning { color: #c0392b; font-weight: bold; }
           .note { font-size: .85rem; color: #888; margin-top: 1.5rem; }
         </style>
       </head>
       <body>
         <div class="card">
           <h2>Environment is starting up</h2>
-          <p>This test environment was scaled down while idle.<br>It will be ready in about a minute.</p>
-          <p class="note">This page will refresh automatically.</p>
+          <p>This test environment was scaled down while idle.<br>It should be ready within a few minutes.</p>
+          <div class="timer" id="timer">0:00</div>
+          <p id="status">Checking again in <span id="countdown">15</span>s&hellip;</p>
+          <p id="warn" class="warning" style="display:none">
+            Taking longer than expected — there may be an issue with this cauldron that needs investigation.
+          </p>
+          <p class="note">This page refreshes automatically.</p>
         </div>
-        <script>setTimeout(() => location.reload(), 15000);</script>
+        <script>
+          var WARN_AFTER = 180;
+          var RELOAD_INTERVAL = 15;
+          var key = 'keda_splash_start_' + location.hostname;
+
+          var start = (function() {
+            try {
+              var s = parseInt(localStorage.getItem(key) || '0');
+              if (!s) { s = Date.now(); localStorage.setItem(key, s); }
+              return s;
+            } catch(e) { return Date.now(); }
+          })();
+
+          function clearStart() {
+            try { localStorage.removeItem(key); } catch(e) {}
+          }
+
+          function fmt(s) {
+            var m = Math.floor(s / 60);
+            return m + ':' + ('0' + (s - m * 60)).slice(-2);
+          }
+
+          var countdown = RELOAD_INTERVAL;
+          setInterval(function() {
+            var elapsed = Math.floor((Date.now() - start) / 1000);
+            document.getElementById('timer').textContent = fmt(elapsed);
+            if (elapsed >= WARN_AFTER) document.getElementById('warn').style.display = '';
+            countdown--;
+            document.getElementById('countdown').textContent = countdown;
+            if (countdown <= 0) { clearStart(); location.reload(); }
+          }, 1000);
+        </script>
       </body>
       </html>

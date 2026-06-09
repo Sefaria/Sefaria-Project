@@ -16,7 +16,7 @@ export class SearchPage extends HelperBase{
         await searchBox.press('Enter')
         
         // Wait for search results page to load by checking for the results heading
-        await this.page.waitForLoadState('networkidle')
+        await this.page.waitForLoadState('domcontentloaded')
         
         // Verify we're on the search results page with the expected content
         await expect(this.page.getByRole('heading').first()).toContainText(criteria)
