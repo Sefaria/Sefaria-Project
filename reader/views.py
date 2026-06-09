@@ -4825,13 +4825,41 @@ def search_poc_api(request):
     es_client = get_elasticsearch_client()
 
     def entity_search(index_name, search_fields, filters, size=100):
+        # Combine full-token matching (best_fields, scores high) with prefix
+        # matching (phrase_prefix) so partial queries like "Mos" match "Moses".
+        # Wrap in function_score to boost well-referenced topics to the top.
+        text_query = {
+            "bool": {
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": search_fields,
+                            "type": "best_fields",
+                            "boost": 2,
+                        }
+                    },
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": search_fields,
+                            "type": "phrase_prefix",
+                        }
+                    },
+                ]
+            }
+        }
         es_query = {
             "bool": {
                 "must": {
-                    "multi_match": {
-                        "query": query,
-                        "fields": search_fields,
-                        "type": "best_fields",
+                    "function_score": {
+                        "query": text_query,
+                        "field_value_factor": {
+                            "field": "numSources",
+                            "modifier": "log1p",
+                            "missing": 1,
+                        },
+                        "boost_mode": "multiply",
                     }
                 },
                 "filter": filters,
