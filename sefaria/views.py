@@ -412,6 +412,64 @@ def user_auth_status(request):
     })
 
 
+@api_view(["POST"])
+def email_login(request):
+    """JSON + session email/password login for the React auth page (spec 1602).
+
+    On success, issues a Django session (parity with the rest of the server-rendered
+    site). On bad credentials, if the email belongs to an SSO-only account (a social
+    identity is linked and there is no usable password), return an informative message
+    plus the linked providers so the UI can point the user at the right sign-in button
+    (Phase 2, Task 2b).
+    """
+    email = (request.data.get("email") or "").strip()
+    password = request.data.get("password") or ""
+    if not email or not password:
+        return jsonResponse({"error": _("Please enter your email and password.")}, status=400)
+
+    user = authenticate(email=email, password=password)
+    if user is not None:
+        auth_login(request, user)
+        return jsonResponse({"status": "ok"})
+
+    from emailusernames.utils import user_exists, get_user
+    if user_exists(email):
+        existing = get_user(email)
+        providers = list(existing.social_identities.values_list("provider", flat=True))
+        if providers and not existing.has_usable_password():
+            return jsonResponse({
+                "error": _("This account uses social login. Use the Sign in button for that provider to access your account."),
+                "_auth": {"code": "sso_only_account", "providers": providers},
+            }, status=403)
+
+    return jsonResponse({"error": "Email and/or password are incorrect"}, status=401)
+
+
+@api_view(["POST"])
+def password_reset_request(request):
+    """JSON password-reset request for the React auth page (spec 1602).
+
+    Always returns ok regardless of whether the email exists, to avoid leaking which
+    addresses have accounts (account enumeration). Sends the reset email via the same
+    SefariaPasswordResetForm the server-rendered flow uses.
+    """
+    email = (request.data.get("email") or "").strip()
+    if email:
+        form = SefariaPasswordResetForm(data={"email": email})
+        if form.is_valid():
+            try:
+                form.save(
+                    request=request,
+                    use_https=request.is_secure(),
+                    domain_override=request.get_host(),
+                    email_template_name='registration/password_reset_email.txt',
+                    html_email_template_name='registration/password_reset_email.html',
+                )
+            except Exception as e:
+                logger.warning("Password reset email failed to send: %s", e)
+    return jsonResponse({"status": "ok"})
+
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("login")

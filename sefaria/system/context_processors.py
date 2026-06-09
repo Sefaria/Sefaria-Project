@@ -61,6 +61,22 @@ def user_only(view):
     return wrapper
 
 
+def _recaptcha_public_key():
+    """The reCAPTCHA v2 site key to render client-side.
+
+    Mirrors django_recaptcha's own resolution: use settings.RECAPTCHA_PUBLIC_KEY when
+    configured, otherwise the package's TEST_PUBLIC_KEY (which validates against the
+    matching test private key). This keeps the React-rendered widget in lockstep with
+    the server-side ReCaptchaField — without it, dev/test environments render no widget
+    and registration fails the required-captcha check.
+    """
+    try:
+        from django_recaptcha.constants import TEST_PUBLIC_KEY
+    except Exception:
+        TEST_PUBLIC_KEY = ""
+    return getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_PUBLIC_KEY) or TEST_PUBLIC_KEY
+
+
 def global_settings(request):
     return {
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
@@ -71,6 +87,7 @@ def global_settings(request):
         "GOOGLE_GTAG":            GOOGLE_GTAG,
         "GOOGLE_SSO_CLIENT_ID":   GOOGLE_SSO_CLIENT_ID,
         "APPLE_SSO_CLIENT_ID":    APPLE_SSO_CLIENT_ID,
+        "RECAPTCHA_PUBLIC_KEY":   _recaptcha_public_key(),
         "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,

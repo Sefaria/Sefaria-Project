@@ -1,12 +1,16 @@
 {% extends "base.html" %}
-{% load i18n sefaria_tags %}
+{% load i18n static sefaria_tags %}
 
 {% block meta_title %}{% meta_title %}{% trans "Log in to Sefaria" %}{% endmeta_title %}{% endblock %}
 
 {% block meta_description %}{% meta_desc %}{% trans "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users." %}{% endmeta_desc %}{% endblock %}
 
-{% block content %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth-components.css' %}">
+{% endblock %}
 
+{% block content %}
 {% if user.email %}
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
@@ -21,185 +25,26 @@
             </p>
         </div>
     </div>
-
 {% else %}
-	<div id="login" class="biReady registrationContent static">
-        <div class="inner">
-            {% if message %}<p id="message">{{ message }}</p>{% endif %}
-            <h1>
-                <span class="int-en">Log in to Sefaria</span>
-                <span class="int-he">התחברות לספריא</span>
-            </h1>
-            {% if form.sso_only_providers %}
-            <p class="error" id="sso-only-login-error">
-                {% trans "This account uses social sign-in. Use one of the connected providers below." %}
-                {% for provider in form.sso_only_providers %}
-                  <a href="{% if provider == "Google" %}#google-signin-button{% elif provider == "Apple" %}#appleid-signin{% else %}#sso-section{% endif %}">
-                    {% trans "Sign in with" %} {{ provider }}
-                  </a>
-                {% endfor %}
-            </p>
-            {% elif form.errors %}
-            <p class="error">
-                <span class="int-en">Your username and password didn't match. Please try again.</span>
-                <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסו שוב.</span>
-            </p>
-            {% endif %}
+    <div id="sefaria-auth-root"
+         data-initial-flow="login"
+         data-google-client-id="{{ GOOGLE_SSO_CLIENT_ID|default:'' }}"
+         data-apple-client-id="{{ APPLE_SSO_CLIENT_ID|default:'' }}"
+         data-recaptcha-site-key="{{ RECAPTCHA_PUBLIC_KEY|default:'' }}"
+         data-next="{{ next|default:'/' }}"
+         data-csrf="{{ csrf_token }}"
+         data-dir="{% if request.interfaceLang == 'hebrew' %}rtl{% else %}ltr{% endif %}"></div>
+    <noscript>
+        <p style="text-align:center;padding:24px;">{% trans "Please enable JavaScript to sign in." %}</p>
+    </noscript>
+{% endif %}
+{% endblock %}
 
-            <form id="login-form" method="post" action="{% url "login" %}">
-                {% csrf_token %}
-
-                <p>
-                    {{ form.email.label_tag }}
-                    <td>{{ form.email }}</td>
-                </p>
-                <p>
-                    {{ form.password.label_tag }}
-                    <td>{{ form.password }}</td>
-                </p>
-
-                <button type="submit" class="button control-elem" id="login-submit-button">
-                    <span class="int-en">Login</span>
-                    <span class="int-he">התחברות</span>
-                </button>
-                <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
-                    <span class="int-en">Forgot your password?</span>
-                    <span class="int-he">שכחתי את הסיסמא שלי</span>
-                </a>
-                <input type="hidden" name="next" value="{{ next }}" />
-            </form>
-            <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span class="int-en">Create a new account</span>
-                <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
-            </a>
-
-            {% if GOOGLE_SSO_CLIENT_ID or APPLE_SSO_CLIENT_ID %}
-            <div id="sso-section">
-                <div class="sso-divider">
-                    <span class="int-en">or</span>
-                    <span class="int-he">או</span>
-                </div>
-                {% if GOOGLE_SSO_CLIENT_ID %}
-                <div id="google-signin-button"></div>
-                {% endif %}
-                
-                {% if APPLE_SSO_CLIENT_ID %}
-                <div id="appleid-signin" data-color="black" data-border="true" data-type="sign in"></div>
-                {% endif %}
-                <div id="sso-error" style="display:none;" class="error"></div>
-            </div>
-            <script>
-              function handleSSOError(msg) {
-                var el = document.getElementById('sso-error');
-                el.textContent = msg;
-                el.style.display = 'block';
-              }
-              function handleSSOSuccess() {
-                window.location.href = '{{ next|default:"/" }}';
-              }
-              window.SefariaAuth.setRedirectState('{{ sso_redirect_state|escapejs }}');
-
-              {% if GOOGLE_SSO_CLIENT_ID %}
-              function initializeGoogleSignInButton() {
-                if (window.google && window.google.accounts) {
-                  var googleConfig = {
-                    client_id: '{{ GOOGLE_SSO_CLIENT_ID }}',
-                    callback: function(response) {
-                      fetch('/api/auth/google/callback', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({credential: response.credential}),
-                      })
-                      .then(function(r) {
-                        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
-                      })
-                      .then(function(result) {
-                        if (result.ok) {
-                          handleSSOSuccess();
-                        } else {
-                          handleSSOError((result.data && result.data.error) || 'Sign in failed. Please try again.');
-                        }
-                      })
-                      .catch(function(err) {
-                        console.error('Google SSO error:', err);
-                        handleSSOError('Sign in failed. Please try again.');
-                      });
-                    }
-                  };
-                  if (window.SefariaAuth.useRedirect()) {
-                    googleConfig.ux_mode = 'redirect';
-                    googleConfig.login_uri = window.location.origin + '/auth/google/redirect';
-                    delete googleConfig.callback;
-                  } else {
-                    googleConfig.ux_mode = 'popup';
-                  }
-                  google.accounts.id.initialize(googleConfig);
-                  google.accounts.id.renderButton(
-                    document.getElementById('google-signin-button'),
-                    {type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', width: 300}
-                  );
-                }
-              }
-              window.addEventListener('google-identity-loaded', initializeGoogleSignInButton);
-              if (window.google && window.google.accounts) {
-                initializeGoogleSignInButton();
-              }
-              {% endif %}
-
-              {% if APPLE_SSO_CLIENT_ID %}
-              (function() {
-                var appleScript = document.createElement('script');
-                appleScript.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-                appleScript.onload = function() {
-                  AppleID.auth.init({
-                    clientId: '{{ APPLE_SSO_CLIENT_ID }}',
-                    scope: 'name email',
-                    redirectURI: window.location.origin + '/auth/apple/redirect',
-                    state: '{{ sso_redirect_state|escapejs }}',
-                    usePopup: !window.SefariaAuth.useRedirect(),
-                  });
-                };
-                document.head.appendChild(appleScript);
-
-                document.addEventListener('AppleIDSignInOnSuccess', function(event) {
-                  var auth = event.detail.authorization;
-                  var user = event.detail.user || {};
-                  var name = user.name || {};
-                  fetch('/api/auth/apple/callback', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                      id_token: auth.id_token,
-                      first_name: name.firstName || '',
-                      last_name: name.lastName || '',
-                      email: user.email || '',
-                    }),
-                  })
-                  .then(function(r) {
-                    return r.json().then(function(d) { return {ok: r.ok, data: d}; });
-                  })
-                  .then(function(result) {
-                    if (result.ok) {
-                      handleSSOSuccess();
-                    } else {
-                      handleSSOError((result.data && result.data.error) || 'Sign in failed. Please try again.');
-                    }
-                  })
-                  .catch(function(err) {
-                    console.error('Apple SSO error:', err);
-                    handleSSOError('Sign in failed. Please try again.');
-                  });
-                });
-
-                document.addEventListener('AppleIDSignInOnFailure', function(event) {
-                  console.error('AppleIDSignInOnFailure:', event.detail);
-                  handleSSOError('Apple sign-in failed. Please try again.');
-                });
-              })();
-              {% endif %}
-            </script>
-            {% endif %}
-	    </div>
-    </div>
+{% block js %}
+{% if not user.email %}
+{% if GOOGLE_SSO_CLIENT_ID %}<script src="https://accounts.google.com/gsi/client" async defer></script>{% endif %}
+{% if APPLE_SSO_CLIENT_ID %}<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>{% endif %}
+{% if RECAPTCHA_PUBLIC_KEY %}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{% endif %}
+<script src="{% static 'bundles/login/login.js' %}"></script>
 {% endif %}
 {% endblock %}

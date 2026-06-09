@@ -34,6 +34,8 @@ shared_patterns = [
     path('api/auth/link/<str:provider>', sefaria_views.link_social_provider, name='link_social_provider'),
     path('api/auth/unlink/<str:provider>', sefaria_views.unlink_social_provider, name='unlink_social_provider'),
     path('api/auth/status', sefaria_views.user_auth_status, name='user_auth_status'),
+    path('api/auth/login', sefaria_views.email_login, name='email_login'),
+    path('api/auth/password/reset', sefaria_views.password_reset_request, name='password_reset_request'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
     re_path(r'^history/?$', reader_views.user_history_content),

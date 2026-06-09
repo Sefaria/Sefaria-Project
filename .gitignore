@@ -159,3 +159,5 @@ dump/*
 .env
 static_collected/*
 scripts/debug_cache/
+.playwright-mcp/
+test-results/

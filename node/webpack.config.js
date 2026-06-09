@@ -240,4 +240,34 @@ var linkerV3Config = config({
     ]
 })
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];
+// Standalone React login/register page (spec 1602). Mounts AuthPage; relies on the
+// global React/ReactDOM provided by base.html (baseConfig externals).
+var loginConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './auth/login',
+    mode: 'development', // can be overriden via cli
+    output: {
+        path: path.resolve(buildDir + 'login'),
+        filename: 'login.js'
+    }
+});
+// Use the global Sefaria/React/ReactDOM/jQuery that base.html already loads, rather than
+// bundling the heavy sefaria.js core (which self-assigns window.Sefaria — clobbering the
+// real one — and has a circular dep with util.js that breaks when bundled standalone).
+loginConfig.externals = [
+    { react: 'React', 'react-dom': 'ReactDOM', jquery: 'jQuery', 'jquery-ui': 'jQuery' },
+    function ({ context, request }, callback) {
+        if (!request) { return callback(); }
+        if (request === 'sefaria') { return callback(null, 'Sefaria'); }
+        // Resolve relative imports against the importing module's dir, then match the core module.
+        try {
+            const resolved = path.resolve(context || '', request);
+            if (/\/static\/js\/sefaria\/sefaria(\.js)?$/.test(resolved)) {
+                return callback(null, 'Sefaria');
+            }
+        } catch (e) { /* fall through */ }
+        callback();
+    },
+];
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config, loginConfig];
