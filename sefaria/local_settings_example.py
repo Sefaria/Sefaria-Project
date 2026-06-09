@@ -218,6 +218,16 @@ DISABLE_INDEX_SAVE = False
 # which can be annoying for local development.
 DISABLE_AUTOCOMPLETER = False
 
+# When True this process is a standalone name (autocomplete) service: every host serves
+# only the completion endpoints in sefaria/urls_name.py.  Deployed alongside web servers
+# that run with DISABLE_AUTOCOMPLETER = True.
+NAME_SERVICE = False
+
+# When True a name service serves completion traffic for this deployment, so a
+# DISABLE_AUTOCOMPLETER server fails fast on completer access instead of falling back
+# to the legacy in-request lazy build.
+NAME_SERVICE_DEPLOYED = False
+
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
 

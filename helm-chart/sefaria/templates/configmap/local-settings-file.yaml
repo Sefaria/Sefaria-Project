@@ -215,6 +215,10 @@ data:
     # Turns off search autocomplete suggestions, which are reinitialized on every server reload
     # which can be annoying for local development.
     DISABLE_AUTOCOMPLETER = os.getenv("DISABLE_AUTOCOMPLETER", "false").lower() == "true"
+    # When true this process serves only the completion endpoints (sefaria/urls_name.py)
+    NAME_SERVICE = os.getenv("NAME_SERVICE", "false").lower() == "true"
+    # When true a name service serves completion traffic for this deployment
+    NAME_SERVICE_DEPLOYED = os.getenv("NAME_SERVICE_DEPLOYED", "false").lower() == "true"
     ENABLE_LINKER = os.getenv("ENABLE_LINKER", "false").lower() == "true"
     PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = "/school-lookup-data/schools.tsv"
 

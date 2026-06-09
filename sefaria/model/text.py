@@ -35,6 +35,11 @@ from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
+import sefaria.settings
+# True when a standalone name service serves completion traffic for this deployment,
+# so autocompleter work on this process is a misroute rather than a fallback.
+# getattr: not all local_settings define it.
+NAME_SERVICE_DEPLOYED = getattr(sefaria.settings, "NAME_SERVICE_DEPLOYED", False)
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -5006,7 +5011,6 @@ class Library(object):
         self._full_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
-        self._topic_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
@@ -5349,10 +5353,14 @@ class Library(object):
         Builds full auto completer across people, topics, categories, parasha, users, and collections
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when completion traffic is served by the name service.
         """
+        if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+            logger.warning("Completion traffic is served by the name service; skipping full auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5363,8 +5371,11 @@ class Library(object):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
-
+        No-op when completion traffic is served by the name service.
         """
+        if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+            logger.warning("Completion traffic is served by the name service; skipping lexicon auto completer build.")
+            return
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
@@ -5376,7 +5387,11 @@ class Library(object):
         """
         Builds the cross lexicon auto completer excluding titles
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when completion traffic is served by the name service.
         """
+        if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+            logger.warning("Completion traffic is served by the name service; skipping cross lexicon auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
@@ -5388,6 +5403,8 @@ class Library(object):
         it rebuilds before returning, emitting warnings to the logger.
         """
         if self._cross_lexicon_auto_completer is None:
+            if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+                raise RuntimeError("Completion traffic is served by the name service; this server does not hold autocompleters.")
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
             logger.warning("Built cross lexicon auto completer.")
@@ -5404,6 +5421,13 @@ class Library(object):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
+            if self._lexicon_auto_completer_is_ready:
+                # The tries are built; this key is simply not a lexicon.  Rebuilding
+                # would let any request with a bogus lexicon name trigger a
+                # multi-minute build.
+                raise InputError("There is no lexicon autocompleter for {}.".format(lexicon))
+            if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+                raise RuntimeError("Completion traffic is served by the name service; this server does not hold autocompleters.")
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
             logger.warning("Built {} auto completer.".format(lexicon))
@@ -5413,6 +5437,8 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            if DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED:
+                raise RuntimeError("Completion traffic is served by the name service; this server does not hold autocompleters.")
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))

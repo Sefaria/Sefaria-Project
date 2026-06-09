@@ -1,0 +1,33 @@
+{{- if .Values.nameService.enabled }}
+# Gates the nginx traffic flip on the name service being ready to serve
+# completions: name pods build all autocompleters at startup, which takes
+# minutes longer than web pods need (they skip the build when the name
+# service is enabled).  Without this gate every deploy would open a window
+# where nginx routes /api/name to a revision-pinned service with no ready
+# endpoints.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: rollout-ready-name-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  metrics:
+    - name: healthcheck-ready-name
+      provider:
+        job:
+          spec:
+            backoffLimit: 1
+            template:
+              spec:
+                containers:
+                  - name: primer
+                    image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+                    command: [ "/app/build/startup/waitForRollout.bash" ]
+                    env:
+                      - name: TARGET_HOSTNAME
+                        value: "name-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+                      - name: TIMEOUT
+                        value: "900"
+                restartPolicy: Never
+{{- end }}
