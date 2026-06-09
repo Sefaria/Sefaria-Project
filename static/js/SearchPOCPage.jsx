@@ -84,12 +84,81 @@ function entityHitToSearchTopic(hit, type) {
   return searchTopic;
 }
 
+// --- Language filter ---------------------------------------------------------
+
+const DEFAULT_LANGS = new Set(["english", "hebrew"]);
+
+// Fallback: lang code → family name for when _source is unavailable.
+const CODE_TO_FAMILY = {
+  en: "english", he: "hebrew", fr: "french", de: "german",
+  es: "spanish", ar: "arabic", it: "italian", pt: "portuguese",
+  yi: "yiddish", ru: "russian", pl: "polish", arc: "aramaic",
+};
+
+// lang is encoded in every _id as "Ref (Version Title [lang])".
+const LANG_FROM_ID = id => /\[(\w+)\]$/.exec(id)?.[1];
+
+// Prefer the indexed languageFamilyName; fall back to code lookup from _id.
+const langFamily = hit =>
+  hit._source?.languageFamilyName ||
+  CODE_TO_FAMILY[LANG_FROM_ID(hit._id)] ||
+  LANG_FROM_ID(hit._id);
+
+// english + hebrew are always offered as filter options.
+const BASE_LANGS = ["english", "hebrew"];
+
+function computeAvailableLangs(hits) {
+  const counts = {};
+  BASE_LANGS.forEach(l => { counts[l] = 0; });
+  hits.forEach(hit => {
+    const family = langFamily(hit);
+    if (family) counts[family] = (counts[family] || 0) + 1;
+  });
+  return Object.entries(counts)
+    .map(([lang, count]) => ({ lang, count }))
+    .sort((a, b) => {
+      const priority = { english: 0, hebrew: 1 };
+      return (priority[a.lang] ?? 2) - (priority[b.lang] ?? 2) || a.lang.localeCompare(b.lang);
+    });
+}
+
+function LanguageFilter({ availableLangs, selectedLangs, onToggle, hasResults }) {
+  if (!hasResults) return null;
+  return (
+    <div className="searchPOCLangFilter">
+      <span className="searchPOCLangLabel sans-serif">
+        <InterfaceText>Language:</InterfaceText>
+      </span>
+      {availableLangs.map(({ lang, count }) => (
+        <button
+          key={lang}
+          className={classNames("searchPOCLangPill", { active: selectedLangs.has(lang) })}
+          onClick={() => onToggle(lang)}
+          aria-pressed={selectedLangs.has(lang)}
+        >
+          {lang.charAt(0).toUpperCase() + lang.slice(1)}
+          {count > 0 && <span className="searchPOCLangCount">{count}</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // --- Renderers ---------------------------------------------------------------
 
-function SourceResults({ results, query }) {
-  const mergedResults = Sefaria.search.mergeTextResultsVersions(results);
+function SourceResults({ results, selectedLangs, availableLangs, onLangToggle, query }) {
+  const filtered = selectedLangs.size > 0
+    ? results.filter(r => selectedLangs.has(langFamily(r)))
+    : results;
+  const mergedResults = Sefaria.search.mergeTextResultsVersions(filtered);
   return (
     <div className="searchPOCResults searchContent">
+      <LanguageFilter
+        availableLangs={availableLangs}
+        selectedLangs={selectedLangs}
+        onToggle={onLangToggle}
+        hasResults={results.length > 0}
+      />
       {mergedResults.filter(result => !!result._source.version).map(result => (
         <SearchTextResult
           data={result}
@@ -142,14 +211,26 @@ const SearchPOCPage = ({ searchQuery }) => {
   const [results, setResults] = useState(emptyResults);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [selectedLangs, setSelectedLangs] = useState(new Set(DEFAULT_LANGS));
+  const [availableLangs, setAvailableLangs] = useState([]);
   const query = (searchQuery || "").trim();
 
   // Once the user clicks a tab, stop auto-switching for this query. Reset per query.
   const userPickedTab = useRef(false);
 
+  const handleLangToggle = lang => {
+    setSelectedLangs(prev => {
+      const next = new Set(prev);
+      if (next.has(lang)) { next.delete(lang); } else { next.add(lang); }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!query) {
       setResults(emptyResults);
+      setAvailableLangs([]);
+      setSelectedLangs(new Set(DEFAULT_LANGS));
       setIsLoading(false);
       setHasError(false);
       return;
@@ -165,6 +246,8 @@ const SearchPOCPage = ({ searchQuery }) => {
     };
 
     setResults(emptyResults);
+    setAvailableLangs([]);
+    setSelectedLangs(new Set(DEFAULT_LANGS));
     setIsLoading(true);
     setHasError(false);
     setTab(tabs[0].id);
@@ -173,9 +256,11 @@ const SearchPOCPage = ({ searchQuery }) => {
     const runningSourceQuery = fetchSources(query, {
       onSuccess: data => {
         if (isCurrent) {
+          const hits = data.hits?.hits || [];
+          setAvailableLangs(computeAvailableLangs(hits));
           setResults(prevResults => ({
             ...prevResults,
-            sources: data.hits?.hits || [],
+            sources: hits,
           }));
         }
         finishLoading();
@@ -255,7 +340,13 @@ const SearchPOCPage = ({ searchQuery }) => {
               setTab={handleSetTab}
               renderTab={renderTab}
               containerClasses={"largeTabs"}>
-              <SourceResults results={results.sources} query={query} />
+              <SourceResults
+                results={results.sources}
+                selectedLangs={selectedLangs}
+                availableLangs={availableLangs}
+                onLangToggle={handleLangToggle}
+                query={query}
+              />
               <TopicResults results={results.topics} />
               <BookResults results={results.books} />
               <AuthorResults results={results.authors} />
