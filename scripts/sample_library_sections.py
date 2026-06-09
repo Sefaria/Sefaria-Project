@@ -3,12 +3,14 @@ Sample Hebrew section-level refs from the library and upload the resulting JSON 
 
 The sampler:
 - uniformly samples eligible sections via reservoir sampling
+- can collect all eligible sections with `--all`
 - excludes sheet/dictionary/reference works
 - keeps only sections whose sampled Hebrew version has non-empty text for every included segment
 - writes the JSON locally and uploads it to `custom_embeddings/<output filename>` in GCS
 
 Examples:
     python scripts/sample_library_sections.py 10
+    python scripts/sample_library_sections.py --all
     python scripts/sample_library_sections.py 100 --seed 613
     python scripts/sample_library_sections.py 100 --output scripts/output/my_sample.json
     python scripts/sample_library_sections.py 100 --bucket development-research
@@ -162,6 +164,27 @@ def iter_section_payloads(indexes, version_by_title):
         yield from iter_section_payloads_for_title(index.title, version_by_title.get(index.title))
 
 
+def get_supported_indexes_and_versions():
+    indexes = [index for index in library.all_index_records() if is_supported_index(index)]
+    return indexes, build_hebrew_version_map(indexes)
+
+
+def add_base_text_mappings_to_payloads(section_payloads):
+    for payload in tqdm(section_payloads, desc="Loading base text mappings"):
+        add_base_text_mappings(payload)
+
+
+def collect_all_section_payloads():
+    indexes, version_by_title = get_supported_indexes_and_versions()
+    payloads = list(iter_section_payloads(indexes, version_by_title))
+
+    if not payloads:
+        raise ValueError("No eligible Hebrew section refs were found in the library.")
+
+    add_base_text_mappings_to_payloads(payloads)
+    return payloads, len(payloads)
+
+
 def sample_section_payloads(sample_size, seed=None):
     if sample_size <= 0:
         raise ValueError("sample_size must be positive")
@@ -170,8 +193,7 @@ def sample_section_payloads(sample_size, seed=None):
     reservoir = []
     total_seen = 0
 
-    indexes = [index for index in library.all_index_records() if is_supported_index(index)]
-    version_by_title = build_hebrew_version_map(indexes)
+    indexes, version_by_title = get_supported_indexes_and_versions()
 
     for payload in iter_section_payloads(indexes, version_by_title):
         total_seen += 1
@@ -190,8 +212,7 @@ def sample_section_payloads(sample_size, seed=None):
             f"Requested {sample_size} section refs, but only found {total_seen} eligible Hebrew sections."
         )
 
-    for payload in tqdm(reservoir, desc="Loading base text mappings"):
-        add_base_text_mappings(payload)
+    add_base_text_mappings_to_payloads(reservoir)
 
     return reservoir, total_seen
 
@@ -214,12 +235,17 @@ def upload_output(output_path, bucket_name):
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Uniformly sample section-level refs from one selected Hebrew version per index, "
+            "Uniformly sample or collect all section-level refs from one selected Hebrew version per index, "
             "write JSON containing per-segment Hebrew text, and upload the JSON to GCS under "
             f"{BLOB_PREFIX}/<filename>."
         )
     )
-    parser.add_argument("n", type=int, help="Number of section refs to sample.")
+    parser.add_argument("n", type=int, nargs="?", help="Number of section refs to sample.")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Collect all eligible Hebrew section refs instead of taking a random sample.",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -237,19 +263,30 @@ def parse_args():
         default=DEFAULT_BUCKET,
         help=f"GCS bucket for the uploaded JSON artifact. Default: {DEFAULT_BUCKET}",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.all and args.n is not None:
+        parser.error("n cannot be combined with --all.")
+    if not args.all and args.n is None:
+        parser.error("n is required unless --all is passed.")
+    return args
 
 
 def main():
     args = parse_args()
-    sampled_payloads, total_sections = sample_section_payloads(args.n, seed=args.seed)
-    write_json(sampled_payloads, args.output)
+    if args.all:
+        section_payloads, total_sections = collect_all_section_payloads()
+        action_description = "Collected all"
+    else:
+        section_payloads, total_sections = sample_section_payloads(args.n, seed=args.seed)
+        action_description = f"Sampled {len(section_payloads)}"
+
+    write_json(section_payloads, args.output)
     try:
         uploaded_url = upload_output(args.output, args.bucket)
     except GoogleCloudError as exc:
         raise RuntimeError(f"Failed to upload {args.output} to bucket {args.bucket}: {exc}") from exc
     print(
-        f"Sampled {len(sampled_payloads)} Hebrew section refs uniformly from {total_sections} eligible sections. "
+        f"{action_description} Hebrew section refs from {total_sections} eligible sections. "
         f"Wrote JSON to {args.output} and uploaded it to {uploaded_url}."
     )
 
