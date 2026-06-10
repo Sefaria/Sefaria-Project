@@ -5544,6 +5544,97 @@ big {
   width: 18px;
   margin-top: 3px;
 }
+.downloadButton.downloading img {
+  opacity: 0.5;
+}
+.downloadDropdownMenu .dropdownLinks-menu.open {
+  display: block;
+}
+.downloadDropdownContent {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 280px;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 5px;
+  box-shadow: 0 2px 4px var(--lighter-grey);
+  background: white;
+  padding: 10px;
+  text-align: start;
+  z-index: 4;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.interface-hebrew .downloadDropdownContent {
+  right: auto;
+  left: 0;
+}
+.downloadDropdownHeader {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.downloadCommentaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.downloadCommentaryOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+.downloadCommentaryOption input {
+  margin-top: 2px;
+}
+.downloadDropdownEmpty {
+  color: var(--grey);
+  margin-bottom: 10px;
+}
+.downloadDropdownProgress {
+  margin-bottom: 10px;
+}
+.downloadDropdownProgressLabel {
+  font-size: 0.85em;
+  color: var(--grey);
+  margin-bottom: 4px;
+}
+.downloadDropdownProgressBar {
+  height: 6px;
+  background: var(--lighter-grey);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.downloadDropdownProgressFill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.downloadDropdownProgressCount {
+  font-size: 0.8em;
+  color: var(--grey);
+  text-align: end;
+}
+.downloadDropdownStatus {
+  margin-bottom: 10px;
+  font-size: 0.85em;
+}
+.downloadDropdownStatus--complete {
+  color: var(--green);
+}
+.downloadDropdownStatus--error {
+  color: var(--error-red, #c0392b);
+}
+.downloadDropdownAction {
+  width: 100%;
+  cursor: pointer;
+}
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
   left: -50px;

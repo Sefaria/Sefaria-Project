@@ -64,6 +64,7 @@ static_pages_by_lang = [
 # Static and Semi Static Content
 site_urlpatterns = [
     re_path(r'^metrics/?$', reader_views.metrics),
+    re_path(r'^service-worker\.js$', reader_views.service_worker),
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     re_path(r'^(favicon\.ico|apple-touch-icon\.png|favicon\.svg)/?$', reader_views.module_favicon),
     re_path(r'^(?P<filename>site\.webmanifest|manifest\.json)/?$', reader_views.dynamic_manifest),

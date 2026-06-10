@@ -25,6 +25,7 @@ import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import ToggleSwitchLine from "./common/ToggleSwitchLine";
 import {
   DropdownLanguageToggle,
   DropdownMenu,
@@ -1376,6 +1377,183 @@ SaveButton.propTypes = {
   placeholder: PropTypes.bool,
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
+};
+
+const DownloadIconButton = React.forwardRef(({classes, style, altText, onClick, disabled, ...props}, ref) => (
+  <ToolTipped {...{ altText, classes, style, onClick }}>
+    <span ref={ref} role="button" aria-disabled={disabled} className="downloadButtonInner" {...props}>
+      <img src="/static/icons/download.svg" alt={altText}/>
+    </span>
+  </ToolTipped>
+));
+DownloadIconButton.displayName = "DownloadIconButton";
+
+function DownloadButton({bookTitle, currVersions, translationLanguagePreference, tooltip}) {
+  const [status, setStatus] = useState("idle");
+  const [progress, setProgress] = useState(null);
+  const [selectedCommentaries, setSelectedCommentaries] = useState([]);
+  const [availableCommentaries, setAvailableCommentaries] = useState([]);
+  const [preparedBook, setPreparedBook] = useState(null);
+  const isBusy = status === "preparing" || status === "downloading";
+  const disabled = !bookTitle || isBusy;
+  const classes = classNames({saveButton: 1, downloadButton: 1, "tooltip-toggle": tooltip, downloading: isBusy});
+  const style = !bookTitle ? {visibility: 'hidden'} : {};
+  const altText = status === "preparing" && progress ?
+      `Preparing "${bookTitle}" ${progress.completed}/${progress.total}` :
+      status === "downloading" && progress ?
+      `Downloading "${bookTitle}" ${progress.completed}/${progress.total}` :
+      status === "complete" ? `Downloaded "${bookTitle}"` :
+      status === "error" ? `Download failed for "${bookTitle}"` :
+      bookTitle ? `Download "${bookTitle}"` : "Download button";
+
+  function prepareBookDownload() {
+    if (!bookTitle || preparedBook === bookTitle || status === "preparing" || status === "downloading") { return; }
+    setStatus("preparing");
+    setProgress(null);
+    Sefaria.getOfflineBookDownloadInfo(bookTitle)
+      .then(info => {
+        if (info?.commentaryListCollected && info?.availableCommentaries) {
+          setAvailableCommentaries(info.availableCommentaries);
+          setPreparedBook(bookTitle);
+          setStatus("ready");
+          return null;
+        }
+        Sefaria.track.event("Reader", "Download Book", bookTitle);
+        return Sefaria.downloadBookForOffline(bookTitle, {
+          onProgress: setProgress,
+          currVersions,
+          translationLanguagePreference,
+        });
+      })
+      .then(result => {
+        if (!result) { return; }
+        setProgress(result);
+        setAvailableCommentaries(result.availableCommentaries || []);
+        setPreparedBook(bookTitle);
+        setStatus("ready");
+      })
+      .catch(() => {
+        setStatus("error");
+      });
+  }
+
+  function toggleCommentary(commentaryTitle) {
+    setSelectedCommentaries(selected => selected.includes(commentaryTitle) ?
+      selected.filter(title => title !== commentaryTitle) :
+      selected.concat(commentaryTitle)
+    );
+  }
+
+  function onDownloadClick(event) {
+    event.preventDefault();
+    if (disabled || !preparedBook) { return; }
+    setStatus("downloading");
+    setProgress(null);
+    Sefaria.track.event("Reader", "Download Book Commentaries", `${bookTitle} / ${selectedCommentaries.join(", ")}`);
+    Sefaria.downloadBookForOffline(bookTitle, {
+      onProgress: setProgress,
+      currVersions,
+      translationLanguagePreference,
+      commentaries: selectedCommentaries,
+    })
+        .then(result => {
+          setProgress(result);
+          setStatus("complete");
+        })
+        .catch(() => {
+          setStatus("error");
+        });
+  }
+
+  const button = <DownloadIconButton {...{classes, style, altText, disabled}} />;
+  return (
+    <DropdownMenu positioningClass="readerDropdownMenu downloadDropdownMenu" buttonComponent={button} onOpen={prepareBookDownload}>
+      <div className="texts-properties-menu downloadDropdownContent" data-prevent-close="true">
+        <div className="downloadDropdownHeader">
+          <InterfaceText>Download for offline use</InterfaceText>
+        </div>
+        {status === "preparing" ?
+          <div className="downloadDropdownProgress">
+            <div className="downloadDropdownProgressLabel">
+              <InterfaceText>Preparing book...</InterfaceText>
+            </div>
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressBar">
+                <div
+                  className="downloadDropdownProgressFill"
+                  style={{width: `${Math.round(100 * progress.completed / progress.total)}%`}}
+                />
+              </div>
+            }
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressCount">
+                {progress.completed} / {progress.total}
+              </div>
+            }
+          </div> :
+          availableCommentaries.length ?
+          <div className="downloadCommentaryList">
+            {availableCommentaries.map(commentary => {
+              const title = commentary.title;
+              const displayTitle = Sefaria._v({en: title, he: commentary.heTitle || title});
+              return (
+                <ToggleSwitchLine
+                  key={title}
+                  name={`download-commentary-${title.replace(/\W/g, '-')}`}
+                  text={displayTitle}
+                  isChecked={selectedCommentaries.includes(title)}
+                  onChange={() => toggleCommentary(title)}
+                />
+              );
+            })}
+          </div> :
+          <div className="downloadDropdownEmpty">
+            <InterfaceText>No commentaries available</InterfaceText>
+          </div>
+        }
+        {status === "downloading" &&
+          <div className="downloadDropdownProgress">
+            <div className="downloadDropdownProgressLabel">
+              <InterfaceText>Downloading commentaries...</InterfaceText>
+            </div>
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressBar">
+                <div
+                  className="downloadDropdownProgressFill"
+                  style={{width: `${Math.round(100 * progress.completed / progress.total)}%`}}
+                />
+              </div>
+            }
+            {progress && progress.total > 0 &&
+              <div className="downloadDropdownProgressCount">
+                {progress.completed} / {progress.total}
+              </div>
+            }
+          </div>
+        }
+        {status === "complete" &&
+          <div className="downloadDropdownStatus downloadDropdownStatus--complete">
+            <InterfaceText>Download complete</InterfaceText>
+          </div>
+        }
+        {status === "error" &&
+          <div className="downloadDropdownStatus downloadDropdownStatus--error">
+            <InterfaceText>Download failed, please try again</InterfaceText>
+          </div>
+        }
+        {availableCommentaries.length && status !== "downloading" ?
+          <button className="downloadDropdownAction" disabled={disabled || !selectedCommentaries.length} onClick={onDownloadClick}>
+            <InterfaceText>Download Selected Commentaries</InterfaceText>
+          </button> : null}
+      </div>
+    </DropdownMenu>
+  );
+}
+DownloadButton.propTypes = {
+  bookTitle: PropTypes.string,
+  currVersions: PropTypes.object,
+  translationLanguagePreference: PropTypes.string,
+  tooltip: PropTypes.bool,
 };
 
 /**
@@ -3641,6 +3819,7 @@ export {
   SearchButton,
   SaveButton,
   SaveButtonWithText,
+  DownloadButton,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,
