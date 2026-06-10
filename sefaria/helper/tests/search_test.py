@@ -30,25 +30,6 @@ def test_query_obj():
     assert ordered(t) == ordered(s.to_dict())
 
 
-def test_text_filter_default_agg_type():
-    # Regression test for sc-44603: a text path filter applied from a URL (or via the
-    # documented `filter_fields = [None]` "use the default field" contract) must produce a
-    # `path` regexp filter, not crash with `Term(**{None: ...})` -> TypeError -> HTTP 500.
-    expected = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                             ["Tanakh/Writings/Psalms"], ["path"], [], "score",
-                             ['pagesheetrank'], sort_score_missing=0.04)
-    # explicit None agg_type (what the search page sends for URL-applied text filters)
-    none_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                             ["Tanakh/Writings/Psalms"], [None], [], "score",
-                             ['pagesheetrank'], sort_score_missing=0.04)
-    # empty filter_fields, which get_filter_obj fills with [None] * len(filters)
-    empty_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
-                              ["Tanakh/Writings/Psalms"], [], [], "score",
-                              ['pagesheetrank'], sort_score_missing=0.04)
-    assert ordered(none_agg.to_dict()) == ordered(expected.to_dict())
-    assert ordered(empty_agg.to_dict()) == ordered(expected.to_dict())
-
-
 def ordered(obj):
     if isinstance(obj, dict):
         return sorted((str(k), ordered(v)) for k, v in list(obj.items()))

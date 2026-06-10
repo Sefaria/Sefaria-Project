@@ -138,10 +138,7 @@ def get_filter_obj(type, filters, filter_fields):
 
 
 def make_filter(type, agg_type, agg_key):
-    if type == "text" and agg_type in (None, "path"):
-        # "path" is the default (and historically only) text filter field; callers may pass
-        # agg_type=None to request that default (e.g. filters applied from a search URL). Other
-        # explicit text agg_types (e.g. "linked_refs") fall through to the Term filter below.
+    if type == "text" and agg_type == "path":
         # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
         agg_key = agg_key.rstrip('/')
         agg_key = re.escape(agg_key)
