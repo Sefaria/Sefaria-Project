@@ -152,8 +152,6 @@ test.describe('Library Module Header Tests - English', () => {
     await page.waitForTimeout(t(2500));
     await hideAllModalsAndPopups(page);
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
-    // await hideAllModalsAndPopups(page);
-
 
     // Test logout
     await pm.onModuleHeader().logout();
@@ -163,9 +161,11 @@ test.describe('Library Module Header Tests - English', () => {
   test('MOD-H013: User menu differences between logged-in/out states', async () => {
     await pm.onModuleHeader().testWithAuthStates(async (isLoggedIn: boolean) => {
       if (isLoggedIn) {
-        // For logged-in state, click the user profile (PP initials)
-        const userProfile = page.locator('.default-profile-img');
-        await userProfile.click();
+        // Open the logged-in user menu. Goes through the page object so we
+        // target the always-visible dropdown button wrapper, not the
+        // conditionally-hidden `.default-profile-img` inner element (which
+        // is `display: none` whenever the test account has a real avatar).
+        await pm.onModuleHeader().openUserMenu();
 
         // Should show user-specific options
         const logoutOption = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)

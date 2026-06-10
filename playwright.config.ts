@@ -31,6 +31,9 @@ export default defineConfig({
   testDir: './e2e-tests',
   /* Output directory for test results */
   outputDir: './e2e-tests/e2e-test-logs/test-results',
+  /* Log in every test account once before any worker starts and write a
+   * read-only storage-state file per profile. See e2e-tests/global-setup.ts. */
+  globalSetup: './e2e-tests/global-setup.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -45,7 +48,7 @@ export default defineConfig({
 
 
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -76,10 +79,14 @@ export default defineConfig({
 
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    /* Record video on failure */
-    video: 'retain-on-failure',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'retain-on-failure',
+    /* Video is recorded for EVERY test under retain-on-failure (Playwright can't
+     * know which will fail), then discarded on pass — pure overhead on the happy
+     * path and largely redundant with the trace viewer's DOM snapshots. Off by
+     * default; the trace on first retry covers debugging. */
+    video: 'off',
+    /* No artifacts on the first pass (fast, low contention); a full trace is
+     * captured only when a failed test is retried. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
   },
 
   /* Configure projects for major browsers */
@@ -136,6 +143,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Voices Topics feature-coverage tests — Voices module
+    {
+      name: 'chrome-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -188,6 +204,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    {
+      name: 'firefox-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -238,6 +262,14 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
 
