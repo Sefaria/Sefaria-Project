@@ -660,15 +660,15 @@ p.registration-links a:hover{
   width: 300px;
   max-width: calc(100% - 32px);
 }
-#login .inner { width: 100%; }
-#login h1 { margin: 0 0 16px; }
-#login .registration-prompt { margin: 0 0 24px; }
-#login #login-form { margin: 0; }
-#login #login-form > p { margin: 0; padding: 0; }
-#login #login-form > p + p { margin-top: 16px; }
-#login #login-form input { height: 48px; margin: 0; width: 100%; box-sizing: border-box; }
-#login #login-submit-button { height: 48px; margin: 24px 0 0; width: 100%; }
-#login #resetLink { display: block; text-align: center; margin: 16px 0 0; }
+#login.registrationContent .inner { width: 100%; }
+#login.registrationContent h1 { margin: 0 0 16px; }
+#login.registrationContent .registration-prompt { margin: 0 0 24px; }
+#login.registrationContent #login-form { margin: 0; }
+#login.registrationContent #login-form > p { margin: 0; padding: 0; }
+#login.registrationContent #login-form > p + p { margin-top: 16px; }
+#login.registrationContent #login-form input { height: 48px; margin: 0; width: 100%; box-sizing: border-box; }
+#login.registrationContent #login-submit-button { height: 48px; margin: 24px 0 0; width: 100%; }
+#login.registrationContent #resetLink { display: block; text-align: center; margin: 16px 0 0; }
 
 #visualizationsPage {
   text-align: left;
