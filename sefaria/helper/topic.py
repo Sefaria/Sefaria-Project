@@ -1421,6 +1421,8 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
 
     if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
+    if lang in link.order.get('availableLangs', []):
+        link.order['availableLangs'].remove(lang)
     if lang in getattr(link, 'descriptions', {}):
         link.descriptions.pop(lang)
 
