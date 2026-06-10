@@ -26,6 +26,8 @@ class Text(View):
         return params
 
     def _handle_warnings(self, data):
+        if len(data['available_versions']) == 0 and not self.oref.index_node.is_virtual:
+            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
         data['warnings'] = []
         for lang, vtitle in data['missings']:
             if lang == 'source':
@@ -43,9 +45,6 @@ class Text(View):
         return data
 
     def get(self, request, *args, **kwargs):
-        if self.oref.is_empty() and not self.oref.index_node.is_virtual:
-            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
-
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['primary']
