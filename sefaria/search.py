@@ -269,6 +269,18 @@ def get_stemmed_english_analyzer():
     return stemmed_english_analyzer
 
 
+def get_stemmed_english_with_stopwords_analyzer():
+    """
+    Same as the stemmed English analyzer, but drops common English stop words
+    (the, of, a, ...) before stemming. Used only for the topic and book indexes,
+    where short titles/descriptions benefit from ignoring stop words; deliberately
+    NOT used for texts or sheets.
+    """
+    analyzer = get_exact_english_analyzer()
+    analyzer['filter'] += ["english_stop", "my_snow"]
+    return analyzer
+
+
 def create_index(index_name, type, force=False):
     """
     Creates a new Elasticsearch index with appropriate settings and mappings.
@@ -312,12 +324,17 @@ def create_index(index_name, type, force=False):
             "analysis": {
                 "analyzer": {
                     "stemmed_english": get_stemmed_english_analyzer(),
+                    "stemmed_english_stopwords": get_stemmed_english_with_stopwords_analyzer(),
                     "exact_english": get_exact_english_analyzer(),
                 },
                 "filter": {
                     "my_snow": {
                         "type": "snowball",
                         "language": "English"
+                    },
+                    "english_stop": {
+                        "type": "stop",
+                        "stopwords": "_english_"
                     }
                 }
             }
@@ -504,7 +521,7 @@ def put_topic_mapping(index_name):
             },
             'title_en': {
                 'type': 'text',
-                'analyzer': 'stemmed_english',
+                'analyzer': 'stemmed_english_stopwords',
                 'fields': {'keyword': {'type': 'keyword'}}  # for exact match / sort
             },
             'title_he': {
@@ -513,11 +530,11 @@ def put_topic_mapping(index_name):
             },
             'titleVariants': {
                 'type': 'text',
-                'analyzer': 'stemmed_english'  # alternate titles, drives recall
+                'analyzer': 'stemmed_english_stopwords'  # alternate titles, drives recall
             },
             'description_en': {
                 'type': 'text',
-                'analyzer': 'stemmed_english'
+                'analyzer': 'stemmed_english_stopwords'
             },
             'description_he': {
                 'type': 'text'
@@ -553,7 +570,7 @@ def put_book_mapping(index_name):
         'properties': {
             'title_en': {
                 'type': 'text',
-                'analyzer': 'stemmed_english',
+                'analyzer': 'stemmed_english_stopwords',
                 'fields': {'keyword': {'type': 'keyword'}}
             },
             'title_he': {
@@ -562,7 +579,7 @@ def put_book_mapping(index_name):
             },
             'titleVariants': {
                 'type': 'text',
-                'analyzer': 'stemmed_english'
+                'analyzer': 'stemmed_english_stopwords'
             },
             'categories': {
                 'type': 'keyword'
@@ -572,7 +589,7 @@ def put_book_mapping(index_name):
             },
             'description_en': {
                 'type': 'text',
-                'analyzer': 'stemmed_english'
+                'analyzer': 'stemmed_english_stopwords'
             },
             'description_he': {
                 'type': 'text'
@@ -591,7 +608,7 @@ def put_book_mapping(index_name):
                 # "Rambam"/"Maimonides" matches his books even when his name isn't in the
                 # title (e.g. "Mishneh Torah, Blessings"), which are linked only by `authors`.
                 'type': 'text',
-                'analyzer': 'stemmed_english'
+                'analyzer': 'stemmed_english_stopwords'
             },
             'order': {
                 'type': 'keyword'
