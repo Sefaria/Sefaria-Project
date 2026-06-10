@@ -346,8 +346,7 @@ class LinkNetwork(object):
         base_index = self.base_oref.index
         self.base_title = base_index.title
         self.root_line = self.line_key(base_index)
-        root_period = base_index.composition_time_period()
-        self.root_year = int(root_period.start) if root_period else None
+        self.root_year = self.work_year(base_index)
         self.nodes = {}
 
         for doc in db.linknet.find({"early_refs": {"$in": self.base_trefs}}):
@@ -369,8 +368,15 @@ class LinkNetwork(object):
 
     def normalized_category(self, index):
         cat = index.categories[0]
+        if cat == "Talmud" and len(index.categories) > 1 and index.categories[1] == "Yerushalmi":
+            cat = "Yerushalmi"
         cat = self.CATEGORY_ALIASES.get(cat, cat)
         return None if cat in self.EXCLUDED_CATEGORIES else cat
+
+    def work_year(self, index, fallback=None):
+        period = index.composition_time_period()
+        estimate = period.determine_year_estimate() if period else None
+        return int(estimate) if estimate is not None else fallback
 
     def is_commentary(self, index):
         return str(getattr(index, "dependence", "")).lower() == "commentary"
@@ -401,7 +407,6 @@ class LinkNetwork(object):
 
     def record_node(self, doc, side):
         tref = doc[side + "_orig_ref"]
-        year = doc[side + "_year"]
         try:
             oref = Ref(tref)
         except Exception:  # links built against an older library may no longer parse
@@ -412,6 +417,8 @@ class LinkNetwork(object):
         line = self.line_key(index)
         if line is None:
             return
+        # linknet stores range-start years; the period midpoint buckets eras better
+        year = self.work_year(index, fallback=doc[side + "_year"])
         key = (line, self.work_key(index))
         node = self.nodes.get(key)
         if node is None:

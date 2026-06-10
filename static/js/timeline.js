@@ -25,18 +25,19 @@ const eraKeyIndex = key => ERAS.findIndex(e => e.key === key);
 // same color, directly below it.  Lines and branches render only when occupied (or when
 // a descendant needs them as track).
 const TRACK_MAP = [
-    {line: "Tanakh"},
-    {line: "Kabbalah",       parent: "Tanakh",         fork: "rishonim"},
-    {line: "Chasidut",       parent: "Kabbalah",       fork: "acharonim"},
+    {line: "Tanakh",         end: "biblical"},
     {line: "Midrash",        parent: "Tanakh",         fork: "tannaim"},
     {line: "Mishnah",        parent: "Tanakh",         fork: "tannaim"},
     {line: "Tosefta",        merge: "Talmud"},
+    {line: "Yerushalmi",     parent: "Mishnah",        fork: "amoraim", color: "Talmud"},
     {line: "Talmud",         parent: "Mishnah",        fork: "amoraim"},
     {line: "Halakhah",       parent: "Talmud",         fork: "geonim"},
     {line: "Responsa",       parent: "Halakhah",       fork: "rishonim"},
     {line: "Liturgy",        parent: "Talmud",         fork: "geonim"},
     {line: "Jewish Thought", parent: "Talmud",         fork: "geonim"},
     {line: "Musar",          parent: "Jewish Thought", fork: "rishonim"},
+    {line: "Kabbalah",       parent: "Tanakh",         fork: "tannaim"},
+    {line: "Chasidut",       parent: "Kabbalah",       fork: "acharonim"},
 ];
 const TRACK_SPECS = TRACK_MAP.reduce((a, s) => { a[s.line] = s; return a; }, {});
 const COMMENTARY_SUFFIX = "/Commentary";
@@ -48,7 +49,11 @@ const lineParent = line => {
     const spec = TRACK_SPECS[line];
     return spec ? spec.parent : null;
 };
-const lineColor = line => Sefaria.palette.categoryColor(baseCategory(line));
+const lineColor = line => {
+    const cat = baseCategory(line);
+    const spec = TRACK_SPECS[cat];
+    return Sefaria.palette.categoryColor(spec && spec.color ? spec.color : cat);
+};
 
 /*****          Layout constants         *****/
 const M = {top: 95, right: 36, bottom: 40, left: 36};
@@ -166,6 +171,11 @@ function computeGeometry(model) {
         let forkEra = null;
         if (isCommentaryLine(line)) {
             forkEra = L.stations.length ? L.stations.reduce((a, s) => Math.min(a, s.era), 99) : null;
+            // a commentary branch can't fork later than its parent line's end
+            const pSpec = TRACK_SPECS[baseCategory(line)];
+            if (forkEra != null && pSpec && pSpec.end != null) {
+                forkEra = Math.min(forkEra, eraKeyIndex(pSpec.end) + 1);
+            }
         } else if (TRACK_SPECS[line] && TRACK_SPECS[line].fork) {
             forkEra = eraKeyIndex(TRACK_SPECS[line].fork);
         }
@@ -705,9 +715,11 @@ async function showTextPopup(ref, rect) {
     }
 }
 
-const hidePopup = function() {
+// A function declaration (not a const) so it hoists: setupPopup wires it to the
+// close button at module init, before this point in the file is reached.
+function hidePopup() {
     popUpElem.style.display = "none";
-};
+}
 
 /*****          Hebrew / English Handling              *****/
 
