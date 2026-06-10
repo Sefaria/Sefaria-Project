@@ -1265,7 +1265,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         (Sefaria._siteSettings.ABOUT_SIDEBAR_PAGES || []).map(p => '/' + p.path)
       );
       if (sidebarPaths.has(path)) {
-        window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank');
+        window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
         return true;
       }
     }
