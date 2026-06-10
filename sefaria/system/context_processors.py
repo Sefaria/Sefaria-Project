@@ -3,24 +3,34 @@
 """
 Djagno Context Processors, for decorating all HTTP requests with common data.
 """
+import time
 import json
-from datetime import datetime
 from functools import wraps
 
-from django.template.loader import render_to_string
-
+from reader.models import user_has_experiments
 from sefaria.settings import *
+from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile, UserHistorySet
-from sefaria.model.interrupting_message import InterruptingMessage
-from sefaria.utils import calendars
-from sefaria.utils.util import short_to_long_lang_code
-from sefaria.utils.hebrew import hebrew_parasha_name
-from reader.views import render_react_component
+from sefaria.model.user_profile import UserProfile
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+
+from sefaria.utils.util import is_int
+logger = structlog.get_logger(__name__)
+
+
+def builtin_only(view):
+    """
+    Marks processors only needed when using on Django builtin auth views.
+    """
+    @wraps(view)
+    def wrapper(request):
+        if request.path == "/login" or request.path.startswith("/password"):
+            return view(request)
+        else:
+            return {}
+    return wrapper
 
 
 def data_only(view):
@@ -30,8 +40,7 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js", "/texts") or
-              request.path.startswith("/sheets/")):
+        if request.path == "/sefaria.js" or request.path.startswith("/data.") or request.path.startswith("/sheets/"):
             return view(request)
         else:
             return {}
@@ -44,8 +53,8 @@ def user_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        exclude = ('/data.js', '/linker.js')
-        if request.path in exclude or request.path.startswith("/api/"):
+        #exclude = ('/linker.js')
+        if request.path == '/linker.js' or request.path.startswith("/api/") or request.path.startswith("/data."):
             return {}
         else:
             return view(request)
@@ -54,142 +63,111 @@ def user_only(view):
 
 def global_settings(request):
     return {
-        "SEARCH_URL":             SEARCH_HOST,
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
+        "STRAPI_LOCATION":        STRAPI_LOCATION,
+        "STRAPI_PORT":            STRAPI_PORT,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
+        "GOOGLE_GTAG":            GOOGLE_GTAG,
+        "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
-        "GLOBAL_WARNING":         GLOBAL_WARNING,
-        "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
-        "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        #"USE_VARNISH":            USE_VARNISH,
-        #"VARNISH_ADDR":           VARNISH_ADDR,
-        #"USE_VARNISH_ESI":        USE_VARNISH_ESI
-        }
+        "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
+    }
 
 
-@data_only
-def titles_json(request):
-    return {"titlesJSON": library.get_text_titles_json()}
+@builtin_only
+def base_props(request):
+    from reader.views import base_props
+    return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
 
 
-@data_only
-def toc(request):
+@user_only
+def module_context(request):
     return {
-        "toc": library.get_toc(),
-        "toc_json": library.get_toc_json(),
-        "search_toc_json": library.get_search_filter_toc_json(),
-        "topic_toc_json": library.get_topic_toc_json()
+        'active_module': request.active_module,
+        'domain_modules': DOMAIN_MODULES
+    }
+
+@user_only
+def cache_timestamp(request):
+    return {
+        "last_cached": library.get_last_cached_time(),
+        "last_cached_short": round(library.get_last_cached_time())
     }
 
 
 @data_only
-def terms(request):
-    return {"terms_json": json.dumps(library.get_simple_term_mapping())}
-
+def large_data(request):
+    return {
+        "toc": library.get_toc(),
+        "toc_json": library.get_toc_json(),
+        "topic_toc": library.get_topic_toc(),
+        "topic_toc_json": library.get_topic_toc_json(),
+        "titles_json": library.get_text_titles_json(),
+        "terms_json": library.get_simple_term_mapping_json(),
+        'virtual_books': library.get_virtual_books()
+    }
 
 @user_only
 def body_flags(request):
     return {"EMBED": "embed" in request.GET}
 
 
-@data_only
-def user_and_notifications(request):
-    """
-    Load data that comes from a user profile.
-    Most of this data is currently only needed view /data.js
-    (currently Node does not get access to logged in version of /data.js)
-    """
-    if not request.user.is_authenticated:
-        return {
-            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
-        }
+def _chatbot_script_url_and_type(chatbot_version):
+    """Return (url, type) for the chatbot script. type is None for classic, 'module' for ES module."""
+    if chatbot_version:
+        # is_int check is a safeguard to ensure chatbot_version is a valid integer before using it,
+        # as it is used for a script insersion and we want to avoid any potential security issues with malicious input.
+        if not is_int(chatbot_version):
+            return None, None
+        return (
+            f"https://{chatbot_version}.ai-server.coolifydev.sefaria.org/static/js/lc-chatbot.umd.cjs?rand={int(time.time())}",
+            None,
+        )
+    if settings.CHATBOT_USE_LOCAL_SCRIPT:
+        return ("http://localhost:5173/src/main.js", "module")
+    
+    if settings.CHATBOT_API_BASE_URL:
+        chatbot_base = settings.CHATBOT_API_BASE_URL.replace("/api", "")
+    else:
+        chatbot_base = "https://chat-dev.sefaria.org"
+    return (
+        f"{chatbot_base}/static/js/lc-chatbot.umd.cjs",
+        None,
+    )
 
-    profile = UserProfile(id=request.user.id)
-    if request.path == "/texts":
-        return {
-            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True)
-        }
-
-    notifications = profile.recent_notifications()
-    notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
-
-    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
-    interrupting_message_json = interrupting_message.json()
-    return {
-        "notifications": notifications,
-        "notifications_json": notifications_json,
-        "notifications_html": notifications.to_HTML(),
-        "notifications_count": profile.unread_notification_count(),
-        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-        "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-        "interrupting_message_json": interrupting_message_json,
-        "partner_group": profile.partner_group,
-        "partner_role": profile.partner_role,
-        "slug": profile.slug,
-        "full_name": profile.full_name,
-        "profile_pic_url": profile.profile_pic_url,
-        "following": json.dumps(profile.followees.uids)
-    }
-
-
-HEADER = {
-    'logged_in': {'english': None, 'hebrew': None},
-    'logged_out': {'english': None, 'hebrew': None}
-}
-
+def _is_user_in_experiment(request):
+    if not user_has_experiments(request.user):
+        return False
+    profile = UserProfile(user_obj=request.user)
+    if not getattr(profile, "experiments", False):
+        return False
+    return True
 
 @user_only
-def header_html(request):
-    """
-    Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
-    Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
-    """
-    if request.path == "/data.js":
-        return {}
-    global HEADER
-    if USE_NODE:
-        lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": False, "interfaceLang": lang})
-        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True, "loggedIn": True, "interfaceLang": lang})
-        LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
-        LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
-        HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
-        HEADER['logged_in'][lang] = LOGGED_IN_HEADER
-    else:
-        LOGGED_OUT_HEADER = ""
-        LOGGED_IN_HEADER = ""
+def chatbot_user_token(request):
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+    # if chatbot_version add it to cookies so it can be used in subsequent requests
+    if chatbot_version:
+        if chatbot_version == "clear":
+            if "chatbot_version" in request.session:
+                del request.session["chatbot_version"]
+        else:
+            request.session["chatbot_version"] = chatbot_version
+    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
+    elif "chatbot_version" in request.session:
+        chatbot_version = request.session["chatbot_version"]
+
+    if not _is_user_in_experiment(request):
+        return {
+            "chatbot_script_url": None,
+            "chatbot_script_type": None,
+        }
+
+    script_url, script_type = _chatbot_script_url_and_type(chatbot_version)
     return {
-        "logged_in_header": LOGGED_IN_HEADER,
-        "logged_out_header": LOGGED_OUT_HEADER,
+        "chatbot_script_url": script_url,
+        "chatbot_script_type": script_type,
     }
-
-
-FOOTER = None
-@user_only
-def footer_html(request):
-    if request.path == "/data.js":
-        return {}
-    global FOOTER
-    if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer", {})
-        FOOTER = "" if "appLoading" in FOOTER else FOOTER
-    else:
-        FOOTER = ""
-    return {
-        "footer": FOOTER
-    }
-
-
-@data_only
-def calendar_links(request):
-    if request.user.is_authenticated:
-        profile = UserProfile(id=request.user.id)
-        custom = profile.settings.get("textual_custom", "ashkenazi")
-    else:
-        custom = "ashkenazi" # this is default because this is the most complete data set
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load sefaria_tags %}
+
+{% block meta_title %}{% meta_title %}{% trans "Ramban on Torah - Thank you to our Sponsors" %}{% endmeta_title %}{% endblock %}
+
+{% block meta_description %}{% meta_desc %}{% trans "Ramban on Torah - Thank you to our Sponsors" %}{% endmeta_desc %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'RambanInner';
+    DJANGO_VARS.reactComponentName = 'RambanLandingPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="Ramban" class="staticPageFrame">
+  <div id="RambanInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}

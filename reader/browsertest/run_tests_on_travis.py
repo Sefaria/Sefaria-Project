@@ -11,6 +11,11 @@ import sys
 
 build = sys.argv[1]
 
+# Travis requires the following builld variables
+# SAUCE_USERNAME
+# SAUCE_ACCESS_KEY 
+# Why doesn't the sauce platform require this?
+
 t = Trial(platform="travis", build=build)
 t.run()
 results = t.results()

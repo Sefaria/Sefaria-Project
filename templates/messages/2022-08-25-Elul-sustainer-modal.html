@@ -1,0 +1,95 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">Friend,</span>
+        <span class="int-he">חברים,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            During the month of Elul, we’re asked to reflect upon our personal commitments and dedicate ourselves to the way we want to live in the year ahead.
+        <b class="int-en">If study and learning are part of your plans for 5783, please become a Sefaria Sustainer today.</b>
+        Monthly donations are essential to ensuring that Sefaria continues to serve your learning needs.</span>
+
+        <span class="int-he">
+בחודש אלול אנחנו מתבקשים להרהר במחויבויות האישיות שלנו ולהשקיע את עצמנו באופן שבו אנו רוצים לחיות בשנה הקרובה.
+            אם לימוד ולמידה הם חלק מתכניותיכם עבור תשפ"ג, התחייבו היום לתרומה חודשית קבועה.
+        </span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-en"  style="font-weight: bold">BECOME A SUSTAINER</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-he">לתרומה חודשית קבועה</span>
+        </a>
+    </div>
+
+
+</div>

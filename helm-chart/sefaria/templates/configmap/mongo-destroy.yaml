@@ -1,0 +1,61 @@
+{{- if .Values.restore.cleanup }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: destroy-mongo-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-delete
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "5"
+data:
+  destroy-mongo.sh: |-
+    #!/bin/bash
+    set -e
+    set -x
+
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+
+    fi
+    {{- if .Values.restore.dynamicName }}
+    DB_NAME="$SEFARIA_DB-{{ .Values.deployEnv }}"
+    {{ else }}
+    DB_NAME=$SEFARIA_DB
+    {{ end }}
+
+    echo "APSCHEDULER: ${APSCHEDULER_NAME}"
+
+    if [[ -z "$APSCHEDULER_NAME" ]]; then
+      APSCHEDULER_NAME={{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
+    fi
+
+    APSCHEDULER_URI="${URI}${MONGO_HOST}/${APSCHEDULER_NAME}?ssl=false&authSource=admin"
+    URI="${URI}${MONGO_HOST}/${DB_NAME}?ssl=false&authSource=admin"
+
+    if [[ ! -z "$MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    APSCHEDULER_URI="${APSCHEDULER_URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    mongo "$URI" <<EOF
+    db.dropDatabase();
+    EOF
+
+    mongo "$APSCHEDULER_URI" <<EOF
+    db.dropDatabase();
+    EOF
+{{- end }}

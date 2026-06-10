@@ -2,13 +2,14 @@
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
+from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
-
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import StringIO, BytesIO
+from django.contrib.admin.views.decorators import staff_member_required
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -16,6 +17,7 @@ from django.http import Http404
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.utils.translation import gettext as _
 
 # noinspection PyUnresolvedReferences
 from django.contrib.auth.models import User
@@ -23,23 +25,30 @@ from rest_framework.decorators import api_view
 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
+from sefaria.google_storage_manager import GoogleStorageManager
 
 from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
-from sefaria.model.group import Group, GroupSet
+from sefaria.model.notification import process_sheet_deletion_in_notifications
+from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
-from sefaria.utils.util import strip_tags
+from sefaria.system.cache import django_cache
+from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.site.site_settings import SITE_SETTINGS
 
-from reader.views import catchall
+from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
 from sefaria.sheets import clean_source, bleach_text
+from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
 
+
 from sefaria.gauth.decorators import gauth_required
+
 
 def annotate_user_links(sources):
     """
@@ -53,65 +62,37 @@ def annotate_user_links(sources):
 
     return sources
 
+
+@ensure_csrf_cookie
+def sheets_home_page(request):
+    title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
+    desc  = _("Mix and match sources from Sefaria's library of Jewish texts, and add your comments, images and videos.")
+    return menu_page(request, page="voices", title=title, desc=desc)
+
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
+    profile = UserProfile(id=request.user.id)
+    sheet = {
+    'status': 'unlisted',
+    'title': '',
+    'sources': [],
+    'nextNode': 1,
+    'options': {
+        'layout':    "stacked",
+        'boxed':  0,
+        'language':    "bilingual",
+        'numbered':    0,
+        'assignable':    0,
+        'divineNames':    "noSub",
+        'collaboration':    "none",
+        'highlightMode':    0,
+        'langLayout':    "heRight",
+        'bsd':    0}
+    }
 
-	if request.COOKIES.get("new_editor", None):
-		sheet = {
-				'status': 'unlisted',
-				'title': '',
-				'sources': [
-					{
-						"outsideText": "",
-						"node": 1,
-					}
-				],
-				'nextNode': 2,
-				'options': {
-					'layout':    "stacked",
-					'boxed':  0,
-					'language':    "bilingual",
-					'numbered':    0,
-					'assignable':    0,
-					'divineNames':    "noSub",
-					'collaboration':    "none",
-					'highlightMode':    0,
-					'langLayout':    "heRight",
-					'bsd':    0,
-				}
-		}
-
-		responseSheet = save_sheet(sheet, request.user.id)
-		return catchall(request, str(responseSheet["id"]), True)
-
-	"""
-	View an new, empty source sheet.
-	"""
-	if "assignment" in request.GET:
-		sheet_id  = int(request.GET["assignment"])
-
-		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
-		existingAssignment = db.sheets.find_one(query) or []
-		if "id" in existingAssignment:
-			return view_sheet(request,str(existingAssignment["id"]),True)
-
-		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
-			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
-				return assigned_sheet(request, sheet_id)
-
-	owner_groups  = get_user_groups(request.user.id)
-	query         = {"owner": request.user.id or -1 }
-	hide_video    = db.sheets.count_documents(query) > 2
-
-	return render(request,'sheets.html', {"can_edit": True,
-												"new_sheet": True,
-												"is_owner": True,
-												"hide_video": hide_video,
-												"owner_groups": owner_groups,
-												"current_url": request.get_full_path,
-												})
-
+    responseSheet = save_sheet(sheet, request.user.id)
+    return catchall(request, str(responseSheet["id"]), True)
 
 def can_edit(user, sheet):
     """
@@ -123,12 +104,6 @@ def can_edit(user, sheet):
         return False
     if sheet["options"]["collaboration"] == "anyone-can-edit":
         return True
-    if sheet["options"]["collaboration"] == "group-can-edit":
-        if "group" in sheet:
-            try:
-                return Group().load({"name": sheet["group"]}).is_member(user.id)
-            except:
-                return False
 
     return False
 
@@ -149,44 +124,35 @@ def can_add(user, sheet):
         return False
     if sheet["options"]["collaboration"] == "anyone-can-add":
         return True
-    if sheet["options"]["collaboration"] == "group-can-add":
-        if "group" in sheet:
-            try:
-                return Group().load({"name": sheet["group"]}).is_member(user.id)
-            except:
-                return False
 
     return False
 
 
-def can_publish(user, sheet):
+def get_user_collections(uid, private=True):
     """
-    Returns True if user and sheet both belong to the same Group, and user has publish rights in that group
-    Returns False otherwise, including if the sheet is not in a Group at all
-    """
-    if "group" in sheet:
-        try:
-            return Group().load({"name": sheet["group"]}).can_publish(user.id)
-        except:
-            return False
-    return False
-
-
-def get_user_groups(uid, private=True):
-    """
-    Returns a list of Groups that user belongs to.
+    Returns a list of Collections that user belongs to.
     """
     if not uid:
         return None
-    groups = GroupSet().for_user(uid, private=private)
-    groups = [group.listing_contents(uid) for group in groups]
-    return groups
+    collections = CollectionSet().for_user(uid, private=private)
+    collections = [collection.listing_contents(uid) for collection in collections]
+    return collections
+
+
+def get_user_collections_for_sheet(uid, sheet_id):
+    """
+    Returns a list of `uid`'s collections that `sheet_id` is included in.
+    """
+    collections = CollectionSet({"$or": [{"admins": uid, "sheets": sheet_id}, {"members": uid, "sheets": sheet_id}]})
+    collections = [collection.listing_contents(uid) for collection in collections]
+    return collections
 
 
 def make_sheet_class_string(sheet):
     """
     Returns a string of class names corresponding to the options of sheet.
     """
+
     o = sheet["options"]
     classes = []
     classes.append(o.get("language", "bilingual"))
@@ -199,74 +165,73 @@ def make_sheet_class_string(sheet):
     if sheet["status"] == "public":
         classes.append("public")
 
-
     return " ".join(classes)
-
 
 @ensure_csrf_cookie
 def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    editor = request.GET.get('editor', '0')
+    redirect_url = get_redirect_to_help_center(request, sheet_id)
+    if redirect_url:
+        return redirect(redirect_url)
+    
     embed = request.GET.get('embed', '0')
-
-    if editor != '1' and embed !='1' and editorMode is False:
+    if embed != '1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
+    sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
-    if "error" in sheet:
-        return HttpResponse(sheet["error"])
+
+    if "error" in sheet and sheet["error"] != "Sheet updated.":
+            return HttpResponse(sheet["error"])
 
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": sheet_id}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
-        owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
     except User.DoesNotExist:
         author = "Someone Mysterious"
-        owner_groups = None
 
-    sheet_class      = make_sheet_class_string(sheet)
-    sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-    embed_flag       = "embed" in request.GET
-    likes            = sheet.get("likes", [])
-    like_count       = len(likes)
+    sheet_class          = make_sheet_class_string(sheet)
+    sheet_collections    = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet["owner"] == request.user.id else None
+    displayed_collection = Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
+    embed_flag           = "embed" in request.GET
+    likes                = sheet.get("likes", [])
+    like_count           = len(likes)
     if request.user.is_authenticated:
         can_edit_flag    = can_edit(request.user, sheet)
         can_add_flag     = can_add(request.user, sheet)
-        can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
         viewer_is_liker  = request.user.id in likes
     else:
         can_edit_flag    = False
         can_add_flag     = False
-        can_publish_flag = False
         viewer_is_liker  = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-    return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
-                                                "sheet": sheet,
-                                                "sheet_class": sheet_class,
-                                                "can_edit": can_edit_flag,
-                                                "can_add": can_add_flag,
-                                                "can_publish": can_publish_flag,
-                                                "title": sheet["title"],
-                                                "author": author,
-                                                "is_owner": request.user.id == sheet["owner"],
-                                                "is_public": sheet["status"] == "public",
-                                                "owner_groups": owner_groups,
-                                                "sheet_group":  sheet_group,
-                                                "like_count": like_count,
-                                                "viewer_is_liker": viewer_is_liker,
-                                                "current_url": request.get_full_path,
-                                                "canonical_url": canonical_url,
-                                                  "assignments_from_sheet":assignments_from_sheet(sheet_id),
-                                            })
+    return render_template(request,'sheets.html', None, {
+        "sheetJSON": json.dumps(sheet),
+        "sheet": sheet,
+        "sheet_class": sheet_class,
+        "can_edit": can_edit_flag,
+        "can_add": can_add_flag,
+        "title": sheet["title"],
+        "author": author,
+        "is_owner": request.user.id == sheet["owner"],
+        "sheet_collections": sheet_collections,
+        "displayed_collection":  displayed_collection,
+        "like_count": like_count,
+        "viewer_is_liker": viewer_is_liker,
+        "current_url": request.get_full_path,
+        "canonical_url": canonical_url,
+        "assignments_from_sheet":assignments_from_sheet(sheet_id),
+    })
+
 
 def assignments_from_sheet(sheet_id):
     try:
@@ -287,89 +252,31 @@ def view_visual_sheet(request, sheet_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update_one({"id": int(sheet_id)}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
-        owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
     except User.DoesNotExist:
         author = "Someone Mysterious"
-        owner_groups = None
 
     sheet_class     = make_sheet_class_string(sheet)
     can_edit_flag   = can_edit(request.user, sheet)
     can_add_flag    = can_add(request.user, sheet)
-    sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-    embed_flag      = "embed" in request.GET
-    likes           = sheet.get("likes", [])
-    like_count      = len(likes)
-    viewer_is_liker = request.user.id in likes
 
+    return render_template(request,'sheets_visual.html', None, {
+        "sheetJSON": json.dumps(sheet),
+        "sheet": sheet,
+        "sheet_class": sheet_class,
+        "can_edit": can_edit_flag,
+        "can_add": can_add_flag,
+        "title": sheet["title"],
+        "author": author,
+        "is_owner": request.user.id == sheet["owner"],
+        "is_public": sheet["status"] == "public",
+        "current_url": request.get_full_path,
+    })
 
-    return render(request,'sheets_visual.html',{"sheetJSON": json.dumps(sheet),
-                                                    "sheet": sheet,
-                                                    "sheet_class": sheet_class,
-                                                    "can_edit": can_edit_flag,
-                                                    "can_add": can_add_flag,
-                                                    "title": sheet["title"],
-                                                    "author": author,
-                                                    "is_owner": request.user.id == sheet["owner"],
-                                                    "is_public": sheet["status"] == "public",
-                                                    "owner_groups": owner_groups,
-                                                    "sheet_group":  sheet_group,
-                                                    "like_count": like_count,
-                                                    "viewer_is_liker": viewer_is_liker,
-                                                    "current_url": request.get_full_path,
-                                            })
-
-
-@ensure_csrf_cookie
-def assigned_sheet(request, assignment_id):
-    """
-    A new sheet prefilled with an assignment.
-    """
-    sheet = get_sheet(assignment_id)
-    if "error" in sheet:
-        return HttpResponse(sheet["error"])
-
-    sheet["sources"] = annotate_user_links(sheet["sources"])
-
-    # Remove keys from we don't want transferred
-    for key in ("id", "like", "views"):
-        if key in sheet:
-            del sheet[key]
-
-    assigner        = UserProfile(id=sheet["owner"])
-    assigner_id	    = assigner.id
-    owner_groups    = get_user_groups(request.user.id)
-
-    sheet_class     = make_sheet_class_string(sheet)
-    can_edit_flag   = True
-    can_add_flag    = can_add(request.user, sheet)
-    sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-    embed_flag      = "embed" in request.GET
-    likes           = sheet.get("likes", [])
-    like_count      = len(likes)
-    viewer_is_liker = request.user.id in likes
-
-    return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
-                                                "sheet": sheet,
-                                                "assignment_id": assignment_id,
-                                                "assigner_id": assigner_id,
-                                                "new_sheet": True,
-                                                "sheet_class": sheet_class,
-                                                "can_edit": can_edit_flag,
-                                                "can_add": can_add_flag,
-                                                "title": sheet["title"],
-                                                "is_owner": True,
-                                                "is_public": sheet["status"] == "public",
-                                                "owner_groups": owner_groups,
-                                                "sheet_group":  sheet_group,
-                                                "like_count": like_count,
-                                                "viewer_is_liker": viewer_is_liker,
-                                                "current_url": request.get_full_path,
-                                            })
 @csrf_exempt
 def delete_sheet_api(request, sheet_id):
     """
@@ -399,7 +306,9 @@ def delete_sheet_api(request, sheet_id):
     if user.id != sheet["owner"]:
         return jsonResponse({"error": "Only the sheet owner may delete a sheet."})
 
-    db.sheets.remove({"id": id})
+    db.sheets.delete_one({"id": id})
+    process_sheet_deletion_in_collections(id)
+    process_sheet_deletion_in_notifications(id)
 
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']
@@ -414,185 +323,238 @@ def delete_sheet_api(request, sheet_id):
 
 
 @csrf_exempt
-def groups_api(request, group=None):
+def collections_api(request, slug=None):
     if request.method == "GET":
-        return groups_get_api(request, group)
+        return collections_get_api(request, slug)
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add a new group."})
+                return jsonResponse({"error": _("You must be logged in to create a new collection.")})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             else:
                 user_id = apikey["uid"]
-            return groups_post_api(request, user_id, group_name=group)
+            return collections_post_api(request, user_id, slug=slug)
         else:
             user_id = request.user.id
-            return protected_groups_post_api(request, user_id, group_name=group)
-
-
-@csrf_exempt
-def user_groups_api(request, user_id):
-    if request.method == "GET":
-        is_me = request.user.id == int(user_id)
-        groups_serialized = get_user_groups(int(user_id), is_me)
-        return jsonResponse(groups_serialized)
-    return jsonResponse({"error": "Unsupported HTTP method."})
-
+            return protected_collections_post_api(request, user_id, slug=slug)
 
 @csrf_protect
 @login_required
-def protected_groups_post_api(request, user_id, group_name=None):
-    return groups_post_api(request, user_id, group_name)
+def protected_collections_post_api(request, user_id, slug=None):
+    return collections_post_api(request, user_id, slug)
 
 
 @csrf_protect
-def groups_get_api(request, group=None):
-    if not group:
-        return jsonResponse({
-            "private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
-            "public": [g.listing_contents() for g in
-                       GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
-        })
-    group_obj = Group().load({"name": group})
-    if not group_obj:
-        return jsonResponse({"error": "No group named '%s'" % group})
-    is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
-    group_content = group_obj.contents(with_content=True, authenticated=is_member)
-    return jsonResponse(group_content)
+def collections_get_api(request, slug=None):
+    if not slug:
+        return jsonResponse(CollectionSet.get_collection_listing(request.user.id))
+    uslug = unquote(slug)
+    collection_obj = Collection().load({"$or": [{"slug": uslug}, {"privateSlug": uslug}]})
+    if not collection_obj:
+        return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
+    is_member = request.user.is_authenticated and collection_obj.is_member(request.user.id)
+    collection_content = collection_obj.contents(with_content=True, authenticated=is_member)
+    return jsonResponse(collection_content)
 
 
 @csrf_exempt
 @catch_error_as_json
-def groups_post_api(request, user_id, group_name=None):
+def collections_post_api(request, user_id, slug=None):
     if request.method == "POST":
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
-        group = json.loads(j)
-        existing = Group().load({"name": group.get("previousName", group["name"])})
-        if existing:
-            # Don't overwrite existing group when posting to create a new group
-            if "new" in group:
-                return jsonResponse({"error": "A group with this name already exists."})
-            # check poster is a group admin
-            if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to edit this group."})
+        collection_data = json.loads(j)
+        if "slug" in collection_data:
+            collection = Collection().load({"slug": collection_data["slug"]})
+            if not collection:
+                return jsonResponse({"error": "Collection with slug `{}` not found.".format(collection["slug"])})
+            # check poster is a collection admin
+            if user_id not in collection.admins:
+                return jsonResponse({"error": "You do not have permission to edit this collection."})
 
-            existing.load_from_dict(group)
-            existing.save()
+            collection.load_from_dict(collection_data)
+            collection.save()
         else:
-            reservedChars = ['-', '_', '|']
-            if any([c in group["name"] for c in reservedChars]):
-                return jsonResponse({"error": 'Group names may not contain the following characters: {}'.format(', '.join(reservedChars))})
-            del group["new"]
-            group["admins"] = [user_id]
-            group["publishers"] = []
-            group["members"] = []
-            Group(group).save()
-        return jsonResponse({"status": "ok"})
+            collection_data["admins"] = [user_id]
+            collection = Collection(collection_data)
+            collection.save()
+        return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
 
     elif request.method == "DELETE":
-        if not group_name:
-            return jsonResponse({"error": "Please specify a group name in the URL."})
-        existing = Group().load({"name": group_name})
+        if not slug:
+            return jsonResponse({"error": "Please specify a collection in the URL."})
+        existing = Collection().load({"slug": slug})
         if existing:
             if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to delete this group."})
+                return jsonResponse({"error": "You do not have permission to delete this collection."})
             else:
-                GroupSet({"name": group_name}).delete()
+                CollectionSet({"slug": slug}).delete()
                 return jsonResponse({"status": "ok"})
         else:
-            return jsonResponse({"error": "Group named %s does not exist" % group_name})
+            return jsonResponse({"error": "Collection with the slug `{}` does not exist".format(slug)})
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@csrf_exempt
+def user_collections_api(request, user_id):
+    from sefaria.system.database import db
+    if request.method == "GET":
+        is_me = request.user.id == int(user_id)
+        collections_serialized = get_user_collections(int(user_id), is_me)
+        return jsonResponse(collections_serialized)
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
 @login_required
-def groups_role_api(request, group_name, uid, role):
+def collections_inclusion_api(request, slug, action, sheet_id):
     """
-    API for setting a group members role, or removing them from a group.
+    API for adding or removing a sheet from a collection
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
-    if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
+    collection = Collection().load({"slug": slug})
+    if not collection:
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
+    if not collection.is_member(request.user.id):
+        return jsonResponse({"error": "Only members of this collection my change its contents."})
+    sheet_id = int(sheet_id)
+    sheet = db.sheets.find_one({"id": sheet_id})
+    if not sheet:
+        return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
+
+    if action == "remove":
+        if sheet_id in collection.sheets:
+            collection.sheets.remove(sheet_id)
+            if request.user.id == sheet["owner"] and sheet.get("displayedCollection", None) == collection.slug:
+                sheet["displayedCollection"] = None
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
+        else:
+            return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
+    if action == "add":
+        if sheet_id not in collection.sheets:
+            collection.sheets.append(sheet_id)
+            # If a sheet's owner adds it to a collection, and the sheet is not highlighted
+            # in another collection, set it to highlight this collection.
+            if request.user.id == sheet["owner"] and not sheet.get("displayedCollection", None):
+                sheet["displayedCollection"] = collection.slug
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
+
+    collection.save()
+    is_member = request.user.is_authenticated and collection.is_member(request.user.id)
+    sheet = get_sheet_for_panel(int(sheet_id))
+    sheet_listing = annotate_user_collections([sheet_to_dict(sheet)], request.user.id)[0]
+    return jsonResponse({
+        "status": "ok",
+        "action": action,
+        "collectionListing": collection.listing_contents(request.user.id),
+        "collection": collection.contents(with_content=True, authenticated=is_member),
+        "sheet": sheet,
+        "sheetListing": sheet_listing,
+    })
+
+
+@login_required
+def collections_for_sheet_api(request, sheet_id):
+    """
+    API for determining which collections that a user is a member of contain `sheet_id`.
+    """
+    sheet_id = int(sheet_id)
+    uid = request.user.id
+    collections = get_user_collections_for_sheet(uid, sheet_id)
+
+    return jsonResponse(collections)
+
+
+@login_required
+def collections_role_api(request, slug, uid, role):
+    """
+    API for setting a collection members role, or removing them from a collection.
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    collection = Collection().load({"slug": slug})
+    if not collection:
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     uid = int(uid)
-    if request.user.id not in group.admins:
+    if request.user.id not in collection.admins:
         if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
-            return jsonResponse({"error": "You must be a group admin to change member roles."})
-    user = UserProfile(uid)
+            return jsonResponse({"error": "You must be a collection owner to change contributor roles."})
+    user = UserProfile(id=uid)
     if not user.exists():
         return jsonResponse({"error": "No user with the specified ID exists."})
     if role not in ("member", "publisher", "admin", "remove"):
-        return jsonResponse({"error": "Unknown group member role."})
-    if uid == request.user.id and group.admins == [request.user.id] and role != "admin":
-        return jsonResponse({"error": "This action would leave the group without any admins. Please appoint another admin first."})
+        return jsonResponse({"error": "Unknown collection contributor role."})
+    if uid == request.user.id and collection.admins == [request.user.id] and role != "admin":
+        return jsonResponse({"error": _("Leaving this collection would leave it without any owners. Please appoint another owner before leaving, or delete the collection.")})
     if role == "remove":
-        group.remove_member(uid)
+        collection.remove_member(uid)
     else:
-        group.add_member(uid, role)
+        collection.add_member(uid, role)
 
-    group_content = group.contents(with_content=True, authenticated=True)
-    return jsonResponse(group_content)
+    collection_content = collection.contents(with_content=True, authenticated=True)
+    return jsonResponse(collection_content)
 
 
 @login_required
-def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
+def collections_invite_api(request, slug, uid_or_email, uninvite=False):
     """
-    API for adding or removing group members, or group invitations
+    API for adding or removing collection members, or collection invitations
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
-    if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
-    if request.user.id not in group.admins:
-        return jsonResponse({"error": "You must be a group admin to invite new members."})
+    collection = Collection().load({"slug": slug})
+    if not collection:
+        return jsonResponse({"error": "No collection with slug {}.".format(slug)})
+    if request.user.id not in collection.admins:
+        return jsonResponse({"error": "You must be a collection owner to invite new members."})
 
     user = UserProfile(email=uid_or_email)
     if not user.exists():
         if uninvite:
-            group.remove_invitation(uid_or_email)
+            collection.remove_invitation(uid_or_email)
             message = "Invitation removed."
         else:
-            group.invite_member(uid_or_email, request.user.id)
+            collection.invite_member(uid_or_email, request.user.id)
             message = "Invitation sent."
     else:
-        is_new_member = not group.is_member(user.id)
+        is_new_member = not collection.is_member(user.id)
 
         if is_new_member:
-            group.add_member(user.id)
+            collection.add_member(user.id)
             from sefaria.model.notification import Notification
             notification = Notification({"uid": user.id})
-            notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+            notification.make_collection_add(adder_id=request.user.id, collection_slug=collection.slug)
             notification.save()
-            message = "Group member added."
+            message = "Collection editor added."
         else:
-            message = "%s is already a member of this group." % user.full_name
+            message = "%s is already a editor of this collection." % user.full_name
 
-    group_content = group.contents(with_content=True, authenticated=True)
-    return jsonResponse({"group": group_content, "message": message})
+    collection_content = collection.contents(with_content=True, authenticated=True)
+    del collection_content["lastModified"]
+    return jsonResponse({"collection": collection_content, "message": message})
 
 
 @login_required
-def groups_pin_sheet_api(request, group_name, sheet_id):
+def collections_pin_sheet_api(request, slug, sheet_id):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
-    if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
-    if request.user.id not in group.admins:
-        return jsonResponse({"error": "You must be a group admin to invite new members."})
+    collection = Collection().load({"slug": slug})
+    if not collection:
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
+    if not collection.is_member(request.user.id):
+        return jsonResponse({"error": "You must be a collection editor to pin sheets."})
 
     sheet_id = int(sheet_id)
-    group.pin_sheet(sheet_id)
-    group_content = group.contents(with_content=True, authenticated=True)
-    return jsonResponse({"group": group_content, "status": "success"})
+    collection.pin_sheet(sheet_id)
+    collection_content = collection.contents(with_content=True, authenticated=True)
+    del collection_content["lastModified"]
+    return jsonResponse({"collection": collection_content, "status": "success"})
 
 
 def sheet_stats(request):
@@ -612,14 +574,17 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
+                return jsonResponse(
+                    {"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"},
+                    status=401
+                )
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
+                return jsonResponse({"error": "Unrecognized API key."}, status=401)
         else:
             apikey = None
 
-        j = request.POST.get("json")
+        j = request.POST.get("json") or request.body
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
         sheet = json.loads(j)
@@ -635,8 +600,7 @@ def save_sheet_api(request):
             existing = get_sheet(sheet["id"])
             if "error" not in existing  and \
                 not can_edit(user, existing) and \
-                not can_add(request.user, existing) and \
-                not can_publish(request.user, existing):
+                not can_add(request.user, existing):
 
                 return jsonResponse({"error": "You don't have permission to edit this sheet."})
         else:
@@ -652,25 +616,14 @@ def save_sheet_api(request):
         if "summary" in sheet:
             sheet["summary"] = bleach_text(sheet["summary"])
 
-        if sheet.get("group", None):
-            # Quietly enforce group permissions
-            if sheet["group"] not in [g["name"] for g in get_user_groups(user.id)]:
-                # Don't allow non Group members to add a sheet to a group
-                sheet["group"] = None
-
-            if not can_publish(user, sheet):
-                if not existing:
-                    sheet["status"] = "unlisted"
-                else:
-                    if existing.get("group", None) != sheet["group"]:
-                        # Don't allow non Group publishers to add a new public sheet
-                        sheet["status"] = "unlisted"
-                    elif existing["status"] != sheet["status"]:
-                        # Don't allow non Group publishers from changing status of an existing sheet
-                        sheet["status"] = existing["status"]
+        if sheet.get("displayedCollection", None):
+            # Don't allow non collection members to set displayedCollection
+            if sheet["displayedCollection"] not in [g["slug"] for g in get_user_collections(user.id)]:
+                sheet["displayedCollection"] = None
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)
+        responseSheet["topics"] = add_langs_to_topics(responseSheet.get("topics", [])) # add langs to topics for consistency.  GET requests already do this, but POST requests didn't before
         if "rebuild" in responseSheet and responseSheet["rebuild"]:
             # Don't bother adding user links if this data won't be used to rebuild the sheet
             responseSheet["sources"] = annotate_user_links(responseSheet["sources"])
@@ -688,32 +641,12 @@ def bulksheet_api(request, sheet_id_list):
 
 
 @api_view(["GET"])
-def user_sheet_list_api(request, user_id):
-    """
-    API for listing the sheets that belong to user_id.
-    """
-    # only return private sheets if you are logged in as user_id
-    private = int(user_id) == request.user.id
-    return jsonResponse(user_sheets(user_id, private=private), callback=request.GET.get("callback", None))
-
-
-@api_view(["GET"])
-def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
-    limiter  = int(limiter)
-    offset   = int(offset)
-    private = int(user_id) == request.user.id
+def user_sheet_list_api(request, user_id, sort_by="date", limiter=0, offset=0):
+    sort_by  = sort_by if sort_by else "date"
+    limiter  = int(limiter) if limiter else 0
+    offset   = int(offset) if offset else 0
+    private  = int(user_id) == request.user.id
     return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
-
-
-def private_sheet_list_api(request, group):
-    group = group.replace("-", " ").replace("_", " ")
-    group   = Group().load({"name": group})
-    if not group:
-        raise Http404
-    if request.user.is_authenticated and group.is_member(request.user.id):
-        return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
-    else:
-        return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):
@@ -784,6 +717,36 @@ def add_source_to_sheet_api(request, sheet_id):
         can further specify the origin or content of text for that ref.
 
     """
+    def remove_footnotes(txt):
+        #removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+        soup = BeautifulSoup(txt, parser='lxml')
+        for el in soup.find_all("i", {"class": "footnote"}):
+            if el.previousSibling.name == "sup":
+                el.previousSibling.decompose()
+            el.decompose()
+        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS, strip=True)
+
+
+    # Internal func that does the same thing for each language to get text for the source
+    def get_correct_text_from_source_obj(source_obj, ref_obj, lang):
+
+        if lang in source_obj:  # if there's actual content passed in, that tkaes precedence as the source text
+            lang_tc = source_obj[lang]
+            del source_obj[lang]
+            return lang_tc
+        else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
+            lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
+            lang_tc = lang_tc.ja().flatten_to_string()
+            if "version-"+lang in source_obj:
+                del source_obj["version-"+lang]
+            return lang_tc if lang_tc != "" else "..."
+
+    sheet = db.sheets.find_one({"id": int(sheet_id)})
+    if not sheet:
+        return {"error": "No sheet with id %s." % (id)}
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "User can only edit their own sheet" })
+    
     source = json.loads(request.POST.get("source"))
     if not source:
         return jsonResponse({"error": "No source to copy given."})
@@ -794,56 +757,36 @@ def add_source_to_sheet_api(request, sheet_id):
         del source["refs"]
 
     if "ref" in source and source["ref"]:
+        text = {}
         ref = Ref(source["ref"])
         source["heRef"] = ref.he_normal()
+        text["en"] = get_correct_text_from_source_obj(source, ref, "en")
+        text["en"] = remove_footnotes(text["en"])
+        text["he"] = get_correct_text_from_source_obj(source, ref, "he")
+        text["he"] = remove_footnotes(text["he"])
+        source["text"] = text
 
-        if "version" in source or "en" in source or "he" in source:
-            text = {}
-            if "en" in source:
-                text["en"] = source["en"]
-                tc = TextChunk(ref, "he", source["version"]) if source.get("versionLanguage") == "he" else TextChunk(ref, "he")
-                text["he"] = tc.ja().flatten_to_string()
-                del source["en"]
-            elif "he" in source:
-                text["he"] = source["he"]
-                tc = TextChunk(ref, "en", source["version"]) if source.get("versionLanguage") == "en" else TextChunk(ref, "en")
-                text["en"] = tc.ja().flatten_to_string()
-                del source["he"]
-            else:  # "version" in source
-                text[source["versionLanguage"]] = TextChunk(ref, source["versionLanguage"], source["version"]).ja().flatten_to_string()
-                other = "he" if source["versionLanguage"] == "en" else "en"
-                text[other] = TextChunk(ref, other).ja().flatten_to_string()
-            source.pop("version", None)
-            source.pop("versionLanguage", None)
-            source["text"] = text
-
-        else:
-            text = {}
-            tc_eng = TextChunk(ref, "en")
-            tc_heb = TextChunk(ref, "he")
-
-
-            if tc_eng:
-                text["en"] = tc_eng.ja().flatten_to_string() if tc_eng.ja().flatten_to_string() != "" else "..."
-            if tc_heb:
-                text["he"] = tc_heb.ja().flatten_to_string() if tc_heb.ja().flatten_to_string() != "" else "..."
-            source["text"] = text
     note = request.POST.get("note", None)
     source.pop("node", None)
     response = add_source_to_sheet(int(sheet_id), source, note=note)
 
     return jsonResponse(response)
 
-
+@login_required
 def copy_source_to_sheet_api(request, sheet_id):
     """
     API to copy a source from one sheet to another.
     """
+    from sefaria.system.database import db
     copy_sheet = request.POST.get("sheetID")
     copy_source = request.POST.get("nodeID")
     if not copy_sheet and copy_source:
         return jsonResponse({"error": "Need both a sheet and source node ID to copy."})
-
+    sheet = db.sheets.find_one({"id": int(sheet_id)})
+    if not sheet:
+        return {"error": "No sheet with id %s." % (id)}
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "User can only edit their own sheet" })
     source = get_sheet_node(int(copy_sheet), int(copy_source))
     del source["node"]
     response = add_source_to_sheet(int(sheet_id), source)
@@ -851,7 +794,7 @@ def copy_source_to_sheet_api(request, sheet_id):
     return jsonResponse(response)
 
 
-
+@login_required
 def add_ref_to_sheet_api(request, sheet_id):
     """
     API to add a source to a sheet using only a ref.
@@ -859,7 +802,7 @@ def add_ref_to_sheet_api(request, sheet_id):
     ref = request.POST.get("ref")
     if not ref:
         return jsonResponse({"error": "No ref given in post data."})
-    return jsonResponse(add_ref_to_sheet(int(sheet_id), ref))
+    return jsonResponse(add_ref_to_sheet(int(sheet_id), ref, request))
 
 
 @login_required
@@ -868,7 +811,10 @@ def update_sheet_topics_api(request, sheet_id):
     API to update tags for sheet_id.
     """
     topics = json.loads(request.POST.get("topics"))
-    old_topics = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1}).get("topics", [])
+    sheet = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1})
+    if sheet["owner"] != request.user.id:
+        return jsonResponse({"error": "user can only add topics to their own sheet"})
+    old_topics = sheet.get("topics", [])
     return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
 
 
@@ -942,23 +888,16 @@ def user_tag_list_api(request, user_id):
     response["Cache-Control"] = "max-age=3600"
     return response
 
-
-def group_tag_list_api(request, group):
-    """
-    API to retrieve the list of public tags ordered by count.
-    """
-    group = group.replace("-", " ").replace("_", " ")
-    response = sheet_topics_counts({"group": group})
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
-    return response
-
-
+@django_cache(timeout=6 * 60 * 60)
 def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_topics(ntags=18)
+    try:
+        ntags = int(request.GET.get('n', 10))
+    except ValueError:
+        return jsonResponse({"error": "Invalid value for parameter 'n'. It must be an integer."})
+    response = trending_topics(ntags=ntags)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -967,9 +906,10 @@ def trending_tags_api(request):
 def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
-    response = public_sheets(limit=limiter, skip=offset)
+    lang     = request.GET.get("lang")
+    filtered = bool(int(request.GET.get("filtered", False)))
+    response = public_sheets(limit=limiter, skip=offset, lang=lang, filtered=filtered)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
     return response
 
 
@@ -986,7 +926,6 @@ def sheet_to_story_dict(request, sid):
 
 def sheet_list_to_story_list(request, sid_list, public=True):
     """
-
     :param request:
     :param sid_list: list of sheet ids
     :param public: if True, return only public sheets
@@ -1028,8 +967,29 @@ def sheets_by_ref_api(request, ref):
     """
     API to get public sheets by ref.
     """
-    return jsonResponse(get_sheets_for_ref(ref))
+    include_collections = bool(int(request.GET.get("include_collections", 0)))
+    sheets = get_sheets_for_ref(ref)
+    if include_collections:
+        sheets = annotate_sheets_with_collections(sheets)
+    return jsonResponse(sheets)
 
+def sheets_with_ref(request, tref):
+    """
+    Accepts tref as a string which is expected to be in the format of a ref or refs separated by commas, indicating a range.
+    """
+    search_params = get_search_params(request.GET)
+
+    props={
+        "initialSearchField": search_params["field"],
+        "initialSearchFilters": search_params["filters"],
+        "initialSearchFilterAggTypes": search_params["filterAggTypes"],
+        "initialSearchSortType": search_params["sort"]
+    }
+    he_tref = Ref(tref).he_normal()
+    normal_ref = tref if request.interfaceLang == "english" else he_tref
+    title = get_page_title(f"Sheets with {normal_ref}", module=request.active_module)
+    props["sheetsWithRef"] = {"en": tref, "he": he_tref}
+    return menu_page(request, page="sheetsWithRef", title=title, props=props)
 
 def get_aliyot_by_parasha_api(request, parasha):
     response = {"ref":[]};
@@ -1061,16 +1021,11 @@ def sheet_to_html_string(sheet):
     Create the html string of sheet with sheet_id.
     """
     sheet["sources"] = annotate_user_links(sheet["sources"])
-    sheet = resolve_options_of_sources(sheet)
-
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
     except User.DoesNotExist:
         author = "Someone Mysterious"
-
-    sheet_group = (Group().load({"name": sheet["group"]})
-                   if "group" in sheet and sheet["group"] != "None" else None)
 
     context = {
         "sheetJSON": json.dumps(sheet),
@@ -1082,8 +1037,6 @@ def sheet_to_html_string(sheet):
         "author": author,
         "is_owner": False,
         "is_public": sheet["status"] == "public",
-        "owner_groups": None,
-        "sheet_group":  sheet_group,
         "like_count": len(sheet.get("likes", [])),
         "viewer_is_liker": False,
         "assignments_from_sheet": assignments_from_sheet(sheet['id']),
@@ -1092,42 +1045,28 @@ def sheet_to_html_string(sheet):
     return render_to_string('gdocs_sheet.html', context)
 
 
-def resolve_options_of_sources(sheet):
-    for source in sheet['sources']:
-        if 'text' not in source:
-            continue
-        options = source.setdefault('options', {})
-        if not options.get('sourceLanguage'):
-            source['options']['sourceLanguage'] = sheet['options'].get(
-                'language', 'bilingual')
-        if not options.get('sourceLayout'):
-            source['options']['sourceLayout'] = sheet['options'].get(
-                'layout', 'sideBySide')
-        if not options.get('sourceLangLayout'):
-            source['options']['sourceLangLayout'] = sheet['options'].get(
-                'langLayout', 'heRight')
-    return sheet
 
-
-
-@gauth_required(scope='https://www.googleapis.com/auth/drive.file', ajax=True)
+@gauth_required(scope=['openid', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'], ajax=True)
 def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
-
-    http = credential.authorize(httplib2.Http())
-    service = build('drive', 'v3', http=http, cache_discovery=False)
+    # Using credentials in google-api-python-client.
+    service = build('drive', 'v3', credentials=credential, cache_discovery=False)
+    user_info_service = build('oauth2', 'v2', credentials=credential, cache_discovery=False)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
         return jsonResponse({'error': {'message': sheet["error"]}})
 
+    options = {'language': request.GET.get("language", "bilingual"),
+               'layout': request.GET.get("layout", "heRight")}
+    sheet['options'] = sheet['options'] | options
+
     file_metadata = {
         'name': strip_tags(sheet['title'].strip()),
         'mimeType': 'application/vnd.google-apps.document'
     }
-
     html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
     media = MediaIoBaseUpload(
@@ -1136,7 +1075,67 @@ def export_to_drive(request, credential, sheet_id):
         resumable=True)
 
     new_file = service.files().create(body=file_metadata,
-                                      media_body=media,
-                                      fields='webViewLink').execute()
+                                        media_body=media,
+                                        fields='webViewLink').execute()
+        
+    user_info = user_info_service.userinfo().get().execute()
+
+    profile = UserProfile(id=request.user.id)
+    profile.update({"gauth_email": user_info['email']})
+    profile.save()
 
     return jsonResponse(new_file)
+
+@catch_error_as_json
+def upload_sheet_media(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to access this api.")})
+    if request.method == "POST":
+        from PIL import Image
+        from io import BytesIO
+        import uuid
+        import base64
+        import imghdr
+
+        bucket_name = GoogleStorageManager.UGC_SHEET_BUCKET
+        max_img_size = [1024, 1024]
+
+        img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+
+        if imghdr.what(img_file_in_mem) == "gif":
+            img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"{request.user.id}-{uuid.uuid1()}.gif", bucket_name)
+
+        else:
+            im = Image.open(img_file_in_mem)
+            img_file = BytesIO()
+            im.thumbnail(max_img_size, Image.LANCZOS)
+            im.save(img_file, format=im.format)
+            img_file.seek(0)
+
+            img_url = GoogleStorageManager.upload_file(img_file, f"{request.user.id}-{uuid.uuid1()}.{im.format.lower()}", bucket_name)
+
+        return jsonResponse({"url": img_url})
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+@staff_member_required
+@api_view(["PUT"])
+def next_untagged(request):
+    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if("sheetId" in body):
+       update_sheet_tags_categories(body, request.user.id)
+    return jsonResponse(get_sheet_categorization_info("topics", body['skipIds']))
+
+
+@staff_member_required
+@api_view(["PUT"])
+def next_uncategorized(request):
+    from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if("sheetId" in body):
+       update_sheet_tags_categories(body, request.user.id)
+    return jsonResponse(get_sheet_categorization_info("categories", body['skipIds']))
+

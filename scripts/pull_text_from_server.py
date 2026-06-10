@@ -3,6 +3,7 @@
 import sys
 import requests
 import argparse
+from json import JSONDecodeError
 import unicodecsv as csv
 from io import StringIO
 from functools import partial
@@ -17,21 +18,37 @@ from sefaria.tracker import modify_text
 from sefaria.model import *
 
 
-def version_urls(server, book_title):
+def version_url(server: str, book_title: str, version_title: str, lang: str) -> str:
+    return f'{server}/download/version/{book_title} - {lang.lower()} - {version_title}.json'
+
+
+def version_url_generator(server, book_title):
     version_list_url = '{}/api/texts/versions/{}'.format(server, book_title)
     version_list = requests.get(version_list_url).json()
     for v in version_list:
-        yield '{}/download/version/{} - {} - {}.json'.format(server, book_title, v['language'], v['versionTitle'])
+        yield version_url(server, book_title, v['versionTitle'], v['language'])
 
 
-def pull_text_from_server(url, uid):
+class JsonPullError(Exception):
+    pass
+
+
+def pull_text_from_server(url):
     response = requests.get(url)
+    if not response.ok:
+        print(f'Received {response.status_code} from {url}')
+        raise JsonPullError
+
     # import_versions_from_stream(StringIO(response.text.encode('utf-8')), [1], uid)
     # my_stream = StringIO(response.text.encode('utf-8'))
     # csv.field_size_limit(sys.maxsize)
     # reader = csv.reader(my_stream)
     # rows = [row for row in reader]
-    make_version(response.json(), uid)
+    try:
+        return response.json()
+    except JSONDecodeError:
+        print(f'Failed to parse json from {url}')
+        raise JsonPullError
 
 
 def derive_ref(node_list):
@@ -79,6 +96,7 @@ def move_through_schema(version_schema, callback_method):
 def save_text(user_id, version_title, version_lang, action_type, text_json):
     def modify_ja(node_list):
         my_ref = derive_ref(node_list)
+        print(my_ref)
         my_text = get_text(text_json['text'], node_list)
         modify_text(user_id, my_ref, version_title, version_lang, my_text, type=action_type)
 
@@ -131,7 +149,23 @@ if __name__ == '__main__':
     parser.add_argument("title", help="title argument")
     parser.add_argument("server", help="server from which to pull")
     parser.add_argument("uid", help="user id number")
+    parser.add_argument('-v', '--versionTitle', default=None, help='Version Title for single version download')
+    parser.add_argument('-l', '--language', default=None, help='language of version; required for single version'
+                                                               ' download')
 
     args = parser.parse_args()
-    for u in version_urls(args.server, args.title):
-        pull_text_from_server(u, args.uid)
+    if args.versionTitle:
+        if not args.language:
+            print('language must be supplied with a versionTitle')
+            sys.exit(1)
+        version_urls = [version_url(args.server, args.title, args.versionTitle, args.language)]
+    else:
+        version_urls = version_url_generator(args.server, args.title)
+
+    for u in version_urls:
+        print(u)
+        try:
+            remote_text_json = pull_text_from_server(u)
+        except JsonPullError:
+            continue
+        make_version(remote_text_json, args.uid)

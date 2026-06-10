@@ -1,47 +1,253 @@
-from typing import Union
+from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref
-from sefaria.system.exceptions import DuplicateRecordError
-import logging
+from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
+from .category import Category
+from django_topics.models import Topic as DjangoTopic
+from django_topics.models import TopicPool, PoolType
+from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.model.timeperiod import TimePeriod, LifePeriod
+from sefaria.system.validators import validate_url
+from sefaria.model.portal import Portal
+from sefaria.system.database import db
+import structlog, bleach
+from sefaria.model.place import Place
 import regex as re
-logger = logging.getLogger(__name__)
+from typing import Type
+logger = structlog.get_logger(__name__)
+from sefaria.system.progress_context import report_progress
+from dataclasses import dataclass, field
+from typing import Tuple, List, Dict
+from abc import ABC, abstractmethod
 
 
-class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
+@dataclass
+class SubCatBookSet:
+    depth: int
+    sub_cat_path: Tuple[str, ...]
+    books: List[Index] = field(default_factory=list)
+
+    def __eq__(self, other):
+        if not isinstance(other, SubCatBookSet):
+            return False
+        return self.sub_cat_path == other.sub_cat_path
+
+    def __repr__(self):
+        return f"Sub Path: {self.sub_cat_path}"
+
+    def __hash__(self):
+        return hash(self.sub_cat_path)
+
+
+class AuthorWorksAggregation(ABC):
+    @abstractmethod
+    def get_description(self, lang):
+        pass
+
+    @abstractmethod
+    def get_title(self, lang):
+        pass
+
+    @abstractmethod
+    def get_url(self):
+        pass
+
+
+class AuthorIndexAggregation(AuthorWorksAggregation):
+    def __init__(self, index):
+        self._index: Index = index
+
+    def get_description(self, lang):
+        desc = getattr(self._index, f'{lang}ShortDesc', None)
+        return desc
+
+    def get_title(self, lang):
+        return self._index.get_title(lang)
+
+    def get_url(self):
+        return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
+
+
+class AuthorCategoryAggregation(AuthorWorksAggregation):
+    def __init__(self, index_category, collective_term, base_category):
+        self._index_category: Category = index_category
+        self._collective_title_term: Term = collective_term
+        self._base_category: Category = base_category
+
+    def get_description(self, lang):
+        desc = getattr(self._index_category, f'{lang}ShortDesc', None)
+        return desc
+
+    def get_title(self, lang):
+        if self._collective_title_term is None:
+            cat_term = Term().load({"name": self._index_category.sharedTitle})
+            return cat_term.get_primary_title(lang)
+        else:
+            preposition = 'on' if lang != 'he' else 'על'
+            return f'{self._collective_title_term.get_primary_title(lang)} {preposition} {self._base_category.get_primary_title(lang)}'
+
+    def get_url(self):
+        return f'/texts/{"/".join(self._index_category.path)}'
+
+
+class AuthorAggregationFactory:
+    @staticmethod
+    def create(index=None, index_category=None, collective_term=None, base_category=None):
+        if index:
+            return AuthorIndexAggregation(index)
+        elif index_category:
+            return AuthorCategoryAggregation(
+                index_category,
+                collective_term,
+                base_category
+            )
+        else:
+            raise ValueError("Invalid parameters for aggregation creation")
+
+
+@dataclass
+class DisjointBookSet:
+    base_cat_path: Tuple[str, ...]
+    collective_title: str
+    sub_cat_book_sets: Dict[Tuple[str, ...], SubCatBookSet] = field(default_factory=dict)
+
+    def __eq__(self, other):
+        if not isinstance(other, DisjointBookSet):
+            return False
+        return self.base_cat_path == other.base_cat_path and self.collective_title == other.collective_title
+
+    def __repr__(self):
+        return f"Collective Title: {self.collective_title}, Path: {self.base_cat_path}"
+
+    def __hash__(self):
+        return hash((self.collective_title, self.base_cat_path))
+
+
+class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     history_noun = 'topic'
     slug_fields = ['slug']
     title_group = None
+    subclass_map = {
+        'person': 'PersonTopic',
+        'author': 'AuthorTopic',
+    }
+    pkeys = ["description"]
+    track_pkeys = True
+    reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
         'titles',
     ]
     optional_attrs = [
+        'subclass',  # str which indicates which subclass of `Topic` this instance is
         'alt_ids',
         'properties',
-        'description',
+        'description',  # dictionary, keys are 2-letter language codes
+        'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
-        'numSources',
+        'numSources',  # total number of refLinks, to texts and sheets.
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
-        'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
+        'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
+        'isAmbiguous',  # True if topic primary title can refer to multiple other topics
+        "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        'image',
+        'secondary_image_uri',
+        "portal_slug",  # slug to relevant Portal object
     ]
 
-    @staticmethod
-    def init(slug:str) -> 'Topic':
-        """
-        Convenience func to avoid using .load() when you're only passing a slug
-        :param slug:
-        :return:
-        """
-        return Topic().load({'slug': slug})
+    attr_schemas = {
+        "image": {
+            'type': 'dict',
+            'schema': {'image_uri': {'type': 'string',
+                                     'required': True,
+                                     'regex': '^https://storage\\.googleapis\\.com/img\\.sefaria\\.org/topics/.*?'},
+                       'image_caption': {'type': 'dict',
+                                         'required': True,
+                                         'schema': {'en': {'type': 'string', 'required': True},
+                                                    'he': {'type': 'string', 'required': True}}}}
+            },
+    }
+
+    ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
+                        # this constant is helpful in the topic editor tool functions in this file
+
+    def load(self, query, proj=None):
+        if self.__class__ != Topic:
+            subclass_names = [self.__class__.__name__] + [klass.__name__ for klass in self.all_subclasses()]
+            query['subclass'] = {"$in": [self.reverse_subclass_map[name] for name in subclass_names]}
+        topic = super().load(query, proj)
+        if getattr(topic, 'subclass', False):
+            Subclass = globals()[self.subclass_map[topic.subclass]]
+            topic = Subclass(topic._saveable_attrs())
+        return topic
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        if self.__class__ != Topic and not getattr(self, "subclass", False):
+            # in a subclass. set appropriate "subclass" attribute
+            setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])
+
+    def _pre_save(self):
+        super()._pre_save()
+        django_topic, created = DjangoTopic.objects.get_or_create(slug=self.slug)
+        django_topic.en_title = self.get_primary_title('en')
+        django_topic.he_title = self.get_primary_title('he')
+        django_topic.save()
+
+    def _validate(self):
+        super(Topic, self)._validate()
+        if getattr(self, 'subclass', False):
+            assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
+        if getattr(self, 'portal_slug', None):
+            Portal.validate_slug_exists(self.portal_slug)
+        if getattr(self, "image", False):
+            img_url = self.image.get("image_uri")
+            if img_url: validate_url(img_url)
+
+    def _normalize(self):
+        super()._normalize()
+        for title in self.title_group.titles:
+            title['text'] = title['text'].strip()
+        self.titles = self.title_group.titles
+        slug_field = self.slug_fields[0]
+        slug = getattr(self, slug_field)
+        displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
+        if getattr(displays_under_link, "toTopic", "") == "authors":
+            self.subclass = "author"
+
+    def _sanitize(self):
+        super()._sanitize()
+        for attr in ['description', 'categoryDescription']:
+            p = getattr(self, attr, {})
+            for k, v in p.items():
+                p[k] = bleach.clean(v, tags=[], strip=True)
+            setattr(self, attr, p)
+
+    def get_pools(self) -> list[str]:
+        slug = getattr(self, "slug", None)
+        return list(DjangoTopic.objects.get_pools_by_topic_slug(str(slug))) if slug is not None else []
+
+    def has_pool(self, pool: str) -> bool:
+        return pool in self.get_pools()
+
+    def add_pool(self, pool_name: str) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
+        DjangoTopic.objects.get(slug=self.slug).pools.add(pool)
+        if not self.has_pool(pool_name):
+            self.get_pools().append(pool_name)
+        DjangoTopic.objects.build_slug_to_pools_cache(rebuild=True)
+
+    def remove_pool(self, pool_name) -> None:
+        pool = TopicPool.objects.get(name=pool_name)
+        DjangoTopic.objects.get(slug=self.slug).pools.remove(pool)
+        if self.has_pool(pool_name):
+            self.get_pools().remove(pool_name)
+        DjangoTopic.objects.build_slug_to_pools_cache(rebuild=True)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -52,7 +258,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def get_types(self, types=None, curr_path=None, search_slug_set=None):
         """
         WARNING: Expensive, lots of database calls
-        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        Gets all `is-a` ancestors of self. Returns early if `search_slug_set` is passed and it reaches any element in `search_slug_set`
         :param types: set(str), current known types, for recursive calls
         :param curr_path: current path of this recursive call
         :param search_slug_set: if passed, will return early once/if any element of `search_slug_set` is found
@@ -77,25 +283,61 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def topics_by_link_type_recursively(self, linkType='is-a', explored_set=None, only_leaves=False, reverse=False):
+
+    def change_description(self, desc, cat_desc=None):
+        """
+        Sets description in all cases and sets categoryDescription if this is a top level topic
+
+        :param desc: Dictionary of descriptions, with keys being two letter language codes
+        :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
+        :return:
+        """
+        if cat_desc is None:
+            cat_desc = {"en": "", "he": ""}
+        if desc is None:
+            desc = {"en": "", "he": ""}
+        self.description = desc
+        if getattr(self, "isTopLevelDisplay", False):
+            self.categoryDescription = cat_desc
+        elif getattr(self, "categoryDescription", False):
+            delattr(self, "categoryDescription")
+
+    def topics_by_link_type_recursively(self, **kwargs):
+        topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
+        return topics
+    
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False, max_depth=None, min_sources=None):
         """
         Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
         :param linkType: str, the linkType to recursively traverse.
-        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
         :param only_leaves: bool, if True only return last level traversed
         :param reverse: bool, if True traverse the inverse direction of `linkType`. E.g. if linkType == 'is-a' and reverse == True, you will traverse 'is-category-of' links
+        :param max_depth: How many levels below this one to traverse. 1 returns only this node's children, 0 returns only this node and None means unlimited.
         :return: list(Topic)
         """
+        topics, links, below_min_sources = self._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, max_depth, min_sources)
+        links = list(filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
+        return topics, links
+
+    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources, explored_set=None, below_min_sources_set=None):
+        """
+        Helper function for `topics_and_links_by_link_type_recursively()` to carry out recursive calls
+        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
+        """
         explored_set = explored_set or set()
-        results = []
+        below_min_sources_set = below_min_sources_set or set()
+        topics = []
         dir1 = "to" if reverse else "from"
         dir2 = "from" if reverse else "to"
-        children = [getattr(l, f"{dir1}Topic") for l in IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType})]
+        links = IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType}).array()
+        children = [getattr(l, f"{dir1}Topic") for l in links]
         if len(children) == 0:
-            return [self]
+            if min_sources is not None and self.numSources < min_sources:
+                return [], [], {self.slug}
+            return [self], [], set()
         else:
             if not only_leaves:
-                results += [self]
+                topics += [self]
             for slug in children:
                 if slug in explored_set:
                     continue
@@ -104,10 +346,15 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                results += child_topic.topics_by_link_type_recursively(linkType, explored_set, only_leaves, reverse)
-        return results
+                if max_depth is None or max_depth > 0:
+                    next_depth = max_depth if max_depth is None else max_depth - 1
+                    temp_topics, temp_links, temp_below_min_sources = child_topic._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, next_depth, min_sources, explored_set, below_min_sources_set)
+                    topics += temp_topics
+                    links += temp_links
+                    below_min_sources_set |= temp_below_min_sources
+        return topics, links, below_min_sources_set
 
-    def has_types(self, search_slug_set):
+    def has_types(self, search_slug_set) -> bool:
         """
         WARNING: Expensive, lots of database calls
         Checks if `self` has any slug in `search_slug_set` as an ancestor when traversing `is-a` links
@@ -117,18 +364,42 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self):
-        return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+    def should_display(self) -> bool:
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
 
-    def set_slug(self, new_slug):
+    def has_description(self) -> bool:
+        """
+        returns True if self has description in at least on language
+        """
+        has_desc = False
+        for temp_desc in getattr(self, 'description', {}).values():
+            has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
+        for temp_desc in getattr(self, 'categoryDescription', {}).values():
+            has_desc = has_desc or (isinstance(temp_desc, str) and len(temp_desc) > 0)
+        return has_desc
+
+    def set_slug_to_primary_title(self) -> None:
+        new_slug = self.get_primary_title('en')
+        if len(new_slug) == 0:
+            new_slug = self.get_primary_title('he')
+        new_slug = self.normalize_slug(new_slug)
+        if new_slug != self.slug:
+            self.set_slug(new_slug)
+
+    def set_slug(self, new_slug) -> None:
         slug_field = self.slug_fields[0]
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        DjangoTopic.objects.filter(slug=old_slug).update(slug=new_slug)
+        self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
     def merge(self, other: Union['Topic', str]) -> None:
         """
+        Merge `other` into `self`. This means that all data from `other` will be merged into self.
+        Data from self takes precedence in the event of conflict.
+        Links to `other` will be changed to point to `self` and `other` will be deleted.
         :param other: Topic or old slug to migrate from
         :return: None
         """
@@ -137,20 +408,23 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return
         other_slug = other if isinstance(other, str) else other.slug
         if other_slug == self.slug:
-            logger.warning('Cant merge slug into itself')
+            logger.warning(f'Cant merge slug into itself. Slug == {self.slug}')
             return
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
-            setattr(link, attr, self.slug)
-            if getattr(link, 'fromTopic', None) == link.toTopic:
-                # self-link
-                link.delete()
-                continue
+            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
+                link.fromTopic = self.slug
+                link.toTopic = self.slug
+            else:
+                attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
+                setattr(link, attr, self.slug)
+                if getattr(link, 'fromTopic', None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
+                    link.delete()
+                    continue
             try:
                 link.save()
-            except DuplicateRecordError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
@@ -159,10 +433,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         # source sheets
         db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
 
+        # indexes
+        for index in IndexSet({"authors": other_slug}):
+            index.authors = [self.slug if author_slug == other_slug else author_slug for author_slug in index.authors]
+            props = index._saveable_attrs()
+            db.index.replace_one({"title":index.title}, props)
+            
+        # marked up text chunks
+        db.marked_up_text_chunks.update_many({'spans.topicSlug': other_slug}, {"$set": {'spans.$[element].topicSlug': self.slug}}, array_filters=[{"element.topicSlug": other_slug}])
+        db.linker_output.update_many({'spans.topicSlug': other_slug}, {"$set": {'spans.$[element].topicSlug': self.slug}}, array_filters=[{"element.topicSlug": other_slug}])
+
         if isinstance(other, Topic):
             # titles
             for title in other.titles:
-                if title.get('primary', False):
+                if title.get('primary', False) and self.get_primary_title(title['lang']):
+                    # delete primary flag if self already has primary in this language
                     del title['primary']
             self.titles += other.titles
 
@@ -207,12 +492,40 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
+    def get_ref_links(self, is_sheet, query_kwargs=None, **kwargs):
+        query_kwargs = query_kwargs or {}
+        query_kwargs['is_sheet'] = is_sheet
+        return self.link_set('refTopic', query_kwargs, **kwargs)
+
     def contents(self, **kwargs):
-        mini = kwargs.get('minify', False)
-        d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
-        d['primaryTitle'] = {}
+        """
+        Returns a dictionary of the contents of this topic, including its primary title, description, and other attributes.
+        :param kwargs: optional arguments to control the output.  'minify' will return a minimal version of the contents.
+        When we build the topic TOC on server start, we don't want 'minify' to be True because we need 'slug', 'shouldDisplay', 'pools', and 'displayOrder' to be set.
+        """
+        d = {'primaryTitle': {}}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+            d[lang] = d['primaryTitle'][lang]   # we are currently using 'en' and 'he' for backwards compatibility with mobile app but our desktop app is using 'primaryTitle'
+        if not kwargs.get("with_html"):
+            for k, v in d.get("description", {}).items():
+                d["description"][k] = re.sub("<[^>]+>", "", v or "")
+
+        mini = kwargs.get('minify', False)
+        if not mini:
+            d.update(super(Topic, self).contents(**kwargs))
+        else:
+            children = kwargs.get("children", [])
+            d.update({
+                'slug': self.slug,
+                "shouldDisplay": True if len(children) > 0 else self.should_display(),
+                "displayOrder": getattr(self, "displayOrder", 10000),
+                "pools": self.get_pools()})
+            if getattr(self, "categoryDescription", False):
+                d['categoryDescription'] = self.categoryDescription
+            description = getattr(self, "description", None)
+            if description is not None and getattr(self, "description_published", False):
+                d['description'] = description
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -221,6 +534,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             disambig_text = self.title_group.get_title_attr(title, lang, 'disambiguation')
             if disambig_text:
                 title += f' ({disambig_text})'
+            elif getattr(self, 'isAmbiguous', False) and len(title) > 0:
+                title += ' [Ambiguous]'
         return title
 
     def get_titles(self, lang=None, with_disambiguation=True):
@@ -237,11 +552,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return titles
         return super(Topic, self).get_titles(lang)
 
-    def get_property(self, property):
+    def get_property(self, property, default=None, value_only=True):
         properties = getattr(self, 'properties', {})
-        if property not in properties:
-            return None, None
-        return properties[property]['value'], properties[property]['dataSource']
+        value = properties.get(property, {}).get('value', default)
+        data_source = properties.get(property, {}).get('dataSource', default)
+        if value_only:
+            return value
+        return value, data_source
+
+    def set_property(self, property, value, data_source):
+        if getattr(self, 'properties', None) is None:
+            self.properties = {}
+        self.properties[property] = {
+            'value': value,
+            'dataSource': data_source
+        }
 
     @staticmethod
     def get_uncategorized_slug_set() -> set:
@@ -255,13 +580,253 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
+    def update_after_link_change(self, pool):
+        """
+        updating the pools 'sheets' or 'textual' according to the existence of links and the numSources
+        :param pool: 'sheets' or 'textual'
+        """
+        links = self.get_ref_links(pool == PoolType.SHEETS.value)
+        if self.has_pool(pool) and not links:
+            self.remove_pool(pool)
+        elif not self.has_pool(pool) and links:
+            self.add_pool(pool)
+        self.numSources = self.link_set('refTopic').count()
+        self.save()
+
+
+class PersonTopic(Topic):
+    """
+    Represents a topic which is a person. Not necessarily an author of a book.
+    """
+    @staticmethod
+    def get_person_by_key(key: str):
+        """
+        Find topic corresponding to deprecated Person key
+        """
+        return PersonTopic().load({"alt_ids.old-person-key": key})
+
+    def annotate_place(self, d):
+        properties = d.get('properties', {})
+        for k in ['birthPlace', 'deathPlace']:
+            place = properties.get(k)
+            heKey = 'he' + k[0].upper() + k[1:]  # birthPlace => heBirthPlace
+            if place and heKey not in properties:
+                value, dataSource = place['value'], place['dataSource']
+                place_obj = Place().load({"key": value})
+                if place_obj:   
+                    name = place_obj.primary_name('he')
+                    d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
+        return d
+
+    def contents(self, **kwargs):
+        annotate_time_period = kwargs.get('annotate_time_period', False)
+        d = super(PersonTopic, self).contents(**kwargs)
+        if annotate_time_period:
+            d = self.annotate_place(d)
+            tp = self.most_accurate_life_period()
+            if tp is not None:
+                d['timePeriod'] = {
+                    "name": {
+                        "en": tp.primary_name("en"),
+                        "he": tp.primary_name("he")
+                    },
+                    "yearRange": {
+                        "en": re.sub(r'[()]', '', tp.period_string("en")),
+                        "he": re.sub(r'[()]', '', tp.period_string("he")),
+                    }
+                }
+        return d
+    
+    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
+    # They may also have none of these...
+    def _most_accurate_period(self, time_period_class: Type[TimePeriod]) -> Optional[LifePeriod]:
+        if self.get_property("birthYear") and self.get_property("deathYear"):
+            return time_period_class({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
+        elif self.get_property("birthYear") and self.get_property("era", "CO"):
+            return time_period_class({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+            })
+        elif self.get_property("deathYear"):
+            return time_period_class({
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
+        elif self.get_property("generation"):
+            return time_period_class().load({"symbol": self.get_property("generation")})
+        elif self.get_property("era"):
+            return time_period_class().load({"symbol": self.get_property("era")})
+        else:
+            return None
+
+    def most_accurate_time_period(self):
+        '''
+        :return: most accurate period as TimePeriod (used when a person's LifePeriod should be formatted like a general TimePeriod)
+        '''
+        return self._most_accurate_period(TimePeriod)
+
+    def most_accurate_life_period(self):
+        '''
+        :return: most accurate period as LifePeriod. currently the only difference from TimePeriod is the way the time period is formatted as a string.
+        '''
+        return self._most_accurate_period(LifePeriod)
+
+class AuthorTopic(PersonTopic):
+    """
+    Represents a topic which is an author of a book. Can be used on the `authors` field of `Index`
+    """
+
+    def get_authored_indexes(self):
+        ins = IndexSet({"authors": self.slug})
+        return sorted(ins, key=lambda i: Ref(i.title).order_id())
+
+    def _authors_indexes_fill_category(self, indexes, path, include_dependant):
+        from .text import library
+
+        temp_index_title_set = {i.title for i in indexes}
+        indexes_in_path = library.get_indexes_in_category_path(path, include_dependant, full_records=True)
+        if indexes_in_path.count() == 0:
+            # could be these are dependent texts without a collective title for some reason
+            indexes_in_path = library.get_indexes_in_category_path(path, True, full_records=True)
+            if indexes_in_path.count() == 0:
+                return False
+        path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
+        for index_in_path in indexes_in_path:
+            if tuple(index_in_path.categories[len(path):]) in path_end_set:
+                if index_in_path.title not in temp_index_title_set and self.slug not in set(getattr(index_in_path, 'authors', [])):
+                    return False
+        return True
+
+    def _category_matches_author(self, category: Category) -> bool:
+        from .schema import Term
+
+        cat_term = Term().load({"name": category.sharedTitle})
+        return len(set(cat_term.get_titles()) & set(self.get_titles())) > 0
+
+    def aggregate_authors_indexes_by_category(self):
+        from .text import library
+        from .schema import Term
+
+        def sort_sub_cat_book_sets(book_sets: List[SubCatBookSet]):
+            # a subcategory which covers more books is preferable,
+            # if parent and child cover the same amount of  books (i.e the parent contains the child only), prefer child
+            return sorted(book_sets, key=lambda book_set: (len(book_set.books), book_set.depth), reverse=True)
+
+        def index_is_commentary(index):
+            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
+                index, 'collective_title', None) is not None
+
+        indexes = self.get_authored_indexes()
+
+        final_aggregations = []
+
+        blocks = {}
+
+        MAX_ICAT_FROM_END_TO_CONSIDER = 2
+        for index in indexes:
+            is_comm = index_is_commentary(index)
+            base = library.get_index(index.base_text_titles[0]) if is_comm else index
+            collective_title = index.collective_title if is_comm else None
+            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
+
+            new_empty_block = DisjointBookSet(base_cat_path=base_cat_path, collective_title=collective_title)
+            if new_empty_block in blocks:
+                block = blocks[new_empty_block]
+            else:
+                blocks[new_empty_block] = new_empty_block
+                block = new_empty_block
+
+            for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
+                sub_cat_book_set = SubCatBookSet(depth=icat+1, sub_cat_path=tuple(base.categories[:icat + 1]))
+                if sub_cat_book_set not in block.sub_cat_book_sets:
+                    block.sub_cat_book_sets[sub_cat_book_set] = sub_cat_book_set
+
+                block.sub_cat_book_sets[sub_cat_book_set].books.append(index)
+
+        for block in blocks:
+            cat_choices_sorted = sort_sub_cat_book_sets(book_sets=block.sub_cat_book_sets.values())
+            collective_title = block.collective_title
+            best_base_cat_path = cat_choices_sorted[0].sub_cat_path
+            temp_indexes = cat_choices_sorted[0].books
+            if len(temp_indexes) == 1:
+                final_aggregations += [AuthorAggregationFactory.create(index=temp_indexes[0])]
+                continue
+            if best_base_cat_path == ('Talmud', 'Bavli'):
+                best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
+
+            base_category = Category().load({"path": list(best_base_cat_path)})
+            if collective_title is None:
+                index_category = base_category
+                collective_title_term = None
+            else:
+                index_category = Category.get_shared_category(temp_indexes)
+                collective_title_term = Term().load({"name": collective_title})
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path,
+                                                                                 collective_title is not None) or (
+                    collective_title is None and self._category_matches_author(index_category)):
+                for temp_index in temp_indexes:
+                    final_aggregations += [AuthorAggregationFactory.create(index=temp_index)]
+                continue
+            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+        return final_aggregations
+
+
+    def get_aggregated_urls_for_authors_indexes(self) -> list:
+        """
+        Aggregates author's works by category when possible and
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        corresponding to an index or category of indexes of this author's works.
+        """
+        aggregations = self.aggregate_authors_indexes_by_category()
+        unique_urls = []
+        for agg in aggregations:
+            unique_urls.append({"url": agg.get_url(),
+                                "title": {"en": agg.get_title('en'), "he": agg.get_title('he')},
+                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')}})
+        return unique_urls
+
+    @staticmethod
+    def is_author(slug):
+        t = Topic.init(slug)
+        return t and isinstance(t, AuthorTopic)
+
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
+
+    def __init__(self, query=None, *args, **kwargs):
+        if self.recordClass != Topic:
+            # include class name of recordClass + any class names of subclasses
+            query = query or {}
+            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
+            query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
+        
+        super().__init__(query=query, *args, **kwargs)
+
     @staticmethod
     def load_by_title(title):
         query = {'titles.text': title}
         return TopicSet(query=query)
+
+    def _read_records(self):
+        super()._read_records()
+        for rec in self.records:
+            if getattr(rec, 'subclass', False):
+                Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
+                rec.__class__ = Subclass  # cast to relevant subclass
+
+
+class PersonTopicSet(TopicSet):
+    recordClass = PersonTopic
+
+
+class AuthorTopicSet(PersonTopicSet):
+    recordClass = AuthorTopic
 
 
 class TopicLinkHelper(object):
@@ -280,7 +845,8 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order'
+        'order',  # dict with some data on how to sort this link. can have key 'custom_order' which should trump other data
+        'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
 
@@ -298,7 +864,6 @@ class TopicLinkHelper(object):
 
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "intraTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
@@ -312,6 +877,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         super(IntraTopicLink, self).__init__(attrs=attrs)
         self.context_slug = context_slug
 
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        return super().load(query, proj)
+
     def _normalize(self):
         setattr(self, "class", "intraTopic")
 
@@ -322,14 +891,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         super(IntraTopicLink, self)._validate()
 
         # check everything exists
-        link_type = TopicLinkType().load({"slug": self.linkType})
-        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
-        from_topic = Topic.init(self.fromTopic)
-        assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
-        to_topic = Topic.init(self.toTopic)
-        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
-        data_source = TopicDataSource().load({"slug": self.dataSource})
-        assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
+        Topic.validate_slug_exists(self.fromTopic)
+        Topic.validate_slug_exists(self.toTopic)
+        TopicDataSource.validate_slug_exists(self.dataSource)
 
         # check for duplicates
         duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
@@ -339,6 +904,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                 "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
                     self.linkType, self.fromTopic, self.toTopic))
 
+        link_type = TopicLinkType.init(self.linkType, 0)
         if link_type.slug == link_type.inverseSlug:
             duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
              "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
@@ -348,6 +914,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                         duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
 
         # check types of topics are valid according to validFrom/To
+        from_topic = Topic.init(self.fromTopic)
+        to_topic = Topic.init(self.toTopic)
         if getattr(link_type, 'validFrom', False):
             assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
@@ -392,25 +960,108 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "refTopic"}
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text']
+
+    # is_sheet and expandedRef: defaulted automatically in normalize
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+
+    # unambiguousToTopic: used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+    # descriptions: Titles and learning prompts for this Ref in this Topic context.  Structured as follows:
+    # descriptions: {
+    #     en: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     },
+    #     he: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     }
+    # }
+    optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic', 'descriptions']
+
+    def set_description(self, lang, title, prompt):
+        d = getattr(self, "descriptions", {})
+        d[lang] = {
+            "title": title,
+            "prompt": prompt,
+        }
+        self.descriptions = d
+        return self
+
+    def get_related_pool(self):
+        return PoolType.SHEETS.value if self.is_sheet else PoolType.LIBRARY.value
+
+    def get_topic(self):
+        return Topic().load({'slug': self.toTopic})
+
+    def save(self, override_dependencies=False):
+        super(RefTopicLink, self).save(override_dependencies)
+        topic = self.get_topic()
+        topic.update_after_link_change(self.get_related_pool())
+
+    def delete(self, force=False, override_dependencies=False):
+        topic = self.get_topic()
+        pool = self.get_related_pool()
+        super(RefTopicLink, self).delete(force, override_dependencies)
+        if topic:
+            topic.update_after_link_change(pool)
+
+    def _sanitize(self):
+        super()._sanitize()
+        for lang, d in getattr(self, "descriptions", {}).items():
+            for k, v in d.items():
+                if isinstance(v, str):
+                    self.descriptions[lang][k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'refTopic')
+        return super().load(query, proj)
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
-        self.is_sheet = bool(re.search("Sheet \d+$", self.ref))
+        self.is_sheet = bool(re.search(r"Sheet \d+$", self.ref))
         setattr(self, "class", "refTopic")
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
+            self.ref = Ref(self.ref).normal()
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
+    def _sanitize(self):
+        """
+        Sanitize the "title" and "prompt" for all descriptions.
+        Since they're human editable they are candidates for XSS.
+        @return:
+        """
+        for lang in ("en", "he"):
+            description = getattr(self, "descriptions", {}).get(lang)
+            if description:
+                for field in ("title", "prompt"):
+                    value = description.get(field)
+                    if value:
+                        description[field] = bleach.clean(value, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                self.descriptions[lang] = description
+
+    def _validate(self):
+        Topic.validate_slug_exists(self.toTopic)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
+        to_topic = Topic.init(self.toTopic)
+        link_type = TopicLinkType.init(self.linkType, 0)
+        if getattr(link_type, 'validTo', False):
+            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+    
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates
-            duplicate = RefTopicLink().load(
-                {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}),
-                 "class": getattr(self, 'class')})
+            query = {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}), "class": getattr(self, 'class')}
+            if getattr(self, "charLevelData", None):
+                query["charLevelData.startChar"] = self.charLevelData['startChar']
+                query["charLevelData.endChar"] = self.charLevelData['endChar']
+                query["charLevelData.versionTitle"] = self.charLevelData['versionTitle']
+                query["charLevelData.language"] = self.charLevelData['language']
+
+            duplicate = RefTopicLink().load(query)
             if duplicate is not None:
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
@@ -423,7 +1074,6 @@ class RefTopicLink(abst.AbstractMongoRecord):
         return d
 
 class TopicLinkSetHelper(object):
-
     @staticmethod
     def init_query(query, link_class):
         query = query or {}
@@ -454,7 +1104,7 @@ class RefTopicLinkSet(abst.AbstractMongoSet):
         super().__init__(query=query, *args, **kwargs)
 
 
-class TopicLinkType(abst.AbstractMongoRecord):
+class TopicLinkType(abst.SluggedAbstractMongoRecord):
     collection = 'topic_link_types'
     slug_fields = ['slug', 'inverseSlug']
     required_attrs = [
@@ -478,17 +1128,17 @@ class TopicLinkType(abst.AbstractMongoRecord):
     ]
     related_type = 'related-to'
     isa_type = 'is-a'
+    possibility_type = 'possibility-for'
 
     def _validate(self):
         super(TopicLinkType, self)._validate()
         # Check that validFrom and validTo contain valid topic slugs if exist
 
         for validToTopic in getattr(self, 'validTo', []):
-            assert Topic.init(validToTopic) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+            Topic.validate_slug_exists(validToTopic)
 
         for validFromTopic in getattr(self, 'validFrom', []):
-            assert Topic.init(validFromTopic) is not None, "ValidTo topic '{}' does not exist".format(
-                self.validFrom)
+            Topic.validate_slug_exists(validFromTopic)
 
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
@@ -499,7 +1149,7 @@ class TopicLinkTypeSet(abst.AbstractMongoSet):
     recordClass = TopicLinkType
 
 
-class TopicDataSource(abst.AbstractMongoRecord):
+class TopicDataSource(abst.SluggedAbstractMongoRecord):
     collection = 'topic_data_sources'
     slug_fields = ['slug']
     required_attrs = [
@@ -514,3 +1164,79 @@ class TopicDataSource(abst.AbstractMongoRecord):
 
 class TopicDataSourceSet(abst.AbstractMongoSet):
     recordClass = TopicDataSource
+
+
+def process_index_title_change_in_topic_links(indx, **kwargs):
+    from sefaria.system.exceptions import InputError
+
+    report_progress("Cascading Topic Links from {} to {}".format(kwargs['old'], kwargs['new']))
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from .text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = RefTopicLinkSet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+
+def process_index_delete_in_topic_links(indx, **kwargs):
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
+    RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+
+def process_topic_delete(topic):
+    RefTopicLinkSet({"toTopic": topic.slug}).delete()
+    IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
+    for sheet in db.sheets.find({"topics.slug": topic.slug}):
+        sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
+        db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+    try:
+        DjangoTopic.objects.get(slug=topic.slug).delete()
+    except DjangoTopic.DoesNotExist:
+        print('Topic {} does not exist in django'.format(topic.slug))
+
+def process_topic_description_change(topic, **kwargs):
+    """
+    Upon topic description change, get rid of old markdown links and save any new ones
+    """
+    # need to delete currently existing links but dont want to delete link if its still in the description
+    # so load up a dictionary of relevant data -> link
+    IntraTopicLinkSet({"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
+    refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
+    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
+
+    markdown_links = set()
+    for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
+        for m in re.findall('\[.*?\]\((.*?)\)', val):
+            markdown_links.add(m)
+
+    for markdown_link in markdown_links:
+        if markdown_link.startswith("/topics"):
+            other_slug = markdown_link.split("/")[-1]
+            intra_topic_dict = {"toTopic": topic.slug, "linkType": "related-to",
+                                "dataSource": "learning-team-editing-tool", 'fromTopic': other_slug}
+            try:
+                IntraTopicLink(intra_topic_dict).save()
+            except DuplicateRecordError as e:  # there may be identical IntraTopicLinks with a different dataSource or inverted fromTopic and toTopic
+                pass
+        else:
+            if markdown_link.startswith("/"):
+                markdown_link = markdown_link[1:]  # assume link starts with a '/'
+            try:
+                ref = Ref(markdown_link).normal()
+            except InputError as e:
+                continue
+            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
+                              'ref': ref}
+            RefTopicLink(ref_topic_dict).save()
+
+
+
+
+
+

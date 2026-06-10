@@ -1,0 +1,164 @@
+name: QA Merge Approval
+
+# This workflow controls merge access to protected branches based on the TESTING variable.
+#
+# HOW IT WORKS:
+# - If TESTING=true: merging is BLOCKED (testing in progress)
+# - If TESTING=false (or not set): merging is ALLOWED
+#
+# REQUIREMENT 1: Prevent merges when TESTING=true (even if job already passed)
+# - The `merge_group` trigger runs at merge time (requires merge queue to be enabled)
+# - For repos without merge queue: Make "Check Testing Status" a REQUIRED status check
+#   and enable "Require branches to be up to date" in branch protection. This forces
+#   the check to re-run when someone tries to merge.
+#
+# REQUIREMENT 2: Update all open PRs when TESTING variable changes
+# - Use workflow_dispatch to manually trigger a rerun that updates all open PRs
+#
+# SETUP REQUIRED:
+# 1. Create repository variable TESTING (Settings → Secrets and variables → Actions → Variables)
+# 2. Add branch protection rules for protected branches:
+#    - Require status checks to pass before merging
+#    - Add "Check Testing Status" as a required check
+#    - Enable "Require branches to be up to date before merging" (IMPORTANT for race condition prevention)
+# 3. Optionally enable merge queue for additional protection
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    branches:
+      - modularization-main
+  
+  # Runs when PR enters the merge queue (requires merge queue to be enabled)
+  merge_group:
+    branches:
+      - modularization-main
+  
+  # Manual trigger to update all open PRs when TESTING variable changes
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for re-running checks (e.g., TESTING variable changed to true/false)'
+        required: false
+        default: 'TESTING variable was updated'
+
+jobs:
+  check-testing-status:
+    name: "Check Testing Status"
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if merging is allowed
+        run: |
+          echo "Checking TESTING variable..."
+          echo "TESTING = '${{ vars.TESTING }}'"
+          
+          if [ "${{ vars.TESTING }}" == "true" ]; then
+            echo ""
+            echo "=========================================="
+            echo "❌ MERGING IS BLOCKED"
+            echo "=========================================="
+            echo "Testing is currently in progress."
+            echo ""
+            echo "What to do:"
+            echo "1. Wait for testing to complete"
+            echo "2. Contact the QA team for status"
+            echo "3. Check when TESTING will be set to 'false'"
+            echo "=========================================="
+            echo ""
+            echo "::error::❌ Merging is BLOCKED - testing in progress. Set the TESTING repository variable to 'false' to allow merges."
+            exit 1
+          fi
+          
+          echo ""
+          echo "=========================================="
+          echo "✅ MERGING IS ALLOWED"
+          echo "=========================================="
+          echo "No testing in progress. You may proceed with the merge."
+          echo "=========================================="
+
+  rerun-pr-checks:
+    name: "Re-run Checks on All Open PRs"
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update check status for all open PRs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const testingInProgress = '${{ vars.TESTING }}' === 'true';
+            const mergingAllowed = !testingInProgress;
+            const reason = '${{ github.event.inputs.reason }}';
+            
+            console.log('==========================================');
+            console.log(`TESTING variable: ${testingInProgress ? 'true' : 'false'}`);
+            console.log(`Merging status: ${mergingAllowed ? 'ALLOWED ✅' : 'BLOCKED ❌'}`);
+            console.log(`Reason: ${reason}`);
+            console.log('==========================================\n');
+            
+            // Get all open PRs targeting protected branches
+            const targetBranches = ['modularization-main', ''];
+            let allPrs = [];
+            
+            for (const branch of targetBranches) {
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                base: branch
+              });
+              allPrs = allPrs.concat(prs);
+              console.log(`Found ${prs.length} open PRs targeting ${branch}`);
+            }
+            
+            console.log(`\nTotal PRs to update: ${allPrs.length}\n`);
+            
+            if (allPrs.length === 0) {
+              console.log('No open PRs to update.');
+              return;
+            }
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            for (const pr of allPrs) {
+              console.log(`Processing PR #${pr.number}: ${pr.title}`);
+              
+              try {
+                // Create a new check run with current testing status
+                await github.rest.checks.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'Check Testing Status',
+                  head_sha: pr.head.sha,
+                  status: 'completed',
+                  conclusion: mergingAllowed ? 'success' : 'failure',
+                  output: {
+                    title: mergingAllowed ? '✅ Merging Allowed' : '❌ Merging Blocked',
+                    summary: mergingAllowed 
+                      ? 'Merging is allowed - no testing in progress.' 
+                      : 'Merging is BLOCKED - testing in progress. Contact the QA team or check the testing schedule before proceeding.',
+                    text: `Check triggered by: ${reason}\n\nTESTING variable: ${testingInProgress ? 'true (blocked)' : 'false (allowed)'}\n\nUpdated at: ${new Date().toISOString()}`
+                  }
+                });
+                
+                console.log(`  ✅ Updated: ${mergingAllowed ? 'ALLOWED' : 'BLOCKED'}`);
+                successCount++;
+              } catch (error) {
+                console.error(`  ❌ Failed: ${error.message}`);
+                failCount++;
+              }
+            }
+            
+            console.log('\n==========================================');
+            console.log('SUMMARY');
+            console.log('==========================================');
+            console.log(`Total PRs: ${allPrs.length}`);
+            console.log(`Successfully updated: ${successCount}`);
+            console.log(`Failed: ${failCount}`);
+            console.log('==========================================');

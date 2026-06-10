@@ -1,17 +1,32 @@
 import os
+import datetime
+import json
 
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
-from oauth2client.contrib import xsrfutil
-from oauth2client.contrib.django_util.storage import DjangoORMStorage
-from oauth2client.client import flow_from_clientsecrets
 
-from .models import (CredentialsModel,
-                    FlowModel)
+from sefaria.model.user_profile import UserProfile
+
+import google.auth
+import google.oauth2
+import google_auth_oauthlib.flow
+
 from sefaria import settings
 
+# Error codes for OAuth failures - used to communicate specific errors to frontend
+GAUTH_ERROR_CODES = ['access_denied', 'invalid_grant', 'scope_mismatch']
+
+def _redirect_with_error(next_view, error_code):
+    """
+    Redirect to next_view with gauth_error appended to the URL fragment.
+    This keeps the error in the client-side state alongside afterLoading.
+    
+    """
+    separator = '&' if '#' in next_view else '#'
+    redirect_url = f"{next_view}{separator}gauth_error={error_code}"
+    return redirect(redirect_url)
 
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
@@ -24,52 +39,77 @@ def index(request):
     """
     Step 1 of Google OAuth 2.0 flow.
     """
-    # Create and store the per-user flow object
-    FLOW = flow_from_clientsecrets(
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
-        scope=request.session.get('gauth_scope', ''),
-        redirect_uri=request.build_absolute_uri(reverse('gauth_callback')))
+        scopes=request.session.get('gauth_scope', '')
+    )
 
-    FLOW.params['access_type'] = 'offline'
-    FLOW.params['approval_prompt'] = 'force'  # Properly gets refresh token
-    FLOW.params['include_granted_scopes'] = 'true'  # incremental authorization
-    FLOW.params['state'] = xsrfutil.generate_token(settings.SECRET_KEY,
-                                                   request.user)
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
-    authorize_url = FLOW.step1_get_authorize_url()
-    flow_storage = DjangoORMStorage(FlowModel, 'id', request.user, 'flow')
-    flow_storage.put(FLOW)
+    authorization_url, _ = flow.authorization_url(
+        access_type='offline',
+        include_granted_scope='true',
+    )
 
-    # Don't worry if a next parameter is not set. `auth_return` will use the
-    # homepage by default. Allows for `next_view` to be set from other places.
     try:
         request.session['next_view'] = request.GET['next']
     except KeyError:
         pass
 
-    return redirect(authorize_url)
-
+    return redirect(authorization_url)
 
 @login_required
 def auth_return(request):
     """
     Step 2 of Google OAuth 2.0 flow.
     """
-    if 'state' not in request.GET:
+    # Check for OAuth errors from Google (e.g., user denied access)
+    oauth_error = request.GET.get('error', None)
+    if oauth_error and oauth_error in GAUTH_ERROR_CODES:
+        return _redirect_with_error(request.session.get('next_view', '/'), oauth_error)
+
+    state = request.GET.get('state', None)
+
+    if not state:
         return redirect('gauth_index')
 
-    get_state = bytes(request.GET.get('state'), 'utf8')
-    if not xsrfutil.validate_token(settings.SECRET_KEY,
-                                   get_state,
-                                   request.user):
-        return HttpResponseBadRequest()
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+        settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
+        scopes=request.session.get('gauth_scope', ''),
+        state=state
+    )
 
-    FLOW = DjangoORMStorage(FlowModel, 'id', request.user, 'flow').get()
-    if FLOW is None:
-        return redirect('gauth_index')
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
-    credential = FLOW.step2_exchange(request.GET)
-    cred_storage = DjangoORMStorage(CredentialsModel, 'id', request.user, 'credential')
-    cred_storage.put(credential)
+    authorization_response = request.build_absolute_uri().replace("http:", "https:")
+        
+    try:
+        flow.fetch_token(authorization_response=authorization_response)
+        credentials = flow.credentials
+    except Warning as e:
+        # oauthlib raises Warning when scope changes (user didn't grant all requested scopes)
+        next_view = request.session.get('next_view', '/')
+        return _redirect_with_error(next_view, 'scope_mismatch')
+
+    credentials_dict = {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'id_token':credentials.id_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes,
+        'expiry': datetime.datetime.strftime(credentials.expiry, '%Y-%m-%d %H:%M:%S')
+    }
+
+    profile = UserProfile(user_obj=request.user)
+
+    if profile.gauth_token and profile.gauth_token["refresh_token"] and credentials_dict["refresh_token"] is None:
+        credentials_dict["refresh_token"] = profile.gauth_token["refresh_token"]
+
+    profile.update({"gauth_token": credentials_dict})
+    profile.save()
 
     return redirect(request.session.get('next_view', '/'))

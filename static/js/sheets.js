@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
+sjs.can_save = (sjs.can_edit || sjs.can_add);
 
 sjs.current = sjs.current || {
 	options: {
@@ -39,10 +39,12 @@ parseRef = Sefaria.parseRef.bind(Sefaria);
 makeRef = Sefaria.makeRef.bind(Sefaria);
 normRef = Sefaria.normRef.bind(Sefaria);
 humanRef = Sefaria.humanRef.bind(Sefaria);
+isHebrew = Sefaria.hebrew.isHebrew;
+
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
-		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
+		if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
 			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
@@ -51,7 +53,7 @@ $(window).on("beforeunload", function() {
 	}
 });
 
-//hide
+//hide dixed bottom message when scrolled to the bottom of the page so footer is visible
 $(window).scroll(function() {
   var fixedBottom = $("#fileControls");
   if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
@@ -60,6 +62,7 @@ $(window).scroll(function() {
     fixedBottom.css("display", "block");
   }
 })
+
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
@@ -67,6 +70,7 @@ function errorWarning(errorMsg, url, lineNumber) {
 		" your work is properly saved."))
 	}
 }
+
 window.onerror = function (errorMsg, url, lineNumber) {
  	oldOnError(errorMsg, url, lineNumber);
 	errorWarning(errorMsg, url, lineNumber);
@@ -74,20 +78,6 @@ window.onerror = function (errorMsg, url, lineNumber) {
 };
 
 $(function() {
-
-	// ------------- Top Controls -------------------
-
-
-		$( ".circleButton" ).hover(
-	  function() {
-		$('.cke_editable').each(function() {
-			sjs.removeCKEditorByElement(this);
-	  });
-	  },
-	  function() {
-
-	  }
-	);
 
 	function makeMediaEmbedLink(mediaURL) {
     	let embedHTML;
@@ -145,7 +135,6 @@ $(function() {
 	     })
 	}
 
-
 	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
@@ -161,32 +150,34 @@ $(function() {
 			}
 		})
 	});
+
 	$("#inlineAddBrowse").keydown(function(e) {
 		if (e.which == 13) {
 			$("#inlineAddBrowse").click();
 		}
-  });
-
+    });
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
         var ref = $("#inlineAdd").val();
-		Sefaria.getName(ref, true).then(function(q) {
+		Sefaria.getName(ref, undefined, ['ref']).then(function(q) {
             addSource(q, undefined, "insert", $target);
             $('#inlineAdd').val('');
             $("#inlineTextPreview").html("");
             $("#inlineTextPreview").hide();
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
+            $(".ui-autocomplete").hide();
             $("#sheet").click();
         });
 		Sefaria.track.sheets("Add Source", ref);
 	});
+
 	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
 		if (e.which == 13) {
 			$("#inlineAddSourceOK").click();
 		}
-  });
+    });
 
 	function toggleSheetsMenu(menu) {
 		if ($(menu).parent().hasClass("open")) {
@@ -200,6 +191,7 @@ $(function() {
 			$(menu).parent().toggleClass("open");
 		}
 	}
+
 	$(".menuHeader").keydown(function(e) {
 		if (e.which == 13) {
 			toggleSheetsMenu($(this));
@@ -223,7 +215,6 @@ $(function() {
 				toggleSheetsMenu($target);
 		}
 		else if (e.which == 38) {
-			//console.($(this).closest(".optionsMenu").find)
 				e.preventDefault();
 				if (!$(this).parent().hasClass("open")) {
 					toggleSheetsMenu($(this));
@@ -242,10 +233,7 @@ $(function() {
           $(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
         }
 		}
-
-
-
-  });
+    });
 
 	$(".optionItem").keydown(function(e) {
 		if (e.which == 40) {
@@ -284,9 +272,8 @@ $(function() {
         e.stopPropagation();
 				$(".optionGroup.open").removeClass("open");
 				$(".sheetsMenuBarItem.open").removeClass("open");
-    }
+    	}
 	});
-
 
     // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
@@ -301,7 +288,6 @@ $(function() {
 		Sefaria.track.sheets("Print Sheet");
 		window.print()
 	});
-
 
 	// General Options
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
@@ -349,8 +335,6 @@ $(function() {
 		}
 		autoSave();
 	});
-
-
 
 	$(".languageToggleOption div").click(function(){
 		if ($(".activeSource").length) {
@@ -404,7 +388,6 @@ $(function() {
 			autoSave();
 		}
 	});
-
 
 	$(".layoutToggleOption div").click(function(){
 		if ($(".activeSource").length) {
@@ -476,12 +459,19 @@ $(function() {
 			}
 		});
 
-
-	// Language Options specific to Sheets
-	// General behavior covered in sjs.changeContentLang in headers.js
+	// Sheet Language Options
 	$("#hebrew, #english, #bilingual").click(function(){
-		$("#sheet").removeClass("english bilingual hebrew")
-			.addClass($(this).attr("id"));
+		var mode = this.id;
+		var shortMode = this.id.substring(0,2);
+		$.cookie("contentLang", mode);
+
+		$("#languageToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+
+		$("body, #content, #sheet").removeClass("english hebrew bilingual")
+			.addClass(mode)
+            .trigger("languageChange");
+
 		if ($(this).attr("id") != "bilingual") {
 			$("#biLayoutToggle, #sheetLayoutToggle").hide();
 		} else {
@@ -559,7 +549,7 @@ $(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
 		Sefaria.track.sheets("Remove Nikkudot");
-		autoSave();
+		// autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
@@ -661,7 +651,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(_("Untitled Source Sheet"));
+						$el.text(_("Untitled"));
 
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -677,11 +667,8 @@ $(function() {
 					// Outside (bilingual)
 					} else if ($el.closest(".outsideBi").length) {
 						var $outsideBi = $el.closest(".outsideBiWrapper");
-						if ($outsideBi.find(".he").text() === "עברית") {
-							$outsideBi.find(".en").html("<i>English</i>");
-						} else if ($outsideBi.find(".en").text() === "English") {
-							$outsideBi.find(".he").html("<i>עברית</i>");
-						} else {
+						if ($outsideBi.find(".text .he").text() === "" &&
+							$outsideBi.find(".text .en").text() === "") {
 							$outsideBi.remove();
 						}
 					}
@@ -691,9 +678,17 @@ $(function() {
 					$el.empty().hide().closest(".sheetItem").removeClass("hasCustom");
 				}
 				// Substitute Divine names in Hebrew (source of bilingual outside) and outside
-				if ($el.hasClass("he") || $el.hasClass("outside")) {
+				if ($el.hasClass("he") || $el.hasClass("en") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
+					}
+				}
+				// Update hebrew/english classes which are determined by content
+				if ($el.hasClass("outside") || $el.hasClass("comment")) {
+					if (isHebrew(text)) {
+						$el.addClass("he").removeClass("en");
+					} else {
+						$el.addClass("en").removeClass("he");
 					}
 				}
 				// Mark author as customized
@@ -755,7 +750,6 @@ $(function() {
 						sjs.removeCKEditor(e);
 						e.cancel();
 					}
-
 				});
 			}
 		    var ed = $(this).ckeditorGet();
@@ -809,10 +803,6 @@ $(function() {
 		}
 	}
 
-
-
-
-
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
 	$("#save").keydown(function(e){
@@ -820,9 +810,6 @@ $(function() {
 			handleSave();
 		}
 	});
-
-
-
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
@@ -833,14 +820,11 @@ $(function() {
 	});
 	$("#sheetMetadata span.editButton").click(showShareModal);
 
-
 	// ---------- Copy Sheet ----------------
 	$("#copySheet").click(copySheet);
 
-
 	// ---------- Embed Sheet ----------------
 	$("#embedSheet").click(showEmebed);
-
 
 	// ---------- Delete Sheet ----------------
 	$("#deleteSheet").click(deleteSheet);
@@ -867,7 +851,7 @@ $(function() {
 
 	$("#likeButton").click(function(e) {
 		e.preventDefault();
-		if (!sjs._uid) { return sjs.loginPrompt(); }
+		if (!Sefaria._uid) { return sjs.loginPrompt(); }
 
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
@@ -908,7 +892,7 @@ $(function() {
 		}
 
 	} else if (sjs.assignment_id) {
-		if (!sjs._uid) {
+		if (!Sefaria._uid) {
 			$("#fileControlMsg").hide();
 			return sjs.loginPrompt();
 		}
@@ -936,52 +920,66 @@ $(function() {
 			sjs.flags.sorting = true;
 			$( this ).sortable( 'refreshPositions' );
 			$(".inlineAddButton").hide();
-			$("#addInterface").hide();
 		};
 
 		sjs.sortStop = function(e, ui) {
 			sjs.flags.sorting = false;
+			sjs.scrollOn("stop");
 			setSourceNumbers();
 			$(".inlineAddButton").show();
-			$("#addInterface").show();
 			autoSave();
 		};
+
+		sjs.scrollOn = function(dir) {
+			// Continuously scroll the page up or down
+			var scroll = () => {
+				if (this.timer) {clearTimeout (sjs.timer); }
+				var top = $("html").scrollTop();
+				$("html").scrollTop(top + this.increment);
+				this.timer = setTimeout(scroll, 10);
+			}
+			switch (dir) {
+				case "stop":
+					if (this.timer) {clearTimeout (this.timer); }
+					break;
+				case "up":
+					this.increment = -20;
+					scroll();
+					break;
+				case "down":
+					this.increment = 20;
+					scroll();
+					break;
+			}
+		}
 
 		sjs.sortOptions = {
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
 							placeholder: 'sortPlaceholder',
-							cursorAt: {bottom:5},
+							cursorAt: false,
 							revert: 100,
 							delay: 300,
 							scroll: false,
-							scrollSpeed: 40,
-							scrollSensitivity: 60,
 							helper: function(e,ui) {
 								var helper = $(ui[0]).clone();
-								helper.css({'height': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
+								helper.css({'maxHeight': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
 								return helper;
 							},
 							sort: function(e,ui) {
-								var top = $("body").scrollTop();
+								var top = $("html").scrollTop();
 								if (e.clientY < 120) {
-									top = top - 30;
-									$("html, body").scrollTop(top);
+									sjs.scrollOn("up");
 								}
 								else if (e.clientY > $(window).height()-60) {
-									top = top + 30;
-									$("html, body").scrollTop(top);
+									sjs.scrollOn("down");
 								}
-
-
-
-								//$("html, body").animate({scrollTop: top}, 300);
-
+								else {
+									sjs.scrollOn("stop");
+								}
 							}
-
 						};
-
 
 		$("#sources").sortable(sjs.sortOptions);
 		if ($("#sheet").hasClass("highlightMode")) {
@@ -1023,9 +1021,7 @@ $(function() {
             "</div>";
 
 
-
   // Add Interface
-
   if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
     function toggleAddInterface(e, target, trigger) {
@@ -1042,7 +1038,6 @@ $(function() {
       }
     }
 
-
     $("#addInterface").on("click", ".buttonBar .addInterfaceButton", function(e) {
       toggleAddInterface(e, $(this), "click");
     });
@@ -1052,7 +1047,6 @@ $(function() {
         toggleAddInterface(e, $(this), "keyboard");
       }
     });
-
 
     $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
       $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
@@ -1079,7 +1073,6 @@ $(function() {
           };
           buildSource($target, source, "insert");
         }
-
       });
 
       $("#addconnectionDiv").on("keydown", ".button", function(e) {
@@ -1088,13 +1081,10 @@ $(function() {
         }
       });
 
-
       autoSave();
       $(".sourceConnection").removeClass('active').attr("aria-checked", "false");
       $("#sheet").click();
       $("#sourceButton").click();
-
-
     });
 
     $("#addSourceMenu").click(function() {
@@ -1124,7 +1114,6 @@ $(function() {
       var top = $("#mediaButton").offset().top - 200;
       $("html, body").animate({scrollTop: top}, 300);
     });
-
 
     $("#addInterface").on("click", "#connectionButton", function(e) {
 
@@ -1182,10 +1171,7 @@ $(function() {
           connectionsToSource += "</div>";
 
           $("#connectionsToAdd").html(connectionsToSource);
-
         }
-
-
       });
     });
 
@@ -1205,8 +1191,6 @@ $(function() {
       autoSave();
       $("#addcommentDiv .contentToAdd").html('<br>');
       $("#sheet").click();
-      //$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
     });
 
     $("#addcommentDiv").on("keydown", ".button", function(e) {
@@ -1214,7 +1198,6 @@ $(function() {
         $("#addcommentDiv .button").click();
       }
     });
-
 
     $("#addcommentDiv .contentToAdd").keypress(function(e) {
       if (isHebrew($(this).text()) && $(this).text().length > 0) {
@@ -1254,13 +1237,11 @@ $(function() {
       }
     });
 
-
     $("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
       if (e.which == 13) {
         $("#addmediaDiv #addmediaFileSelector").click();
       }
     });
-
 
     $("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function(e) {
 
@@ -1277,22 +1258,27 @@ $(function() {
         $("#addcustomTextDiv").find(".he").show();
         $("#addcustomTextDiv").find(".en").hide();
       }
-
     });
 
     $("#addcustomTextDiv").on("click", ".button", function(e) {
       var $target = $("#addInterface").prev(".sheetItem");
       if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+      	var text = $(this).prev(".flexContainer").find(".contentToAdd:visible").html();
+      	text = text.stripHtml() == "English" || text == "עברית" ? "" : text;
         source = {
-          outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
+          outsideText: text,
           isNew: true
         };
       }
       else {
+        var en = $(this).prev(".flexContainer").find(".en").html();
+        var he = $(this).prev(".flexContainer").find(".he").html();
+        en = en.stripHtml() == "English" ? "" : en;
+        he = he.stripHtml() == "עברית" ? "" : he;
         source = {
           outsideBiText: {
-            en: $(this).prev(".flexContainer").find(".en").html(),
-            he: $(this).prev(".flexContainer").find(".he").html()
+            en: en,
+            he: he,
           }, isNew: true
         };
       }
@@ -1305,8 +1291,12 @@ $(function() {
       $("#customTextContainer .contentToAdd.en").html('English');
       $("#customTextContainer .contentToAdd.he").html('עברית');
       $("#sheet").click();
-      //	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+    });
 
+    $("#addcustomTextDiv").on("focus", ".contentToAdd", function(e) {
+    	if ($(this).html() == "English" || $(this).html() == "עברית") {
+    		$(this).html("");
+    	}
     });
 
     $("#addcustomTextDiv").on("keydown", ".button", function(e) {
@@ -1324,8 +1314,8 @@ $(function() {
       $("#connectionButton").hide();
 
       if ($("#textBrowser").is(":visible")) {
-      	return
-			};
+      	return;
+	  };
 
       cleanupActiveSource(e.target);
     });
@@ -1338,7 +1328,6 @@ $(function() {
       $("#sourceButton").click();
       e.stopImmediatePropagation();
     });
-
 
     function cleanupActiveSource(target) {
       $(".inlineAddButtonIcon").removeClass("active");
@@ -1417,7 +1406,6 @@ $(function() {
           $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
         }
       }
-
     }
 
     $("#sheet").on("click", ".sheetItem", function(e) {
@@ -1448,13 +1436,14 @@ $(function() {
     });
 
     $("#sheet").click();
-  }
+  } // End Setup for editors / adders
+
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 
-	if ($(".cke_editable").length) { return; }
+	    if ($(".cke_editable").length) { return; }
 
-		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
+		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(Sefaria._uid);
 		var controlsHtml = "";
 		if (isOwner||sjs.can_edit) {
 			if ($(this).hasClass("source")) {
@@ -1474,10 +1463,8 @@ $(function() {
 
 		$(".sourceControlsOpen").removeClass("sourceControlsOpen");
 		$(".sourceControlsTop").removeClass("sourceControlsTop");
+		if (sjs.removeSourceControlsTimer) { clearTimeout(sjs.removeSourceControlsTimer); }
 		$(this).addClass("sourceControlsOpen");
-		if ($(this).offset().top + $(this).height() >= $(window).scrollTop() + $(window).height()) {
-			$(this).addClass("sourceControlsTop");
-		}
 		$("#sourceControls").remove();
 		$(this).append(controlsHtml);
 		$("#sourceControls div").tooltipster({
@@ -1485,30 +1472,35 @@ $(function() {
 			position: "bottom"
 		});
 
+		var sourceHeight = $(this).outerHeight();
+		var sourceControlsHeight = 134;
+		if (sourceHeight < sourceControlsHeight + 20) {
+			$("#sourceControls").css({top: -(sourceControlsHeight - sourceHeight) / 2});
+		}
+
+		// Move Source Up
 		$(".moveSourceUp").on("click", function() {
 			$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
-			var top = $(this).offset().top - 200;
+			var top = $(this).offset().top - 300;
 			$("html, body").animate({scrollTop: top}, 750);
 			setSourceNumbers();
 
 			autoSave();
-
 		});
 
-
+		// Move Source Donw
 		$(".moveSourceDown").on("click", function() {
 			$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
 
-			var top = $(this).offset().top - 200;
+			var top = $(this).offset().top - 300;
 			$("html, body").animate({scrollTop: top}, 750);
 			setSourceNumbers();
 
 			autoSave();
-
 		});
 
-
+		// Indent Source
 		$(".moveSourceRight").on("click", function() {
 
 			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
@@ -1525,10 +1517,9 @@ $(function() {
 			$(this).closest(".sheetItem").addClass(toIndent);
 
 			autoSave();
-
 		});
 
-
+		// Outdent Source
 		$(".moveSourceLeft").on("click", function() {
 
 			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
@@ -1545,20 +1536,17 @@ $(function() {
 			$(this).closest(".sheetItem").addClass(toIndent);
 
 			autoSave();
-
 		});
-
 
 		// Remove Source
 		$(".removeSource").on("click", function() {
 			var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-			if (confirm("Are you sure you want to remove this?")) {
+			if (confirm(_("Are you sure you want to remove this?"))) {
 				$item.remove();
 				autoSave();
 				setSourceNumbers();
 			}
 			Sefaria.track.sheets("Remove Source");
-
 		 });
 
 		// Copy a Source
@@ -1566,10 +1554,8 @@ $(function() {
 			var source = readSource($(this).closest(".sheetItem"));
 			copyToSheet(source);
 		});
-
-
-
 	});
+
 	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
 		$(this).removeClass("sourceControlsOpen");
 		$("#sourceControls").remove();
@@ -1600,7 +1586,6 @@ $(function() {
 		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
-
 	// Reset Source Text
 	$(".resetSource").on("click", function() {
 		var options = {
@@ -1619,9 +1604,7 @@ $(function() {
 		};
 
 		sjs.alert.options(options, resetSource);
-
-	 });
-
+	});
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
@@ -1654,9 +1637,7 @@ $(function() {
 		$("#overlay").show();
 	});
 
-
 	$("#addParashaToSheetModal .cancel").click(function() {
-
 		$("#addParashaToSheetModal, #overlay").hide();
 	});
 
@@ -1668,13 +1649,13 @@ $(function() {
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-    //save whole sheet if possible, otherwise, just save sheet tags:
-    if (sjs.can_save) {
-			autoSave();
-	} else {
-    	var topics = JSON.stringify(sjs.sheetTagger.topics());
-    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
-    }
+	    //save whole sheet if possible, otherwise, just save sheet tags:
+	    if (sjs.can_save) {
+				autoSave();
+		} else {
+	    	var topics = JSON.stringify(sjs.sheetTagger.topics());
+	    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
+	    }
 	});
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
@@ -1684,22 +1665,16 @@ $(function() {
 	}).find("#sheetSummaryInput").change();
 
 	$("#sourceSheetGroupSelect").change(function() {
-		if ($(this).val()!="None") {
+		if (!!$(this).val()) {
 			var $el = $("#sourceSheetGroupSelect option:selected");
-			var groupUrl = $(this).val().replace(/ /g, "-");
-			var groupLogo = $el.attr("data-image");
-			$("#groupLogo").attr("src", groupLogo)
-				.closest("a").attr("href", "/groups/" + groupUrl);
-			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-			if (parseInt($el.attr("data-can-publish"))) {
-				$("#sourceSheetsAccessOptions").show();
-			} else {
-				$("#sourceSheetsAccessOptions").hide();
-			}
+			var collectionSlug = $el.attr("data-slug");
+			var collectionHeader = $el.attr("data-image");
+			$("#collectionHeader").attr("src", collectionHeader)
+				.closest("a").attr("href", "/collections/" + collectionSlug);
+			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {
 			$("#sheetHeader").hide();
-			$("#sourceSheetsAccessOptions").show();
 		}
 	});
 
@@ -1710,8 +1685,6 @@ $(function() {
 		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
 		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
-
-
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
@@ -1731,8 +1704,6 @@ $(function() {
 	});
 
 	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
-
-
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== _('Create New') && newTagName !== "") {
@@ -1762,8 +1733,6 @@ $(function() {
 		}
 	}
 
-
-
 	$(".createNewHighlighterTag .tagName").keydown(function(e){
 		if (e.which == 13) {
       e.preventDefault();
@@ -1787,7 +1756,6 @@ $(function() {
 	});
 
 	$(".createNewHighlighterTag").on('mousedown', '.colorSwatch', function() {
-		console.log('clicked')
 		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
 			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
 			$(this).addClass('active');
@@ -1879,17 +1847,11 @@ $(function() {
 
 	resetSplitHighlighterSegment();
 
-
 	resetHighlighterInteractivity();
 
 	resetHighlighterFilterTags();
 
-
-
-
-
 	$("#overrideLayoutModal .ok").click(function(){
-
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
 		if (
 		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
@@ -1904,11 +1866,7 @@ $(function() {
 		autoSave();
 	});
 
-
-
-
 	// Change Source Layout via modal
-
 	$("#sideBySideSource, #stackedSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
 		$("#sheetLayoutToggleSource .toggleOption").removeClass("active");
@@ -1924,7 +1882,6 @@ $(function() {
 		}
 		Sefaria.track.sheets("Change Source Layout Button");
 	});
-
 
 	// Change Source Language via modal
 	$("#hebrewSource, #englishSource, #bilingualSource").click(function(){
@@ -1956,9 +1913,6 @@ $(function() {
 		Sefaria.track.sheets("Change Source Language Layout Button");
 	});
 
-
-
-
 	// Remove all custom source language/layout overrides:
 	$("#resetToDefaults").on("click", function() {
 		var $target = $("#overrideLayoutModal").data("target");
@@ -1967,8 +1921,6 @@ $(function() {
 		autoSave();
 		Sefaria.track.sheets("Reset Source Layout to Default");
 	});
-
-
 
 	// Add All Connections
     function SortBySourceRef(x,y) {
@@ -1980,8 +1932,6 @@ $(function() {
 		  if (x.commentaryNum > y.commentaryNum) return 1;
 		  return 0;
     }
-
-
 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
@@ -2115,7 +2065,7 @@ $(function() {
 	}
 
 	// fix for touchscreens to access hover elements (in particular menubar)
-  $('*').on('touchstart', function () {
+    $('*').on('touchstart', function () {
 		$(this).trigger('hover');
 	}).on('touchend', function () {
 		$(this).trigger('hover');
@@ -2145,9 +2095,7 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 				$(document).off('scroll', updateSheetsEditNavTopPosOnScroll);
 			}
 		});
-
 }
-
 
 
 }); // ------------------ End DOM Ready  ------------------
@@ -2175,7 +2123,7 @@ sjs.sheetTagger = {
 		})
 		.autocomplete({
 			source: function(request, response) {
-			Sefaria.getName(request.term, false, 0)
+			Sefaria.getName(request.term, 0)
 				.then(function(d) {
 					var topics = [];
 					d.completion_objects.map(function(obj) {
@@ -2194,7 +2142,12 @@ sjs.sheetTagger = {
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
 			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
+				return false;
 			},
+			focus: ( event, ui ) => {
+                $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
+                $("a.ui-state-focus").parent().addClass("ui-state-focus");
+            },
 			minLength: 3
 		});
 	},
@@ -2288,7 +2241,7 @@ function addSource(q, source, appendOrInsert, $target) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
+	var addedByMe = (source && source.addedBy && source.addedBy == Sefaria._uid) ||
 					(!source && sjs.can_add);
 
 	var attributionLink = (source && "userLink" in source ?
@@ -2373,10 +2326,8 @@ function addSource(q, source, appendOrInsert, $target) {
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
-
-
-
 }
+
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
@@ -2392,6 +2343,20 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     }
     return str;
 }
+
+function removeFootnotes(str) {
+	//removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+	var $str = $("<span>" + str + "</span>");
+	$str.find( "i[class='footnote']" ).each(function( index ) {
+		if ($(this).prev().is("sup")) {
+			$(this).prev().remove();
+		}
+  		$(this).remove();
+	});
+
+	return $str.html();
+}
+
 
 function loadSource(data, $target, optionStr) {
 
@@ -2415,6 +2380,7 @@ function loadSource(data, $target, optionStr) {
     var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
     var segments = Sefaria.makeSegments(data);
+	segments = Sefaria.stripImagesFromSegments(segments);
     var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
         .filter(Boolean)
         .join("");
@@ -2422,6 +2388,8 @@ function loadSource(data, $target, optionStr) {
         .filter(Boolean)
         .join("");
 
+    heStr = removeFootnotes(heStr);
+    enStr = removeFootnotes(enStr);
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";
@@ -2429,6 +2397,7 @@ function loadSource(data, $target, optionStr) {
 	// Populate the text, honoring options to only load Hebrew or English if present
 	optionStr = optionStr || null;
 	if (optionStr !== "Hebrew") {
+		enStr = substituteDivineNames(enStr);
 		$target.find(".text .en").first().html(enStr);
 	}
 	if (optionStr !== "English") {
@@ -2447,7 +2416,7 @@ function loadSource(data, $target, optionStr) {
 }
 
 function setSourceNumbers() {
-	$("#sources > .sheetItem").not(".commentWrapper").each(function(index, value) {
+	$("#sources > .sheetItem").each(function(index, value) {
 		index += 1;
 		$(this).find(".sourceNumber.en").html(index + ".");
 		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
@@ -2496,7 +2465,7 @@ function readSheet() {
 		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
-	if (sjs.is_owner || sjs.can_publish) {
+	if (sjs.is_owner) {
 
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
@@ -2509,10 +2478,10 @@ function readSheet() {
 				sheet.options.collaboration = "none";
 				break;
 			case 'add':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
+				sheet.options.collaboration = "anyone-can-add";
 				break;
 			case 'edit':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
+				sheet.options.collaboration = "anyone-can-edit";
 				break;
 		}
 
@@ -2534,23 +2503,19 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $("#sourceSheetGroupSelect").val();
 
-	if (group === undefined && sjs.current && sjs.current.group !== "None") {
-		// When working on someone else's group sheet
-		group = sjs.current.group;
+	if (!sjs.is_owner) {
+		// Only allow owner to change displayedCollection
+		sheet["displayedCollection"] = sjs.current.displayedCollection;
+	}
+    else {
+		var displayedCollection = $("#sourceSheetGroupSelect").val() || null;
+		sheet["displayedCollection"] = displayedCollection;
 	}
 
-	if (group && group !== "None") {
-		// Group Sheet
-		sheet["group"] = group;
-	} else {
-		// Individual Sheet
-		sheet["group"] = "";
-	}
 
 	return sheet;
-}
+} // end readSheet
 
 
 function readSources($target) {
@@ -2710,7 +2675,6 @@ function readSource($target) {
 							 indented: sourceIndentLevel,
 							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
-
 	}
 
 	 else if ($target.hasClass("mediaWrapper")) {
@@ -2740,7 +2704,6 @@ function readSource($target) {
 		}
 	}
 
-
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
 	if (addedBy) {
@@ -2748,7 +2711,7 @@ function readSource($target) {
 	}
 	source.node = parseInt($target.attr("data-node"));
 	return source;
-}
+} // end readSource
 
 
 function validateSheet(sheet) {
@@ -2757,7 +2720,7 @@ function validateSheet(sheet) {
 
 
 function handleSave() {
-	if (!sjs._uid) {
+	if (!Sefaria._uid) {
 		Sefaria.track.sheets("Logged out Save Attempt");
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save.");
 	}
@@ -2775,6 +2738,17 @@ function autoSave() {
 		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
+	} else if (sjs.can_save && !sjs.current.id && !sjs.promptedToSave) {
+		var sheet = readSheet();
+		if (sheet.sources.length > 2) {
+			setTimeout(function() {
+				var save = confirm(_("Would you like to save this sheet? You only need to save once, after that changes are saved automatically."));
+				if (save) {
+					handleSave();
+				}
+				sjs.promptedToSave = true;
+			}, 500);
+		}
 	}
 }
 
@@ -2825,7 +2799,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(_("Untitled Source Sheet"));
+		$("#title").html(_("Untitled"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -2859,27 +2833,20 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
-	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
-	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
+	if (data.options.collaboration == "none")                 $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add")  $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit") $("#sourceSheetShareSelect").val('edit');
 
 	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
 	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
-	if (data.group) {
-		$("#sourceSheetGroupSelect").val(data.group);
+	if (data.displayedCollection) {
+		$("#sourceSheetGroupSelect").val(data.displayedCollection);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image");
-		$("#groupLogo").attr("src", groupImage);
-		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
-			$("#sourceSheetsAccessOptions").show();
-		} else {
-			$("#sourceSheetsAccessOptions").hide();
-		}
-	} else {
-		$("#sourceSheetsAccessOptions").show();
+		var collectionImage = $el.attr("data-image");
+		$("#collectionHeader").attr("src", collectionImage);
+		if (collectionImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 	}
 
 	if (sjs.is_owner) {
@@ -2913,7 +2880,6 @@ function buildSheet(data){
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
 		}
 	}
-
 }
 
 
@@ -2923,6 +2889,7 @@ function buildSources($target, sources) {
 		buildSource($target, sources[i]);
 	}
 }
+
 
 function buildSource($target, source, appendOrInsert) {
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
@@ -2946,7 +2913,6 @@ function buildSource($target, source, appendOrInsert) {
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
-
 
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');
@@ -2993,11 +2959,12 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" +
+			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+			"<span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
-
 
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);
@@ -3058,19 +3025,21 @@ function buildSource($target, source, appendOrInsert) {
 	else if ("media" in source) {
 		var mediaLink;
 		var mediaClass = "media";
+		var wrapperClass = "mediaWrapper";
 
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 			mediaClass = "media";
+			wrapperClass += (!sjs.is_owner && sjs.current.hideImages ? " hidden" : "");
 		}
-		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
+		else if (source.media.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'
 		}
-		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
+		else if (source.media.toLowerCase().match(/https?:\/\/w\.soundcloud\.com\/player\/\?url=.*/i) != null) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 			mediaClass = "media fullWidth";
 		}
-		else if (source.media.toLowerCase().indexOf('vimeo') > 0) {
+		else if (source.media.match(/https?:\/\/player\.vimeo\.com\/.*/i) != null) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>'
 		}
 		else if (source.media.match(/\.(mp3)$/i) != null) {
@@ -3095,8 +3064,8 @@ function buildSource($target, source, appendOrInsert) {
 							   "</div></div>";
 		}
 
-		var attributionData = attributionDataString(source.addedBy, source.isNew, "mediaWrapper");
-		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'"+additionalRefData+">"+
+		var attributionData = attributionDataString(source.addedBy, source.isNew, wrapperClass);
+		var outsideHtml = "<li " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" +
 							"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 							"<div class='" + mediaClass + (sjs.loading ? "" : " new") + "'>" + mediaLink + mediaCaption + "</div>" +
 							("userLink" in source ? "<div class='addedBy'>Added by " + source.userLink + "</div>" : "") +
@@ -3144,9 +3113,8 @@ function buildSource($target, source, appendOrInsert) {
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
+} // end buildSource
 
-
-}
 
 function appendInlineAddButton(source) {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
@@ -3159,7 +3127,6 @@ function appendInlineAddButton(source) {
 }
 
 
-
 function attributionDataString(uid, newItem, classStr) {
 	// Returns string to be added inside a tag containing class attribute and data-added-by attribute
 	// e.g., 'class="source addedByMe" data-added-by="54"'
@@ -3168,10 +3135,10 @@ function attributionDataString(uid, newItem, classStr) {
 
 	if (newItem && sjs.can_add) {
 		addedByMe = true;
-		addedBy = sjs._uid;
+		addedBy = Sefaria._uid;
 	} else if (!newItem && uid) {
 		addedBy = uid;
-		addedByMe = (uid == sjs._uid && !sjs.can_edit);
+		addedByMe = (uid == Sefaria._uid && !sjs.can_edit);
 	}
 
 	var str = "class='" + classStr + " sheetItem" +
@@ -3208,8 +3175,6 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
-
-
 };
 
 
@@ -3262,7 +3227,7 @@ sjs.replayLastEdit = function() {
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
-			source.addedBy  = sjs._uid;
+			source.addedBy  = Sefaria._uid;
 		}
 		buildSource($target, source);
 	}
@@ -3328,7 +3293,6 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}
@@ -3404,26 +3368,25 @@ function rebuildUpdatedSheet(data) {
 	resetHighlighterInteractivity();
 
 	sjs.changesPending = false;
-
 }
 
 
 // --------------- Copy to Sheet ----------------
 
 function copyToSheet(source) {
-	if (!sjs._uid) { return sjs.loginPrompt(); }
+	if (!Sefaria._uid) { return sjs.loginPrompt(); }
 	sjs.copySource = source;
 
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
 		$("#sheetList").html(Sefaria._("Loading..."));
-		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
+		$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
 			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					(data.sheets[i].title === null ? Sefaria._("Untitled Source Sheet"): data.sheets[i].title.stripHtml()) +
+					(data.sheets[i].title === null ? Sefaria._("Untitled"): data.sheets[i].title.stripHtml()) +
 					"</li>";
 			}
 			$("#sheetList").html(sheets);
@@ -3450,7 +3413,6 @@ $("#addToSheetModal .cancel").click(function() {
 
 $("#assignmentsModal .ok").click(function() {
 	$("#overlay, #assignmentsModal").hide();
-
 });
 
 $("#addToSheetModal .ok").click(function(){
@@ -3512,7 +3474,7 @@ function copySheet() {
 	delete sheet.group;
 	delete sheet.id;
 
-	if (sjs._uid != sjs.current.owner) {
+	if (Sefaria._uid != sjs.current.owner) {
 		sheet.via = sjs.current.id;
 		sheet.viaOwner = sjs.current.owner;
 	}
@@ -3529,6 +3491,7 @@ function copySheet() {
 	})
 
 }
+
 
 function exportToDrive() {
 	$("#overlay").show();
@@ -3552,11 +3515,12 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.pathname + "#onload=exportToDrive");
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + "?editor=1#onload=exportToDrive");
 			}
 		}
 	});
 }
+
 
 function fillEmptyHighlighterSegments() {
 		$( ".highlighter" ).each(function( index ) {
@@ -3566,9 +3530,9 @@ function fillEmptyHighlighterSegments() {
 			if ($(this).find(".he").html() == "") {
 				$(this).find(".he").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
 			}
-
 		});
 }
+
 
 function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
@@ -3597,6 +3561,7 @@ function toggleHighlighter() {
 		}
 }
 
+
 function showEmebed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
@@ -3606,6 +3571,7 @@ function showEmebed() {
 			});
 	$("#overlay").show();
 }
+
 
 function showShareModal(){
 	$("#shareWithOthers").show().position({of: window});
@@ -3628,7 +3594,7 @@ function deleteSheet() {
 					"<span class='int-en'>Source Sheet deleted.</span>" +
 					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
 					"<br><br>" +
-					"<a href='/sheets/private'>" +
+					"<a href='/my/profile'>" +
 						"<div class='ok btn'>" +
 							"<span class='int-en'>OK</span>" +
 							"<span class='int-he'>המשך</span>" +
@@ -3659,11 +3625,8 @@ sjs.divineSubs = {
 					"noSub": "יהוה",
 					"yy": "יי",
 					"ykvk": "יקוק",
-					"h": "ה'"
+					"h": "ה׳"
 				};
-
-
-
 
 function substituteDivineNames(text) {
 	// Returns 'text' with divine names substituted according to the current
@@ -3705,14 +3668,12 @@ function substituteDivineNamesInNode(node) {
 		find: sjs.elokaRE,
 		replace:  "$1$2$3"+elokaiSub+"$5"
 	});
-
-
 }
 
 
 function substituteAllExistingDivineNames() {
-	// Substitute divine names in every hebrew text field or outside text field.
-	$(".he, .outside").each(function(index, node) {
+	// Substitute divine names in every hebrew or English text field or outside text field.
+	$(".he, .en, .outside").each(function(index, node) {
 		substituteDivineNamesInNode(node)
 	});
 }
@@ -3734,24 +3695,23 @@ function promptToPublish() {
 	$("#publishPromptModal").show();
 	$("#overlay").show();
 	Sefaria.track.sheets("Publish Prompt");
-
-
 }
 
 
 var afterAction = function() {
 	// Called after sheet action (adding sources, comments) to remove video, show save button
 	$("#empty").remove();
-	if (sjs._uid) {
+	if (Sefaria._uid) {
 		$("#save").show();
 		$("#fileControlMsg").hide();
 	}
 	resetHighlighterInteractivity();
 };
 
+
 // ------------------ Upload locally stored images to Imgur ------------------
 
-var imgurClientId = "f409a1105c5e8af";
+var imgurClientId = "cf90b7f2c19622e";
 
 var addmediaChooseFile = function() {
   var file = this.files[0];
@@ -3763,7 +3723,7 @@ var addmediaChooseFile = function() {
     var reader = new FileReader();
 
     reader.addEventListener("load", function() {
-      addmediaUploadImageToImgur(reader.result);
+      uploadImage(reader.result);
     }, false);
 
     reader.addEventListener("onerror", function() {
@@ -3776,30 +3736,28 @@ var addmediaChooseFile = function() {
   }
 };
 
-var addmediaUploadImageToImgur = function(imageData) {
-  $.ajax({
-    url: "https://api.imgur.com/3/image",
-    type: "POST",
-    headers: {
-      Authorization: "Client-ID " + imgurClientId,
-      Accept: "application/json"
-    },
-    data: {
-      image: imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""),
-      type: "base64"
-    },
-    success: function(result) {
-	  var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
-      $("#inlineAddMediaInput").val(imageUrl);
-      $("#addmediaDiv").find(".button").first().trigger("click");
-			$("#inlineAddMediaInput").val("");
-    },
-    error: function(result) {
-      sjs.alert.message(result.responseJSON.data.error);
-    }
-  });
-};
 
+var uploadImage = function(imageData) {
+	const formData = new FormData();
+	formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+	// formData.append('file', imageData);
+
+	$.ajax({
+		url: Sefaria.apiHost + "/api/sheets/upload-image",
+		type: 'POST',
+		data: formData,
+		contentType: false,
+		processData: false,
+		success: function(data) {
+	      $("#inlineAddMediaInput").val(data.url);
+	      $("#addmediaDiv").find(".button").first().trigger("click");
+				$("#inlineAddMediaInput").val("");
+		},
+		error: function(e) {
+			console.log("photo upload ERROR", e);
+		}
+	});
+};
 $("#addmediaFileSelector").change(addmediaChooseFile);
 
 
@@ -3835,6 +3793,7 @@ function resetSplitHighlighterSegment() {
 	});
 }
 
+
 function injectSelectionColor(color) {
 	var sel = window.getSelection();
 	sel.removeAllRanges();
@@ -3844,6 +3803,7 @@ function injectSelectionColor(color) {
   }).appendTo("body");
 	setTimeout(function(){ sel.addRange(sjs.selection); }, 20);
 }
+
 
 function resetHighlighterInteractivity() {
 	if (sjs.is_owner) {
@@ -3887,11 +3847,13 @@ function resetHighlighterInteractivity() {
 	}
 }
 
+
 function closeHighlighterTagWindow() {
 	$("#tempSelectOverride").remove();
 	$(".highlighterTagWindow").hide();
 	$(".splitHighlighterSegment").removeClass('active');
 }
+
 
 function resetHighlighterFilterTags() {
 	$(".highlighterFilterTags").off();
@@ -3905,7 +3867,8 @@ function resetHighlighterFilterTags() {
 	});
 }
 
- function saveSelection() {
+
+function saveSelection() {
 		if (window.getSelection) {
 				var sel = window.getSelection();
 				if (sel.getRangeAt && sel.rangeCount) {
@@ -3915,7 +3878,8 @@ function resetHighlighterFilterTags() {
 				return document.selection.createRange();
 		}
 		return null;
- }
+}
+
 
 function restoreSelection(range) {
 		if (range) {

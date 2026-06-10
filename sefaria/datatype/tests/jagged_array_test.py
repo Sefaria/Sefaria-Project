@@ -225,39 +225,22 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby).shape() == [[3, 3, 3],[3, 3, 3],[3, 3, 3]]
         assert ja.JaggedTextArray(["a","b","c"]).shape() == 3
 
-    @pytest.mark.failing
     def test_trim_ending_whitespace(self):
-        # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
-        # See warning at top of jagged_array.py
-        #do no harm
-        assert ja.JaggedTextArray(twoby).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
-        assert ja.JaggedTextArray(threeby).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+        depth_two = [["a", "b"], ["a"], ["d"]]
+        depth_two_with_space = [["a", "b", ""], ["a", ""], ["d"]]
+        depth_three = [[["a"], []], [["a", "", "b"], ["", "a", "b", "c"]]]
+        depth_three_with_space = [[["a", ""], [""]], [["a", "", "b"], ["", "a", "b", "c"]]]
+        # do no harm
+        assert ja.JaggedTextArray(depth_two).trim_ending_whitespace() == ja.JaggedTextArray(depth_two)
+        assert ja.JaggedTextArray(depth_three).trim_ending_whitespace() == ja.JaggedTextArray(depth_three)
 
-        twoby_with_space = [
-            ["Line 1:1", "This is the first second", "First third","","",""],
-            ["Chapter 2, Verse 1", "2:2", "2:3", ""],
-            ["Third first", "Third second", "Third third"]
-        ]
-        threeby_with_space = [
-            [
-                ["Part 1 Line 1:1", "This is the first second", "First third","","",""],
-                ["Chapter 2, Verse 1", "2:2", "2:3", "", ""],
-                ["Third first", "Third second", "Third third",""]
-            ],
-            [
-                ["Part 2 Line 1:1", "This is the first second", "First third"],
-                ["Chapter 2, Verse 1", "2:2", "2:3","","",""],
-                ["Third first", "Third second", "Third third"]
-            ],
-            [
-                ["Part 3 Line 1:1", "This is the first second", "First third"],
-                ["Chapter 2, Verse 1", "2:2", "2:3"],
-                ["Third first", "Third second", "Third third",""]
-            ],
-        ]
+        # trim
         assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
-        assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
-        assert ja.JaggedTextArray(threeby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+        assert ja.JaggedTextArray(["",None,"\t\n ","",""]).trim_ending_whitespace() == ja.JaggedTextArray([])
+        assert ja.JaggedTextArray(["", ["a"]]).trim_ending_whitespace() == ja.JaggedTextArray(["", ["a"]])
+        assert ja.JaggedTextArray([[""], "a"]).trim_ending_whitespace() == ja.JaggedTextArray([[], "a"])
+        assert ja.JaggedTextArray(depth_two_with_space).trim_ending_whitespace() == ja.JaggedTextArray(depth_two)
+        assert ja.JaggedTextArray(depth_three_with_space).trim_ending_whitespace() == ja.JaggedTextArray(depth_three)
 
     def test_overlap(self):
         a = ja.JaggedTextArray([["","b",""],["d","","f"],["","h",""]])
@@ -318,4 +301,24 @@ class Test_Depth_0(object):
         assert j.verse_count() == 1
         assert j.mask() == ja.JaggedIntArray(1)
         assert j.flatten_to_array() == ["Fee Fi Fo Fum"]
+
+
+class Test_Modify_by_Func():
+
+    def test_modify_by_func(self):
+        j = ja.JaggedTextArray(threeby_empty_section)
+        self.modifier_input = []
+        j.modify_by_function(self.modifier)
+        assert self.modifier_input[0][1] == [0,0,0]
+        assert self.modifier_input[-1][1] == [3,2,2]
+        assert self.modifier_input[-1][0] == threeby_empty_section[3][2][2]
+
+        self.modifier_input = []
+        j.modify_by_function(self.modifier, start_sections=[1,2,3,4,5])
+        assert self.modifier_input[0][1] == [1,2,3,4,5]
+        assert self.modifier_input[-1][1] == [1,2,6,2,2]
+
+    def modifier(self, s, sections):
+        self.modifier_input += [(s, sections)]
+        return s
 

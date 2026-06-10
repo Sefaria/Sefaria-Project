@@ -10,7 +10,7 @@ def iterateNodes(indices, searchTerm=""):
 
         # alt struct nodes
         if index.get_alt_structures():
-            nodes = index.get_alt_struct_nodes()
+            nodes = index.get_alt_struct_leaves()
             nodeSearcher(nodes, searchTerm, index.title)
 
 

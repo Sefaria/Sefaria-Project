@@ -3,6 +3,7 @@
 import pytest
 from sefaria.model import *
 from functools import reduce
+from sefaria.constants import model as constants
 
 
 def setup_module(module):
@@ -96,7 +97,7 @@ class Test_get_refs_in_text(object):
     def test_ranged_ref(self, citing_only):
         trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
                  "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
-                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3", "Berakhot 3a-b"]
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
@@ -106,7 +107,7 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_ranged_ref_not_cited(self):
-        trefs = ["Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
+        trefs = ["Berakhot 2a-b", "Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
@@ -133,7 +134,7 @@ class Test_get_refs_in_text(object):
                  "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + b + " blah blah ", trefs, "")
-        res = reduce(lambda a, b: a + '<a class ="refLink" href="/{}" data-ref="{}">{}</a> blah blah '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        res = reduce(lambda a, b: a + f'<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a> blah blah ', list(zip(orefs, trefs)), "")
         wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
         assert wrapped == res
 
@@ -259,7 +260,7 @@ class Test_he_get_refs_in_text(object):
         matched_refs = library.get_refs_in_string("אלו דברים בני ישראל", lang='he', citing_only=citing_only)
         assert matched_refs == []
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_huge_second_addr(self, citing_only):
         st = """וכן הוא בב"ר (ילקוט שמעוני אסתר א, תתרמו) א"ר לוי בגדי כהונה"""
@@ -293,9 +294,27 @@ class Test_he_get_refs_in_text(object):
         trefs = ["דברים כג:ח-ט", 'שמות, כ"ד, יג-יד', 'במדבר, כ"ז, טו - כג', 'במדבר, כ"ז, טו -כ״ט כג', "דברים כ״ג ח-ט"]
         orefs = [Ref(tref) for tref in trefs]
         st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
-        res = reduce(lambda a, b: a + '(<a class ="refLink" href="/{}" data-ref="{}">{}</a>) בלה בלה '.format(b[0].url(), b[0].normal(), b[1]), list(zip(orefs, trefs)), "")
+        res = reduce(lambda a, b: a + f'(<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a>) בלה בלה ', list(zip(orefs, trefs)), "")
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=citing_only)
         assert wrapped == res
+
+    def test_ranged_talmud_wrap_refs(self):
+        st = "(סוכה מ\' א\' – ב\')"
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+
+    def test_bad_refs(self):
+        # We want to make sure that bad refs don't get wrapped in a tags nor error out
+        trefs = ["סנהדרין ב, ב ו-ג, ב"]
+        orefs = [Ref(tref) for tref in trefs]
+        st = reduce(lambda a, b: a + "({}) בלה בלה ".format(b), trefs, "")
+        res = reduce(lambda a, b: a + f'(<a class ="refLink" href="/{b[0].url()}" data-ref="{b[0].normal()}" data-target-module="{constants.LIBRARY_MODULE}">{b[1]}</a>) בלה בלה ', list(zip(orefs, trefs)), "")
+        wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
+        assert wrapped != res and wrapped == st
+
+    def test_already_wrapped_refs(self):
+        st = f'wick (<a class="refLink" data-ref="Jerusalem Talmud Shabbat 2:3:2" href="/Jerusalem_Talmud_Shabbat.2.3.2" data-target-module="{constants.LIBRARY_MODULE}">Note 16</a>) and'
+        wrapped = library.get_wrapped_refs_string(st, lang="en")
+        assert wrapped == st
 
 
 class Test_get_titles_in_text(object):
@@ -433,6 +452,10 @@ class Test_Library(object):
         n2 = library.get_schema_node("שמות", "he")
         assert node == n2
 
+    def test_get_indexes_in_corpus(self):
+        for corpus, count in [('Tanakh', 39), ('Mishnah', 63), ('Bavli', 37), ('Yerushalmi', 39)]:
+            assert len(library.get_indexes_in_corpus(corpus)) == count
+
 
 class Test_Term_Map(object):
     @classmethod
@@ -448,7 +471,7 @@ class Test_Term_Map(object):
     def test_cats_in_map(self):
         assert "Tanakh" in library.get_simple_term_mapping()
         assert "Commentary" in library.get_simple_term_mapping()
-
+ 
     @pytest.mark.deep
     def test_cache_and_reset_of_term_map(self):
         # Check that cache works
@@ -483,6 +506,27 @@ class Test_Term_Map(object):
         Term().load({"name": 'New Term'}).delete()
         assert old != library.get_simple_term_mapping()
 
+
+class TestNamedEntityWrapping:
+    @staticmethod
+    def make_ne_link(slug, ref, start, end, vtitle, lang, text):
+        link = RefTopicLink({
+            "toTopic": slug,
+            "dataSource": "sefaria",
+            "ref": ref,
+            "linkType": "mention",
+            "class": "refTopic",
+            "is_sheet": False,
+            "expandedRefs": [ref],  # assuming all ne links are to segment ref
+            "charLevelData": {
+                "startChar": start,
+                "endChar": end,
+                "versionTitle": vtitle,
+                "language": lang,
+                "text": text
+            }
+        })
+        return link
 
 def test_get_en_text_titles():
     txts = ['Avot', 'Avoth', 'Daniel', 'Dan', 'Dan.'] # u"Me'or Einayim, Vayera"

@@ -1,23 +1,16 @@
-import {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  LanguageToggleButton,
-  LoadingMessage,
-  TwoOrThreeBox,
-  Link,
-  InterfaceTextWithFallback,
-} from './Misc';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
+import Component from 'react-class';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import MobileHeader from './MobileHeader';
-import Footer  from './Footer';
-import Component from 'react-class';
-
-
+import { NavSidebar } from './NavSidebar';
+import {
+  LoadingMessage,
+  ResponsiveNBox,
+  InterfaceText,
+} from './Misc';
+import {TopicTOCCard} from "./common/TopicTOCCard";
 
 class TopicPageAll extends Component {
   constructor(props) {
@@ -30,13 +23,12 @@ class TopicPageAll extends Component {
   }
   componentDidMount() {
     Sefaria.topicList().then(topicList => {
-      for (let topic of topicList) {
-        topic.normTitles = topic.titles.map(title => this.normalizeFilter(title.text))
-      }
       this.setState({ loading: false, topicList });
     });
   }
-  normalizeFilter(filter) { return filter.toLowerCase(); }
+  normalizeFilter(filter) { 
+    return filter.toLowerCase();
+  }
   handleFilterChange(e) {
     this.setState({filter: this.normalizeFilter(e.currentTarget.value)});
   }
@@ -44,105 +36,111 @@ class TopicPageAll extends Component {
     this.setState({filter: ''});
     $(".topicFilterInput").val("");
   }
-  renderButton(item)  {
-    return (
-      <Link
-        className={classNames({navButton: 1, sheetButton: 1 })}
-        href={"/topics/" + item.slug}
-        onClick={this.props.setTopic.bind(null, item.slug, item.primaryTitle)}
-        title={"Explore sources related to '" + item.slug + "'"}
-        key={item.slug}
-      >
-        <InterfaceTextWithFallback {...item.primaryTitle} />
-      </Link>
-    );
-  }
-
   render() {
+    const sidebarModules = [
+      {type: "Promo"},
+      {type: "TrendingTopics"},
+      {type: "GetTheApp"},
+      {type: "SupportSefaria"},
+    ];
+
     const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
     const isHeInt = Sefaria.interfaceLang == "hebrew";
-    const topicList = this.state.topicList ? this.state.topicList.filter(item => {
-      if (item.shouldDisplay === false || item.numSources == 0) { return false; }
-      if (!hasFilter) { return true }
+
+    const topicBlocks = this.state.topicList && this.state.topicList.filter(item => {
+      if (!Sefaria.shouldDisplayInActiveModule(item)) {
+        return false; // Exclude topics that are not valid for the current module
+      }
+      if (!hasFilter) {
+        const sortTitle = isHeInt ? item.primaryTitle.he : item.primaryTitle.en;
+        return sortTitle.toLowerCase().startsWith(this.props.topicLetter);
+      }
+
       for (let title of item.normTitles) {
         if (title.indexOf(this.state.filter) !== -1) { return true; }
       }
       return false;
-    }).slice(0, 500).sort((a, b) => {
-      if (isHeInt) { return (0 + (!!b.primaryTitle.he)) - (0 + (!!a.primaryTitle.he)); }
-      else         { return (0 + (!!b.primaryTitle.en)) - (0 + (!!a.primaryTitle.en)); }
-    }).map(this.renderButton) : null;
-    const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
-    const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
-    const contentClasses = classNames({content: 1, hasFooter: 1});
-    const inputClasses = classNames({topicFilterInput: 1, contentText: 1, en: !isHeInt, he: isHeInt});
+    
+    }).sort((a, b) => {
+      const lang = Sefaria._getShortInterfaceLang();
+      if (!hasFilter) {
+        return b.primaryTitle[lang].stripNikkud() > a.primaryTitle[lang].stripNikkud() ? -1 : 1; // Alphabetical if no filter
+      } else {
+        return (0 + (!!b.primaryTitle[lang])) - (0 + (!!a.primaryTitle[lang])); // Keep original order (# source), but sort current interface lang first
+      }
+    })
+    const allTopicsList = <div className="allTopicsList">
+                          { topicBlocks ?
+                            (topicBlocks.length ?
+                                <div className="TOCCardsWrapper table">{topicBlocks.map((topic, i) => <TopicTOCCard topic={topic} setTopic={this.props.setTopic} key={i}/>)}</div>
+                              : <LoadingMessage message="There are no topics here." heMessage="" />)
+                            : <LoadingMessage />
+                          }
+                        </div>;
+    const inputClasses = classNames({topicFilterInput: 1, en: !isHeInt, he: isHeInt});
     return (
-      <div className={classStr}>
-        {this.props.hideNavHeader ? null :
-          <MobileHeader
-            mode="innerTOC"
-            hideNavHeader={this.props.hideNavHeader}
-            category="Other"
-            interfaceLang={Sefaria.interfaceLang}
-            navHome={this.props.navHome}
-            catTitle="Topics"
-            heCatTitle="נושאים"
-          />}
-        <div className={contentClasses} onScroll={this.onScroll}>
-          <div className="contentInner">
-            {this.props.hideNavHeader ?
+      <div className="readerNavMenu">
+        <div className="content" onScroll={this.onScroll}>
+          <div className="sidebarLayout">
+            <div className="contentInner">
               <h1>
-                <span className="int-en">Topics</span>
-                <span className="int-he">נושאים</span>
+                <InterfaceText>All Topics</InterfaceText>
               </h1>
-              : null }
 
-            <div className="topicFilterBox">
-              <i className="topicFilterIcon fa fa-search"></i>
-              <input className={inputClasses} placeholder={isHeInt ? "חפש נושאים" : "Search Topics"} onChange={this.handleFilterChange} />
-              { this.state.filter.length ?
-              <div className="topicsFilterReset" onClick={this.resetFilter}>
-                <span className="int-en">Reset</span>
-                <span className="int-he">לאתחל</span>
-                <img className="topicsFilterResetIcon" src="/static/img/circled-x.svg" />
+              <div className="topicFilterBox">
+                <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("Search topics")} />
+                <input className={inputClasses} placeholder={Sefaria._("Search Topics")} onChange={this.handleFilterChange} />
+                { this.state.filter.length ?
+                <div className="topicsFilterReset sans-serif" onClick={this.resetFilter} role="button" tabIndex="0" aria-label={Sefaria._("Reset topic filter")}>
+                  <InterfaceText>Reset</InterfaceText>
+                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" alt={Sefaria._("Reset filter")} />
+                </div>
+                : null }
               </div>
-              : null }
+              <AlphabeticalTopicsNav />
+              {allTopicsList}
             </div>
-            <div className="topicList">
-              { topicList ?
-                  (topicList.length ?
-                      <div>
-                        { hasFilter ? null :
-                          <h2>
-                            <span className="int-en">Most Used</span>
-                            <span className="int-he">בשימוש נפוץ</span>
-                          </h2>
-                        }
-                        <TwoOrThreeBox content={topicList} width={this.props.width} />
-                      </div>
-                    : <LoadingMessage message="There are no topics here." heMessage="" />)
-                  : <LoadingMessage />
-              }
-            </div>
-
+            <NavSidebar sidebarModules={sidebarModules} />
           </div>
-          <Footer />
         </div>
-      </div>);
+      </div>
+    );
   }
 }
 TopicPageAll.propTypes = {
   interfaceLang:       PropTypes.string,
-  width:               PropTypes.number,
+  initialWidth:        PropTypes.number,
   mutliPanel:          PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
 };
 TopicPageAll.defaultProps = {
-  width:               1000,
+  initialWidth:        1000,
 };
 
+
+const AlphabeticalTopicsNav = () => {
+
+  const letterRange = (start, stop) => {
+    const result=[];
+    for (let idx = start.charCodeAt(0), end = stop.charCodeAt(0); idx <= end; ++idx) {
+      if (["ך", "ן", "ף", "ץ"].indexOf(String.fromCharCode(idx)) === -1) {
+        result.push(String.fromCharCode(idx));
+      }
+    }
+    return result;
+  };
+
+  const letters = Sefaria.interfaceLang === "hebrew" ? letterRange("א", "ת") : letterRange("A", "Z");
+  return (
+    <div className="alphabeticalTopicsNav sans-serif">
+      {letters.map(letter => (
+        <a href={"/topics/all/" + letter.toLowerCase()} key={letter}>
+          <InterfaceText>{letter}</InterfaceText>
+        </a>
+      ))}
+    </div>
+  );
+};
 
 export default TopicPageAll;

@@ -19,13 +19,12 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
-
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from .summaries import CATEGORY_ORDER
-from .local_settings import SEFARIA_EXPORT_PATH
+from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
-
+from sefaria.tracker import modify_bulk_text
+from collections import defaultdict
 
 lang_codes = {
     "he": "Hebrew",
@@ -50,7 +49,7 @@ def make_path(doc, format, extension=None):
     """
     Returns the full path and file name for exporting 'doc' in 'format'.
     """
-    if doc["categories"][0] not in CATEGORY_ORDER:
+    if doc["categories"][0] not in library.get_top_categories():
         doc["categories"].insert(0, "Other")
     path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
                                             format,
@@ -63,7 +62,7 @@ def make_path(doc, format, extension=None):
 
 
 def remove_illegal_file_chars(filename_str):
-    p = re.compile('[/:()<>"|?*]|(\\\)')
+    p = re.compile('[/:()<>"|?*\r\n\t]|(\\\)')
     new_filename = p.sub('', filename_str)
     return new_filename
 
@@ -73,7 +72,7 @@ def make_json(doc):
     Returns JSON of 'doc' with export settings.
     """
     if "original_text" in doc:
-        doc = {k: v for k, v in doc.items() if k is not "original_text"}
+        doc = {k: v for k, v in doc.items() if k != "original_text"}
     return json.dumps(doc, indent=4, ensure_ascii=False)
 
 
@@ -107,22 +106,22 @@ def make_text(doc, strip_html=False):
             cnode = version.content_node(node)
             if strip_html:
                 cnode = version.remove_html_and_make_presentable(cnode)
-            content += flatten(cnode, node.sectionNames)
+            content += flatten(cnode, node.sectionNames, node.addressTypes)
             return content
         else:
             return "\n\n%s" % node.primary_title(doc["language"])
 
-    def flatten(text, sectionNames):
+    def flatten(text, sectionNames, addressTypes):
         text = text or ""
-        if len(sectionNames) == 1:
+        if len(addressTypes) == 1:
             text = [t if t else "" for t in text]
             # Bandaid for mismatch between text structure, join recursively if text
             # elements are lists instead of strings.
             return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
         flat = ""
         for i in range(len(text)):
-            section = section_to_daf(i + 1) if sectionNames[0] == "Daf" else str(i + 1)
-            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:]))
+            section = section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
+            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:], addressTypes[1:]))
 
         return flat
 
@@ -393,11 +392,9 @@ def prepare_merged_text_for_export(title, lang=None):
     }
     text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
 
-    print("%d versions in %s" % (text_docs.count(), lang))
-
-
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
+    print("%d versions in %s" % (len(text_docs), lang))
 
     if len(text_docs) == 0:
         return
@@ -460,7 +457,7 @@ def export_schemas():
 
         with open(path + title + ".json", "w") as f:
             try:
-                f.write(make_json(i.contents(v2=True)))
+                f.write(make_json(i.contents()))
 
             except InputError as e:
                 print("InputError: %s" % e)
@@ -554,26 +551,26 @@ def export_links():
     write_aggregate_file(links_by_book_without_commentary, "links_by_book_without_commentary.csv")
 
 
-def export_tag_graph():
-    print("Exporting tag graph...")
+def export_topic_graph():
+    print("Exporting topic graph...")
     counts = Counter()
     sheets = db.sheets.find()
-    tags = db.sheets.distinct("tags")
-    for tag in tags:
-        sheets = db.sheets.find({"tags": tag})
+    topics = db.sheets.distinct("topics")
+    for topic in topics:
+        sheets = db.sheets.find({"topics.asTyped": topic["asTyped"]})
         for sheet in sheets:
-            for tag2 in sheet["tags"]:
-                if tag != tag2:
-                    counts[tuple(sorted([tag, tag2]))] += 0.5
+            for topic2 in sheet["topics"]:
+                if topic["asTyped"] != topic2["asTyped"]:
+                    counts[tuple(sorted([topic["asTyped"], topic2["asTyped"]]))] += 0.5
 
     path = SEFARIA_EXPORT_PATH + "/misc/"
     if not os.path.exists(path):
         os.makedirs(path)
-    with open(path + "tag_graph.csv", 'wb') as csvfile:
+    with open(path + "topic_graph.csv", 'wb') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([
-            "Tag 1",
-            "Tag 2",
+            "Topic 1",
+            "Topic 2",
             "Co-occurrence Count",
         ])
         for link in counts.most_common():
@@ -602,7 +599,7 @@ def export_all():
     export_links()
     export_schemas()
     export_toc()
-    export_tag_graph()
+    export_topic_graph()
     make_export_log()
     print_errors()
 
@@ -624,6 +621,7 @@ def export_version_csv(index, version_list):
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 
+    version_list = list(version_list)
     csv.field_size_limit(sys.maxsize)
 
     output = io.BytesIO()
@@ -636,28 +634,24 @@ def export_version_csv(index, version_list):
     writer.writerow(["Version Source"] + [v.versionSource for v in version_list])
     writer.writerow(["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    # Build rows directly from walked segment refs instead of enumerating sections from vstate.
+    segment_rows = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for i, version in enumerate(version_list):
+        def action(segment_text, en_tref, _he_tref, _version):
+            """Populate one column per version while preserving blanks for missing segments."""
+            if en_tref not in segment_rows:
+                segment_rows[en_tref] = [""] * len(version_list)
+            segment_rows[en_tref][i] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
-        # populate each version
-        for version in version_list:
-            section = section_ref.text(vtitle=version.versionTitle, lang=version.language).text
-            for ref in segment_refs:
-                if ref.sections[-1] > len(section):
-                    seg_vers[ref.normal()] += [""]
-                else:
-                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    # Walk order is per-version; re-sort once so output stays in normal textual order.
+    for tref in sorted(segment_rows, key=lambda tref: Ref(tref).order_id()):
+        writer.writerow([tref] + segment_rows[tref])
 
     return output.getvalue()
 
@@ -678,86 +672,96 @@ def export_merged_csv(index, lang=None):
     writer.writerow(["Version Source"] + ["-"])
     writer.writerow(["Version Notes"] + ["-"])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    # Load candidate versions once, then merge segment-by-segment in memory.
+    versions = VersionSet({"title": index.title, "language": lang})
+    versions = [v for v in versions if not v.is_copyrighted()]
+    merged_segments = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for version in versions:
+        def action(segment_text, en_tref, _he_tref, _version):
+            """Mimic merged-text precedence by keeping the first non-empty segment encountered."""
+            if en_tref not in merged_segments:
+                merged_segments[en_tref] = ""
+            if not merged_segments[en_tref]:
+                merged_segments[en_tref] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
-        # populate each version
-        section = section_ref.text(lang=lang, exclude_copyrighted=True).text
-        for ref in segment_refs:
-            if ref.sections[-1] > len(section):
-                seg_vers[ref.normal()] += [""]
-            else:
-                seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    # Emit merged rows in canonical ref order to match previous CSV shape.
+    for tref in sorted(merged_segments, key=lambda tref: Ref(tref).order_id()):
+        writer.writerow([tref, merged_segments[tref]])
 
     return output.getvalue()
 
 
-def import_versions_from_stream(csv_stream, columns, user_id):
+def import_versions_from_stream(csv_stream, columns, user_id, skip_toc_refresh=False):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
     rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns, user_id)
+    return _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=skip_toc_refresh)
 
 
-def import_versions_from_file(csv_filename, columns):
+def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
+    :param user_id: the ID of the user importing the versions
+    :param csv_filename: the filename of the CSV file to import
     :return:
     """
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
-def _import_versions_from_csv(rows, columns, user_id):
-    from sefaria.tracker import modify_text
+def _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=False):
 
-    index_title = rows[0][columns[0]]  # assume the same index title for all
-    index_node = Ref(index_title).index_node
+    multi = str(rows[0][0]).strip().lower() == "version title"
+    jobs = []  # (idx_title, vt, lang, src, notes, text_map)
 
+    if multi:
+        col = columns[0]
+        vt, lang, src, notes = [rows[i][col] for i in range(4)]
+        book_maps = defaultdict(dict)
+        for r in rows[4:]:
+             if not r or len(r) <= col:
+                 continue
+             ref, txt = r[0], r[col]
+             book_maps[Ref(ref).index.title][ref] = txt
+        for idx_title, text_map in book_maps.items():
+            jobs.append((idx_title, vt, lang, src, notes, text_map))
+    else:
+         col = columns[-1]
+         idx_title, vt, lang, src, notes = [rows[i][col] for i in range(5)]
+         text_map = {r[0]: r[col] for r in rows[5:] if len(r) > col}
+         jobs.append((idx_title, vt, lang, src, notes, text_map))
 
-    action = "edit"
-    for column in columns:
-        # Create version
-        version_title = rows[1][column]
-        version_lang = rows[2][column]
+    for idx_title, vt, lang, src, notes, text_map in jobs:
+        index = Index().load({'title': idx_title})
+        if not index:
+            raise InputError(f'No book with primary title "{idx_title}"')
+        index_node = index.nodes
 
         v = Version().load({
-            "title": index_title,
-            "versionTitle": version_title,
-            "language": version_lang
+            "title": idx_title,
+            "versionTitle": vt,
+            "language": lang
         })
-
+        action = "edit"
         if v is None:
             action = "add"
             v = Version({
                 "chapter": index_node.create_skeleton(),
-                "title": index_title,
-                "versionTitle": version_title,
-                "language": version_lang,            # Language
-                "versionSource": rows[3][column],       # Version Source
-                "versionNotes": rows[4][column],        # Version Notes
+                "title": idx_title,
+                "versionTitle": vt,
+                "language": lang,
+                "versionSource": src,
+                "versionNotes": notes,
             }).save()
 
-        # Populate it
-        for row in rows[5:]:
-            ref = Ref(row[0])
-            print("Saving: {}".format(ref.normal()))
-            try:
-                modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
-            except InputError:
-                pass
+        modify_bulk_text(user_id, v, text_map, type=action, skip_toc_refresh=skip_toc_refresh)

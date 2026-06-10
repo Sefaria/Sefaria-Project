@@ -9,5 +9,6 @@ SITE_SETTINGS = {
 	"LIBRARY_NAME": {
 		"en": "The Library",
 		"he": "האוסף",
-	}
+	},
+	"SUPPORTED_TRANSLATION_LANGUAGES": [],
 }

@@ -4,32 +4,28 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
-import string
 from collections import defaultdict
-
+from typing import List, Iterable
+import math
 import datrie
 from unidecode import unidecode
+from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
+from sefaria.model.following import aggregate_profiles
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+import re2 as re
+import structlog
+logger = structlog.get_logger(__name__)
 
-import logging
-logger = logging.getLogger(__name__)
-
-try:
-    import re2 as re
-    re.set_fallback_notification(re.FALLBACK_WARNING)
-except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
-    import re
 
 letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
             + "\u05c1\u05c2" \
             + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
-            + "\u05f3\u05f4" \
-            + "\u200e\u200f\u2013\u201d\ufeff" \
-            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'&?/\""
+            + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
+            + " Iabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
 
 def normalizer(lang):
@@ -46,8 +42,9 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
-                 include_parasha=False, include_lexicons=False, include_groups=False, include_topics=False, *args, **kwargs):
+    def __init__(self, lang, lib, include_titles=True, include_categories=False,
+                 include_parasha=False, include_lexicons=False, include_users=False, include_collections=False,
+                 include_topics=False, min_topics=10, *args, **kwargs):
         """
 
         :param lang:
@@ -65,7 +62,11 @@ class AutoCompleter(object):
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
         self.other_lang_ac = None
+        self.max_completion_length = 200   # Max # of chars of input string, beyond which no completion search is done
+        self.max_autocorrect_length = 20   # Max # of chars of input string, beyond which no autocorrect search is done
         # self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
+
+        PAD = 1000000 # padding for object type ordering.  Allows for internal ordering within type.
 
         # Titles in library
         if include_titles:
@@ -73,45 +74,66 @@ class AutoCompleter(object):
             tnd_items = [(t, d) for t, d in list(title_node_dict.items()) if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
-            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
+            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles, 1 * PAD)
             self.spell_checker.train_phrases(normal_titles)
             self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
             categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
-            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
+            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path", 2 * PAD)
             self.spell_checker.train_phrases(category_names)
             self.ngram_matcher.train_phrases(category_names, normal_category_names)
         if include_parasha:
             parashot = TermSet({"scheme": "Parasha"})
             parasha_names = [n for p in parashot for n in p.get_titles(lang)]
             normal_parasha_names = [self.normalizer(p) for p in parasha_names]
-            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name")
+            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name", 3 * PAD)
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":min_topics}, "subclass": {"$ne": "author"}})
+            authors = AuthorTopicSet()  # include all authors
+            ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
-            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug")
+
+            def sub_order_fn(t: Topic) -> int:
+                sub_order = PAD - getattr(t, 'numSources', 0) - 1
+                if isinstance(t, AuthorTopic):
+                    # give a bonus to authors so they don't get drowned out by topics
+                    sub_order -= 100
+                return sub_order
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD, sub_order_fn)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
-        if include_people:
-            eras = ["GN", "RI", "AH", "CO"]
-            ps = PersonSet({"era": {"$in": eras}})
-            person_names = [n for p in ps for n in p.all_names(lang)]
-            normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
-            self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names, normal_person_names)
-        if include_groups:
-            gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
-            gnames = [name for g in gs for name in g.all_names(lang)]
-            normal_group_names = [self.normalizer(n) for n in gnames]
-            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name")
-            self.spell_checker.train_phrases(gnames)
-            self.ngram_matcher.train_phrases(gnames, normal_group_names)
+        if include_users:
+            profiles = aggregate_profiles()
+            users = User.objects.in_bulk(profiles.keys())
+            unames = []
+            normal_user_names = []
+            for id, u in users.items():
+                fullname = u.first_name + " " + u.last_name
+                normal_name = self.normalizer(fullname)
+                self.title_trie[normal_name] = {
+                    "title": fullname,
+                    "type": "User",
+                    "key": profiles[id]["user"]["slug"],
+                    "pic": profiles[id]["user"]["profile_pic_url_small"],
+                    "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
+                    "is_primary": True,
+                }
+                unames += [fullname]
+                normal_user_names += [normal_name]
+            self.spell_checker.train_phrases(unames)
+            self.ngram_matcher.train_phrases(unames, normal_user_names)
+        if include_collections:
+            cs = CollectionSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
+            cnames = [name for c in cs for name in c.all_names(lang)]
+            normal_collection_names = [self.normalizer(n) for n in cnames]
+            self.title_trie.add_titles_from_set(cs, "all_names", "primary_name", "slug", 6 * PAD)
+            self.spell_checker.train_phrases(cnames)
+            self.ngram_matcher.train_phrases(cnames, normal_collection_names)
         if include_lexicons:
             # languages get muddy for lexicons
             # self.prefer_longest = False
@@ -122,7 +144,8 @@ class AutoCompleter(object):
                     "title": wf.form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
                 if not hasattr(wf, "c_form"):
                     continue
@@ -130,7 +153,8 @@ class AutoCompleter(object):
                     "title": wf.c_form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
 
             forms = [getattr(wf, "c_form", wf.form) for wf in wfs]
@@ -145,7 +169,7 @@ class AutoCompleter(object):
     def _get_main_categories(otoc):
         cats = []
         for child in otoc.children:
-            if child.children and child.primary_title("en") != "Commentary" and child.primary_title("en") != "Other":
+            if child.children and child.primary_title("en") != "Commentary":
                 cats += [child]
             for grandchild in child.children:
                 if grandchild.children and grandchild.primary_title("en") != "Commentary":
@@ -178,7 +202,7 @@ class AutoCompleter(object):
         except KeyError:
             return None
 
-    def complete(self, instring, limit=0, redirected=False):
+    def complete(self, instring, limit=0, redirected=False, types=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         Wrapper for Completions object - prioritizes and aggregates completion results.
         In the case where there are no results, tries to swap keyboards and get completion results from the other language.
@@ -188,21 +212,25 @@ class AutoCompleter(object):
         :return: completions list, completion objects list
         """
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
-        completion_manager = Completions(self, self.lang, instring, limit)
-        completion_manager.process()
-        completions = completion_manager.completions
-        completion_objects = completion_manager.completion_objects
-
-        if len(completions):
-            return completions, completion_objects
+        instring = self.normalizer(instring)
+        if len(instring) >= self.max_completion_length:
+            return [], []
+        cm = Completions(self, self.lang, instring, limit,
+                         do_autocorrect=len(instring) < self.max_autocorrect_length, types=types, topic_pool=topic_pool, exact_continuations=exact_continuations, order_by_matched_length=order_by_matched_length)
+        cm.process()
+        if cm.has_results():
+            return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
-        if not redirected and self.other_lang_ac:
+        if not redirected and self.other_lang_ac and not exact_continuations:
             swapped_string = hebrew.swap_keyboards_for_string(instring)
-            return self.other_lang_ac.complete(swapped_string, limit, redirected=True)
+            return self.other_lang_ac.complete(swapped_string, limit, redirected=True, types=types,
+                                               topic_pool=topic_pool, exact_continuations=exact_continuations,
+                                               order_by_matched_length=order_by_matched_length)
 
         return [], []
 
+    '''
     def next_steps_from_node(self, instring):
         """
         Used in the case when the instring matches a node.  Provides the continuations of that string for its children nodes.
@@ -217,16 +245,30 @@ class AutoCompleter(object):
             return [t for t,o in titles_and_objects], [o for t,o in titles_and_objects]
         except KeyError:
             return []
+    '''
+
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0):
+
+    _type_norm_map = {
+        "Collection": "Collection",
+        "AuthorTopic": "Topic",
+        "TocCategory": "TocCategory",
+        "PersonTopic": "Topic",
+        "Topic": "Topic",
+        "ref": "ref",
+        "Term": "Term",
+        "User": "User"}
+
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect=True, types=None, topic_pool=None, exact_continuations=False, order_by_matched_length=False):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
         :param lang:
         :param instring:
-        :param limit:
+        :param limit: Number of results.  0 is unlimited.
+        :param do_autocorrect: Defaults to true.  Set to false to prevent resource burn on long strings.
         """
         assert lang in ["en", "he"]
 
@@ -238,51 +280,153 @@ class Completions(object):
         self.keys_covered = set()
         self.completions = []  # titles to return
         self.completion_objects = []
+        self.do_autocorrect = do_autocorrect
+        self._completion_strings = []
+        self._raw_completion_strings = []  # May have dupes
+        self._completion_objects = []
+        self._candidate_type_counters = defaultdict(int)
+        self._type_limit = 3
+        self.types = types
+        self.topic_pool = topic_pool
+        self.exact_continuations = exact_continuations
+        self.order_by_matched_length = order_by_matched_length
+
+    def has_results(self):
+        return len(self._completion_objects) > 0
+
+    def get_completion_objects(self):
+        return self._completion_objects
+
+    def get_completion_strings(self):
+        return self._completion_strings
 
     def process(self):
         """
         Execute the completion search
         :return:
         """
+        self._collect_candidates()
+        self._trim_results()
+
+    def _trim_results(self):
+        seen = set()
+
+        if self.limit == 0:
+            self._completion_strings = [x for x in self._raw_completion_strings if x not in seen and not seen.add(x)]
+            return
+
+        obj_count = 0
+        for x in self._raw_completion_strings:
+            obj_count += 1
+            if x in seen:
+                continue
+            else:
+                seen.add(x)
+                self._completion_strings += [x]
+            if len(seen) >= self.limit:
+                break
+
+        self._completion_objects = self._completion_objects[:obj_count]
+
+        return
+
+    def _candidate_order(self, c):
+        self._candidate_type_counters[c[1]["type"]] += 1
+        if self._candidate_type_counters[c[1]["type"]] <= self._type_limit:
+            return c[1]["order"]
+        else:
+            return c[1]["order"] * 100
+    
+    def _filter_completions_by_type(self, completion_strings, completion_objects):
+        filtered_completions = [
+            (cs, co)
+            for cs, co in zip(completion_strings, completion_objects)
+            if self._has_required_type(co)
+        ]
+        list1, list2 = zip(*filtered_completions) if filtered_completions else ([], [])
+        return list(list1), list(list2)
+
+    def _has_required_type(self, completion_object):
+        if not self.types:
+            return True
+
+        co_type = completion_object["type"]
+        normalized_type = self._type_norm_map[co_type]
+
+        if normalized_type not in self.types:
+            return False
+
+        if normalized_type == 'Topic' and self.topic_pool:
+            return self.topic_pool in completion_object["topic_pools"]
+
+        return True
+
+    def _collect_candidates(self):
         # Match titles that begin exactly this way
-        [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
-        self.completions += completions
-        self.completion_objects += completion_objects
-        if self.limit and len(self.completions) >= self.limit:
-            return self.completions[:self.limit or None]
+        cs, co = self.get_new_continuations_from_string(self.normal_string)
+        cs, co = self._filter_completions_by_type(cs, co)
+
+        joined = list(zip(cs, co))
+        if len(joined):
+            # joined.sort(key=lambda w: w[1]["order"])
+            joined.sort(key=self._candidate_order)
+            if self.order_by_matched_length:
+                joined.sort(key=lambda i: len(i[0]))
+            self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
+        else:
+            self._raw_completion_strings, self._completion_objects = [], []
+
+        if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+            return
+
+        # This string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=False)
+
+        if not self.do_autocorrect:
+            return 
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            [completions, completion_objects] = self.get_new_continuations_from_string(edit)
-            self.completions += completions
-            self.completion_objects += completion_objects
-            if self.limit and len(self.completions) >= self.limit:
-                return self.completions[:self.limit or None]
+            cs, co =  self.get_new_continuations_from_string(edit)
+            cs, co = self._filter_completions_by_type(cs, co)
 
+            self._raw_completion_strings += cs
+            self._completion_objects += co
+            if self._is_past_limit() or self.exact_continuations:
+                return
 
-        # This string of characters, or a minor variations thereof, deeper in the string
+        # A minor variations of this string of characters deeper in the string
+        self._collect_candidates_later_in_string(do_autocorrect=True)
+
+        return
+
+    def _is_past_limit(self):
+        return self.limit and len(set(self._raw_completion_strings)) >= self.limit
+
+    def _collect_candidates_later_in_string(self, do_autocorrect=True):
+        if do_autocorrect:
+            tokens = self.auto_completer.spell_checker.correct_phrase(self.normal_string)
+        else:
+            tokens = splitter.split(self.normal_string)
+
         try:
-            for suggestion in self.auto_completer.ngram_matcher.guess_titles(
-                self.auto_completer.spell_checker.correct_phrase(self.normal_string)
-            ):
+            for suggestion in self.auto_completer.ngram_matcher.guess_titles(tokens):
                 k = normalizer(self.lang)(suggestion)
                 try:
                     all_v = self.auto_completer.title_trie[k]
+                    _, all_v = self._filter_completions_by_type(all_v, all_v)
                 except KeyError:
-                    pass
-                added_to_completions = False
+                    all_v = []
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
-                        self.completion_objects += [v]
-                        if not added_to_completions:
-                            self.completions += [v["title"]]
-                            added_to_completions = True
+                        self._completion_objects += [v]
+                        self._raw_completion_strings += [v["title"]]
+                        self.keys_covered.add((v["type"], v["key"]))
+                        if self._is_past_limit():
+                            return
         except ValueError:
             pass
-
-        self.completions = self.completions[:self.limit or None]
-        return self.completions
 
     def get_new_continuations_from_string(self, str):
         """
@@ -306,19 +450,14 @@ class Completions(object):
         completion_objects = []
         non_primary_matches = []
         for k, all_v in all_continuations:
-            added_to_completions = False
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
                     if v["type"] == "ref" or v["type"] == "word_form" or v["type"] == "Topic":
                         completion_objects += [v]
-                        if not added_to_completions:
-                            completions += [v["title"]]
-                            added_to_completions = True
+                        completions += [v["title"]]
                     else:
                         completion_objects.insert(0, v)
-                        if not added_to_completions:
-                            completions.insert(0, v["title"])
-                            added_to_completions = True
+                        completions.insert(0, v["title"])
                     self.keys_covered.add((v["type"], v["key"]))
                 else:
                     non_primary_matches += [(k, v)]
@@ -336,15 +475,14 @@ class Completions(object):
 
 
 class LexiconTrie(datrie.Trie):
-    dict_letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeff`' \""
 
     def __init__(self, lexicon_name):
-        super(LexiconTrie, self).__init__(self.dict_letter_scope)
+        super(LexiconTrie, self).__init__(letter_scope)
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
-            self[hebrew.strip_nikkud(entry.headword)] = entry.headword
-            for ahw in getattr(entry, "alt_headwords", []):
-                self[hebrew.strip_nikkud(ahw)] = entry.headword
+            self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
+            for ahw in entry.get_alt_headwords():
+                self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
 
 
 class TitleTrie(datrie.Trie):
@@ -374,28 +512,32 @@ class TitleTrie(datrie.Trie):
         except KeyError:
             super(TitleTrie, self).__setitem__(key, [value])
 
-    def add_titles_from_title_node_dict(self, tnd_items, normal_titles):
+    def add_titles_from_title_node_dict(self, tnd_items, normal_titles, order):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
                 "key": snode.full_title("en"),
                 "type": "ref",
-                "is_primary": title == snode.full_title(self.lang)
+                "is_primary": title == snode.full_title(self.lang),
+                "order": order
             }
 
-    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, base_order, sub_order_fn=None):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
         :param all_names_method: Name of method that will return list of titles, when passed lang
         :param primary_name_method: Name of method that will return primary title, when passed lang
         :param keyattr: Name of attribute that will give key to object
+        :param sub_order_fn: optional function which takes an AbstractMongoRecord as a parameter and returns an integer between 0 and PAD-1 inclusive. the lower the number, the higher ranked this object will be among objects of the same type.
         :return:
         """
         done = set()
         for obj in recordset:
-            key = getattr(obj, keyattr)
-
+            key = getattr(obj, keyattr, None)
+            if not key:
+                continue
+            sub_order = 0 if sub_order_fn is None else sub_order_fn(obj)
             title = getattr(obj, primary_name_method)(self.lang)
             if title:
                 norm_title = self.normalizer(title)
@@ -404,7 +546,9 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": base_order + sub_order,
+                    "topic_pools": obj.get_pools() if isinstance(obj, Topic) else []
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -417,7 +561,9 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": False
+                    "is_primary": False,
+                    "order": base_order + sub_order,
+                    "topic_pools": obj.get_pools() if isinstance(obj, Topic) else []
                 }
 
 
@@ -488,58 +634,70 @@ class NGramMatcher(object):
         self.normalizer = normalizer(lang)
         self.token_to_titles = defaultdict(list)
         self.token_trie = datrie.BaseTrie(letter_scope)
+        self._tfidf_scorer = TfidfScorer()
 
     def train_phrases(self, titles, normal_titles):
         for title, normal_title in zip(titles, normal_titles):
-            tokens = splitter.split(normal_title)
+            tokens = tuple(splitter.split(normal_title))
+            self._tfidf_scorer.train_tokens(tokens)
             for token in tokens:
                 if not token:
                     continue
-                self.token_to_titles[token].append(title)
-        for k in list(self.token_to_titles.keys()):
+                self.token_to_titles[token].append((title, tokens))
+        for k in self.token_to_titles.keys():
             self.token_trie[k] = 1
 
     def _get_real_tokens_from_possible_n_grams(self, tokens):
-        return list({k for token in tokens for k in self.token_trie.keys(token)})
+        return {token: self.token_trie.keys(token) for token in tokens}
 
-    def _get_scored_titles_uncollapsed(self, real_tokens):
+    def _get_scored_titles(self, real_token_map):
+        total_ngrams = len(real_token_map)
         possibilities__scores = []
-        for token in real_tokens:
-            try:
-                possibilities = self.token_to_titles[token]
-            except KeyError:
-                possibilities = []
-            for title in possibilities:
-                score = float(len(token)) / len(title.replace(" ", ""))   # How much of this title does this token account for
-                possibilities__scores.append((title, score))
+        possibilties_score_map = defaultdict(int)
+        title_ngram_map = defaultdict(set)  # map of ngram inputs that matched this title (through mapping of ngrams to real tokens)
+        for ngram_token, real_tokens in real_token_map.items():
+            for real_token in real_tokens:
+                possibilities = self.token_to_titles.get(real_token, [])
+                for (title, title_tokens) in possibilities:
+                    possibilties_score_map[title] += self._tfidf_scorer.score_token(real_token, title_tokens)
+                    title_ngram_map[title].add(ngram_token)
+
+        for title, matched_token_score in possibilties_score_map.items():
+            matched_ngrams = title_ngram_map[title]
+            score = matched_token_score - (total_ngrams - len(matched_ngrams))
+            possibilities__scores.append((title, score))
         return possibilities__scores
 
-    def _combined_title_scores(self, titles__scores, num_tokens):
-        collapsed_title_to_score = defaultdict(int)
-        collapsed_title_to_occurence = defaultdict(int)
-        for title, score in titles__scores:
-            collapsed_title_to_score[title] += score
-            collapsed_title_to_occurence[title] += 1
-        for title in list(collapsed_title_to_score.keys()):
-            collapsed_title_to_score[title] *= collapsed_title_to_occurence[title] / float(num_tokens)
-        return collapsed_title_to_score
-
     def _filtered_results(self, titles__scores):
-        min_results = 3
-        max_results = 10
-        score_threshold = 0.4
-        max_possibles = titles__scores[:max_results]
-        if titles__scores and titles__scores[0][1] == 1.0:
-            return [titles__scores[0][0]]
-
-        possibles_within_thresh = [tuple_obj for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
-        min_possibles = possibles_within_thresh if len(possibles_within_thresh) > min_results else max_possibles[:min_results]
-        return [tuple_obj[0] for tuple_obj in min_possibles]
+        score_threshold = 0.5  # NOTE: score is no longer between 0 and 1. This threshold is somewhat arbitrary and may need adjusting.
+        return [tuple_obj[0] for tuple_obj in titles__scores if tuple_obj[1] >= score_threshold]
 
     def guess_titles(self, tokens):
-        real_tokens = self._get_real_tokens_from_possible_n_grams(tokens)
-        titles__scores = self._get_scored_titles_uncollapsed(real_tokens)
-        collapsed_titles_to_score = self._combined_title_scores(titles__scores, len(tokens))
-        titles__scores = list(collapsed_titles_to_score.items())
+        real_token_map = self._get_real_tokens_from_possible_n_grams(tokens)
+        titles__scores = self._get_scored_titles(real_token_map)
         titles__scores.sort(key=lambda t: t[1], reverse=True)
         return self._filtered_results(titles__scores)
+
+
+class TfidfScorer:
+
+    def __init__(self):
+        self._token_idf_map = {}
+        self._missing_idf_value = 0
+        self._total_documents = 0
+
+    def train_tokens(self, tokens: Iterable[str]) -> None:
+        self._total_documents += 1
+        token_document_count_map = defaultdict(int)
+        for token in set(tokens):
+            token_document_count_map[token] += 1
+        for token, count in token_document_count_map.items():
+            idf = math.log(self._total_documents / (1 + token_document_count_map[token]))
+            self._token_idf_map[token] = idf
+        self._missing_idf_value = math.log(self._total_documents)
+
+    def score_token(self, query_token: str, doc_tokens):
+        tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
+        idf = self._token_idf_map.get(query_token, self._missing_idf_value)
+        return tf * idf
+

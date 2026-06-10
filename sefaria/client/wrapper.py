@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+
+from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
+
+logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -50,17 +53,14 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["inline_reference"]  = getattr(link, "inline_reference", None)
     if getattr(link, "highlightedWords", None):
         com["highlightedWords"] = getattr(link, "highlightedWords", None)
+    if getattr(link, "versions", None) and link.type == "essay" and getattr(link, "displayedText", None):
+        com["anchorVersion"] = {"title": link.versions[pos]["title"], "language": link.versions[pos].get("language", None)}
+        com["sourceVersion"] = {"title": link.versions[linkPos]["title"], "language": link.versions[linkPos].get("language", None)}
+        com["displayedText"] = link.displayedText[linkPos]  # we only want source displayedText
 
-    compDate = getattr(linkRef.index, "compDate", None)
+    compDate = getattr(linkRef.index, "compDate", None)  # default comp date to in the future
     if compDate:
-        try:
-            com["compDate"] = int(compDate)
-        except ValueError:
-            com["compDate"] = 3000  # default comp date to in the future
-        try:
-            com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
-        except ValueError:
-            com["errorMargin"] = 0
+        com["compDate"] = compDate
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
@@ -73,7 +73,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
         com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
 
-    # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
+    # if the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
         com["collectiveTitle"] = {
@@ -83,16 +83,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     else:
         com["collectiveTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
 
-    if com["type"] != "commentary" and com["category"] == "Commentary":
-            com["category"] = "Quoting Commentary"
-
-    if com["category"] == "Modern Works" and getattr(linkRef.index, "dependence", None) == "Commentary":
-        # print "Transforming " + linkRef.normal()
-        com["category"] = "Modern Commentary"
-        com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
-            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
-        }
+    if com["type"] == "essay":
+        com["category"] = "Essay"
+    elif com["type"] != "commentary" and com["category"] == "Commentary":
+        com["category"] = "Quoting Commentary"
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -147,8 +141,8 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
-    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["category"]        = sheet["collectionTOC"].get("dependence", sheet["collectionTOC"]["categories"][0])
+    sheet["collectiveTitle"] = sheet["collectionTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["collectionTOC"] else {"en": sheet["collectionTOC"]["title"], "he": sheet["collectionTOC"]["heTitle"]}
     sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]
     sheet["sourceHeRef"]     = sheet["title"]
@@ -168,13 +162,15 @@ def get_notes(oref, public=True, uid=None, context=1):
     return notes
 
 
-def get_links(tref, with_text=True, with_sheet_links=False):
+def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
-    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
+    If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
+    If `categories` is provided, only include links whose derived client-facing category matches.
     """
     links = []
+    categories = set(categories) if categories else None
     oref = Ref(tref)
     nRef = oref.normal()
     lenRef = len(nRef)
@@ -205,7 +201,11 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             node_depth = getattr(source_ref.index_node, "depth", None)
             if node_depth is None or len(source_ref.sections) + 1 < node_depth:
                 continue
-
+            
+            if link.refs[pos] in get_talmud_perek_ref_set() or link.refs[pos] in get_parasha_ref_set():
+                # don't return links to perek level talmud or parasha refs even though they are technically segment level.
+                continue
+                
             com = format_link_object_for_client(link, False, nRef, pos)
         except InputError:
             logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
@@ -259,15 +259,21 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             }
                     com_sections = [i - 1 for i in com_oref.sections]
                     com_toSections = [i - 1 for i in com_oref.toSections]
-                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")), ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
+                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (
+                            ("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")),
+                            ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
                         temp_nref_data = texts[top_nref][lang]
+                        # Because of how the jagged arrays work, res may be either a single line or a list of lines
                         res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
-                        if attr not in com:
-                            com[attr] = res
-                        else:
+                        if attr not in com: # If this is the first com_oref, and so the object doesn't contain any data in this field,
+                            com[attr] = res  # Set the text directly in the object
+                        else:  # This is not the first oref (this was a spanning ref, e.g. "Ketubot 110b:25-111a:1".
+                            # We'll want to connect the texts from all pages together. As mentioned, each can be either a string or a list.
                             if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
-                            com[attr] += res
+                            if isinstance(res, str):
+                                res = [res]
+                            com[attr] += res  # Once they're both definitely lists, merge the lists together.
                         temp_version = temp_nref_data['version']
                         if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
@@ -300,7 +306,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     for prefix in bound_texts:
         if nRef.startswith(prefix):
             base_ref = nRef[len(prefix):]
-            base_links = get_links(base_ref)
+            base_links = get_links(base_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories)
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
                 link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]
@@ -310,11 +316,14 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
             links += base_links
 
-    groups = library.get_groups_in_library()
-    if with_sheet_links and len(groups):
-        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+    collections = library.get_collections_in_library()
+    if with_sheet_links and len(collections):
+        sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links
+
+    if categories is not None:
+        links = [link for link in links if link["category"] in categories]
 
     return links
 
@@ -329,10 +338,12 @@ class LinkNetwork(object):
 
         # record root node
         rootkey = self.indexKey(self.base_oref)
+        root_period = self.base_oref.index.composition_time_period()
+        self.root_year = int(root_period.start) if root_period else None
         self.indexNodes[rootkey] = self.make_index_record(
             self.base_oref,
             rootkey,
-            int(self.base_oref.index.compDate) - int(getattr(self.base_oref.index, "errorMargin", 0)),
+            self.root_year,
             self.base_oref.index.categories[0],
             root = True
         )
@@ -392,8 +403,7 @@ class LinkNetwork(object):
 
     def contents(self):
         return {
-            "compDate": self.base_oref.index.compDate,
-            "errorMargin": self.base_oref.index.errorMargin,
+            "year": self.root_year,
             "category": self.base_oref.index.categories[0],
             "ref": self.base_oref.normal(),
             "indexNodes": self.indexNodes,

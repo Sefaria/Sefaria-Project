@@ -51,8 +51,10 @@ def filter_type_to_query(filter_type):
     Translates an activity filter string into a query that searches for it.
     Most strings search for filter_type in the rev_type field, but others may have different behavior:
 
-    'translate' - version is SCT and type is 'add text'
-    'flagged'   - type is review and score is less thatn 0.4
+    'translate'        - version is SCT and type is 'add text'
+    'index_change'     - matches both 'add index' and 'edit index' rev_types
+    'flagged'          - type is review and score is less than 0.4
+    'version_metadata' - version metadata edits (license, status, priority, etc.)
     """
     q = {}
 
@@ -60,6 +62,8 @@ def filter_type_to_query(filter_type):
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
+    elif filter_type == "version_metadata":
+        q = {"rev_type": "edit version_metadata"}
     elif filter_type == "flagged":
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "review"}.items())), {"score": {"$lte": 0.4}}]}
     elif filter_type:
@@ -196,7 +200,7 @@ def record_index_deletion(title, uid):
         "date": datetime.now(),
         "rev_type": "delete index",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def record_version_deletion(title, version, lang, uid):
@@ -211,7 +215,7 @@ def record_version_deletion(title, version, lang, uid):
         "date": datetime.now(),
         "rev_type": "delete text",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def record_sheet_publication(sheet_id, uid):
@@ -224,7 +228,7 @@ def record_sheet_publication(sheet_id, uid):
         "date": datetime.now(),
         "rev_type": "publish sheet",
     }
-    db.history.save(log)
+    db.history.insert_one(log)
 
 
 def delete_sheet_publication(sheet_id, user_id):
@@ -232,7 +236,7 @@ def delete_sheet_publication(sheet_id, user_id):
     Deletes the activity feed item for a sheet publication
     (for when a user unpublishes a sheet)
     """
-    db.history.remove({
+    db.history.delete_many({
             "user": user_id,
             "sheet": sheet_id,
             "rev_type": "publish sheet"
@@ -288,7 +292,7 @@ def make_leaderboard(condition):
     matches the conditions of 'condition' - an object used to query
     the history collection.
 
-    This fucntion queries and calculates for all currently matching history.
+    This function queries and calculates for all currently matching history.
     """
 
     reducer = Code("""

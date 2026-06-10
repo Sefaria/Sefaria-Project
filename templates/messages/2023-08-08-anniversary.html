@@ -1,0 +1,89 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">
+Celebrate 10 years of Torah on Sefaria! Join us on Sunday, August 20th, for a virtual anniversary party with learning, community stories, and a special announcement you won’t want to miss.        </span>
+        <span class="int-he">
+
+הנכם מוזמנים לחגוג איתנו עשר שנים של תורה בספריא! נשמח לראותכם ביום ראשון, ג' אלול (20.8.23) בשעה 19:00, במסיבת-עשור וירטואלית עם לימוד, סיפורים מהשטח, והודעה מיוחדת שלא תרצו לפספס. (האירוע יתקיים באנגלית.)
+
+        </span>
+    </p>
+
+
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.formstack.com/forms/10thanniversary">
+            <span class="int-en">RSVP Now</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.formstack.com/forms/10thanniversary">
+            <span class="int-he">לאישור הגעה</span>
+        </a>
+    </div>
+
+
+</div>

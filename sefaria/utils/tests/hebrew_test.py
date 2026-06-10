@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sefaria.utils import hebrew as h
-
+import pytest
 
 def setup_module(module):
     global e
@@ -71,9 +71,28 @@ class TestNikkudUtils():
         assert h.strip_nikkud('הַדְּבָרִים אֲשֶׁר') == 'הדברים אשר'
         assert h.strip_nikkud("הַמּוֹצִיא בְמִסְפָּר צְבָאָם לְכֻלָּם בְּשֵׁם יִקְרָא") == "המוציא במספר צבאם לכלם בשם יקרא"
 
-class TestIsHebrew():
-    def test_is_hebrew(self):
-        assert h.is_hebrew("ג")
+
+class TestIsHebrewFuncs:
+    """
+    Tests the various functions that check for the amount of Hebrew in a string
+    """
+    def test_has_hebrew(self):
+        assert h.has_hebrew("ג")
+        assert h.has_hebrew("שלום world")
+        assert not h.has_hebrew("hello world")
+
+    def test_is_all_hebrew(self):
+        assert h.is_all_hebrew("גגגדגחח")
+        assert not h.is_all_hebrew("שלום world")
+
+    def test_is_mostly_hebrew(self):
+        assert h.is_mostly_hebrew("שלום עולם")
+        assert not h.is_mostly_hebrew("שלום world")  # exactly one less than half
+        assert not h.is_mostly_hebrew("שלוגם world")  # exactly half
+        assert h.is_mostly_hebrew("שלוגם word")  # exactly one more than half
+        assert not h.is_mostly_hebrew("word לשוםג", len_to_check=4)
+        assert h.is_mostly_hebrew("גשגכדגכשדגכדלשוםג", len_to_check=4)
+
 
 class TestGematria():
     def test_simple_gematria(self):
@@ -90,3 +109,70 @@ class TestGematria():
 
     def test_punctuation(self):
         assert h.gematria("אבגדהוזחטיכלמנסעפקרשת") == h.gematria("אב[]גדהוז{}()?!ח..,,טיכלמנס    - -עפקרשת")
+
+
+@pytest.mark.parametrize(('hebrew', 'other_hebrew', 'should_match'), [
+    ("אבג דהוז חטיכ", "אבג דהוז חטיכ", True),    # same
+    ("אבג דהוז חטיכ", "אבג דהוז", True),         # same other shorter
+    ("אבג דהוז", "אבג דהוז חטיכ", False),        # same other longer
+    ("אמר רבי יהודה", "אמר ר״י", True),          # same other abbrev
+    ("אמר ר״י", "אמר רבי יהודה", True),          # same orig abbrev
+    ("הבית כנסת פתוח", "הביכ״נ פתוח רק", False),  # same other longer abbrev
+    ("אע״ג שרבי שמעול בן גמליאל שמר שבית שאשרעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", True),    # multiple abbrevs
+    ("אע״ג שרבי שמעול בן גמליאל שמר שבית שארעש לגכשג", "אף על גב שרשב״ג שמר שבשאש״ל", False),    # diff multiple abbrevs
+    ("אפילו כך", "אפ׳ כך", True),     # trailing geresh abbreviation
+    ("אפילו כך", "אפ' כך", True),     # trailing ASCII apostrophe abbreviation
+])
+def test_hebrew_starts_with(hebrew, other_hebrew, should_match):
+    assert h.hebrew_starts_with(hebrew, other_hebrew) == should_match
+
+
+@pytest.mark.parametrize(('abbr', 'unabbr', 'match'), [
+    ("אעג", "אף על גב", "אף על גב"),
+    pytest.param("אפעג", "אף על גב", "אף על גב", marks=pytest.mark.xfail(reason="cannot handle non-sofit letters in abbrev matching sofit in unabbr")),
+    ("כארגלב", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן גל בדגש"),
+    ("כאגלב", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן גל בדגש"),
+    ("כאב", "כגשג ארשלקן גל בדגש", None),
+    ("כאר", "כגשג ארשלקן גל בדגש", "כגשג ארשלקן"),
+])
+def test_get_abbr(abbr, unabbr, match):
+    unabbr_words = unabbr.split()
+    test_match = h.get_abbr(abbr, unabbr_words)
+    if match is not None:
+        match = match.split()
+    assert test_match == match
+
+
+@pytest.mark.parametrize(('word', 'exclusions', 'expected_inds'), [
+    # ע is in PREFIXES but should be excluded for proper names
+    ('עמוס', {'ע'}, []),
+    # without exclusion, ע is stripped normally
+    ('עמוס', None, [1]),
+    # exclusion only blocks the listed prefix; others still apply
+    ('במוס', {'ע'}, [1]),
+    # multi-char prefix excluded: שב blocked but single-letter ש still applies
+    ('שבת', {'שב'}, [1]),
+    ('שבת', None, [1, 2]),  # ש → index 1, שב → index 2
+    # single-char word that is itself a prefix must not produce empty-string match
+    ('ה', None, []),
+    ('ב', None, []),
+])
+def test_get_prefixless_inds_exclusion(word, exclusions, expected_inds):
+    assert sorted(h.get_prefixless_inds(word, exclusions)) == sorted(expected_inds)
+
+
+def test_get_matches_with_prefixes_ayin_excluded():
+    """Verify that prefix_exclusion_set prevents ע from being stripped, so proper names starting with ayin aren't matched via their stripped form."""
+    matches_map = {'עמוס': ['Amos']}
+    results = h.get_matches_with_prefixes('עמוס', matches_map=matches_map)
+    assert results == ['Amos']
+
+    results_excluded = h.get_matches_with_prefixes('עמוס', matches_map=matches_map, prefix_exclusion_set={'ע'})
+    assert results_excluded == ['Amos']
+
+    stripped_only_map = {'מוס': ['phantom']}
+    results_stripped = h.get_matches_with_prefixes('עמוס', matches_map=stripped_only_map)
+    assert results_stripped == ['phantom']
+
+    results_excluded_stripped = h.get_matches_with_prefixes('עמוס', matches_map=stripped_only_map, prefix_exclusion_set={'ע'})
+    assert results_excluded_stripped == []

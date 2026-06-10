@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria App" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria App" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Download the free Sefaria App for iOS and Android." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Download the free Sefaria App for iOS and Android." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 
@@ -86,8 +87,7 @@
         <div class="sectionInner flexContainer">
             <div id="mobileSiddur" class="mobileTestimonial">
                 <div class="mobileTestimonialImageHolder">
-                    <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}"
-                         alt="icon of siddur">
+                    <img class="mobileTestimonialImage" src="{% static "img/mobile-landing-page/siddur.png" %}" alt="icon of siddur">
                 </div>
                 <h3 class="mobileTestimonialHeader">
                     <span class="int-en">Always have a siddur <br/>In your pocket</span>
@@ -322,11 +322,6 @@
                     <span class="int-he">פייסבוק</span>
                 </a>
                 <span class="dot">•</span>
-                <a href="https://twitter.com/SefariaProject" target="_blank">
-                    <span class="int-en">Twitter</span>
-                    <span class="int-he">טוויטר</span>
-                </a>
-                <span class="dot">•</span>
                 <a href="https://www.instagram.com/sefariaproject/" target="_blank">
                     <span class="int-en">Instagram</span>
                     <span class="int-he">אינסטגרם</span>
@@ -334,7 +329,7 @@
             </div>
             <div id="mobilePageNonProfit">
                 <p class="int-en">
-                    Sefaria is a 501(c)(3) non-profit organization that creates open source software and publishes digital texts with open licenses.
+                    Sefaria is a 501(c)(3) nonprofit organization that creates open source software and publishes digital texts with open licenses.
                 </p>
                 <p class="int-he">
                     ספריא הוא אירגון ללא מטרת רווח לפי חוקי ארצות הברית אשר יוצר תוכנות חיפוש למקורות פתוחים לשימוש ומפרסם טקסטים דיגיטליים שאין עליהם זכויות יוצרים.
@@ -348,7 +343,7 @@
 
 {% endblock %}
 
-{% block js  %}
+{% block js %}
     <script>
     $(function() {
         // Set tracking links to app stores

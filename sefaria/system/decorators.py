@@ -1,8 +1,8 @@
 from functools import wraps, partial
+from typing import Any
 
 from django.http import HttpResponse, Http404
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from sefaria.client.util import jsonResponse
 import sefaria.system.exceptions as exps
@@ -10,8 +10,10 @@ import sefaria.settings
 
 import collections
 import bleach
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
+
+from sefaria.settings import FAIL_GRACEFULLY
 
 
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
@@ -59,8 +61,8 @@ def catch_error_as_http(func):
             raise
         except Exception as e:
             logger.exception("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
-            return render_to_response(args[0], 'static/generic.html',
-                             {"content": "There was an error processing your request: {}".format(str(e))})
+            return render(args[0], 'static/generic.html',
+                          {"content": "There was an error processing your request: {}".format(str(e))})
         return result
     return wrapper
 
@@ -95,6 +97,33 @@ def sanitize_get_params(func):
     return wrapper
 
 
+def conditional_graceful_exception(logLevel: str = "exception", exception_type: Exception = Exception) -> Any:
+    """
+    Decorator that catches exceptions and logs them if FAIL_GRACEFULLY is True.
+    For instance, when loading the server on prod, we want to fail gracefully if a text or ref cannot be properly loaded.
+    However, when running text creation functions, we want to fail loudly so that we can fix the problem.
+
+    :param logLevel: "exception" or "warning"
+    :param return_value: function return value if exception is caught
+    :param exception_type: type of exception to catch
+    :return: return_value no error, if FAIL_GRACEFULLY is True log the error, otherwise raise exception
+
+    """
+    def argumented_decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exception_type as e:
+                if FAIL_GRACEFULLY:
+                    if logger:
+                        logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
+                else:
+                    raise e
+        return decorated_function
+    return argumented_decorator
+
+
 class memoized(object):
     """Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
@@ -126,3 +155,28 @@ class memoized(object):
     def __get__(self, obj, objtype):
         '''Support instance methods.'''
         return partial(self.__call__, obj)
+
+
+def _add_cors_headers(response):
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+def cors_allow_all(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method == "OPTIONS":
+            response = HttpResponse(status=204)
+            return _add_cors_headers(response)
+        response = view_func(request, *args, **kwargs)
+        return _add_cors_headers(response)
+    # Preserve or enforce CSRF exemption so POSTs from other origins aren't blocked
+    try:
+        from django.views.decorators.csrf import csrf_exempt as _csrf_exempt
+        _wrapped = _csrf_exempt(_wrapped)
+    except Exception:
+        # Fallback: set attribute directly if decorator import fails for any reason
+        setattr(_wrapped, 'csrf_exempt', True)
+    return _wrapped

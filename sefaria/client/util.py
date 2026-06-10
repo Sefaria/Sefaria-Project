@@ -1,13 +1,14 @@
 
 import json
-from rauth import OAuth2Service
 from datetime import datetime
+from urllib.parse import urlparse
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
-from functools import wraps
+from webpack_loader import utils as webpack_utils
 
-from sefaria import local_settings as sls
+from sefaria.settings import relative_to_abs_path
+# from sefaria.model.user_profile import UserProfile
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -30,74 +31,44 @@ def jsonResponse(data, callback=None, status=200):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 
-    return HttpResponse(json.dumps(data), content_type="application/json", status=status)
+    return HttpResponse(json.dumps(data, ensure_ascii=False), content_type="application/json; charset=utf-8", charset="utf-8", status=status)
 
 
 def jsonpResponse(data, callback, status=200):
     if "_id" in data:
         data["_id"] = str(data["_id"])
-    return HttpResponse("%s(%s)" % (callback, json.dumps(data)), content_type="application/javascript", status=status)
+    return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
 
 
-def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
-
-    if not sls.NATIONBUILDER:
-        return
-
-    if bypass_nationbuilder:
-        name          = first_name + " " + last_name if first_name and last_name else ""
-        method        = "Signed up directly" if direct_sign_up else "Signed up during account creation"
-        message_html  = "%s<br>%s<br>%s" % (name, email, method)
-        subject       = "Mailing list signup"
-        from_email    = "Sefaria <hello@sefaria.org>"
-        to            = "amelia@sefaria.org"
-
-        msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
-        msg.content_subtype = "html"  # Main content is now text/html
-        msg.send()
-
-        return True
-
-    tags = lists
-    post = {
-        "person": {
-            "email": email,
-            "tags": tags,
-        }
-    }
-    if first_name:
-        post["person"]["first_name"] = first_name
-    if last_name:
-        post["person"]["last_name"] = last_name
-
-    session = get_nation_builder_connection()
-    r = session.put("https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com/api/v1/people/push",
-                    data=json.dumps(post),
-                    params={'format': 'json'},
-                    headers={'content-type': 'application/json'})
-    session.close()
-
-    return r
-
-
-def get_nation_builder_connection():
-    access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
-    authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
-    service = OAuth2Service(
-        client_id = sls.NATIONBUILDER_CLIENT_ID,
-        client_secret = sls.NATIONBUILDER_CLIENT_SECRET,
-        name = "NationBuilder",
-        authorize_url = authorize_url,
-        access_token_url = access_token_url,
-        base_url = "%s.nationbuilder.com" % sls.NATIONBUILDER_SLUG
-    )
-    token = sls.NATIONBUILDER_TOKEN
-    session = service.get_session(token)
-
-    return session
+def celeryResponse(task_id: str, sub_task_ids: list[str] = None):
+    data = {'task_id': task_id}
+    if sub_task_ids:
+        data['sub_task_ids'] = sub_task_ids
+    return jsonResponse(data, status=202)
 
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])
     msg.send()
 
     return True
+
+
+def _webpack_bundle_path(config_name):
+    webpack_files = webpack_utils.get_files('main', config=config_name)
+    url = webpack_files[0]["url"]
+    # Handle both relative paths and full URLs
+    # In production, STATIC_URL can be a full URL like https://www.sefaria.org/static/
+    # which makes webpack_files return full URLs instead of relative paths
+    parsed = urlparse(url)
+    path = parsed.path if parsed.scheme else url
+    return relative_to_abs_path('..' + path)
+
+
+def read_webpack_bundle(config_name):
+    with open(_webpack_bundle_path(config_name), 'r') as file:
+        return file.read()
+
+
+def read_webpack_bundle_map(config_name):
+    with open(_webpack_bundle_path(config_name) + '.map', 'r') as file:
+        return file.read()

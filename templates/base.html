@@ -1,55 +1,69 @@
+{% load i18n %}
 {% load render_bundle from webpack_loader %}
 {% load static %}
 {% get_static_prefix as STATIC_PREFIX %}
+{% load sefaria_tags %}
 
 <!DOCTYPE html>
-<html>
+<html lang="{{ request.LANGUAGE_CODE }}">
 <head>
-    <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
+    {% block meta_title %}{% meta_title %}{{ title|striptags }}{% endmeta_title %}{% endblock %}
     <meta charset="utf-8"/>
-    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
+    {% block meta_description %}{% meta_desc %}{{ desc|striptags }}{% endmeta_desc %}{% endblock %}
 
     {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+
+    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    {% endif %}
+
+    {% if canonical_url %}
+    <link rel="canonical" href="{{canonical_url}}" />
+    {% endif %}
 
     {% block ogtype %}
         <meta property="og:type" content="website"/>
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=facebook" />
+        <meta property="og:image" content="{% social_image_url request 'facebook' %}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
     {% endblock %}
 
-    <meta property="og:title" content="{{title|striptags}}" />
-    <meta property="og:url" content="https://www.sefaria.org{{ request.path }}" />
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    {# Sefaria is stopping use of its Twitter account. However, according to Twitter dev docs, an account to reference as an attribute is still necessary for cards usage #}
     <meta name="twitter:site" content="@sefariaproject" />
-    <meta name="twitter:title" content="{{title|striptags}}" />
-    <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
-    <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
+    <meta name="twitter:image" content="{% social_image_url request 'twitter' %}" />
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-
-    <!-- https://realfavicongenerator.net -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32x32.png' %}?v=xQzLlLp7oR">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/favicon-16x16.png' %}?v=xQzLlLp7oR">
-    <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
-    <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
-    <link rel="shortcut icon" href="{% static 'icons/favicon.ico'%}?v=xQzLlLp7oR">
-    <meta name="theme-color" content="#273557">
-
+    
+    {% with lang=request.interfaceLang|default:"english" favicon_version=3 %}
+    <link rel="shortcut icon" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.ico?v={{ favicon_version }}" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.svg?v={{ favicon_version }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/favicon.png?v={{ favicon_version }}" sizes="96x96">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v={{ favicon_version }}">
+    <link rel="manifest" href="/site.webmanifest?v={{ favicon_version }}">
+    {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
+    <meta name="theme-color" content="{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}">
+    <meta name="apple-mobile-web-app-title"
+          content="{% if active_module == 'voices' %}
+                    {% trans 'Voices' %}
+                  {% else %}
+                    {% trans 'Library' %}
+                  {% endif %}">
+    {% endwith %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
     <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
@@ -57,14 +71,58 @@
 
     {% block head %}{% endblock %}
 
+    {% if chatbot_script_url %}
+    <script src="{{ chatbot_script_url }}"{% if chatbot_script_type %} type="{{ chatbot_script_type }}"{% endif %}></script>
+    {% endif %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({
+          google: {
+            families: ['Crimson Text:100,200,300,400,500,600,700,800,900'],
+            text: 'ăǎġḥḤḫḳḲŏŠšṭżūẓŻāīēḗęîìi̧ ̆̄'
+          },
+          typekit: {
+            id: 'aeg8div' // Adobe Garamond Pro
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Roboto:100,200,300,400,500,600,700,800,900', 'Heebo:100,200,300,400,500,600,700,800,900:hebrew', 'Miriam Libre:400,500,600,700'] // The dotted h causes Heebo not to load.
+          }
+        });
+        WebFont.load({
+          google: {
+            families: ['Noto Sans Samaritan'],
+            text: 'ࠀࠁࠂࠃࠄࠅࠆࠇࠈࠉࠊࠋࠌࠍࠎࠏࠐࠑࠒࠓࠔࠕ'
+          }
+        });
+    </script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+
     <link rel="stylesheet" href="{% static 'css/common.css' %}">
-    <link rel="stylesheet" href="{%  static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/popover.css' %}">
+    <link rel="stylesheet" href="{% static 'css/breakpoints.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/keyboard.css' %}">
+        
+    <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
+    <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
+    {% if page == 'modtools' %}
+    <link rel="stylesheet" href="{% static 'css/modtools.css' %}">
+    {% endif %}
+    <!-- Specific styling to correct behavior of Unbounce banners -->
+    <link rel="stylesheet" href="{% static 'css/unbounce-banner.css' %}">
 
     {% block static_css %}
-    {% if not html %}
+    {% if renderStatic %}
     <link rel="stylesheet" href="{%  static 'css/static.css' %}">
     {% endif %}
     {% endblock %}
@@ -82,55 +140,90 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
     <!-- End Google Tag Manager -->
+
+    <!-- Start VWO Async SmartCode -->
+    <script type='text/javascript' id='vwoCode'>
+    window._vwo_code=window._vwo_code || (function() {
+    var account_id=682715,
+    version = 1.5,
+    settings_tolerance=2000,
+    library_tolerance=2500,
+    use_existing_jquery=false,
+    is_spa=1,
+    hide_element='body',
+    hide_element_style = 'opacity:0 !important;filter:alpha(opacity=0) !important;background:none !important',
+    /* DO NOT EDIT BELOW THIS LINE */
+    f=false,d=document,vwoCodeEl=d.querySelector('#vwoCode'),code={use_existing_jquery:function(){return use_existing_jquery},library_tolerance:function(){return library_tolerance},hide_element_style:function(){return'{'+hide_element_style+'}'},finish:function(){if(!f){f=true;var e=d.getElementById('_vis_opt_path_hides');if(e)e.parentNode.removeChild(e)}},finished:function(){return f},load:function(e){var t=d.createElement('script');t.fetchPriority='high';t.src=e;t.type='text/javascript';t.innerText;t.onerror=function(){_vwo_code.finish()};d.getElementsByTagName('head')[0].appendChild(t)},getVersion:function(){return version},getMatchedCookies:function(e){var t=[];if(document.cookie){t=document.cookie.match(e)||[]}return t},getCombinationCookie:function(){var e=code.getMatchedCookies(/(?:^|;)\s?(_vis_opt_exp_\d+_combi=[^;$]*)/gi);e=e.map(function(e){try{var t=decodeURIComponent(e);if(!/_vis_opt_exp_\d+_combi=(?:\d+,?)+\s*$/.test(t)){return''}return t}catch(e){return''}});var i=[];e.forEach(function(e){var t=e.match(/([\d,]+)/g);t&&i.push(t.join('-'))});return i.join('|')},init:function(){if(d.URL.indexOf('__vwo_disable__')>-1)return;window.settings_timer=setTimeout(function(){_vwo_code.finish()},settings_tolerance);var e=d.createElement('style'),t=hide_element?hide_element+'{'+hide_element_style+'}':'',i=d.getElementsByTagName('head')[0];e.setAttribute('id','_vis_opt_path_hides');vwoCodeEl&&e.setAttribute('nonce',vwoCodeEl.nonce);e.setAttribute('type','text/css');if(e.styleSheet)e.styleSheet.cssText=t;else e.appendChild(d.createTextNode(t));i.appendChild(e);var n=this.getCombinationCookie();this.load('https://dev.visualwebsiteoptimizer.com/j.php?a='+account_id+'&u='+encodeURIComponent(d.URL)+'&f='+ +is_spa+'&vn='+version+(n?'&c='+n:''));return settings_timer}};window._vwo_settings_timer = code.init();return code;}());
+    </script>
+    <!-- End VWO Async SmartCode -->
+
     {% endif %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
-    <script>
-        WebFont.load({
-          google: {
-            families: ['Crimson Text:400,700'],
-            text: 'ăǎġḥḤḫḳḲŏṭżūŻāīēḗîìi̧ ̆̄'
-          },
-          typekit: {
-            id: 'aeg8div' // Adobe Garamond Pro
-          }
-        });
-        WebFont.load({
-          google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
-          }});
-    </script>
-</head>
 
-<body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
+    {% if HOTJAR_ID %}
+    <!-- Hotjar Tracking Code for https://www.sefaria.org -->
+    <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:{{ HOTJAR_ID }},hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    {% endif %}
+    
+    <!-- Simple Analytics -->
+    {# Allow queuing of events in case embed script hasn't loaded yet when calling sa_event #}
+    <script>
+      window.sa_event = window.sa_event || function () {
+        const a = [].slice.call(arguments);
+        window.sa_event.q ? window.sa_event.q.push(a) : window.sa_event.q = [a];
+      };
+    </script>
+
+    <!-- Unbounce Embed Code -->
+    <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script> 
+</head>
+ <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) --> 
+    <!-- End Google Tag Manager (noscript) -->
     {% endif %}
 
+
+
     {% autoescape off %}
-    {% if html %}
+
+    <!--Sentry error reporting config-->
+    <script>
+      {% if CLIENT_SENTRY_DSN %}
+        const sentryDSN = "{{CLIENT_SENTRY_DSN}}";
+      {% else %}
+        const sentryDSN = null;
+      {% endif %}
+    </script>
+    <!--End Sentry error reporting config-->
+
+    {% if html and not renderStatic %}
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
-    {% else %}
-    <div id="s2" class="headerOnly">{% if request.user.is_authenticated %}{{ logged_in_header }}{% else %}{{ logged_out_header }}{% endif %}</div>
+    {% elif renderStatic %}
+    <!-- Meant to only be the html of the header React component, rendered by passing headerMode: true to ReaderApp  -->
+    <div id="s2" class="headerOnly">{{ html }}</div>
     {% endif %}
     {% endautoescape %}
 
-    {% if not html %}
-    <div class="wrapper">
+    {% if renderStatic %}
+    <div data-active-module="{{ active_module }}" id="staticContentWrapper">
         <div id="content" class="interface-{{ request.interfaceLang }}">
             {% block content %}{% endblock %}
         </div>
     </div>
 
-    {% block footer %} <!-- todo: sheets is overwriting this, why? -->
-        {% if SITE_SETTINGS.TORAH_SPECIFIC %}
-            <div id="footerContainer">{% include "elements/footer.html" %}</div>
-        {% endif %}
-    {% endblock %}
     {% endif %}
 
     <div id="overlay"></div>
@@ -141,7 +234,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
-    <script src="/data.js"></script>
+    <script src="{% static 'js/analyticsEventTracker.js' %}"></script>
+    <script src="/data.{{ last_cached_short }}.js"></script>
 
     <script>
       {% autoescape off %}
@@ -153,62 +247,80 @@
           console.log('loading react locally');
           document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
+
       var DJANGO_VARS = {
-        props: {{ propsJSON|default:"null" }},
-        contentLang: "{{ request.contentLang }}",
-        interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: {% if html %}true{% else %}false{% endif %},
-        static_url: {{ STATIC_PREFIX }}
+        props:         {{ propsJSON|default:"null" }},
+        inReaderApp:   {% if renderStatic %}false{% else %}true{% endif %},
       };
-      document.addEventListener('copy', function(e) {
-          const selection = document.getSelection();
-          const text_only = selection.toString();
 
-          if (selection.rangeCount) {
-              var container = document.createElement("div");
-              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
-                  container.appendChild(selection.getRangeAt(i).cloneContents());
-              }
+      {% if STRAPI_LOCATION and STRAPI_PORT %}
+          var STRAPI_INSTANCE =  "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
+      {% else %}
+          var STRAPI_INSTANCE = null;
+      {% endif %}
 
-            //remove line numbers
-              var lineNumbers = container.getElementsByClassName('segmentNumber');
-              while(lineNumbers.length > 0){
-                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
-              }
-
-              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
-
-              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-                  var elsToRemove = container.getElementsByClassName('en')
-                  while(elsToRemove.length > 0){
-                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                  }
-              }
-
-              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-                  var elsToRemove = container.getElementsByClassName('he')
-                  while(elsToRemove.length > 0){
-                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                  }
-              }
-
-              html = container.innerHTML;
-          }
-          else {
-              html = text_only;
-          }
-
-          const clipdata = e.clipboardData || window.clipboardData;
-
-          clipdata.setData('text/plain', text_only);
-          clipdata.setData('text/html', html);
-          e.preventDefault();
-      });
       {% endautoescape %}
     </script>
+
+    {% if GOOGLE_GTAG %}
+      <!-- Google tag (gtag.js) -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_GTAG }}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '{{ GOOGLE_GTAG }}', {
+              'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
+              'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
+              'site_lang': '{{ request.interfaceLang }}',
+            });
+
+            <!-- attach analyticsEventTracker -->
+            AnalyticsEventTracker.attach("#s2, #staticContentWrapper", ['click', 'scrollIntoView', 'toggle', 'mouseover', 'input', 'inputStart']);
+          </script>
+      <!-- End Google tag -->
+    {% endif %}
+
 
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+    
+    <!-- Default metadata for Simple Analytics -->
+    <script>
+      const SESSION_KEY = 'sa_custom_session_id';
+      if (sessionStorage.getItem(SESSION_KEY) === null) {
+        sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      }
+      const SA_KEY = 'sa_id';
+      if (localStorage.getItem(SA_KEY) === null) {
+        localStorage.setItem(SA_KEY, crypto.randomUUID());
+      }
+      sa_metadata = {
+        logged_in: Boolean(DJANGO_VARS.props._uid),
+        interface_lang: DJANGO_VARS.props.interfaceLang === 'hebrew' ? 'he' : 'en',
+        device_type: DJANGO_VARS.props.multiPanel ? 'desktop' : 'mobile',
+        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        custom_session_id: sessionStorage.getItem(SESSION_KEY),
+        sefaria_id: localStorage.getItem(SA_KEY),
+        ...(DJANGO_VARS.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
+      };
+    </script>
+
+    {% if DEBUG %}
+    <script 
+      defer 
+      data-hostname="sa-dev.sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.dev.js">
+    </script>
+    {% else %}
+    <script 
+      defer 
+      data-hostname="sefaria.org" 
+      data-collect-dnt="true" 
+      src="https://scripts.simpleanalyticscdn.com/latest.js">
+    </script>
+    {% endif %}
 </body>
 </html>

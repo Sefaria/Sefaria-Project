@@ -1,3 +1,6 @@
+# Keys #
+*.key
+
 # Compiled source #
 ###################
 *.com
@@ -24,15 +27,17 @@
 *.log
 *.sql
 *.sqlite
+*.db
 
 # OS generated files #
 ######################
 .DS_Store
 .DS_Store?
 ehthumbs.db
-Icon?
+Icon[\r]
 Thumbs.db
 .idea
+.instance
 
 # Apache Config #
 #################
@@ -54,6 +59,13 @@ node_modules
 # Visual Studio Code directory #
 #####################
 /.vscode
+*.code-workspace
+
+# AI Tools #
+##########
+.cursor/
+.claude/
+CLAUDE.md
 
 # pystest cache #
 #####################
@@ -76,7 +88,9 @@ node_modules
 #  Virtualenv Files #
 #####################
 venv/
+.venv*
 .python-version
+.node-version
 
 # Partner files #
 #################
@@ -123,6 +137,25 @@ static/sheetrank.json
 
 /random_files
 
+# Testings #
+e2e-tests/playwright_auth_*.json
+e2e-tests/auth_*.json
+e2e-tests/e2e-test-logs/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/playwright-profile/
+
+# Storybook #
+*storybook.log
+*storybook-static/
+
 # Miscellaneous #
 #################
-/dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml
+
+.env
+env/*
+dump/*
+.env
+static_collected/*
+scripts/debug_cache/

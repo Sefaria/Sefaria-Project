@@ -1,12 +1,12 @@
 import subprocess
 from urllib.parse import urlparse
 from http.client import HTTPConnection
-from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
+from sefaria.settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
 
 from sefaria.utils.util import graceful_exception
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 @graceful_exception(logger=logger, return_value=None)

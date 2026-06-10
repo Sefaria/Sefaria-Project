@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% if urlRoot == "/explore" %}{% blocktrans %}Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria{% endblocktrans %}{% else %}{% blocktrans %}Link Explorer - Visualized Connections Between {{ bottomCatTitle }} and {{ topCatTitle}} | Sefaria{% endblocktrans %}{% endif %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% if urlRoot == "/explore" %}{% blocktrans %}Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% else %}{% blocktrans %}Visually explore quotations and connections between {{ bottomCatTitle }} and {{ topCatTitle}}. Zoom in to particular books either above or below to explore deeper.{% endblocktrans %}{% endif %}{% endmeta_desc %}{% endblock %}
 
-{% block ogimage %}<meta property="og:image" content="{%  static "img/explorer.png" %}" />{% endblock %}
+{% block ogimage %}<meta property="og:image" content="{% static "img/explorer.png" %}" />{% endblock %}
 
 {% block head %}
 <script src="https://d3js.org/d3.v3.min.js"></script>
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
 
@@ -190,47 +191,32 @@
             <span class="int-he">תנ"ך ותלמוד</span>
         </a>
         <a href="/explore-Bavli-and-Mishneh-Torah" style="border-top-color: #802f3e">
-            <span class="int-en">Talmud & <nobr>Mishneh Torah</nobr></span>
-            <span class="int-he">תלמוד <nobr>ומשנה תורה</nobr></span>
+            <span class="int-en">Talmud & <span class="int-en" style="white-space: nowrap;">Mishneh Torah</span></span>
+            <span class="int-he">תלמוד <span class="int-he" style="white-space: nowrap;">ומשנה תורה</span></span>
         </a>
         <a href="/explore-Bavli-and-Shulchan-Arukh" style="border-top-color: #802f3e">
-            <span class="int-en">Talmud & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he">תלמוד <nobr>ושולחן ערוך</nobr></span>
+            <span class="int-en">Talmud & <span class="int-en" style="white-space: nowrap;">Shulchan Arukh</span></span>
+            <span class="int-he">תלמוד <span class="int-he" style="white-space: nowrap;">ושולחן ערוך</span></span>
         </a>
         <a href="/explore-Mishneh-Torah-and-Shulchan-Arukh" style="border-top-color: #802f3e">
-            <span class="int-en"><nobr>Mishneh Torah</nobr> & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he"><nobr>משנה תורה</nobr> <nobr>ושולחן ערוך</nobr></span>
+            <span class="int-en"><span class="int-en" style="white-space: nowrap;">Mishneh Torah</span> & <span class="int-en" style="white-space: nowrap;">Shulchan Arukh</span></span>
+            <span class="int-he"><span class="int-he" style="white-space: nowrap;">משנה תורה</span> <span class="int-he" style="white-space: nowrap;">ושולחן ערוך</span></span>
         </a>
         <a href="/explore-Tanakh-and-Midrash-Rabbah" style="border-top-color: #5d956f">
-            <span class="int-en">Tanakh & <nobr>Midrash Rabbah</nobr></span>
-            <span class="int-he">תנ"ך <nobr>ומדרש רבה</nobr></span>
+            <span class="int-en">Tanakh & <span class="int-en" style="white-space: nowrap;">Midrash Rabbah</span></span>
+            <span class="int-he">תנ"ך <span class="int-he" style="white-space: nowrap;">ומדרש רבה</span></span>
         </a>
         <a href="/explore-Tanakh-and-Mishneh-Torah" style="border-top-color: #802f3e">
-            <span class="int-en">Tanakh & <nobr>Mishneh Torah</nobr></span>
-            <span class="int-he">תנ"ך <nobr>ומשנה תורה</nobr></span>
+            <span class="int-en">Tanakh & <span class="int-en" style="white-space: nowrap;">Mishneh Torah</span></span>
+            <span class="int-he">תנ"ך <span class="int-he" style="white-space: nowrap;">ומשנה תורה</span></span>
         </a>
         <a href="/explore-Tanakh-and-Shulchan-Arukh" style="border-top-color: #802f3e">
-            <span class="int-en">Tanakh & <nobr>Shulchan Arukh</nobr></span>
-            <span class="int-he">תנ"ך <nobr>ושולחן ערוך</nobr></span>
+            <span class="int-en">Tanakh & <span class="int-en" style="white-space: nowrap;">Shulchan Arukh</span></span>
+            <span class="int-he">תנ"ך <span class="int-he" style="white-space: nowrap;">ושולחן ערוך</span></span>
         </a>
     </div>
 
     <div id="svgBefore"></div>
-
-    <div id="fb-root"></div>
-    <script>(function(d, s, id) {
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s); js.id = id;
-      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=391767604309866&version=v2.0";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));</script>
-
-    <div id="social-container" class="showAfterLoad">
-        <div class="fb-like" data-href="http://www.sefaria.org/explore" data-layout="button_count" data-width="300" data-action="like" data-show-faces="false" data-share="false"></div>
-        <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://www.sefaria.org/explore" data-text="Visually explore all the relationships between Talmud and Tanakh" data-via="SefariaProject">Tweet</a>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-    </div>
 
 <!--
     <div class="showAfterLoad">

@@ -6,6 +6,7 @@ from sefaria.helper.link import *
 import re
 
 import argparse
+from sefaria.system.database import db
 
 """
 normal Index delete takes care of:
@@ -50,9 +51,6 @@ def remove_old_index_and_rename(idx_title):
 
     print("deleting version states for {}".format(idx_title))
     VersionStateSet({"title": idx_title}).delete()
-    print("deleting translation requests for {}".format(idx_title))
-    TranslationRequestSet({'ref': {"$regex": pattern}}).delete()
-
 
     print("deleting versions of {}".format(idx_title))
     vs.delete()
@@ -72,7 +70,6 @@ def remove_old_index_and_rename(idx_title):
 
     #manually rename history and links, since the dependencies don't work.
     temp_title = re.escape(temp_title)
-    from sefaria.system.database import db
     print("manually renaming  links and history")
     ls = db.links.find({"refs":{"$regex":"^{}".format(temp_title)}})
     print(ls.count())

@@ -4,6 +4,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 import re
+from sefaria.model.text import AbstractTextRecord
 from sefaria.utils.util import list_depth
 
 
@@ -88,13 +89,6 @@ def test_out_of_range_chunks():
 
     with pytest.raises(InputError):
         TextChunk(Ref("Shabbat 180"), "he")
-
-    # and where text does not have length (will fail and need to be updated once the text is given a length)
-    t = TextChunk(Ref("Bemidbar Rabbah 66"))
-    assert t.text == []
-
-    t = TextChunk(Ref("Bemidbar Rabbah 66.4"))
-    assert t.text == ""
 
 
 def test_range_chunk():
@@ -186,7 +180,7 @@ def test_family_chapter_result_no_merge():
 
 # Yoma.1 is no longer merged.
 # todo: find a merged text to test with
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
 
@@ -202,6 +196,17 @@ def test_text_family_alts():
     c = tf.contents()
     assert c.get("alts")
 
+def test_text_family_version_with_underscores():
+    with_spaces = TextFamily(
+        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        version="Miqra according to the Masorah",
+        version2="Tanakh: The Holy Scriptures, published by JPS")
+    with_underscores = TextFamily(
+        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        version="Miqra_according_to_the_Masorah",
+        version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS")
+    assert with_spaces.he == with_underscores.he
+    assert with_spaces.text == with_underscores.text
 
 def test_validate():
     passing_refs = [
@@ -452,12 +457,19 @@ def test_complex_with_depth_1():
 
     c = TextChunk(r, "en")
     assert len(c.text) == 3
-    assert "Kiddush" in c.text[0]
+    assert "kiddush" in c.text[0].lower()
     assert "seventh day" in c.text[2]
 
 
 def test_complex_with_depth_2():
     pass
+
+
+def test_strip_imgs():
+    text = "text with an image"
+    image = "<img src='src.jpg' alt='image caption'>"
+    assert AbstractTextRecord.strip_imgs(f"{text}{image}") == text
+    assert AbstractTextRecord.strip_imgs(text) == text
 
 
 def test_strip_itags():
@@ -470,12 +482,12 @@ def test_strip_itags():
 
     r = Ref("Genesis 1:1")
     c = TextChunk(r, "he")
-    text = c._get_text_after_modifications([c._strip_itags])
+    text = c._get_text_after_modifications([c.strip_itags])
     assert text == TextChunk(r, "he").text
 
     r = Ref("Genesis 1")
     c = TextChunk(r, "he")
-    modified_text = c._get_text_after_modifications([c._strip_itags])
+    modified_text = c._get_text_after_modifications([c.strip_itags])
     original_text = TextChunk(r, "he").text
     for mod, ori in zip(modified_text, original_text):
         assert mod == ori
@@ -486,19 +498,21 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup>1</sup><i class="footnote yo">well, not that cool</i>',
-                    'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
-                    'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more']
+        "chapter": ['Cool text <sup class="footnote-marker">1</sup><i class="footnote yo">well, not that cool</i >',  # test </i> malformed with extra space
+                    'Silly text <sup class="footnote-marker">1</sup><i class="footnote">See <i>cool text</i></i>',
+                    'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more',
+                    'Where the <i data-overlay="Other system" data-value=""></i> #$%^&*',
+                    'Obscure thing<sup class="endFootnote">1</sup> that nobody cares about except Noah.']
     }).save()
-    modified_text = ['Cool text', 'Silly text', 'More text and yet more']
+    modified_text = ['Cool text', 'Silly text', 'More text and yet more', 'Where the #$%^&*', 'Obscure thing that nobody cares about except Noah.']
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
-    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: ' '.join(x.split()).strip()])
+    test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
-    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: ' '.join(x.split()).strip()])
+    test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
-        assert m == t
+        assert t == m
 
     # test without any modification functions
     test_modified_text = c._get_text_after_modifications([])
@@ -510,5 +524,5 @@ def test_strip_itags():
         assert m == t
 
     text = '<i></i>Lo, his spirit.'
-    assert TextChunk._strip_itags(text) == text
+    assert TextChunk.strip_itags(text) == text
 

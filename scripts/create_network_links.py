@@ -41,18 +41,13 @@ for link in ls:
         failed += 1
         continue
 
-    try:
-        try:
-            y0 = int(r0.index.compDate) - int(getattr(r0.index, "errorMargin", 0))
-        except ValueError:
-            y0 = int(r0.index.compDate)
-        try:
-            y1 = int(r1.index.compDate) - int(getattr(r1.index, "errorMargin", 0))
-        except ValueError:
-            y1 = int(r1.index.compDate)
-    except (AttributeError, TypeError, ValueError):
+    tp0 = r0.index.composition_time_period()
+    tp1 = r1.index.composition_time_period()
+    if tp0 is None or tp1 is None or tp0.start is None or tp1.start is None:
         failed += 1
         continue
+    y0 = int(tp0.start)
+    y1 = int(tp1.start)
 
     try:
         obj0 = {

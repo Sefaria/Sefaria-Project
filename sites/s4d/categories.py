@@ -61,9 +61,6 @@ CATEGORY_ORDER = [
          'Donald Trump',
     "Case Law",
     "Philosophy",
-    "Religion",
-        "Judaism",
-        "Christianity",
 ]
 
 TOP_CATEGORIES = [
@@ -74,7 +71,6 @@ TOP_CATEGORIES = [
     "Presidential Speeches",
     "Case Law",
     "Philosophy",
-    "Religion",
 ]
 
 REVERSE_ORDER = [

@@ -5,37 +5,37 @@
 
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
-	<h1 class="header-with-buttons">
-        <div>
+	<div class="headerWithButtons">
+        <h1>
             <span class="int-en">Account Settings</span>
             <span class="int-he">הגדרות חשבון</span>
-        </div>
-        <div id="saveCancelButtons">
-            <a class="button transparent control-elem" href="/my/profile">
+        </h1>
+        <div class="end">
+            <button type="button" class="button small transparent control-elem" onclick="navigateBack()">
                 <span class="int-en">Cancel</span>
-                <span class="int-he">בטל</span>
-            </a>
-            <div id="saveAccountSettings" class="button blue control-elem" tabindex="0" role="button" >
+                <span class="int-he">ביטול</span>
+            </button>
+            <button type="button" class="button small blue control-elem saveAccountSettingsBtn">
                 <span class="int-en">Save</span>
-                <span class="int-he">שמור</span>
-            </div>
+                <span class="int-he">שמירה</span>
+            </button>
         </div>
-    </h1>
+    </div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
-            <span class="int-en">Email Frequency (Maximum)</span>
-			<span class="int-he">תדירות שליחת אימייל (מקסימלית)</span>
+            <span class="int-en">Notification Frequency (Maximum)</span>
+			<span class="int-he">תדירות שליחת הודעות (מקסימלית)</span>
         </label>
-		<div class="toggleSet tripleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+		<div class="toggleSet toggleSetToggleBox blueStyle tripleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="daily" class="toggleOption {% if profile.settings.email_notifications == "daily" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "daily" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Daily</span>
 			    <span class="int-he">יומית</span>
-            </div><!--
-			--><div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio"  data-value="weekly" class="toggleOption {% if profile.settings.email_notifications == "weekly" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "weekly" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Weekly</span>
 			    <span class="int-he">שבועית</span>
-            </div><!--
-			--><div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} active{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio"  data-value="never" class="toggleOption {% if profile.settings.email_notifications == "never" %} on{% endif %}" tabindex="{% if profile.settings.email_notifications == "never" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Never</span>
 			    <span class="int-he">לעולם לא</span>
             </div>
@@ -47,13 +47,45 @@
             <span class="int-en">Site Language</span>
 			<span class="int-he">שפת ממשק</span>
         </label>
-		<div class="toggleSet doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="english" class="toggleOption {% if profile.settings.interface_language == "english" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "english" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">English</span>
-            </div><!--
-			--><div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} active{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio" data-value="hebrew" class="toggleOption {% if profile.settings.interface_language == "hebrew" %} on{% endif %}" tabindex="{% if profile.settings.interface_language == "hebrew" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-bi">עברית</span>
             </div>
+		</div>
+	</div>
+    {% if SITE_SETTINGS.SUPPORTED_TRANSLATION_LANGUAGES|length > 0 %}
+	<div id="translationLanguagePreference" class="section">
+		<label class="control-elem">
+            <span class="int-en">Preferred Translation Language</span>
+			<span class="int-he">שפה מועדפת לתרגום</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle quadrupleOption control-elem" role="radiogroup">
+            {% for name, lang in lang_names_and_codes %}
+			<div role="radio" data-value="{{lang}}" class="toggleOption {% if translation_language_preference == lang %} on{% endif %}" tabindex="{% if translation_language_preference == lang %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-bi">{{name}}</span>
+            </div>
+            {% endfor %}
+		</div>
+	</div>
+    {% endif %}
+    <div id="readingHistory" class="section">
+		<label class="control-elem">
+            <span class="int-en">Reading History</span>
+			<span class="int-he">היסטורית קריאה</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if "reading_history" not in profile.settings or profile.settings.reading_history %} on{% endif %}" tabindex="{% if "reading_history" not in profile.settings or profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעילה</span>
+            </div>
+            <div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} on{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבויה</span>
+            </div>
+            <span id="reading-history-warning"></span>
 		</div>
 	</div>
     <div id="textualCustom" class="section">
@@ -61,40 +93,93 @@
             <span class="int-en">Preferred Custom (Weekly Haftarot)</span>
 			<span class="int-he">מנהג מועדף (להפטרות)</span>
         </label>
-		<div class="toggleSet doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value="sephardi" class="toggleOption {% if profile.settings.textual_custom == "sephardi" %} on{% endif %}" tabindex="{% if profile.settings.textual_custom == "sephardi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Sephardi</span>
                 <span class="int-he">עדות המזרח</span>
-            </div><!--
-			--><div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} active{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+            </div>
+            <div role="radio" data-value="ashkenazi" class="toggleOption {% if profile.settings.textual_custom == "ashkenazi" %} on{% endif %}" tabindex="{% if profile.settings.textual_custom == "ashkenazi" %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Ashkenazi</span>
                 <span class="int-he">אשכנז</span>
             </div>
 		</div>
 	</div>
 	{% endif %}
+    {% if experiments_available %}
+    <div id="experimentsSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">Experiments</span>
+			<span class="int-he">ניסויים</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="experiments" data-value=true class="toggleOption {% if profile.experiments %} on{% endif %}" tabindex="{% if profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-name="experiments" data-value=false class="toggleOption {% if not profile.experiments %} on{% endif %}" tabindex="{% if not profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if not profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+    {% endif %}
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
-                <span class="int-he">כתובת אימייל (משמשת לכניסה לחשבון)</span>
+                <span class="int-he">כתובת דוא"ל (משמשת לכניסה לחשבון)</span>
         </label>
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
-            <button id="change-email" type="button" class="button blue full">
+            <button id="change-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Change Email</span>
-                <span class="int-he">החלפת כתובת מייל</span>
+                <span class="int-he">החלפת כתובת דוא"ל</span>
             </button>
-            <span id="email-edit-ok"></span>
+            <span id="email-edit-ok" style="display:none"></span>
         </div>
         <div id="username-change-edit" class="form-section" style="display: none">
             <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
             <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
             <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
-            <button id="update-email" type="button" class="button blue full">
+            <button id="update-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Update Email</span>
-                <span class="int-he">עדכון כתובת מייל</span>
+                <span class="int-he">עדכון כתובת דוא"ל</span>
             </button>
             <span id="email-edit-errors"></span>
+        </div>
+    </div>
+    <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
+        <label class="control-elem">
+                <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
+                <span class="int-he">חשבון גוגל מקושר (מאפשר ייצוא דפי מקורות לגוגל דרייב)</span>
+        </label>
+        <div id="gauth-email-disconnect-display" class="form-section">
+            <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
+            <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
+                <span class="int-en">Disconnect</span>
+                <span class="int-he">ניתוק מהחשבון</span>
+            </button>
+            <span id="gauth-disconnect-messages"></span>
+        </div>
+    </div>
+    <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
+            <div>
+                <span class="int-en">Your Google Account has been disconnected</span>
+                <span class="int-he">חשבון הגוגל שלכם נותק בהצלחה</span>
+            </div>
+            <div class="additional-info">
+                <span class="int-en">You can link to a new Google Account the next time you export a sheet</span>
+                <span class="int-he">תוכלו להתחבר מחדש לחשבון גוגל בפעם הבאה שתייצאו לשם דף מקורות</span>
+            </div>
+        </div>
+        <div class="saveCancel">
+            <button type="button" class="button small blue control-elem saveAccountSettingsBtn">
+                <span class="int-en">Save</span>
+                <span class="int-he">שמירה</span>
+            </button>
+            <button type="button" class="button transparent small control-elem" onclick="navigateBack()">
+                <span class="int-en">Cancel</span>
+                <span class="int-he">ביטול</span>
+            </button>
         </div>
     </div>
 	</div>
@@ -104,11 +189,33 @@
 
 {% block js %}
 	<script>
+		// Handle navigation with history fallback
+		function navigateBack() {
+			if (history.length > 2) {
+				// if history is not empty, go back:
+				window.history.back();
+			} else {
+				// go to fallback url:
+				window.history.replaceState(null, null, '/texts');
+				window.location.reload();
+			}
+		}
+
 		$(function(){
-		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
+		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
+		    const $curExperiments = $("#experimentsSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
-				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
-				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
+			    let $this = $(this);
+				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
+				$this.addClass("on").attr("tabIndex","0").attr("ariaChecked","true");
+				if ($this.attr("data-name") === "reading-history") {
+				    if ($this.attr("data-value") == "false") {
+				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).addClass('on');
+                    } else {
+				        $('#readingHistory #reading-history-warning').removeClass('on');
+                    }
+                }
 			});
 
             $(".toggleOption").keyup(function(e){
@@ -120,39 +227,77 @@
                 }
             });
 
-
-			$("#saveAccountSettings").click(function(){
-				var profile = {
-						settings: {
-							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
-							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
-                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value")
-						}
+			// Single handler for all save buttons using class selector
+            $(".saveAccountSettingsBtn").click(function(){
+			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
+				let profile = {
+                    settings: {
+                        email_notifications: $("#emailNotifications .toggleOption.on").attr("data-value"),
+                        interface_language: $("#siteLanguage .toggleOption.on").attr("data-value"),
+                        textual_custom: $("#textualCustom .toggleOption.on").attr("data-value"),
+                        reading_history: $("#readingHistory .toggleOption.on").attr("data-value") === "true" ? true : false,
+                        translation_language_preference: $newTransLangPref,
+                        translation_language_preference_suggested: true,
+                    }
 				};
-
-				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
+                const $experimentsToggle = $("#experimentsSetting .toggleOption.on");
+                if ($experimentsToggle.length) {
+                    profile.experiments = $experimentsToggle.attr("data-value") === "true";
+                }
+                $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
+                $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+                $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
 					if ("error" in data) {
 						alert(data.error);
 					} else {
-						alert("Settings Saved.");
+						alert(Sefaria._("Settings Saved"));
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
-						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
-						if($newLang != $curLang){
+						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
+						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
+						}
+						// Interface language or experiments changed → reload (interface language affects RTL/LTR and server-rendered content; experiments needs fresh chatbot_user_token)
+						if ($newLang != $curLang || (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments)) {
+							window.location.reload();
+							return;
+						}
+						if ($newTransLangPref !== "{{ translation_language_preference }}") {
+                            Sefaria.track.event("Reader", "Set Translation Language Preference", $newTransLangPref);
                         }
-						window.location = "/my/profile";
+						const detail = {
+							translationLanguagePreference: profile.settings.translation_language_preference,
+							readingHistory: profile.settings.reading_history,
+						};
+						const newTextualCustom = profile.settings.textual_custom;
+						if (newTextualCustom !== $curTextualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
+							detail.textualCustom = newTextualCustom;
+							detail.diaspora = "{% if diaspora %}1{% else %}0{% endif %}";
+							$curTextualCustom = newTextualCustom;
+						}
+						document.dispatchEvent(new CustomEvent('sefaria:settings-updated', { detail }));
 					}
 				});
 			});
-            $("#saveAccountSettings").keyup(function(e){
+            
+            // Single keyup handler for all save buttons
+            $(".saveAccountSettingsBtn").keyup(function(e){
                 if (e.keyCode === 13) {
-                    $("#saveAccountSettings").trigger("click");
+                    $(this).trigger("click");
                 }
             });
-
             $("#change-email").click(function () {
                 $("#username-change-display").toggle();
                 $("#username-change-edit").toggle();
+            });
+            $("#disconnect-gauth-email").click(function () {
+                $.get("/unlink-gauth?redirect=0", function(data) {
+					if ("error" in data) {
+						$("#gauth-email-disconnect-display #gauth-disconnect-messages").text(data.error);
+					} else {
+                        $("#gauth-email-change").toggle();
+                        $("#gauth-email-disconnected").toggle();
+					}
+				});
             });
 
             $("#update-email").click(function(){
@@ -165,6 +310,7 @@
 					if ("error" in data) {
 						$("#username-change-edit #email-edit-errors").text(data.error);
 					} else {
+                        $("#username-change-display #email-edit-ok").show();
 					    $("#username-change-display #email-edit-ok").text(Sefaria._("Email was successfully changed!")).show();
                         $("#username-change-display #email-display").val(user_details["email"]);
                         $("#username-change-display").toggle();
@@ -172,7 +318,6 @@
 					}
 				});
 			});
-
 		});
 	</script>
 {% endblock %}

@@ -1,26 +1,72 @@
-import sys 
+import resource
+import sys
 import tempfile
 import cProfile
 import pstats
 from io import StringIO
+from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.urls import resolve
 
-from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
-from sefaria.utils.util import short_to_long_lang_code
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
+from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
+from sefaria.utils.views_utils import add_query_param
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
+from urllib.parse import quote, urljoin
+from sefaria.constants.model import LIBRARY_MODULE
+from remote_config import remoteConfigCache
+from remote_config.keys import EXPIRE_LEGACY_COOKIES
+
+import structlog
+import json
+logger = structlog.get_logger(__name__)
+
+
+class MiddlewareURLMixin:
+    excluded_url_names = set()  # Set of URL names to exclude
+    excluded_url_prefixes = set()  # Set of URL path prefixes to exclude
+
+    def should_process_request(self, request):
+        # Check URL name
+        try:
+            url_name = resolve(request.path_info).url_name
+            if url_name in self.excluded_url_names:
+                return False
+        except:
+            pass
+
+        # Check path prefixes
+        if any(request.path.startswith(prefix) for prefix in self.excluded_url_prefixes):
+            return False
+
+        return True
+
+
+class SharedCacheMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        last_cached = get_shared_cache_elem("last_cached")
+        if not last_cached:
+            regen_in_progress = get_shared_cache_elem("regenerating")
+            if not regen_in_progress:
+                set_shared_cache_elem("regenerating", True)
+                request.init_shared_cache = True
+
 
 class LocationSettingsMiddleware(MiddlewareMixin):
     """
         Determines if the user should see diaspora content or Israeli.
     """
     def process_request(self, request):
-        loc = request.META.get("HTTP_CF_IPCOUNTRY", None)
+        loc = request.headers.get("cf-ipcountry", None)
         if not loc:
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
@@ -35,19 +81,24 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
+            request.interfaceLang = "english"
+            request.contentLang = "bilingual"
+            request.translation_language_preference = None
+            request.version_preferences_by_corpus = {}
+            request.translation_language_preference_suggestion = None
             return # Save looking up a UserProfile, or redirecting when not needed
 
+        profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None
         # INTERFACE 
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            profile = UserProfile(id=request.user.id)
             interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
+            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
             interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
             # Don't allow languages other than what we currently handle
             interface = 'english' if interface not in ('english', 'hebrew') else interface
@@ -57,21 +108,20 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         if domain_lang and domain_lang != interface:
             # For crawlers, don't redirect -- just return the pinned language
-            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider", 
+            no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
                             "python-request", "curl", "Wget", "sefaria-node")
-            if any([bot in request.META.get('HTTP_USER_AGENT', '') for bot in no_direct]):
+            if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
-                redirect_domain = None
-                for domain in DOMAIN_LANGUAGES:
-                    if DOMAIN_LANGUAGES[domain] == interface:
-                        redirect_domain = domain
-                if redirect_domain:
-                    # When detected language doesn't match current domain langauge, redirect
+                target_domain = get_redirect_domain_for_language(request, interface)
+
+                if needs_domain_switch(request, target_domain): # Prevents redirect loop in local/cauldron settings
+                    # When detected language doesn't match current domain language, redirect
+                    # while preserving the current module
                     path = request.get_full_path()
-                    path = path + ("&" if "?" in path else "?") + "set-language-cookie"
-                    return redirect(redirect_domain + path)
+                    path = add_query_param(path, "set-language-cookie")
+                    return redirect(target_domain + path)
                     # If no pinned domain exists for the language the user wants,
                     # the user will stay on this domain with the detected language
 
@@ -88,29 +138,54 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             content = "english"
             interface = "english"
 
+        # TRANSLATION LANGUAGE PREFERENCE
+        translation_language_preference = (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
+        langs_in_country = get_lang_codes_for_territory(request.headers.get("cf-ipcountry", None))
+        translation_language_preference_suggestion = None
+        trans_lang_pref_suggested = (profile is not None and profile.settings.get("translation_language_preference_suggested", False)) or request.COOKIES.get("translation_language_preference_suggested", False)
+        if translation_language_preference is None and not trans_lang_pref_suggested:
+            supported_translation_langs = set(SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES'])
+            for lang in langs_in_country:
+                if lang in supported_translation_langs:
+                    translation_language_preference_suggestion = lang
+                    break             
+        if translation_language_preference_suggestion == "en":
+            # dont ever suggest English to our users
+            translation_language_preference_suggestion = None
+
+        # VERSION PREFERENCE
+        from urllib.parse import unquote
+        version_preferences_by_corpus_cookie = json.loads(unquote(request.COOKIES.get("version_preferences_by_corpus", "null")))
+        request.version_preferences_by_corpus = (profile is not None and getattr(profile, "version_preferences_by_corpus", None)) or version_preferences_by_corpus_cookie or {}
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface
         request.contentLang   = content
+        request.translation_language_preference = translation_language_preference
+        request.translation_language_preference_suggestion = translation_language_preference_suggestion
 
         translation.activate(request.LANGUAGE_CODE)
 
 
 class LanguageCookieMiddleware(MiddlewareMixin):
     """
-    If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain, 
+    If `set-language-cookie` param is set, set a cookie the interfaceLange of current domain,
     then redirect to a URL without the param (so the urls with the param don't get loose in wild).
-    Allows one domain to set a cookie on another. 
+    Allows one domain to set a cookie on another.
     """
     def process_request(self, request):
         lang = current_domain_lang(request)
+
         if "set-language-cookie" in request.GET and lang:
+            target_domain = get_redirect_domain_for_language(request, lang)
+
+            path = quote(request.path, safe='/')
             params = request.GET.copy()
             params.pop("set-language-cookie")
             params_string = params.urlencode()
             params_string = "?" + params_string if params_string else ""
-            domain = [d for d in DOMAIN_LANGUAGES if DOMAIN_LANGUAGES[d] == lang][0]
-            response = redirect(domain + request.path + params_string)
-            response.set_cookie("interfaceLang", lang)
+            response = redirect(urljoin(target_domain, path) + params_string)
+            cookie_domain = get_cookie_domain(lang)
+            response.set_cookie("interfaceLang", lang, domain=cookie_domain)
             if request.user.is_authenticated:
                 p = UserProfile(id=request.user.id)
                 p.settings["interface_language"] = lang
@@ -118,22 +193,175 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             return response
 
 
-def current_domain_lang(request):
+class SessionCookieDomainMiddleware(MiddlewareMixin):
     """
-    Returns the pinned language for the current domain, or None if current domain is not pinned.
+    Dynamically sets session/CSRF cookie domain based on DOMAIN_MODULES configuration.
+    
+    Enables cross-subdomain cookie sharing within the same language domain,
+    allowing users to remain logged in when navigating between modules (e.g., library ↔ voices).
+    
+    Works by storing the cookie domain on the request object in process_request,
+    then applying it to cookies in process_response. This approach is thread-safe
+    as it avoids modifying global Django settings.
+    
+    Examples:
+        - www.sefaria.org, voices.sefaria.org → cookie domain '.sefaria.org'
+        - www.sefaria.org.il, chiburim.sefaria.org.il → cookie domain '.sefaria.org.il'
     """
-    current_domain = request.get_host()
-    domain_lang = None
-    for protocol in ("https://", "http://"):
-        full_domain = protocol + current_domain
-        if full_domain in DOMAIN_LANGUAGES:
-            domain_lang = DOMAIN_LANGUAGES[full_domain]
-    return domain_lang
+    
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        self._approved_domains = self._build_approved_domains()
+    
+    def _get_cookie_domain_for_request(self, request):
+        """
+        Get the cookie domain for a request based on its hostname.
+        
+        Returns:
+            str or None: The cookie domain (e.g., '.sefaria.org') if hostname is approved,
+                        None otherwise.
+        """
+        hostname = get_hostname_without_port(request)
+        return self._approved_domains.get(hostname)
+    
+    def process_request(self, request):
+        """Determine cookie domain for this request and store it on the request object."""
+        request._cookie_domain = self._get_cookie_domain_for_request(request)
+    
+    def _build_approved_domains(self):
+        """
+        Build mapping of hostname -> cookie domain from DOMAIN_MODULES.
+        
+        Groups hostnames by language and finds the common domain suffix for each group,
+        enabling cookie sharing across all modules within that language.
+        
+        Returns:
+            dict: {hostname: cookie_domain}, e.g., {'www.sefaria.org': '.sefaria.org'}
+        """
+        approved = {}
+        domain_modules = getattr(settings, 'DOMAIN_MODULES', {})
+        
+        for lang_code, modules in domain_modules.items():
+            # Collect all hostnames for this language
+            hostnames = [
+                hostname
+                for url in modules.values()
+                if (hostname := urlparse(url).hostname)
+            ]
+            
+            if not hostnames:
+                continue
+            
+            # Get cookie domain using get_cookie_domain for this language
+            long_lang = short_to_long_lang_code(lang_code)
+            cookie_domain = get_cookie_domain(long_lang)
+            
+            # Map each hostname to the common suffix
+            if cookie_domain:
+                for hostname in hostnames:
+                    approved[hostname] = cookie_domain
+        
+        return approved
+    
+    def _expire_legacy_cookie(self, response, cookie_name):
+        """
+        Add a Set-Cookie header to expire a legacy cookie (one without a Domain attribute).
+
+        This is needed because cookies with and without Domain are treated as different
+        cookies by browsers. When transitioning to domain-scoped cookies, we need to
+        expire the old domain-less cookies.
+
+        Works around Django's limitation of not supporting multiple cookies with the same
+        name (see https://code.djangoproject.com/ticket/10554) by storing the expiry
+        morsel under a unique internal key while setting the morsel's actual output key
+        to the real cookie name. Django's WSGI handler serializes cookies via
+        morsel.output(), which uses morsel._key (the real name), not the SimpleCookie
+        dict key.
+        """
+        unique_key = f'_legacy_expire_{cookie_name}'
+        response.cookies[unique_key] = ''
+        morsel = response.cookies[unique_key]
+        morsel._key = cookie_name  # output the real cookie name, not the unique key
+        morsel._coded_value = ''
+        morsel['expires'] = 'Thu, 01 Jan 1970 00:00:00 GMT'
+        morsel['max-age'] = '0'
+        morsel['path'] = '/'
+        # No 'domain' attribute — this targets the legacy domain-less cookie
+
+    def process_response(self, request, response):
+        """
+        Apply the cookie domain to session and CSRF cookies in the response.
+
+        Uses the cookie domain stored on the request object by process_request.
+        When EXPIRE_LEGACY_COOKIES is enabled, also expires the old cookies
+        without a Domain attribute to ensure a clean transition.
+        """
+        cookie_domain = getattr(request, '_cookie_domain', None)
+
+        if cookie_domain:
+            expire_legacy = remoteConfigCache.get(EXPIRE_LEGACY_COOKIES, False)
+
+            # Update session cookie domain if present
+            if settings.SESSION_COOKIE_NAME in response.cookies:
+                response.cookies[settings.SESSION_COOKIE_NAME]['domain'] = cookie_domain
+                if expire_legacy:
+                    self._expire_legacy_cookie(response, settings.SESSION_COOKIE_NAME)
+
+            # Update CSRF cookie domain if present
+            if settings.CSRF_COOKIE_NAME in response.cookies:
+                response.cookies[settings.CSRF_COOKIE_NAME]['domain'] = cookie_domain
+                if expire_legacy:
+                    self._expire_legacy_cookie(response, settings.CSRF_COOKIE_NAME)
+
+        return response
+
+
+class SessionIDAuthMiddleware(MiddlewareMixin):
+    """
+    Authenticates anonymous requests from an encrypted X-Session-ID header.
+
+    This supplements Django's normal session auth. If the request already has an
+    authenticated user from the session, this middleware leaves it untouched.
+    """
+
+    def process_request(self, request):
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            return
+
+        header_name = getattr(settings, "SESSION_ID_AUTH_HEADER", "HTTP_X_SESSION_ID")
+        encrypted_session_id = request.META.get(header_name)
+        if not encrypted_session_id:
+            return
+
+        user_id = get_user_id_from_chatbot_user_token(
+            encrypted_session_id,
+            getattr(settings, "CHATBOT_USER_ID_SECRET", None),
+        )
+        if not user_id:
+            return
+
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return
+
+        if getattr(user, "is_active", True) is False:
+            return
+
+        request.user = user
+        request._cached_user = user
+        request.user_id = user.id
 
 
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
-        if DEBUG:
+        """
+        CORS headers are normally added in nginx response.
+        However, nginx isn't normally running when debugging with localhost
+        """
+        origin = request.get_host()
+        if ('localhost' in origin or '127.0.0.1' in origin) and settings.DEBUG:
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET"
             response["Access-Control-Allow-Headers"] = "*"
@@ -170,4 +398,78 @@ class ProfileMiddleware(MiddlewareMixin):
             stats.print_stats()
 
             response = HttpResponse('<pre>%s</pre>' % io.getvalue())
+        return response
+
+
+class MaxRSSMiddleware:
+    """
+    Samples maxrss at the start and end of each request and binds the delta
+    to structlog so it appears in the request_finished log.
+
+    Must be placed after django_structlog's RequestMiddleware in MIDDLEWARE
+    so it runs inside structlog's threadlocal context.
+    """
+    # On macOS, ru_maxrss is in bytes; on Linux it's in KB.
+    _maxrss_divisor = 1024 if sys.platform == 'darwin' else 1
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        maxrss_before = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        response = self.get_response(request)
+        maxrss_after = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        logger.bind(
+            maxrss_delta_kb=(maxrss_after - maxrss_before) // self._maxrss_divisor,
+            maxrss_kb=maxrss_after // self._maxrss_divisor,
+        )
+        return response
+
+
+class ModuleMiddleware(MiddlewareURLMixin):
+    excluded_url_prefixes = {
+        '/linker.js',
+        '/api/',
+        '/apple-app-site-association',
+        '/static/',
+    }
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.default_module = LIBRARY_MODULE
+
+    def should_process_request(self, request):
+        if request.path.startswith('/api/img-gen/'):
+            return True
+        return super().should_process_request(request)
+
+    def _set_active_module(self, request):
+        """
+        Determine the active module based on the request host using DOMAIN_MODULES.
+        Returns the module name if found, the default module otherwise.
+        """
+        current_hostname = urlparse(f"http://{request.get_host()}").hostname
+
+        for module in settings.DOMAIN_MODULES.values():
+            for module_name, module_domain in module.items():
+                if current_hostname == urlparse(module_domain).hostname:
+                    return module_name
+
+        return self.default_module
+            
+    
+    def __call__(self, request):
+        if not self.should_process_request(request):
+            request.active_module = self.default_module
+            return self.get_response(request)
+
+        request.active_module = self._set_active_module(request)
+        return self.get_response(request)
+
+    #TODO: Maybe during Django upgrade, investigate why this doesnt get called and try to recall why we arent using
+    # a TemplateResponse in our reader.views.render
+    def process_template_response(self, request, response):
+        # For template responses, add active_module to context
+        if hasattr(response, 'context_data') and response.context_data is not None:
+            response.context_data['active_module'] = request.active_module
         return response

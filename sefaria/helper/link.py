@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logger = logging.getLogger(__name__)
+import csv
+import sys
+import re
+from io import StringIO
+import structlog
+logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
@@ -403,7 +407,8 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
                 "type": "",
                 "auto": True,
                 "generated_by": "add_links_from_text",
-                "source_text_oid": text_id
+                "source_text_oid": text_id,
+                "inline_citation": True
             }
             found += [linked_oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
             try:
@@ -504,3 +509,131 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
             except Exception as e:
                 print("Exception: {}".format(e))
     return total
+
+def add_links_from_csv(file, linktype, generated_by, uid):
+    csv.field_size_limit(sys.maxsize)
+    content = file.read()
+    if isinstance(content, bytes):
+        content = content.decode('utf-8')
+    reader = csv.DictReader(StringIO(content))
+    fieldnames = reader.fieldnames
+    if len(fieldnames) != 2:
+        raise ValueError(f'file has {len(fieldnames)} columns rather than 2')
+    output = StringIO()
+    errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2', 'error'])
+    errors_writer.writeheader()
+    success = 0
+    for row in reader:
+        refs = [row[fieldnames[0]], row[fieldnames[1]]]
+        try:
+            if any(Ref(ref).is_empty() for ref in refs):
+                errors_writer.writerow({'ref1': refs[0],
+                               'ref2': refs[1],
+                               'error': f'{[r for r in refs if Ref(r).is_empty()][0]} is an empty ref'})
+                continue
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0],
+                               'ref2': refs[1],
+                               'error': f'one or more of {refs[0]} and {refs[1]} is not a valid ref'})
+            continue
+        link = {
+            'refs': refs,
+            'type': linktype,
+            'generated_by': generated_by,
+            'auto': True
+        }
+        try:
+            tracker.add(uid, Link, link)
+            success += 1
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0],
+                           'ref2': refs[1],
+                           'error': f'error with linking refs: {refs[0]}, {refs[1]}: {e}'})
+        try:
+            if USE_VARNISH:
+                for ref in link.refs:
+                    invalidate_ref(Ref(ref), purge=True)
+        except Exception as e:
+            logger.error(e)
+    return {'message': f'{success} links successfully saved', 'errors': output.getvalue()}
+
+
+def remove_links_from_csv(file, uid):
+    csv.field_size_limit(sys.maxsize)
+    reader = csv.DictReader(StringIO(file.read().decode()))
+    links_removed = 0
+    output = StringIO()
+    errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2'])
+    errors_writer.writeheader()
+    for row in reader:
+        refs = sorted(row.values())
+        try:
+            link = Link().load({'refs': refs})
+            tracker.delete(uid, Link, link._id)
+            links_removed += 1
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0], 'ref2': refs[1]})
+        try:
+            if USE_VARNISH:
+                for ref in refs:
+                    invalidate_ref(Ref(ref), purge=True)
+        except Exception as e:
+            logger.error(e)
+    return {'message': f'{links_removed} links successfully removed', 'errors': output.getvalue()}
+
+
+def make_link_query(trefs, **additional_query):
+    query = additional_query
+    if trefs[1] == 'all':
+        regex_list = Ref(trefs[0]).regex(as_list=True)
+        query['$or'] = [{"expandedRefs0": {"$regex": r}} for r in regex_list]
+        query['$or'] += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
+    else:
+        query['$or'] = []
+        regex_lists = [Ref(tref).regex(as_list=True) for tref in trefs]
+        for i in range(2):
+            ref_clauses0 = {'$or': [{"expandedRefs0": {"$regex": r}} for r in regex_lists[i]]}
+            ref_clauses1 = {'$or': [{"expandedRefs1": {"$regex": r}} for r in regex_lists[1-i]]}
+            query['$or'].append({"$and": [ref_clauses0, ref_clauses1]})
+    return query
+
+def get_links_per_segment_by_refs(trefs, **additional_query):
+    oref = Ref(trefs[0])
+    if isinstance(oref.index_node, JaggedArrayNode):
+        segments = oref.all_segment_refs()
+    else:
+        segments = oref.index.all_segment_refs()
+    for segment in segments:
+        links = LinkSet(make_link_query([segment.normal(), trefs[1]], **additional_query))
+        for link in links:
+            yield link
+        if not links:
+            yield segment
+
+def get_csv_links_by_refs(trefs, by_segment=False, **additional_query):
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=[trefs[0], trefs[1], 'type', 'generated_by'])
+    writer.writeheader()
+    if by_segment:
+        links = get_links_per_segment_by_refs(trefs[:], **additional_query) #copy of trefs for trefs will be sorted and get_links_per_segment_by_refs is generator
+    else:
+        limit = 15000 if trefs[1] == 'all' else 0
+        links = LinkSet(make_link_query(trefs, **additional_query), limit=limit)
+    ref0 = trefs[0]
+    trefs.sort()
+    for element in links:
+        if isinstance(element, Ref):
+            writer.writerow({ref0: element.normal()})
+            continue
+        linkrefs = element.refs[:]
+        if 'all' in trefs:
+            expanded_refs = element.expandedRefs0 if trefs[0] == 'all' else element.expandedRefs1
+            if any(re.search(Ref(ref0).regex(), expanded_ref) for expanded_ref in expanded_refs):
+                linkrefs.reverse()
+        writer.writerow({
+            trefs[0]: linkrefs[0],
+            trefs[1]: linkrefs[1],
+            'type': element.type,
+            'generated_by': getattr(element, 'generated_by', '')
+        })
+    return output.getvalue()

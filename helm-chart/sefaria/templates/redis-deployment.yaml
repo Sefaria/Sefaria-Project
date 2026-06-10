@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-redis"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: redis-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
+  revisionHistoryLimit: 0
+  replicas: {{ .Values.redis.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: redis-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: redis
+        {{- include "sefaria.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: redis
+        image: "{{ .Values.redis.containerImage.imageRegistry }}:{{ .Values.redis.containerImage.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+        resources: {{ toYaml .Values.redis.resources | nindent 10 }}

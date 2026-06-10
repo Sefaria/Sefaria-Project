@@ -2,10 +2,12 @@
 
 from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunkSet
+from sefaria.model.schema import DictionaryNode
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
 
@@ -73,6 +75,7 @@ def attach_branch(new_node, parent_node, place=0):
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
+    new_node.index = parent_node.index
 
     index.save(override_dependencies=True)
     library.rebuild()
@@ -258,12 +261,31 @@ def convert_simple_index_to_complex(index):
 
     handle_dependant_indices(index.title)
 
+def prepare_ja_for_children(ja):
+    """
+    JaggedArrayNodes can have children. However, when creating an empty JA and attaching it to a SchemaNode via attach_branch(),
+    the content_node corresponding to the JA in each Version will be an empty array. We need this to a dict so we can add children.
+    """
+    assert isinstance(ja, JaggedArrayNode)
+    vs = [v for v in ja.index.versionSet()]
+    for v in vs:
+        assert isinstance(v, Version)
+        content_node = v.content_node(ja)
+        if isinstance(content_node, dict):
+            print("JA is already prepared for children")
+            return
 
-def change_parent(node, new_parent, place=0):
+        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children"
+        # convert content node to dict so it can have children (aka, IVF)
+        v.sub_content(ja.version_address(), value={})
+        v.save()
+
+def change_parent(node, new_parent, place=0, exact_match=False):
     """
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
+    :param exact_match: if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -287,13 +309,16 @@ def change_parent(node, new_parent, place=0):
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
-    new_normal_form = node.ref().normal()
+    new_normal_form = node.ref(force_update=True).normal()
 
     index.save(override_dependencies=True)
     library.rebuild()
 
     for link in linkset:
-        link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
+        if exact_match:
+            link.refs = [ref.replace(old_normal_form, new_normal_form) if ref.startswith(old_normal_form) else ref for ref in link.refs]
+        else:
+            link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
         link.save()
     # todo: commentary linkset
 
@@ -319,7 +344,7 @@ def refresh_version_state(title):
     VersionState(title, {"flags": flags})
 
 
-def change_node_title(snode, old_title, lang, new_title):
+def change_node_title(snode, old_title, lang, new_title, ignore_cascade=False):
     """
     Changes the title of snode specified by old_title and lang, to new_title.
     If the title changing is the primary english title, cascades to all of the impacted objects
@@ -327,20 +352,20 @@ def change_node_title(snode, old_title, lang, new_title):
     :param old_title:
     :param lang:
     :param new_title:
+    :param ignore_cascade:
     :return:
     """
-
     def rewriter(string):
         return string.replace(old_title, new_title)
 
     def needs_rewrite(string, *args):
-        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+        return string.find(old_title) >= 0 and snode.index.title in string
 
     if old_title == snode.primary_title(lang=lang):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)
-        if lang == 'en':
+        if lang == 'en' and not ignore_cascade:
             cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
     else:
         snode.add_title(new_title, lang)
@@ -502,6 +527,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     print('Updating Versions')
     for v in vs:
         assert isinstance(v, Version)
+
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
         else:
@@ -521,8 +547,15 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             chunk.save()
 
         else:
-            chunk.text = ja.resize(delta).array()
-            chunk.save()
+            # we're going to save directly on the version to avoid weird mid change Ref bugs
+            new_text = ja.resize(delta).trim_ending_whitespace().array()
+            if isinstance(v.chapter, dict):  # complex text
+                version_address = ja_node.version_address()
+                parent = traverse_dict_tree(v.chapter, version_address[:-1])
+                parent[version_address[-1]] = new_text
+            else:
+                v.chapter = new_text
+            v.save()
 
     # For upsizing, we are editing refs to a structure that would not be valid till after the change, therefore
     # cascading must be performed here
@@ -535,7 +568,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     handle_dependant_indices(index.title)
 
 
-def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, skip_history=False):
+def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: True, skip_history=False):
     """
     Changes to indexes requires updating any and all data that reference that index. This routine will take a rewriter
      function and run it on every location that references the updated index.
@@ -596,14 +629,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         def rewrite_source(source):
             requires_save = False
             if "ref" in source:
+                original_tref = source["ref"]
                 try:
-                    ref = Ref(source["ref"])
-                except (InputError, ValueError):
-                    print("Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"]))
-                else:
-                    if needs_rewrite(source['ref']):
-                        requires_save = True
+                    rewrite = needs_rewrite(source["ref"])
+                except (InputError, ValueError) as e:
+                    print('needs_rewrite method threw exception:', source["ref"], e)
+                    rewrite = False
+                if rewrite:
+                    requires_save = True
+                    try:
                         source["ref"] = rewriter(source['ref'])
+                    except (InputError, ValueError) as e:
+                        print('rewriter threw exception:', source["ref"], e)
+                    if source["ref"] != original_tref and not Ref.is_ref(source["ref"]):
+                        print('rewiter created an invalid Ref:', source["ref"])
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     requires_save = rewrite_source(subsource) or requires_save
@@ -660,18 +699,27 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     generic_rewrite(LinkSet(construct_query('refs', identifier)), attr_name='refs')
     print('Updating Notes')
     generic_rewrite(NoteSet(construct_query('ref', identifier)))
-    print('Updating Transx Requests')
-    generic_rewrite(TranslationRequestSet(construct_query('ref', identifier)))
     print('Updating User History')
     generic_rewrite(UserHistorySet(construct_query('ref', identifier)))
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
+    print('Updating Topic Links')
+    generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
+    generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')
     generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
     print('Updating Sheets')
     clean_sheets([s['id'] for s in db.sheets.find(construct_query('sources.ref', identifier), {"id": 1})])
     print('Updating Alternate Structs')
     update_alt_structs(ref_identifier.index)
+    print('Updating Marked Up Text Chunks')
+    generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
+    print('Updating Manuscripts')
+    generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
+    generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
+    print('Updating WebPages')
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
+    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -754,13 +802,11 @@ def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lamb
 
                 segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
 
-    #output results so that this map can be used again for other purposes
+    # output results so that this map can be used again for other purposes
     if output_file:
-        output_file = open(output_file, 'w')
-        assert type(output_file) is file
-        for key in segment_map:
-            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
-        output_file.close()
+        with open(output_file, 'w') as output_file:
+            for key in segment_map:
+                output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
     return segment_map
 
 
@@ -874,7 +920,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                     "title": new_version_title
                 }
             )
-        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
+        for attr in ['status', 'license', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)
@@ -950,3 +996,126 @@ def toc_plaintext():
     text = "".join([text_node(node, 0) for node in toc])
 
     print(text)
+
+
+def change_term_hebrew(en_primary, new_he):
+    t = Term().load({"name": en_primary})
+    assert t
+    old_primary = t.get_primary_title("he")
+    t.add_title(new_he, "he", True, True)
+    t.remove_title(old_primary, "he")
+    t.save()
+
+
+def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
+    """
+    Changes the headword of an entry.
+    NOTICE: many lexicon has internal references, wrapped with an a tag within the data. This function won't change this.
+    :param parent_lexicon: string
+    :param old_headword: string
+    :param new_headword: string
+    :return: None
+
+    Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
+    """
+
+    def get_dictionary_node(node):
+        if isinstance(node, DictionaryNode):
+            return node
+        else:
+            for snode in node.children:
+                result = get_dictionary_node(snode)
+                if result:
+                    return result
+
+    def update_dictionary_node(index_node):
+        dictionary_node = get_dictionary_node(index_node)
+        parent = dictionary_node.parent
+        dictionary_node_index = parent.children.index(dictionary_node)
+        for attr in ('firstWord', 'lastWord'):
+            if getattr(dictionary_node, attr) == old_headword:
+                setattr(dictionary_node, attr, new_headword)
+        parent.children[dictionary_node_index] = update_headwords_map(dictionary_node)
+        return index_node
+
+    def update_headwords_map(dictionary_node):
+        hw_map = getattr(dictionary_node, 'headwordMap', None)
+        node_ref = dictionary_node.ref().normal()
+        if hw_map:
+            for n, node in enumerate(hw_map):
+                if node[1] == f'{node_ref}, {old_headword}':
+                    node[1] = f'{node_ref}, {new_headword}'
+            dictionary_node.headwordMap = hw_map
+        return dictionary_node
+
+    if LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': new_headword}):
+        raise ValueError(f'Entry of {parent_lexicon} with headword {new_headword} already exists')
+
+    # change entry itself
+    print('Updating entry')
+    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
+    entry.headword = new_headword
+    entry.save()
+
+    # change prev and next
+    print('Updating previous and next entries')
+    adjacents = ['prev_hw', 'next_hw']
+    for i in [1, -1]:
+        adj_hw = getattr(entry, adjacents[::i][0], None)
+        if adj_hw:
+            adj_entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw})
+            setattr(adj_entry, adjacents[::i][1], new_headword)
+            adj_entry.save()
+
+    # change index
+    index = Index().load({'lexiconName': parent_lexicon})
+    if index:
+        print('Updating index')
+        index.nodes = update_dictionary_node(index.nodes)
+        index.save()
+
+        # cascade
+        print('Cascading')
+        node_ref = get_dictionary_node(index.nodes).ref().normal()
+        ref = f'{node_ref}, {old_headword}'
+        old_ref_reg = fr'^{re.escape(ref)} ?\d*$'
+        rewriter = lambda x: x.replace(old_headword, new_headword)
+        needs_rewrite = lambda x, *args: bool(re.search(old_ref_reg, x))
+        cascade(index.title, rewriter, needs_rewrite, True)
+
+    # word forms
+    print('Updating word forms')
+    db.word_form.update_many(
+        {
+            'lookups': {
+                '$elemMatch': {
+                    'parent_lexicon': parent_lexicon,
+                    'headword': old_headword
+                }
+            }
+        },
+        {
+            '$set': {
+                'lookups.$[elem].headword': new_headword
+            }
+        },
+        array_filters=[{
+            'elem.parent_lexicon': parent_lexicon,
+            'elem.headword': old_headword
+        }]
+    )
+
+    library.rebuild()
+
+    # other entries in the same dictionary that includes wrapped ref for the old headword
+    # changing another entry is too complicated, for any lexicon has different entries structure, so it will be only printed
+    if index:
+        quoted = []
+        for entry in LexiconEntrySet({'parent_lexicon': parent_lexicon}):
+            oref = Ref(f'{index.title}, {entry.headword}')
+            entry_text = ' '.join(oref.index_node.get_text())
+            if ref in entry_text:
+                quoted.append(f'"{entry.headword}"')
+        if quoted:
+            print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
+        print('Warning: old ref can appear as wrapped ref in other places in the library.')

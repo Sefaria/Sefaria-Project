@@ -5,6 +5,7 @@ import {
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
+import Sefaria from "./sefaria/sefaria";
 
 class ExtendedNotes extends Component {
   constructor(props) {
@@ -12,7 +13,7 @@ class ExtendedNotes extends Component {
     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
   }
   getVersionData(versionList){
-    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
+    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'].versionTitle : this.props.currVersions['he'].versionTitle;
     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
 
@@ -30,8 +31,10 @@ class ExtendedNotes extends Component {
     }
   }
   componentDidMount() {
-    // use Sefaria.versions(ref, cb), where cb will invoke setState
-    Sefaria.versions(this.props.title, this.getVersionData);
+    // use Sefaria.getVersions(ref, cb), where cb will invoke setState
+    Sefaria.getVersions(this.props.title).then(versions => {
+      this.getVersionData(Object.values(versions).flat());
+    });
   }
   goBack(event) {
     event.preventDefault();

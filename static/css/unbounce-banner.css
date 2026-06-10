@@ -1,0 +1,63 @@
+/* 
+  Change styling when Unbounce banner is going to be placed on the page
+  Unbounce adds a top margin to the body of the main DOM based on the height of the banner
+  The default top of 0 needs to be removed
+  ub-emb-container is the class of the node that Unbounce inserts into the main body at the end
+  The node is at the same level of the tree as the s2 node used for React
+*/
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar) {
+  top: unset;
+}
+
+/* 
+  Adjust margin on footer when banner is shown
+  The introduction of the banner into the DOM by Unbounce with the top margin causes the footer to be cutoff
+*/
+/* Make some style changes on the static pages where the React node is in header only mode */
+div#staticContentWrapper:has(~ .ub-emb-container div.ub-emb-bar):has(.staticPage) {
+  padding-top: 60px;
+}
+
+div#staticContentWrapper:has(~ .ub-emb-container div.ub-emb-bar) .staticPage .staticPageHeader {
+  margin-top: unset;
+}
+
+/*
+  The mobile navigation menu needs to be shifted when displayed and the banner is displaying on mobile
+*/
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar) .singlePanel div.mobileNavMenu {
+  height: calc(100vh - 180px);
+  top: 180px;
+}
+
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar) .singlePanel .autocomplete-dropdown {
+  top: 45px;
+  left: -10px;
+  position: absolute;
+}
+
+/* 
+  Fix problems with the bottom of new sheets editor from being accessible
+  This does not affect the normal textual content view inside a book
+*/
+
+/* Unbounce banners cannot be on the old sheets editor */
+div#s2:has(~ .ub-emb-container div.ub-emb-bar):has(~ #staticContentWrapper #content #sheetsContent) {
+  top: 0;
+}
+
+div#staticContentWrapper:has(div#content div#sheetsContent) ~ div.ub-emb-container div.ub-emb-bar,
+div#s2:has(div.feedbackOverlay) ~ div.ub-emb-container div.ub-emb-bar
+{
+  display: none;
+}
+
+/* Is singlePanel on only mobile? */
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar):not(:has(.singlePanel)) #panelWrapBox {
+  height: calc(100% - 180px);
+}
+
+/* Should the banner still be shown when the resources panel is shown? */
+div#s2:has(~ div.ub-emb-container div.ub-emb-bar):has(.singlePanel) .connectionsPanel {
+  margin-bottom: 120px;
+}

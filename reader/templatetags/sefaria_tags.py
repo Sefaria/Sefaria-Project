@@ -2,7 +2,9 @@
 """
 Custom Sefaria Tags for Django Templates
 """
+import hashlib
 import json
+import os
 import re
 import dateutil.parser
 import urllib.request, urllib.parse, urllib.error
@@ -10,29 +12,130 @@ import math
 from urllib.parse import urlparse
 from datetime import datetime
 from django import template
+from django.conf import settings
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import Group
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from django.templatetags.static import static as django_static
+from django.contrib.staticfiles import finders
+from django.utils.functional import SimpleLazyObject
 
 from sefaria.sheets import get_sheet
+from django.urls import reverse, NoReverseMatch
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
 from sefaria.model.text import Version
+from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
 
 import sefaria.model.text
 import sefaria.model as m
+from sefaria.model.text import library, AbstractIndex
 
+import structlog
+logger = structlog.get_logger(__name__)
 
 register = template.Library()
 
-current_site = Site.objects.get_current()
-domain       = current_site.domain
+domain = SimpleLazyObject(lambda: Site.objects.get_current().domain)
+
+
+@register.simple_tag
+def social_image_url(request, platform):
+    """
+    Build the social-image endpoint URL with a real query encoder so version
+    titles containing spaces, pipes, ampersands, or punctuation survive when
+    nested inside the meta tag URL.
+    """
+    params = {
+        "lang": request.GET.get("lang", ""),
+        "platform": platform,
+        "ven": request.GET.get("ven", ""),
+        "vhe": request.GET.get("vhe", ""),
+    }
+    return f"https://{request.get_host()}/api/img-gen{request.path}?{urllib.parse.urlencode(params)}"
+
+
+class SyncedMetaTagNode(template.Node):
+    """
+    Base node that renders content into synchronized regular, OpenGraph, and Twitter meta tags.
+    Subclasses provide a format_template that receives the escaped content via {content}.
+    """
+    format_template = ""
+
+    def __init__(self, nodelist):
+        self.nodelist = nodelist
+
+    def render(self, context):
+        content = conditional_escape(self.nodelist.render(context).strip())
+        return mark_safe(self.format_template.format(content=content))
+
+
+class MetaTitleNode(SyncedMetaTagNode):
+    """Renders {% meta_title %}...{% endmeta_title %} as synchronized title + og:title + twitter:title tags."""
+    format_template = (
+        '<title>{content}</title>\n'
+        '    <meta property="og:title" content="{content}"/>\n'
+        '    <meta name="twitter:title" content="{content}"/>'
+    )
+
+
+class MetaDescNode(SyncedMetaTagNode):
+    """Renders {% meta_desc %}...{% endmeta_desc %} as synchronized description + og:description + twitter:description tags."""
+    format_template = (
+        '<meta name="description" content="{content}"/>\n'
+        '    <meta property="og:description" content="{content}"/>\n'
+        '    <meta name="twitter:description" content="{content}"/>'
+    )
+
+
+@register.tag('meta_title')
+def meta_title_tag(parser, token):
+    nodelist = parser.parse(('endmeta_title',))
+    parser.delete_first_token()
+    return MetaTitleNode(nodelist)
+
+
+@register.tag('meta_desc')
+def meta_desc_tag(parser, token):
+    nodelist = parser.parse(('endmeta_desc',))
+    parser.delete_first_token()
+    return MetaDescNode(nodelist)
+
+
+def get_static_file_hash(path):
+	"""
+	Returns an MD5 hash of a static file's contents
+	"""
+	try:
+		abs_path = finders.find(path)
+		if abs_path:
+			with open(abs_path, 'rb') as f:
+				return hashlib.md5(f.read()).hexdigest()[:8]
+	except (IOError, OSError):
+		logger.warning(f"Error reading static file for hashing: {path}")
+		return ""
+	logger.warning(f"Static file not found for hashing: {path}")
+	return ""
+
+
+@register.simple_tag
+def static(path):
+    """
+    A template tag that returns the URL to a static file with cache busting hash
+    Usage: {% static "css/style.css" %}
+    Returns: /static/css/style.css?v=1a2b3c4d
+    """
+    static_url = django_static(path)
+    file_hash = get_static_file_hash(path)
+    if file_hash:
+        return f"{static_url}?v={file_hash}"
+    return static_url
 
 
 ref_link_cache = {} # simple cache for ref links
@@ -137,13 +240,12 @@ def text_toc_link(indx):
 	"""
 	Return an <a> tag linking to the text TOC for the Index
 	"""
-	from sefaria.model.text import library, AbstractIndex
 	if not isinstance(indx, AbstractIndex):
 		indx = library.get_index(indx)
 
 	en = indx.nodes.primary_title("en")
 	he = indx.nodes.primary_title("he")
-	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
+	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(urllib.parse.quote(indx.title), en, he)
 	return mark_safe(link)
 
 
@@ -154,15 +256,6 @@ def person_link(person):
 	"""
 	link = '<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
-
-
-@register.filter(name='has_group')
-def has_group(user, group_name):
-	try:
-		group =  Group.objects.get(name=group_name)
-		return group in user.groups.all()
-	except:
-		return False
 
 
 @register.filter(is_safe=True)
@@ -212,15 +305,16 @@ def user_name(uid):
 
 
 @register.filter(is_safe=True)
-def user_message_path(uid):
-	"""Returns the relative path to send a message to `uid`"""
-	data = public_user_data(uid)
-	return mark_safe(data["profileUrl"] + "?message=1")
+def group_link(group_name):
+	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
 
 
 @register.filter(is_safe=True)
-def group_link(group_name):
-	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
+def collection_link(collection_slug):
+	c = Collection().load({"slug": collection_slug})
+	if not c:
+		return mark_safe("[unknown collection: {}".format(collection_slug))
+	return mark_safe("<a href='/collections/{}'>{}</a>".format(collection_slug, c.name))
 
 
 @register.filter(is_safe=True)
@@ -394,7 +488,7 @@ def sum_counts(counts):
 
 @register.filter(is_safe=True)
 def percent_available(array, key):
-	return array[key]["percentAvailable"]
+	return array.get(key, {}).get("percentAvailable", 0.0)
 
 
 @register.filter(is_safe=True)
@@ -417,6 +511,8 @@ def hebrew_term(value):
 def jsonify(object):
 	if isinstance(object, QuerySet):
 		return mark_safe(serialize('json', object))
+	elif isinstance(object, str):
+		return mark_safe(object)
 	return mark_safe(json.dumps(object))
 
 
@@ -528,3 +624,4 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
+

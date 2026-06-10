@@ -8,12 +8,12 @@ from . import abstract as abst
 from . import text
 from . import place
 from . import timeperiod
-from . import person
+from . import topic
 from . import link
 from . import user_profile
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class Garden(abst.AbstractMongoRecord):
@@ -115,8 +115,6 @@ class Garden(abst.AbstractMongoRecord):
         return place.PlaceSet({"key": {"$in": pkeys}})
 
     def stopsByAuthor(self):
-        from . import person
-
         res = []
         unknown = []
 
@@ -125,7 +123,7 @@ class Garden(abst.AbstractMongoRecord):
             if not k:
                 unknown.extend([s.contents() for s in g])
             else:
-                res.append(([person.Person().load({"key": p}) for p in k], [s.contents() for s in g]))
+                res.append(([topic.Topic.init(p) for p in k], [s.contents() for s in g]))
         res.append(("unknown", unknown))
         return res
 
@@ -422,10 +420,10 @@ class GardenStop(abst.AbstractMongoRecord):
 
         # Author
         if getattr(self, "authors", None) and len(self.authors) > 0:
-            author = person.Person().load({"key": self.authors[0]}) or {}
+            author = topic.Topic.init(self.authors[0]) or {}
             if author:
-                self.authorsEn = author.primary_name("en")
-                self.authorsHe = author.primary_name("he")
+                self.authorsEn = author.get_primary_title("en")
+                self.authorsHe = author.get_primary_title("he")
         else:
             author = {}
 
@@ -443,24 +441,16 @@ class GardenStop(abst.AbstractMongoRecord):
         # Time
         # This is similar to logic on Index.composition_time_period() refactor
         if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
-            if getattr(i, "compDate", None):
-                errorMargin = int(getattr(i, "errorMargin", 0))
-                self.startIsApprox = self.endIsApprox = errorMargin > 0
-
-                try:
-                    year = int(getattr(i, "compDate"))
-                    self.start = year - errorMargin
-                    self.end = year + errorMargin
-                except ValueError as e:
-                    years = getattr(i, "compDate").split("-")
-                    if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                        years[0] = -int(years[1])
-                        years[1] = int(years[2])
-                    self.start = int(years[0]) - errorMargin
-                    self.end = int(years[1]) + errorMargin
-
-            elif author and author.mostAccurateTimePeriod():
-                tp = author.mostAccurateTimePeriod()
+            years = getattr(i, 'compDate', [])
+            if years and len(years) > 0:
+                self.startIsApprox = self.endIsApprox = getattr(i, "hasErrorMargin", False)
+                if len(years) > 1:
+                    self.start = years[0]
+                    self.end = years[1]
+                else:
+                    self.start = self.end = years[0]
+            elif author and author.most_accurate_time_period():
+                tp = author.most_accurate_time_period()
                 self.start = tp.start
                 self.end = tp.end
                 self.startIsApprox = tp.startIsApprox

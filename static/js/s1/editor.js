@@ -607,7 +607,7 @@ $(function() {
 
         if (sjs.current.isComplex) {
             sjs.hideAbout();
-            sjs.alert.message("This text is not user editable - please email dev@sefaria.org");
+            sjs.alert.message("This text is not user editable - please email corrections@sefaria.org");
             return;
         }
 		if (!sjs._uid) {
@@ -635,7 +635,7 @@ $(function() {
 
 	$("#newTextOK").click(function(){
         var ref = $("#newTextName").val();
-		Sefaria.getName(ref, true)
+		Sefaria.getName(ref, undefined, ['ref'])
 			   .then(function(q) {
 					if(!q.is_ref) {
 						// This is an unknown text
@@ -2544,7 +2544,7 @@ function aboutHtml(data) {
 		return html;
 	};
 
-	var html = '<h2><center>About this Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
+	var html = '<h2><center>About This Text</center></h2>' +  aboutVersionHtml(heVersion) + aboutVersionHtml(enVersion);
 
 	// Build a list of alternate versions
 	var versionsHtml = {};

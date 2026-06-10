@@ -1,0 +1,27 @@
+---
+substitutions:
+  _GKE_REGION: us-east1-b
+  _GKE_CLUSTER: cluster-1
+
+steps:
+
+  # check out k8sadmin
+  # run k8s-admin/v2/scripts/cleanupSandboxes.bash
+
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'master', "--depth", "1"]
+    id: k8s-admin_clone
+    wait_for: [ "-" ]
+
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
+    id: deploy_sandbox
+    dir: k8s-admin/v2
+    entrypoint: bash
+    args: ["-c", "./scripts/cleanupSandboxes.bash"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.18'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "k8s-admin_clone" ]
+...

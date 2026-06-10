@@ -1,3 +1,5 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import * as d3 from './lib/d3.v5.min';
 import Sefaria from 'sefaria';
 import SefariaD3  from "./sefaria-d3/sefaria-d3";
@@ -340,7 +342,8 @@ const hidePopup = function() {
 
 /*****                   Currying Data                  *****/
 
-const getDate = l => l.compDate && l.compDate - l.errorMargin;  // Returns undefined if attrs not available.
+// compDate is either a year (linknetwork API nodes) or a [start, end] range (index API).  Returns undefined if attrs not available.
+const getDate = l => Array.isArray(l.compDate) ? l.compDate[0] : (l.compDate && l.compDate - (l.errorMargin || 0));
 const linkKey = l => l.source.title + "-" + l.target.title;
 const nodeKey = d => d.title;
 

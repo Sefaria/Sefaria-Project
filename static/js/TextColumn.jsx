@@ -9,240 +9,387 @@ import TextRange  from './TextRange';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+import {ContentText} from "./ContentText";
 
 
 class TextColumn extends Component {
   // An infinitely scrollable column of text, composed of TextRanges for each section.
+  constructor(props) {
+    super(props);
+    this.state = {
+      showScrollPlaceholders: false
+    };
+    this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
+    this.scrollPlaceholderHeight = 90;
+    this.scrollPlaceholderMargin = 30;
+    this.highlightThreshhold = props.multiPanel ? 140 : 70;
+  }
   componentDidMount() {
     this._isMounted          = true;
-    this.$container          = $(ReactDOM.findDOMNode(this));
+    this.node                = ReactDOM.findDOMNode(this)
+    this.$container          = $(this.node);
     this.initialScrollTopSet = false;
-    this.windowMiddle        = $(window).outerHeight() / 2;
-    this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
-    var node = ReactDOM.findDOMNode(this);
-    node.addEventListener("scroll", this.handleScroll);
+    this.windowMiddle        = $(window).outerHeight() / (this.props.mode === "TextAndConnections" ? 4 : 2);
+
+    // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
+    this.setState({showScrollPlaceholders: true});
+
+       const params = {
+         content_type: Sefaria.index(this.props.bookTitle).primary_category,
+         item_id: this.props.bookTitle
+       }
+      gtag("event", "select_content", params)
+
+    this.node.addEventListener("scroll", this.handleScroll);
   }
   componentWillUnmount() {
     this._isMounted = false;
-    var node = ReactDOM.findDOMNode(this);
-    node.removeEventListener("scroll", this.handleScroll);
-  }
-  componentWillReceiveProps(nextProps) {
-    //console.log(nextProps)
-    if ((this.props.mode === "Text" && nextProps.mode === "TextAndConnections") ||
-        (this.props.currVersions.en !== nextProps.currVersions.en) ||
-        (this.props.currVersions.he !== nextProps.currVersions.he)) {
-      // When opening mobile connections panel, scroll to highlighted
-      this.scrolledToHighlight = false;
-      this.initialScrollTopSet = true;
-
-    } else if (this.props.mode === "TextAndConnections" && nextProps.mode === "Text") {
-      // Don't mess with scroll position when closing mobile Connections panel
-      this.scrolledToHighlight = true;
-      this.initialScrollTopSet = true;
-
-    } else if (this.props.panelsOpen !== nextProps.panelsOpen) {
-      // When panels are opened or closed, refocus highlighted segments
-      this.scrolledToHighlight = false;
-
-    } else if (nextProps.srefs.length == 1 && Sefaria.util.inArray(nextProps.srefs[0], this.props.srefs) == -1) {
-      // If we are switching to a single ref not in the current TextColumn, treat it as a fresh open.
-      this.initialScrollTopSet = false;
-      this.scrolledToHighlight = false;
-      this.loadingContentAtTop = false;
-    }
+    this.node.removeEventListener("scroll", this.handleScroll);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!this.props.highlightedRefs.compare(prevProps.highlightedRefs)) {
-      //console.log("Scroll for highlight change")
-      this.setScrollPosition();  // highlight change
-    }
-    if (this.props.layoutWidth !== prevProps.layoutWidth ||
-        this.props.settings.language !== prevProps.settings.language) {
-      //console.log("scroll to highlighted on layout change")
+    
+    const layoutWidth = this.$container.find(".textInner").width();
+    const layoutWidthChanged = this.prevLayoutWidth && this.prevLayoutWidth !== layoutWidth;
+    this.prevLayoutWidth = layoutWidth;
+
+    if (prevProps.mode === "Text" && this.props.mode === "TextAndConnections") {
+      // When opening mobile connections panel, scroll to highlighted
       this.scrollToHighlighted();
+
+    } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders && !this.initialScrollTopSet) {
+      // After scroll placeholders are first rendered, scroll down so top placeholder
+      // is out of view and scrolling up is possible.
+      this.setInitialScrollPosition();
+
+    } else if (this.props.srefs.length === 1 &&
+        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) === -1 &&
+        !prevProps.srefs.some(r => Sefaria.refContains(this.props.srefs[0], r))) {
+      // If we are switching to a single ref not in the current TextColumn,
+      // treat it as a fresh open.
+      this.setInitialScrollPosition();
+
+    } else if (prevProps.srefs.length === this.props.srefs.length &&
+      !prevProps.srefs.compare(this.props.srefs)) {
+      // When the highlighted segment has changed, scroll to it.
+      // refs length should be equal so as not to scroll when infinite scroll changes refs
+      this.scrollToHighlighted();
+
+    } else if ((this.props.settings.language !== prevProps.settings.language) ||
+        !Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
+      // When the content the changes but we are anchored on a line, scroll to it
+      this.scrollToHighlighted(false); // Don't change focus to not steal the focus from where the text was changed from (ReaderDisplayOptionsMenu, translations box, or about box)
+    } else if (layoutWidthChanged) {
+      // When the width of the text column changes, keep highlighted text in place
+      this.restoreScrollPositionByPercentage();
     }
+    
   }
+
   handleScroll(event) {
-    //console.log("scroll");
     if (this.justScrolled) {
-      //console.log("pass scroll");
       this.justScrolled = false;
       return;
     }
     this.debouncedAdjustHighlightedAndVisible();
     this.adjustInfiniteScroll();
   }
-  handleTextSelection() {
-    var selection = window.getSelection();
+  calculatePositionWithinElement(event){
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const y = event.clientY - rect.top;  //y position within the element.
+    return [x,y]
+  }
+  handleClick(event) {
+    const pos = this.calculatePositionWithinElement(event)
+    this.setState({lastClickXY:pos})
+  }
+  handleDoubleClick(event) {
+    if (event.detail > 1) {
+    const pos = this.calculatePositionWithinElement(event)
+      // might be problematic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
+      if (this.state.lastClickXY[0] !== pos[0] || this.state.lastClickXY[1] !== pos[1]){
+        event.preventDefault();
+      }
+    }
+  }
 
+  handleTextSelection() {
+    //Please note that because this function is triggered by an event listener on the document object, that will always be the event target
+    // (should someone choose to add reference to the event itself in the future in this function) and not a more specific element.
+    const selection = window.getSelection();
+    let refs = [];
     if (selection.type === "Range") {
-      //console.log("handling range");
-      var $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
-      var $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
-      var $segments = $(ReactDOM.findDOMNode(this)).find(".segment");
-      var start     = $segments.index($start);
-      var end       = $segments.index($end);
-      var $segments = $segments.slice(start, end+1);
-      var refs      = [];
+      const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
+      let $segments = this.$container.find(".segment");
+      let start     = $segments.index($start);
+      let end       = $segments.index($end);
+      //if one of the endpoints isn't actually in a segment node (for example its in a title), adjust selection endpoints
+      start = start === -1 ? end : start;
+      end = end === -1 ? start : end;
+      $segments = $segments.slice(start, end+1);
 
       $segments.each(function() {
         refs.push($(this).attr("data-ref"));
       });
 
-      //console.log("Setting highlights by Text Selection");
-      //console.log(refs);
-      this.props.setTextListHighlight(refs);
+      if (refs.length > 0) {
+        this.props.setTextListHighlight(refs);
+      }
     }
-    var selectedWords = selection.toString();
+    const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
     if (selectedWords !== this.props.selectedWords) {
-      //console.log("setting selecting words")
       this.props.setSelectedWords(selectedWords);
     }
   }
-  handleTextLoad() {
-    //console.log("handle text load");
-    this.setScrollPosition();
-    this.adjustInfiniteScroll();
-  }
-  setScrollPosition() {
-    //console.log("ssp");
-    // Called on every update, checking flags on `this` to see if scroll position needs to be set
-    var node = ReactDOM.findDOMNode(this);
-    if (this.loadingContentAtTop) {
-      // After adding content by infinite scrolling up, scroll back to what the user was just seeing
-      //console.log("loading at top");
-      var $node   = this.$container;
-      var adjust  = 120; // Height of .loadingMessage.base
-      var $texts  = $node.find(".basetext");
-      if ($texts.length < 2) { return; }
-      //console.log("scrolltop: " + $node.scrollTop());
-      var top     = $texts.eq(this.numSectionsLoadedAtTop).position().top + (2*$node.scrollTop()) - adjust ;
-
-      if (!$texts.eq(0).hasClass("loading")) {
-        this.loadingContentAtTop = false;
-        this.initialScrollTopSet = true;
-        this.justScrolled = true;
-        node.scrollTop = top;
-        //console.log("After load at top, total top: " + top)
-      }
-    } else if (!this.scrolledToHighlight && $(node).find(".segment.highlight").length) {
-      //console.log("scroll to highlighted");
-      // scroll to highlighted segment
+  handleTextLoad(ref) {
+    // Called when TextRange components finish loading their content
+    // This is where we handle scroll position adjustments and trigger additional loading
+    
+    // Don't adjust scroll positions while sections are still loading to prevent race conditions when mutliple section may load out of order.
+    if (this.$container.find(".basetext.loading").length > 0) {
+      return;
+    }
+    
+    // Clear the loading flag if we were loading content at the top
+    const wasLoadingContentAtTop = this.loadingContentAtTop;
+    this.loadingContentAtTop = false;
+    
+    
+    // Set initial scroll position if this is the first load
+    if (!this.initialScrollTopSet) {
+      this.setInitialScrollPosition();
+      this.initialScrollTopSet = true;
+    }
+    
+    // When content loads, check if we need to load another section below
+    // This occurs when the loaded section is very short and whitespace is visible below it
+    // Only check down - text load should never trigger infinite scroll up
+    this.adjustInfiniteScroll(true);
+    
+    // If we were loading content at the top, restore scroll position to prevent jumping
+    if (wasLoadingContentAtTop) {
+      this.restoreScrollPositionAfterTopLoad();
+    }
+    
+    // Special case: if only one text section is loaded, scroll to highlighted segment
+    const $texts = this.$container.find(".basetext");
+    if ($texts.length === 1) {
       this.scrollToHighlighted();
-      this.initialScrollTopSet = true;
-      this.justScrolled        = true;
-    } else if (!this.initialScrollTopSet && (node.scrollHeight > node.clientHeight)) {
-      //console.log("initial scroll set");
-      // initial value set below 0 so you can scroll up for previous
-      var first   = Sefaria.ref(this.props.srefs[0]);
-      var hasPrev = first && first.prev;
-      if (!hasPrev) {
-        node.scrollTop = 0;
-      }
-      else {
-        node.scrollTop = 90;
-      }
-      //console.log(node.scrollTop);
-      this.initialScrollTopSet = true;
-      this.justScrolled = true;
     }
   }
-  adjustInfiniteScroll() {
-    // Add or remove TextRanges from the top or bottom, depending on scroll position
-    //console.log("adjust Infinite Scroll");
+  
+  setInitialScrollPosition() {
+    // Sets scroll initial scroll position when a text is loaded which is either down to
+    // the highlighted segments, or is just down far enough to hide the scroll placeholder above.
+    if (this.node.scrollHeight < this.node.clientHeight) { return; }
+
+    if (this.$container.find(".segment.invisibleHighlight").length) {
+      // If there is a highlight the initial position scrolls to it.
+      this.scrollToHighlighted();
+
+    } else {
+      // When a text is first loaded, scroll it down a small amount so that it is
+      // possible to scroll up and trigger infinite scroll up. This also hides
+      // "Loading..." div which sit above the text.
+      const top = this.scrollPlaceholderHeight;
+      this.setScrollTop(top);
+    }
+  }
+  scrollToHighlighted(shouldFocus=true) {
+    // Scroll to the first highlighted segment
     if (!this._isMounted) { return; }
-    var node         = ReactDOM.findDOMNode(this);
-    if (node.scrollHeight <= node.clientHeight) { return; }
-    var $node        = $(node);
-
-    var refs         = this.props.srefs.slice();
-    var $lastText    = $node.find(".textRange.basetext").last();
-    if (!$lastText.length) { console.log("no last basetext"); return; }
-    var lastTop      = $lastText.position().top;
-    var lastBottom   = lastTop + $lastText.outerHeight();
-    var windowHeight = $node.outerHeight();
-    var windowTop    = node.scrollTop;
-    var windowBottom = windowTop + windowHeight;
-    if (windowTop < 75 && !this.loadingContentAtTop) {
-      // UP: add the previous section above then adjust scroll position so page doesn't jump
-      var topRef = refs[0];
-      var data   = Sefaria.ref(topRef);   // data for current ref
-      if (data && data.prev) {
-        refs.splice(refs, 0, data.prev);  // Splice in at least the previous one (-1)
-        this.numSectionsLoadedAtTop = 1;
-
-        var prevData, earlierData;
-
-        // Now, only add sources if we have data for them
-        if(prevData = Sefaria.ref(data.prev)) {
-          earlierData = Sefaria.ref(prevData.prev);
-        }
-
-        while(earlierData && this.numSectionsLoadedAtTop < 10) {
-          refs.splice(refs, 0, earlierData.ref);
-          this.numSectionsLoadedAtTop += 1;
-          earlierData = Sefaria.ref(earlierData.prev);
-        }
-
-        //console.log("Up! Add previous section. Windowtop is: " + windowTop);
-        this.loadingContentAtTop = true;
-        this.props.updateTextColumn(refs);
-        // Sefaria.track.event("Reader", "Infinite Scroll", "Up");
+    const $container   = this.$container;
+    const $readerPanel = $container.closest(".readerPanel");
+    const $highlighted = $container.find(".segment.invisibleHighlight").first();
+    if ($highlighted.length) {
+      const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
+      let top = $highlighted.position().top + adjust - this.highlightThreshhold;
+      top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
+      this.setScrollTop(top);
+      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id") && shouldFocus) {
+        $highlighted.focus();
       }
-    } else if ( lastBottom < windowHeight + 80 ) {
-      // DOWN: add the next section to bottom
+    }
+  }
+  restoreScrollPositionAfterTopLoad() {
+    // After new TextRanges load at the top, adjust scroll position to prevent content jumping
+    const $texts = this.$container.find(".basetext");
+    
+    // Check if we can safely restore scroll position
+    // Need at least 2 text sections and first one should be loaded
+    if ($texts.length < 2 || $texts.eq(0).hasClass("loading")) {
+      return;
+    }
+    
+    // Calculate the new scroll position
+    const newScrollTop = this.calculateScrollPositionAfterTopLoad($texts);
+    
+    // Apply the new scroll position
+    this.setScrollTop(newScrollTop);
+  }
+
+  
+  calculateScrollPositionAfterTopLoad($texts) {
+    // Calculate the correct scroll position after new content has been loaded at the top
+    // The goal is to keep the user viewing the same content they were looking at before (avoid a jump)
+    const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
+    const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
+    
+    const currentScrollTop = this.node.scrollTop;
+    const calculatedTop = targetTop + currentScrollTop - adjust;
+    
+    return calculatedTop;
+  }
+  restoreScrollPositionByPercentage() {
+    // After the layout width of the column changes, restore the scroll to the same percentage
+    // of it's scroll position it had before. This approximates keeping the currently visible
+    // content in place, even thought its scroll position has changed due to the new layout.
+    if (!this.prevScrollPercentage) { return; }
+    const target = this.node.scrollHeight * this.prevScrollPercentage;
+    this.setScrollTop(target);
+  }
+  setScrollTop(targetScrollTop) {
+    // Set the scroll position and prevent the scroll event handler from firing
+    // The justScrolled flag prevents handleScroll from running when we programmatically scroll
+    
+    // Prevent the scroll event handler from firing for this programmatic scroll
+    this.justScrolled = true;
+    
+    // Apply the new scroll position
+    this.node.scrollTop = targetScrollTop;
+  }
+  
+  getLastTextRange() {
+    return this.$container.find(".textRange.basetext").last();
+  }
+  
+  adjustInfiniteScroll(downOnly=false) {
+    // Add or remove TextRanges from the top or bottom, depending on scroll position
+    if (!this._isMounted) { return; }
+    if (this.node.scrollHeight <= this.node.clientHeight) { return; }
+
+    const $node = this.$container;
+    const $lastText = this.getLastTextRange();
+    if (!$lastText.length) { return; }
+    
+    const windowTop = this.node.scrollTop;
+    const windowHeight = $node.outerHeight();
+    const lastTop = $lastText.position().top;
+    const lastBottom = lastTop + $lastText.outerHeight();
+    
+    // Check if we need to load content above (user scrolled near top)
+    if (windowTop < 75 && !this.loadingContentAtTop && !downOnly) {
+      this.handleInfiniteScrollUp();
+    } 
+    // Check if we need to load content below (user scrolled near bottom)
+    else if (lastBottom < windowHeight + 80) {
+      this.handleInfiniteScrollDown();
+    }
+  }
+
+  handleInfiniteScrollUp() {
+    // When user scrolls near the top, load previous sections above current content
+    // This prevents the user from hitting the top and enables smooth upward scrolling
+    
+    const topRef = this.props.srefs.at(0); // Currently displayed top section
+    
+    const currentData = Sefaria.ref(topRef);
+    if (!currentData?.prev) {
+      return; // No previous content available
+    }
+    
+    // Build list of previous sections to load
+    const newRefs = this.buildPreviousRefs(currentData);
+    
+    // Set flag to indicate we're loading content at top (affects scroll restoration)
+    this.loadingContentAtTop = true;
+    
+    this.props.updateTextColumn(newRefs);
+  }
+
+  buildPreviousRefs(currentData) {
+    // Build a list of previous sections to load, starting from the current top section
+    // We load multiple sections at once for better performance
+    const refs = this.props.srefs.slice();
+    
+    // Add the immediate previous section
+    refs.splice(0, 0, currentData.prev);
+    this.numSectionsLoadedAtTop = 1;
+    
+    // Try to load additional previous sections (up to 10 total)
+    let prevData = Sefaria.ref(currentData.prev);
+    let earlierData = prevData ? Sefaria.ref(prevData.prev) : null;
+
+    while (earlierData && this.numSectionsLoadedAtTop < 10) {
+      refs.splice(0, 0, earlierData.ref);
+      this.numSectionsLoadedAtTop += 1;
+      earlierData = Sefaria.ref(earlierData.prev);
+    }
+    
+    return refs;
+  }
+
+  handleInfiniteScrollDown() {
+    // When user scrolls near the bottom, load next sections below current content
+    // This enables smooth downward scrolling
+    const $lastText = this.getLastTextRange();
       if ($lastText.hasClass("loading")) {
-        //console.log("last text is loading - don't add next section");
-        return;
+        return; // Don't load more while already loading
       }
-      //console.log("Down! Add next section");
-      var currentRef = refs.slice(-1)[0];
-      var data       = Sefaria.ref(currentRef);
-      if (data && data.next) {
-        refs.push(data.next); // Append at least the next one
-        let numSectionsAddToBottom = 1;
-        var nextData, laterData;
+    
+    const currentRef = this.props.srefs.at(-1); // Currently displayed bottom section
+    const currentData = Sefaria.ref(currentRef);
+    
+    if (!currentData?.next) {
+      return; // No next content available
+    }
+    
+    // Build list of next sections to load
+    const newRefs = this.buildNextRefs(currentData);
+    this.props.updateTextColumn(newRefs);
+  }
 
-        // Now, only add sources if we have data for them
-        if(nextData = Sefaria.ref(data.next)) {
-          laterData = Sefaria.ref(nextData.next);
-        }
+  buildNextRefs(currentData) {
+    // Build a list of next sections to load, starting from the current bottom section
+    // We load multiple sections at once for better performance
+    const refs = this.props.srefs.slice();
+    
+    // Add the immediate next section
+    refs.push(currentData.next);
+    let numSectionsAddToBottom = 1;
 
-        while(laterData && numSectionsAddToBottom < 10) {
+    // Try to load additional next sections (up to 10 total)
+    let nextData = Sefaria.ref(currentData.next);
+    let laterData = nextData ? Sefaria.ref(nextData.next) : null;
+
+         while (laterData && numSectionsAddToBottom < 10) {
           refs.push(laterData.ref);
           laterData = Sefaria.ref(laterData.next);
           numSectionsAddToBottom += 1;
         }
 
-        this.props.updateTextColumn(refs);
-        // Sefaria.track.event("Reader", "Infinite Scroll", "Down");
-      }
-    }
-  }
-  getHighlightThreshhold() {
-    // Returns the distance from the top of screen that we want highlighted segments to appear below.
-    return this.props.multiPanel ? 200 : 70;
+    return refs;
   }
   adjustHighlightedAndVisible() {
-    //console.log("adjustHighlightedAndVisible");
-    // Adjust which ref is current consider visible for header and URL,
+    // Adjust which ref is currently consider visible for header and URL,
     // and while the TextList is open, update which segment should be highlighted.
     // Keeping the highlightedRefs value in the panel ensures it will return
     // to the right location after closing other panels.
     if (!this._isMounted) { return; }
 
+    this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
+
     // When using tab to navigate (i.e. a11y) set ref to currently focused ref
-    var $segment = null;
+    let $segment = null;
     if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
       $segment = $(".segment:focus").eq(0);
     } else {
-      var $container = this.$container;
-      var topThreshhold = this.getHighlightThreshhold();
+      const $container = this.$container;
       $container.find(".basetext .segment").each(function(i, segment) {
-        var top = $(segment).offset().top - $container.offset().top;
-        var bottom = $(segment).outerHeight() + top;
-        if (bottom > this.windowMiddle || top >= topThreshhold) {
+        const top = $(segment).offset().top - $container.offset().top;
+        const bottom = $(segment).outerHeight() + top;
+        if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
           $segment = $(segment);
           return false;
         }
@@ -251,44 +398,29 @@ class TextColumn extends Component {
 
     if (!$segment) { return; }
 
-    var $section = $segment.closest(".textRange");
-    var sectionRef = $section.attr("data-ref");
+    const $section = $segment.closest(".textRange");
+    const sectionRef = $section.attr("data-ref");
     this.props.setCurrentlyVisibleRef(sectionRef);
 
     // don't move around highlighted segment when scrolling a single panel,
-    var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
-
-    if (shouldHighlight) {
-      var ref = $segment.attr("data-ref");
-      this.props.setTextListHighlight(ref);
-    }
-  }
-  scrollToHighlighted() {
-    if (!this._isMounted) { return; }
-    //console.log("scroll to highlighted - animation frame");
-    var $container   = this.$container;
-    var $readerPanel = $container.closest(".readerPanel");
-    var $highlighted = $container.find(".segment.highlight").first();
-    if ($highlighted.length) {
-      this.scrolledToHighlight = true;
-      this.justScrolled = true;
-      var offset = this.getHighlightThreshhold();
-      $container.scrollTo($highlighted, 0, {offset: -offset});
-      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
-        $highlighted.focus();
-      }
-    }
+    const shouldShowHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
+    const ref = $segment.attr("data-ref");
+    this.props.setTextListHighlight(ref, shouldShowHighlight);
   }
   render() {
-    var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
-    var index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
-    var isDictionary = (index && index.categories[0] == "Reference");
-    var content =  this.props.srefs.map(function(ref, k) {
+    let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
+    const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
+    const isDictionary = (index && index.categories[0] === "Reference");
+    let content =  this.props.srefs.map((sref) => {
+      const oref = Sefaria.getRefFromCache(sref);
+      const isCurrentlyVisible = oref && this.props.currentlyVisibleRef === oref.sectionRef;
       return (<TextRange
         panelPosition ={this.props.panelPosition}
-        sref={ref}
+        sref={sref}
+        isCurrentlyVisible={isCurrentlyVisible}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
+        showHighlight={this.props.showHighlight}
         textHighlights={this.props.textHighlights}
         hideTitle={isDictionary}
         basetext={true}
@@ -302,42 +434,47 @@ class TextColumn extends Component {
         showBaseText={this.props.showBaseText}
         onSegmentClick={this.props.onSegmentClick}
         onCitationClick={this.props.onCitationClick}
-        onTextLoad={this.handleTextLoad.bind(this)}
+        onNamedEntityClick={this.props.onNamedEntityClick}
+        onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
-        key={ref} />);
-    }.bind(this));
+        navigatePanel={this.props.navigatePanel}
+        translationLanguagePreference={this.props.translationLanguagePreference}
+        key={sref || oref.sectionRef} />);
+    });
 
+    let pre, post, bookTitle;
     if (content.length) {
       // Add Next and Previous loading indicators
-      var first   = Sefaria.ref(this.props.srefs[0]);
-      var last    = Sefaria.ref(this.props.srefs.slice(-1)[0]);
-      var hasPrev = first && first.prev;
-      var hasNext = last && last.next;
-      var topSymbol  = " ";
-      var bottomSymbol = " ";
-      if (hasPrev) {
-        content.splice(0, 0, (<LoadingMessage className="base prev" key="prev"/>));
-      } else {
+      const first   = Sefaria.ref(this.props.srefs[0]);
+      const last    = Sefaria.ref(this.props.srefs.slice(-1)[0]);
+      const hasPrev = first && first.prev;
+      const noPrev  = first && !first.prev; // first is loaded, so we actually know there's nothing prev
+      const hasNext = last && last.next;
 
-        content.splice(0, 0, (
-          <div className="bookMetaDataBox" key="prev">
-              <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
-              <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
+      bookTitle = noPrev ?
+        <div className="bookMetaDataBox" key="bookTitle">
+          <div className="title" role="heading" aria-level="1">
+            <ContentText text={{en: this.props.bookTitle, he: this.props.heBookTitle}} defaultToInterfaceOnBilingual={true} />
           </div>
-        ));
+        </div> : null;
 
-      }
-      if (hasNext) {
-        content.push((<LoadingMessage className="base next" key="next"/>));
-      } else {
-        content.push((<LoadingMessage message={bottomSymbol} heMessage={bottomSymbol} className="base next final" key="next"/>));
-      }
+      pre = this.state.showScrollPlaceholders ?
+        (noPrev ? bookTitle :
+        <LoadingMessage className="base prev" key={"prev"}/>) : null;
+
+      post = hasNext && this.state.showScrollPlaceholders ?
+        <LoadingMessage className="base next" key={"next"}/> :
+        <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection}>{content}</div>);
+    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
+      {pre}
+      {content}
+      {post}
+    </div>);
   }
 }
 TextColumn.propTypes = {
@@ -358,15 +495,17 @@ TextColumn.propTypes = {
   updateTextColumn:       PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
+  onNamedEntityClick:     PropTypes.func,
   setTextListHighlight:   PropTypes.func,
   setCurrentlyVisibleRef: PropTypes.func,
   setSelectedWords:       PropTypes.func,
   onTextLoad:             PropTypes.func,
   panelsOpen:             PropTypes.number,
   hasSidebar:             PropTypes.bool,
-  layoutWidth:            PropTypes.number,
   textHighlights:         PropTypes.array,
   unsetTextHighlight:     PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  navigatePanel:          PropTypes.func,
 };
 
 

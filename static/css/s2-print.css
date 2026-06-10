@@ -5,6 +5,7 @@ body {
 .leftButtons,
 .rightButtons,
 .loadingMessage,
+.skip-link,
 .fa,
 .linkCount,
 .linkCountDot,
@@ -13,12 +14,19 @@ body {
 .sheetReaderControls,
 .connectionsPanel,
 .connectionsHeader,
-.groupListingImageBox,
+.collectionListingImageBox,
 .bookMetaDataBox,
-.cookieNotification,
+.cookiesNotification,
 #bannerMessage,
-#interruptingMessageBox
+#interruptingMessageBox,
+.editorSidebarToggle,
+.editorAddInterface,
+.readerOptionsPanel,
 details {
+  display: none !important;
+}
+
+a.sefaria-common-button.skip-link {
   display: none !important;
 }
 #s2 {
@@ -83,7 +91,7 @@ details {
   margin: 0;
 }
 .sheetsInPanel .sheetMetaDataBox .authorStatement,
-.sheetsInPanel .sheetMetaDataBox .groupStatement {
+.sheetsInPanel .sheetMetaDataBox .collectionStatement {
   margin-top: 4px;
 }
 .basetext .segment {
@@ -91,6 +99,9 @@ details {
 }
 .segment .segmentNumber {
   top: 0px !important;
+}
+.segment sup {
+  display: none;
 }
 #printFooter {
   display: block !important;
@@ -111,6 +122,15 @@ details {
   display: block;
 
 }
+
+.sheetItem .SheetSource.selected.segment, .sheetItem .SheetOutsideBiText.selected.segment {
+  border-top: none;
+  border-bottom: none;
+  border-inline-end: none;
+  margin-top: 2px;
+  margin-bottom: 30px;
+}
+
 @page {
   size: auto;
   margin: 0.7in 0.5in;

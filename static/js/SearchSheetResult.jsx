@@ -1,77 +1,82 @@
 import React  from 'react';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import {
-  ProfilePic,
-} from './Misc';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
+import { ProfilePic } from "./ProfilePic";
 
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
-      var href = e.target.closest('a').getAttribute("href");
-      e.preventDefault();
-      var s = this.props.data._source;
-      Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
-          {hitCallback: () => window.location = href}
-      );
+      const s = this.props.metadata;
+      if (this.props.onResultClick) {
+        e.preventDefault();
+        this.props.onResultClick(`Sheet ${s.sheetId}`);
+      }
+      Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
     handleProfileClick(e) {
-      e.preventDefault();
-      const href = e.target.closest('a').getAttribute("href");
-      const slugMatch = href.match(/profile\/(.+)$/);
-      const slug = !!slugMatch ? slugMatch[1] : '';
-      const s = this.props.data._source;
+      const s = this.props.metadata;
       Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`);
-      this.props.openProfile(slug, s.owner_name);
     }
-    get_snippet_markup(data) {
-      let snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
-      snippet = snippet.replace(/^[ .,;:!-)\]]+/, "");
+    get_snippet_markup() {
+      const snippet = this.props.snippet.replace(/^[ .,;:!-)\]]+/, "");
       const lang = Sefaria.hebrew.isHebrew(snippet) ? "he" : "en";
       return { markup: {__html: snippet}, lang };
     }
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Intl.DateTimeFormat('en-US', options).format(date);
+    }
     render() {
-        const data = this.props.data;
-        const s = data._source;
+        const s = this.props.metadata;
         var clean_title = $("<span>" + s.title + "</span>").text();
-        var href = "/sheets/" + s.sheetId;
-        const snippetMarkup = this.get_snippet_markup(data);
-        const snippetClasses = classNames({contentText: 1, snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
+        const href = `/sheets/${s.sheetId}`;
+        const snippetMarkup = this.get_snippet_markup();
+        const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang === "en", he: snippetMarkup.lang === "he"});
         const ownerIsHe = Sefaria.hebrew.isHebrew(s.owner_name);
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
+        const dateString = this.formatDate(this.props.metadata.dateCreated);
         return (
-            <div className='result sheet_result'>
-                <a href={href} onClick={this.handleSheetClick}>
-                    <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>{clean_title}</div>
-                    <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
-                </a>
-              <a href={s.profile_url} onClick={this.handleProfileClick}>
-                <div className="version">
-                  <ProfilePic
-                    url={s.owner_image}
-                    name={s.owner_name}
-                    len={30}
-                  />
-                  <span className="owner-metadata">
-                    <div className={classNames({'owner_name': 1, 'in-en': !ownerIsHe, 'in-he': ownerIsHe})}>{s.owner_name}</div>
-                    <div className='tags-views'>
-                      <div className='int-en'>{`${s.views} ${Sefaria._('Views')}${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.join(', ') : ''}`}</div>
-                      <div className='int-he'>{`${s.views} ${Sefaria._('Views')}${(!!s.tags && s.tags.length) ? ' • ' : ''}${!!s.tags ? s.tags.map( t => !!Sefaria.terms[t] ? Sefaria.terms[t].he : t).join(', ') : ''}`}</div>
+            <div className='result sheetResult'>
+                <a href={href} onClick={this.handleSheetClick} data-target-module={Sefaria.VOICES_MODULE}>
+                    <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
+                        <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
                     </div>
-                  </span>
+                    <div className={snippetClasses}>
+                        <span dir={snippetMarkup.lang === 'he' ? "rtl" : "ltr"}
+                              dangerouslySetInnerHTML={snippetMarkup.markup}></span>
+                    </div>
+                </a>
+                <div className="sheetData sans-serif">
+                    <a className="ownerData sans-serif" href={s.profile_url} onClick={this.handleProfileClick} data-target-module={Sefaria.VOICES_MODULE}>
+                        <ProfilePic
+                            url={s.owner_image}
+                            name={s.owner_name}
+                            len={30}
+                        />
+                        <span className={classNames({
+                            'ownerName': 1,
+                            'in-en': !ownerIsHe,
+                            'in-he': ownerIsHe
+                        })}>{s.owner_name}</span>
+                        <span className="bullet">{'\u2022'}</span>
+                        <span className="date">
+                                {dateString}
+                            </span>
+                    </a>
                 </div>
-              </a>
             </div>
         );
     }
 }
+
 SearchSheetResult.propTypes = {
-  query: PropTypes.string,
-  data: PropTypes.object,
-  openProfile: PropTypes.func.isRequired,
+    query: PropTypes.string,
+    hit: PropTypes.object,
+    onResultClick: PropTypes.func
 };
 
 

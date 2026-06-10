@@ -1,0 +1,51 @@
+{{- if .Values.restore.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-restore-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "5"
+data:
+  restore-mongo.sh: |-
+    #!/bin/bash
+    set -e
+
+    tar xzvf /storage/dump.tar.gz -C /storage 
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+    fi
+
+    URI="${URI}${MONGO_HOST}/?ssl=false"
+
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+      URI="${URI}&authSource=admin"
+    fi
+
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    {{- if .Values.restore.dynamicName }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
+
+    mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
+{{- end }}

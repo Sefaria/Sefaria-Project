@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  {{- if .Values.instrumentation.enabled }}
+  opentracing.json: |-
+    {
+      "service_name": "nginx-{{ .Values.deployEnv }}",
+      "propagation_format": "jaeger",
+      "sampler": {
+        "type": "const",
+        "param": 1,
+        "samplingServerURL": "http://127.0.0.1:5778/sampling"
+      },
+      "reporter": {
+        "endpoint": "",
+        "localAgentHostPort": "{{ .Values.instrumentation.jaegerEndpoint }}"
+      },
+      "headers": {
+        "TraceContextHeaderName": "",
+        "jaegerDebugHeader": "",
+        "jaegerBaggageHeader": "",
+        "traceBaggageHeaderPrefix": ""
+      }
+    }
+  {{- end }}
+  entrypoint.sh: |
+    #!/bin/bash
+
+    set -e
+
+    export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USERNAME:$ELASTIC_PASSWORD | base64)
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf
+
+    nginx -c /nginx.conf -g 'daemon off;'
+
+  nginx.template.conf: |
+    {{- tpl (.Files.Get "conf/nginx.template.conf.tpl") . | nindent 4 }}

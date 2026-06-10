@@ -1,0 +1,104 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">Sefaria Community,</span>
+        <span class="int-he">לקהילת ספריא,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            In the lead-up to Purim, <span class="int-en" style="font-weight: bold">all donations to the library are being matched 1:1</span>, so that you can double your impact
+            on tech 
+            and Torah. 
+            Sefaria’s mission is to make Jewish texts accessible to all – 
+            and your donation will directly impact our engineering team, text acquisition plans, learning resources, 
+            and all of the other work that goes into keeping the library running and thriving.
+        </span>
+        <span class="int-he">
+            לקראת פורים, <span class="int-he" style="font-weight: bold">כל התרומות לספריה זוכות למצ'ינג</span>, כך שתוכלו להכפיל את השפעתכם על טכנולוגיה ותורה. המשימה של ספריא היא 
+            להנגיש 
+            טקסטים יהודיים לכולם - 
+            והתרומה שלכם מאפשרת זאת על-ידי מימון צוות ההנדסה, תכניות לרכישת טקסטים, משאבי למידה, וכל שאר העבודה שנעשית כדי לדאוג  שהספריה תמשיך לפעול ולשגשג.
+        </span>
+    </p>
+
+    <p>
+        <span class="int-en">Become a Sefaria Insider today and double your impact on the future of Jewish learning!</span>
+        <span class="int-he">אנחנו קוראים לכם להפוך לחברי ספריא כבר היום וכך להכפיל את השפעתכם על עתיד הלמידה היהודית!</span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/sefariainsider">
+            <span class="int-en">Double your Donation</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/sefariainsider">
+            <span class="int-he">לתרומה</span>
+        </a>
+    </div>
+
+
+</div>

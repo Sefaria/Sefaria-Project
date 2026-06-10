@@ -3,16 +3,17 @@
 from sefaria.model import *
 from sefaria.helper.link import rebuild_links_for_title, AutoLinkerFactory
 import sefaria.tracker as tracker
+from sefaria.system.exceptions import InputError
 from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_child
 
 
 class Test_AutoLinker(object):
     link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
     rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")
-    kos_eliyahu_links = link_set_lambda("Kos Shel Eliyahu on Pesach Haggadah")
+    kos_eliyahu_links = link_set_lambda("Kos Eliyahu on Pesach Haggadah")
     desired_link_counts = {
         'Rashi on Genesis': rashi_on_genesis_links.count(),
-        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
+        'Kos Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
     }
 
     @classmethod
@@ -52,7 +53,7 @@ class Test_AutoLinker(object):
             'dependence': "Commentary",
             "base_text_titles": ["Genesis"],
             "base_text_mapping": "many_to_one_default_only",
-            'categories': ['Tanakh', "Commentary"],
+            'categories': ['Tanakh', "Rishonim on Tanakh"],
         })
         index.save()
 
@@ -153,7 +154,7 @@ class Test_AutoLinker(object):
             'dependence': 'Commentary',
             'base_text_titles': ['Genesis'],
             'base_text_mapping': 'one_to_one_default_only',
-            'categories': ['Tanakh', 'Commentary'],
+            'categories': ['Tanakh', 'Rishonim on Tanakh'],
         })
         index.save()
 
@@ -231,23 +232,47 @@ class Test_AutoLinker(object):
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
         cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
+
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        i = library.get_index(title)
+        Version({
+            "chapter": i.nodes.create_skeleton(),
+            "versionTitle": "test",
+            "versionSource": "blabla",
+            "language": "he",
+            "title": i.title
+        }).save()
         #print 'End of test setup'
 
     @classmethod
     def teardown_class(cls):
-        #print 'Cleaning Up'
-        ls = LinkSet(Ref("Many to One on Genesis"))
-        ls.delete()
-        ls = LinkSet(Ref("One to One on Genesis"))
-        ls.delete()
+        try:
+            ls = LinkSet(Ref("Many to One on Genesis"))
+            ls.delete()
+        except InputError:
+            pass
+
+        try:
+            ls = LinkSet(Ref("One to One on Genesis"))
+            ls.delete()
+        except InputError:
+            pass
+
         v = Version().load({'title': 'Many to One on Genesis'})
-        v.delete()
+        if v:
+            v.delete()
         v = Version().load({'title': 'One to One on Genesis'})
-        v.delete()
+        if v:
+            v.delete()
         i = Index().load({'title': 'Many to One on Genesis'})
-        i.delete()
+        if i:
+            i.delete()
         i = Index().load({"title": "One to One on Genesis"})
-        i.delete()
+        if i:
+            i.delete()
+        v = Version().load({"title": 'Kos Eliyahu on Pesach Haggadah', "versionTitle": "test", "language": "he"})
+        if v:
+            v.delete()
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
@@ -259,7 +284,7 @@ class Test_AutoLinker(object):
         assert len(found) == desired_link_count
 
     def test_rebuild_commentary_links_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         linker = rf.autolinker(user=1)
         desired_link_count = self.desired_link_counts[title]
@@ -333,7 +358,7 @@ class Test_AutoLinker(object):
 
     def test_refresh_commentary_links_complex(self):
         #test that there are the same number of links before and after
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         regex = rf.regex()
         desired_link_count = self.desired_link_counts[title]
@@ -393,14 +418,16 @@ class Test_AutoLinker(object):
         desired_link_count = self.desired_link_counts[title]
         # add some text (adding one more comment than there is already)
         tracker.modify_text(1, oref, vtitle, lang, stext)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == (desired_link_count+1)
+        higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+
         # now delete
         chunk = TextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-1]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == desired_link_count
+        lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+        # Assert both of these after the removal - lest the first one failing prevent the text removal
+        assert higher_link_count == (desired_link_count+1)
+        assert lower_link_count == desired_link_count
 
     def test_refresh_links_with_text_save_many_to_one_default_node(self):
         title_ref = "Many to One on Genesis 1:9"
@@ -414,8 +441,7 @@ class Test_AutoLinker(object):
         stext = ["Intro first segment text", "Intro second segment text", "Intro third segment text"]
         oref = Ref("{}, Introduction 1".format(title))
         tracker.modify_text(1, oref, "test", "en", stext)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == desired_link_count
+        base_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now add 2 segments to default node and check that exactly 2 more links exist than
         lang = 'he'
@@ -424,15 +450,18 @@ class Test_AutoLinker(object):
         stext = TextChunk(oref, lang=lang).text
         stext += ["חדש", "חדש"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == (desired_link_count+2)
+        higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now delete 2 segments
         chunk = TextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == desired_link_count
+        lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+
+        # Assert both of these after the removal - lest the first one failing prevent the text removal
+        assert base_link_count == desired_link_count
+        assert higher_link_count == (desired_link_count+2)
+        assert lower_link_count == desired_link_count
 
     def test_refresh_links_with_text_save_one_to_one_default_node(self):
         title_ref = "One to One on Genesis 1"
@@ -446,8 +475,7 @@ class Test_AutoLinker(object):
         stext = ["Intro first segment text", "Intro second segment text", "Intro third segment text"]
         oref = Ref("{}, Introduction 1".format(title))
         tracker.modify_text(1, oref, "test", "en", stext)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == desired_link_count
+        base_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now add 2 segments to default node and check that exactly 2 more links exist than
         lang = 'en'
@@ -456,20 +484,23 @@ class Test_AutoLinker(object):
         stext = TextChunk(oref, lang=lang).text
         stext += ["new", "new"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
-        link_count = LinkSet(
+        higher_link_count = LinkSet(
             {"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == (desired_link_count + 2)
 
         # now delete 2 segments
         chunk = TextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == desired_link_count
+        lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+
+        # Assert both of these after the removal - lest the first one failing prevent the text removal
+        assert base_link_count == desired_link_count
+        assert higher_link_count == (desired_link_count+2)
+        assert lower_link_count == desired_link_count
 
     def test_refresh_links_with_text_save_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
-        section_tref = 'Kos Shel Eliyahu on Pesach Haggadah, Kadesh 1'
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
         stext = ["thlerkawje alkejal ekjlkej", "eaflkje arheahrlka jhklajdhkl ADJHKL"]
         lang = 'he'
         vtitle = "test"
@@ -480,12 +511,45 @@ class Test_AutoLinker(object):
         desired_link_count = self.desired_link_counts[title]
         # add some text (adding two more comment than there is already)
         tracker.modify_text(1, oref, vtitle, lang, stext)
-        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
-        assert link_count == (desired_link_count+2)
+        higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         # now delete
         chunk = TextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
+        lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+        # Assert both of these after the removal - lest the first one failing prevent the text removal
+        assert higher_link_count == (desired_link_count+2)
+        assert lower_link_count == desired_link_count
+
+    def test_bulk_refresh_links_with_text_save_complex(self):
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
+        lang = 'he'
+        vtitle = "test"
+        rf = Ref(title)
+        regex = rf.regex()
+        version = Version().load({"title": title, "versionTitle": vtitle, "language": lang})
+        text_map = {
+            f"{section_tref}:1": "more text",
+            f"{section_tref}:2": "even more text",
+            f"{section_tref}:3": "blah text",
+            f"{section_tref}:5": "skip one!"
+        }
+        # original count
+        desired_link_count = self.desired_link_counts[title]
+        # add some text
+        tracker.modify_bulk_text(1, version, text_map)
+        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+        assert link_count == (desired_link_count+4)
+        for tref, mod_text in text_map.items():
+            seg_index = int(tref.split(':')[-1])-1
+            version.chapter["Kadesh"][0][seg_index] = mod_text
+        assert version.chapter["Kadesh"][0][3] == ""  # 4th element should have been padded
+
+        # now delete
+        for k in text_map.keys():
+            text_map[k] = ''  # set all values to empty string. which should trigger trim_ending_whitespace to delete them
+        tracker.modify_bulk_text(1, version, text_map)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 

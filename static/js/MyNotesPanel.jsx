@@ -1,10 +1,9 @@
 import {
   CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  MenuButton,
+  DisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
-  SinglePanelNavHeader,
   Note,
 } from './Misc';
 import React  from 'react';
@@ -15,7 +14,6 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import TextRange  from './TextRange';
 import { AddToSourceSheetWindow } from './AddToSourceSheet';
-import Footer  from './Footer';
 import Component          from 'react-class';
 
 
@@ -55,14 +53,6 @@ class MyNotesPanel extends Component {
 
     return (
       <div className={classStr}>
-        {this.props.hideNavHeader ? null :
-          <SinglePanelNavHeader
-            enTitle="My Notes"
-            heTitle="הרשומות שלי"
-            navHome={this.props.navHome}
-            showDisplaySettings={true}
-            openDisplaySettings={this.props.openDisplaySettings}/>
-        }
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
@@ -86,7 +76,6 @@ class MyNotesPanel extends Component {
             </div>
 
           </div>
-          <Footer />
         </div>
       </div>);
   }
@@ -97,7 +86,6 @@ MyNotesPanel.propTypes = {
   hideNavHeader:       PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  openDisplaySettings: PropTypes.func,
 };
 
 
@@ -127,11 +115,11 @@ class NoteListing extends Component {
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
     return (<div className="noteListing">
-              <div className="addToSheetButton sans he" onClick={this.showSheetModal}>
+              <div className="addToSheetButton sans-serif he" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>
-              <div className="addToSheetButton sans en" onClick={this.showSheetModal}>
+              <div className="addToSheetButton sans-serif en" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>

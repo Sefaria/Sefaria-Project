@@ -2,21 +2,7 @@ import $ from './sefariaJquery';
 import extend from 'extend';
 import FilterNode from './FilterNode';
 import SearchState from './searchState';
-
-
-class HackyQueryAborter{
-    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
-    * we'll want to replace our ajax queries with fetch*/
-    constructor() {
-        this._queryList = [];
-    }
-    addQuery(ajaxQuery) {
-        this._queryList.push(ajaxQuery);
-    }
-    abort() {
-        this._queryList.map(ajaxQuery => ajaxQuery.abort());
-    }
-}
+import { SearchTotal } from "./searchTotal";
 
 
 class Search {
@@ -24,34 +10,48 @@ class Search {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
-      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}, lastSeen: -1};
-      this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits:[]}};
+      this.sefariaQueryQueue = {hits: {hits:[], total: new SearchTotal(), max_score: 0.0}, lastSeen: -1};
+      this.dictaQueryQueue = {lastSeen: -1, hits: {total: new SearchTotal(), hits:[]}};
       this.queryDictaFlag = true;
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
       this.buckets = [];
       this.queryAborter = new HackyQueryAborter();
-      // this.dictaSearchUrl = 'http://34.206.201.228';
       this.dictaSearchUrl = 'https://sefaria.loadbalancer.dicta.org.il';
     }
     cache(key, result) {
         if (result !== undefined) {
            this._cache[key] = result;
         }
+        if (!this._cache[key]) {
+            //console.log("Cache miss");
+            //console.log(key);
+        }
         return this._cache[key];
     }
     sefariaQuery(args, isQueryStart, wrapper) {
         return new Promise((resolve, reject) => {
-            let req = JSON.stringify(this.get_query_object(args));
+            const jsonData = this.sortedJSON(this.get_query_object(args));
+            const cacheKey = "sefariaQuery|" + jsonData;
+            const cacheResult = this.cache(cacheKey);
+            if (cacheResult) {
+                resolve(cacheResult);
+                return null;
+            }
+
             wrapper.addQuery($.ajax({
-                url: `${Sefaria.apiHost}/api/search-wrapper`,
+                url: `${Sefaria.apiHost}/api/search-wrapper/es8`,
                 type: 'POST',
-                data: req,
+                data: jsonData,
                 contentType: "application/json; charset=utf-8",
                 crossDomain: true,
                 processData: false,
                 dataType: 'json',
-                success: data => resolve(data),
+                success: data => {
+                    data.hits.total = new SearchTotal(data.hits.total);
+                    this.cache(cacheKey, data);
+                    resolve(data)
+                },
                 error: reject
             }));
         }).then(x => {
@@ -73,6 +73,20 @@ class Search {
         });
 
     }
+    /**
+     * Function to reformat the Hebrew Ref from the Dicta convention - תנ״ר/נביאים/ספר זכריה/פרק א/פסוק א
+     * to the Sefaria Hebrew Ref convention (the results of Ref('Zechariah 1.1').he_normal())
+     * @param {*} ref - the incoming Dicta Ref
+     * @returns cleanedHebrewRef - according to Sefaria conventions
+     */
+    reformatDictaRef(ref) {
+        const hebrewRef = ref.match(/תנ"ך\/.*\/ספר (.*)\/פרק (.*)\/פסוק (.*)/);
+        const sefer = hebrewRef[1];
+        const perek = hebrewRef[2].length === 1 ? `${hebrewRef[2]}'` : hebrewRef[2].split('').join('"');
+        const pasuk = hebrewRef[3].length === 1 ? `${hebrewRef[3]}'`: hebrewRef[3].split('').join('"');
+        const cleanedHebrewRef = `${sefer} ${perek}:${pasuk}`;
+        return cleanedHebrewRef;
+    }
     dictaQuery(args, isQueryStart, wrapper) {
         function ammendArgsForDicta(standardArgs, lastSeen) {
             let filters = (standardArgs.applied_filters) ? standardArgs.applied_filters.map(book => {
@@ -91,29 +105,45 @@ class Search {
         return new Promise((resolve, reject) => {
 
             if (this.queryDictaFlag && args.type === "text") {
-                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args && args['start'] > 0)) {
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total.getValue() &&
+                    ('start' in args && args['start'] > 0)) {
                     /* don't make new queries if results are exhausted.
                      * 'start' is omitted on first query (defaults to 0). On a first query, we'll always want to query.
                      */
                     resolve({total: this.dictaQueryQueue.hits.total, hits: []});
                 }
                 else {
+                    const jsonData = this.sortedJSON(ammendArgsForDicta(args, this.dictaQueryQueue.lastSeen));
+                    const cacheKey = "dictaQuery|" + jsonData;
+                    const cacheResult = this.cache(cacheKey);
+                    if (cacheResult) {
+                        resolve(cacheResult);
+                        return null;
+                    }
+
                     wrapper.addQuery($.ajax({
                         url: `${this.dictaSearchUrl}/search`,
                         type: 'POST',
                         dataType: 'json',
                         contentType: 'application/json; charset=UTF-8',
-                        data: JSON.stringify(ammendArgsForDicta(args, this.dictaQueryQueue.lastSeen)),
-                        success: data => resolve(data),
+                        data: jsonData,
+                        success: data => {
+                            data.total = new SearchTotal({value: data.total});
+                            this.cache(cacheKey, data);
+                            resolve(data);
+                        },
                         error: reject
                     }));
                 }
 
             }
             else {
-                resolve({total: 0, hits: []});
+                resolve({total: new SearchTotal(), hits: []});
             }
         }).then(x => {
+            if (args.type === "sheet") {
+                return null;
+            }
             let adaptedHits = [];
             x.hits.forEach(hit => {
                 const bookData = hit.xmlId.split(".");
@@ -121,6 +151,8 @@ class Search {
                 const bookTitle = bookData[2].replace(/_/g, ' ');
                 const bookLoc = bookData.slice(3, 5).join(':');
                 const version = "Tanach with Ta'amei Hamikra";
+                const isPrimary = true;
+                const languageFamilyName = 'hebrew'
                 adaptedHits.push({
                     _source: {
                         type: 'text',
@@ -128,8 +160,10 @@ class Search {
                         version: version,
                         path: categories,
                         ref: `${bookTitle} ${bookLoc}`,
-                        heRef: hit.hebrewPath,
+                        heRef: this.reformatDictaRef(hit.hebrewPath),
                         pagesheetrank: (hit.pagerank) ? hit.pagerank : 0,
+                        isPrimary,
+                        languageFamilyName,
                     },
                     highlight: {naive_lemmatizer: [hit.highlight[0].text]},
                     score: (hit.pagerank) ? hit.pagerank * -1 : 0,
@@ -144,7 +178,7 @@ class Search {
                     total: x.total,
                     hits: adaptedHits
                 },
-                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length
+                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length - 1
 
             }
         }).catch(x => {
@@ -155,14 +189,24 @@ class Search {
         return new Promise((resolve, reject) => {
             if (this.dictaCounts === null && args.type === "text") {
                 if (this.queryDictaFlag) {
+                    const jsonData = this.sortedJSON({query: args.query, smallUnitsOnly: true})
+                    const cacheKey = "dictaBooksQuery|" + jsonData;
+                    const cacheResult = this.cache(cacheKey);
+                    if (cacheResult) {
+                        resolve(cacheResult);
+                        return null;
+                    }
                     wrapper.addQuery($.ajax({
                         url: `${this.dictaSearchUrl}/books`,
                         type: 'POST',
                         dataType: 'json',
                         contentType: "application/json;charset=UTF-8",
-                        data: JSON.stringify({query: args.query, smallUnitsOnly: true}),
+                        data: jsonData,
                         timeout: 3000,
-                        success: data => resolve(data),
+                        success: data => {
+                            this.cache(cacheKey, data);
+                            resolve(data)
+                        },
                         error: reject
                     }));
                 }
@@ -190,30 +234,13 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return RegExp(/^[^a-zA-Z]*$/).test(args.query); // If English appears in query, search in Sefaria only
+        return Sefaria.hebrew.isHebrew(args.query) && !args.exact;
     }
-    getPivot(queue, minValue, sortType) {
-
-        // if this is the last query, this will be the last chance to return results
-        if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total &&
-            this.sefariaQueryQueue.lastSeen + 1 >= this.sefariaQueryQueue.hits.total)
-            return queue.length;
-
-        // return whole queue if the last item in queue is equal to minValue
-
-        if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
-            return queue.length;
-
-        const pivot = queue.findIndex(x => x[sortType] > minValue);
-        return (pivot >= 0) ? pivot : 0;
+    sortedJSON(obj) {
+        // Returns JSON with keys sorted consistently, suitable for a cache key
+        return JSON.stringify(obj, Object.keys(obj).sort());
     }
     mergeQueries(addAggregations, sortType, filters) {
-        // function getPivot(queue, minValue, lastSeen, total) {
-        //     if (lastSeen + 1 >= total)
-        //         return queue.length;
-        //     let pivot = queue.findIndex(x => x[sortType] > minValue);
-        //     return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
-        // }
         let result = {hits: {}};
         if(addAggregations) {
 
@@ -225,15 +252,16 @@ class Search {
         }
         if (!!filters.length) {
             const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
-            result.hits.total = this.buckets.reduce((total, currentBook) => {
+            const accumulatedTotal = this.buckets.reduce((total, currentBook) => {
                 if (expression.test(currentBook.key)) {
                     total += currentBook.doc_count;
                 }
                 return total
             }, 0);
+            result.hits.total = new SearchTotal({value: accumulatedTotal});
         }
         else {
-            result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
+            result.hits.total = this.sefariaQueryQueue.hits.total.combine(this.dictaQueryQueue.hits.total);
         }
 
         let sefariaHits = (this.queryDictaFlag)
@@ -268,7 +296,6 @@ class Search {
                 for (let i=0; i<dictaHits.length; i++) {
                     dictaHits[i].score = dictaHits[i].score * factor;
                 }
-
                 dictaMeanScore = dictaHits.reduce(
                     (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
                 );
@@ -278,37 +305,13 @@ class Search {
                 }
             }
 
-            const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            //const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
-            //const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
-            const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
-            const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
-
-            this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
-            sefariaHits = sefariaHits.slice(0, sefariaPivot);
-            this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
-            dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
-        // if (sortType !== "score")
-        //     finalHits.reverse();
+
         result.hits.hits = finalHits;
         return result;
-
-        // if(this.queryDictaFlag) {
-        //     this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
-        //
-        //     let sefariaHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
-        // else {
-        //         sefariaHits = this.sefariaQueryQueue.hits.hits;
-        //      }
-        //     // newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
-        //     // this.sefariaQueryQueue.hits.hits = newHits;
-        // }
     }
     execute_query(args) {
-        // To replace sjs.search.post in search.js
-
         /* args can contain
          query: query string
          size: size of result set
@@ -316,6 +319,7 @@ class Search {
          type: "sheet" or "text"
          applied_filters: filter query by these filters
          appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
+         aggregationsToUpdate
          field: field to query in elastic_search
          sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
@@ -325,69 +329,58 @@ class Search {
         if (!args.query) {
             return;
         }
-
+        //console.log("*** ", args.query);
         let isQueryStart = !(args.start);
         if (isQueryStart) // don't touch these parameters if not a text search
         {
             if (args.type === 'text') {
                 this.dictaCounts = null;
                 this.queryDictaFlag = this.isDictaQuery(args);
-                this.sefariaQueryQueue = {hits: {hits: [], total: 0, max_score: 0.0}, lastSeen: -1};
-                this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits: []}};
+                this.sefariaQueryQueue = {hits: {hits: [], total: new SearchTotal(), max_score: 0.0}, lastSeen: -1};
+                this.dictaQueryQueue = {lastSeen: -1, hits: {total: new SearchTotal(), hits: []}};
                 this.queryAborter.abort();
             }
         }
 
-        let req = JSON.stringify(this.get_query_object(args));
-        let cache_result = this.cache(req);
-        if (cache_result) {
-            args.success(cache_result);
-            return null;
-        }
         let queryAborter = new HackyQueryAborter();
         this.queryAborter = queryAborter;
-        /*
-        return $.ajax({
-            url: `${Sefaria.apiHost}/api/search-wrapper`,
-            type: 'POST',
-            data: req,
-            contentType: "application/json; charset=utf-8",
-            crossDomain: true,
-            processData: false,
-            dataType: 'json',
-            success: function(data) {
-                this.cache(req, data);
-                args.success(data);
-            }.bind(this),
-            error: args.error
-        });
-         */
-        // const sortType = (args.)
+
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
         if (this.queryDictaFlag) {
             Promise.all([
-            this.sefariaQuery(args, updateAggreagations, queryAborter),
-            this.dictaQuery(args, updateAggreagations, queryAborter),
-            this.dictaBooksQuery(args, queryAborter)
-        ]).then(() => {
-            if (args.type === "sheet") {
-                args.success(this.sefariaSheetsResult);
-            }
-            else {
-                const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
-            }
-        }).catch(x => console.log(x));
-        // }).catch(args.error);
+                this.sefariaQuery(args, updateAggreagations, queryAborter),
+                this.dictaQuery(args, updateAggreagations, queryAborter),
+                this.dictaBooksQuery(args, queryAborter)
+            ]).then(() => {
+                if (args.type === "sheet") {
+                    this._cacheQuery(args, this.sefariaSheetsResult);
+                    args.success(this.sefariaSheetsResult);
+                }
+                else {
+                    const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
+                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters);
+                    const cacheResult = this.getCachedQuery(args);
+                    if (!cacheResult) {
+                        this._cacheQuery(args, mergedQueries);
+                        args.success(mergedQueries);
+                    }
+                    else {
+                        args.success(cacheResult);
+                    }
+                }
+            }).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
                 .then(() => {
-                    if (args.type === "sheet")
+                    if (args.type === "sheet") {
+                        this._cacheQuery(args, this.sefariaSheetsResult);
                         args.success(this.sefariaSheetsResult);
-                    else
+                    } else {
+                        this._cacheQuery(args, this.sefariaQueryQueue);
                         args.success(this.sefariaQueryQueue);
-                    })
+                    }
+                })
         }
 
         return queryAborter;
@@ -423,8 +416,7 @@ class Search {
         sort_score_missing: score_missing,
       };
     }
-
-    process_text_hits(hits) {
+    mergeTextResultsVersions(hits) {
       var newHits = [];
       var newHitsObj = {};  // map ref -> index in newHits
       const alreadySeenIds = {};  // for some reason there are duplicates in the `hits` array. This needs to be dealth with. This is a patch.
@@ -448,162 +440,90 @@ class Search {
       });
       return newHits;
     }
+    getCachedQuery(args) {
+        const cacheKey = this._queryCacheKey(args);
+        return this.cache(cacheKey);
+    }
+    _cacheQuery(args, results) {
+        const cacheKey = this._queryCacheKey(args);
+        results = Sefaria.util.clone(results);
+        this.cache(cacheKey, results);
+    }
+    _queryCacheKey(args) {
+        return "query|" + this.sortedJSON(args);
+    }
     buildFilterTree(aggregation_buckets, appliedFilters) {
-      //returns object w/ keys 'availableFilters', 'registry'
-      //Add already applied filters w/ empty doc count?
-      var rawTree = {};
+        const availableFilters = [];     // List of root level FilterNode objects.
+        const registry = {};        // Mappings of "/" separated category path strings to FilterNode objects
 
-      appliedFilters.forEach(
-          fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
-      );
+        // create combined list of filters with {aggKey, docCount, path}
+        let filters = [
+            ...appliedFilters.map(fkey => ({
+                aggKey: fkey,
+                docCount: 0,
+                path: fkey.split("/")
+            })),
+            ...aggregation_buckets.map(f => ({
+                aggKey: f["key"],
+                docCount: f["doc_count"],
+                path: f["key"].split("/")
+            }))
+        ];
 
-      aggregation_buckets.forEach(
-          f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
-      );
-      this._aggregate(rawTree);
-      return this._build(rawTree);
-    }
-    _addAvailableFilter(rawTree, key, data) {
-      //key is a '/' separated key list, data is an arbitrary object
-      //Based on http://stackoverflow.com/a/11433067/213042
-      var keys = key.split("/");
-      var base = rawTree;
+        // Drop results that don't match our TOC.  This is needed for cases where the TOC updates, but the update hasn't gotten to the ES server yet.
+        filters = filters.filter(x => Sefaria._tocOrderLookup[x.aggKey]);
 
-      // If a value is given, remove the last name and keep it for later:
-      var lastName = arguments.length === 3 ? keys.pop() : false;
+        // sort into search toc tree order
+        filters.sort((a,b) => Sefaria.compareSearchCatPaths(a.aggKey, b.aggKey));
 
-      // Walk the hierarchy, creating new objects where needed.
-      // If the lastName was removed, then the last object is not set yet:
-      var i;
-      for(i = 0; i < keys.length; i++ ) {
-          base = base[ keys[i] ] = base[ keys[i] ] || {};
-      }
+        // Build trees of filters
+        // Keep array of previous entry nodes
+        let previousNodes = [];
 
-      // If a value was given, set it to the last name:
-      if( lastName ) {
-          base = base[ lastName ] = data;
-      }
+        for (let i = 0; i < filters.length; i++) {
+            const f = filters[i];
 
-      // Could return the last object in the hierarchy.
-      // return base;
-    }
-    _aggregate(rawTree) {
-      //Iterates the raw tree to aggregate doc_counts from the bottom up
-      //Nod to http://stackoverflow.com/a/17546800/213042
-      walker("", rawTree);
-      function walker(key, branch) {
-          if (branch !== null && typeof branch === "object") {
-              // Recurse into children
-              $.each(branch, walker);
-              // Do the summation with a hacked object 'reduce'
-              if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
-                  branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
-                      if (typeof branch[key] === "object" && "docCount" in branch[key]) {
-                          previous += branch[key].docCount;
-                      }
-                      return previous;
-                  }, 0);
-              }
-          }
-      }
-    }
-
-    _build(rawTree) {
-      //returns dict w/ keys 'availableFilters', 'registry'
-      //Aggregate counts, then sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
-      //Nod to http://stackoverflow.com/a/17546800/213042
-      var path = [];
-      var filters = [];
-      var registry = {};
-
-      var commentaryNode = new FilterNode();
-
-
-      for(var j = 0; j < Sefaria.search_toc.length; j++) {
-          var b = walk.call(this, Sefaria.search_toc[j]);
-          if (b) filters.push(b);
-
-          // Remove after commentary refactor ?
-          // If there is commentary on this node, add it as a sibling
-          if (commentaryNode.hasChildren()) {
-            var toc_branch = Sefaria.toc[j];
-            var cat = toc_branch["category"];
-            // Append commentary node to result filters, add a fresh one for the next round
-            var docCount = 0;
-            if (rawTree.Commentary && rawTree.Commentary[cat]) { docCount += rawTree.Commentary[cat].docCount; }
-            if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
-            extend(commentaryNode, {
-                "title": cat + " Commentary",
-                "aggKey": "Commentary/" + cat,
-                "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
-                "docCount": docCount
-            });
-            registry[commentaryNode.aggKey] = commentaryNode;
-            filters.push(commentaryNode);
-            commentaryNode = new FilterNode();
-          }
-      }
-
-      return { availableFilters: filters, registry };
-
-      function walk(branch, parentNode) {
-          var node = new FilterNode();
-
-          node["docCount"] = 0;
-
-          if("category" in branch) { // Category node
-
-            path.push(branch["category"]);  // Place this category at the *end* of the path
-            extend(node, {
-              "title": path.slice(-1)[0],
-              "aggKey": path.join("/"),
-              "heTitle": branch["heCategory"]
-            });
-
-            for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk.call(this, branch["contents"][j], node);
-                if (b) node.append(b);
+            let j;  // index of first place where this filter differs from the previous
+            for (j = 0; j < Math.min(previousNodes.length, f.path.length); j++) {
+                if (previousNodes[j].title !== f.path[j]) {
+                    break;
+                }
             }
-          }
-          else if ("title" in branch) { // Text Node
-              path.push(branch["title"]);
-              extend(node, {
-                 "title": path.slice(-1)[0],
-                 "aggKey": path.join("/"),
-                 "heTitle": branch["heTitle"]
-              });
-          }
 
-          try {
-              var rawNode = rawTree;
-              var i;
+            for (let k = j; k < f.path.length; k++) {
+                const node = new FilterNode({
+                        "title": f.path[k],
+                        "aggKey": f.path.slice(0,k+1).join("/"),
+                        "heTitle": Sefaria.hebrewTerm(f.path[k]),
+                        "docCount": f.docCount ? f.docCount : 0
+                    }
+                );
+                previousNodes[k] = node;
+                if (k === 0) {
+                    availableFilters.push(node);
+                } else {
+                    previousNodes[k - 1].append(node);
+                }
+                registry[node.aggKey] = node;
+            }
+            previousNodes = previousNodes.slice(0,f.path.length);
+        }
 
-              for (i = 0; i < path.length; i++) {
-                //For TOC nodes that we don't have results for, we catch the exception below.
-                rawNode = rawNode[path[i]];
-              }
-              node["docCount"] += rawNode.docCount;
-              registry[node.aggKey] = node;
-              path.pop();
-              return node;
-          }
-          catch (e) {
-            path.pop();
-            return false;
-          }
-      }
+        //sum doc counts
+        availableFilters.forEach(n => n.sumDocs());
+
+        return { availableFilters, registry };
     }
 
     applyFilters(registry, appliedFilters) {
-      var orphans = [];  // todo: confirm behavior
+      const orphans = [];
       appliedFilters.forEach(aggKey => {
-        var node = registry[aggKey];
+        const node = registry[aggKey];
         if (node) { node.setSelected(true); }
         else { orphans.push(aggKey); }
       });
       return orphans;
     }
-
     getAppliedSearchFilters(availableFilters) {
       let appliedFilters = [];
       let appliedFilterAggTypes = [];
@@ -619,18 +539,16 @@ class Search {
         appliedFilterAggTypes,
       };
     }
-
     buildAndApplyTextFilters(aggregation_buckets, appliedFilters, appliedFilterAggTypes, aggType) {
       const { availableFilters, registry } = this.buildFilterTree(aggregation_buckets, appliedFilters);
       const orphans = this.applyFilters(registry, appliedFilters);
       return { availableFilters, registry, orphans };
     }
-
     buildAndApplySheetFilters(aggregation_buckets, appliedFilters, appliedFilterAggTypes, aggType) {
       const availableFilters = aggregation_buckets.map( b => {
         const isHeb = Sefaria.hebrew.isHebrew(b.key);
         const enTitle = isHeb ? '' : b.key;
-        const heTitle = isHeb ? b.key : (aggType === 'group' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
+        const heTitle = isHeb ? b.key : (aggType === 'collections' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
         const aggKey = enTitle || heTitle;
         const filterInd = appliedFilters.indexOf(aggKey);
         const isSelected = filterInd !== -1 && appliedFilterAggTypes[filterInd] === aggType;
@@ -648,5 +566,21 @@ class Search {
       return { availableFilters, registry: {}, orphans: [] };
     }
 }
+
+
+class HackyQueryAborter{
+    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
+    * we'll want to replace our ajax queries with fetch*/
+    constructor() {
+        this._queryList = [];
+    }
+    addQuery(ajaxQuery) {
+        this._queryList.push(ajaxQuery);
+    }
+    abort() {
+        this._queryList.map(ajaxQuery => ajaxQuery.abort());
+    }
+}
+
 
 export default Search;

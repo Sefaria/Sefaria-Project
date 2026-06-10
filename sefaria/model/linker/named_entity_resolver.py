@@ -1,0 +1,178 @@
+import dataclasses
+import re2 as re
+from functools import reduce
+from collections import defaultdict
+
+from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
+from sefaria.model.linker.ref_part import RawNamedEntity
+from sefaria.model.marked_up_text_chunk import MUTCSpanType
+from sefaria.model.topic import Topic
+from sefaria.utils.hebrew import strip_cantillation, get_matches_with_prefixes
+from sefaria.system.exceptions import InputError
+
+
+class ResolvedNamedEntity(AbstractResolvedEntity):
+
+    def __init__(self, raw_named_entity: RawNamedEntity, topics: list[Topic]):
+        self._raw_entity = raw_named_entity
+        self.topics = topics
+        
+    @property
+    def raw_entity(self):
+        return self._raw_entity
+
+    @property
+    def topic(self):
+        if len(self.topics) != 1:
+            raise InputError(f"ResolvedNamedEntity is ambiguous and has {len(self.topics)} topics so you can't access "
+                             ".topic.")
+        return self.topics[0]
+
+    @property
+    def is_ambiguous(self):
+        return len(self.topics) > 1
+
+    @property
+    def resolution_failed(self):
+        return len(self.topics) == 0
+    
+    def get_debug_spans(self) -> list[dict]:
+        span = self._get_base_debug_span()
+        span["type"] = MUTCSpanType.NAMED_ENTITY.value
+
+        if len(self.topics) == 0:
+            span["topicSlug"] = None
+            return [span]
+        spans = []
+
+        for topic in self.topics:
+            cat_span = span.copy()
+            cat_span["topicSlug"] = topic.slug
+            spans.append(cat_span)
+        return spans
+        
+
+
+class TitleGenerator:
+
+    expansions = {}
+
+    @classmethod
+    def generate(cls, title: str) -> list[str]:
+        expansions = [title]
+        for reg, reg_expansions in cls.expansions.items():
+            for reg_expansion in reg_expansions:
+                potential_expansion = re.sub(reg, reg_expansion, title)
+                if potential_expansion == title: continue
+                expansions += [potential_expansion]
+        expansions = [strip_cantillation(t, strip_vowels=True) for t in expansions]
+        return expansions
+
+
+class PersonTitleGenerator(TitleGenerator):
+
+    expansions = {
+        r' b\. ': [' ben ', ' bar ', ', son of ', ', the son of ', ' son of ', ' the son of ', ' Bar ', ' Ben '],
+        r'^Ben ': ['ben '],
+        r'^Bar ': ['bar '],
+        r'^Rabbi ': ['R. '],
+        r'^Rebbi ': ['R. '],
+        r'^רבי ': ["ר' "],
+    }
+
+
+class FallbackTitleGenerator(TitleGenerator):
+
+    expansions = {
+        '^The ': ['the '],
+    }
+
+
+@dataclasses.dataclass
+class NamedEntityTitleExpanderRoute:
+    type_slug: str
+    generator: type[TitleGenerator]
+
+
+class NamedEntityTitleExpander:
+    type_generator_router = [
+        NamedEntityTitleExpanderRoute('people', PersonTitleGenerator),
+        NamedEntityTitleExpanderRoute('entity', FallbackTitleGenerator),
+    ]
+
+    def __init__(self, lang: str):
+        self._lang = lang
+
+    def expand(self, topic: Topic) -> list[str]:
+        for route in self.type_generator_router:
+            if topic.has_types({route.type_slug}):
+                return self._expand_titles_with_generator(topic, route.generator)
+        return self._get_topic_titles(topic)
+
+    def _get_topic_titles(self, topic: Topic) -> list[str]:
+        return topic.get_titles(lang=self._lang, with_disambiguation=False)
+
+    def _expand_titles_with_generator(self, topic: Topic, generator: type[TitleGenerator]) -> list[str]:
+        expansions = []
+        for title in self._get_topic_titles(topic):
+            expansions += generator.generate(title)
+        return expansions
+
+
+class TopicMatcher:
+
+    def __init__(self, lang: str, named_entity_types_to_topics: dict[str, dict[str, list[str]]]):
+        self._lang = lang
+        self._title_expander = NamedEntityTitleExpander(lang)
+        topics_by_type = {
+            named_entity_type: self.__generate_topic_list_from_spec(topic_spec)
+            for named_entity_type, topic_spec in named_entity_types_to_topics.items()
+        }
+        all_topics = reduce(lambda a, b: a + b, topics_by_type.values(), [])
+        self._slug_topic_map = {t.slug: t for t in all_topics}
+        self._title_slug_map_by_type = {
+            named_entity_type: self.__get_title_map_for_topics(topics_by_type[named_entity_type])
+            for named_entity_type, topic_spec in named_entity_types_to_topics.items()
+        }
+
+    def __get_title_map_for_topics(self, topics: list[Topic]) -> dict[str, set[str]]:
+        title_slug_map = defaultdict(set)
+        unique_topics = {t.slug: t for t in topics}.values()
+        for topic in unique_topics:
+            for title in self._title_expander.expand(topic):
+                if not title:
+                    continue
+                title_slug_map[title].add(topic.slug)
+        return title_slug_map
+
+    @staticmethod
+    def __generate_topic_list_from_spec(topic_spec: dict[str, list[str]]) -> list[Topic]:
+        topics = []
+        for root in topic_spec.get('ontology_roots', []):
+            topics += Topic.init(root).topics_by_link_type_recursively()
+        topics += [Topic.init(slug) for slug in topic_spec.get('single_slugs', [])]
+        return topics
+
+    def match(self, named_entity: RawNamedEntity) -> list[Topic]:
+        slugs = get_matches_with_prefixes(
+            named_entity.text,
+            matches_map=self._title_slug_map_by_type.get(named_entity.type.name, {}),
+            prefix_exclusion_set={'ע'}  # ayin isn't valid for names
+        )
+        return [self._slug_topic_map[slug] for slug in slugs]
+
+
+class NamedEntityResolver:
+
+    def __init__(self, topic_matcher: TopicMatcher):
+        self._topic_matcher = topic_matcher
+
+    def bulk_resolve(self, raw_named_entities: list[RawNamedEntity]) -> list[ResolvedNamedEntity]:
+        resolved = []
+        for named_entity in raw_named_entities:
+            matched_topics = self._topic_matcher.match(named_entity)
+            resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
+        return resolved
+
+
+

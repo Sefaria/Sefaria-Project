@@ -12,8 +12,8 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class JaggedArray(object):
@@ -211,7 +211,7 @@ class JaggedArray(object):
                 return False
         return True
 
-    def is_empty(self, _cur=None):
+    def is_empty(self, _cur=None) -> bool:
         if _cur is None:
             return self.is_empty(_cur=self._store)
         if isinstance(_cur, list):
@@ -236,12 +236,12 @@ class JaggedArray(object):
     def non_empty_sections(self):
         return [s for s in self.sections() if not self.subarray(s).is_empty()]
 
-    def element_count(self):
+    def element_count(self) -> int:
         if self.e_count is None:
             self.e_count = self._ecnt(self._store)
         return self.e_count if self.e_count else 0
 
-    def _ecnt(self, jta):
+    def _ecnt(self, jta) -> int:
         if isinstance(jta, list):
             return sum([self._ecnt(i) for i in jta])
         else:
@@ -333,7 +333,7 @@ class JaggedArray(object):
             self._depth = self.depth()
         return self._depth
 
-    def depth(self, _cur=None, deep=False):
+    def depth(self, _cur=None, deep=False) -> int:
         """
         returns 1 for [n], 2 for [[n],[p]], etc.
         Special case returns zero for an empty array []
@@ -502,7 +502,7 @@ class JaggedArray(object):
         return sa[indx_list[-1]]
 
     # warning, writes!
-    def set_element(self, indx_list, value, pad = None):
+    def set_element(self, indx_list, value, pad=None):
         '''
         Set element at position specified by indx_list to value.
         If JA is not big enough, pad with [] at higher levels, and value of pad variable at last level.
@@ -576,11 +576,35 @@ class JaggedArray(object):
                 return self.prev_index(res)
         return res
 
+    @staticmethod
+    def get_offset_sections(relative_sections, start_sections):
+        """
+        Gets absolute section (according to some outside context, e.g. textchunk or version) indices given `relative_sections`
+        :param relative_sections: array(int). sections into current jagged array
+        :param start_sections: array(int). absolute sections from outside context. usually textchunk or version
+        """
+        if start_sections is None:
+            # relative_sections are actually absolute in this case
+            sections = relative_sections
+        else:
+            # relative_sections is only as deep as ja. however, top-level ja could be deeper
+            # use start_sections as a starting point and then update with relative_sections to get absolute section indexes
+            sections = start_sections[:]
+            for rel_section_index, abs_section_index in enumerate(range(len(sections)-len(relative_sections), len(sections))):
+                sections[abs_section_index] = relative_sections[rel_section_index]
+                if rel_section_index == 0 or relative_sections[0] == 0:
+                    # first section should always be offset by start_sections. later sections should only be offset if first section is 0
+                    sections[abs_section_index] += start_sections[abs_section_index]
+        return sections
+
     def __eq__(self, other):
         return self._store == other._store
 
     def __len__(self):
         return self.sub_array_length()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._store})"
 
     def length(self):
         return self.__len__()
@@ -598,16 +622,16 @@ class JaggedTextArray(JaggedArray):
         self.w_count = None
         self.c_count = None
 
-    def verse_count(self):
+    def verse_count(self) -> int:
         return self.element_count()
 
-    def word_count(self):
+    def word_count(self) -> int:
         """ return word count in this JTA """
         if self.w_count is None:
             self.w_count = self._wcnt(self._store)
         return self.w_count if self.w_count else 0
 
-    def _wcnt(self, jta):
+    def _wcnt(self, jta) -> int:
         """ Returns the number of words in an undecorated jagged array """
         if isinstance(jta, str):
             return len(re.split(r"[\s\u05be]+", jta.strip()))
@@ -616,13 +640,13 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def char_count(self):
+    def char_count(self) -> int:
         """ return character count in this JTA """
         if self.c_count is None:
             self.c_count = self._ccnt(self._store)
         return self.c_count if self.c_count else 0
 
-    def _ccnt(self, jta):
+    def _ccnt(self, jta) -> int:
         """ Returns the number of characters in an undecorated jagged array """
         if isinstance(jta, str):
             return len(jta)
@@ -631,14 +655,20 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def modify_by_function(self, func, _cur=None):
-        """ Returns the jagged array but with each terminal string processed by func"""
+    def modify_by_function(self, func, start_sections=None, _cur=None, _curSections=None):
+        """
+        Returns the jagged array but with each terminal string processed by func
+        Func should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
+        :param start_sections: array(int), optional param. Sections passed to `func` will be offset by `start_sections`, if passed
+        """
         if _cur is None:
-            return self.modify_by_function(func, _cur=self._store)
+            _cur = self._store
         if isinstance(_cur, str):
-            return func(_cur)
+            _curSections = _curSections or [0]
+            return func(_cur, self.get_offset_sections(_curSections, start_sections))
         elif isinstance(_cur, list):
-            return [self.modify_by_function(func, i) for i in _cur]
+            _curSections = _curSections or []
+            return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
     def flatten_to_array(self, _cur=None):
         # Flatten deep jagged array to flat array
@@ -659,29 +689,42 @@ class JaggedTextArray(JaggedArray):
     def flatten_to_string(self, joiner=" "):
         return joiner.join(self.flatten_to_array())
 
-    #warning, writes!
-    def trim_ending_whitespace(self, _cur=None):
-        if _cur == None:
-            self._store = self.trim_ending_whitespace(self._store)
-            return self
-        if not isinstance(_cur, list):  # shouldn't get here
-            return _cur
-        if not len(_cur):
-            return _cur
-        if isinstance(_cur[0], list):
-            return [self.trim_ending_whitespace(part) for part in _cur]
-        else: # depth 1
-            final_index = len(_cur) - 1
-            for i in range(final_index, -1, -1):
-                if not _cur[i] or re.match(r"^\s*$", _cur[i]):
-                    final_index = i - 1
-                else:
-                    break
-            if not final_index == len(_cur) - 1:
-                _cur = _cur[0:final_index + 1]
-            return _cur
+    # warning, writes!
+    def trim_ending_whitespace(self):
+        """
+        Removes ending whitespace items from jagged array.
+        These include empty string, None or items that are entirely whitespace.
+        Performs process recursively on nested lists
+        @return: list
+        """
+        self._store = self._trim_ending_whitespace_recursive(self._store)
+        return self
 
-    def overlaps(self, other=None, _self_cur=None, _other_cur=None):
+    def _trim_ending_whitespace_recursive(self, curr_ja: list) -> list:
+        if not isinstance(curr_ja, list):  # shouldn't get here
+            return curr_ja
+
+        # recursive step
+        curr_ja = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in curr_ja]
+        return self._trim_ending_whitespace_list_of_strs(curr_ja)
+
+    @staticmethod
+    def _trim_ending_whitespace_list_of_strs(curr_ja: list) -> list:
+        """
+        Removes ending whitespace items from _cur. See docs for `trim_ending_whitespace()` for details.
+        Doesn't recurse on any nested lists.
+        @param curr_ja: list with items that are either lists, strs or None
+        @return: list
+        """
+        final_index = len(curr_ja) - 1
+        for item in reversed(curr_ja):
+            if isinstance(item, list) or (isinstance(item, str) and len(item.strip()) > 0):
+                break
+            final_index -= 1
+        del curr_ja[final_index+1:]
+        return curr_ja
+
+    def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
         """
         Returns True if self and other contain one or more positions where both are non empty.
         Runs recursively.

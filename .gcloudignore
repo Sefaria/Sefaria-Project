@@ -1,0 +1,8 @@
+/node_modules
+/.pytest_cache
+/.idea
+/log
+/static/bundles
+/.git
+/data/tmp
+/data/geoip

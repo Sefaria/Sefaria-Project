@@ -19,7 +19,7 @@ def test_modify_text_by_function():
         "chapter": original.text
     }).save()
 
-    modify_text_by_function("Job", "TextChangeTest", "en", lambda x: x.replace(" ", "$"), 23432)
+    modify_text_by_function("Job", "TextChangeTest", "en", lambda x, sections: x.replace(" ", "$"), 23432)
     modified = TextChunk(Ref("Job"), vtitle="TextChangeTest")
     total_dollars = JaggedTextArray(modified.text).flatten_to_string(joiner="|").count("$")
     v.delete()

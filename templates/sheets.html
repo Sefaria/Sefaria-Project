@@ -4,36 +4,43 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% if title %}{{ title }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endmeta_desc %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
-    {% if not is_public %}
-        <meta name="robots" content="noindex, nofollow">
-    {% endif %}
+    <meta name="robots" content="noindex, nofollow">
     {% if EMBED %}
         <link rel="canonical" href="{{ canonical_url }}">
     {% endif %}
-{% endblock %}
-
-{% block css %}
-
-    body {
-        background-color:#f8f8f8;
-    }
-
 {% endblock %}
 
 {% block content %}
 <!-- CSS placed here so it has precedence over other sheets in base.html -->
 <link rel="stylesheet" href="{% static 'css/sheets.css' %}">
 <link rel="stylesheet" href="{% static 'css/sheets-print.css' %}" media="print" />
+
 <div id="sheetsContent" data-interface-lang="{{ request.interfaceLang }}">
 
     <div class="sheetsEditNavTop">
+        <div class="editorToggleHeader sans-serif">
+            <span class="int-en">You are currently using an outdated version of Sefaria’s source sheet editor. This version will no longer be supported starting March 17, 2025. Start using the new editor now, or learn more about this important change.</span>
+            <span class="int-he">הנכם משתמשים בגרסה מוקדמת של התוכנה לעריכת דפי מקורות בספריא. החל מה-17.3.2025, לא יהיה ניתן לערוך דפי מקורות בעזרת גרסה זו של תוכנת העריכה. אנו ממליצים להתחיל להשתמש בגרסה המעודכנת של התוכנה.</span>
+            <a href="/enable_new_editor" class="button white">
+                <span class="int-en">Switch to New Editor</span>
+                <span class="int-he">עבור לעורך חדש</span>
+            </a>
+            {% if request.interfaceLang == 'english' %}
+                <a href="https://sheets.sefaria.org/sheets/621008" class="learnMore">
+                    <span class="int-en">Learn More</span>
+                </a>
+            {% else %}
+                <a href="https://sheets.sefaria.org/sheets/621013" class="learnMore">
+                    <span class="int-he">למידע נוסף</span>
+                </a>
+            {% endif %}
+        </div>
         <div class="sheetsMenuBar" role="menu">
             <div class="sheetsMenuBarInner">
                 <div class="sheetsMenuBarCommands">
@@ -507,7 +514,7 @@
                     </div>
                 </div>
 
-                <div class="sheetsMenuBarItem">
+                <div class="sheetsMenuBarItem" id="lastSavedMenu">
                     <span id="lastSaved">
                     {% if sheet.dateModified %}
                         {% if can_edit or can_add %}
@@ -532,7 +539,7 @@
                     {% endif %}
                     </span>
                 </div>
-                <div class="sheetsMenuBarItem">
+                <div class="sheetsMenuBarItem" id="higlightModeMenu">
                     <span id="highlightModeDisplay">
                         <span class="int-en">Highlight Mode is On</span>
                         <span class="int-he">מצב סימון וצביעה פעיל</span>
@@ -542,7 +549,7 @@
                 <div class="sheetsMenuBarButtons">
 
                 {% if new_sheet %}
-                <a id="save" class="button" data-mode="editing" role="button" tabIndex="0">
+                <button id="save" class="button" data-mode="editing" type="button">
                     <i class="fa fa-floppy-o"></i>
                     <span id="doSave">
                         <span class="int-en">Save</span>
@@ -552,19 +559,19 @@
                         <span class="int-en">Saving...</span>
                         <span class="int-he">שמירה מתבצעת...</span>
                     </span>
-                </a>
-                {% elif is_owner or can_publish %}
-                <a id="share" class="button" role="button" tabIndex="0">
+                </button>
+                {% elif is_owner %}
+                <button id="share" class="button" type="button">
                     <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
                     <span class="int-he">שיתוף</span>
-                </a>
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                </button>
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
                 {% else %}
-                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" role="button" tabIndex="0">
+                <a id="onlineMode" href="/sheets/{{sheet.id}}" class="button" tabIndex="0">
                     <span class="int-en">View in Library</span>
                     <span class="int-he">תצוגה בספריא</span>
                 </a>
@@ -606,13 +613,13 @@
     {% endif %}
 
 	<div id="bsdHeader">בס"ד</div>
-	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group and sheet_group.headerUrl %}
-		<a href="/groups/{{ sheet_group.name|url_safe }}">
-			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}" />
+	<div id="sheetHeader" {% if not displayed_collection %}style="display:none"{% endif %}>
+		{% if displayed_collection and displayed_collection.headerUrl %}
+		<a href="/collections/{{ displayed_collection.slug }}">
+			<img id="collectionHeader" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
 		</a>
 		{% else %}
-            <a href="#"><img id="groupLogo"/></a>
+            <a href="#"><img id="collectionHeader"/></a>
 		{% endif %}
 	</div>
 	<div id="title" role="heading" aria-level="1">
@@ -693,7 +700,7 @@
 
             <div id="sheetTags">
                 {% for topic in sheet.topics %}
-                    <a class="button" role="button" href="/topics/{{ topic.slug }}">
+                    <a class="button" href="/topics/{{ topic.slug }}">
                       {% if request.interfaceLang == 'english' %}
                         {% if topic.en %}
                           {{ topic.en }}
@@ -724,30 +731,30 @@
     {% if can_edit or can_add %}
     <div id="addInterface">
         <div class="buttonBar">
-            <div class="addInterfaceButton" id="sourceButton" tabindex="0" role="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
+            <button class="addInterfaceButton" id="sourceButton" type="button"><img src="{% static 'img/source.png' %}" alt="Add Source Icon">
                 <span class="int-en">Source</span>
                 <span class="int-he">מקור</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="connectionButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="connectionButton" type="button">
                 <img src="{% static 'img/connection.png' %}" alt="Add Connections Icon">
                 <span class="int-en">Connection</span>
                 <span class="int-he">קישור</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="customTextButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="customTextButton" type="button">
                 <img src="{% static 'img/custom text.png' %}" alt="Add Outside Text Icon">
                 <span class="int-en">Text</span>
                 <span class="int-he">טקסט חופשי</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="mediaButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="mediaButton" type="button">
                 <img src="{% static 'img/media.png' %}" alt="Add Media Icon">
                 <span class="int-en">Media</span>
                 <span class="int-he">מדיה</span>
-            </div><!--
-         --><div class="addInterfaceButton" id="commentButton" tabindex="0" role="button">
+            </button><!--
+         --><button class="addInterfaceButton" id="commentButton" type="button">
                 <img src="{% static 'img/comment.png' %}" alt="Add Comment Icon">
                 <span class="int-en">Comment</span>
                 <span class="int-he">הערה</span>
-            </div>
+            </button>
         </div>
         <div class="contentDiv">
             <div id="addsourceDiv">
@@ -760,20 +767,20 @@
                            placeholder="{% trans "Search for a Text or Commentator" %}"/>
                     <div class="buttonContainer">
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddSourceOK" class='button disabled' role="button" tabIndex="0">
+                            <button id="inlineAddSourceOK" class='button disabled' type="button">
                                 <span class="int-en">Add Source</span>
                                 <span class="int-he">הוספת מקור</span>
-                            </div>
+                            </button>
                         </div>
                         <div class="inlineAddOr">
                             <span class="int-en">or</span>
                             <span class="int-he">או</span>
                         </div>
                         <div id="inlineAddBrowseBox" class="inlineAddSourceByttons">
-                            <div id="inlineAddBrowse" class='button' role="button" tabIndex="0">
+                            <button id="inlineAddBrowse" class='button' type="button">
                                 <span class="int-en">Browse Sources</span>
                                 <span class="int-he">בחירת מקור</span>
-                            </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -785,10 +792,10 @@
                     <span class="int-he">בחירת מקורות מקושרים</span>
                 </div>
                 <div id="connectionsToAdd"></div>
-                <div class="button" role="button" tabIndex="0">
+                <button class="button" type="button">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
-                </div>
+                </button>
             </div>
             <div id="addcustomTextDiv">
                 <div class="inlineAddDesc">
@@ -810,10 +817,10 @@
                     <div class="contentToAdd en customTextEditables" tabindex="0">English</div>
                     <div class="contentToAdd he customTextEditables" tabindex="0">עברית</div>
                 </div>
-                <div class="button" role="button" tabIndex="0">
+                <button class="button" type="button">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
-                </div>
+                </button>
             </div>
             <div id="addmediaDiv">
                 <div class="inlineAddDesc">
@@ -824,10 +831,10 @@
                     <input id="inlineAddMediaInput" class="inlineAddTextInput" placeholder="{% trans 'Paste URL' %}" />
                     <div class="buttonContainer">
                         <div class="inlineAddSourceByttons">
-                            <div class="button" role="button" tabIndex="0">
+                            <button class="button" type="button">
                                 <span class="int-en">Add to Sheet</span>
                                 <span class="int-he">הוספה לדף המקורות</span>
-                            </div>
+                            </button>
                         </div>
                         <div class="inlineAddOr">
                             <span class="int-en">or</span>
@@ -850,10 +857,10 @@
                     <span class="int-he">הוספת הערה למקור זה</span>
                 </div>
                 <div class="contentToAdd" tabindex="0" data-gramm="false"><br></div>
-                <div class="button" role="button" tabIndex="0">
+                <button class="button" type="button">
                     <span class="int-en">Add to Sheet</span>
                     <span class="int-he">הוספה לדף המקורות</span>
-                </div>
+                </button>
             </div>
         </div>
     </div>
@@ -917,9 +924,9 @@
 	<div id="printFooter">
 		<img src="{% static 'img/samekh.png' %}">
 		<div>
-            {% trans "Made with the Sefaria Source Sheet Builder"  %}
+            {% trans "Made with the Sefaria Source Sheet Builder" %}
 			<br/>
-            www.sefaria.org/sheets
+            sheets.sefaria.org/sheets
 		</div>
 	</div>
 
@@ -1027,49 +1034,61 @@
     <div class="line"></div>
 
 
-    <div class="content">
-        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">הצג לכלל משתמשי ספריא</span></span>
-        <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
-            <label class="onoffswitch-label" for="sheetPublicToggle">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-            </label>
+    <div class="content sideLabeled">
+        <label class="labelforOnOffSwitch">
+            <span class="int-en">List on Sefaria</span>
+            <span class="int-he">הצג לכלל משתמשי ספריא</span>
+        </label>
+        <div>
+            <div class="onoffswitch">
+                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+                <label class="onoffswitch-label" for="sheetPublicToggle">
+                    <span class="onoffswitch-inner"></span>
+                    <span class="onoffswitch-switch"></span>
+                </label>
+            </div>
         </div>
     </div>
 
-   {% if owner_groups %}
-    <div class="content" id="sourceSheetGroupOptions">
+   {% if sheet_collections %}
+    <div class="content sideLabeled" id="sourceSheetGroupOptions">
         <label for="sourceSheetGroupSelect">
-            <span class="int-en">List in Group</span>
-            <span class="int-he">שיוך קבוצה</span>
+            <span class="int-en">Display Collection</span>
+            <span class="int-he">הצגת האסופה</span>
         </label>
 
-        <select id="sourceSheetGroupSelect">
-            <option value="None">
-                {% trans 'None' %}
-            </option>
-
-    		{% for group in owner_groups %}
-                <option
-                    value="{{ group.name }}"
-                    data-group="{{ group.name }}"
-                    data-image="{{ group.headerUrl|default:'' }}"
-                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
-                    {{ group.name }}
+        <div>
+            <select id="sourceSheetGroupSelect">
+                <option value="">
+                    {% trans 'None' %}
                 </option>
-			{% endfor %}
-        </select>
+
+        		{% for collection in sheet_collections %}
+                    <option
+                        value="{{ collection.slug }}"
+                        data-name="{{ collection.name }}"
+                        data-image="{{ collection.headerUrl|default:'' }}">
+                        {{ collection.name }}
+                    </option>
+    			{% endfor %}
+            </select>
+            <div id="collectionsMessage">
+                <span class="int-en">To manage the collections this sheet appears in, visit your profile.</span>
+                <span class="int-he">כדי לנהל את האסופות שדף מקורות זה מופיע בהן, יש להיכנס לפרופיל האישי.</span>
+            </div>
+        </div>
     </div>
 	{% endif %}
 
 
-    <div class="content">
+    <div class="content sideLabeled">
         <label for="shareURL">
             <span class="int-en">Share a link</span>
             <span class="int-he">קישור לשיתוף</span>
         </label>
-        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        <div>
+            <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        </div>
     </div>
 
     <div class="line"></div>
@@ -1453,7 +1472,7 @@
 </div> <!-- end sheetContent -->
 {% endblock %}
 
-{% block js  %}
+{% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 <script>{% include "js/django-csrf.js" %}</script>
@@ -1461,8 +1480,6 @@
 <script src="{% static 'js/lib/jquery.tooltipster.min.js' %}"></script>
 <script src="{% static 'js/lib/jquery.tag-it.min.js' %}"></script>
 <script src="{% static 'js/s1/util.js' %}"></script>
-
-{% include "js/headers.js" %}
 
 <script type="text/javascript">
 {% autoescape off %}
@@ -1473,7 +1490,6 @@
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
-        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},

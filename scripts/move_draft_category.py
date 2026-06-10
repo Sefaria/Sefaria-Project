@@ -3,7 +3,7 @@
 import argparse
 import re
 from sefaria.model import *
-from move_draft_text import ServerTextCopier
+from scripts.move_draft_text import ServerTextCopier
 try:
     from sefaria.local_settings import SEFARIA_BOT_API_KEY
 except ImportError:

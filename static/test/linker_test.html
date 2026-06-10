@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html >
+    <head>
+        <meta charset="utf-8" />
+        <title>Linker Test Page</title>
+        <style>
+            .inlineBlockSpan span {
+                display: inline-block;
+            }
+        </style>
+        <meta name="description"content="A page to test ref catching by the Sefaria linker" />
+        <!-- <meta name="robots" content="noindex,nofollow" /> -->
+    </head>
+    <body>
+        <div id="foo">
+            What a wonderful world.  Genesis.  Exodus. <p>What a good Job.</p>
+            <p>This is a pre-wrapped ref.  Here it is: <a href="https://example.com">Job 4:5</a> and a deep ref: <a href="https://example.com"><span>Job 5:6</span></a></p>
+            <p dir="rtl">Unwrap Ezra and Rut!</p>
+            <p dir="rtl">ההסתערות של שתיית</p>
+            <p dir="rtl">האבן עזרא שם הביא</p>
+            <p class="Torah" >There is a verse in Proverbs 11:12, and also in Ketubot 12b.</p>
+            <p>How about Proverbs 11:12-15 or Proverbs 11-12 or Proverbs 12-13?</p>
+            <p>Or Genesis 1-3, or Shabbat 5b-7a, or Genesis 1:15-2:12, or Mishnah Shabbat 2:3-5?</p>
+            <p>What about Proverbs 11:12! or Proverbs 11:12? Or Proverbs 11:12.</p>
+            <p>Sanhedrin sounds like a heavy metal band - shouldn't link title alone.</p>
+            <p>How about Sanhedrin 11?</p>
+            <p class="excludeFromLinking">This paragraph has the class "excludeFromLinking": Amos 2:3</p>
+            <p class="excludeFromTracking">This paragraph has the class "excludeFromTracking": Amos 3:4</p>
+            <p>Zohar 1:2b</p>
+            <p>Zohar Volume 1 2b</p>
+            <p>Shulchan Arukh, Orach Chayim, Laws Upon Awakening in the Morning 1</p>
+            <p>Zohar Volume 1:2b</p>
+            <p>Zohar Volume 1 Daf 2b</p>
+            <p>Zohar Volume 1 Page 2b</p>
+            <p>Tikkunei Zohar 3b</p>
+            <p>Berakhot 2</p>
+            <p>Berakhot 2a-b</p>
+            <p>Berakhot 2a-2b</p>
+            <p>(Isaiah 2:3)</p>
+            <p> “But the chief butler did not remember Yoseph, and he forgot him” (Genesis 40:23/Bereishit 40:23)</p>
+            <p>"In the beginning..." -Genesis 1:1</p>
+            <p>Genesis 2:1-Genesis 2:3</p>
+            <p><i>Sotah</i> 14a</p>
+            <p>Tosefta Sanhedrin 2:2</p>
+            <p>I would expect much less from Proverbs 12b, but something for Ketubot 11:12</p>
+            <p>Watch From Ketubot break the whole jimmy</p>
+            <p class="Torah">If we break up <em>Daniel</em> 5:1 or <em></em>Proverbs</em> 3:3, it should work.  But we still don't handle (space after book name in italics) (<i>Bereishit</i>
+                22:4) and (book name interupted by tags) <em>E</em>zra 1:3</p> what about (Bereishit
+                22:4)?
+            <p>there indeed exists a clear, substantive connection between Masekhet Berakhot and Seder Zeraim</p>
+            <p>Only upon our father in heaven [Sotah 9:15].”</p>
+            <p class="exclude">This paragraph has the class ".exclude", Proverbs 11:12.</p>
+            <p dir="rtl">(אין כמו בראשית רבה ג׳ א)</p>
+                <p dir="rtl">במשנה, מסכת נדה (פרק ו, משנה ד), נקבע
+                <p dir="rtl"> (מלכים א', י"א, ד) Now it links</p>
+                <p dir="rtl">How about ישעיהו נה, י"ב</p>
+                <p dir="rtl">And his cousin, ישעיהו, נה, י"ב</p>
+                <p dir="rtl">But what about our friend the fancy right quote? <b>יהושע, ה, י”ב</b></p>
+                <p dir="rtl">And his partners in crime, fancy single quote, and en dash?  <b>דברים, ח, ב’</b> or <b>דברים, ח, ב’ – ה’</b></p>
+
+
+            <p>במסכת שבועות (ל, ע"א) - כיצד אפוא</p>
+            <p>There are inner parenthesis above and in Bereishit Rabbah (55:7) and Yishayahu (64:9-10), among others</p>
+            <p class="Torah" dir="rtl">(אין כמו בראשית רבה ג׳ ב׳)</p>
+            <p dir="rtl">(אין כמו בראשית רבה ג׳ א׳)</p>
+            <p class="Torah" dir="rtl">(אין כמו בראשית רבה ג א)</p>
+            <p dir="rtl">(אין כמו בראשית רבה ג ב׳)</p>
+            <p dir="rtl">(אין כמו בראשית רבה ג א׳)</p>
+            <p>(עין גיטין יג א)</p>
+            <p>(עין גיטין יג ב)</p>
+            <p>(עין גיטין יג)</p>
+            <p>אסת״ר ב ד</p>
+            <p>אסת”ר א א</p>
+            <p>רש”י על בראשית א ה א</p>
+            <p>רש״י על בראשית א ה א</p>
+            <p>רש"י על בראשית א ה א</p>
+            <p>שו״ע יו״ד קיג:ד</p>
+            <p>שו”ע יו”ד קיג:ד</p>
+            <p dir="rtl">משלי י ד</p>
+            <p dir="rtl">התשובה נמצאת בשבת מב.</p>
+            <p dir="rtl">התשובה נמצאת בשבת מב:</p>
+            <p dir="rtl">התשובה נמצאת בשבת מב</p>
+            <p>התשובה נמצאת בשבת מב:</p>
+            <p dir="rtl">התשובה נמצאת בשבת מב: ודוק</p>
+            <p dir="rtl">כשכתובות לא נשלחות כראוי, יש בשבת מה לדבר עליו</p>
+            <p dir="rtl">או בכתובות לח: או מכתובות יח ו לכתובות י״א</p>
+            <p dir="rtl">כשבראשית י״א ב׳</p>
+            <p dir="rtl">לשמות י׳ י״ב</p>
+            <p dir="rtl">מויקרא א א</p>
+            <p dir="rtl">שחולין י״ב א כותב</p>
+            <p dir="rtl">בבמדבר ג ד</p>
+            <p dir="rtl">ודברים לא לה</p>
+            <p dir="rtl">ובמגילה י״ד א׳</p>
+            <p dir="rtl">כתובות ריח</p>
+            <p dir="rtl">Don't link Rut!</p>
+            <p dir="rtl">השתדרות ד פועל</p>
+            <p dir="rtl">Hebrew Ranges</p>
+            <p dir="rtl">שמות, כ"ד, יג - יד</p>
+            <p dir="rtl">שמות, כ"ד, יג-יד</p> 
+            <p dir="rtl">במדבר, כ"ז, טו - כג</p>
+            <p dir="rtl">בראשית א לא - ב ו</p>
+            <p dir="rtl">(en dash)  בראשית א לא – ב ו</p>
+            <p dir="rtl">שמות (לב א) וכו׳</p>
+            <p dir="rtl">השו”ע או"ח (סי’ קיג סעי’ טז)</p>
+            <p dir="rtl">שו"ע יו"ד קיג:ד</p>
+            <p dir="rtl">רש”י על ברכות ב: א</p>
+            <p dir="rtl">תוספות על ברכות ב: א</p>
+            <p dir="rtl">מגילה י"א ע"ב</p>
+            <p dir="rtl">מגילה י"א עמוד ב'</p>
+
+
+            <span class="">Rashi on Genesis is different than "Rashi on Exodus", but neither one is like <span class="Amos">"Esther" or rashi on numbers</span></span>
+
+            <p>Orach Chaim 7:1</p>
+            <p>Shulchan Aruch Orach Chaim 7:1</p>
+            <p>Shulchan Aruch, Orach Chaim 7:1</p>
+            <p>Shulchan Aruch O.C. 47:12 (acronyms for Chalakim names)</p>
+            <p>Kaf HaChaim, Orach Chaim 47:34</p>
+
+            <h3>Some problematic ones</h3> <a href="https://github.com/Sefaria/Sefaria-Project/issues/577">https://github.com/Sefaria/Sefaria-Project/issues/577</a>
+            <p>Kitzur Shulchan Aruch Orach Chaim 7:1</p>
+            <p>Kitzur Shulchan Aruch 7:1</p>
+            <p>Kaf HaChaim Orach Chaim 47:34</p>
+            <p>Aruch HaShulchan, Orach Chaim 47:1</p>
+            <p>Tosafot Berachot 11a</p>
+            <p>Tosafot on Berachot 11a</p>
+            <p>Tosafot, Berachot 11a</p>
+            <p>Magen Avraham 47:1</p>
+            <p>Haamek Davar on Genesis, Kidmat Ha'Emek 1</p>
+            <p class="inlineBlockSpan">
+                force inline-block styling on span. I'm quoting Genesis 1:1 (make sure there's a leading space!)
+            </p>
+        </div> <!-- end #foo -->
+
+        <p>This paragraph appears outside of #foo: Amos 5:6 (shouldn't link when `selector` is #foo)</p>
+
+    <script type="text/javascript" charset="utf-8" src="/linker.v2.js"></script>
+
+    <script>
+        sefaria.link({
+            selector: "#foo",
+            excludeFromLinking: ".excludeFromLinking",
+            excludeFromTracking: ".excludeFromTracking"
+        });
+        //sefaria.link({interfaceLang: "hebrew"});
+        /*
+        sefaria.link({
+                 popupStyles: {
+                          color: "#e3fc11",
+                          border: '4em solid black' 
+                 }
+         });
+        */
+    </script>
+
+    </body>
+</html>

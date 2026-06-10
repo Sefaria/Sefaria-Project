@@ -2,25 +2,26 @@
 {% load sefaria_tags %}
 {% load i18n static %}
 
-{% block title %}{% trans "Edit Your Profile on Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Edit Your Profile on Sefaria" %}{% endmeta_title %}{% endblock %}
 
 {% block content %}
 <div id="editProfilePage" class="static biReady">
 	<div class="inner">
-        <h1 class="header-with-buttons">
+        <h1 class="headerWithButtons">
+            <div class="start"></div>
             <div>
                 <span class="int-en">Edit Your Profile</span>
                 <span class="int-he">עריכת פרופיל</span>
             </div>
-            <div id="saveCancelButtons">
-                <a class="button transparent control-elem" href="/my/profile">
+            <div class="end">
+                <a class="button small transparent control-elem" href="{{ domain_modules.voices }}/profile/{{ profile.slug }}">
                     <span class="int-en">Cancel</span>
                     <span class="int-he">בטל</span>
                 </a>
-                <div id="saveProfile" class="button blue control-elem" tabindex="0" role="button" >
+                <button id="saveProfile" class="saveProfileButton button small blue control-elem" type="button">
                     <span class="int-en">Save</span>
                     <span class="int-he">שמור</span>
-                </div>
+                </button>
             </div>
         </h1>
         <div id="profileBox">
@@ -92,44 +93,11 @@
                 {% endautoescape %}
             </div>
         </div>
-        {% if sheets %}
-        <h2>
-            <span class="int-en">Public Sheets</span>
-            <span class="int-he">דפי מקורות ציבוריים</span>
-        </h2>
-        <div id="sheetsBox">
-            <div id="pinnedSheetsMessage" class=" control-elem">
-                <span class="int-en">You can drag and order source sheets that you want to pin to the top of your profile.</span>
-                <span class="int-he">ביכולתך לגרור ולסדר דפי מקורות שברצונך לנעוץ בראש הפרופיל שלך.</span>
-            </div>
-            <div id="pinnedSheets" class="sheetSet control-elem">
-                <label>
-                    <span class="int-en">Pinned Sheets</span>
-                    <span class="int-he">דפי מקורות נעוצים</span>
-                </label>
-                <ul class="sortableSheets">
-                    {% for id in profile.pinned_sheets %}
-                    <li>{{ id|sheet_link }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="sheetSet control-elem">
-                <label>
-                    <span class="int-en">All Sheets</span>
-                    <span class="int-he">כל דפי המקורות</span>
-                </label>
-                <ul class="sortableSheets">
-                    {% for sheet in sheets %}
-                        {% if sheet.id not in profile.pinned_sheets %}
-                        <li>{{ sheet.id|sheet_link }}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
 
-        <h2>Contact</h2>
+        <h2>
+            <span class="int-en">Contact</span>
+            <span class="int-he">דרכי יצירת קשר</span>
+        </h2>
         <div id="contactBox">
             <div class="field control-elem">
                 <label>
@@ -147,8 +115,8 @@
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">Twitter Handle</span>
-                    <span class="int-he">חשבון טוויטר</span>
+                    <span class="int-en">X Handle</span>
+                    <span class="int-he">חשבון ב-x</span>
                 </label>
                 <input id="twitter"  value="{{ profile.twitter }}">
             </div>
@@ -168,8 +136,8 @@
             </div>
             <div class="field control-elem">
                 <label>
-                    <span class="int-en">YouTube Channel</span>
-                    <span class="int-he">ערוץ יוטיוב</span>
+                    <span class="int-en">YouTube</span>
+                    <span class="int-he">יוטיוב</span>
                 </label>
                 <input id="youtube" value="{{ profile.youtube }}">
             </div>
@@ -181,7 +149,8 @@
 {% block js %}
 	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
 	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
-	<script>
+	<script src="{% static 'js/django-csrf.js' %}"></script>
+    <script>
 
 		CKEDITOR.config.font_names =
 			'Arial/Arial, Helvetica, sans-serif;' +
@@ -222,23 +191,15 @@
 			$("#addEducation").click(function() {
 				$("<li><input /><i class='remove fa fa-times'></i></li>").insertAfter($("#jewishEducation li").last()).find("input").focus();
 			});
-
-			$(".sortableSheets").sortable({connectWith: ".sortableSheets"});
 			$("#saveProfile").click(function(){
 				var jewishEducation = [];
 				$("#jewishEducation").find("input").each(function() {
-					var val = $(this).val();
+					var val = $(this).val().stripHtml();
 					if (val) {
 						jewishEducation.push(val);
 					}
 				});
-				var pinnedSheets = [];
-				$("#pinnedSheets").find("a").each(function() {
-					var id = parseInt($(this).attr("data-id"));
-					if (id) {
-						pinnedSheets.push(id);
-					}
-				});
+
 				// Strip full URLs from youtube and twitter user names
 				var youtube = $("#youtube").val();
 				youtube = youtube.substring(youtube.lastIndexOf("/")+1);
@@ -255,21 +216,20 @@
                 });
 
 				var profile = {
-					first_name:       $("#firstName").val(),
-					last_name:        $("#lastName").val(),
-					bio:              $("#bio").text() ? $("#bio").html() : "",
-					position:         $("#position").val(),
-					organization:     $("#organization").val(),
-					website:          $("#website").val(),
-					location:         $("#location").val(),
-					public_email:     $("#public_email").val(),
-					youtube:          youtube,
-					facebook:         $("#facebook").val(),
-					twitter:          twitter,
-					linkedin:         $("#linkedin").val(),
+					first_name:       $("#firstName").val().stripHtml(),
+					last_name:        $("#lastName").val().stripHtml(),
+					bio:              $("#bio").text() ? $("#bio").html().stripHtml() : "",
+					position:         $("#position").val().stripHtml(),
+					organization:     $("#organization").val().stripHtml(),
+					website:          $("#website").val().stripHtml(),
+					location:         $("#location").val().stripHtml(),
+					public_email:     $("#public_email").val().stripHtml(),
+					youtube:          youtube.stripHtml(),
+					facebook:         $("#facebook").val().stripHtml(),
+					twitter:          twitter.stripHtml(),
+					linkedin:         $("#linkedin").val().stripHtml(),
 					slug:             $("#slug").val(),
-					jewish_education: jewishEducation,
-					pinned_sheets:    pinnedSheets
+					jewish_education: jewishEducation
 				};
 
 				$.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
@@ -279,7 +239,7 @@
 						if (Sefaria) {
 							Sefaria.track.event("Settings", "Profile Edit", "");
 						}
-						window.location = "/my/profile";
+						window.location = "{{ domain_modules.voices }}/profile/{{ profile.slug }}";
 					}
 				}).fail(function() {
 					sjs.alert.message("Sorry, an Error occurred.");

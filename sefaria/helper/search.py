@@ -79,8 +79,8 @@ def get_query_obj(
     :param start :int: pagination start
     :param size :int: page size
     :param filters :list(str): list of filters you've applied
-    :param filter_fields :list(str): list of fields each filter is filtering on. must be same size as `filters` usually "path", "group" or "tags"
-    :param aggs :list(str): list of fields to aggregate on. usually "path", "group" or "tags"
+    :param filter_fields :list(str): list of fields each filter is filtering on. must be same size as `filters` usually "path", "collections" or "tags"
+    :param aggs :list(str): list of fields to aggregate on. usually "path", "collections" or "tags"
     :param sort_method :str: how to sort. either "sort" or "score"
     :param sort_fields :list(str): which fields to sort on. sorts are applied in order stably
     :param sort_reverse :bool: should the sorting be reversed?
@@ -128,18 +128,39 @@ def get_filter_obj(type, filters, filter_fields):
     if len(filter_fields) == 0:
         filter_fields = [None] * len(filters)  # use default filter_field for query type (defined in make_filter())
     unique_fields = set(filter_fields)
-    must_bools = []
+    outer_bools = []
     for agg_type in unique_fields:
         type_filters = [x for x in zip(filters, filter_fields) if x[1] == agg_type]
-        should_bool = Bool(should=[make_filter(type, agg_type, f) for f, t in type_filters])
-        must_bools += [should_bool]
-    return Bool(must=must_bools)
+        bool_type = 'should' if type == 'text' else 'must'  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
+        inner_bool = Bool(**{bool_type: [make_filter(type, agg_type, f) for f, t in type_filters]})
+        outer_bools += [inner_bool]
+    return Bool(must=outer_bools)
 
 
 def make_filter(type, agg_type, agg_key):
-    if type == "text":
+    if type == "text" and agg_type == "path":
         # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
-        reg = re.escape(agg_key) + (".*" if "/" in agg_key else "/.*")
+        agg_key = agg_key.rstrip('/')
+        agg_key = re.escape(agg_key)
+        reg = f"{agg_key}|{agg_key}/.*"
         return Regexp(path=reg)
-    elif type == "sheet":
+    else:
         return Term(**{agg_type: agg_key})
+
+
+def get_elasticsearch_client():
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(SEARCH_URL)
+
+
+def get_elasticsearch_client_for_indexer():
+    """Must NOT be used on the online request path."""
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=60,
+        retry_on_timeout=True,
+        max_retries=3,
+    )

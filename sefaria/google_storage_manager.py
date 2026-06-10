@@ -1,15 +1,31 @@
 from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
-
+import re
+from io import BytesIO
+from sefaria.site.site_settings import SITE_SETTINGS
 
 class GoogleStorageManager(object):
 
-    PROFILES_BUCKET = 'sefaria-profile-pictures'
+    """
+    Wrapper class for interacting with Google Cloud storage via Google's API classes.
+    Please note that several Google exceptions (mostly subclasses of google.cloud.exceptions.GoogleAPICallError)
+    or Python Exceptions if used incorrectly may be raised and that calling functions should handle them.
+    https://googleapis.dev/python/google-api-core/latest/exceptions.html#google.api_core.exceptions.GoogleAPIError
+    https://googleapis.dev/python/storage/latest/client.html
+    https://googleapis.dev/python/storage/latest/buckets.html
+    """
+
+    COLLECTIONS_BUCKET = SITE_SETTINGS["COLLECTIONS_BUCKET"]
+    PROFILES_BUCKET = SITE_SETTINGS["PROFILES_BUCKET"]
+    UGC_SHEET_BUCKET = SITE_SETTINGS["UGC_BUCKET"]
+    TOPICS_BUCKET = SITE_SETTINGS["TOPICS_BUCKET"]
+
     BASE_URL = "https://storage.googleapis.com"
 
     @classmethod
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
+            # for local development, change below line to cls.client = storage.Client(project="production-deployment")
             cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
@@ -24,7 +40,7 @@ class GoogleStorageManager(object):
         """
         bucket = cls.get_bucket(bucket_name)
         if old_filename is not None:
-            cls.delete_filename(bucket_name, old_filename)
+            cls.delete_filename(old_filename, bucket_name)
         blob = bucket.blob(to_filename)
         if isinstance(from_file, str):
             blob.upload_from_filename(from_file)
@@ -34,12 +50,42 @@ class GoogleStorageManager(object):
         return cls.get_url(to_filename, bucket_name)
 
     @classmethod
-    def delete_filename(cls, bucket_name, filename):
+    def duplicate_file(cls, from_file, to_filename, bucket_name):
+        bucket = cls.get_bucket(bucket_name)
+        source_blob = bucket.blob(from_file)
+        blob_copy = bucket.copy_blob(source_blob, bucket, to_filename)
+        return cls.get_url(to_filename, bucket_name)
+
+
+    @classmethod
+    def delete_filename(cls, filename, bucket_name):
         bucket = cls.get_bucket(bucket_name)
         blob = bucket.blob(filename)
         if blob.exists():
             blob.delete()
 
     @classmethod
+    def file_exists(cls, filename, bucket_name):
+        bucket = cls.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        return blob.exists()
+
+    @classmethod
+    def get_filename(cls, filename, bucket_name):
+        """
+        Downloads `filename` and returns a file-like object with the data
+        @param filename: name of file in `bucket_name`
+        @param bucket_name: name of bucket
+        @return: file-like object with the data
+        """
+        bucket = cls.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        return BytesIO(blob.download_as_bytes())
+
+    @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
+
+    @classmethod
+    def get_filename_from_url(cls, old_file_url):
+        return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None

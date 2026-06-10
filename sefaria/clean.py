@@ -87,10 +87,10 @@ def remove_old_counts():
                 i = model.library.get_index(count["title"])
                 if model.VersionSet({"title": i.title}).count() == 0:
                     print("Old count for Commentary with no content: %s" % count["title"])
-                    db.vstate.remove({"_id": count["_id"]})                    
+                    db.vstate.delete_one({"_id": count["_id"]})                    
             except BookNameError:
                 print("Old count: %s" % count["title"])
-                db.vstate.remove({"_id": count["_id"]})
+                db.vstate.delete_one({"_id": count["_id"]})
 
 
 def remove_trailing_empty_segments():
@@ -107,16 +107,3 @@ def remove_trailing_empty_segments():
             text.chapter = new_text
             text.save()
             model.VersionState(text.title).refresh()
-
-
-def remove_bad_translation_requests():
-    """
-    Deletes translation requests that contain Refs we don't understand.
-    """
-    trs = model.TranslationRequestSet()
-    for tr in trs:
-        try:
-            model.Ref(tr.ref)
-        except Exception as e:
-            print(tr.ref + "\n*** " + str(e))
-            tr.delete()

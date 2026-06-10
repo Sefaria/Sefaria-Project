@@ -203,7 +203,7 @@ def init_pagerank_graph(ref_list=None):
 
     while len(all_links.array()) > 0:
         for link in all_links:  # raw records avoids caching the entire LinkSet into memory
-            if current_link % 1000 == 0:
+            if current_link % 1000 == 0 and current_link > 0:
                 print("{}/{}".format(current_link, len_all_links))
 
             try:
@@ -212,8 +212,8 @@ def init_pagerank_graph(ref_list=None):
                 refs = [Ref(r) for r in link.refs]
                 tp1 = refs[0].index.best_time_period()
                 tp2 = refs[1].index.best_time_period()
-                start1 = int(tp1.start) if tp1 else 3000
-                start2 = int(tp2.start) if tp2 else 3000
+                start1 = int(tp1.determine_year_estimate()) if tp1 else 3000
+                start2 = int(tp2.determine_year_estimate()) if tp2 else 3000
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
@@ -255,7 +255,10 @@ def init_pagerank_graph(ref_list=None):
     return graph, all_ref_cat_counts
 
 
-def pagerank_rank_ref_list(ref_list, normalize=False):
+def pagerank_rank_ref_list(ref_list, normalize=False, seg_ref_map=None):
+    """
+    :param seg_ref_map: dict with keys that are ranged refs and values are list of segment trefs. pass in order to save from recomputing within this function
+    """
     # make unique
     ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
     graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
@@ -272,9 +275,11 @@ def pagerank_rank_ref_list(ref_list, normalize=False):
             if count < len(sorted_ranking) - 1:
                 pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
     # map pr values onto ref_list
-    ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
+    if seg_ref_map is None:
+        seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
+    # TODO do we always want to choose max segment PR over the range? maybe average is better?
     ref_list_with_pr = sorted([
-        (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) if len(ref_map[r.normal()]) > 0 else (r, 0.0) for r in
+        (r, max([pr.get(rr, 0.0) for rr in seg_ref_map[r.normal()]])) if len(seg_ref_map[r.normal()]) > 0 else (r, 0.0) for r in
         ref_list
     ], key=lambda x: x[1], reverse=True)
     return ref_list_with_pr
@@ -380,16 +385,7 @@ def calculate_sheetrank():
 
                     for r in ref_list:
                         sheetrank_dict[r.normal()] += 1
-                except InputError:
-                    continue
-                except TypeError:
-                    continue
-                except AssertionError:
-                    continue
-                except AttributeError:
-                    continue
-                except IndexError:
-                    print(s["ref"])
+                except (InputError, TypeError, AssertionError, KeyError, AttributeError, IndexError):
                     continue
 
             if "subsources" in s:
@@ -397,7 +393,7 @@ def calculate_sheetrank():
         return temp_sources_count
 
     sheetrank_dict = defaultdict(int)
-    len_sheets = db.sheets.find().count()
+    len_sheets = db.sheets.count_documents({})
     sheets = get_all_sheets()
     sources_count = 0
     for i, sheet in enumerate(sheets):

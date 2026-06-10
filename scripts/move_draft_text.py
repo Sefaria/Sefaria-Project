@@ -20,13 +20,14 @@ except ImportError:
 
 class ServerTextCopier(object):
 
-    def __init__(self, dest_server, apikey, title, post_index=True, versions=None, post_links=False):
+    def __init__(self, dest_server, apikey, title, post_index=True, versions=None, post_links=False, step=0):
         self._dest_server = dest_server
         self._apikey = apikey
         self._title_to_retrieve = title
         self._versions_to_retrieve = versions
         self._post_index = post_index
         self._post_links = post_links
+        self._post_links_step = step
 
     def post_terms_from_schema(self):
 
@@ -51,7 +52,6 @@ class ServerTextCopier(object):
                 necessary_terms.append(t)
         for t in necessary_terms:
             self._upload_term(t)
-
 
     def load_objects(self):
         self._index_obj = library.get_index(self._title_to_retrieve)
@@ -85,49 +85,18 @@ class ServerTextCopier(object):
             self.post_terms_from_schema()
             self._handle_categories()
             self._make_post_request_to_server(self._prepare_index_api_call(idx_title), idx_contents)
-        content_nodes = self._index_obj.nodes.get_leaf_nodes()
+
         for ver in self._version_objs:
             found_non_empty_content = False
             print(ver.versionTitle.encode('utf-8'))
-            flags = {}
-            for flag in ver.optional_attrs:
-                if hasattr(ver, flag):
-                    flags[flag] = getattr(ver, flag, None)
-            for node_num, node in enumerate(content_nodes,1):
-                print(node.full_title(force_update=True))
-                text = JaggedTextArray(ver.content_node(node)).array()
-                version_payload = {
-                        "versionTitle": ver.versionTitle,
-                        "versionSource": ver.versionSource,
-                        "language": ver.language,
-                        "text": text
-                }
-                if len(text) > 0:
-                    # only bother posting nodes that have content.
-                    found_non_empty_content = True
-                    if node_num == len(content_nodes):
-                        self._make_post_request_to_server(self._prepare_text_api_call(
-                            node.full_title(force_update=True), count_after=True), version_payload)
-                    else:
-                        self._make_post_request_to_server(self._prepare_text_api_call(
-                            node.full_title(force_update=True)), version_payload)
-            if not found_non_empty_content:
-                # post the last node again with dummy text, to make sure an actual version db object is created
-                # then post again to clear the dummy text
-                dummy_text = "This is a dummy text"
-                empty = ""
-                for _ in range(node.depth):
-                    dummy_text = [dummy_text]
-                    empty = [empty]
-                version_payload['text'] = dummy_text
-                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-                version_payload['text'] = empty
-                self._make_post_request_to_server(self._prepare_text_api_call(node.full_title()), version_payload)
-            if flags:
-                self._make_post_request_to_server(self._prepare_version_attrs_api_call(ver.title, ver.language, ver.versionTitle), flags)
-        if self._post_links:
+            self._make_post_request_to_server(self._prepare_text_api_call(), ver.contents(), params={'count_after': 1})
+
+        if self._post_links and len(self._linkset) > 0:
+            if self._post_links_step <= 0 or self._post_links_step > len(self._linkset):
+                self._post_links_step = len(self._linkset)
             links = [l.contents() for l in self._linkset if not getattr(l, 'source_text_oid', None)]
-            self._make_post_request_to_server(self._prepare_links_api_call(), links)
+            for i in range(0, len(links), self._post_links_step):
+                self._make_post_request_to_server(self._prepare_links_api_call(), links[i:i+self._post_links_step])
 
     def _handle_categories(self):
         if getattr(self, '_index_obj') is None:
@@ -163,17 +132,15 @@ class ServerTextCopier(object):
     def _prepare_index_api_call(self, index_title):
         return 'api/v2/raw/index/{}'.format(index_title.replace(" ", "_"))
 
-    def _prepare_text_api_call(self, terminal_ref, count_after=False):
-        return 'api/texts/{}?count_after={}&index_after=0'.format(urllib.parse.quote(terminal_ref.replace(" ", "_").encode('utf-8')), int(count_after))
-
-    def _prepare_version_attrs_api_call(self, title, lang, vtitle):
-        return "api/version/flags/{}/{}/{}".format(urllib.parse.quote(title), urllib.parse.quote(lang), urllib.parse.quote(vtitle))
+    def _prepare_text_api_call(self):
+        return 'api/versions/'
 
     def _prepare_links_api_call(self):
         return "api/links/"
 
-    def _make_post_request_to_server(self, url, payload):
-        full_url = "{}/{}".format(self._dest_server, url)
+    def _make_post_request_to_server(self, url, payload, params=None):
+        params = params or {}
+        full_url = f"{self._dest_server}/{url}?{urllib.parse.urlencode(params)}"
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.parse.urlencode(values).encode('utf-8')
@@ -199,8 +166,8 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--versionlist", help="pipe separated version list: lang:versionTitle. To copy all versions, simply input 'all'")
     parser.add_argument("-k", "--apikey", help="non default api key", default=SEFARIA_BOT_API_KEY)
     parser.add_argument("-d", "--destination_server", help="override destination server", default='http://eph.sefaria.org')
-    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move manual links on this text as well, '2' to move auto links")
-
+    parser.add_argument("-l", "--links", default=0, type=int, help="Enter '1' to move only manual links, '2' to move auto links on this text as well")
+    parser.add_argument("-s", "--step", default=-1, type=int, help="Enter step size for link posting.  Size of 400 means links are posted 400 at a time.")
     args = parser.parse_args()
     print(args)
     if not args.apikey:
@@ -209,10 +176,10 @@ if __name__ == '__main__':
         if args.versionlist != 'all':
             version_arr = []
             for versionstr in args.versionlist.split("|"):
-                lang_vtitle = versionstr.split(":")
+                lang_vtitle = versionstr.split(":", 1)
                 version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
             args.versionlist = version_arr
-    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links)
+    copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links, args.step)
     copier.do_copy()
 
     try:

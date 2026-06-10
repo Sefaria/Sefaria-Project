@@ -1,0 +1,110 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">Friend,</span>
+        <span class="int-he">קהילת ספריא,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            On Shavuot, we celebrate the beginning of the conversation that is Torah — and at Sefaria, we celebrate the conversation all year long.
+        </span>
+        <span class="int-he">
+            יחד עם סיום ימי העומר ולקראת חג השבועות אנו מתכוונים להגיע ליעד של 400 תורמים חודשיים נוספים לספריא.
+            בזכות תרומות הקבע, התורמים החודשיים שלנו עוזרים לספריא לכסות חלק נכבד מהעלויות השנתיות שלה.
+        </span>
+    </p>
+    <p>
+        <span class="int-en">
+            Our library is always open and free for you to study and explore – and we need to get 400 new Sefaria Sustainers before Shavuot in order to continue growing our resources. 
+            Will you become a monthly donor right now?
+        </span>
+        <span class="int-he">
+            ההרשמה שלך לתרומה חודשית תעזור לנו להמשיך להעניק גישה חופשית למקורות יהודיים במשך כל השנה ולהרחיב אותם.
+            תרומה של $15, $10 ואפילו $5 בחודש יכולה להשפיע מאוד ולעשות את ההבדל.
+        </span>
+    </p>
+    <p>
+        <span class="int-en">
+           Thank you.
+        </span>
+        <span class="int-he">
+            עתיד התורה בידיים שלך!
+        </span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-en">Become a Sustainer</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-he">להצטרפות לתרומה חודשית</span>
+        </a>
+    </div>
+
+
+</div>

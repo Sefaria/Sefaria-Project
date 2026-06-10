@@ -1,0 +1,102 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.deployEnv }}
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.deployEnv }}
+  hostnames:
+    {{- range .Values.domains.root }}
+    {{- $code := .code }}
+    {{- if kindIs "slice" $code }}
+      {{- $code = index $code 0 }}
+    {{- end }}
+    {{- $rootDomain := tpl .url $ | quote | trimAll "\"" }}
+    {{- $wwwDomain := printf "www.%s" $rootDomain }}
+        - {{ $rootDomain }}
+        - {{ $wwwDomain }}
+    {{- range $.Values.domains.modules }}
+    {{- $subdomain := index .subdomains $code }}
+    {{- if $subdomain }}
+    {{- $subdomain := printf "%s.%s" $subdomain $rootDomain }}
+        - {{ $subdomain }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/texts/
+      timeouts:
+        request: 2m
+        backendRequest: 90s
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /edit/
+      timeouts:
+        request: 2m
+        backendRequest: 90s
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /api/version-bulk-edit
+        - path:
+            type: Exact
+            value: /api/version-bulk-delete
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/text-upload
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        # Covers /modtools/upload_text, /modtools/links,
+        # /modtools/links/{tref1}/{tref2}, and /modtools/index_links/{tref1}/{tref2}.
+        - path:
+            type: PathPrefix
+            value: /modtools/
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /download/bulk/
+      timeouts:
+        request: 2m
+        backendRequest: 2m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+{{- end }}

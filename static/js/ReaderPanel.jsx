@@ -1,173 +1,132 @@
-import React  from 'react';
+import React, {useState}  from 'react';
+import Component from 'react-class';
 import classNames  from 'classnames';
 import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
-import extend  from 'extend';
 import Sefaria  from './sefaria/sefaria';
+import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
-import ReaderNavigationMenu  from './ReaderNavigationMenu';
+import TextsPage  from './TextsPage';
+import UserHistoryPanel from './UserHistoryPanel';
 import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 } from './ConnectionsPanel';
-import ReaderTextTableOfContents  from './ReaderTextTableOfContents';
-import SearchPage  from './SearchPage';
-import SheetsNav  from './SheetsNav';
-import Sheet  from './Sheet';
-import SheetMetadata  from './SheetMetadata';
+import BookPage  from './BookPage';
+import Sheet  from './sheets/Sheet';
 import TopicPageAll  from './TopicPageAll';
-import {TopicPage}  from './TopicPage';
-import AccountPanel  from './AccountPanel';
-import NotificationsPanel  from './NotificationsPanel';
-import MyNotesPanel  from './MyNotesPanel';
-import UserHistoryPanel  from './UserHistoryPanel';
-import UserProfile  from './UserProfile';
-import UpdatesPanel  from './UpdatesPanel';
-import HomeFeed  from './HomeFeed';
-import StoryEditor  from './StoryEditor';
+import {TopicPage, TopicCategory}  from './TopicPage';
+import TopicsPage from './TopicsPage';
+import CollectionPage from "./CollectionPage"
+import EditCollectionPage from "./EditCollectionPage";
+import { NotificationsPanel } from './NotificationsPanel';
+import { UserProfile }  from './UserProfile';
+import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import PublicCollectionsPage from './PublicCollectionsPage';
+import TranslationsPage from './TranslationsPage';
+import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
-  MyGroupsPanel,
-  PublicGroupsPanel
-} from './MyGroupsPanel';
-import {
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
+  CloseButton,
+  MenuButton,
+  DisplaySettingsButton,
   SaveButton,
+  GuideButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet,
 } from './Misc';
-import Component from 'react-class';
-
+import {ContentText} from "./ContentText";
+import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
+import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
+import {SheetsHomePage} from "./sheets/SheetsHomePage";
+import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
+import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
+import GuideOverlay from './GuideOverlay';
+import {shouldUseEditor} from './sefaria/sheetsUtils';
+import {DropdownMenu} from "./common/DropdownMenu";
 
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
-    // When this component is managed by a parent, all it takes is initialState
-    if (props.initialState) {
-      var state = this.clonePanel(props.initialState);
-      state["initialAnalyticsTracked"] = false;
-      this.state = state;
-      return;
-    }
 
-    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
     this.state = {
-      refs: props.initialRefs || [], // array of ref strings
-      bookRef: null,
-      mode: props.initialMode, // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnections"
-      connectionsMode: props.initialConnectionsMode,
-      filter: props.initialFilter || [],
-      versionFilter: props.initialVersionFilter || [],
-      currVersions: props.initialCurrVersions || {en:null, he: null},
-      highlightedRefs: props.initialHighlightedRefs || [],
-      highlightedNodes: props.highlightedNodes || [],
-      recentFilters: [],
-      recentVersionFilters: [],
-      settings: props.initialState.settings || {
-        language:      Sefaria._siteSettings.TORAH_SPECIFIC ? "binlinual" : "english",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
-      },
-      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
-      navigationCategories: props.initialNavigationCategories || [],
-      navigationTopicCategory:     props.initialNavigationTopicCategory || "",
-      navigationSheetTag:   props.initialSheetsTag || null,
-      navigationTopic:      props.initialTopic || null,
-      navigationTopicTitle: props.initialNavigationTopicTitle || null,
-      topicTitle:           props.initialTopicTitle || null,
-      sheetsGroup:          props.initialGroup || null,
-      sheet:                props.sheet || null,
-      sheetID:              null,
-      editSheet:            false,
-      searchQuery:          props.initialQuery || null,
-      searchTab:            props.initialSearchTab || "text",
-      topicsTab:            props.initialTopicsTab || "sources",
-      textSearchState: new SearchState({
-        type:               'text',
-        field:              props.initialTextSearchField,
-        sortType:           props.initialTextSearchSortType,
-        appliedFilters:     props.initialTextAppliedSearchFilters,
-        appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-      }),
-      sheetSearchState: new SearchState({
-        type:               'sheet',
-        sortType:           props.initialSheetSearchSortType,
-        appliedFilters:     props.initialSheetAppliedSearchFilters,
-        appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-      }),
-      selectedWords:        "",
-      displaySettingsOpen:  false,
-      tagSort: "count",
-      mySheetSort: "date",
-      profile: props.initialProfile || null,
-      initialAnalyticsTracked: false
+      ...this.clonePanel(props.initialState),
+      initialAnalyticsTracked: false,
+      width: this.props.multiPanel ? 1000 : 500, // Assume we're in a small panel not using multipanel
+      backButtonSettings: null,
+      data: null,
+      forceGuideOverlay: false,
+    };
+    this.sheetRef = React.createRef();
+    this.readerContentRef = React.createRef();
+  }
+  conditionalSetTextData() {
+    this.setState({data: null});
+    if (this.state.mode === "Text" || this.state.mode === "TextAndConnections" || this.state.connectionsMode === 'Advanced Tools') {
+      const ref = this.state.currentlyVisibleRef;
+      Sefaria.getTextFromCurrVersions(ref, this.state.currVersions, this.props.translationLanguagePreference, true).then(data => {
+        this.setState({data: data});
+      })
     }
   }
   componentDidMount() {
+    this.conditionalSetTextData();
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
-      var curPanel = $(".readerPanel")[this.props.panelPosition];
+      const curPanel = $(".readerPanel")[this.props.panelPosition];
       $(curPanel).find(':focusable').first().focus();
     }
-
-    if (this.state.mode == "Sheet") {
-      var newSettings = this.state.settings
-      newSettings["language"] = this.state.sheet.options.language || "bilingual"
-      this.conditionalSetState({ settings: newSettings});
-    }
-
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
   }
   componentWillReceiveProps(nextProps) {
-    if (nextProps.initialFilter && !this.props.multiPanel) {
-      this.openConnectionsInPanel(nextProps.initialRefs);
-    }
     if (nextProps.searchQuery && this.state.menuOpen !== "search") {
       this.openSearch(nextProps.searchQuery);
     }
     if (this.state.menuOpen !== nextProps.initialMenu) {
       this.setState({menuOpen: nextProps.initialMenu});
     }
-    if (nextProps.initialState) {
-      this.setState(nextProps.initialState);
-    } else {
-      this.setState({
-        navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationTopicCategory: nextProps.initialNavigationTopicCategory || "",
-        navigationSheetTag:   nextProps.initialSheetsTag || null
-      });
-    }
+    this.setState(nextProps.initialState);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
       this.setWidth();
     }
     if ($('*:focus').length == 0 && this.props.multiPanel && $("body").hasClass("user-is-tabbing")) {
-        var curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
+        const curPanel = $(".readerPanel")[($(".readerPanel").length)-1];
         $(curPanel).find(':focusable').first().focus();
     }
     this.replaceHistory = false;
     if (this.state.displaySettingsOpen) {
       $(".readerOptionsPanel").find('.on:focusable').first().focus();
     }
+    if (!Sefaria.areBothVersionsEqual(prevState.currVersions, this.state.currVersions) ||
+        this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef ||
+        this.state.connectionsMode !== prevState.connectionsMode) {
+      this.conditionalSetTextData();
+    }
+    if (this.shouldLayoutUpdate(prevState)) {
+      const newLayout = (this.state.data.primaryDirection === 'rtl') ? 'heRight' : 'heLeft';
+      this.setOption('biLayout', newLayout);
+    }
+  }
+  shouldLayoutUpdate(prevState) {
+    //when we switch to two rtl (or ltr) texts and layout is side by side, we want the primary to be first
+    const [data, prevData] = [this.state.data, prevState.data];
+    return this.getContentLanguageOverride() === 'bilingual' &&
+        this.state.settings.biLayout !== 'stacked' &&
+        data !== null &&
+        (data?.primaryDirection !== prevData?.primaryDirection || data?.translationDirection !== prevData?.translationDirection) &&
+        data?.primaryDirection === data?.translationDirection;
   }
   conditionalSetState(state) {
-    // Set state either in the central app or in the local component,
-    // depending on whether a setCentralState function was given.
+    // Set state either in the central app or in the local component.
+    // If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
+    // If it is not present, then the state for this ReaderPanel is managed from the component itself.
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -182,65 +141,38 @@ class ReaderPanel extends Component {
     }
     this.setState({"error": message})
   }
-  _getClickTarget(event) {
-    // searches for click target with the proper css class
-    let target = $(event.target);
-    let linkType;
-    while (target.attr("data-ref-child")) {
-      // go up known data-ref-children
-      target = target.parent();
+  getContentLanguageOverride() {
+    // Determines the actual content language used inside this ReaderPanel.
+    // Because it's called in the constructor, assume state isnt necessarily defined and pass
+    // variables mode and menuOpen manually
+    const {mode, menuOpen, connectionsMode} = this.state;
+    const originalLanguage = this.state.settings.language;
+    let contentLangOverride = originalLanguage;
+    if (["topics", "allTopics", "calendars", "collection" ].includes(menuOpen)) {   //  "story_editor",
+      // Always bilingual for English interface, always Hebrew for Hebrew interface
+      contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
+
+    } else if ((mode === "Connections" && connectionsMode !== 'TextList') || !!menuOpen){
+      // Always Hebrew for Hebrew interface, treat bilingual as English for English interface
+      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
-    if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
-      target = target.parent();
-    }
-    if (target.hasClass("refLink")) {
-      linkType = "ref";
-    } else if (target.hasClass("catLink")) {
-      linkType = "cat";
-    } else if (target.hasClass("sheetLink")) {
-      linkType = "sheet";
-    } else {
-      return {};  // couldn't find a known link
-    }
-    return { target, linkType };
+    return contentLangOverride;
   }
-  handleClick(event) {
-    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
-      event.preventDefault();
-    }
-    const { target, linkType } = this._getClickTarget(event);
-    if (!target) { return; }
-    if (linkType === "ref") {
-      const ref       = target.attr("data-ref");
-      const pos       = target.attr("data-position");
-      const enVersion = target.attr("data-ven");
-      const heVersion = target.attr("data-vhe");
-      if (target.hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
-      } else {
-        const onTextClick = this.props.onNavTextClick || this.showBaseText;
-        onTextClick(ref, {en: enVersion, he: heVersion});
-      }
-      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
-    } else if (linkType === "cat") {
-      const cats = target.attr("data-cats").split("|");
-      this.setNavigationCategories(cats);
-      if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
-    } else if (linkType === "sheet") {
-      const ref = target.attr("data-ref");
-      const onTextClick = this.props.onNavTextClick || this.showBaseText;
-      onTextClick(ref);
-    }
+  getContentLanguageOverrideStateful() {
+    // same as getContentLanguageOverride() but relies on values in this.state
+    return this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen);
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
     return Sefaria.util.clone(panel);
   }
-  handleBaseSegmentClick(ref) {
+  handleBaseSegmentClick(ref, showHighlight = true) {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
+        this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
       } else {
         this.openConnectionsInPanel(ref);
@@ -248,131 +180,146 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    console.log(source);
-    this.conditionalSetState({highlightedNodes: source.node});
-    if (this.state.mode ==="SheetAndConnections") {
-      this.closeSheetConnectionsInPanel();
-    }
-    else if (this.state.mode === "Sheet") {
-      if (this.props.multiPanel) {
-        if (source.ref) {
-          this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
-        }
-        else {
-          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
-        }
-      } else {
-          if (source.ref) {
-            this.openSheetConnectionsInPanel(source.ref, source.node);
-          }
-      }
-    }
+    const highlightedRefs = source.ref ? Sefaria.splitRangingRef(source.ref) : [`Sheet ${this.state.sheetID}:${source.node}`];
+    this.conditionalSetState({highlightedNode: source.node, highlightedRefs});
   }
-  handleSheetCitationClick(ref) {
-    this.props.onCitationClick(ref);
-  }
-  handleCitationClick(citationRef, textRef) {
+  handleCitationClick(citationRef, textRef, replace, currVersions) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(citationRef, textRef);
+      this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef);
+      this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
-  openConnectionsInPanel(ref) {
-    var refs = typeof ref == "string" ? [ref] : ref;
+  openConnectionsPanel(ref, additionalState) {
+    /**
+     * Decides whether to open a new connections panel or to open connections in the current panel
+     * depending on whether we're in multi-panel mode
+     */
+    if (this.props.multiPanel) {
+      this.props.openConnectionsPanel(ref, additionalState);
+    } else {
+      this.openConnectionsInPanel(ref, additionalState);
+    }
+  }
+  openConnectionsInPanel(ref, additionalState) {
+    let refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" }, this.replaceHistory);
+    let newState = {highlightedRefs: refs, mode: "TextAndConnections" };
+    if (additionalState) {
+      newState = {...newState, ...additionalState};
+    }
+    this.conditionalSetState(newState, this.replaceHistory);
+  }
+  onNamedEntityClick(slug, textRef, namedEntityText) {
+    // make sure text list is highlighted for segment with named entity
+    this.setTextListHighlight(textRef, true);
+
+    // decide whether to open side panel in current panel or in new panel based on whether app is multipanel
+    const namedEntityState = { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText };
+    if (this.props.multiPanel) {
+      this.props.openNamedEntityInNewPanel(textRef, namedEntityState);
+    } else {
+      this.openConnectionsInPanel([textRef], namedEntityState);
+    }
   }
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
     this.conditionalSetState({highlightedRefs: [], mode: "Text"});
   }
-  openSheetConnectionsInPanel(ref, node) {
-    var refs = typeof ref == "string" ? [ref] : ref;
-    var nodes = typeof node == "string" ? [node] : node;
-    this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedNodes: nodes, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
+  handleSheetClick(sheet, highlightedNode, highlightedRefsInSheet) {
+    this.conditionalSetState({
+      mode: "Sheet",
+      sheetID: typeof sheet === 'object' ? sheet.id : sheet, // latter case is for when 'sheet' passed is ID
+      highlightedNode,
+      highlightedRefsInSheet,
+      menuOpen: null,
+    });
   }
-  closeSheetConnectionsInPanel() {
-    // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNodes: [], highlightedRefs: [], mode: "Sheet"});
+  setPreviousSettings(backButtonSettings) {
+    this.setState({ backButtonSettings });
   }
-  handleSheetClick(e, sheet, highlightedNodes, highlightedRefsInSheet) {
-    e.preventDefault();
-    var newSettings = this.state.settings;
-    newSettings["language"] = sheet.options.language;
-    this.conditionalSetState({ mode: "Sheet", sheet, highlightedNodes, highlightedRefsInSheet, settings: newSettings});
-  }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
-    // Set the current primary text `ref`, which may be either a string or an array of strings.
-    // `replaceHistory` - bool whether to replace browser history rather than push for this change
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[],
+               convertCommentaryRefToBaseRef=true, forceOpenCommentaryPanel = false) {
+    /* Set the current primary text `ref`, which may be either a string or an array of strings.
+    * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
+    * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    * @param {bool} `forceOpenCommentaryPanel` - see `Sefaria.isCommentaryRefWithBaseText()`
+    */
     if (!ref) { return; }
-    //console.log("showBaseText", ref)
     this.replaceHistory = Boolean(replaceHistory);
-    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+    convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
+    // console.log("showBaseText", ref, replaceHistory);
+    if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    if (ref.constructor == Array) {
-      // When called with an array, set highlight for the whole spanning range
-      var refs = ref;
-      var currentlyVisibleRef = Sefaria.humanRef(ref);
-      var splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-      var highlightedRefs = [].concat.apply([], splitArray);
-    } else {
-      var refs = [ref];
-      var currentlyVisibleRef = ref;
-      var highlightedRefs = [];
+    let refs;
+    if (!Array.isArray(ref)) {
+      const oRef = Sefaria.parseRef(ref);
+      if (oRef.book === "Sheet") {
+        this.openSheet(ref);
+        return;
+      }
+      refs = [ref];
     }
-    //console.log("- highlightedRefs: ", highlightedRefs)
+    else {
+      refs = ref;
+    }
     if (this.replaceHistory) {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
-    this.conditionalSetState({
-      mode: "Text",
-      refs,
-      filter,
-      currentlyVisibleRef,
-      currVersions,
-      highlightedRefs,
-      recentFilters: [],
-      menuOpen: null,
-      connectionsMode: "Resources",
-      settings: this.state.settings
-    });
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false, forceOpenCommentaryPanel);
   }
-
-  toggleSheetEditMode(buttonstate) {
-      if (buttonstate == true) {
-          this.conditionalSetState({
-              editSheet: false
-          })
-      } else {
-          this.conditionalSetState({
-              editSheet: true
-          })
-          if (this.props.hasSidebar) {
-            this.props.closeConnectionPanel(this.props.panelPosition)
-          }
-      }
-
+  openSheet(sheetRef, replaceHistory) {
+    this.replaceHistory = Boolean(replaceHistory);
+    const parsedRef = Sefaria.parseRef(sheetRef);
+    let [sheetID, sheetNode] = parsedRef.sections;
+    sheetID = parseInt(sheetID);
+    sheetNode = sheetNode ? parseInt(sheetNode) : null;
+    if (this.replaceHistory) {
+      // Replacing sheet history occurs after sheet data has been loaded,
+      // when we have all the data we need to store history.
+      this.props.saveLastPlace({ mode: "Sheet", sheetID, settings: this.state.settings}, this.props.panelPosition);
+    }
+    this.conditionalSetState({
+      mode: 'Sheet',
+      sheetID,
+      highlightedNode: sheetNode,
+      menuOpen: null
+    });
   }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
     this.conditionalSetState({ refs: refs });
   }
-  setTextListHighlight(refs) {
+  setTextListHighlight(refs, showHighlight) {
+    refs = typeof refs === "string" ? [refs] : refs;
+    this.replaceHistory = true;
+    if (!Sefaria.util.object_equals(refs, this.state.highlightedRefs)) {
+      this.props.closeNamedEntityInConnectionPanel();
+    }
+    this.conditionalSetState({highlightedRefs: refs, showHighlight: showHighlight});
+    this.props.setTextListHighlight(refs);
+  }
+  setFocusedText(refs) {
     refs = typeof refs === "string" ? [refs] : refs;
     this.replaceHistory = true;
     this.conditionalSetState({highlightedRefs: refs});
     if (this.props.multiPanel) {
       this.props.setTextListHighlight(refs);
     }
+  }
+  updateCollectionName(name) {
+    // Replace history with collection name, which may be loaded from API with slug
+    // after the CollectionPage has initiall rendered.
+    this.replaceHistory = true;
+    this.conditionalSetState({ collectionName: name });
   }
   setSelectedWords(words){
     words = (typeof words !== "undefined" && words.length) ?  words : "";
@@ -384,57 +331,39 @@ class ReaderPanel extends Component {
       this.conditionalSetState({'selectedWords':  words});
     }
   }
+  clearSelectedWords() {
+    this.replaceHistory = false;
+    if (this.props.multiPanel) {
+      this.props.clearSelectedWords();
+    } else {
+      this.conditionalSetState({'selectedWords':  ''});
+    }
+  }
   closeMenus() {
-    var state = {
-      // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null: "home",
-      // searchQuery: null,
-      // appliedSearchFilters: [],
+    let state = {
+      // If there's no content to show, return to navigation
+      menuOpen: this.state.refs.slice(-1)[0] ? null: "navigation",
       navigationCategories: null,
       navigationTopicCategory: null,
-      navigationSheetTag: null
     };
     this.conditionalSetState(state);
   }
-  onClose() {
-    if (this.state.menuOpen === "compare") {
-      this.props.closePanel();
-    } else {
-      this.setNavigationCategories([]);
-      this.closeMenus();
-    }
-  }
   closeSheetMetaData() {
-    var state = {
-      // If there's no content to show, return to home
+    let state = {
       menuOpen: null,
+      mode: "Sheet",
       navigationCategories: null,
       navigationTopicCategory: null,
-      navigationSheetTag: null
     };
     this.conditionalSetState(state);
 
   }
-  closePanelSearch() {
-    // Assumption: Search in a panel in multiPanel is always within a "compare" panel
-    var state = {
-      // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null : (this.props.multiPanel ? "compare" : "navigation"),
-      // searchQuery: null,
-      // appliedSearchFilters: [],
-      navigationCategories: null,
-      navigationTopicCategory: null,
-      navigationSheetTag: null
-    };
-    this.conditionalSetState(state);
-  }
   openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
+      mode: "Text",
       initialAnalyticsTracked: false,
-      // searchQuery: null,
-      // appliedSearchFilters: [],
-      navigationSheetTag: null,
+      navigationCategories: null,
       navigationTopic: null,
       navigationTopicTitle: null,
       topicTitle: null,
@@ -444,13 +373,17 @@ class ReaderPanel extends Component {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic, topicTitle) {
-    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
+    this.conditionalSetState({
+      menuOpen: 'topics',
+      navigationTopicCategory: topic,
+      navigationTopicTitle: topicTitle,
+      navigationTopic: null,
+      topicTitle: null,
+      navigationCategories: null,
+    });
   }
-  setSheetTag (tag) {
-    this.conditionalSetState({navigationSheetTag: tag});
-  }
-  setGroupTag (tag) {
-    this.conditionalSetState({navigationGroupTag: tag});
+  setCollectionTag (tag) {
+    this.conditionalSetState({collectionTag: tag});
   }
   setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -469,16 +402,16 @@ class ReaderPanel extends Component {
     }
 
   }
-  setVersionFilter(filter) {
+  setVersionFilter(filter, prevConnectionsMode) {
     if (this.props.setVersionFilter) {
-      this.props.setVersionFilter(filter);
+      this.props.setVersionFilter(filter, prevConnectionsMode);
     } else {
       const filtInd = Sefaria.util.inArray(filter, this.state.recentVersionFilters);
       if (filtInd === -1) {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
       }
       filter = filter ? [filter] : [];
-      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Translation Open"});
     }
   }
   setWebPagesFilter(filter) {
@@ -486,18 +419,30 @@ class ReaderPanel extends Component {
   }
   setTopic(navigationTopic, topicTitle) {
     this.conditionalSetState({
-        menuOpen: "topics",
-        navigationTopic,
-        topicTitle
+      menuOpen: "topics",
+      navigationTopicCategory: null,
+      topicTestVersion: this.props.topicTestVersion,
+      navigationTopic,
+      topicTitle
+    });
+  }
+  openCompareTextTOC(title) {
+    // Opens the book TOC in a compare panel
+    console.log("openCompareTextTOC")
+    this.conditionalSetState({
+      menuOpen: "book toc",
+      compare: true,
+      bookRef: title,
+      previousCategories: this.state.navigationCategories,
     });
   }
   toggleLanguage() {
-    if (this.state.settings.language == "hebrew") {
-        this.setOption("language", "english");
-        if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "english");}
+    if (this.state.settings.language === "hebrew") {
+      this.setOption("language", "english");
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "english");}
     } else {
-        this.setOption("language", "hebrew");
-        if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "hebrew");}
+      this.setOption("language", "hebrew");
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "hebrew");}
     }
   }
   openSearch(query) {
@@ -506,35 +451,89 @@ class ReaderPanel extends Component {
       searchQuery: query
     });
   }
-  openDisplaySettings() {
-    this.conditionalSetState({displaySettingsOpen: true});
+  showGuide() {
+    // Force the guide overlay to show
+    this.setState({forceGuideOverlay: true});
   }
-  closeDisplaySettings() {
-    this.conditionalSetState({displaySettingsOpen: false});
+  closeGuideOverlay() {
+    // Reset the force guide overlay state when guide is closed
+    this.setState({forceGuideOverlay: false});
+  }
+  getGuideType() {
+    /**
+     * CENTRAL GUIDE MAPPING - This is the one place to update when adding new guides
+     * 
+     * This function determines which guide (if any) should be shown based on current state.
+     * When adding a new guide:
+     * 1. Add a new entry to the GUIDE_MAPPINGS array below
+     * 2. Ensure the guideType matches what you'll use in the guide data/API
+     * 3. Define the condition function that determines when this guide should show
+     * 
+     * @returns {string|null} The guide type to show, or null if no guide should be shown
+     */
+    
+    // Global conditions that apply to ALL guides
+    // Don't show on mobile or in resource panels
+    if (!this.props.multiPanel || this.props.panelPosition !== 0) {
+      return null;
+    }
+    
+    // Define all available guides and their conditions
+    // ORDER MATTERS: First matching condition will be used
+    const GUIDE_MAPPINGS = [
+      {
+        guideType: "editor",
+        condition: (state, props) => {
+          if (state.mode !== "Sheet") return false;
+          return shouldUseEditor(state.sheetID);
+        }
+      },
+      // Add new guides here following the same pattern:
+      // {
+      //   guideType: "reader", 
+      //   condition: (state, props) => /* your condition */
+      // },
+    ];
+
+    // Check each guide mapping and return the first match
+    for (const mapping of GUIDE_MAPPINGS) {
+      if (mapping.condition(this.state, this.props)) {
+        return mapping.guideType;
+      }
+    }
+    
+    // No guide should be shown
+    return null;
+  }
+  setDisplaySettingsOpen(bool) {
+    this.conditionalSetState({displaySettingsOpen: bool});
+  }
+  getLayoutCategory() {
+    const category = this.currentCategory();
+    return category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
   }
   setOption(option, value) {
     if (option === "fontSize") {
-      var step = 1.15;
-      var size = this.state.settings.fontSize;
+      const step = 1.15;
+      const size = this.state.settings.fontSize;
       value = (value === "smaller" ? size/step : size*step);
     } else if (option === "layout") {
-      var category = this.currentCategory();
-      var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+      option = this.getLayoutCategory();
     }
 
     this.state.settings[option] = value;
-    var state = {settings: this.state.settings};
+    let state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
-    $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
+    $.cookie(option, value, {path: "/"});
     this.conditionalSetState(state);
   }
-  setConnectionsMode(mode) {
-    var loginRequired = {
+  setConnectionsMode(mode, connectionData = null) {
+    let loginRequired = {
       "Add Connection": 1,
     };
     if (mode == "Add Connection" && this.props.allOpenRefs.length == 1) {
@@ -546,10 +545,11 @@ class ReaderPanel extends Component {
       Sefaria.track.event("Tools", "Prompt Login");
       mode = "Login";
     }
-    var state = {connectionsMode: mode};
+    let state = {connectionsMode: mode};
     if (mode === "Resources") {
       this.setFilter();
     }
+    state["connectionData"] = !!connectionData ? connectionData : null;
     this.conditionalSetState(state);
   }
   setConnectionsCategory(category) {
@@ -566,44 +566,44 @@ class ReaderPanel extends Component {
     this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     //console.log("Setting panel width", this.width);
   }
-  setSheetTagSort(sort) {
-    this.conditionalSetState({
-      tagSort: sort,
-    });
-  }
-  setMySheetSort(sort) {
-    this.conditionalSetState({
-      mySheetSort: sort,
-    });
-  }
   setCurrentlyVisibleRef(ref) {
-     this.replaceHistory = true;
-     //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
-     this.conditionalSetState({
+    this.replaceHistory = true;
+    //var ref = this.state.highlightedRefs.length ? Sefaria.normRef(this.state.highlightedRefs) : ref;
+    this.conditionalSetState({
       currentlyVisibleRef: ref,
     });
+  }
+  setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
+    // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
+    // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
+    // before the previous page's history state has been pushed to the history object. If this happens, we want
+    // this.replaceHistory to be false so that we don't override the previous page's history.
+    // If history.state.panels[0].mode is undefined, we know that conditionalSetState has been called already, and we
+    // can replace the history state. Otherwise, we want to push the history state, so we set replaceHistory to false.
+    this.replaceHistory = replaceHistoryIfReaderAppUpdated ?
+        history.state ? !history.state.panels[0].mode : true // on page load history state may not yet exist -- in that case force update
+        : false
+    this.conditionalSetState({tab: tab})
+  }
+  onSetTopicSort(topicSort) {
+    this.conditionalSetState({topicSort});
   }
   currentMode() {
     return this.state.mode;
   }
   currentRef() {
     // Returns a string of the current ref, the first if there are many
-    return this.state.refs && this.state.refs.length ? this.state.refs[0] : null;
-  }
-  currentData() {
-    // Returns the data from the library of the current ref
-    var ref  = this.currentRef();
-    if (!ref) { return null; }
-    var data = Sefaria.ref(ref);
-    return data;
+    return this.state.refs && this.state.refs.length ? this.state.refs[0]
+            : this.state.highlightedRefs && this.state.highlightedRefs ? this.state.highlightedRefs[0]
+              : null;
   }
   currentBook() {
-    var data = this.currentData();
+    let data = this.state.data;
     if (data) {
       return data.indexTitle;
     } else {
-      var pRef = Sefaria.parseRef(this.currentRef());
-      return "book" in pRef ? pRef.book : null;
+      let pRef = Sefaria.parseRef(this.currentRef());
+      return "index" in pRef ? pRef.index : ("book" in pRef ? pRef.book : null);
     }
   }
   currentCategory() {
@@ -611,7 +611,7 @@ class ReaderPanel extends Component {
       return "Sheets"
     }
     else {
-      var book = this.currentBook();
+      const book = this.currentBook();
       return (Sefaria.index(book) ? Sefaria.index(book)['primary_category'] : null);
     }
   }
@@ -619,9 +619,9 @@ class ReaderPanel extends Component {
     if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
-    var category = this.currentCategory();
-    if (!category) { return "layoutDefault"; }
-    var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+    // dont allow continuous mode in sidebar since it's currently not possible to control layout from sidebar
+    if (this.state.mode === "Connections") {return "segmented"}
+    const option = this.getLayoutCategory();
     return this.state.settings[option];
   }
   handleKeyPress(e) {
@@ -633,62 +633,119 @@ class ReaderPanel extends Component {
     let bookRef = this.state.bookRef ? this.state.bookRef : this.currentBook();
     this.props.backFromExtendedNotes(bookRef, this.state.currVersions);
   }
+  whereIsElementInViewport(element) {
+    const elementbbox = element.getBoundingClientRect();
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+    if (elementbbox.top >= 200 && elementbbox.bottom < vh) {
+        return "in viewport"
+    }
+    if (elementbbox.bottom >= vh/2 && element) {
+        return "past half"
+    }
+  };
+  getHighlightedByScrollPos() {
+    let segmentToHighlight = null
+
+    const segments = this.readerContentRef.current.querySelectorAll(".sheetItem");
+
+    for (let segment of segments) {
+        const elementLoc = this.whereIsElementInViewport(segment);
+        if (elementLoc === "in viewport" || elementLoc === "past half") {
+            segmentToHighlight = segment;
+            break;
+        }
+    }
+
+    return segmentToHighlight
+  };
+  openSidePanel() {
+    const highlighted = this.getHighlightedByScrollPos();
+    highlighted.click();
+  }
+  getPanelType() {
+    const {menuOpen, tab, navigationTopic, navigationTopicCategory} = this.state;
+    if (menuOpen === "topics") {
+      if (navigationTopicCategory) {
+        return "Topic Navigation";
+      } else if (navigationTopic) {
+        return `${menuOpen}_${tab}`;
+      } else {
+        return "Topic Landing";
+      }
+    }
+  }
+  getPanelName() {
+    const {menuOpen, navigationTopic, navigationTopicCategory} = this.state;
+    if (menuOpen === "topics") {
+      return navigationTopicCategory || navigationTopic || "Explore by Topic";
+    }
+  }
+  getPanelNumber() {
+    // TODO update for commentary panels
+    return this.props.panelPosition+1;
+  }
+  getAnalyticsData() {
+    return {
+      panel_type: this.getPanelType(),
+      panel_number: this.getPanelNumber(),
+      content_lang: this.getContentLanguageOverrideStateful(),
+      panel_name: this.getPanelName(),
+    };
+  }
   render() {
     if (this.state.error) {
       return (
-          <div className="readerContent">
-            <div className="readerError">
-              <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
-              <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
-              <div className="readerErrorText">
-                <span className="int-en">Error Message: </span>
-                <span className="int-he">שגיאה:</span>
-                {this.state.error}
-              </div>
+        <div
+        ref={this.readerContentRef}
+        className="readerContent">
+          <div className="readerError">
+            <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
+            <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
+            <div className="readerErrorText">
+              <span className="int-en">Error Message: </span>
+              <span className="int-he">שגיאה: </span>
+              {this.state.error}
             </div>
           </div>
-        );
+        </div>
+      );
     }
 
     let items = [];
     let menu = null;
-    let contentLangOverride = null;
+    const style = {"fontSize": this.state.settings.fontSize + "%"};
+    const readerPanelContextData = {
+      language: this.getContentLanguageOverride(),
+      isMenuOpen: this.state.displaySettingsOpen,
+      setIsMenuOpen: this.setDisplaySettingsOpen,
+      setOption: this.setOption,
+      textsData: this.state.data,
+      layout: this.currentLayout(),
+      panelMode: this.state.mode,
+      aliyotShowStatus: this.state.settings.aliyotTorah,
+      vowelsAndCantillationState: this.state.settings.vowels,
+      punctuationState: this.state.settings.punctuationTalmud,
+      width: this.state.width,
+      panelPosition: this.props.panelPosition,
+    };
+    const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
-    if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
-      if (this.state.sheet.editor) {
-        let newSheet = this.state.sheet;
-        delete newSheet.editor
-        this.conditionalSetState({ sheet: newSheet});
-        this.toggleSheetEditMode(false)
-      }
-        items.push(<Sheet
-          panelPosition ={this.props.panelPosition}
-          id={this.state.sheet.id}
-          editor={this.state.editSheet}
-          key={"sheet-"+this.state.sheet.id}
-          highlightedNodes={this.state.highlightedNodes}
-          highlightedRefsInSheet={this.state.highlightedRefsInSheet}
-          onRefClick={this.handleSheetCitationClick}
-          hasSidebar={this.props.hasSidebar}
-          contentLang={this.state.settings.language}
-          interfaceLang={this.props.interfaceLang}
-          onSegmentClick={this.handleSheetSegmentClick}
-          openProfile={this.props.openProfile}
-      />);
-    }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
-      var oref  = Sefaria.parseRef(this.state.refs[0]);
-      var title = oref && oref.index ? oref.index : "empty";
-      var bookTitle = oref && oref.index ? oref.index  : "";
-      var heBookTitle = oref ? oref.heTitle : "";
-      items.push(<TextColumn
+      const oref  = Sefaria.parseRef(this.state.refs[0]);
+      const showHighlight = this.state.showHighlight || (this.state.highlightedRefs.length > 1);
+      const index = oref && oref.index ? Sefaria.index(oref.index) : null;
+      const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
+      items.push(
+        <TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
+          showHighlight={showHighlight}
           basetext={true}
-          bookTitle={bookTitle}
-          heBookTitle={heBookTitle}
+          bookTitle={textColumnBookTitle}
+          heBookTitle={heTextColumnBookTitle}
           withContext={true}
           loadLinks={true}
           prefetchNextPrev={true}
@@ -702,6 +759,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onNamedEntityClick={this.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
           setSelectedWords={this.setSelectedWords}
@@ -711,20 +769,45 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
-          key={title + "-TextColumn"} />);
+          translationLanguagePreference={this.props.translationLanguagePreference}
+          navigatePanel={this.props.navigatePanel}
+          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
+      );
+    }
+    if (this.state.mode === "Sheet") {
+      menu = <Sheet
+          panelPosition ={this.props.panelPosition}
+          id={this.state.sheetID}
+          key={"sheet-"+this.state.sheetID}
+          multiPanel={this.props.multiPanel}
+          highlightedNode={this.state.highlightedNode}
+          highlightedRefs={this.state.highlightedRefs}
+          highlightedRefsInSheet={this.state.highlightedRefsInSheet}
+          scrollToHighlighted={this.state.scrollToHighlighted}
+          onSegmentClick={this.handleSheetSegmentClick}
+          openSheet={this.openSheet}
+          setSelectedWords={this.setSelectedWords}
+          contentLang={this.state.settings.language}
+          setDivineNameReplacement={this.props.setDivineNameReplacement}
+          divineNameReplacement={this.props.divineNameReplacement}
+          style={style}
+          historyObject={this.props.getHistoryObject(this.state, false)}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          editorSaveState={this.props.editorSaveState}
+          setEditorSaveState={this.props.setEditorSaveState}
+          showGuide={this.getGuideType() && this.showGuide.bind(this)}
+        />;
     }
 
-    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
-      var langMode = this.props.masterPanelLanguage || this.state.settings.language;
-      var data     = this.currentData();
-      if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      }
-      var canEditText = data &&
+    if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections") {
+      const langMode = this.props.masterPanelLanguage || this.state.settings.language;
+      let data     = this.state.data;
+      const canEditText = data &&
                         ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
                         (langMode === "english" && data.versionStatus !== "locked") ||
                         (Sefaria.is_moderator && langMode !== "bilingual"));
-      items.push(<ConnectionsPanel
+      items.push(
+        <ConnectionsPanel
           panelPosition ={this.props.panelPosition}
           selectVersion={this.props.selectVersion}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
@@ -732,141 +815,123 @@ class ReaderPanel extends Component {
           mode={this.state.connectionsMode || "Resources"}
           recentFilters={this.state.recentFilters}
           connectionsCategory={this.state.connectionsCategory}
+          connectionData={this.state.connectionData}
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
+          currentlyVisibleRef={this.state.currentlyVisibleRef}
           currVersions={this.state.currVersions}
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
-          addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
+          scrollPosition={this.state.sideScrollPosition || 0}
+          setSideScrollPosition={this.props.setSideScrollPosition}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           webPagesFilter={this.state.webPagesFilter}
           setWebPagesFilter={this.setWebPagesFilter}
-          sheetMetaData={this.state.sheet}
           nodeRef={this.state.nodeRef}
           closeConectionsInPanel={this.closeConnectionsInPanel}
           handleSheetClick={this.handleSheetClick}
           openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
           editNote={this.editNote}
           noteBeingEdited={this.state.noteBeingEdited}
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
-          onNavigationClick={this.props.onNavigationClick}
-          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-          onCompareClick={this.showBaseText}
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
-          getLicenseMap={this.props.getLicenseMap}
+          sidebarSearchQuery={this.state.sidebarSearchQuery}
+          onSidebarSearchClick={this.props.onSidebarSearchClick}
+          selectedNamedEntity={this.state.selectedNamedEntity}
+          selectedNamedEntityText={this.state.selectedNamedEntityText}
+          clearSelectedWords={this.clearSelectedWords}
+          clearNamedEntity={this.props.clearNamedEntity}
+          setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+          masterPanelLayout={this.props.masterPanelLayout}
           masterPanelLanguage={this.props.masterPanelLanguage}
-          translateISOLanguageCode={this.props.translateISOLanguageCode}
+          masterPanelMode={this.props.masterPanelMode}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          openProfile={this.props.openProfile}
+          navigatePanel={this.props.navigatePanel}
+          translationLanguagePreference={this.props.translationLanguagePreference}
+          setDivineNameReplacement={this.props.setDivineNameReplacement}
+          divineNameReplacement={this.props.divineNameReplacement}
+          setPreviousSettings={this.setPreviousSettings}
+          filterRef={this.state.filterRef}
+          backButtonSettings={this.state.backButtonSettings}
           key="connections" />
       );
     }
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
-      var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
-      var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
-      var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
-      menu = (<ReaderNavigationMenu
+    if (this.state.menuOpen === "navigation") {
+
+      const openNav = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
+      const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
+
+      menu = (<TextsPage
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
-                    home={this.state.menuOpen === "home"}
-                    compare={this.state.menuOpen === "compare"}
-                    interfaceLang={this.props.interfaceLang}
+                    compare={this.state.compare}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
-                    topic={this.state.navigationTopicCategory || ""}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
-                    setNavTopic={this.setNavigationTopic}
-                    setTopic={this.setTopic}
+                    openTextTOC={openTextTOC}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
-                    onClose={this.onClose}
-                    closePanel={this.props.closePanel}
-                    handleClick={this.handleClick}
-                    openNav={openNav}
+                    onCompareBack={this.props.closePanel}
                     openSearch={this.openSearch}
-                    openMenu={this.openMenu}
-                    openDisplaySettings={this.openDisplaySettings}
-                    onTextClick={this.props.onNavTextClick || this.showBaseText}
-                    onRecentClick={onRecentClick}
-                    hideNavHeader={this.props.hideNavHeader}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                  />);
-
-    } else if (this.state.menuOpen === "sheet meta") {
-      menu = (<SheetMetadata
-                    mode={this.state.menuOpen}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    interfaceLang={this.props.interfaceLang}
-                    close={this.closeSheetMetaData}
-                    sheet={this.state.sheet}
-                    versionLanguage={this.state.versionLanguage}
-                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    narrowPanel={!this.props.multiPanel}
-                    currentRef={this.state.currentlyVisibleRef}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    selectVersion={this.props.selectVersion}
-                    showBaseText={this.showBaseText}/>);
-
-    }
-    else if (this.state.menuOpen === "text toc") {
-      menu = (<ReaderTextTableOfContents
-                    mode={this.state.menuOpen}
-                    interfaceLang={this.props.interfaceLang}
-                    close={this.closeMenus}
-                    title={this.currentBook()}
-                    currVersions={this.state.currVersions}
-                    settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={this.currentCategory()}
-                    narrowPanel={!this.props.multiPanel}
-                    currentRef={this.state.currentlyVisibleRef}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    selectVersion={this.props.selectVersion}
-                    viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}
-                    showBaseText={this.showBaseText}
-                    getLicenseMap={this.props.getLicenseMap}/>);
-
+                    initialWidth={this.state.width}
+                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+    } else if (this.state.menuOpen === "sheetsWithRef") {
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+                                 searchState={this.state['searchState']}
+                                 updateSearchState={this.props.updateSearchState}
+                                 updateAppliedFilter={this.props.updateSearchFilter}
+                                 updateAppliedOptionField={this.props.updateSearchOptionField}
+                                 updateAppliedOptionSort={this.props.updateSearchOptionSort}
+                                 registerAvailableFilters={this.props.registerAvailableFilters}
+                                 resetSearchFilters={this.props.resetSearchFilters}
+                                 onResultClick={this.handleSheetClick}/>);
     } else if (this.state.menuOpen === "book toc") {
-      menu = (<ReaderTextTableOfContents
+      const onCompareBack = () => {
+        this.conditionalSetState({
+          menuOpen: "navigation",
+          navigationCategories: this.state.previousCategories,
+        });
+      };
+      menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
-                    interfaceLang={this.props.interfaceLang}
-                    closePanel={this.props.closePanel}
+                    multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
                     currVersions={this.state.currVersions}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
-                    category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : null}
+                    toggleLanguage={this.toggleLanguage}
+                    category={Sefaria.index(this.state.bookRef).primary_category}
                     currentRef={this.state.bookRef}
+                    compare={this.state.compare}
+                    onCompareBack={onCompareBack}
                     narrowPanel={!this.props.multiPanel}
                     key={this.state.bookRef}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
-                    getLicenseMap={this.props.getLicenseMap}
-                    viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")}/>);
+                    viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "toc")} />);
 
     } else if (this.state.menuOpen === "extended notes" && this.state.mode !== "Connections") {
-      menu = (<ReaderTextTableOfContents
+      menu = (<BookPage
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     mode={this.state.menuOpen}
                     interfaceLang={this.props.interfaceLang}
-                    closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef ? this.state.bookRef : this.currentBook()}
                     currVersions={this.state.currVersions}
@@ -874,73 +939,51 @@ class ReaderPanel extends Component {
                     category={Sefaria.index(this.state.bookRef) ? Sefaria.index(this.state.bookRef).primary_category : this.currentCategory()}
                     currentRef={this.state.bookRef ? this.state.bookRef : this.state.currentlyVisibleRef}
                     narrowPanel={!this.props.multiPanel}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
                     selectVersion={this.props.selectVersion}
                     showBaseText={this.showBaseText}
                     backFromExtendedNotes={
                       this.state.mode==="Connections" ? this.closeMenus : this.backFromExtendedNotes
-                    }
-                    getLicenseMap={this.props.getLicenseMap}/>);
+                    }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      menu = (<SearchPage
-                    key={"searchPage"}
-                    interfaceLang={this.props.interfaceLang}
+      menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
-                    tab={this.state.searchTab}
-                    textSearchState={this.state.textSearchState}
-                    sheetSearchState={this.state.sheetSearchState}
+                    searchState={this.state['searchState']}
+                    resetSearchFilters={this.props.resetSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
-                    openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
-                    close={this.closePanelSearch}
-                    hideNavHeader={this.props.hideNavHeader}
+                    close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
-                    updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    openProfile={this.props.openProfile}
-                  />);
-
-    } else if (this.state.menuOpen === "sheets") {
-      menu = (<SheetsNav
-                    interfaceLang={this.props.interfaceLang}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    close={this.closeMenus}
-                    multiPanel={this.props.multiPanel}
-                    hideNavHeader={this.props.hideNavHeader}
-                    toggleLanguage={this.toggleLanguage}
-                    tag={this.state.navigationSheetTag}
-                    tagSort={this.state.tagSort}
-                    group={this.state.sheetsGroup}
-                    groupTag={this.state.navigationGroupTag}
-                    mySheetSort={this.state.mySheetSort}
-                    setMySheetSort={this.setMySheetSort}
-                    setSheetTagSort={this.setSheetTagSort}
-                    setSheetTag={this.setSheetTag}
-                    setGroupTag={this.setGroupTag}
-                    searchInGroup={this.props.searchInGroup}
-                    openProfile={this.props.openProfile}
-                    key={"SheetsNav"}
-                    openProfile={this.props.openProfile}
-                  />);
-
+                    compare={this.state.compare}/>);
     } else if (this.state.menuOpen === "topics") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
-      if (this.state.navigationTopic) {
+      if (this.state.navigationTopicCategory) {
+        menu = (
+          <TopicCategory
+            topic={this.state.navigationTopicCategory}
+            topicTitle={this.state.navigationTopicTitle}
+            setTopic={this.setTopic}
+            setNavTopic={this.setNavigationTopic}
+            interfaceLang={this.props.interfaceLang}
+            compare={this.state.compare}
+            initialWidth={this.state.width}
+            openSearch={this.openSearch}
+          />
+        );
+      } else if (this.state.navigationTopic) {
         menu = (
           <TopicPage
-            tab={this.state.topicsTab}
+            tab={this.state.tab}
+            setTab={this.setTab}
+            onSetTopicSort={this.onSetTopicSort}
+            topicSort={this.state.topicSort}
             topic={this.state.navigationTopic}
+            topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
             setTopic={this.setTopic}
             setNavTopic={this.setNavigationTopic}
@@ -949,245 +992,260 @@ class ReaderPanel extends Component {
             openNav={this.openMenu.bind(null, "navigation")}
             openSearch={this.openSearch}
             close={this.closeMenus}
-            onClose={this.onClose}
             multiPanel={this.props.multiPanel}
-            hideNavHeader={this.props.hideNavHeader}
             navHome={this.openMenu.bind(null, "navigation")}
-            openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
-            updateTopicsTab={this.props.updateTopicsTab}
+            translationLanguagePreference={this.props.translationLanguagePreference}
+            topicTestVersion={this.props.topicTestVersion}
             key={"TopicPage"}
           />
         );
       } else {
-        menu = (<TopicPageAll
-                  interfaceLang={this.props.interfaceLang}
-                  width={this.state.width}
-                  setTopic={this.setTopic}
-                  openNav={this.openMenu.bind(null, "navigation")}
-                  close={this.closeMenus}
-                  multiPanel={this.props.multiPanel}
-                  hideNavHeader={this.props.hideNavHeader}
-                  toggleLanguage={this.toggleLanguage}
-                  navHome={this.openMenu.bind(null, "navigation")}
-                  openDisplaySettings={this.openDisplaySettings}
-                  key={"TopicPageAll"}
-                />);
+        if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
+          menu = (
+              <TopicsLandingPage openTopic={this.props.openTopic}/>
+          );
+        } else if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+          menu = <TopicsPage
+                      key={"TopicsPage"}
+                      setNavTopic={this.setNavigationTopic}
+                      multiPanel={this.props.multiPanel}
+                      initialWidth={this.state.width}/>;
+        }
       }
-
-    } else if (this.state.menuOpen === "account") {
-      menu = (<AccountPanel
-                    handleInAppLinkClick={this.props.handleInAppLinkClick}
-                    interfaceLang={this.props.interfaceLang} />);
+    } else if (this.state.menuOpen === "allTopics") {
+      menu = (
+        <TopicPageAll
+          interfaceLang={this.props.interfaceLang}
+          topicLetter={this.state.navigationTopicLetter}
+          intiialWidth={this.state.width}
+          setTopic={this.setTopic}
+          openNav={this.openMenu.bind(null, "navigation")}
+          close={this.closeMenus}
+          multiPanel={this.props.multiPanel}
+          toggleLanguage={this.toggleLanguage}
+          navHome={this.openMenu.bind(null, "navigation")}
+          key={"TopicPageAll"} />
+      );
 
     } else if (this.state.menuOpen === "notifications") {
-      menu = (<NotificationsPanel
-                    setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                    interfaceLang={this.props.interfaceLang} />);
-
-    } else if (this.state.menuOpen === "myNotes") {
-      menu = (<MyNotesPanel
-                    interfaceLang={this.props.interfaceLang}
-                    multiPanel={this.props.multiPanel}
-                    hideNavHeader={this.props.hideNavHeader}
-                    navHome={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    toggleLanguage={this.toggleLanguage} />);
-
-    } else if (this.state.menuOpen === "publicGroups") {
-      menu = (<PublicGroupsPanel
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")}/>);
-
-    } else if (this.state.menuOpen === "myGroups") {
-      menu = (<MyGroupsPanel
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")}/>);
-
-    } else if (this.state.menuOpen === "homefeed") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
-      menu = (<HomeFeed
-                    interfaceLang={this.props.interfaceLang}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    showLibrary={this.props.showLibrary}
-      />);
-
-    } else if (this.state.menuOpen === "story_editor") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
-      menu = (<StoryEditor
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    interfaceLang={this.props.interfaceLang} />);
-
-
-    } else if (this.state.menuOpen === "updates") {
-      menu = (<UpdatesPanel
-                    interfaceLang={this.props.interfaceLang}
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")} />);
-
-    } else if (this.state.menuOpen === "user_stats") {
-      menu = (<UserStats/>);
-
-    } else if (this.state.menuOpen === "modtools") {
-      menu = (<ModeratorToolsPanel
-                    interfaceLang={this.props.interfaceLang} />);
-
-    } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
-        <UserHistoryPanel
-          multiPanel={this.props.multiPanel}
-          menuOpen={this.state.menuOpen}
-          handleClick={this.handleClick}
-          openNav={this.openMenu.bind(null, "navigation")}
-          openDisplaySettings={this.openDisplaySettings}
+        <NotificationsPanel
+          setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+          interfaceLang={this.props.interfaceLang} />
+      );
+
+    } else if (this.state.menuOpen === "collection") {
+      menu = (
+        <CollectionPage
+          name={this.state.collectionName}
+          setTab={this.setTab}
+          tab={this.state.tab}
+          slug={this.state.collectionSlug}
+          tag={this.state.collectionTag}
+          setCollectionTag={this.setCollectionTag}
+          width={this.state.width}
+          searchInCollection={this.props.searchInCollection}
           toggleLanguage={this.toggleLanguage}
-          compare={this.state.menuOpen === "compare"}
-          hideNavHeader={this.props.hideNavHeader}
-          interfaceLang={this.props.interfaceLang}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          updateCollectionName={this.updateCollectionName}
+          navHome={this.openMenu.bind(null, "navigation")}
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width}
+          interfaceLang={this.props.interfaceLang} />
+      );
+
+    } else if (this.state.menuOpen === "collectionsPublic") {
+      menu = (
+        <PublicCollectionsPage
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width} />
+      );
+
+    } else if (this.state.menuOpen === "translationsPage") {
+      menu = <TranslationsPage
+        translationsSlug={this.state.translationsSlug}
+      />
+    } else if (this.state.menuOpen === "editCollection") {
+      menu = (
+        <EditCollectionPage
+          initialData={this.state.collectionData}
         />
       );
+    }
+    else if (this.state.menuOpen === "user_stats") {
+      menu = (<UserStats />);
+
+    } else if (this.state.menuOpen === "modtools") {
+      menu = (
+        <ModeratorToolsPanel
+          interfaceLang={this.props.interfaceLang} />
+      );
+      
+    } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
+      menu = (
+        <UserHistoryPanel              
+            menuOpen={this.state.menuOpen}
+            openMenu={this.openMenu}
+            openNav={this.openMenu.bind(null, "navigation")}
+            openDisplaySettings={this.openDisplaySettings}
+            toggleLanguage={this.toggleLanguage}
+            compare={this.state.compare}
+            toggleSignUpModal={this.props.toggleSignUpModal} />
+      );      
+    } else if (this.state.menuOpen === "voices") {
+      menu = (<SheetsHomePage setNavTopic={this.setNavigationTopic}
+              setTopic={this.setTopic}
+              multiPanel={this.props.multiPanel}
+              menuOpen={this.state.menuOpen}
+              openMenu={this.openMenu}
+              openNav={this.openMenu.bind(null, "navigation")}
+              openDisplaySettings={this.openDisplaySettings}
+              toggleLanguage={this.toggleLanguage}
+              compare={this.state.compare}
+              toggleSignUpModal={this.props.toggleSignUpModal}/>
+      );
+
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          handleInAppLinkClick={this.props.handleInAppLinkClick}
-          openProfile={this.props.openProfile}
+          tab={this.state.tab}
+          setTab={this.setTab}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")}
-        />
+          navHome={this.openMenu.bind(null, "navigation")} />
+      );
+
+    } else if (this.state.menuOpen === "calendars") {
+      menu = (
+        <CalendarsPage
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width} />
       );
     }
 
-    let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
-    let contentLang = contentLangOverride || this.state.settings.language;
-    classes[contentLang]              = 1
-    classes[this.currentLayout()]      = 1;
-    classes[this.state.settings.color] = 1;
+    let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
+    classes[readerPanelContextData.language] = 1;
+    classes[this.currentLayout()]        = 1;
+    classes[this.state.settings.color]   = 1;
+    if (readerPanelContextData.language !== 'bilingual' || !this.state.data?.text?.length) {
+      let isPrimaryShown = readerPanelContextData.language === 'hebrew' || !this.state.data?.text?.length;
+      let primaryOrTranslation = isPrimaryShown ? 'primary' : 'translation';
+      let direction = this.state.data?.[`${primaryOrTranslation}Direction`];
+      classes[direction] = 1;
+    }
     classes = classNames(classes);
-    var style = {"fontSize": this.state.settings.fontSize + "%"};
-    var hideReaderControls = (
-        this.state.mode === "TextAndConnections" ||
-        this.state.menuOpen ||
-        this.props.hideNavHeader
+
+
+    const sheet = Sefaria.sheets.loadSheetByID(this.state.sheetID);
+    const sheetTitle = !!sheet ? sheet.title.stripHtmlConvertLineBreaks() : null;
+
+    const hideReaderControls = (
+      this.state.mode === "TextAndConnections" ||
+      this.state.mode === "Sheet" ||
+      this.state.menuOpen ||
+      this.props.hideNavHeader
     );
-
     return (
-      <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
-        {hideReaderControls ? null :
-        (<ReaderControls
-          showBaseText={this.showBaseText}
-          sheet={this.state.sheet}
-          toggleSheetEditMode={this.toggleSheetEditMode}
-          editSheet={this.state.editSheet}
-          currentRef={this.state.currentlyVisibleRef}
-          highlightedRef={(!!this.state.highlightedRefs && this.state.highlightedRefs.length) ? Sefaria.normRef(this.state.highlightedRefs) : null}
-          currentMode={this.currentMode.bind(this)}
-          currentCategory={this.currentCategory}
-          currentBook={this.currentBook.bind(this)}
-          currVersions={this.state.currVersions}
-          multiPanel={this.props.multiPanel}
-          settings={this.state.settings}
-          setOption={this.setOption}
-          setConnectionsMode={this.setConnectionsMode}
-          setConnectionsCategory={this.setConnectionsCategory}
-          openMenu={this.openMenu}
-          closeMenus={this.closeMenus}
-          openDisplaySettings={this.openDisplaySettings}
-          currentLayout={this.currentLayout}
-          onError={this.onError}
-          connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
-          connectionsCategory={this.state.connectionsCategory}
-          closePanel={this.props.closePanel}
-          toggleLanguage={this.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
-        />)}
+      <ReaderPanelContext.Provider value={readerPanelContextData}>
+        <div ref={this.readerContentRef} className={classes} onKeyDown={this.handleKeyPress} role="region"
+             id={"panel-"+this.props.panelPosition} data-anl-batch={JSON.stringify(this.getAnalyticsData())}>
+          {hideReaderControls ? null :
+            <ReaderControls
+              showBaseText={this.showBaseText}
+              hasSidebar={this.state.hasSidebar}
+              toggleSheetEditMode={this.toggleSheetEditMode}
+              currentRef={this.state.currentlyVisibleRef}
+              highlightedRefs={this.state.highlightedRefs}
+              sheetID={this.state.sheetID}
+              sheetTitle={sheetTitle}
+              currentMode={this.currentMode.bind(this)}
+              currentCategory={this.currentCategory}
+              currentBook={this.currentBook.bind(this)}
+              currVersions={this.state.currVersions}
+              multiPanel={this.props.multiPanel}
+              settings={this.state.settings}
+              setOption={this.setOption}
+              setConnectionsMode={this.setConnectionsMode}
+              setConnectionsCategory={this.setConnectionsCategory}
+              openMenu={this.openMenu}
+              closeMenus={this.closeMenus}
+              onTextTitleClick={this.handleBaseSegmentClick}
+              onSheetTitleClick={this.handleSheetSegmentClick}
+              openMobileNavMenu={this.props.openMobileNavMenu}
+              onError={this.onError}
+              openConnectionsPanel={this.openConnectionsPanel}
+              connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
+              connectionsCategory={this.state.connectionsCategory}
+              closePanel={this.props.closePanel}
+              toggleLanguage={this.toggleLanguage}
+              interfaceLang={this.props.interfaceLang}
+              toggleSignUpModal={this.props.toggleSignUpModal}
+              historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
+              connectionData={this.state.connectionData}
+              translationLanguagePreference={this.props.translationLanguagePreference}
+              setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+              data={this.state.data}
+              backButtonSettings={this.state.backButtonSettings}
+              showGuide={this.getGuideType() && this.showGuide.bind(this)} // Sending null (false) if the guide shouldn't show so we don't show the guide button
+            />}
 
-        {(items.length > 0 && !menu) ?
-            <div className="readerContent" style={style}>
-              {items}
-            </div>
-        : null}
+          {(items.length > 0 && !menu) ?
+          <div className="readerContent" style={style}>
+            {items}
+          </div> : null}
 
-        {menu}
+          {menu}
+          {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
+          {(() => {
+            const guideType = this.getGuideType();
+            return guideType && (
+              <GuideOverlay 
+                onClose={this.closeGuideOverlay.bind(this)} 
+                guideType={guideType}
+                forceShow={this.state.forceGuideOverlay}
+              />
+            );
+          })()}
 
-        {this.state.displaySettingsOpen ? (<ReaderDisplayOptionsMenu
-                                              settings={this.state.settings}
-                                              multiPanel={this.props.multiPanel}
-                                              setOption={this.setOption}
-                                              parentPanel={this.props.initialState.mode}
-                                              currentLayout={this.currentLayout}
-                                              currentBook={this.currentBook}
-                                              currentData={this.currentData}
-                                              width={this.state.width}
-                                              menuOpen={this.state.menuOpen} />) : null}
-        {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
-
-      </div>
+        </div>
+      </ReaderPanelContext.Provider>
     );
   }
 }
 ReaderPanel.propTypes = {
-  initialRefs:                 PropTypes.array,
-  initialMode:                 PropTypes.string,
-  initialConnectionsMode:      PropTypes.string,
-  initialVersion:              PropTypes.string,
-  initialVersionLanguage:      PropTypes.string,
-  initialFilter:               PropTypes.array,
-  initialHighlightedRefs:      PropTypes.array,
-  initialMenu:                 PropTypes.string,
-  initialQuery:                PropTypes.string,
-  initialTextAppliedSearchFilters: PropTypes.array,
-  initialTextSearchField:          PropTypes.string,
-  initialTextSearchSortType:       PropTypes.string,
-  initialSheetAppliedSearchFilters: PropTypes.array,
-  initialSheetSearchField:          PropTypes.string,
-  initialSheetSearchSortType:       PropTypes.string,
-  initialSheetsTag:            PropTypes.string,
-  initialProfile:              PropTypes.object,
-  initialState:                PropTypes.object, // if present, overrides all props above
+  initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
+  openNamedEntityInNewPanel:   PropTypes.func,
   onNavTextClick:              PropTypes.func,
-  onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,
   onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,
   closePanel:                  PropTypes.func,
   closeMenus:                  PropTypes.func,
   setConnectionsFilter:        PropTypes.func,
+  setSideScrollPosition:       PropTypes.func,
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
   backFromExtendedNotes:       PropTypes.func,
   unsetTextHighlight:          PropTypes.func,
   onQueryChange:               PropTypes.func,
-  updateSearchTab:             PropTypes.func,
-  updateTopicsTab:             PropTypes.func,
   updateSearchFilter:          PropTypes.func,
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
-  searchInGroup:               PropTypes.func,
+  searchInCollection:          PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  addToSourceSheet:            PropTypes.func,
   highlightedRefs:             PropTypes.array,
-  hideNavHeader:               PropTypes.bool,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
+  masterPanelLayout:           PropTypes.string,
   panelsOpen:                  PropTypes.number,
   allOpenRefs:                 PropTypes.array,
   hasSidebar:                  PropTypes.bool,
@@ -1195,16 +1253,18 @@ ReaderPanel.propTypes = {
   setTextListHighlight:        PropTypes.func,
   setSelectedWords:            PropTypes.func,
   analyticsInitialized:        PropTypes.bool,
-  getLicenseMap:               PropTypes.func.isRequired,
-  translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
+  setDivineNameReplacement:    PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
-  openProfile:                 PropTypes.func,
-  showLibrary:                 PropTypes.func,
+  masterPanelMode:             PropTypes.string,
+  masterPanelSheetId:          PropTypes.number,
+  translationLanguagePreference: PropTypes.string,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
+  topicTestVersion:            PropTypes.string,
 };
 
 
@@ -1213,25 +1273,67 @@ class ReaderControls extends Component {
   // contains controls for display, navigation etc.
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+    };
   }
-  openTextToc(e) {
+  openTextConnectionsPanel(e) {
     e.preventDefault();
-    this.props.openMenu("text toc");
+    if(!this.props.hasSidebar){ //Prevent click on title from opening connections panel if its already open
+      Sefaria.track.event("Reader", "Open Connections Panel from Header", this.props.currentRef);
+      this.props.onTextTitleClick(this.props.currentRef, false);
+    }
   }
-  openSheetMeta(e) {
+  openSheetConnectionsPanel(e) {
     e.preventDefault();
-    this.props.openMenu("sheet meta");
+    this.props.onSheetTitleClick(0);
+  }
+  shouldShowVersion(props) {
+    props = props || this.props;
+    // maybe one day sheets will have versions (e.g Nachama) but for now, let's ignore that possibility
+    return !props.sheetID && (props.settings.language === "english" || props.settings.language === "bilingual");
+  }
+  setDisplayVersionTitle(version) {
+    const en = version.shortVersionTitle || version.versionTitle;
+    this.setState({
+      displayVersionTitle: {
+        en,
+        he: version.shortVersionTitleInHebrew || en,
+      }
+    });
+  }
+  loadTranslations() {
+    /**
+     * Preload translation versions to get shortVersionTitle to display
+     */
+    const data = this.props.data;
+    if (!data) {return;}
+    if (data.sources) {
+      // merged version from API
+      this.setDisplayVersionTitle({});
+      return;
+    }
+    for (const version of Object.values(data.available_versions)) {
+      if (!version.isSource && version.versionTitle === data.versionTitle) {
+        this.setDisplayVersionTitle(version);
+        break;
+      }
+    }
+  }
+  openTranslations() {
+    this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
   }
   componentDidMount() {
-    const title = this.props.currentRef;
-    if (title) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const getTextPromise = Sefaria.getText(title, {context: 1}).then(data => {
-        if ("error" in data) { this.props.onError(data.error); }
-        this.setState({runningQuery: null});   // Causes re-render
-      });
-      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
+    this.loadTranslations();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.data && (
+      this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
+      this.props.data.versionTitle !== prevProps.data?.versionTitle ||
+      this.props.currentRef !== prevProps.currentRef
+      )
+    ) {
+      this.loadTranslations();
     }
   }
   componentWillUnmount() {
@@ -1239,98 +1341,142 @@ class ReaderControls extends Component {
       this.state.runningQuery.cancel();
     }
   }
+  stopPropagation(e){
+    e.stopPropagation();
+  }
   render() {
-    var title = this.props.currentRef || "";
-    var heTitle = "";
-    var categoryAttribution = null;
-    var oref = Sefaria.ref(this.props.currentRef);
+    let title = this.props.currentRef || "";
+    let heTitle = "";
+    let sectionString = "";
+    let heSectionString = "";
+    let categoryAttribution = null;
+    const data = this.props.data;
 
-    if (this.props.sheet) {
-      title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
-      heTitle = title;
-      if (title == "") {
-        title = "Untitled";
-        heTitle = "ללא שם";
+    if (this.props.sheetID) {
+      if (this.props.sheetTitle === null) {
+        title = heTitle = Sefaria._("Loading...");
+      } else {
+        title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }
-    } else if (oref) {
-      var sectionString = oref.ref.replace(oref.indexTitle, "");
-      var heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
-      title = <span>{oref.indexTitle}<span className="sectionString">{sectionString}</span></span>
-      heTitle = <span>{oref.heIndexTitle}<span className="sectionString">{heSectionString}</span></span>
-      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
-                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
+
+    } else if (data) {
+      sectionString = data.ref.replace(data.indexTitle, "");
+      heSectionString = data.heRef.replace(data.heIndexTitle, "");
+      title = data.indexTitle;
+      heTitle = data.heIndexTitle;
+      categoryAttribution = data && Sefaria.categoryAttribution(data.categories);
     }
 
-    var mode              = this.props.currentMode();
-    var hideHeader        = !this.props.multiPanel && mode === "Connections";
-    var connectionsHeader = this.props.multiPanel && mode === "Connections";
-    var showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
-    var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
-    var url = this.props.sheet ? "/sheets/" + this.props.sheet.id : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
+    const mode              = this.props.currentMode();
+    const hideHeader        = !this.props.multiPanel && mode === "Connections";
+    const connectionsHeader = this.props.multiPanel && mode === "Connections";
+    let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
+    if (categoryAttribution && displayVersionTitle) { displayVersionTitle = `(${displayVersionTitle})`; }
+    const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : data ? "/" + Sefaria.normRef(data.book) : Sefaria.normRef(this.props.currentRef);
+    const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
-    var centerContent = connectionsHeader ?
-      (<div className="readerTextToc">
-          <ConnectionsPanelHeader
-            connectionsMode={this.props.connectionsMode}
-            previousCategory={this.props.connectionsCategory}
-            multiPanel={this.props.multiPanel}
-            setConnectionsMode={this.props.setConnectionsMode}
-            setConnectionsCategory={this.props.setConnectionsCategory}
-            closePanel={this.props.closePanel}
-            toggleLanguage={this.props.toggleLanguage}
-            interfaceLang={this.props.interfaceLang}/>
-        </div>) :
-      (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
-        <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
-          <a href={url} aria-label={"Show table of contents for " + this.props.currentRef} >
-            { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
-            { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-            { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
-            <div><span className="en">{title}</span>
-            <span className="he">{heTitle}</span></div> }
-            { title ? (<i className="fa fa-angle-down"></i>) : null }
-            { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
+
+    let centerContent = connectionsHeader ?
+      <div className="readerTextToc">
+        <ConnectionsPanelHeader
+          connectionsMode={this.props.connectionsMode}
+          previousCategory={this.props.connectionsCategory}
+          previousMode={this.props.connectionData?.previousMode}
+          multiPanel={this.props.multiPanel}
+          setConnectionsMode={this.props.setConnectionsMode}
+          setConnectionsCategory={this.props.setConnectionsCategory}
+          closePanel={this.props.closePanel}
+          toggleLanguage={this.props.toggleLanguage}
+          interfaceLang={this.props.interfaceLang}
+          backButtonSettings={this.props.backButtonSettings}
+        />
+      </div>
+      :
+      <div className={readerTextTocClasses} onClick={this.props.sheetID ? this.openSheetConnectionsPanel : this.openTextConnectionsPanel}>
+        <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
+          <a href={url} data-target-module={!!this.props.sheetID ? Sefaria.VOICES_MODULE : Sefaria.LIBRARY_MODULE} aria-label={"Show Connection Panel contents for " + title} >
+            <div className="readerControlsTitle">
+              { this.props.sheetID ?
+              <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
+              { this.props.sheetID ?
+              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                {title}
+              </h1>
+              :
+              <h1>
+                <ContentText
+                    text={{en: `${title}${sectionString}`, he: `${heTitle}${heSectionString}`}}
+                    defaultToInterfaceOnBilingual
+                />
+              </h1>
+              }
+            </div>
+            <div className="readerTextVersion">
+              {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
+              {
+                this.shouldShowVersion() && displayVersionTitle ?
+                <span className="readerTextVersion">
+                  <span className="en">{displayVersionTitle}</span>
+                </span> : null
+              }
+            </div>
           </a>
-          <div onClick={(e) => {e.stopPropagation();}}>
-            {categoryAttribution}
-          </div>
         </div>
-      </div>);
-    var leftControls = hideHeader || connectionsHeader ? null :
+      </div>;
+
+    let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
-          {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
+          {this.props.multiPanel ? (<CloseButton onClick={this.props.closePanel} />) : null}
+          {this.props.multiPanel ? null : (<MenuButton onClick={this.props.openMobileNavMenu}/>)}
           <SaveButton placeholder={true}/>
         </div>);
-    var rightControls = hideHeader || connectionsHeader ? null :
+
+
+    const displaySettingsButton = (<DisplaySettingsButton/>);
+    let displaySettingsMenu = (<ReaderDisplayOptionsMenu/>);
+    let rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && document.cookie.includes("new_editor") ?
-              <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
-                {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
-                <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
-                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span> 
-              </button>
-            : null }
+          {this.props.showGuide && 
+            <GuideButton
+              onShowGuide={this.props.showGuide}
+              tooltip={true}
+            />
+          }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
             toggleSignUpModal={this.props.toggleSignUpModal}
           />
-          <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+        <DropdownMenu positioningClass="readerDropdownMenu" buttonComponent={displaySettingsButton}>{displaySettingsMenu}</DropdownMenu>
         </div>);
-    var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel, sheetReaderControls: !!this.props.sheet});
-    var readerControls = hideHeader ? null :
-        (<div className={classes}>
+    const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
+    let banner = (hideHeader || connectionsHeader) ? null : (
+        <TextColumnBannerChooser
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            openTranslations={this.openTranslations}
+            openTransBannerApplies={openTransBannerApplies}
+        />
+    );
+    const classes = classNames({
+      readerControls: 1,
+      connectionsHeader: mode == "Connections",
+      fullPanel: this.props.multiPanel,
+      sheetReaderControls: !!this.props.sheetID
+    });
+
+    let readerControls = hideHeader ? null :
+        (<header className={classes}>
           <div className="readerControlsInner">
             {leftControls}
             {centerContent}
             {rightControls}
           </div>
-        </div>);
+        </header>);
     return (
-      <div>
+      <div className='readerControlsOuter'>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
+        {banner}
       </div>
     );
   }
@@ -1342,214 +1488,26 @@ ReaderControls.propTypes = {
   setConnectionsMode:      PropTypes.func.isRequired,
   setConnectionsCategory:  PropTypes.func.isRequired,
   openMenu:                PropTypes.func.isRequired,
-  openDisplaySettings:     PropTypes.func.isRequired,
+  openMobileNavMenu:       PropTypes.func.isRequired,
   closeMenus:              PropTypes.func.isRequired,
   currentMode:             PropTypes.func.isRequired,
   currentCategory:         PropTypes.func.isRequired,
   currentBook:             PropTypes.func.isRequired,
-  currentLayout:           PropTypes.func.isRequired,
   onError:                 PropTypes.func.isRequired,
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   currentRef:              PropTypes.string,
-  highlightedRef:          PropTypes.string,
   currVersions:            PropTypes.object,
   connectionsMode:         PropTypes.string,
   connectionsCategory:     PropTypes.string,
   multiPanel:              PropTypes.bool,
+  openSidePanel:           PropTypes.func.isRequired,
   interfaceLang:           PropTypes.string,
   toggleSignUpModal:       PropTypes.func.isRequired,
-  historyObject:           PropTypes.object.isRequired,
+  historyObject:           PropTypes.object,
+  setTranslationLanguagePreference: PropTypes.func.isRequired,
+  backButtonSettings:      PropTypes.object,
+  showTips:                PropTypes.func,
 };
-
-
-class ReaderDisplayOptionsMenu extends Component {
-  renderAliyotToggle() {
-    let torah = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Onkelos Genesis", "Onkelos Exodus", "Onkelos Leviticus", "Onkelos Numbers", "Onkelos Deuteronomy"];
-    return this.props.currentBook ? torah.includes(this.props.currentBook()) : false;
-  }
-  vowelToggleAvailability(){
-    var data = this.props.currentData();
-    if(!data) return 2;
-    var sample = data["he"];
-    while (Array.isArray(sample)) {
-        sample = sample[0];
-    }
-    var vowels_re = /[\u05b0-\u05c3\u05c7]/g;
-    var cantillation_re = /[\u0591-\u05af]/g;
-    if(cantillation_re.test(sample)){
-      //console.log("all");
-      return 0;
-    }else if(vowels_re.test(sample)){
-      //console.log("partial");
-      return 1;
-    }else{
-      //console.log("none");
-      return 2;
-    }
-  }
-  showLangaugeToggle() {
-    if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
-
-    var data = this.props.currentData();
-    if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
-
-    var hasHebrew = !!data.he.length;
-    var hasEnglish = !!data.text.length;
-    var singleLanguage = !(hasHebrew && hasEnglish);
-
-    return !singleLanguage;
-  }
-  render() {
-    var languageOptions = [
-      {name: "english",   content: "<span class='en'>A</span>", role: "radio", ariaLabel: "Show English Text" },
-      {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
-      {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
-    ];
-    var languageToggle = this.showLangaugeToggle() ? (
-        <ToggleSet
-          role="radiogroup"
-          ariaLabel="Language toggle"
-          label={Sefaria._("Language")}
-          name="language"
-          options={languageOptions}
-          setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
-
-    var layoutOptions = [
-      {name: "continuous", fa: "align-justify", role: "radio", ariaLabel: "Show Text as a paragram" },
-      {name: "segmented", fa: "align-left", role: "radio", ariaLabel: "Show Text segmented" },
-    ];
-    var biLayoutOptions = [
-      {name: "stacked", content: "<img src='/static/img/stacked.png' alt='Stacked Language Toggle'/>", role: "radio", ariaLabel: "Show Hebrew & English Stacked"},
-      {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text"},
-      {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
-    ];
-    var layoutToggle = this.props.settings.language !== "bilingual" ?
-      this.props.parentPanel == "Sheet" ? null :
-      (<ToggleSet
-          role="radiogroup"
-          ariaLabel="text layout toggle"
-          label={Sefaria._("Layout")}
-          name="layout"
-          options={layoutOptions}
-          setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} />) :
-      (this.props.width > 500 ?
-        <ToggleSet
-          role="radiogroup"
-          ariaLabel="bidirectional text layout toggle"
-          label={Sefaria._("Bilingual Layout")}
-          name="biLayout"
-          options={biLayoutOptions}
-          setOption={this.props.setOption}
-          currentLayout={this.props.currentLayout}
-          settings={this.props.settings} /> : null);
-
-    var colorOptions = [
-      {name: "light", content: "", role: "radio", ariaLabel: "Toggle light mode" },
-      /*{name: "sepia", content: "", role: "radio", ariaLabel: "Toggle sepia mode" },*/
-      {name: "dark", content: "", role: "radio", ariaLabel: "Toggle dark mode" }
-    ];
-    var colorToggle = (
-        <ToggleSet
-          role="radiogroup"
-          ariaLabel="Color toggle"
-          label={Sefaria._("Color")}
-          name="color"
-          separated={true}
-          options={colorOptions}
-          setOption={this.props.setOption}
-          settings={this.props.settings} />);
-    colorToggle = this.props.multiPanel ? null : colorToggle;
-
-    var sizeOptions = [
-      {name: "smaller", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Decrease font size") },
-      {name: "larger", content: Sefaria._("Aa"), role: "button", ariaLabel: Sefaria._("Increase font size")  }
-    ];
-    var sizeToggle = (
-        <ToggleSet
-          role="group"
-          ariaLabel="Increase/Decrease Font Size Buttons"
-          label={Sefaria._("Font Size")}
-          name="fontSize"
-          options={sizeOptions}
-          setOption={this.props.setOption}
-          settings={this.props.settings} />);
-
-    var aliyahOptions = [
-      {name: "aliyotOn",   content: Sefaria._("On"), role: "radio", ariaLabel: Sefaria._("Show Parasha Aliyot") },
-      {name: "aliyotOff", content: Sefaria._("Off"), role: "radio", ariaLabel: Sefaria._("Hide Parasha Aliyot") },
-    ];
-    var aliyahToggle = this.renderAliyotToggle() ? (
-      this.props.parentPanel == "Sheet" ? null :
-        <ToggleSet
-          role="radiogroup"
-          ariaLabel="Toggle Aliyot"
-          label={Sefaria._("Aliyot")}
-          name="aliyotTorah"
-          options={aliyahOptions}
-          setOption={this.props.setOption}
-          settings={this.props.settings} />) : null;
-    var vowelsOptions = [
-      {name: "all", content: "<span class='he'>אָ֑</span>", role: "radio", ariaLabel: Sefaria._("Show Vowels and Cantillation")},
-      {name: "partial", content: "<span class='he'>אָ</span>", role: "radio", ariaLabel: Sefaria._("Show only vowel points")},
-      {name: "none", content: "<span class='he'>א</span>", role: "radio", ariaLabel: Sefaria._("Show only consonantal text")}
-    ];
-    if(!this.props.menuOpen){
-      let vowelOptionsSlice = this.vowelToggleAvailability();
-      let vowelOptionsTitle = (vowelOptionsSlice == 0) ? Sefaria._("Vocalization") : Sefaria._("Vowels");
-      vowelsOptions = vowelsOptions.slice(vowelOptionsSlice);
-      var vowelToggle = (this.props.settings.language !== "english" && vowelsOptions.length > 1) ?
-        this.props.parentPanel == "Sheet" ? null :
-        (<ToggleSet
-            role="radiogroup"
-            ariaLabel="vowels and cantillation toggle"
-            label={vowelOptionsTitle}
-            name="vowels"
-            options={vowelsOptions}
-            setOption={this.props.setOption}
-            currentLayout={this.props.currentLayout}
-            settings={this.props.settings} />): null;
-    }
-    if (this.props.menuOpen === "search") {
-      return (<div className="readerOptionsPanel" role="dialog">
-                <div className="readerOptionsPanelInner">
-                  {languageToggle}
-                  {sizeToggle}
-                </div>
-            </div>);
-    } else if (this.props.menuOpen) {
-      return (<div className="readerOptionsPanel" role="dialog">
-                <div className="readerOptionsPanelInner">
-                  {languageToggle}
-                </div>
-            </div>);
-    } else {
-      return (<div className="readerOptionsPanel" role="dialog">
-                <div className="readerOptionsPanelInner">
-                  {languageToggle}
-                  {layoutToggle}
-                  {colorToggle}
-                  {sizeToggle}
-                  {aliyahToggle}
-                  {vowelToggle}
-                </div>
-              </div>);
-    }
-  }
-}
-ReaderDisplayOptionsMenu.propTypes = {
-  setOption:     PropTypes.func.isRequired,
-  currentLayout: PropTypes.func.isRequired,
-  currentBook:   PropTypes.func,
-  currentData:   PropTypes.func,
-  menuOpen:      PropTypes.string,
-  multiPanel:    PropTypes.bool.isRequired,
-  width:         PropTypes.number.isRequired,
-  settings:      PropTypes.object.isRequired,
-};
-
 
 export default ReaderPanel;

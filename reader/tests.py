@@ -20,9 +20,10 @@ from django.contrib.auth.models import User
 import sefaria.utils.testing_utils as tutils
 
 from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
+    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage, WebSite
 from sefaria.system.database import db
 import sefaria.system.cache as scache
+import random as rand
 
 c = Client()
 
@@ -117,16 +118,12 @@ class PagesTest(SefariaTestCase):
         response = c.get('/sheets/new?editor=1')
         self.assertEqual(200, response.status_code)
 
-    def test_new_sheet(self):
+    def test_sheets_tags(self):
         response = c.get('/sheets/tags')
         self.assertEqual(200, response.status_code)
 
     def test_profile(self):
         response = c.get('/profile/brett-lockspeiser')
-        self.assertEqual(200, response.status_code)
-
-    def test_campaign(self):
-        response = c.get('/translate/Bereishit_Rabbah')
         self.assertEqual(200, response.status_code)
 
     def test_explorer(self):
@@ -135,10 +132,6 @@ class PagesTest(SefariaTestCase):
 
     def test_discussions(self):
         response = c.get('/discussions')
-        self.assertEqual(200, response.status_code)
-
-    def test_translation_requests(self):
-        response = c.get('/translation-requests')
         self.assertEqual(200, response.status_code)
 
     def test_login(self):
@@ -729,11 +722,11 @@ class PostTextNameChange(SefariaTestCase):
         self.assertEqual(0, IndexSet({"title": "Ploni"}).count())
         self.assertEqual(1, IndexSet({"title": "Shmoni"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, VersionSet({"title": "Ploni on Job"}).count())
         self.assertEqual(1, VersionSet({"title": "Shmoni on Job"}).count())
 
-        # Check change propogated to Links
+        # Check change propagated to Links
         self.assertEqual(0, LinkSet({"refs": {"$regex": "^Ploni on Job"}}).count())
         self.assertEqual(3, LinkSet({"refs": {"$regex": "^Shmoni on Job"}}).count())
 
@@ -1082,7 +1075,7 @@ class PostLinks(SefariaTestCase):
         self.make_test_user()
 
     def tearDown(self):
-        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
     def test_post_new_links(self):
         """
@@ -1090,7 +1083,6 @@ class PostLinks(SefariaTestCase):
            posts a batch of links
         """
         # Post a new Index
-        import random as rand
         bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther',
                        'Lamentations']
         links = []
@@ -1098,7 +1090,7 @@ class PostLinks(SefariaTestCase):
             for j in range(1, 11):
                 link_obj = {
                     "type": "commentary",
-                    "refs": ["Meshech Hochma %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
+                    "refs": ["Meshekh Chokhmah %d:%d" % (i, j), "%s 1:1" % rand.choice(bible_books)],
                     "anchorText": "עת לעשות לה' הפרו תורתך",
                 }
                 links.append(link_obj)
@@ -1106,9 +1098,9 @@ class PostLinks(SefariaTestCase):
         response = c.post("/api/links/", {'json': json.dumps(links)})
         print(response.status_code)
         self.assertEqual(200, response.status_code)
-        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshech Hochma'}}).count())
+        self.assertNotEqual(600, LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}}).count())
         # Delete links
-        LinkSet({"refs": {"$regex": 'Meshech Hochma'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
+        LinkSet({"refs": {"$regex": 'Meshekh Chokhmah'}, "anchorText": {"$exists": 1, "$ne": ""}}).delete()
 
 
 class SheetPostTest(SefariaTestCase):
@@ -1122,8 +1114,8 @@ class SheetPostTest(SefariaTestCase):
 
     def tearDown(self):
         if self._sheet_id:
-            db.sheets.remove({"id": self._sheet_id})
-            db.history.remove({"sheet": self._sheet_id})
+            db.sheets.delete_one({"id": self._sheet_id})
+            db.history.delete_many({"sheet": self._sheet_id})
 
     def test_post_sheet(self):
         """
@@ -1306,7 +1298,6 @@ class VersionAttrsPostTest(SefariaTestCase):
         vattrs = {
             "status" : "locked",
             "license" : "Public domain",
-            "licenseVetted" : True,
             "digitizedBySefaria" : True,
             "priority" : 1
         }

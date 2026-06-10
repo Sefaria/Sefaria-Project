@@ -585,7 +585,7 @@
             var container = document.getElementById('add-to-source-sheet-box');
             var component;
             if (data.ref) {
-                component = React.createElement(AddToSourceSheetWindow,
+                component = React.createElement(Sefaria.AddToSourceSheetWindow,
                     {
                         srefs: [data.ref],
                         he: data.heText,
@@ -594,7 +594,7 @@
                     }
                 );
             } else {
-                component = React.createElement(AddToSourceSheetWindow,
+                component = React.createElement(Sefaria.AddToSourceSheetWindow,
                     {
                         he: "<b>" + data.heTitle + "</b><br/>" + data.heText,
                         en: "<b>" + data.title + "</b><br/>" + data.enText,

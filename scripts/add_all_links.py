@@ -1,74 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-# add_links_from_text for every ref
-
-# generate_refs_list to get all refs
-#	get_text (commentary=false)
-#		is there data in 'he'? (and skip tanach)
-#			add_links_from_text
-"""
-
-import sys
-import os
+import django
+django.setup()
+from tqdm import tqdm
+import argparse
+from functools import partial
+from sefaria.model import *
 from sefaria.helper.link import add_links_from_text
-from sefaria.utils.talmud import section_to_daf
 
-p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#sys.path.insert(0, p)
-sys.path.insert(0, p + "/sefaria")
 
-import sefaria.model.text as txt
-from sefaria.system.database import db
+count = 0
 
-user = 28
-texts = db.texts.find()
 
-text_total = {}
-text_order = []
-for text in texts:
-    if text['title'] not in text_total:
-        text_total[text["title"]] = 0
-        text_order.append(text["title"])
-    print(text["title"])
-    try:
-        index = txt.library.get_index(text["title"])
-    except Exception as e:
-        print("Error loading: {} index : {}".format(text["title"] , e))
-        continue
-    if not index or not getattr(index, "categories", None):
-        print("No index found for " + text.title)
-        continue
-    if "Tanach" in index.categories and "Commentary" not in index.categories:
-        continue
-    talmud = True if "Talmud" in index.categories else False
+def add_links_for_segment(user_id, s, en_tref, he_tref, version):
+    global count
+    links = add_links_from_text(Ref(en_tref), version.language, s, version._id, user_id)
+    count += len(links)
 
-    for i in range(len(text['chapter'])):
-        if talmud:
-            if "Bavli" in index.categories and i < 2:
-                continue
-            chap = section_to_daf(i + 1)
-        else:
-            chap = i + 1
-        ref = text['title'] + " " + str(chap)
-        print(ref)
-        try:
-            result = add_links_from_text(txt.Ref(ref), text['language'], text['chapter'][i], text['_id'], user)
-            if result:
-                text_total[text["title"]] += len(result)
-        except Exception as e:
-            print(e)
 
-total = 0
-for text in text_order:
-    num = text_total[text]
-    try:
-        index = txt.library.get_index(text)
-    except Exception as e:
-        print("Error loading: {} index : {}".format(text, e))
-        continue
-    if getattr(index, "categories", None):
-        print(text.replace(",",";") + "," + str(num) + "," + ",".join(index.categories))
-    else:
-        print(text.replace(",",";") + "," + str(num))
-    total += num
-print("Total " + str(total))
+def add_links_for_version(version, user_id):
+    version.walk_thru_contents(partial(add_links_for_segment, user_id))
+
+
+def add_all_links(user_id, title=None):
+    query = {} if title is None else {"title": title}
+    version_set = VersionSet(query)
+    for version in tqdm(version_set, total=version_set.count()):
+        add_links_for_version(version, user_id)
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("user_id", help="The user ID that will be associated with the links added")
+    parser.add_argument("-t", "--title", dest="title", help="Optionally, the title of a specific work to add links to. Default will run on all indexes")
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    add_all_links(args.user_id, args.title)
+    print(f"Total: {count}")

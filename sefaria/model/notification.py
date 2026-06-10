@@ -5,7 +5,6 @@ notifications.py - handle user event notifications
 
 Writes to MongoDB Collection: notifications
 """
-
 import re
 from datetime import datetime
 import json
@@ -14,11 +13,15 @@ from django.template.loader import render_to_string
 
 from . import abstract as abst
 from . import user_profile
+from sefaria.model.collection import Collection
+from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+from sefaria.constants.model import VOICES_MODULE
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
+
 
 class GlobalNotification(abst.AbstractMongoRecord):
     """
@@ -124,6 +127,11 @@ class GlobalNotification(abst.AbstractMongoRecord):
 
         return d
 
+    def client_contents(self):
+        n = super(GlobalNotification, self).contents(with_string_id=True)
+        n["date"] = n["date"].timestamp()
+        return n
+
     @property
     def id(self):
         return str(self._id)
@@ -142,6 +150,9 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
     def contents(self):
         return [n.contents() for n in self]
 
+    def client_contents(self):
+        return [n.client_contents() for n in self]
+
 
 class Notification(abst.AbstractMongoRecord):
     collection   = 'notifications'
@@ -157,7 +168,15 @@ class Notification(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "read_via",
-        "global_id"
+        "global_id",
+        "suspected_spam"
+    ]
+
+    sheets_notification_types = [
+        "collection add",
+        "follow",
+        "sheet like",
+        "sheet publish"
     ]
 
     def _init_defaults(self):
@@ -205,24 +224,17 @@ class Notification(abst.AbstractMongoRecord):
         self.content["sheet_id"]  = sheet_id
         return self
 
-    def make_message(self, sender_id=None, message=None):
-        """Make this Notification for a user message event"""
-        self.type               = "message"
-        self.content["message"] = message
-        self.content["sender"]  = sender_id
-        return self
-
     def make_follow(self, follower_id=None):
         """Make this Notification for a new Follow event"""
         self.type                = "follow"
         self.content["follower"] = follower_id
         return self
 
-    def make_group_add(self, adder_id, group_name):
-        """Make this Notification for being added to a group"""
-        self.type                  = "group add"
-        self.content["adder"]      = adder_id
-        self.content["group_name"] = group_name
+    def make_collection_add(self, adder_id, collection_slug):
+        """Make this Notification for being added to a collection"""
+        self.type                       = "collection add"
+        self.content["adder"]           = adder_id
+        self.content["collection_slug"] = collection_slug
         return self
 
     def make_discuss(self, adder_id=None, discussion_path=None):
@@ -237,21 +249,6 @@ class Notification(abst.AbstractMongoRecord):
         self.read_via = via
         return self
 
-    def to_JSON(self):
-        notification = self.contents()
-        if "_id" in notification:
-            notification["_id"] = self.id
-        if "global_id" in notification:
-            notification["global_id"] = str(notification["global_id"])
-        notification["date"] = notification["date"].isoformat()    
-    
-        return json.dumps(notification)
-
-    def to_HTML(self):
-        html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("[\n\r]", "", html)
-        return html
-
     @property
     def id(self):
         return str(self._id)
@@ -260,14 +257,78 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "message":       "sender",
-            "sheet like":    "liker",
-            "sheet publish": "publisher", 
-            "follow":        "follower",
-            "group add":     "adder",
-            "discuss":       "adder",
+            "sheet like":     "liker",
+            "sheet publish":  "publisher",
+            "follow":         "follower",
+            "collection add": "adder",
+            "discuss":        "adder",
         }
         return self.content[keys[self.type]]
+
+    def client_contents(self):
+        """
+        Returns contents of notification in format usable by client, including needed merged
+        data from profiles, sheets, etc
+        """
+        from sefaria.sheets import get_sheet_metadata
+        from sefaria.model.following import FollowRelationship
+
+        n = super(Notification, self).contents(with_string_id=True)
+        n["date"] = n["date"].timestamp()
+        if "global_id" in n:
+            n["global_id"] = str(n["global_id"])
+
+        def annotate_user(n, uid):
+            user_data = user_profile.public_user_data(uid)
+            n["content"].update({
+                "name":       user_data["name"],
+                "profileUrl": user_data["profileUrl"],
+                "imageUrl":   user_data["imageUrl"],
+            })
+
+        def annotate_sheet(n, sheet_id):
+            sheet_data = get_sheet_metadata(id=sheet_id)
+            # Sheet may have been deleted since the notification was created;
+            # gracefully degrade rather than raising an AttributeError.
+            if sheet_data is None:
+                n["content"]["sheet_title"] = ""
+                n["content"]["summary"] = ""
+                return
+            n["content"]["sheet_title"] = strip_tags(sheet_data.get("title", ""), remove_new_lines=True)
+            n["content"]["summary"] = sheet_data.get("summary", "")
+
+        def annotate_collection(n, collection_slug):
+            try:
+               c = Collection().load({"slug": collection_slug})
+               n["content"]["collection_name"] = c.name
+            except:
+               c = Collection().load({"privateSlug": collection_slug})
+               n["content"]["collection_name"] = c.name
+
+        def annotate_follow(n, potential_followee):
+            """
+            Does `self.uid` follow `potential_followee`
+            """
+            relationship = FollowRelationship(follower=self.uid, followee=potential_followee)
+            n["content"]["is_already_following"] = relationship.exists()
+
+        if n["type"] == "sheet like":
+            annotate_sheet(n, n["content"]["sheet_id"])
+            annotate_user(n, n["content"]["liker"])
+
+        elif n["type"] == "sheet publish":
+            annotate_sheet(n, n["content"]["sheet_id"])
+            annotate_user(n, n["content"]["publisher"])
+
+        elif n["type"] == "follow":
+            annotate_user(n, n["content"]["follower"])
+            annotate_follow(n, n["content"]["follower"])
+
+        elif n["type"] == "collection add":
+            annotate_user(n, n["content"]["adder"])
+            annotate_collection(n, n["content"]["collection_slug"])
+
+        return n
 
 
 class NotificationSet(abst.AbstractMongoSet):
@@ -279,7 +340,6 @@ class NotificationSet(abst.AbstractMongoSet):
     def _add_global_messages(self, uid):
         """
         Add user Notification records for any new GlobalNotifications
-        :return:
         """
         latest_id_for_user = Notification.latest_global_for_user(uid)
         latest_global_id = GlobalNotification.latest_id()
@@ -289,32 +349,48 @@ class NotificationSet(abst.AbstractMongoSet):
             else:
                 GlobalNotificationSet({"_id": {"$gt": latest_id_for_user}}, limit=10).register_for_user(uid)
 
-    def unread_for_user(self, uid):
+    def _build_query_with_scope(self, uid, read=None, is_global=None, suspected_spam=None, scope='library'):
+        """
+        Helper method to build a query with the given parameters and scope.
+        """
+        query = {"uid": uid}
+        if read is not None:
+            query["read"] = read
+        if is_global is not None:
+            query["is_global"] = is_global
+        if suspected_spam is not None:
+            query["suspected_spam"] = suspected_spam
+        query["type"] = {"$in" if scope == VOICES_MODULE else "$nin": Notification.sheets_notification_types}
+        return query
+
+    def unread_for_user(self, uid, scope='library'):
         """
         Loads the unread notifications for uid.
         """
-        # Add globals ...
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid, "read": False})
+        query = self._build_query_with_scope(uid, read=False, scope=scope)
+        self.__init__(query=query)
         return self
 
-    def unread_personal_for_user(self, uid):
+    def unread_personal_for_user(self, uid, scope='library'):
         """
-        Loads the unread notifications for uid.
+        Loads the unread personal notifications for uid.
         """
-        self.__init__(query={"uid": uid, "read": False, "is_global": False})
+        query = self._build_query_with_scope(uid, read=False, is_global=False, suspected_spam={'$in': [False, None]}, scope=scope)
+        self.__init__(query=query)
         return self
 
-    def recent_for_user(self, uid, page=0, limit=10):
+    def recent_for_user(self, uid, page=0, limit=10, scope='library'):
         """
         Loads recent notifications for uid.
         """
         self._add_global_messages(uid)
-        self.__init__(query={"uid": uid}, page=page, limit=limit)
+        query = self._build_query_with_scope(uid, suspected_spam={"$in": [False, None]}, scope=scope)
+        self.__init__(query=query, page=page, limit=limit)
         return self
 
     def mark_read(self, via="site"):
-        """Marks all notifications in this set as read""" 
+        """Marks all notifications in this set as read"""
         for notification in self:
             notification.mark_read(via=via).save()
 
@@ -346,14 +422,15 @@ class NotificationSet(abst.AbstractMongoSet):
         """Returns the number of likes in this NotificationSet"""
         return len([n for n in self if n.type == "sheet like"])
 
-    def to_JSON(self):
-        return "[%s]" % ", ".join([n.to_JSON() for n in self])
-
-    def to_HTML(self):
-        html = [n.to_HTML() for n in self]
-        return "".join(html)
+    def client_contents(self):
+        return [n.client_contents() for n in self]
 
 
-
-
-
+def process_sheet_deletion_in_notifications(sheet_id):
+    """
+    When a sheet is deleted remove it from any collections.
+    Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
+    but is called directly from sheet deletion view in sourcesheets/views.py.
+    """
+    ns = NotificationSet({"content.sheet_id": sheet_id})
+    ns.delete()

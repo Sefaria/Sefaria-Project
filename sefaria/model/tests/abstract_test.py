@@ -9,6 +9,7 @@ import sefaria.model.abstract as abstract
 
 # cascade functions are tested in person_test.py
 
+
 def setup_module(module):
     global record_classes
     global set_classes
@@ -21,7 +22,12 @@ def setup_module(module):
     print(record_classes)
 
 
-class Test_Mongo_Record_Models(object):
+def get_record_classes_with_slugs():
+    classes = abstract.get_record_classes()
+    return filter(lambda x: getattr(x, 'slug_fields', None) is not None and x.__name__ != "Portal", classes)
+
+
+class TestMongoRecordModels(object):
 
     def test_class_attribute_collection(self):
         for sub in record_classes:
@@ -39,14 +45,14 @@ class Test_Mongo_Record_Models(object):
         m = sub()
         if m.collection == "term": #remove this line once terms are normalized
             return
-        res = m.load({} if sub.sub_collection_query is None else sub.sub_collection_query)
+        res = m.load({})
         if not res:  # Collection may be empty
             return
         assert m._id
         m._validate()
 
     def test_normalize_slug(self):
-        a = abstract.AbstractMongoRecord
+        a = abstract.SluggedAbstractMongoRecord
 
         def test_slug(slug, final_slug):
             new_slug = a.normalize_slug(slug)
@@ -59,7 +65,8 @@ class Test_Mongo_Record_Models(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
-    @pytest.mark.parametrize("sub", filter(lambda x: x.slug_fields is not None, abstract.get_record_classes()))
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("sub", get_record_classes_with_slugs())
     def test_normalize_slug_field(self, sub):
         """
 
@@ -68,7 +75,7 @@ class Test_Mongo_Record_Models(object):
         test_slug = 'test'
 
         def get_slug(base, slug_field):
-            return abstract.AbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
+            return abstract.SluggedAbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
         attrs = {  # fill in requirements
             attr: None for attr in sub.required_attrs
         }
@@ -81,6 +88,8 @@ class Test_Mongo_Record_Models(object):
             num_records = 1
             dup_str = ''
             count = 0
+            sub_set = record_to_set[sub.__name__]({slug_field: temp_slug})
+            sub_set.delete()
             while num_records > 0:
                 sub_set = record_to_set[sub.__name__]({slug_field: temp_slug + dup_str})  # delete all
                 count += 1

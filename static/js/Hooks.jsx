@@ -1,6 +1,30 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
 import $  from './sefaria/sefariaJquery';
+import {ReaderPanelContext} from "./context";
+import Sefaria from "./sefaria/sefaria";
 
+
+function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
+    /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
+    * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+    * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
+    const {language, textsData} = useContext(ReaderPanelContext);
+    const hasContent = !!textsData;
+    const shownLanguage = (language === "bilingual") ? language : (language === "english" && textsData?.text?.length) ? textsData?.translationLang : textsData?.primaryLang; //the 'hebrew' of language means source
+    const isContentLangAmbiguous = !['hebrew', 'english'].includes(shownLanguage);
+    let languageToFilter;
+    if (defaultToInterfaceOnBilingual && hasContent && isContentLangAmbiguous) {
+        languageToFilter = Sefaria.interfaceLang;
+    } else if (overrideLanguage) {
+        languageToFilter = overrideLanguage;
+    } else if (isContentLangAmbiguous || !hasContent) {
+        languageToFilter = language;
+    } else {
+        languageToFilter = shownLanguage;
+    }
+    const langShort = languageToFilter.slice(0,2);
+    return [languageToFilter, langShort];
+}
 
 //From https://usehooks.com/useDebounce/
 function useDebounce(value, delay) {
@@ -27,45 +51,85 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-function usePaginatedScroll(scrollable_element_ref, url, setter) {
-  const [page, setPage] = useState(0);
-  const [nextPage, setNextPage] = useState(1);
-  const [loadedToEnd, setLoadedToEnd] = useState(false);
+/**
+ * Hook for paginated data loading triggered by scroll position.
+ *
+ * Fetches data from `url` when the user scrolls near the bottom of `scrollableRef`.
+ * Uses `skip` and `limit` query params for pagination.
+ *
+ * @param {Object} options
+ * @param {React.RefObject} options.scrollableRef - Ref to the scrollable container element
+ * @param {string} options.url - API endpoint (must support `skip` and `limit` query params)
+ * @param {function} options.setter - Callback to handle fetched data (receives array of items)
+ * @param {number} [options.itemsPreLoaded=0] - Number of items already in cache; skips initial fetch if > 0
+ * @param {number} [options.pageSize=20] - Number of items to fetch per request
+ */
+function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSize = 20}) {
+  const loadedToEndRef = useRef(false);
+  const loadingRef = useRef(false);
+  const fetchedCountRef = useRef(itemsPreLoaded);
 
+  const loadMore = useCallback(() => {
+    if (loadedToEndRef.current || loadingRef.current) return;
+
+    loadingRef.current = true;
+    const skip = fetchedCountRef.current;
+
+    const urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set('skip', skip);
+    urlObj.searchParams.set('limit', pageSize);
+    const nextUrl = urlObj.pathname + urlObj.search;
+
+    $.getJSON(nextUrl, (data) => {
+      setter(data);
+      fetchedCountRef.current += data.length;
+      if (data.length < pageSize) {
+        loadedToEndRef.current = true;
+      }
+      loadingRef.current = false;
+    });
+  }, [url, setter, pageSize]);
+
+  // Initial fetch if there is no cached data
   useEffect(() => {
-    const scrollable_element = $(scrollable_element_ref.current);
-    const margin = 600;
+    if (itemsPreLoaded === 0) {
+      loadMore();
+    }
+  }, []);
+
+  // Scroll listener for infinite loading
+  useEffect(() => {
+    const scrollable = scrollableRef.current;
+    if (!scrollable) return;
+
+    const scrollMargin = 600;  // Pixels from bottom to trigger load
+
     const handleScroll = () => {
-      if (loadedToEnd || (page === nextPage)) { return; }
-      if (scrollable_element.scrollTop() + scrollable_element.innerHeight() + margin >= scrollable_element[0].scrollHeight) {
-        setPage(nextPage);
+      const scrollPosition = scrollable.scrollTop + scrollable.clientHeight;
+      const scrollThreshold = scrollable.scrollHeight - scrollMargin;
+
+      if (scrollPosition >= scrollThreshold) {
+        loadMore();
       }
     };
-    scrollable_element.on("scroll", handleScroll);
-    return (() => {scrollable_element.off("scroll", handleScroll);})
-  }, [scrollable_element_ref.current, loadedToEnd, page, nextPage]);
 
-  useEffect(() => {
-    const paged_url = url + "&page=" + page;
-    $.getJSON(paged_url, (data) => {
-      setter(data);
-      if (data.count < data.page_size) {
-        setLoadedToEnd(true);
-      } else {
-        setNextPage(page + 1);
-      }
-    });
-  }, [page]);
+    scrollable.addEventListener('scroll', handleScroll);
+    return () => scrollable.removeEventListener('scroll', handleScroll);
+  }, [loadMore]);
 }
 
-function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {
+
+function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
-  listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
-  when this happens, show `pageSize` more elements from `input`
+  Listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
+  when this happens, show `pageSize` more elements from `input`.
+  On initial run, return `initialRenderSize` items if greater than `pageSize`.
   */
-  const [page, setPage] = useState(0);
+  initialRenderSize = Math.max(initialRenderSize, pageSize);
+  bottomMargin = bottomMargin || 800;
+  const [page, setPage] = useState(parseInt(initialRenderSize/pageSize)-1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const [inputUpToPage, setInputUpToPage] = useState([]);
+  const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, initialRenderSize));
   useEffect(() => () => {
     setInputUpToPage(prev => {
       // use `setInputUpToPage` to get access to previous value
@@ -105,6 +169,34 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   }, [page, numPages]);
   return inputUpToPage;
 }
+
+
+function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue=false) {
+  /*
+  Loads all items in `input` in `pageSize` chunks.
+  Each input chunk is passed to `fetchData`
+  fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
+  input: array of input data for `fetchData`
+  pageSize: int, chunk size
+  setter: (data) => null. Sets paginated data on component.  setter(false) clears data.
+  identityElement: a string identifying a invocation of this effect.  When it changes, pagination and processing will restart.  Old calls in processes will be dropped on landing.
+  resetValue: value to pass to `setter` to indicate that it should forget previous values and reset.
+  */
+
+  // When input changes, creates function to fetch data by page, computes number of pages
+  const [fetchDataByPage, numPages] = useMemo(() => {
+    const fetchDataByPage = (page) => {
+      if (!input) { return Promise.reject({error: "input not array", input}); }
+      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
+      return fetchData(pagedInput);
+    };
+    const numPages = Math.ceil(input.length/pageSize);
+    return [fetchDataByPage, numPages];
+  }, [input]);
+
+  usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
+}
+
 
 function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue=false) {
   /*
@@ -155,35 +247,10 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   }, [fetchPage]);
 }
 
-function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement, resetValue=false) {
-  /*
-  Loads all items in `input` in `pageSize` chunks.
-  Each input chunk is passed to `fetchData`
-  fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
-  input: array of input data for `fetchData`
-  pageSize: int, chunk size
-  setter: (data) => null. Sets paginated data on component.  setter(false) clears data.
-  identityElement: a string identifying a invocation of this effect.  When it changes, pagination and processing will restart.  Old calls in processes will be dropped on landing.
-  resetValue: value to pass to `setter` to indicate that it should forget previous values and reset.
-  */
-
-  // When input changes, creates function to fetch data by page, computes number of pages
-  const [fetchDataByPage, numPages] = useMemo(() => {
-    const fetchDataByPage = (page) => {
-      if (!input) { return Promise.reject({error: "input not array", input}); }
-      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
-      return fetchData(pagedInput);
-    };
-    const numPages = Math.ceil(input.length/pageSize);
-    return [fetchDataByPage, numPages];
-  }, [input]);
-
-  usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
-}
-
 export {
-  usePaginatedScroll,
+  useScrollToLoad,
   usePaginatedDisplay,
   useDebounce,
+  useContentLang,
   useIncrementalLoad,
 };

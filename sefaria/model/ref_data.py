@@ -4,8 +4,9 @@ from . import abstract as abst
 from . import text
 from sefaria.system.exceptions import InputError
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+from sefaria.system.progress_context import report_progress
+logger = structlog.get_logger(__name__)
 
 
 class RefData(abst.AbstractMongoRecord):
@@ -15,6 +16,7 @@ class RefData(abst.AbstractMongoRecord):
     collection = 'ref_data'
     DEFAULT_PAGERANK = 1.0
     DEFAULT_SHEETRANK = (1.0 / 5) ** 2
+    DEFAULT_PAGESHEETRANK = DEFAULT_PAGERANK * DEFAULT_SHEETRANK
     required_attrs = [
         "ref",           # segment ref
         "pagesheetrank", # pagesheetrank value for segment ref
@@ -46,7 +48,7 @@ class RefDataSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_ref_data(indx, **kwargs):
-    print("Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg

@@ -1,7 +1,7 @@
 # Django settings for sefaria project.
 
 import os.path
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
@@ -31,10 +31,13 @@ USE_I18N = True
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
+
+# Django 3.2+: preserve existing integer PKs on legacy Django apps.
+# Avoids auto-generating BigAutoField migrations against existing tables.
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -53,7 +56,13 @@ STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+def get_static_url():
+    if os.getenv('FRONT_END_URL'):
+        return os.getenv('FRONT_END_URL').replace('http://', 'https://') + '/static/'
+    else:
+        return '/static/'
+STATIC_URL = get_static_url()
+
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -69,6 +78,9 @@ STATICFILES_DIRS = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
+CHATBOT_USER_ID_SECRET = 'secret'
+SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
+CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
     {
@@ -89,17 +101,14 @@ TEMPLATES = [
                     "django.contrib.messages.context_processors.messages",
                     "django.template.context_processors.request",
                     "sefaria.system.context_processors.global_settings",
-                    "sefaria.system.context_processors.titles_json",
-                    "sefaria.system.context_processors.toc",
-                    "sefaria.system.context_processors.terms",
+                    "sefaria.system.context_processors.cache_timestamp",
+                    "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.user_and_notifications",
-                    "sefaria.system.context_processors.calendar_links",
-                    "sefaria.system.context_processors.header_html",
-                    "sefaria.system.context_processors.footer_html",
+                    "sefaria.system.context_processors.chatbot_user_token",
+                    "sefaria.system.context_processors.base_props",
+                    "sefaria.system.context_processors.module_context",
             ],
             'loaders': [
-                #'django_mobile.loader.Loader',
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader',
             ]
@@ -108,22 +117,30 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',  # must be first
+    'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sefaria.system.middleware.SessionIDAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
+    'sefaria.system.middleware.ModuleMiddleware',
     'sefaria.system.middleware.LocationSettingsMiddleware',
     'sefaria.system.middleware.LanguageCookieMiddleware',
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
+    'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
+    *(['sefaria.system.middleware.MaxRSSMiddleware'] if os.environ.get('ENABLE_MAXRSS_MIDDLEWARE') else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
+    'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
@@ -132,33 +149,37 @@ ROOT_URLCONF = 'sefaria.urls'
 WSGI_APPLICATION = 'sefaria.wsgi.application'
 
 INSTALLED_APPS = (
+    'adminsortable',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',
-    'reader',
-    'sourcesheets',
+    'guides',
     'sefaria.gauth',
-    'captcha',
+    'django_topics.apps.DjangoTopicsAppConfig',
+    'django_recaptcha',
     'django.contrib.admin',
     'anymail',
     'webpack_loader',
     'django_user_agents',
     'rest_framework',
+    'remote_config.apps.RemoteConfigConfig',
     #'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'django_hosts',
 )
 
 LOGIN_URL = 'login'
 
-LOGIN_REDIRECT_URL = 'table_of_contents'
+LOGIN_REDIRECT_URL = 'home'
 
-LOGOUT_REDIRECT_URL = 'table_of_contents'
+LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
@@ -170,6 +191,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
@@ -183,10 +207,10 @@ LOCALE_PATHS = (
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()
@@ -293,31 +317,21 @@ CACHES = {
     }
 }
 
-"""
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "reading-challenge-banner",
-    "repetition": 0,
-    "style":      "banner",
-    "condition": {
-        "returning_only": False,
-        "desktop_only": False,
-        "english_only": True,
-        "hebrew_only": False,
-        "debug": False
-    }
-}
-"""
-
-GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    from sefaria.local_settings import *
-except ImportError:
-    from sefaria.local_settings_example import *
+if os.getenv("CI_RUN"):
+    from sefaria.local_settings_ci import *
+else:
+    if os.path.isfile(os.path.join(os.path.dirname(__file__), 'local_settings.py')):
+        from sefaria.local_settings import *
+    else:
+        from sefaria.local_settings_example import *
+if os.getenv("COOLIFY"):
+    from sefaria.local_settings_coolify import *
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/client/',  # must end with slash
@@ -332,9 +346,20 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+    },
+    'LINKER': {
+        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
     }
 
 }
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+ROOT_HOSTCONF = 'sefaria.hosts'
+DEFAULT_HOST = 'library'

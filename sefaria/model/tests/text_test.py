@@ -5,6 +5,7 @@ import pytest
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
+from sefaria.system.testing import test_uid
 
 
 def teardown_module(module):
@@ -17,8 +18,14 @@ def teardown_module(module):
               "Test Del"]
 
     for title in titles:
-        model.IndexSet({"title": title}).delete()
-        model.VersionSet({"title": title}).delete()
+        try:
+            model.IndexSet({"title": title}).delete()
+        except Exception:
+            pass
+        try:
+            model.VersionSet({"title": title}).delete()
+        except Exception:
+            pass
 
 
 def test_dup_index_save():
@@ -65,7 +72,6 @@ def test_dup_index_save():
             "titleVariants": [title],
             "sectionNames": ["Chapter", "Paragraph"],
             "categories": ["Commentary"],
-            "lengths": [50, 501]
         }
         idx2 = model.Index(d2).save()
 
@@ -160,6 +166,11 @@ def test_invalid_index_save_no_category():
     assert "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it." in str(e_info.value)
     assert model.IndexSet({"title": title}).count() == 0
 
+def test_best_time_period():
+    i = model.library.get_index("Rashi on Genesis")
+    assert i.best_time_period().period_string('en') == ' (c.1075  – c.1105 CE)'
+    i.compDate = None
+    assert i.best_time_period().period_string('en') == ' (1040  – 1105 CE)'  # now that compDate is None, period_string should return Rashi's birth to death years
 
 def test_invalid_index_save_no_hebrew_collective_title():
     title = 'Bartenura (The Next Generation)'
@@ -167,7 +178,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     d = {
          "categories" : [
             "Mishnah",
-            "Commentary",
+            "Rishonim on Mishnah",
             "Bartenura"
         ],
         "collective_title": 'Gargamel',
@@ -316,15 +327,6 @@ def test_merge():
 
 
 def test_text_helpers():
-    res = model.library.get_dependant_indices()
-    assert 'Rashbam on Genesis' in res
-    assert 'Rashi on Bava Batra' in res
-    assert 'Bartenura on Mishnah Oholot' in res
-    assert 'Onkelos Leviticus' in res
-    assert 'Chizkuni' in res
-    assert 'Akeidat Yitzchak' not in res
-    assert 'Berakhot' not in res
-
     res = model.library.get_indices_by_collective_title("Rashi")
     assert 'Rashi on Bava Batra' in res
     assert 'Rashi on Genesis' in res
@@ -335,45 +337,60 @@ def test_text_helpers():
     assert 'Bartenura on Mishnah Oholot' in res
     assert 'Rashbam on Genesis' not in res
 
-    res = model.library.get_dependant_indices(book_title="Exodus")
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
-    assert 'Abarbanel on Torah' in res
-    assert 'Targum Jonathan on Exodus' in res
-    assert 'Onkelos Exodus' in res
-    assert 'Harchev Davar on Exodus' in res
-
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
-    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary')
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-    assert 'Meshech Hochma' in res
-    assert 'Abarbanel on Torah' in res
-    assert 'Harchev Davar on Exodus' in res
-
-    assert 'Targum Jonathan on Exodus' not in res
-    assert 'Onkelos Exodus' not in res
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
-    res = model.library.get_dependant_indices(book_title="Exodus", dependence_type='Commentary', structure_match=True)
-    assert 'Ibn Ezra on Exodus' in res
-    assert 'Ramban on Exodus' in res
-
-    assert 'Harchev Davar on Exodus' not in res
-    assert 'Meshech Hochma' not in res
-    assert 'Abarbanel on Torah' not in res
-    assert 'Exodus' not in res
-    assert 'Rashi on Genesis' not in res
-
     cats = model.library.get_text_categories()
     assert 'Tanakh' in cats
     assert 'Torah' in cats
     assert 'Prophets' in cats
     assert 'Commentary' in cats
+
+@pytest.mark.parametrize(('book_title', 'dependence_type', 'structure_match', 'expected_titles', 'not_expected_titles'), [
+    [None, None, False, [
+        'Rashbam on Genesis',
+        'Rashi on Bava Batra',
+        'Bartenura on Mishnah Oholot',
+        'Onkelos Leviticus',
+        'Chizkuni',
+    ], [
+        'Akeidat Yitzchak',
+        'Berakhot']
+     ],
+    ['Exodus', None, False, ['Ibn Ezra on Exodus',
+                             'Ramban on Exodus',
+                             'Abarbanel on Torah',
+                             'Meshekh Chokhmah',
+                             'Targum Jonathan on Exodus',
+                             'Onkelos Exodus',
+                             'Harchev Davar on Exodus'
+                             ], ['Exodus',
+                                 'Rashi on Genesis']
+     ],
+    ['Exodus', 'Commentary', False, ['Ibn Ezra on Exodus',
+                             'Ramban on Exodus',
+                             'Abarbanel on Torah',
+                             'Meshekh Chokhmah',
+                             'Harchev Davar on Exodus'
+                             ], ['Targum Jonathan on Exodus',
+                                 'Onkelos Exodus',
+                                 'Exodus',
+                                 'Rashi on Genesis']
+     ],
+    ['Exodus', 'Commentary', True, ['Ibn Ezra on Exodus',
+                                    'Ramban on Exodus'
+                                    ], ['Abarbanel on Torah',
+                                        'Meshekh Chokhmah',
+                                        'Targum Jonathan on Exodus',
+                                        'Onkelos Exodus',
+                                        'Harchev Davar on Exodus',
+                                        'Exodus',
+                                        'Rashi on Genesis']
+     ],
+])
+def test_get_dependent_indices(book_title, dependence_type, structure_match, expected_titles, not_expected_titles):
+    res = model.library.get_dependant_indices(book_title=book_title, dependence_type=dependence_type, structure_match=structure_match)
+    for title in expected_titles:
+        assert title in res
+    for title in not_expected_titles:
+        assert title not in res
 
 
 def test_index_update():
@@ -390,25 +407,26 @@ def test_index_update():
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Musar"],
-        "lengths": [50, 501]
+        "categories": ["Talmud", "Bavli"],
     }).save()
     i = model.Index().load({"title": ti})
-    assert "Musar" in i.categories
-    assert i.nodes.lengths == [50, 501]
+    assert "Bavli" in i.categories
+    assert i.schema["addressTypes"] == ["Talmud", "Integer"]
 
     i = model.Index().update({"title": ti}, {
         "title": ti,
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Philosophy"]
+        "addressTypes": ["Integer", "Integer"],  # this change will not go through as addressTypes cannot be changed this way for an existing Index. instead, it's necessary to edit the JaggedArrayNode
+        "categories": ["Musar"]
     })
     i = model.Index().load({"title": ti})
-    assert "Musar" not in i.categories
-    assert "Philosophy" in i.categories
-    assert i.nodes.lengths == [50, 501]
+    assert "Musar" in i.categories
+    assert "Bavli" not in i.categories
 
+    i = model.Index().load({"title": ti})
+    assert i.schema["addressTypes"] == ["Talmud", "Integer"]
     model.IndexSet({"title": ti}).delete()
 
 
@@ -422,7 +440,6 @@ def test_index_delete():
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
         "categories": ["Musar"],
-        "lengths": [50, 501]
     }).save()
     new_version1 = model.Version(
                 {
@@ -535,11 +552,282 @@ def test_version_walk_thru_contents():
         assert tref == r.normal()
         assert heTref == r.he_normal()
 
-    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy"]
+    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy", "Zohar"]
     for t in test_index_titles:
         ind = model.library.get_index(t)
-        vs = ind.versionSet()
-        for v in vs:
-            v.walk_thru_contents(action)
+        version = ind.versionSet()[0]
+        version.walk_thru_contents(action)
+
+
+class TestModifyVersion:
+    simpleIndexTitle = "Test ModifyVersion Simple " + test_uid
+    complexIndexTitle = "Test ModifyVersion Complex " + test_uid
+    vtitle = "Version TEST"
+    vlang = "he"
+
+    @classmethod
+    def setup_class(cls):
+        cls.simpleIndex = model.Index({
+            "title": cls.simpleIndexTitle,
+            "heTitle": "בלה1",
+            "titleVariants": [cls.simpleIndexTitle],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }).save()
+        cls.simpleVersion = model.Version(
+            {
+                "chapter": cls.simpleIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST",
+                "versionSource": "blabla",
+                "language": "he",
+                "title": cls.simpleIndexTitle
+            }
+        )
+        cls.simpleVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.simpleVersion.save()
+        cls.complexIndex = model.Index({
+            "title": cls.complexIndexTitle,
+            "heTitle": "2בלה",
+            "titleVariants": [cls.complexIndexTitle],
+            "schema": {
+                "nodes": [
+                    {
+                        "nodes": [
+                            {
+                                "nodeType": "JaggedArrayNode",
+                                "depth": 2,
+                                "sectionNames": ["Chapter", "Paragraph"],
+                                "addressTypes": ["Integer", "Integer"],
+                                "titles": [{"text": "Node 2", "lang": "en", "primary": True}, {"text": "Node 2 he", "lang": "he", "primary": True}],
+                                "key": "Node 2"
+                            }
+                        ],
+                        "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
+                        "key": "Node 1"
+                    },
+                    {
+                        "nodeType": "JaggedArrayNode",
+                        "depth": 1,
+                        "sectionNames": ["Paragraph"],
+                        "addressTypes": ["Integer"],
+                        "titles": [{"text": "Node 3", "lang": "en", "primary": True}, {"text": "Node 3 he", "lang": "he", "primary": True}],
+                        "key": "Node 3"
+                    }
+                ],
+                "titles": [{"text": cls.complexIndexTitle, "lang": "en", "primary": True},
+                           {"text": cls.complexIndexTitle + "he", "lang": "he", "primary": True}],
+                "key": cls.complexIndexTitle
+            },
+            "categories": ["Musar"]
+        }).save()
+        cls.complexVersion = model.Version(
+                    {
+                        "chapter": cls.complexIndex.nodes.create_skeleton(),
+                        "versionTitle": "Version 2 TEST",
+                        "versionSource": "blabla",
+                        "language": "en",
+                        "title": cls.complexIndexTitle
+                    }
+        )
+        cls.complexVersion.chapter = {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']}
+        cls.complexVersion.save()
+
+    @classmethod
+    def teardown_class(cls):
+        for c in [cls.simpleIndex, cls.complexIndex, cls.simpleVersion, cls.complexVersion]:
+            try:
+                c.delete()
+            except Exception:
+                pass
+
+    def test_sub_content_with_ref(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
+        assert self.simpleVersion.chapter[2][1] == "new text"
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["blah", "blarg"])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2] == ["blah", "blarg"]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["original text", "2nd"])  # set back to original content for other tests
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [["blah", "blarg"], ['more content']])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"] == [["blah", "blarg"], ['more content']]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [['yo'],['', 'blah'],["original text", "2nd"]])  # set back to original content for other tests
+
+    def test_sub_content_with_ref_padding(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:5"), "new text")
+        assert self.simpleVersion.chapter[2][2] == ""
+        assert self.simpleVersion.chapter[2][3] == ""
+        assert self.simpleVersion.chapter[2][4] == "new text"
+
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 5:1"), "new text2")
+        assert self.simpleVersion.chapter[3] == []
+        assert self.simpleVersion.chapter[4][0] == "new text2"
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_sub_content_simple_setter(self):
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), value=[[], [], []])
+        for i in range(3):
+            assert self.simpleVersion.chapter[i] == []
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [1], value=['yo1', 'yo2', 'yo3'])
+        assert self.simpleVersion.chapter[1] == ['yo1', 'yo2', 'yo3']
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [0, 1], value='yo')
+        assert self.simpleVersion.chapter[0][1] == 'yo'
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_sub_content_complex_setter(self):
+        self.complexVersion.sub_content([], value={"Node 1": {"Node 2": [['wadup']], "Node 3": []}})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['wadup']]
+
+        self.complexVersion.sub_content(["Node 1"], value={"Node 2": [['yoyoyo']]})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['yoyoyo']]
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}"), {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']})
+
+    def test_get_top_level_jas_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        jas, parent_key_list = tc.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
+
+    def test_get_top_level_jas_version_simple(self):
+        jas, parent_key_list = self.simpleVersion.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
+
+    def test_get_top_level_jas_version_complex(self):
+        jas, parent_key_list = self.complexVersion.get_top_level_jas()
+        assert len(jas) == 2 == len(parent_key_list)
+        assert jas[0][1][1] == 'blah'
+        assert jas[1][3] == '4'
+        for ja, (parent, key) in zip(jas, parent_key_list):
+            assert parent[key] == ja
+
+    def test_trim_ending_whitespace_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        original_len = len(tc.text[0])
+        tc.text[0] += ['', '', '   ', None]
+        tc._trim_ending_whitespace()
+        assert len(tc.text[0]) == original_len
+
+    def test_trim_ending_whitespace_version_simple(self):
+        original_len = len(self.simpleVersion.chapter[0])
+        self.simpleVersion.chapter[0] += ['', '', '   ', None]
+        self.simpleVersion._trim_ending_whitespace()
+        assert len(self.simpleVersion.chapter[0]) == original_len
+
+    def test_trim_ending_whitespace_version_complex(self):
+        node = self.complexVersion.chapter['Node 1']['Node 2']
+        original_len = len(node[0])
+        node[0] += ['', '', '   ', None]
+        self.complexVersion._trim_ending_whitespace()
+        assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
+
+
+class TestVersionActualLanguage:
+    myIndexTitle = "Test VersionActualLanguage " + test_uid
+    vtitle = "Version TEST"
+    vlang = "he"
+
+    @classmethod
+    def setup_class(cls):
+        cls.myIndex = model.Index({
+            "title": cls.myIndexTitle,
+            "heTitle": "בלה2",
+            "titleVariants": [cls.myIndexTitle],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }).save()
+        cls.firstTranslationVersion = model.Version(
+            {
+                "chapter": [['1'], ['2'], ["original text", "2nd"]],
+                "versionTitle": "Version 1 TEST [fr]",
+                "versionSource": "blabla",
+                "language": "en",
+                "title": cls.myIndexTitle
+            }
+        ).save()
+        cls.sourceVersion = model.Version(
+            {
+                "chapter":cls.myIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST",
+                "versionSource": "blabla",
+                "language": "he",
+                "title": cls.myIndexTitle
+            }
+        )
+        cls.sourceVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.sourceVersion.save()
+        cls.versionWithLangCodeMismatch = model.Version(
+            {
+                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST [ar]",
+                "versionSource": "blabla",
+                "language": "en",
+                'actualLanguage': 'fr',
+                "title": cls.myIndexTitle
+            }
+        )
+        
+    @classmethod
+    def teardown_class(cls):
+        for c in [cls.myIndex, cls.sourceVersion, cls.firstTranslationVersion, cls.versionWithLangCodeMismatch]:
+            try:
+                c.delete()
+            except Exception:
+                pass
+    
+    def test_normalize(self):
+        expected_attrs = {
+            'firstTranslationVersion': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': True,
+                'isSource': False,
+            },
+            'sourceVersion': {
+                'actualLanguage': 'he',
+                'direction': 'rtl',
+                'languageFamilyName': 'hebrew',
+                'isPrimary': True,
+                'isSource': True,
+            },
+            'versionWithLangCodeMismatch': {
+                'actualLanguage': 'fr',
+                'direction': 'ltr',
+                'languageFamilyName': 'french',
+                'isPrimary': False,
+                'isSource': False,
+            },
+        }
+        self.versionWithLangCodeMismatch._normalize()
+        for version_key in expected_attrs:
+            version = getattr(self, version_key)
+            for attr in expected_attrs[version_key]:
+                assert getattr(version, attr) == expected_attrs[version_key][attr]
+
+@pytest.mark.parametrize(('text_with_html', 'text_without_html'),
+                         [
+                         ["</big>בּ<big>ְרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ",
+                          "בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ"],
+                         [
+                             "Happy is the <big>man</big> who has not followed the counsel of the wicked,<br/>or taken the path of sinners,<br>or joined the company of the insolent;",
+                             "Happy is the man who has not followed the counsel of the wicked, or taken the path of sinners, or joined the company of the insolent;"]
+                         ])
+
+def test_remove_html(text_with_html, text_without_html):
+    assert model.TextChunk.remove_html(text_with_html) == text_without_html
 
 

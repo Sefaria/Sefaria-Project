@@ -1,14 +1,25 @@
 # encoding=utf-8
+import unicodecsv as csv
+import io
 import re
 
-import sefaria.summaries as summaries
+import pymongo
+
 from sefaria.model import *
-from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
-from functools import reduce
+from functools import reduce, lru_cache
+from sefaria.system.exceptions import InputError
 
+import regex as re
+import pprint
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+from sefaria.model import *
+from sefaria.utils.hebrew import has_hebrew
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -74,7 +85,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
 
     old_structure = index["sectionNames"]
     index["sectionNames"] = new_structure
-    db.index.save(index)
+    db.index.replace_one({"_id": index["_id"]}, index)
 
     delta = len(new_structure) - len(old_structure)
     if delta == 0:
@@ -90,7 +101,7 @@ def resize_text(title, new_structure, upsize_in_place=False):
             resized = JaggedTextArray(text["chapter"]).resize(delta).array()
 
         text["chapter"] = resized
-        db.texts.save(text)
+        db.texts.replace_one({"_id": text["_id"]}, text)
 
     # TODO Rewrite any existing Links
     # TODO Rewrite any exisitng History items
@@ -227,7 +238,8 @@ def merge_text(a, b):
 
 def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
-    Walks ever segment contained in title, calls func on the text and saves the result.
+    Walks ever segment contained in title, calls rewrite_function on the text and saves the result.
+    rewrite_function should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
     """
     from sefaria.tracker import modify_text
 
@@ -239,6 +251,49 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
         modified_text = ja.modify_by_function(rewrite_function)
         if needs_rewrite_function(ja.array()):
             modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
+
+
+def modify_many_texts_and_make_report(rewrite_function, versions_query=None, return_zeros=False):
+    """
+    Uses pymongo because iterating and saving all texts as Version is heavy.
+    That means - be CAREFUL with that.
+
+    :param rewrite_function(string) -> (string, int of times that string has been replaced)
+    :param versions_query - query dict for VersionSet, or None for all
+    :param return_zeros - bool whether you want cases of 0 replaces in report
+    :returns a csv writer with index title, versionTitle, and number of replacements
+    """
+    def replace_in_text_object(text_obj):
+        total = 0
+        if isinstance(text_obj, dict):
+            for key in text_obj:
+                text_obj[key], num = replace_in_text_object(text_obj[key])
+                total += num
+        elif isinstance(text_obj, list):
+            for i, _ in enumerate(text_obj):
+                text_obj[i], num = replace_in_text_object(text_obj[i])
+                total += num
+        elif isinstance(text_obj, str):
+            return rewrite_function(text_obj)
+        return text_obj, total
+    texts_collection = db.texts
+    versions_to_change = texts_collection.find(versions_query)
+    bulk_operations = []
+    output = io.BytesIO()
+    report = csv.writer(output)
+    report.writerow(['index', 'versionTitle', 'replaces number'])
+    for version in versions_to_change:
+        new_text, replaces = replace_in_text_object(version['chapter'])
+        if replaces or return_zeros:
+            report.writerow([version['title'], version['versionTitle'], replaces])
+        if replaces:
+            bulk_operations.append(pymongo.UpdateOne(
+                {'_id': version['_id']},
+                {'$set': {'chapter': new_text}}
+            ))
+    if bulk_operations:
+        texts_collection.bulk_write(bulk_operations)
+    return output.getvalue()
 
 
 def split_text_section(oref, lang, old_version_title, new_version_title):
@@ -264,7 +319,8 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
     # Rewrite History
     ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
     query = {"$or": ref_regex_queries}
-    db.history.update(query, {"$set": {"version": new_version_title}}, upsert=False, multi=True)
+    # Note: update() deprecated in PyMongo 4.x, use update_many() instead
+    db.history.update_many(query, {"$set": {"version": new_version_title}})
 
     # Remove content from old version
     old_chunk.text = JaggedTextArray(old_chunk.text).constant_mask(constant="").array()
@@ -276,7 +332,7 @@ def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, u
     Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
     Changes are attributed to the user with `uid`. 
     """
-    def replacer(text):
+    def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
     modify_text_by_function(title, vtitle, lang, replacer, uid)
@@ -326,8 +382,6 @@ def make_versions_csv():
     """
     Returns a CSV of all text versions in the DB.
     """
-    import csv
-    import io
     output = io.BytesIO()
     writer = csv.writer(output)
     fields = [
@@ -338,13 +392,12 @@ def make_versions_csv():
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
     ]
     writer.writerow(fields)
-    vs = VersionSet()
+    vs = VersionSet(proj={f: 1 for f in fields})
     for v in vs:
         writer.writerow([str(getattr(v, f, "")).encode("utf-8") for f in fields])
 
@@ -352,8 +405,6 @@ def make_versions_csv():
 
 
 def get_core_link_stats():
-    import csv
-    import io
     from sefaria.model.link import get_category_category_linkset
     output = io.BytesIO()
     writer = csv.writer(output)
@@ -432,8 +483,6 @@ def get_library_stats():
         return simple_nodes
     tree = aggregate_stats(library.get_toc(), [])
 
-    import csv
-    import io
     from operator import sub
     output = io.BytesIO()
     writer = csv.writer(output)
@@ -537,5 +586,326 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
     return side_by_side_diff(diff), side_by_side_diff(diff, False)
 
 
+def word_frequency_for_text(title, lang="en"):
+    """
+    Returns an ordered list of word/count tuples for occurences of words inside the 
+    text `title`.
+    """
+    import string
+    from collections import defaultdict
+    from sefaria.export import make_text, prepare_merged_text_for_export
+    from sefaria.utils.util import strip_tags 
+    text = make_text(prepare_merged_text_for_export(title, lang=lang))
 
+    text = strip_tags(text)
+    text = text.lower()
+    text = re.sub(r'[^a-z ]', " ", text)
+    text = re.sub(r' +', " ", text)
+    text = text.translate(str.maketrans(dict.fromkeys(string.punctuation)))
+
+    count = defaultdict(int)
+    words = text.split(" ")
+    for word in words:
+        count[word] += 1
+
+    counts = sorted(iter(count.items()), key=lambda x: -x[1])
+
+    return counts
+
+@lru_cache(maxsize=1)
+def get_talmud_perek_ref_set() -> frozenset[str]:
+    """Cache of Talmud perakim refs (Bavli/Yerushalmi/Tosefta/Mishnah)."""
+    categories = [
+        ["Talmud", "Bavli"],
+        ["Talmud", "Yerushalmi"],
+        ["Tosefta"],
+        ["Mishnah"],
+    ]
+    perakim: set[str] = set()
+    for path in categories:
+        for index in library.get_indexes_in_category_path(path, full_records=True) or []:
+            try:
+                alone_nodes = index.get_referenceable_alone_nodes()
+            except Exception:
+                continue
+            for node in alone_nodes:
+                try:
+                    perakim.add(node.ref().normal())
+                except Exception:
+                    continue
+
+    return frozenset(perakim)
+
+
+@lru_cache(maxsize=1)
+def get_parasha_ref_set() -> frozenset[str]:
+    """Cache of parasha wholeRef ranges from alt-struct leaves whose titles map to Parasha terms."""
+    parasha_titles: set[str] = set()
+    for term in TermSet({"scheme": "Parasha"}):
+        for lang in ("en", "he"):
+            try:
+                parasha_titles.update(term.get_titles(lang))
+            except Exception:
+                continue
+
+    parasha_refs: set[str] = set()
+    for index in library.get_indexes_in_category_path(["Tanakh", "Torah"], include_dependant=False, full_records=True) or []:
+        try:
+            alt_leaves = index.get_alt_struct_leaves()
+        except Exception:
+            continue
+        for node in alt_leaves:
+            if not getattr(node, "wholeRef", None):
+                continue
+            try:
+                titles = set()
+                titles.update(node.get_titles("en"))
+                titles.update(node.get_titles("he"))
+                if getattr(node, "sharedTitle", None):
+                    titles.add(node.sharedTitle)
+            except Exception:
+                titles = set()
+            if parasha_titles and titles.isdisjoint(parasha_titles):
+                continue
+            try:
+                parasha_refs.add(Ref(node.wholeRef).normal())
+            except Exception:
+                continue
+
+    return frozenset(parasha_refs)
+
+
+class WorkflowyParser(object):
+
+    title_lang_delim = r"/"
+    alt_title_delim = r"|"
+    comment_delim = r'#'
+    categories_delim = "%"
+
+    def __init__(self, schema_file, uid, term_scheme=None, c_index=False, c_version=False, delims=None):
+        self._schema_outline_file = schema_file
+        self._uid = uid
+        self._term_scheme = term_scheme
+        self._c_index = c_index
+        self._c_version = c_version
+        tree = ET.parse(self._schema_outline_file)
+        self.outline = tree.getroot().find("./body/outline/outline")
+        self.comment_strip_re = re.compile(r"</b>|<b>|" + self.comment_delim + ".*" + self.comment_delim,
+                                           re.UNICODE)
+        self.parsed_schema = None
+        self.version_info = None
+        self.categories = None
+        if delims:
+            delims = delims.split()
+            self.title_lang_delim = delims[0] if len(delims) >= 1 else self.title_lang_delim
+            self.alt_title_delim = delims[1] if len(delims) >= 2 else self.alt_title_delim
+            self.categories_delim = delims[2] if len(delims) >= 3 else self.categories_delim
+
+    def parse(self):
+        # tree = tree.getroot()[1][0]
+        # for element in tree.iter('outline'):
+        #     print parse_titles(element)["enPrim"]
+        self.categories = self.extract_categories_from_title()
+        self.version_info = {'info': self.extract_version_info(), 'text': []}
+        self.parsed_schema = self.build_index_schema(self.outline)
+        self.parsed_schema.validate()
+        idx = self.create_index_from_schema()
+        if self._c_index:
+            idx_obj = Index(idx).save()
+            res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
+            if self._c_version:
+                self.save_version_from_outline_notes()
+                res += " Version record created."
+            else:
+                self.save_version_default(idx_obj)
+                res += " No text, Default empty Version record created."
+        else:
+            res = "Returning index outline without saving."
+        return {"message": res, "index": idx}
+
+    # object tree of each with jagged array nodes at the lowest level (recursive)
+    def build_index_schema(self, element):
+        if self._term_scheme and isinstance(self._term_scheme, str):
+            self.create_term_scheme()
+        # either type of node:
+        ja_sections = self.parse_implied_depth(element)
+        titles = self.parse_titles(element)  # an array of titles
+        if len(element) == 0:  # length of child nodes
+            n = JaggedArrayNode()
+            n.depth = len(ja_sections['section_names']) if ja_sections else 1
+            n.sectionNames = ja_sections['section_names'] if ja_sections else ['Paragraph']
+            n.addressTypes = ja_sections['address_types'] if ja_sections else ['Integer']
+            if titles:
+                n.key = titles["enPrim"]
+                n = self.add_titles_to_node(n, titles)
+            else:
+                n.key = 'default'
+                n.default = True
+        else:  # yes child nodes >> schema node
+            n = SchemaNode()
+            n.key = titles["enPrim"]
+            n = self.add_titles_to_node(n, titles)
+            for child in element:
+                n.append(self.build_index_schema(child))
+
+        if self._term_scheme and element != self.outline:  # add the node to a term scheme
+            self.create_shared_term_for_scheme(n.title_group)
+
+        if self._c_version and element != self.outline:  # get the text in the notes and store it with the proper Ref
+            text = self.parse_text(element)
+            if text:
+                self.version_info['text'].append({'node': n, 'text': text})
+        return n
+
+    # en & he titles for each element > dict
+    def parse_titles(self, element):
+        title = element.get("text")
+        if '**default**' in title:
+            return None
+        # print title
+        # title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
+        title = self.comment_strip_re.sub("", title)
+        spl_title = title.split(self.title_lang_delim)
+        titles = {}
+        if len(spl_title) == 2:
+            he_pos = 1 if has_hebrew(spl_title[1]) else 0
+            he = spl_title[he_pos].split(self.alt_title_delim)
+            titles["hePrim"] = he[0].strip()
+            titles["heAltList"] = [t.strip() for t in he[1:]]
+            del spl_title[he_pos]
+        en = spl_title[0].split(self.alt_title_delim)
+        titles["enPrim"] = en[0].strip()
+        titles["enAltList"] = [t.strip() for t in en[1:]]
+        # print node.attrib
+        return titles
+
+    # appends primary, alternate, hebrew, english titles to node.
+    def add_titles_to_node(self, n, titles):
+        term = Term()
+        # check if the primary title is a "shared term"
+        if term.load({"name": titles["enPrim"]}):
+            n.add_shared_term(titles["enPrim"])
+
+        else:  # manual add if not a shared term
+            n.add_title(titles["enPrim"], 'en', primary=True)
+            # print titles["enPrim"]
+            if "hePrim" in titles:
+                n.add_title(titles["hePrim"], 'he', primary=True)
+                # print titles["hePrim"]
+            if "enAltList" in titles:
+                for title in titles["enAltList"]:
+                    n.add_title(title, 'en')
+            if "heAltList" in titles:
+                for title in titles["heAltList"]:
+                    n.add_title(title, 'he')
+        return n
+
+    def extract_categories_from_title(self):
+        category_pattern = self.categories_delim + r"(.*)" + self.categories_delim
+        title = self.outline.get("text")
+        category_str = re.search(category_pattern, title)
+        if category_str:
+            categories = [s.strip() for s in category_str.group(1).split(",")]
+            self.outline.set('text', re.sub(category_pattern, "", title))
+            return categories
+        raise InputError("Categories must be supplied on the Workflowy outline according to specifications")
+
+    def parse_implied_depth(self, element):
+        ja_depth_pattern = r"\[(\d)\]$"
+        ja_sections_pattern = r"\[(.*)\]$"
+        title_str = element.get('text').strip()
+
+        depth_match = re.search(ja_depth_pattern, title_str)
+        if depth_match:
+            depth = int(depth_match.group(1))
+            placeholder_sections = ['Volume', 'Chapter', 'Section', 'Paragraph']
+            element.set('text', re.sub(ja_depth_pattern, "", title_str))
+            return {'section_names': placeholder_sections[(-1 * depth):], 'address_types': ['Integer'] * depth}
+
+        sections_match = re.search(ja_sections_pattern, title_str)
+        if sections_match:
+            sections = [s.strip() for s in sections_match.group(1).split(",")]
+            element.set('text', re.sub(ja_sections_pattern, "", title_str))
+            section_names = []
+            address_types = []
+            for s in sections:
+                tpl = s.split(":")
+                section_names.append(tpl[0])
+                address_types.append(tpl[1] if len(tpl) > 1 else 'Integer')
+
+            return {'section_names': section_names, 'address_types': address_types}
+        else:
+            return None
+
+    def extract_version_info(self):
+        vinfo_str = self.outline.get("_note")
+        if vinfo_str:
+            vinfo_dict = {elem.split(":", 1)[0].strip(): elem.split(":", 1)[1].strip() for elem in
+                          vinfo_str.split(",")}
+        else:
+            vinfo_dict = {'language': 'he',
+                          'versionSource': 'not available',
+                          'versionTitle': 'pending'
+                          }
+        return vinfo_dict
+
+    def create_index_from_schema(self):
+        return {
+            "title": self.parsed_schema.primary_title(),
+            "categories": self.categories,
+            "schema": self.parsed_schema.serialize()
+        }
+
+    def create_term_scheme(self):
+        if not TermScheme().load({"name": self._term_scheme}):
+            print("Creating Term Scheme object")
+            ts = TermScheme()
+            ts.name = self._term_scheme
+            ts.save()
+            self._term_scheme = ts
+
+    def create_shared_term_for_scheme(self, title_group):
+        # TODO: This might be a silly method, since for most cases we do not want to blindly create terms from ALL thre nodes of a schema
+        if not Term().load({"name": title_group.primary_title()}):
+            print("Creating Shared Term for Scheme from outline")
+            term = Term()
+            term.name = title_group.primary_title()
+            term.scheme = self._term_scheme.name
+            term.title_group = title_group
+            term.save()
+
+    # divides text into paragraphs and sentences > list
+    def parse_text(self, element):
+        if "_note" in element.attrib:
+            n = (element.attrib["_note"])
+            n = re.sub(r'[/]', '<br>', n)
+            n = re.sub(r'[(]', '<em><small>', n)
+            n = re.sub(r'[)]', '</small></em>', n)
+            text = n.strip().splitlines()
+            return text
+        return None
+
+    # builds and posts text to api
+    def save_version_from_outline_notes(self):
+        from sefaria.tracker import modify_text
+        for text_ref in self.version_info['text']:
+            node = text_ref['node']
+            ref = Ref(node.full_title(force_update=True))
+            text = text_ref['text']
+            user = self._uid
+            vtitle = self.version_info['info']['versionTitle']
+            lang = self.version_info['info']['language']
+            vsource = self.version_info['info']['versionSource']
+            modify_text(user, ref, vtitle, lang, text, vsource)
+
+    def save_version_default(self, idx):
+        Version(
+            {
+                "chapter": idx.nodes.create_skeleton(),
+                "versionTitle": self.version_info['info']['versionTitle'],
+                "versionSource": self.version_info['info']['versionSource'],
+                "language": self.version_info['info']['language'],
+                "title": idx.title
+            }
+        ).save()
 

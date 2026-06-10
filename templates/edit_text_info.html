@@ -3,7 +3,7 @@
 {% load sefaria_tags %}
 {% load humanize %}
 
-{% block title %}Edit Text Info for {{ title }}{% endblock %}
+{% block meta_title %}{% meta_title %}Edit Text Info for {{ title }}{% endmeta_title %}{% endblock %}
 
 {% block content %}
 
@@ -24,12 +24,12 @@
                     <div class='field nodeType'>
                         <label>Section Type</label>
                         <span class="option">
-                            <input type="radio" class="structureRadio" name="nodeType" value="structure" checked="checked">
-                            Structure
+                            <input type="radio" class="structureRadio" name="nodeType" value="structure" checked="checked" id="nodeType-structure">
+                            <label for="nodeType-structure">Structure</label>
                         </span>
                         <span class="option">
-                            <input type="radio" class="contentRadio" name="nodeType" value="content">
-                            Content
+                            <input type="radio" class="contentRadio" name="nodeType" value="content" id="nodeType-content">
+                            <label for="nodeType-content">Content</label>
                         </span>
                     </div>
                     <div class='field'><label>English Title</label><input class='nodeTitle' /></div>
@@ -759,7 +759,7 @@
             // Don't allow new texts in these locked categories (we have them all)
             index.categories = "locked";
         } else {
-            index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
+            index.categories = (cat == "Other" ? ($("#otherCategory").val() == "" ? ["Other"] : [$("#otherCategory").val()]) : (cat ? [cat]: []));
         }
         if ($("#textStructureFieldSet").is(":visible")) {
             var sectionNames = [];
@@ -849,15 +849,35 @@
 
         var postJSON = JSON.stringify(index);
         var title = index["title"].replace(/ /g, "_");
+        var isTitleChange = "oldTitle" in index;
 
         var message = "Saving text information...";
-        if ("oldTitle" in index) {
+        if (isTitleChange) {
             message += "<br><br>(processing title changes may take some time)"
         }
         sjs.alert.saving(message);
-        $.post("/api/index/" + title,  {"json": postJSON}, function(data) {
+        $.post("/api/index/" + title,  {"json": postJSON}, function(data, textStatus, xhr) {
             if (data.error) {
                 sjs.alert.message(data.error);
+            } else if (xhr.status === 202 && data.task_id) {
+                sjs.alert.message("Title change queued (task " + data.task_id + "). Processing in the background...");
+                Sefaria.pollTask(data.task_id, {
+                    onProgress: function(meta) {
+                        sjs.alert.saving(meta.step || "Processing title change...");
+                    },
+                })
+                    .then(function() {
+                        sjs.alert.message("Title change complete.");
+                        var params = getUrlVars();
+                        if ("after" in params) {
+                            window.location = params["after"];
+                        }
+                    })
+                    .catch(function(err) {
+                        sjs.alert.message(err.isNetworkError
+                            ? "Could not check task status. Please confirm with an admin whether the rename completed."
+                            : "Title change failed: " + err.message);
+                    });
             } else {
                 sjs.alert.message("Text information saved.");
                 var params = getUrlVars();

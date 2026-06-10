@@ -10,9 +10,8 @@ try:
     from sefaria.settings import USE_CLOUDFLARE
 except ImportError as e:
     USE_CLOUDFLARE=False
-
-import logging
-logger = logging.getLogger('cloudflare')
+import structlog
+logger = structlog.getLogger('cloudflare')
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@ if (typeof document !== 'undefined' ) {
       $         = require("cheerio");
       $.ajax    = emptyPromise; // fail silently if server-side code every hits one of these functions
       $.getJSON = emptyPromise; // ditto
+      $.cookie  = function() {};
 }
 
 export default $;
