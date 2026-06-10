@@ -206,6 +206,8 @@ shared_patterns = [
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),
 
+    path('api/linknetwork/<path:ref>', sefaria_views.link_network_api),
+
     path('api/send_feedback', sefaria_views.generate_feedback),
 
     path('api/subscribe/<path:org>/<path:email>', sefaria_views.generic_subscribe_to_newsletter_api),

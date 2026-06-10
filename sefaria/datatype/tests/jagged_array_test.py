@@ -105,7 +105,6 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby) == ja.JaggedTextArray(threeby)
         assert ja.JaggedTextArray(twoby) != ja.JaggedTextArray(threeby)
 
-
     def test_distance(self):
         jia = ja.JaggedTextArray(threeby)
         jia_empty = ja.JaggedTextArray(threeby_empty_section)
@@ -114,6 +113,7 @@ class Test_Jagged_Text_Array(object):
         assert jia.distance([0,0,1],[2,2,2]) == 25 #recursive distance
         assert jia_empty.distance([0,0,1], [3,2,2])  == 25
         assert jia_empty.distance([0,0,1], [2,1,3]) == 17
+
     def test_subarray(self):
         assert ja.JaggedTextArray(threeby).subarray([0],[0]) == ja.JaggedTextArray([
             ["Part 1 Line 1:1", "This is the first second", "First third"],
@@ -132,6 +132,10 @@ class Test_Jagged_Text_Array(object):
 
         assert ja.JaggedTextArray(threeby).subarray([1, 1, 1], [1, 1, 2]) == ja.JaggedTextArray(
             ["2:2", "2:3"],
+        )
+
+        assert ja.JaggedTextArray(threeby).subarray([1, 1, 1, 0], [1, 1, 2, 0]) == ja.JaggedTextArray(
+            []
         )
 
     def test_set_element(self):

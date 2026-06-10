@@ -298,7 +298,13 @@ class ConnectionsPanel extends Component {
             </div>
         
           {showConnectionSummary ?
-            <ConnectionsPanelSection title="Related Texts">
+            <ConnectionsPanelSection title="Related Texts" headerButton={
+              <a className="timelineMapButton sans-serif"
+                href={"/visualize/timeline?ref=" + Sefaria.normRef(this.props.srefs[0])}
+                target="_blank" rel="noopener noreferrer">
+                <InterfaceText text={{ en: "Map this", he: "הצגה במפה" }} />
+              </a>
+            }>
               <ConnectionsSummary
                 currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
@@ -1620,13 +1626,14 @@ ManuscriptImageList.propTypes = {
 };
 
 
-const ConnectionsPanelSection = ({ title, children }) => {
+const ConnectionsPanelSection = ({ title, children, headerButton }) => {
   return (
     <>
       <div className="connectionPanelSectionHeader sans-serif">
         <span className="connectionPanelSectionHeaderInner">
           <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
         </span>
+        {headerButton}
       </div>
       {children}
     </>
