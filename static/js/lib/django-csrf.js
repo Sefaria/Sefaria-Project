@@ -33,8 +33,18 @@ function init() {
             return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
         }
 
+        function getCsrfToken() {
+            // Prefer the server-rendered token over the cookie. A cauldron host
+            // inherits the parent-domain (.sefaria.org) csrftoken cookie alongside
+            // its own, and getCookie returns the first match while Django validates
+            // against the last — the meta tag always matches what Django validates.
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta && meta.content) { return meta.content; }
+            return getCookie('csrftoken');
+        }
+
         if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.setRequestHeader("X-CSRFToken", getCsrfToken());
         }
     });
 }
