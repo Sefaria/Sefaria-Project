@@ -2859,6 +2859,15 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+  _bookCompletions: {},
+  checkBookCompletion: function(book) {
+    if (!Sefaria._uid) { return Promise.resolve({complete: false}); }
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/book_completion?book=" + encodeURIComponent(book),
+      key:   book,
+      store: Sefaria._bookCompletions
+    });
+  },
     isNewVisitor: () => {
         return (
             ("isNewVisitor" in sessionStorage &&
