@@ -1011,7 +1011,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
     }
       else if (addSource) {
-      adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
+      adminButtonsSpan = <SourceEditor key={`${data.slug}|new`} topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
       adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
     } else if (addSection) {
@@ -1035,7 +1035,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
 //Pencil-shaped button to open the ref-link (source) editor
 const PencilSourceEditor = ({topic, text, classes}) => {
     const [addSource, toggleAddSource] = useEditToggle();
-    return addSource ? <SourceEditor topic={topic} origData={text} close={toggleAddSource}/> :
+    return addSource ? <SourceEditor key={`${topic}|${text.ref}`} topic={topic} origData={text} close={toggleAddSource}/> :
         <img 
           className={classes} 
           id={"editTopic"}
@@ -1170,7 +1170,7 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
       return <EditTextInfo initTitle={data} close={toggle}/>;
     case "sources":
         const [topicSlug, refData] = data;
-        return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
+        return <SourceEditor key={`${topicSlug}|${refData.ref}`} topic={topicSlug} origData={refData} close={toggle}/>;
     case "cats":
         return <EditorForExistingCategory toggle={toggle} data={data} />;
     case "topics":
