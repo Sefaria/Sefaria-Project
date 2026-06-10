@@ -329,117 +329,118 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
 
 
 class LinkNetwork(object):
+    """
+    The network of works that directly cite, or are directly cited by, a base passage.
+
+    Nodes are (line, work) pairs.  A line is the work's top-level category, with
+    a "/Commentary" suffix for dependent commentaries, so that e.g. Rashi on Berakhot
+    lands on "Talmud/Commentary" while Rashi on Genesis lands on "Tanakh/Commentary".
+    A work is its collective title where one exists, otherwise its title.
+    """
+    EXCLUDED_CATEGORIES = {"Reference"}
+    CATEGORY_ALIASES = {"Second Temple": "Tanakh"}
+
     def __init__(self, base_tref):
         self.base_oref = expand_passage(Ref(base_tref))
         self.base_trefs = [r.normal() for r in self.base_oref.all_segment_refs()]
-        self.indexNodes = {}
-        self.indexLinks = {}
-        self.coveredRefs = {r: 1 for r in self.base_trefs}
-
-        # record root node
-        rootkey = self.indexKey(self.base_oref)
-        root_period = self.base_oref.index.composition_time_period()
+        base_index = self.base_oref.index
+        self.base_title = base_index.title
+        self.root_line = self.line_key(base_index)
+        root_period = base_index.composition_time_period()
         self.root_year = int(root_period.start) if root_period else None
-        self.indexNodes[rootkey] = self.make_index_record(
-            self.base_oref,
-            rootkey,
-            self.root_year,
-            self.base_oref.index.categories[0],
-            root = True
-        )
+        self.nodes = {}
 
-        future_links = db.linknet.aggregate([
-            {"$match": {"early_refs": {"$in": self.base_trefs}}},
-            {"$graphLookup": {
-                "from": "linknet",
-                "startWith": "$late_refs",
-                "connectFromField": "late_refs",
-                "connectToField": "early_refs",
-                "as": "future",
-                "depthField": "depth"
-            }},
-            {"$project": {"early_index":0, "early_category":0, "late_index":0, "late_category":0}}
-        ])
-        past_links = db.linknet.aggregate([
-            {"$match": {"late_refs": {"$in": self.base_trefs}}},
-            {"$graphLookup": {
-                "from": "linknet",
-                "startWith": "$early_refs",
-                "connectFromField": "early_refs",
-                "connectToField": "late_refs",
-                "as": "past",
-                "depthField": "depth"
-            }},
-            {"$project": {"early_index": 0, "early_category": 0, "late_index": 0, "late_category": 0}}
-        ])
-
-        # Assemble all covered refs and indexes
-        for g1 in future_links:
-            self.record_ref(g1, "late")
-            for g2 in g1["future"]:
-                self.record_ref(g2, "late")
-
-        for g1 in past_links:
-            self.record_ref(g1, "early")
-            for g2 in g1["past"]:
-                self.record_ref(g2, "early")
-
-        for k, n in self.indexNodes.items():
-            n["refs"] = sorted(list(n["refs"]))
-
-        # Search for any connections between covered refs
-        # This will include the original tree
-        covered_refs = list(self.coveredRefs)
-        all_connections = db.linknet.find({
-            "early_refs": {"$in": covered_refs},
-            "late_refs": {"$in": covered_refs}
-        })
-
-        # Turn each link into an Index-Index edge
-        for connection in all_connections:
-            self.record_link(connection)
+        for doc in db.linknet.find({"early_refs": {"$in": self.base_trefs}}):
+            self.record_node(doc, "late")
+        for doc in db.linknet.find({"late_refs": {"$in": self.base_trefs}}):
+            self.record_node(doc, "early")
 
         self.cluster_refs()
 
     def contents(self):
         return {
-            "year": self.root_year,
-            "category": self.base_oref.index.categories[0],
             "ref": self.base_oref.normal(),
-            "indexNodes": self.indexNodes,
-            "indexLinks": list(self.indexLinks),
+            "heRef": self.base_oref.he_normal(),
+            "year": self.root_year,
+            "line": self.root_line,
+            "category": self.normalized_category(self.base_oref.index),
+            "nodes": [self.nodes[k] for k in sorted(self.nodes.keys())],
         }
 
-    def indexKey(self, oref):
-        index = oref.index
-        key = getattr(index, "collective_title", index.title)
+    def normalized_category(self, index):
+        cat = index.categories[0]
+        cat = self.CATEGORY_ALIASES.get(cat, cat)
+        return None if cat in self.EXCLUDED_CATEGORIES else cat
+
+    def is_commentary(self, index):
+        return str(getattr(index, "dependence", "")).lower() == "commentary"
+
+    def line_key(self, index):
+        cat = self.normalized_category(index)
+        if cat is None:
+            return None
+        return cat + "/Commentary" if self.is_commentary(index) else cat
+
+    def work_key(self, index):
+        key = getattr(index, "collective_title", None) or index.title
         if "Mishneh Torah" in key:
             return "Mishneh Torah"
         if "Shulchan Arukh" in key:
             return "Shulchan Arukh"
         return key
 
-    def record_link(self, node):
-        linkkey = self.indexKey(Ref(node["early_orig_ref"])), self.indexKey(Ref(node["late_orig_ref"]))
-        self.indexLinks[linkkey] = 1
+    def he_work(self, index, key):
+        he = None
+        try:
+            he = hebrew_term(key)
+        except Exception:
+            pass
+        if not he and key == index.title:
+            he = index.get_title("he")
+        return he or key
 
-    def record_ref(self, node, side):
-        tref, year, trefs = (node["late_orig_ref"], node["late_year"], node["late_refs"]) if side == "late" else (node["early_orig_ref"],node["early_year"],node["early_refs"])
-        oref = Ref(tref)
-        cat = oref.index.categories[0]
-        key = self.indexKey(oref)
-        self.coveredRefs.update({r: 1 for r in trefs})
-
-        if key in self.indexNodes:
-            self.indexNodes[key]["refs"].add(oref.normal())
+    def record_node(self, doc, side):
+        tref = doc[side + "_orig_ref"]
+        year = doc[side + "_year"]
+        try:
+            oref = Ref(tref)
+        except Exception:  # links built against an older library may no longer parse
+            return
+        index = oref.index
+        if index.title == self.base_title:
+            return
+        line = self.line_key(index)
+        if line is None:
+            return
+        key = (line, self.work_key(index))
+        node = self.nodes.get(key)
+        if node is None:
+            node = {
+                "work": key[1],
+                "heWork": self.he_work(index, key[1]),
+                "line": line,
+                "category": line.split("/")[0],
+                "commentary": line.endswith("/Commentary"),
+                "year": year,
+                "direction": "future" if side == "late" else "past",
+                "refs": set(),
+            }
+            self.nodes[key] = node
         else:
-            self.indexNodes[key] = self.make_index_record(oref, key, year, cat)
+            if year is not None and (node["year"] is None or year < node["year"]):
+                node["year"] = year
+            direction = "future" if side == "late" else "past"
+            if node["direction"] != direction:
+                node["direction"] = "both"
+        node["refs"].add(oref.normal())
 
     def cluster_refs(self):
         from sefaria.recommendation_engine import RecommendationEngine
 
-        for k, v in self.indexNodes.items():
-            clusters = RecommendationEngine.cluster_close_refs([Ref(r) for r in v["refs"]], v["refs"], 1, fast=True)
+        for k, v in self.nodes.items():
+            refs = sorted(v["refs"])
+            v["refCount"] = len(refs)
+            clusters = RecommendationEngine.cluster_close_refs([Ref(r) for r in refs], refs, 1, fast=True)
             results = []
             for cluster in clusters:
                 if len(cluster) == 1:
@@ -447,20 +448,6 @@ class LinkNetwork(object):
                 else:
                     results += [cluster[0]["ref"].to(cluster[-1]["ref"]).normal()]
             v["refs"] = results
-
-    def make_index_record(self, oref, key, year, cat, root=False):
-        d = {
-                "title": key,
-                "heTitle": hebrew_term(key),
-                "compDate": year,  # get rid of
-                "errorMargin": 0,  # this
-                "year": year,
-                "category": cat,
-                "refs": {oref.normal()},
-            }
-        if root:
-            d["root"] = True
-        return d
 
 
 def expand_passage(oref):
