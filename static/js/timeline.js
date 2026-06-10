@@ -17,6 +17,19 @@ const ERAS = [
 const eraIndex = year => ERAS.findIndex(e => year < e.end);
 const eraKeyIndex = key => ERAS.findIndex(e => e.key === key);
 
+// Stations sit along a piecewise-linear time scale: each era column spans its own
+// year range, so the eras read as a scale without stations locking to the columns.
+const BUCKET_YEARS = 200;
+const SCALE_START = -1500, SCALE_END = 2050;
+function timeX(year) {
+    const y = Math.max(SCALE_START, Math.min(SCALE_END, year));
+    let e = eraIndex(y);
+    if (e < 0) e = ERAS.length - 1;
+    const start = e === 0 ? SCALE_START : ERAS[e - 1].end;
+    const end = e === ERAS.length - 1 ? SCALE_END : ERAS[e].end;
+    return M.left + colW * e + colW * (y - start) / (end - start);
+}
+
 /*****          The track map            *****/
 // The genealogy of the library, hand-authored.  Array order is row order, top to bottom.
 // fork: the era at which a line branches off its parent.
@@ -28,7 +41,7 @@ const TRACK_MAP = [
     {line: "Tanakh",         end: "biblical"},
     {line: "Midrash",        parent: "Tanakh",         fork: "tannaim"},
     {line: "Mishnah",        parent: "Tanakh",         fork: "tannaim"},
-    {line: "Tosefta",        merge: "Talmud"},
+    {line: "Tosefta",        parent: "Tanakh",         fork: "tannaim", merge: "Talmud"},
     {line: "Talmud",         parent: "Mishnah",        fork: "amoraim"},
     {line: "Halakhah",       parent: "Talmud",         fork: "geonim"},
     {line: "Responsa",       parent: "Halakhah",       fork: "rishonim"},
@@ -106,14 +119,17 @@ function refocusNetwork(ref) {
 function buildModel(net) {
     const stationIndex = {};
     for (const n of (net.nodes || [])) {
-        const e = eraIndex(n.year);
-        if (e < 0) continue;
-        const key = n.line + "|" + e + "|" + (n.stop || "");
-        if (!stationIndex[key]) stationIndex[key] = {line: n.line, era: e, stop: n.stop || null, works: []};
+        if (n.year == null) continue;
+        const key = n.line + "|" + Math.floor(n.year / BUCKET_YEARS) + "|" + (n.stop || "");
+        if (!stationIndex[key]) stationIndex[key] = {line: n.line, stop: n.stop || null, works: []};
         stationIndex[key].works.push(n);
     }
     const stations = Object.values(stationIndex);
-    stations.forEach(st => st.works.sort((a, b) => b.refCount - a.refCount));
+    stations.forEach(st => {
+        st.works.sort((a, b) => b.refCount - a.refCount);
+        st.year = Math.round(st.works.reduce((a, w) => a + w.year, 0) / st.works.length);
+        st.era = Math.max(0, eraIndex(st.year));
+    });
 
     const visible = new Set();
     const addWithAncestors = line => {
@@ -160,7 +176,7 @@ function buildModel(net) {
     const hubEra = net.year != null ? eraIndex(net.year)
         : (lines[net.line] && lines[net.line].stations.length ? lines[net.line].stations[0].era : 0);
 
-    return {lines, rows, hubEra, hubLine: net.line};
+    return {lines, rows, hubEra, hubYear: net.year, hubLine: net.line};
 }
 
 /*****          Geometry          *****/
@@ -180,10 +196,16 @@ function computeGeometry(model) {
         let forkEra = null;
         if (isCommentaryLine(line)) {
             forkEra = L.stations.length ? L.stations.reduce((a, s) => Math.min(a, s.era), 99) : null;
-            // a commentary branch can't fork later than its parent line's end
+            // a commentary branch can't fork later than its parent line's end —
+            // either a declared end era or the point where the parent merges away
             const pSpec = TRACK_SPECS[baseCategory(line)];
-            if (forkEra != null && pSpec && pSpec.end != null) {
-                forkEra = Math.min(forkEra, eraKeyIndex(pSpec.end) + 1);
+            if (forkEra != null && pSpec) {
+                let lastEra = null;
+                if (pSpec.end != null) lastEra = eraKeyIndex(pSpec.end) + 1;
+                else if (pSpec.merge && TRACK_SPECS[pSpec.merge] && TRACK_SPECS[pSpec.merge].fork) {
+                    lastEra = eraKeyIndex(TRACK_SPECS[pSpec.merge].fork);
+                }
+                if (lastEra != null) forkEra = Math.min(forkEra, lastEra);
             }
         } else if (TRACK_SPECS[line] && TRACK_SPECS[line].fork) {
             forkEra = eraKeyIndex(TRACK_SPECS[line].fork);
@@ -200,24 +222,30 @@ function computeGeometry(model) {
         group.forEach((L, i) => { L.forkStagger = i; });
     }
 
+    model.hubX = model.hubYear != null ? timeX(model.hubYear) : colX(hubEra);
+
     for (const line of model.rows) {
         const L = lines[line];
         const y = rowY(L.row);
         L.y = y;
 
-        // Multiple stops in the same era (e.g. Yerushalmi then Bavli on the Talmud
-        // line) spread side by side within the column, ordered by date.
-        const byEra = {};
-        L.stations.forEach(st => { (byEra[st.era] = byEra[st.era] || []).push(st); });
-        for (const group of Object.values(byEra)) {
-            group.sort((a, b) => Math.min(...a.works.map(w => w.year)) - Math.min(...b.works.map(w => w.year)));
-            group.forEach((st, i) => {
-                st.x = colX(st.era) + (i - (group.length - 1) / 2) * 42;
-                st.labelTier = group.length > 1 ? i % 2 : 0;
-            });
+        // Stations sit at their bucket's mean year on the time scale, nudged
+        // right where needed to keep a minimum separation (and to clear the hub).
+        const sorted = [...L.stations].sort((a, b) => a.year - b.year);
+        let prev = -Infinity;
+        for (const st of sorted) {
+            st.x = Math.max(timeX(st.year), prev);
+            if (line === hubLine && Math.abs(st.x - model.hubX) < 34) st.x = model.hubX + 34;
+            prev = st.x + 36;
+        }
+        let prevLabelX = -Infinity, prevTier = 0;
+        for (const st of sorted) {
+            st.labelTier = (st.x - prevLabelX < 76) ? 1 - prevTier : 0;
+            prevTier = st.labelTier;
+            prevLabelX = st.x;
         }
         const stationXs = L.stations.map(st => st.x);
-        if (line === hubLine) stationXs.push(colX(hubEra));
+        if (line === hubLine) stationXs.push(model.hubX);
 
         if (L.forkEra != null) {
             const parent = lines[lineParent(line)];
@@ -250,10 +278,10 @@ function computeGeometry(model) {
         if (departs.length) L.endX = Math.max(L.endX, Math.max(...departs) + 18);
     }
 
-    // Merges: a line with content flows into another (Tosefta → Talmud).
+    // Merges: a line flows into another (Tosefta → Talmud).
     for (const line of model.rows) {
         const spec = TRACK_SPECS[line];
-        if (spec && spec.merge && lines[spec.merge] && lines[line].stations.length) {
+        if (spec && spec.merge && lines[spec.merge]) {
             const L = lines[line], T = lines[spec.merge];
             const joinX = Math.max(T.startX + 8, L.endX + 2 * BEND);
             L.mergePath = forkPath(L.endX, L.y, T.y, joinX - L.endX);
@@ -347,13 +375,13 @@ function drawTracks(model) {
         // Label just before the line's first station (or the hub), where it's
         // clear of the fork bundles that cross the line near its start.
         const anchorXs = L.stations.map(st => st.x);
-        if (line === model.hubLine) anchorXs.push(colX(model.hubEra));
+        if (line === model.hubLine) anchorXs.push(model.hubX);
         const label = svg.append("text")
             .attr("y", L.y - 11)
             .attr("fill", color).attr("font-size", 12).attr("font-weight", "bold")
             .text(lineLabel(line));
         if (anchorXs.length) {
-            label.attr("x", Math.min(...anchorXs) - 24).attr("text-anchor", "end");
+            label.attr("x", Math.max(Math.min(...anchorXs) - 24, 64)).attr("text-anchor", "end");
         } else {
             label.attr("x", L.startX + 2).attr("text-anchor", "start");
         }
@@ -385,7 +413,7 @@ function drawStations(model) {
 function drawHub(model, net) {
     const L = model.lines[model.hubLine];
     if (!L) return;
-    const x = colX(model.hubEra), y = L.y;
+    const x = model.hubX, y = L.y;
     const hub = svg.append("g");
     hub.append("circle")
         .attr("cx", x).attr("cy", y).attr("r", 13)
