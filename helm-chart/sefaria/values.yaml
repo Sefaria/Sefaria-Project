@@ -393,12 +393,6 @@ secrets:
     # data:
     #   key:
     #   serviceAccount:
-  # This is used in mongobackup & reindex-elasticsearch cron jobs.
-  slackWebhook:
-    # If you're using a reference to an existing secret then the data: section
-    # should be commented out and vice-versa.
-    ref:
-    # data:
   webpageCronjob:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
