@@ -29,7 +29,6 @@ const TRACK_MAP = [
     {line: "Midrash",        parent: "Tanakh",         fork: "tannaim"},
     {line: "Mishnah",        parent: "Tanakh",         fork: "tannaim"},
     {line: "Tosefta",        merge: "Talmud"},
-    {line: "Yerushalmi",     parent: "Mishnah",        fork: "amoraim", color: "Talmud"},
     {line: "Talmud",         parent: "Mishnah",        fork: "amoraim"},
     {line: "Halakhah",       parent: "Talmud",         fork: "geonim"},
     {line: "Responsa",       parent: "Halakhah",       fork: "rishonim"},
@@ -109,8 +108,8 @@ function buildModel(net) {
     for (const n of (net.nodes || [])) {
         const e = eraIndex(n.year);
         if (e < 0) continue;
-        const key = n.line + "|" + e;
-        if (!stationIndex[key]) stationIndex[key] = {line: n.line, era: e, works: []};
+        const key = n.line + "|" + e + "|" + (n.stop || "");
+        if (!stationIndex[key]) stationIndex[key] = {line: n.line, era: e, stop: n.stop || null, works: []};
         stationIndex[key].works.push(n);
     }
     const stations = Object.values(stationIndex);
@@ -125,6 +124,16 @@ function buildModel(net) {
     };
     stations.forEach(st => addWithAncestors(st.line));
     if (net.line) addWithAncestors(net.line);
+
+    // A parentless line with no stations of its own and no non-commentary
+    // descendants is just an orphaned stub (e.g. Tosefta when only a Tosefta
+    // commentary is present) — drop it and let its commentary branch float.
+    for (const spec of TRACK_MAP) {
+        if (spec.parent || !visible.has(spec.line) || spec.line === net.line) continue;
+        const hasStations = stations.some(st => st.line === spec.line);
+        const hasLineChildren = TRACK_MAP.some(s => s.parent === spec.line && visible.has(s.line));
+        if (!hasStations && !hasLineChildren) visible.delete(spec.line);
+    }
 
     // Row order: each canonical line, then its commentary branch.
     const rows = [];
@@ -195,7 +204,19 @@ function computeGeometry(model) {
         const L = lines[line];
         const y = rowY(L.row);
         L.y = y;
-        const stationXs = L.stations.map(st => colX(st.era));
+
+        // Multiple stops in the same era (e.g. Yerushalmi then Bavli on the Talmud
+        // line) spread side by side within the column, ordered by date.
+        const byEra = {};
+        L.stations.forEach(st => { (byEra[st.era] = byEra[st.era] || []).push(st); });
+        for (const group of Object.values(byEra)) {
+            group.sort((a, b) => Math.min(...a.works.map(w => w.year)) - Math.min(...b.works.map(w => w.year)));
+            group.forEach((st, i) => {
+                st.x = colX(st.era) + (i - (group.length - 1) / 2) * 42;
+                st.labelTier = group.length > 1 ? i % 2 : 0;
+            });
+        }
+        const stationXs = L.stations.map(st => st.x);
         if (line === hubLine) stationXs.push(colX(hubEra));
 
         if (L.forkEra != null) {
@@ -323,10 +344,19 @@ function drawTracks(model) {
         if (L.mergePath) {
             g.append("path").attr("d", L.mergePath).attr("stroke", color).attr("stroke-width", width);
         }
-        svg.append("text")
-            .attr("x", L.startX + 2).attr("y", L.y - 11)
+        // Label just before the line's first station (or the hub), where it's
+        // clear of the fork bundles that cross the line near its start.
+        const anchorXs = L.stations.map(st => st.x);
+        if (line === model.hubLine) anchorXs.push(colX(model.hubEra));
+        const label = svg.append("text")
+            .attr("y", L.y - 11)
             .attr("fill", color).attr("font-size", 12).attr("font-weight", "bold")
             .text(lineLabel(line));
+        if (anchorXs.length) {
+            label.attr("x", Math.min(...anchorXs) - 24).attr("text-anchor", "end");
+        } else {
+            label.attr("x", L.startX + 2).attr("text-anchor", "start");
+        }
     }
 }
 
@@ -335,7 +365,7 @@ function drawStations(model) {
     for (const line of model.rows) {
         const L = model.lines[line];
         for (const st of L.stations) {
-            const x = colX(st.era);
+            const x = st.x;
             const r = Math.min(MAX_STATION_R, 4.5 + 3.2 * Math.sqrt(st.works.length));
             const station = g.append("g").style("cursor", "pointer");
             station.append("circle")
@@ -344,9 +374,9 @@ function drawStations(model) {
                 .attr("stroke", lineColor(line))
                 .attr("stroke-width", isCommentaryLine(line) ? 2.5 : 3.5);
             station.append("text")
-                .attr("x", x).attr("y", L.y + r + 14)
+                .attr("x", x).attr("y", L.y + r + 14 + (st.labelTier ? 13 : 0))
                 .attr("text-anchor", "middle").attr("fill", "#777").attr("font-size", 11)
-                .text(st.works.length);
+                .text(st.stop ? stopLabel(st.stop) + " · " + st.works.length : st.works.length);
             station.on("click", () => showStationPopup(st, station.node().getBoundingClientRect()));
         }
     }
@@ -387,6 +417,10 @@ function lineLabel(line) {
         return isCommentaryLine(line) ? heTerm(cat) + " · " + heTerm("Commentary") : heTerm(cat);
     }
     return isCommentaryLine(line) ? cat + " · Commentary" : cat;
+}
+
+function stopLabel(stop) {
+    return isHebrew() ? heTerm(stop) : stop;
 }
 
 /*****                   Popup                        *****/
@@ -631,7 +665,9 @@ function showStationPopup(station, rect) {
     clearTextBox();
 
     linkerHeader.style["border-top-color"] = Sefaria.palette.categoryColor(baseCategory(station.line));
-    enTitle.textContent = lineLabel(station.line) + " · " + (isHebrew() ? ERAS[station.era].he : ERAS[station.era].en);
+    enTitle.textContent = lineLabel(station.line)
+        + (station.stop ? " · " + stopLabel(station.stop) : "")
+        + " · " + (isHebrew() ? ERAS[station.era].he : ERAS[station.era].en);
     heTitle.textContent = "";
     linkerFooter.style.display = "none";
 

@@ -368,10 +368,15 @@ class LinkNetwork(object):
 
     def normalized_category(self, index):
         cat = index.categories[0]
-        if cat == "Talmud" and len(index.categories) > 1 and index.categories[1] == "Yerushalmi":
-            cat = "Yerushalmi"
         cat = self.CATEGORY_ALIASES.get(cat, cat)
         return None if cat in self.EXCLUDED_CATEGORIES else cat
+
+    def stop_key(self, index):
+        # Distinct stops within a line, e.g. Bavli vs. Yerushalmi on the Talmud line.
+        if index.categories[0] == "Talmud" and len(index.categories) > 1 \
+                and index.categories[1] in ("Bavli", "Yerushalmi"):
+            return index.categories[1]
+        return None
 
     def work_year(self, index, fallback=None):
         period = index.composition_time_period()
@@ -426,6 +431,7 @@ class LinkNetwork(object):
                 "work": key[1],
                 "heWork": self.he_work(index, key[1]),
                 "line": line,
+                "stop": self.stop_key(index),
                 "category": line.split("/")[0],
                 "commentary": line.endswith("/Commentary"),
                 "year": year,
