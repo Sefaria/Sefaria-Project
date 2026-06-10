@@ -423,12 +423,14 @@ function drawTracks(model) {
         // further right when a merge descends through that zone.  Trunks and
         // stubs have no elbow, so their label sits higher, clear of a station
         // that may sit right at the line start.
+        const labelText = lineLabel(line);
         const labelX = Math.max(L.labelX != null ? L.labelX : L.startX + 4, L.labelMinX || 0);
         const labelY = L.labelX != null ? L.y - 11 : L.y - 24;
         svg.append("text")
             .attr("x", labelX).attr("y", labelY).attr("text-anchor", "start")
             .attr("fill", color).attr("font-size", 12).attr("font-weight", "bold")
-            .text(lineLabel(line));
+            .text(labelText);
+        L.labelBox = {x0: labelX, x1: labelX + labelText.length * 7.2, y0: labelY - 12, y1: labelY + 2};
     }
 }
 
@@ -475,11 +477,19 @@ function drawHub(model, net) {
     // the hub line's station labels.
     const refText = isHebrew() && net.heRef ? net.heRef : net.ref;
     const halfW = refText.length * 3.9 + 8;
-    const lx = Math.min(Math.max(x, halfW + 10), w - halfW - 10);
+    let lx = Math.min(Math.max(x, halfW + 10), w - halfW - 10);
+    const labelOverlaps = (boxY0, boxY1, atX) => L.labelBox
+        && L.labelBox.x0 < atX + halfW && L.labelBox.x1 > atX - halfW
+        && L.labelBox.y0 < boxY1 && L.labelBox.y1 > boxY0;
     const crowding = (boxY0, boxY1, includeStations) =>
         (model.obstacles || []).filter(o => o.x > lx - halfW && o.x < lx + halfW && o.y0 < boxY1 && o.y1 > boxY0).length
-        + (includeStations ? L.stations.filter(st => Math.abs(st.x - lx) < halfW + 40).length : 0);
+        + (includeStations ? L.stations.filter(st => Math.abs(st.x - lx) < halfW + 40).length : 0)
+        + (labelOverlaps(boxY0, boxY1, lx) ? 1 : 0);
     const labelAbove = crowding(y - 38, y - 20, false) < crowding(y + 20, y + 38, true);
+    if (labelAbove && labelOverlaps(y - 38, y - 20, lx)) {
+        // dodge the line's own label horizontally rather than sit on top of it
+        lx = Math.min(L.labelBox.x1 + halfW + 10, w - halfW - 10);
+    }
     hub.append("text")
         .attr("x", lx).attr("y", labelAbove ? y - 24 : y + 32)
         .attr("text-anchor", "middle").attr("fill", "#333")
