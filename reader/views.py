@@ -34,6 +34,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.urls import Resolver404, resolve
 from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
@@ -4052,6 +4053,49 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
     _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
+
+
+def enable_library_assistant(request):
+    """
+    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
+    The promo points login/register's ?next= here, so once authentication
+    completes the user lands here; we enroll them in the experiments whitelist and
+    bounce them back to where they were. On that reload the Library Assistant appears
+    with no extra "Join" click. Normal logins (which don't route through here) are
+    unaffected.
+    """
+    next_url = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+
+    if not request.user.is_authenticated:
+        # The promo always routes through login/register first, so reaching this
+        # anonymously is unexpected — send them to log in, then back here to enroll.
+        return redirect_to_login(request.get_full_path())
+
+    # Enrollment is a state change reached via GET (the post-login redirect is a
+    # top-level navigation, so no CSRF token is available). Guard against a cross-site
+    # subresource (e.g. <img src=".../enable-library-assistant">) silently enrolling a
+    # logged-in user: skip the opt-in when the browser reports a cross-site request.
+    # The real same-origin/same-site post-login navigation — and clients that don't send
+    # Sec-Fetch-Site — are unaffected. We still redirect either way.
+    if request.headers.get("Sec-Fetch-Site") != "cross-site":
+        _set_user_experiments(request.user, True)
+
+    # The register flow appends ?welcome=to-sefaria to its redirect target; forward
+    # it onto the final destination so the new-user welcome still shows after the hop.
+    welcome = request.GET.get("welcome")
+    if welcome:
+        parsed = urllib.parse.urlparse(next_url)
+        next_url = urllib.parse.urlunparse(parsed._replace(
+            query=urllib.parse.urlencode(urllib.parse.parse_qsl(parsed.query) + [("welcome", welcome)])
+        ))
+
+    return redirect(next_url)
 
 
 @login_required

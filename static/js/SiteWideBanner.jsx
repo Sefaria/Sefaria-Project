@@ -120,7 +120,11 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls }) => {
   if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
     return null;
   }
-  const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  // Route anon login/register through the Library Assistant opt-in landing so that,
+  // once they authenticate, they're auto-enrolled in the experiment and returned here —
+  // the assistant then appears on reload with no extra "Join" click.
+  const optInDest = "/enable-library-assistant?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  const nextParam = "?next=" + encodeURIComponent(optInDest);
 
   return (
     <SiteWideBanner
