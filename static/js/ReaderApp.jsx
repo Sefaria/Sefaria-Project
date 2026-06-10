@@ -46,6 +46,9 @@ class ReaderApp extends Component {
     // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
+    this._aboutSidebarPaths    = new Set(
+      (Sefaria._siteSettings.ABOUT_SIDEBAR_PAGES || []).map(p => '/' + p.path)
+    );
     let panels                 = [];
     const searchType = SearchState.moduleToSearchType(Sefaria.activeModule);
     if (props.initialMenu) {
@@ -1261,10 +1264,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const path = decodeURI(url.pathname);
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
-      const sidebarPaths = new Set(
-        (Sefaria._siteSettings.ABOUT_SIDEBAR_PAGES || []).map(p => '/' + p.path)
-      );
-      if (sidebarPaths.has(path)) {
+      if (this._aboutSidebarPaths.has(path)) {
         window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
         return true;
       }
