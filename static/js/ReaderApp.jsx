@@ -485,6 +485,16 @@ class ReaderApp extends Component {
             hist.url = "";
             hist.mode = 'voices';
             break;
+          case "communityUpload":
+            hist.title = Sefaria.getPageTitle("Upload Your Book");
+            hist.url = "community-upload";
+            hist.mode = "communityUpload";
+            break;
+          case "communityUploadGuide":
+            hist.title = Sefaria.getPageTitle("Community Upload Guide");
+            hist.url = "community-upload-guide";
+            hist.mode = "communityUploadGuide";
+            break;
           case "sheetsWithRef":
             const sheetsWithTitle = "Sheets with " + state.sheetsWithRef[shortLang];
             hist.title = Sefaria.getPageTitle(sheetsWithTitle);
