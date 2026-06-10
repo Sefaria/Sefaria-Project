@@ -61,6 +61,35 @@ test.describe('AuthPage submit wiring (spec 1602)', () => {
     expect(captured.body).toContain('noredirect=1');
   });
 
+  test('Hebrew registration error matches the Figma form-level error row', async ({ page }) => {
+    await page.route('**/register', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          email: 'האימייל הזה כבר רשום דרך גוגל.',
+          _auth: { code: 'sso_only_account', providers: ['google'] },
+        }),
+      }));
+    await page.goto(story('auth-authpage--hebrew-register'));
+    await page.getByRole('button', { name: 'להמשיך עם אימייל' }).click();
+    await page.locator('input[name="email"]').fill('moshe613@gmail.com');
+    await page.getByRole('button', { name: 'יצירת חשבון' }).click();
+
+    const error = page.locator('.sefaria-auth-error');
+    await expect(error).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(error).toHaveCSS('font-size', '16px');
+    await expect(error.locator('.sefaria-auth-error-icon')).toHaveCSS('width', '18px');
+    await expect(error.getByRole('link', { name: 'התחברות עם גוגל' })).toBeVisible();
+
+    const formBox = await page.locator('.sefaria-auth-email-form').boundingBox();
+    const errorBox = await error.boundingBox();
+    const fieldsBox = await page.locator('.sefaria-auth-fields').boundingBox();
+    expect(formBox && errorBox && errorBox.y).toBe(formBox?.y);
+    expect(errorBox && fieldsBox && fieldsBox.y - errorBox.y - errorBox.height).toBe(16);
+    await expect(page.locator('.sefaria-input-control').first()).not.toHaveCSS('border-color', 'rgb(192, 53, 34)');
+  });
+
   test('register emits start, submit, result, and abandonment analytics', async ({ page }) => {
     await page.addInitScript(() => {
       window.__registrationEvents = [];

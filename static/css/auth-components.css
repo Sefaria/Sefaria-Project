@@ -307,6 +307,8 @@ body.auth-page-body #content {
 .sefaria-auth-card--choose { min-height: 535px; }
 .sefaria-auth-card--login-email { min-height: 538px; }
 .sefaria-auth-card--register-email { min-height: 823px; }
+.sefaria-auth-card--register-email.sefaria-auth-card--email-error { min-height: 892px; }
+.sefaria-auth-card--login-email.sefaria-auth-card--email-error { min-height: 567px; }
 .sefaria-auth-card[dir="rtl"] { font-family: var(--sef-font-he); }
 
 .sefaria-auth-card-back {
@@ -400,37 +402,55 @@ body.auth-page-body #content {
 }
 
 /* ===================== Captcha wrapper (adds the missing error state) ===================== */
-.sefaria-captcha { display: flex; flex-direction: column; gap: var(--sef-space-1); }
+.sefaria-captcha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-2);
+  width: 100%;
+}
 .sefaria-captcha-box {
-  display: inline-block;
-  border-radius: var(--sef-radius);
+  display: block;
+  width: 100%;
+  border-radius: 2px;
 }
 .sefaria-captcha--error .sefaria-captcha-box {
-  outline: var(--sef-stroke-strong) solid var(--sef-error);
-  outline-offset: 2px;
+  outline: var(--sef-stroke) solid var(--sef-error);
+  outline-offset: -1px;
 }
 .sefaria-captcha-error {
   display: flex;
   align-items: center;
-  gap: var(--sef-space-1);
+  gap: var(--sef-space-2);
   color: var(--sef-error);
   font-size: var(--sef-font-size-error);
+  line-height: 1;
 }
-.sefaria-captcha-error img { width: 16px; height: 16px; flex: 0 0 auto; }
+.sefaria-captcha-error img { width: 18px; height: 18px; flex: 0 0 18px; }
 
 /* ===================== Auth-level error banner ===================== */
 .sefaria-auth-error {
-  background: #fdecea;
+  display: flex;
+  align-items: center;
+  gap: var(--sef-space-2);
   color: var(--sef-error);
-  border: var(--sef-stroke) solid var(--sef-error);
-  border-radius: var(--sef-radius);
-  padding: var(--sef-space-3);
-  font-size: var(--sef-font-size-label);
-  text-align: center;
+  font-size: var(--sef-font-size-field);
+  line-height: 1.25;
+  text-align: start;
+}
+.sefaria-auth-error-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+.sefaria-auth-error-content {
+  min-width: 0;
+}
+.sefaria-auth-email-form > .sefaria-auth-error {
+  margin-bottom: calc(-1 * var(--sef-space-2));
 }
 .sefaria-auth-error a { color: var(--sef-error); text-decoration: underline; }
 .sefaria-auth-provider-action {
-  display: block;
-  margin-top: var(--sef-space-2);
-  font-weight: 500;
+  display: inline;
+  margin-inline-start: var(--sef-space-1);
+  font-weight: 400;
 }

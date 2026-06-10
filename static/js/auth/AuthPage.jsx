@@ -359,8 +359,10 @@ const AuthPage = ({
           status: 'failure',
           error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
         });
-        setError(authError(data, message));
-        if (data && data.captcha) setCaptchaError(_('Verify that you are not a robot'));
+        const hasCaptchaError = !!(data && data.captcha);
+        const nonCaptchaError = Object.keys(data || {}).some((key) => key !== '_auth' && key !== 'captcha');
+        setError(nonCaptchaError ? authError(data, message) : null);
+        if (hasCaptchaError) setCaptchaError(_('Verify that you are not a robot'));
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
           captchaToken.current = '';
@@ -449,7 +451,9 @@ const AuthPage = ({
   };
   const errorBanner = error ? (
     <div className="sefaria-auth-error" role="alert">
-      <div>{error.message}</div>
+      <img className="sefaria-auth-error-icon" src="/static/icons/info.svg" alt="" aria-hidden="true" />
+      <div className="sefaria-auth-error-content">
+        <span>{error.message}</span>
       {error.code === 'sso_only_account' && error.providers.map((provider) => (
         <a
           key={provider}
@@ -460,6 +464,7 @@ const AuthPage = ({
           {_(`Sign in with ${provider.charAt(0).toUpperCase()}${provider.slice(1).toLowerCase()}`)}
         </a>
       ))}
+      </div>
     </div>
   ) : null;
 
@@ -510,7 +515,10 @@ const AuthPage = ({
     const isRegister = flow === 'register';
     return (
       <AuthCard
-        className={isRegister ? 'sefaria-auth-card--register-email' : 'sefaria-auth-card--login-email'}
+        className={[
+          isRegister ? 'sefaria-auth-card--register-email' : 'sefaria-auth-card--login-email',
+          error || captchaError ? 'sefaria-auth-card--email-error' : '',
+        ].filter(Boolean).join(' ')}
         dir={dir}
         onBack={goChoose}
         backLabel={_('Back')}
@@ -519,8 +527,8 @@ const AuthPage = ({
           ? <>{_('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{_('Sign In')}</a></>
           : <>{_("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{_('Sign Up')}</a></>}
       >
-        {errorBanner}
         <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
+          {errorBanner}
           <div className="sefaria-auth-fields">
             <Input label={dir === 'rtl' ? _('Auth Email') : _('Email Address')} type="email" name="email"
                    dir={dir} inputDir="ltr" autoComplete="email"

@@ -27,6 +27,8 @@ const sefariaStub = {
       "Last Name": "שם משפחה",
       "Continue with Google": "להמשיך עם גוגל",
       "Continue with Apple": "להמשיך עם אפל",
+      "Sign in with Google": "להתחברות עם גוגל",
+      "Sign in with Apple": "להתחברות עם אפל",
       "Auth Email": "אימייל",
       "Auth Password": "סיסמא",
       "Auth Forgot password?": "שכחת סיסמא?",

@@ -37,8 +37,10 @@ test.describe('Registration flow (live) — spec 1602', () => {
     await page.locator('input[name="first_name"]').fill('No');
     await page.locator('input[name="last_name"]').fill('Body');
     await page.getByRole('button', { name: 'Create Account' }).click();
-    await expect(page.locator('.sefaria-auth-error')).toBeVisible();
-    await expect(page.locator('.sefaria-auth-error')).toContainText('robot');
+    await expect(page.locator('.sefaria-auth-error')).toHaveCount(0);
+    await expect(page.locator('.sefaria-captcha-error')).toBeVisible();
+    await expect(page.locator('.sefaria-captcha-error')).toContainText('robot');
+    await expect(page.locator('.sefaria-captcha-box')).toHaveCSS('outline-color', 'rgb(192, 53, 34)');
     await expect(page).toHaveURL(/\/register\/?$/); // stayed put — no account created
   });
 
