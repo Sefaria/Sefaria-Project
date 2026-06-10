@@ -27,6 +27,14 @@ shared_patterns = [
 
     re_path(fr'api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     re_path(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/google/callback', sefaria_views.google_sso_callback, name='google_sso_callback'),
+    path('api/auth/apple/callback', sefaria_views.apple_sso_callback, name='apple_sso_callback'),
+    path('auth/google/redirect', sefaria_views.google_sso_redirect, name='google_sso_redirect'),
+    path('auth/apple/redirect', sefaria_views.apple_sso_redirect, name='apple_sso_redirect'),
+    path('api/auth/link/<str:provider>', sefaria_views.link_social_provider, name='link_social_provider'),
+    path('api/auth/status', sefaria_views.user_auth_status, name='user_auth_status'),
+    path('api/auth/login', sefaria_views.email_login, name='email_login'),
+    path('api/auth/password/reset', sefaria_views.password_reset_request, name='password_reset_request'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
     re_path(r'^history/?$', reader_views.user_history_content),

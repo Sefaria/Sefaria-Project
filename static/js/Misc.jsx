@@ -2862,6 +2862,11 @@ class CookiesNotification extends Component {
 
     this.state = {showNotification: showNotification};
   }
+  componentDidMount() {
+    if (this.state.showNotification) {
+      window.SefariaInterruptiveUI?.markShown();
+    }
+  }
   setCookie() {
     // Use the getCookieDomain function to get the appropriate cookie domain
     const cookieDomain = Sefaria.util.getCookieDomain();

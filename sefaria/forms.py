@@ -21,6 +21,7 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
+from sso.utils import SSO_ONLY_ACCOUNT_ERROR, provider_names_for_user
 logger = structlog.get_logger(__name__)
 
 SEED_GROUP = "User Seeds"
@@ -38,6 +39,21 @@ class SefariaDeleteSheet(forms.Form):
 class SefariaLoginForm(EmailAuthenticationForm):
     email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
+
+    def clean(self):
+        try:
+            return super().clean()
+        except forms.ValidationError:
+            email = self.cleaned_data.get("email")
+            if email and user_exists(email):
+                user = get_user(email)
+                if not user.has_usable_password() and user.social_identities.exists():
+                    self.sso_only_providers = provider_names_for_user(user)
+                    raise forms.ValidationError(
+                        _("This account uses social sign-in. Use one of the connected providers below."),
+                        code=SSO_ONLY_ACCOUNT_ERROR,
+                    )
+            raise
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
@@ -75,6 +91,12 @@ class SefariaNewUserForm(EmailUserCreationForm):
         email = self.cleaned_data["email"]
         if user_exists(email):
             user = get_user(email)
+            if user.social_identities.exists():
+                self.sso_only_providers = provider_names_for_user(user)
+                raise forms.ValidationError(
+                    _("This email is already registered via social sign-in. Sign in with a connected provider instead."),
+                    code=SSO_ONLY_ACCOUNT_ERROR,
+                )
             if not user.groups.filter(name=SEED_GROUP).exists():
                 raise forms.ValidationError(_("A user with that email already exists."))
         return email

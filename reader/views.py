@@ -4374,6 +4374,9 @@ def account_settings(request):
     """
     profile = UserProfile(id=request.user.id)
     experiments_available = user_has_experiments(request.user)
+    connected_providers = sorted(set(
+        request.user.social_identities.values_list("provider", flat=True)
+    ))
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
@@ -4381,7 +4384,9 @@ def account_settings(request):
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
-        "renderStatic": True
+        "renderStatic": True,
+        'connected_providers': connected_providers,
+        'is_social_account': bool(connected_providers),
     })
 
 

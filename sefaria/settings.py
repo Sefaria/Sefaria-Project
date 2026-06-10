@@ -156,6 +156,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'reader',
+    'sso.apps.SSOConfig',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'emailusernames',

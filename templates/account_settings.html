@@ -123,6 +123,7 @@
 		</div>
 	</div>
     {% endif %}
+    {% if not is_social_account %}
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
@@ -147,6 +148,30 @@
             <span id="email-edit-errors"></span>
         </div>
     </div>
+    {% else %}
+    <div id="login-methods" class="section">
+        <label class="control-elem">
+            <span class="int-en">Login Methods</span>
+            <span class="int-he">שיטות כניסה</span>
+        </label>
+        <div class="form-section">
+            <span class="int-en">
+                Registered with
+                {% for provider in connected_providers %}
+                    {% if provider == "google" %}Google{% elif provider == "apple" %}Apple{% else %}{{ provider|title }}{% endif %}{% if not forloop.last %} and {% endif %}
+                {% endfor %}
+                using {{ user.email }}.
+            </span>
+            <span class="int-he">
+                החשבון נרשם באמצעות
+                {% for provider in connected_providers %}
+                    {% if provider == "google" %}Google{% elif provider == "apple" %}Apple{% else %}{{ provider|title }}{% endif %}{% if not forloop.last %} ו־{% endif %}
+                {% endfor %}
+                עם כתובת האימייל {{ user.email }}.
+            </span>
+        </div>
+    </div>
+    {% endif %}
     <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
         <label class="control-elem">
                 <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
@@ -320,4 +345,5 @@
 			});
 		});
 	</script>
+
 {% endblock %}

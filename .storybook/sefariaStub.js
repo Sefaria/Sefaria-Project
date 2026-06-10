@@ -12,7 +12,37 @@ const sefariaStub = {
     developer: "https://developer.sefaria.org",
   },
   apiHost: "https://www.sefaria.org",
-  _: (input) => input,
+  _: (input) => {
+    const authTranslations = {
+      "Sign In": "התחברות",
+      "or": "או",
+      "Continue with Email": "להמשיך עם אימייל",
+      "Create Account": "יצירת חשבון",
+      "Create an Account": "יצירת חשבון",
+      "Don't have an account?": "אין לך חשבון?",
+      "Already have an account?": "יש לך חשבון?",
+      "Sign Up": "להרשמה",
+      "Password": "סיסמה",
+      "First Name": "שם פרטי",
+      "Last Name": "שם משפחה",
+      "Continue with Google": "להמשיך עם גוגל",
+      "Continue with Apple": "להמשיך עם אפל",
+      "Sign in with Google": "להתחברות עם גוגל",
+      "Sign in with Apple": "להתחברות עם אפל",
+      "Auth Email": "אימייל",
+      "Auth Password": "סיסמא",
+      "Auth Forgot password?": "שכחת סיסמא?",
+      "Auth legal prefix": "המשך מהווה הסכמה ל",
+      "Auth Terms of Use": "תנאי השימוש",
+      "Auth legal conjunction": " ו",
+      "Auth Privacy Policy": "מדיניות הפרטיות",
+      "Auth legal suffix": " של ספריא.",
+      "Back": "חזרה",
+      "Forgot Password?": "שכחת סיסמא?",
+      "Send Reset Link": "שליחת קישור לאיפוס",
+    };
+    return sefariaStub.interfaceLang === "hebrew" ? (authTranslations[input] || input) : input;
+  },
   _r: (ref) => ref,
   _v: (value) => {
     if (!value || typeof value !== "object") {

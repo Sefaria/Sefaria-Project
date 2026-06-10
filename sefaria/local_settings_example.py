@@ -184,6 +184,13 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 
 GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
+GOOGLE_SSO_CLIENT_ID = ''  # Google OAuth client ID for One Tap / Sign in with Google
+
+APPLE_SSO_CLIENT_ID = ''      # Apple Services ID for web (e.g. org.sefaria.web.signin)
+APPLE_SSO_IOS_BUNDLE_ID = '' # iOS app bundle ID (e.g. org.sefaria.sefaria) — tokens from native iOS Sign In use this as audience
+APPLE_SSO_TEAM_ID = ''        # Apple Developer Team ID
+APPLE_SSO_KEY_ID = ''         # Key ID from Apple Developer portal
+APPLE_SSO_PRIVATE_KEY = ''    # Contents of the .p8 file — load from environment in production, never commit
 
 HOTJAR_ID = None
 

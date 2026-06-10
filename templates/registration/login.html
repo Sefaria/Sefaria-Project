@@ -1,12 +1,18 @@
 {% extends "base.html" %}
-{% load i18n sefaria_tags %}
+{% load i18n static sefaria_tags %}
 
 {% block meta_title %}{% meta_title %}{% trans "Log in to Sefaria" %}{% endmeta_title %}{% endblock %}
 
 {% block meta_description %}{% meta_desc %}{% trans "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users." %}{% endmeta_desc %}{% endblock %}
 
-{% block content %}
+{% block bodyclasses %}auth-page-body{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth-components.css' %}">
+{% endblock %}
+
+{% block content %}
 {% if user.email %}
     <div id="login" class="biReady registrationContent static">
         <div class="inner">
@@ -21,50 +27,26 @@
             </p>
         </div>
     </div>
-
 {% else %}
-	<div id="login" class="biReady registrationContent static">
-        <div class="inner">
-            {% if message %}<p id="message">{{ message }}</p>{% endif %}
-            <h1>
-                <span class="int-en">Log in to Sefaria</span>
-                <span class="int-he">התחברות לספריא</span>
-            </h1>
-            {% if form.errors %}
-            <p class="error">
-                <span class="int-en">Your username and password didn't match. Please try again.</span>
-                <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסו שוב.</span>
-            </p>
-            {% endif %}
+    <div id="sefaria-auth-root"
+         data-initial-flow="login"
+         data-google-client-id="{{ GOOGLE_SSO_CLIENT_ID|default:'' }}"
+         data-apple-client-id="{{ APPLE_SSO_CLIENT_ID|default:'' }}"
+         data-recaptcha-site-key="{{ RECAPTCHA_PUBLIC_KEY|default:'' }}"
+         data-sso-redirect-state="{{ sso_redirect_state|default:'' }}"
+         data-next="{{ next|default:'/' }}"
+         data-csrf="{{ csrf_token }}"
+         data-dir="{% if request.interfaceLang == 'hebrew' %}rtl{% else %}ltr{% endif %}"></div>
+    <noscript>
+        <p style="text-align:center;padding:24px;">{% trans "Please enable JavaScript to sign in." %}</p>
+    </noscript>
+{% endif %}
+{% endblock %}
 
-            <form id="login-form" method="post" action="{% url "login" %}">
-                {% csrf_token %}
-
-                <p>
-                    {{ form.email.label_tag }}
-                    <td>{{ form.email }}</td>
-                </p>
-                <p>
-                    {{ form.password.label_tag }}
-                    <td>{{ form.password }}</td>
-                </p>
-
-                <button type="submit" class="button control-elem" id="login-submit-button">
-                    <span class="int-en">Login</span>
-                    <span class="int-he">התחברות</span>
-                </button>
-                <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
-                    <span class="int-en">Forgot your password?</span>
-                    <span class="int-he">שכחתי את הסיסמא שלי</span>
-                </a>
-                <input type="hidden" name="next" value="{{ next }}" />
-            </form>
-            <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
-                <span class="int-en">Create a new account</span>
-                <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
-
-            </a>
-	    </div>
-    </div>
+{% block js %}
+{% if not user.email %}
+{% if APPLE_SSO_CLIENT_ID %}<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>{% endif %}
+{% if RECAPTCHA_PUBLIC_KEY %}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{% endif %}
+<script src="{% static 'bundles/login/login.js' %}"></script>
 {% endif %}
 {% endblock %}

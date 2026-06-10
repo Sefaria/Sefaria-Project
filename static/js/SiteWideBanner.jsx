@@ -15,6 +15,9 @@ const SiteWideBanner = ({
   const [bannerVisibility, setBannerVisibility] = useState("");
 
   useEffect(() => {
+    if (!isDismissed()) {
+      window.SefariaInterruptiveUI?.markShown();
+    }
     if (!sessionStorage.getItem("promo_viewed")) {
       sessionStorage.setItem("promo_viewed", "1");
       gtag("event", "promo_viewed", gtagParams);

@@ -142,6 +142,13 @@ data:
     GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
     # This is the field that is actually used
     GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
+    GOOGLE_SSO_CLIENT_ID = os.getenv('GOOGLE_SSO_CLIENT_ID')
+
+    APPLE_SSO_CLIENT_ID = os.getenv('APPLE_SSO_CLIENT_ID')
+    APPLE_SSO_IOS_BUNDLE_ID = os.getenv('APPLE_SSO_IOS_BUNDLE_ID')
+    APPLE_SSO_TEAM_ID = os.getenv('APPLE_SSO_TEAM_ID')
+    APPLE_SSO_KEY_ID = os.getenv('APPLE_SSO_KEY_ID')
+    APPLE_SSO_PRIVATE_KEY = os.getenv('APPLE_SSO_PRIVATE_KEY')
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"

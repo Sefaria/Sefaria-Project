@@ -23,6 +23,10 @@ const config = {
     "../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)",
   ],
 
+  // Serve the app's static assets (icons, etc.) at /static so components that
+  // reference /static/icons/*.svg render correctly in Storybook.
+  staticDirs: [{ from: "../static", to: "/static" }],
+
   addons: [
     getAbsolutePath("@storybook/addon-essentials"),
     getAbsolutePath("@storybook/addon-docs"),
