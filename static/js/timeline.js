@@ -243,7 +243,7 @@ function computeGeometry(model) {
         }
         let prevLabelX = -Infinity, prevTier = 0;
         for (const st of sorted) {
-            st.labelTier = (st.x - prevLabelX < 76) ? 1 - prevTier : 0;
+            st.labelTier = (st.x - prevLabelX < 110) ? 1 - prevTier : 0;
             prevTier = st.labelTier;
             prevLabelX = st.x;
         }
@@ -256,6 +256,7 @@ function computeGeometry(model) {
             const bendSpan = Math.min(dy, 2 * BEND);
             L.departX = colX(L.forkEra) - colW * 0.5 - 14 * (L.forkStagger || 0) - bendSpan;
             L.arriveX = L.departX + bendSpan;
+            L.verticalX = L.departX + Math.min(BEND, dy / 2);
             L.forkPath = forkPath(L.departX, parent.y, y);
         }
 
@@ -289,11 +290,33 @@ function computeGeometry(model) {
         const spec = TRACK_SPECS[line];
         if (spec && spec.merge && lines[spec.merge]) {
             const L = lines[line], T = lines[spec.merge];
-            const joinX = Math.max(T.startX + 46, L.endX + 2 * BEND);
+            const joinX = Math.max(T.startX + 64, L.endX + 2 * BEND);
             L.endX = joinX - 2 * BEND;
             L.mergePath = forkPath(L.endX, L.y, T.y);
             T.endX = Math.max(T.endX, joinX + 12);
+
+            // The merging line's commentary departs inside the junction corridor:
+            // right of the target's fork vertical, left of the merge bend.
+            const comm = lines[line + COMMENTARY_SUFFIX];
+            if (comm && comm.forkPath) {
+                const dy = Math.abs(comm.y - L.y);
+                const bendSpan = Math.min(dy, 2 * BEND);
+                comm.departX = L.endX - bendSpan - 6;
+                comm.arriveX = comm.departX + bendSpan;
+                comm.verticalX = comm.departX + Math.min(BEND, dy / 2);
+                comm.forkPath = forkPath(comm.departX, L.y, comm.y);
+                const minStation = comm.stations.length ? Math.min(...comm.stations.map(st => st.x)) - 20 : Infinity;
+                comm.startX = Math.min(comm.arriveX, minStation);
+                comm.labelMinX = joinX + 12;  // its label must clear the merge descent
+            }
         }
+    }
+
+    // Line labels sit just right of the fork bundle that starts the line, so
+    // sibling verticals leaving the same junction don't cross them.
+    for (const group of Object.values(forkGroups)) {
+        const bundleRight = Math.max(...group.map(m => m.verticalX != null ? m.verticalX : -Infinity));
+        group.forEach(m => { m.labelX = bundleRight + 14; });
     }
 }
 
@@ -380,19 +403,14 @@ function drawTracks(model) {
         if (L.mergePath) {
             g.append("path").attr("d", L.mergePath).attr("stroke", color).attr("stroke-width", width);
         }
-        // Label just before the line's first station (or the hub), where it's
-        // clear of the fork bundles that cross the line near its start.
-        const anchorXs = L.stations.map(st => st.x);
-        if (line === model.hubLine) anchorXs.push(model.hubX);
-        const label = svg.append("text")
-            .attr("y", L.y - 11)
+        // Label sits just right of the elbow that starts the line (or the line
+        // start for trunks and stubs), pushed further right when a merge
+        // descends through that zone.
+        const labelX = Math.max(L.labelX != null ? L.labelX : L.startX + 4, L.labelMinX || 0);
+        svg.append("text")
+            .attr("x", labelX).attr("y", L.y - 11).attr("text-anchor", "start")
             .attr("fill", color).attr("font-size", 12).attr("font-weight", "bold")
             .text(lineLabel(line));
-        if (anchorXs.length) {
-            label.attr("x", Math.max(Math.min(...anchorXs) - 24, 64)).attr("text-anchor", "end");
-        } else {
-            label.attr("x", L.startX + 2).attr("text-anchor", "start");
-        }
     }
 }
 
@@ -412,7 +430,7 @@ function drawStations(model) {
             station.append("text")
                 .attr("x", x).attr("y", L.y + r + 14 + (st.labelTier ? 13 : 0))
                 .attr("text-anchor", "middle").attr("fill", "#777").attr("font-size", 11)
-                .text(st.stop ? stopLabel(st.stop) + " · " + st.works.length : st.works.length);
+                .text(shortStationName(st) + " · " + st.works.length);
             station.on("click", () => showStationPopup(st, station.node().getBoundingClientRect()));
         }
     }
@@ -460,6 +478,26 @@ function lineLabel(line) {
 
 function stopLabel(stop) {
     return isHebrew() ? heTerm(stop) : stop;
+}
+
+// A station's name: its stop (Bavli/Yerushalmi), else the shared author or
+// collective title when all its works agree, else the half of the era its
+// mean year falls in ("Early Rishonim" / "Late Rishonim").
+function stationName(st) {
+    if (st.stop) return stopLabel(st.stop);
+    if (st.works.every(w => w.work === st.works[0].work)) {
+        return isHebrew() && st.works[0].heWork ? st.works[0].heWork : st.works[0].work;
+    }
+    const era = ERAS[st.era];
+    if (isHebrew()) return era.he;
+    const start = st.era === 0 ? SCALE_START : ERAS[st.era - 1].end;
+    const end = st.era === ERAS.length - 1 ? SCALE_END : era.end;
+    return (st.year < (start + end) / 2 ? "Early " : "Late ") + era.en;
+}
+
+function shortStationName(st) {
+    const name = stationName(st);
+    return name.length > 20 ? name.slice(0, 19) + "…" : name;
 }
 
 /*****                   Popup                        *****/
@@ -584,6 +622,7 @@ function setupPopup(options) {
             color: #666;
         }
         #sefaria-linker-header {
+            position: relative;
             border-top: 4px solid #ddd;
             border-bottom: 1px solid #ddd;
             background-color: #FBFBFA;
@@ -596,20 +635,18 @@ function setupPopup(options) {
         }
         #sefaria-close {
                 font-family: "Crimson Text";
-                font-size: 36px;
-                height: 48px;
-                line-height: 48px;
+                font-size: 30px;
                 position: absolute;
-                top: -5px;
-                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                left: 6px;
                 padding: 0 12px;
                 cursor: pointer;
                 color: #999;
                 border: 0;
                 outline: none;
             }
-        </style>
-        <div id="sefaria-close">×</div>`;
+        </style>`;
 
     const readMoreText = {
         "english": "Read More ›",
@@ -621,6 +658,7 @@ function setupPopup(options) {
     }[options.interfaceLang];
 
     html += `<div id="sefaria-linker-header">
+            <div id="sefaria-close">×</div>
             <h1 id="sefaria-title"><span class="he" dir="rtl"></span><span class="en"></span></h1>
         </div>
         <div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div>
@@ -704,9 +742,7 @@ function showStationPopup(station, rect) {
     clearTextBox();
 
     linkerHeader.style["border-top-color"] = Sefaria.palette.categoryColor(baseCategory(station.line));
-    enTitle.textContent = lineLabel(station.line)
-        + (station.stop ? " · " + stopLabel(station.stop) : "")
-        + " · " + (isHebrew() ? ERAS[station.era].he : ERAS[station.era].en);
+    enTitle.textContent = lineLabel(station.line) + " · " + stationName(station);
     heTitle.textContent = "";
     linkerFooter.style.display = "none";
 
@@ -775,7 +811,7 @@ async function showTextPopup(ref, rect) {
     }
 
     enTitle.textContent = source.ref;
-    heTitle.textContent = source.heRef;
+    heTitle.textContent = "";
 
     if (rect) {
         positionPopup(rect);
