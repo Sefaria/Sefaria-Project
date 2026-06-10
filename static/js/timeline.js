@@ -521,7 +521,9 @@ function stationName(st) {
     if (st.works.every(w => w.work === st.works[0].work)) {
         return isHebrew() && st.works[0].heWork ? st.works[0].heWork : st.works[0].work;
     }
-    if (st.era === 0) return null;  // "Early Biblical" is silly; the line name suffices
+    // Era-half names don't land well for the early eras (Biblical through
+    // Geonim) -- grouped stations there stay unlabeled, count only.
+    if (st.era < eraKeyIndex("rishonim")) return null;
     const era = ERAS[st.era];
     if (isHebrew()) return era.he;
     const start = ERAS[st.era - 1].end;
