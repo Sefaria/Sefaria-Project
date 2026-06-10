@@ -262,6 +262,9 @@
         }, 1200);
       }
       window.addEventListener('google-identity-loaded', initializeGoogleOneTap);
+      if (window.google && window.google.accounts) {
+        initializeGoogleOneTap();
+      }
 
       function handleGoogleOneTapCredential(response) {
         fetch('/api/auth/google/callback', {

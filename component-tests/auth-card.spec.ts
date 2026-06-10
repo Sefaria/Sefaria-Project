@@ -6,7 +6,7 @@ test.describe('AuthCard composition (Figma `Form Card`)', () => {
   test('Sign In choose screen: providers + divider + email + legal, no back', async ({ page }) => {
     await page.goto(story('common-authcard--choose-sign-in'));
     await expect(page.locator('.sefaria-auth-card-heading')).toHaveText('Sign In');
-    await expect(page.locator('button.auth-secondary')).toHaveCount(2);
+    await expect(page.locator('.sefaria-provider-button')).toHaveCount(2);
     await expect(page.locator('button.auth-primary')).toContainText('Continue with Email');
     await expect(page.locator('.sefaria-divider')).toContainText('or');
     await expect(page.locator('.sefaria-legal-text a')).toHaveCount(2);

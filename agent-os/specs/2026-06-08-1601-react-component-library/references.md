@@ -8,7 +8,7 @@
 
 ### `Button.stories.jsx` — the Storybook style
 - **Location:** `stories/common/Button.stories.jsx`
-- `meta` + `argTypes` + named exports per state. Imports via `@static/js/common/Button.jsx`. Mirror this for `Input`, `FormField`, `ProviderButton`.
+- `meta` + `argTypes` + named exports per state. Imports via `@static/js/common/Button.jsx`. `ProviderButton` mirrors the Figma Google/Apple variants and includes SDK integration stories/tests.
 
 ### `Card.jsx`, `RadioButton.jsx` — composition + a11y references
 - **Location:** `static/js/common/Card.jsx`, `static/js/common/RadioButton.jsx`

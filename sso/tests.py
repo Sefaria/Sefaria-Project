@@ -1,12 +1,13 @@
 from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.test import TestCase, RequestFactory, Client
 
 from emailusernames.utils import create_user
 from sefaria.forms import SefariaLoginForm
 from sso.models import SocialIdentity
-from sso.service import SocialAuthService, AlreadyLinkedError, LastLoginMethodError
+from sso.service import SocialAuthService, AlreadyLinkedError
 from sso.utils import make_redirect_state
 
 
@@ -79,7 +80,7 @@ class SocialAuthServiceNewUserTest(TestCase):
 
 class SocialAuthServiceReturningUserTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="existing", email="existing@example.com")
+        self.user = create_user("existing@example.com")
         SocialIdentity.objects.create(provider="google", uid="returning-uid", email="existing@example.com", user=self.user)
 
     def test_returns_existing_user_without_creating_records(self):
@@ -101,9 +102,7 @@ class SocialAuthServiceCollisionTest(TestCase):
     """Email collision with a password account auto-links the new SocialIdentity to that user."""
 
     def setUp(self):
-        self.password_user = User.objects.create_user(
-            username="pwuser", email="collision@example.com", password="secret"
-        )
+        self.password_user = create_user("collision@example.com", password="secret")
 
     def test_collision_auto_links_to_existing_password_account(self):
         user, is_new_user = SocialAuthService.get_or_create_social_user(
@@ -164,7 +163,7 @@ class SocialAuthServiceCollisionTest(TestCase):
 
 class SocialAuthServiceLinkTest(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="linkuser", email="link@example.com")
+        self.user = create_user("link@example.com")
 
     def test_link_adds_social_identity(self):
         SocialAuthService.link_provider(self.user, "google", "link-uid", "link@example.com")
@@ -176,51 +175,18 @@ class SocialAuthServiceLinkTest(TestCase):
         self.assertEqual(SocialIdentity.objects.filter(user=self.user, provider="google").count(), 1)
 
     def test_link_raises_when_uid_belongs_to_another_user(self):
-        other = User.objects.create_user(username="other", email="other@example.com")
+        other = create_user("other@example.com")
         SocialIdentity.objects.create(provider="google", uid="taken-uid", email="other@example.com", user=other)
 
         with self.assertRaises(AlreadyLinkedError):
             SocialAuthService.link_provider(self.user, "google", "taken-uid", "link@example.com")
 
 
-class SocialAuthServiceUnlinkTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="unlinkuser", email="unlink@example.com", password="secret")
-        SocialIdentity.objects.create(provider="google", uid="unlink-uid", email="unlink@example.com", user=self.user)
-
-    def test_unlink_removes_social_identity(self):
-        SocialAuthService.unlink_provider(self.user, "google")
-        self.assertFalse(SocialIdentity.objects.filter(user=self.user, provider="google").exists())
-
-    def test_unlink_raises_when_last_login_method(self):
-        self.user.set_unusable_password()
-        self.user.save()
-
-        with self.assertRaises(LastLoginMethodError):
-            SocialAuthService.unlink_provider(self.user, "google")
-
-    def test_unlink_requires_password_even_when_other_social_identity_exists(self):
-        SocialIdentity.objects.create(provider="apple", uid="apple-uid", email="unlink@example.com", user=self.user)
-        self.user.set_unusable_password()
-        self.user.save()
-
-        with self.assertRaises(LastLoginMethodError):
-            SocialAuthService.unlink_provider(self.user, "google")
-        self.assertTrue(SocialIdentity.objects.filter(user=self.user, provider="google").exists())
-        self.assertTrue(SocialIdentity.objects.filter(user=self.user, provider="apple").exists())
-
-    def test_unlink_allowed_when_user_has_password(self):
-        SocialAuthService.unlink_provider(self.user, "google")
-        self.assertFalse(SocialIdentity.objects.filter(user=self.user, provider="google").exists())
-
-
 class CaseInsensitiveCollisionIntegrationTest(TestCase):
     """User registers with mixed-case email; SSO returns lowercase — must auto-link to the existing user."""
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="caseuser", email="CaseSensitive@Gmail.com", password="secret"
-        )
+        self.user = create_user("CaseSensitive@Gmail.com", password="secret")
 
     def test_lowercase_sso_email_auto_links_to_mixed_case_account(self):
         user, is_new_user = SocialAuthService.get_or_create_social_user(
@@ -264,7 +230,7 @@ class CallbackViewTest(TestCase):
 
     @patch("sso.providers.google.verify_token", return_value=GOOGLE_PAYLOAD)
     def test_google_callback_auto_links_existing_password_account(self, mock_verify):
-        existing = User.objects.create_user(username="coll", email="user@example.com", password="secret")
+        existing = create_user("user@example.com", password="secret")
         response = self.client.post(
             "/api/auth/google/callback",
             data={"credential": "fake-jwt"},
@@ -372,9 +338,20 @@ class SSOOnlyFormTest(TestCase):
         self.assertEqual(form.non_field_errors().as_data()[0].code, "sso_only_account")
         self.assertEqual(form.sso_only_providers, ["Google"])
 
-    def test_login_page_renders_social_action_and_suppresses_one_tap(self):
-        response = self.client.post("/login", {"email": self.user.email, "password": "wrong"})
-        self.assertContains(response, 'id="sso-only-login-error"')
+    def test_login_api_returns_structured_social_error(self):
+        response = self.client.post(
+            "/api/auth/login",
+            {"email": self.user.email, "password": "wrong"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["_auth"], {
+            "code": "sso_only_account",
+            "providers": ["google"],
+        })
+
+    def test_login_page_suppresses_one_tap(self):
+        response = self.client.get("/login")
         self.assertNotContains(response, "<!-- Google One Tap -->")
 
     def test_registration_ajax_returns_structured_social_error(self):
@@ -391,6 +368,53 @@ class SSOOnlyFormTest(TestCase):
             "code": "sso_only_account",
             "providers": ["Google"],
         })
+
+
+class AccountSettingsContextTest(TestCase):
+    def setUp(self):
+        self.user = create_user("settings@example.com", password="secret")
+        self.request = RequestFactory().get("/settings/account")
+        self.request.user = self.user
+        self.request.diaspora = False
+
+    @patch("reader.views.render_template", return_value=HttpResponse())
+    @patch("reader.views.user_has_experiments", return_value=False)
+    @patch("reader.views.UserProfile")
+    def test_social_account_is_provider_managed(self, MockProfile, mock_experiments, mock_render):
+        from reader.views import account_settings
+
+        MockProfile.return_value.settings = {}
+        SocialIdentity.objects.create(
+            provider="google", uid="settings-google", email=self.user.email, user=self.user,
+        )
+        SocialIdentity.objects.create(
+            provider="apple", uid="settings-apple", email=self.user.email, user=self.user,
+        )
+
+        view = account_settings
+        while hasattr(view, "__wrapped__"):
+            view = view.__wrapped__
+        view(self.request)
+
+        context = mock_render.call_args.args[3]
+        self.assertTrue(context["is_social_account"])
+        self.assertEqual(context["connected_providers"], ["apple", "google"])
+
+    @patch("reader.views.render_template", return_value=HttpResponse())
+    @patch("reader.views.user_has_experiments", return_value=False)
+    @patch("reader.views.UserProfile")
+    def test_email_account_can_change_email(self, MockProfile, mock_experiments, mock_render):
+        from reader.views import account_settings
+
+        MockProfile.return_value.settings = {}
+        view = account_settings
+        while hasattr(view, "__wrapped__"):
+            view = view.__wrapped__
+        view(self.request)
+
+        context = mock_render.call_args.args[3]
+        self.assertFalse(context["is_social_account"])
+        self.assertEqual(context["connected_providers"], [])
 
 
 class SocialRedirectViewTest(TestCase):

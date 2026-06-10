@@ -17,10 +17,6 @@ class AlreadyLinkedError(Exception):
     pass
 
 
-class LastLoginMethodError(Exception):
-    pass
-
-
 class SocialAuthService:
 
     @staticmethod
@@ -103,10 +99,3 @@ class SocialAuthService:
             user=user, provider=provider, uid=uid,
             defaults={"email": email},
         )
-
-    @staticmethod
-    def unlink_provider(user, provider):
-        """Removes a SocialIdentity after the user has established a password."""
-        if not user.has_usable_password():
-            raise LastLoginMethodError()
-        user.social_identities.filter(provider=provider).delete()

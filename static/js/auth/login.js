@@ -17,6 +17,7 @@ function mount() {
     googleClientId: d.googleClientId || '',
     appleClientId: d.appleClientId || '',
     recaptchaSiteKey: d.recaptchaSiteKey || '',
+    ssoRedirectState: d.ssoRedirectState || '',
     next: d.next || '/',
     csrfToken: d.csrf || '',
     dir: d.dir || 'ltr',

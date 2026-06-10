@@ -387,22 +387,6 @@ def link_social_provider(request, provider):
 
 
 @login_required
-@api_view(["DELETE"])
-def unlink_social_provider(request, provider):
-    from sso.service import SocialAuthService, LastLoginMethodError
-
-    if provider not in {"google", "apple"}:
-        return jsonResponse({"error": "Unknown provider"}, status=400)
-
-    try:
-        SocialAuthService.unlink_provider(request.user, provider)
-    except LastLoginMethodError:
-        return jsonResponse({"error": "You must set a password before disconnecting a login method."}, status=409)
-
-    return jsonResponse({"status": "ok"})
-
-
-@login_required
 @api_view(["GET"])
 def user_auth_status(request):
     connected = list(request.user.social_identities.values_list("provider", flat=True))

@@ -1,38 +1,66 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Button from './Button.jsx';
 
-/**
- * ProviderButton — "Continue with Google" / "Continue with Apple".
- *
- * A CUSTOM Sefaria button (secondary variant: white fill, bordered, provider icon,
- * BLACK text per the Figma note), NOT the SDK-rendered Google/Apple chrome. On click it
- * triggers the provider SDK via `onClick`. Follow Google/Apple branding guidelines for
- * icon, wording, and min size. Figma `Buttons [for now]` node 187:76568.
- *
- * @param provider "google" | "apple"
- * @param label    button label (localized); defaults to "Continue with Google/Apple"
- * @param onClick  invoked on click — wire this to the provider SDK trigger
- * @param disabled disables the button
- */
 const PROVIDERS = {
   google: { icon: 'google', defaultLabel: 'Continue with Google' },
   apple: { icon: 'apple', defaultLabel: 'Continue with Apple' },
 };
 
-const ProviderButton = ({ provider, label, onClick, disabled = false }) => {
-  const cfg = PROVIDERS[provider];
-  if (!cfg) return null;
+/**
+ * Custom provider button from Figma `Buttons [for now]` (node 185:52318).
+ *
+ * Google GIS does not expose a programmatic button-click API. For Google,
+ * `sdkOverlayRef` hosts the transparent SDK-rendered click target above this visual.
+ * Apple exposes `AppleID.auth.signIn()`, so its button uses `onClick` directly.
+ */
+const ProviderButton = ({
+  provider,
+  label,
+  onClick,
+  disabled = false,
+  id,
+  sdkOverlayRef = null,
+}) => {
+  const config = PROVIDERS[provider];
+  if (!config) return null;
+
+  const content = (
+    <>
+      <img
+        src={`/static/icons/${config.icon}.svg`}
+        className="sefaria-provider-button-icon"
+        alt=""
+        aria-hidden="true"
+      />
+      <span>{label || config.defaultLabel}</span>
+    </>
+  );
+
+  if (sdkOverlayRef) {
+    return (
+      <div
+        id={id}
+        className={`sefaria-provider-button-shell${disabled ? ' is-disabled' : ''}`}
+        tabIndex={-1}
+      >
+        <div className="sefaria-provider-button" aria-hidden="true">
+          {content}
+        </div>
+        <div ref={sdkOverlayRef} className="sefaria-provider-sdk-overlay" />
+      </div>
+    );
+  }
+
   return (
-    <Button
-      variant="sefaria-common-button auth-secondary"
-      size="fullwidth"
-      icon={cfg.icon}
+    <button
+      id={id}
+      type="button"
+      className="sefaria-provider-button"
       onClick={onClick}
       disabled={disabled}
     >
-      <span>{label || cfg.defaultLabel}</span>
-    </Button>
+      {content}
+    </button>
   );
 };
 
@@ -41,6 +69,8 @@ ProviderButton.propTypes = {
   label: PropTypes.string,
   onClick: PropTypes.func,
   disabled: PropTypes.bool,
+  id: PropTypes.string,
+  sdkOverlayRef: PropTypes.shape({ current: PropTypes.object }),
 };
 
 export default ProviderButton;

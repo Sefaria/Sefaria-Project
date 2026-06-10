@@ -24,7 +24,7 @@ if user_exists(email):
 ```
 
 - Identity creation and password invalidation run in one transaction.
-- After this, the account is SSO-only; settings and backend require setting a password before disconnecting any provider.
+- After this, the account is SSO-only. Account settings identify the connected provider(s) and registration email; provider unlinking and email changes are not offered.
 - Idempotent: a no-op if the password is already unusable.
 
 ### Task 1b: `email_verified` gate (security precondition)
@@ -52,6 +52,14 @@ if user_exists(email):
 
 - `SefariaLoginForm.clean` detects an existing SSO-only account after password authentication fails and emits the same typed error/provider metadata.
 - The provider-specific response is an intentional account-enumeration tradeoff required by the product behavior.
+
+### Task 2c: Provider-managed account settings
+
+**Files:** `reader/views.py`, `templates/account_settings.html`.
+
+- If a user has no social identities, retain the existing email-change controls.
+- If a user has one or more social identities, hide email-change controls and show the connected provider(s) plus the account email.
+- Do not expose provider unlinking or a password-restoration path in this phase.
 
 ---
 
@@ -99,8 +107,9 @@ if user_exists(email):
 | `sso/providers/google.py`, `apple.py` | `email_verified` gate (Task 1b) |
 | `sefaria/forms.py` | Registration block message + link (Task 2a) |
 | `sefaria/views.py` | Signed redirect returns and `suppress_one_tap` context |
+| `reader/views.py`, `templates/account_settings.html` | Provider-managed account settings |
 | `templates/base.html` | Overlay-aware + page-suppressed One Tap (Task 3) |
-| `templates/registration/login.html`, `register.html` | Device-aware popup/redirect (Task 4) |
+| `static/js/auth/AuthPage.jsx`, auth templates | Device-aware popup/redirect and signed redirect-state bootstrap (Task 4) |
 | `sso/tests.py` | Password-erase, email_verified, login-path-block tests |
 
 ---

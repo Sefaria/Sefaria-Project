@@ -1,11 +1,11 @@
 import React from "react";
 import AuthCard from "@static/js/common/AuthCard.jsx";
-import ProviderButton from "@static/js/common/ProviderButton.jsx";
 import Divider from "@static/js/common/Divider.jsx";
 import LegalText from "@static/js/common/LegalText.jsx";
 import Captcha from "@static/js/common/Captcha.jsx";
 import Input from "@static/js/common/Input.jsx";
 import Button from "@static/js/common/Button.jsx";
+import ProviderButton from "@static/js/common/ProviderButton.jsx";
 
 const meta = {
   title: "Common/AuthCard",

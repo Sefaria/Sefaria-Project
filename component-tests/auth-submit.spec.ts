@@ -18,6 +18,27 @@ test.describe('AuthPage submit wiring (spec 1602)', () => {
     await expect(page.locator('.sefaria-auth-error')).toContainText('incorrect');
   });
 
+  test('SSO-only login error renders provider-specific actions', async ({ page }) => {
+    await page.route('**/api/auth/login', (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'This account uses social login.',
+          _auth: { code: 'sso_only_account', providers: ['google', 'apple'] },
+        }),
+      }));
+    await page.goto(story('auth-authpage--login-choose'));
+    await page.getByRole('button', { name: 'Continue with Email' }).click();
+    await page.locator('input[name="email"]').fill('social@example.com');
+    await page.locator('input[name="password"]').fill('wrong');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    const error = page.locator('.sefaria-auth-error');
+    await expect(error.getByRole('link', { name: 'Sign in with Google' })).toHaveAttribute('href', '#google-signin-button');
+    await expect(error.getByRole('link', { name: 'Sign in with Apple' })).toHaveAttribute('href', '#apple-signin-button');
+  });
+
   test('register posts form-encoded to /register (noredirect, password1)', async ({ page }) => {
     let captured: any = null;
     await page.route('**/register', (route) => {
@@ -38,6 +59,50 @@ test.describe('AuthPage submit wiring (spec 1602)', () => {
     expect(captured.body).toContain('password1=secret123');
     expect(captured.body).toContain('first_name=Moshe');
     expect(captured.body).toContain('noredirect=1');
+  });
+
+  test('register emits start, submit, result, and abandonment analytics', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__registrationEvents = [];
+      window.gtag = (_command, name) => window.__registrationEvents.push(name);
+    });
+    await page.route('**/register', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ email: 'Already registered' }),
+      }));
+    await page.goto(story('auth-authpage--register-choose'));
+    await page.getByRole('button', { name: 'Continue with Email' }).click();
+    await page.locator('input[name="email"]').fill('a@b.com');
+    await page.locator('input[name="password"]').fill('secret123');
+    await page.getByRole('button', { name: 'Create Account' }).click();
+    await page.locator('.sefaria-auth-card-back').click();
+
+    await expect.poll(() => page.evaluate(() => window.__registrationEvents)).toEqual([
+      'form_start',
+      'form_submit',
+      'form_submit_result',
+      'form_end',
+    ]);
+  });
+
+  test('captcha renders after its async SDK becomes available', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.setTimeout(() => {
+        window.grecaptcha = {
+          render: (element) => {
+            element.setAttribute('data-captcha-rendered', 'true');
+            return 1;
+          },
+          ready: (callback) => callback(),
+          reset: () => {},
+        };
+      }, 250);
+    });
+    await page.goto(story('auth-authpage--register-choose'));
+    await page.getByRole('button', { name: 'Continue with Email' }).click();
+    await expect(page.locator('#auth-captcha-slot')).toHaveAttribute('data-captcha-rendered', 'true');
   });
 
   test('forgot-password posts to the reset endpoint and shows confirmation', async ({ page }) => {

@@ -21,7 +21,7 @@ export const LoginChoose = {
 
 export const RegisterChoose = {
   decorators: [navyBg],
-  args: { initialFlow: "register", googleClientId: "demo", appleClientId: "demo", next: "/" },
+  args: { initialFlow: "register", googleClientId: "demo", appleClientId: "demo", recaptchaSiteKey: "demo", next: "/" },
 };
 
 export const Hebrew = {

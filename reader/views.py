@@ -4374,7 +4374,9 @@ def account_settings(request):
     """
     profile = UserProfile(id=request.user.id)
     experiments_available = user_has_experiments(request.user)
-    connected_providers = set(request.user.social_identities.values_list("provider", flat=True))
+    connected_providers = sorted(set(
+        request.user.social_identities.values_list("provider", flat=True)
+    ))
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
@@ -4384,7 +4386,7 @@ def account_settings(request):
         'diaspora': request.diaspora,
         "renderStatic": True,
         'connected_providers': connected_providers,
-        'has_usable_password': request.user.has_usable_password(),
+        'is_social_account': bool(connected_providers),
     })
 
 

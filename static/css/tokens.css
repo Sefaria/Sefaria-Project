@@ -27,6 +27,7 @@
   /* --- Surfaces, borders, neutrals --- */
   --sef-surface:        #ffffff;  /* Core/Base/White */
   --sef-border-default: #e6e6e6;  /* Core/Neutral/Gray/250 */
+  --sef-provider-border: #18345d; /* Semantic/Action/Primary */
   --sef-border-focus:   #cccccc;  /* Semantic/Border/Focus */
   --sef-neutral-400:    #999999;  /* Core/Neutral/Gray/400 */
   --sef-surface-disabled: #f5f5f5;

@@ -16,6 +16,7 @@
      data-google-client-id="{{ GOOGLE_SSO_CLIENT_ID|default:'' }}"
      data-apple-client-id="{{ APPLE_SSO_CLIENT_ID|default:'' }}"
      data-recaptcha-site-key="{{ RECAPTCHA_PUBLIC_KEY|default:'' }}"
+     data-sso-redirect-state="{{ sso_redirect_state|default:'' }}"
      data-next="{{ next|default:'/' }}"
      data-csrf="{{ csrf_token }}"
      data-dir="{% if request.interfaceLang == 'hebrew' %}rtl{% else %}ltr{% endif %}"></div>
@@ -25,7 +26,6 @@
 {% endblock %}
 
 {% block js %}
-{% if GOOGLE_SSO_CLIENT_ID %}<script src="https://accounts.google.com/gsi/client" async defer></script>{% endif %}
 {% if APPLE_SSO_CLIENT_ID %}<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>{% endif %}
 {% if RECAPTCHA_PUBLIC_KEY %}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{% endif %}
 <script src="{% static 'bundles/login/login.js' %}"></script>

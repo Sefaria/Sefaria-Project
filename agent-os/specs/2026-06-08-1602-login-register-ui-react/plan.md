@@ -32,7 +32,7 @@ Reimplement `/login`, `/register`, and password-reset as a React app mounted via
 ## Phase 2: Choose screen
 
 ### Task 4: Provider + email buttons + cross-flow
-- Render `ProviderButton` Google + Apple + a "Continue with email" button (`Button`), `Divider` ("or"/"או"), cross-flow link (login↔register), and `LegalText` with Privacy/ToS links.
+- Render custom `ProviderButton` controls for Google + Apple plus a "Continue with email" button (`Button`), `Divider` ("or"/"או"), cross-flow link (login↔register), and `LegalText` with Privacy/ToS links.
 - "Continue with email" transitions `mode` to the email form (content swap, no nav).
 
 ---

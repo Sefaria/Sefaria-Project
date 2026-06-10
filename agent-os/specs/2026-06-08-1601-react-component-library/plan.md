@@ -62,9 +62,10 @@ The Figma `Input Field` already bundles label + control + inline error, so `Inpu
 - Keep the docstring discipline: prefer variants over `className`.
 
 ### Task 8: `ProviderButton`
-- `static/js/common/ProviderButton.jsx`: a **custom** secondary `Button` + provider icon + black-text (`Semantic/Text/Primary`) that triggers the Google GSI / Apple JS SDK programmatically on click — matching the Figma `Buttons [for now]` secondary variant, **not** an SDK-rendered button.
-- Follow Google's and Apple's button branding guidelines (icon, "Continue with …" wording, min size) for compliance.
-- Stories for Google + Apple, EN/HE, default/hover/disabled.
+- Implement the custom secondary provider button shown in Figma node `185:52318`: 51px height, 1.5px navy border, 4px radius, 16px semibold text, provider mark, hover `#f0f7ff`, and gray disabled state.
+- Apple invokes `AppleID.auth.signIn()` from the custom button.
+- Google GIS has no programmatic button-click API, so production layers its SDK-rendered interaction target transparently over the custom visual while retaining popup/redirect configuration.
+- Stories cover Google, Apple, disabled, Hebrew, and the complete auth button set.
 
 ---
 
@@ -97,7 +98,7 @@ The Figma `Input Field` already bundles label + control + inline error, so `Inpu
 
 - `npm run jest` green for component behavior tests.
 - Storybook builds; every component has a story; a11y addon clean.
-- A throwaway integration check: render `FormField` + `ProviderButton` together and confirm token-driven styling matches Figma at both breakpoints, EN + HE.
+- Auth-page integration checks verify custom provider visuals and SDK interaction wiring at both breakpoints, EN + HE.
 
 ---
 
@@ -107,8 +108,8 @@ The Figma `Input Field` already bundles label + control + inline error, so `Inpu
 |---|---|
 | `static/css/tokens.css` | New — design tokens (P0 foundation) |
 | `static/js/common/Input.jsx` | New — core input primitive |
+| `static/js/common/ProviderButton.jsx` | New — custom Google/Apple provider treatment |
 | `static/js/common/FormField.jsx` | New — label+input+error composition |
-| `static/js/common/ProviderButton.jsx` | New — Google/Apple SDK button wrapper |
 | `static/js/common/Button.jsx` | Extend — auth/provider variants |
 | `static/js/common/Captcha.jsx` | New — captcha + error state |
 | `static/js/common/Divider.jsx`, `LegalText.jsx` | New — small primitives |

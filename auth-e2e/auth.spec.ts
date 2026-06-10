@@ -13,7 +13,7 @@ test.describe('Auth page (live) — spec 1602', () => {
   test('/login renders the React Sign In card with SSO + email + legal', async ({ page }) => {
     await page.goto('/login');
     await expect(heading(page)).toHaveText('Sign In');
-    await expect(page.locator('.sefaria-auth-stack .sefaria-sso-btn')).toHaveCount(2); // Google + Apple slots // Google + Apple
+    await expect(page.locator('.sefaria-auth-stack .sefaria-provider-button')).toHaveCount(2);
     await expect(page.locator('button.auth-primary')).toContainText('Continue with Email');
     await expect(page.locator('.sefaria-divider')).toContainText('or');
     await expect(page.locator('.sefaria-legal-text a')).toHaveCount(2);
@@ -63,7 +63,7 @@ test.describe('Auth page (live) — spec 1602', () => {
     await page.goto('/register');
     await expect(heading(page)).toHaveText('Create an Account');
     await expect(cardSub(page).getByRole('link', { name: 'Sign In' })).toBeVisible();
-    await expect(page.locator('.sefaria-auth-stack .sefaria-sso-btn')).toHaveCount(2); // Google + Apple slots
+    await expect(page.locator('.sefaria-auth-stack .sefaria-provider-button')).toHaveCount(2);
   });
 
   test('register email form shows the fields in Figma order', async ({ page }) => {

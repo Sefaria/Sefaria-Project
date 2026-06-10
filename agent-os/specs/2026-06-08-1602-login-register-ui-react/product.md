@@ -5,7 +5,7 @@
 **Designer:** Penina Levy
 **Last Updated:** 2026-06-08
 
-> Depends on [`2026-06-08-1601-react-component-library`](../2026-06-08-1601-react-component-library/plan.md) for `Input`, `FormField`, `ProviderButton`, `Captcha`, `AuthCard`, `Divider`, `LegalText`.
+> Depends on [`2026-06-08-1601-react-component-library`](../2026-06-08-1601-react-component-library/plan.md) for `Input`, `ProviderButton`, `Captcha`, `AuthCard`, `Divider`, `LegalText`, and button treatments.
 
 ---
 
@@ -33,7 +33,7 @@ This supersedes the SSO meeting's interim "restyle-in-place" compromise: we are 
 ## Non-Goals
 
 - The **mobile app** (React Native) sign-in screens — separate codebase, separate plan ("poor man's" buttons handled there).
-- Changing the **SSO backend** — reuse the existing callbacks, link/unlink, and onboarding service as-is.
+- Changing the core **SSO verification/onboarding backend** — reuse the existing callbacks and onboarding service.
 - Removing the first/last-name required fields — **decided: keep them required for now** (Michael's "drop them eventually" is tracked separately, not in this spec).
 - **Weblate** workflow — out of scope. Use the existing interface-strings mechanism; no new translation-pipeline work.
 - Voices / Library auth pages — they share the same components but their rollout is tracked separately (they keep their module theming, e.g. blue buttons under the Voices header).

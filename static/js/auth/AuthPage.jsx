@@ -6,6 +6,7 @@ import LegalText from '../common/LegalText.jsx';
 import Captcha from '../common/Captcha.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
+import ProviderButton from '../common/ProviderButton.jsx';
 
 /** Translate helper that works in both the app (global Sefaria) and Storybook (stub). */
 const _ = (s) => (typeof window !== 'undefined' && window.Sefaria && window.Sefaria._ ? window.Sefaria._(s) : s);
@@ -29,16 +30,40 @@ function pickFirstError(data) {
   return null;
 }
 
+function authError(data, fallback) {
+  const metadata = data && data._auth;
+  const message = pickFirstError(data) || fallback;
+  return {
+    message: _(message),
+    code: metadata && metadata.code,
+    providers: metadata && Array.isArray(metadata.providers) ? metadata.providers : [],
+  };
+}
+
 /** Poll until check() is truthy (or give up after ~8s), then run cb. Used to wait for
  *  the async-loaded Google / Apple SDK scripts before rendering their buttons. */
 function whenReady(check, cb) {
   let tries = 80;
+  let cancelled = false;
+  let timer = null;
   const tick = () => {
+    if (cancelled) return;
     if (check()) { cb(); return; }
     if (--tries <= 0) return;
-    setTimeout(tick, 100);
+    timer = setTimeout(tick, 100);
   };
   tick();
+  return () => {
+    cancelled = true;
+    if (timer) clearTimeout(timer);
+  };
+}
+
+function makeFlowId() {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 /**
@@ -56,6 +81,7 @@ const AuthPage = ({
   googleClientId = '',
   appleClientId = '',
   recaptchaSiteKey = '',
+  ssoRedirectState = '',
   next = '/',
   csrfToken = '',
   dir = 'ltr',
@@ -64,19 +90,93 @@ const AuthPage = ({
   const [view, setView] = useState('choose'); // choose | email | forgot
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const [error, setError] = useState(null);
+  const [captchaError, setCaptchaError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
+  const [appleReady, setAppleReady] = useState(false);
   const csrf = getCsrf(csrfToken);
   const captchaToken = useRef('');
   const captchaWidgetId = useRef(null);
   const googleBtnRef = useRef(null);
-  const appleBtnRef = useRef(null);
+  const fieldsRef = useRef(fields);
+  const registrationAnalytics = useRef({
+    flowId: makeFlowId(),
+    started: false,
+    ended: false,
+    status: 'failure',
+  });
+  fieldsRef.current = fields;
 
   const setField = (k) => (e) => {
     const value = e.target.value; // capture before the async setState updater (React event pooling)
     setFields((f) => ({ ...f, [k]: value }));
   };
-  const goChoose = () => { setView('choose'); setError(null); };
-  const switchFlow = (f) => (e) => { e && e.preventDefault(); setFlow(f); setView('choose'); setError(null); };
+  const goChoose = () => { setView('choose'); setError(null); setCaptchaError(null); };
+  const switchFlow = (f) => (e) => {
+    e && e.preventDefault();
+    setFlow(f);
+    setView('choose');
+    setError(null);
+    setCaptchaError(null);
+  };
+
+  const trackRegistration = useCallback((name, extra = {}) => {
+    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+    const filledFields = [
+      ['email', fieldsRef.current.email],
+      ['first_name', fieldsRef.current.first],
+      ['last_name', fieldsRef.current.last],
+      ['password1', fieldsRef.current.password],
+    ].filter(([, value]) => value).map(([field]) => field);
+    const from = new URLSearchParams(window.location.search).get('from') || undefined;
+    window.gtag('event', name, {
+      project: 'site_registration',
+      feature_name: 'site_registration_form',
+      flow_id: registrationAnalytics.current.flowId,
+      from,
+      text: filledFields.length ? filledFields.join('|') : null,
+      transport_type: 'beacon',
+      ...extra,
+    });
+  }, []);
+
+  const startRegistration = useCallback(() => {
+    if (registrationAnalytics.current.started) return;
+    registrationAnalytics.current.started = true;
+    trackRegistration('form_start');
+  }, [trackRegistration]);
+
+  const endRegistration = useCallback(() => {
+    const analytics = registrationAnalytics.current;
+    if (!analytics.started || analytics.ended) return;
+    analytics.ended = true;
+    trackRegistration('form_end', { status: analytics.status });
+  }, [trackRegistration]);
+
+  useEffect(() => {
+    const onPageLeave = () => endRegistration();
+    window.addEventListener('beforeunload', onPageLeave);
+    window.addEventListener('popstate', onPageLeave);
+    return () => {
+      window.removeEventListener('beforeunload', onPageLeave);
+      window.removeEventListener('popstate', onPageLeave);
+    };
+  }, [endRegistration]);
+
+  useEffect(() => {
+    const active = flow === 'register' && view === 'email';
+    if (active) {
+      registrationAnalytics.current = {
+        flowId: makeFlowId(),
+        started: false,
+        ended: false,
+        status: 'failure',
+      };
+      return undefined;
+    }
+    endRegistration();
+    return undefined;
+  }, [flow, view, endRegistration]);
 
   // ---- SSO ----------------------------------------------------------------
   const onSSOResult = useCallback(async (url, body) => {
@@ -89,26 +189,35 @@ const AuthPage = ({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) { window.location.href = next || '/'; }
-      else { setError(_(data.error) || _('Something went wrong. Try again.')); }
+      else { setError(authError(data, 'Something went wrong. Try again.')); }
     } catch (e) {
-      setError(_('Something went wrong. Try again.'));
+      setError(authError(null, 'Something went wrong. Try again.'));
     }
   }, [next]);
 
-  // Google Identity Services: render the official "Continue with Google" button once the
-  // GSI script has loaded (it's async, so we poll rather than checking only at mount).
+  // Google Identity Services does not expose a programmatic sign-in trigger. Render its
+  // click target over the custom Figma button after the async SDK script is ready.
   useEffect(() => {
+    setGoogleReady(false);
     if (!googleClientId || view !== 'choose') return undefined;
-    let cancelled = false;
-    whenReady(
+    const useRedirect = !!(window.SefariaAuth && window.SefariaAuth.useRedirect());
+    if (useRedirect && window.SefariaAuth) {
+      window.SefariaAuth.setRedirectState(ssoRedirectState);
+    }
+    const stopWaiting = whenReady(
       () => window.google && window.google.accounts && window.google.accounts.id && googleBtnRef.current,
       () => {
-        if (cancelled) return;
         try {
-          window.google.accounts.id.initialize({
+          const config = {
             client_id: googleClientId,
-            callback: (resp) => onSSOResult('/api/auth/google/callback', { credential: resp.credential }),
-          });
+            ux_mode: useRedirect ? 'redirect' : 'popup',
+          };
+          if (useRedirect) {
+            config.login_uri = `${window.location.origin}/auth/google/redirect`;
+          } else {
+            config.callback = (resp) => onSSOResult('/api/auth/google/callback', { credential: resp.credential });
+          }
+          window.google.accounts.id.initialize(config);
           const el = googleBtnRef.current;
           el.innerHTML = '';
           const width = Math.max(200, Math.min(400, el.offsetWidth || 360));
@@ -117,18 +226,21 @@ const AuthPage = ({
             text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width,
             locale: dir === 'rtl' ? 'iw' : 'en',
           });
+          setGoogleReady(true);
         } catch (e) { /* ignore */ }
       },
     );
-    return () => { cancelled = true; };
-  }, [googleClientId, view, onSSOResult]);
+    return stopWaiting;
+  }, [googleClientId, view, onSSOResult, ssoRedirectState, dir]);
 
-  // Sign in with Apple: init the SDK (which renders the #appleid-signin button) once the
-  // Apple JS script has loaded, and handle the success/failure events it dispatches.
+  // Initialize Apple JS after its async script loads. The custom button starts sign-in
+  // through AppleID.auth.signIn(); the SDK dispatches the success/failure events below.
   useEffect(() => {
+    setAppleReady(false);
     if (!appleClientId || view !== 'choose') return undefined;
-    let cancelled = false;
+    const useRedirect = !!(window.SefariaAuth && window.SefariaAuth.useRedirect());
     const onOk = (ev) => {
+      if (useRedirect) return;
       const a = (ev.detail && ev.detail.authorization) || {};
       const u = (ev.detail && ev.detail.user) || {};
       const n = u.name || {};
@@ -138,37 +250,57 @@ const AuthPage = ({
     };
     const onFail = (ev) => {
       if (!ev.detail || ev.detail.error !== 'popup_closed_by_user') {
-        setError(_('Something went wrong. Try again.'));
+        setError(authError(null, 'Something went wrong. Try again.'));
       }
     };
     document.addEventListener('AppleIDSignInOnSuccess', onOk);
     document.addEventListener('AppleIDSignInOnFailure', onFail);
-    whenReady(
+    const stopWaiting = whenReady(
       () => window.AppleID && window.AppleID.auth,
       () => {
-        if (cancelled) return;
         try {
           window.AppleID.auth.init({
             clientId: appleClientId,
             scope: 'name email',
-            redirectURI: window.location.origin + window.location.pathname,
-            usePopup: true,
+            redirectURI: `${window.location.origin}/auth/apple/redirect`,
+            state: ssoRedirectState,
+            usePopup: !useRedirect,
           });
+          setAppleReady(true);
         } catch (e) { /* ignore */ }
       },
     );
     return () => {
-      cancelled = true;
+      stopWaiting();
       document.removeEventListener('AppleIDSignInOnSuccess', onOk);
       document.removeEventListener('AppleIDSignInOnFailure', onFail);
     };
-  }, [appleClientId, view, onSSOResult]);
+  }, [appleClientId, view, onSSOResult, ssoRedirectState]);
+
+  const startAppleSignIn = () => {
+    if (!appleReady || !window.AppleID || !window.AppleID.auth) return;
+    try {
+      const signIn = window.AppleID.auth.signIn();
+      if (signIn && typeof signIn.catch === 'function') {
+        signIn.catch((err) => {
+          if (!err || err.error !== 'popup_closed_by_user') {
+            setError(authError(null, 'Something went wrong. Try again.'));
+          }
+        });
+      }
+    } catch (err) {
+      setError(authError(null, 'Something went wrong. Try again.'));
+    }
+  };
 
   // ---- reCAPTCHA (register only) -----------------------------------------
   useEffect(() => {
     const active = view === 'email' && flow === 'register' && !!recaptchaSiteKey;
-    if (!active) { captchaWidgetId.current = null; return; }
-    if (typeof window === 'undefined' || !window.grecaptcha) return;
+    if (!active) {
+      captchaWidgetId.current = null;
+      captchaToken.current = '';
+      return undefined;
+    }
     const renderWidget = () => {
       const slot = document.getElementById('auth-captcha-slot');
       if (!slot || captchaWidgetId.current !== null || !window.grecaptcha.render) return;
@@ -180,7 +312,13 @@ const AuthPage = ({
         });
       } catch (e) { /* not ready / already rendered */ }
     };
-    if (window.grecaptcha.ready) window.grecaptcha.ready(renderWidget); else renderWidget();
+    return whenReady(
+      () => window.grecaptcha && window.grecaptcha.render,
+      () => {
+        if (window.grecaptcha.ready) window.grecaptcha.ready(renderWidget);
+        else renderWidget();
+      },
+    );
   }, [view, flow, recaptchaSiteKey]);
 
   // ---- email submit -------------------------------------------------------
@@ -188,8 +326,11 @@ const AuthPage = ({
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setCaptchaError(null);
     try {
       if (flow === 'register') {
+        startRegistration();
+        trackRegistration('form_submit');
         // Reuse the existing /register view's JSON ("noredirect") mode — keeps the
         // server-side captcha validation and full onboarding side effects.
         const body = new URLSearchParams();
@@ -206,10 +347,20 @@ const AuthPage = ({
           body: body.toString(),
         });
         const data = await res.json().catch(() => ({}));
-        if (data && data.redirect) { window.location.href = data.redirect; return; }
-        setError((data && data.captcha)
-          ? _('Verify that you are not a robot')
-          : (_(pickFirstError(data)) || _('Something went wrong. Try again.')));
+        if (data && data.redirect) {
+          registrationAnalytics.current.status = 'success';
+          trackRegistration('form_submit_result', { status: 'success' });
+          endRegistration();
+          window.location.href = data.redirect;
+          return;
+        }
+        const message = pickFirstError(data) || 'Something went wrong. Try again.';
+        trackRegistration('form_submit_result', {
+          status: 'failure',
+          error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
+        });
+        setError(authError(data, message));
+        if (data && data.captcha) setCaptchaError(_('Verify that you are not a robot'));
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
           captchaToken.current = '';
@@ -222,10 +373,13 @@ const AuthPage = ({
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok) { window.location.href = next || '/'; return; }
-        setError(_(data.error) || _('Email and/or password are incorrect'));
+        setError(authError(data, 'Email and/or password are incorrect'));
       }
     } catch (err) {
-      setError(_('Something went wrong. Try again.'));
+      if (flow === 'register') {
+        trackRegistration('form_submit_result', { status: 'failure', error: 'network_error' });
+      }
+      setError(authError(null, 'Something went wrong. Try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -242,8 +396,11 @@ const AuthPage = ({
         body: JSON.stringify({ email: fields.email }),
       });
       if (res.ok) { setView('forgot-sent'); }
-      else { const d = await res.json().catch(() => ({})); setError(_(d.error) || _('Something went wrong. Try again.')); }
-    } catch (e) { setError(_('Something went wrong. Try again.')); }
+      else {
+        const d = await res.json().catch(() => ({}));
+        setError(authError(d, 'Something went wrong. Try again.'));
+      }
+    } catch (e) { setError(authError(null, 'Something went wrong. Try again.')); }
     finally { setSubmitting(false); }
   };
 
@@ -266,7 +423,34 @@ const AuthPage = ({
     parts.push(rest);
     return <LegalText>{parts}</LegalText>;
   })();
-  const errorBanner = error ? <div className="sefaria-auth-error" role="alert">{error}</div> : null;
+  const showProvider = (provider) => {
+    const normalized = provider.toLowerCase();
+    const target = normalized === 'google' ? 'google-signin-button' : 'apple-signin-button';
+    setView('choose');
+    setError(null);
+    window.setTimeout(() => {
+      const element = document.getElementById(target);
+      if (element) {
+        element.scrollIntoView({ block: 'center' });
+        element.focus();
+      }
+    }, 0);
+  };
+  const errorBanner = error ? (
+    <div className="sefaria-auth-error" role="alert">
+      <div>{error.message}</div>
+      {error.code === 'sso_only_account' && error.providers.map((provider) => (
+        <a
+          key={provider}
+          href={`#${provider.toLowerCase() === 'google' ? 'google-signin-button' : 'apple-signin-button'}`}
+          className="sefaria-auth-provider-action"
+          onClick={(event) => { event.preventDefault(); showProvider(provider); }}
+        >
+          {_(`Sign in with ${provider.charAt(0).toUpperCase()}${provider.slice(1).toLowerCase()}`)}
+        </a>
+      ))}
+    </div>
+  ) : null;
 
   // ---- views --------------------------------------------------------------
   const renderChoose = () => (
@@ -279,17 +463,22 @@ const AuthPage = ({
     >
       {errorBanner}
       <div className="sefaria-auth-stack">
-        {googleClientId && <div ref={googleBtnRef} className="sefaria-sso-btn" />}
+        {googleClientId && (
+          <ProviderButton
+            id="google-signin-button"
+            provider="google"
+            label={_('Continue with Google')}
+            disabled={!googleReady}
+            sdkOverlayRef={googleBtnRef}
+          />
+        )}
         {appleClientId && (
-          <div
-            ref={appleBtnRef}
-            id="appleid-signin"
-            className="sefaria-sso-btn"
-            data-color="white"
-            data-border="true"
-            data-type="continue"
-            data-mode="center-align"
-            data-height="40"
+          <ProviderButton
+            id="apple-signin-button"
+            provider="apple"
+            label={_('Continue with Apple')}
+            disabled={!appleReady}
+            onClick={startAppleSignIn}
           />
         )}
         <Divider>{_('or')}</Divider>
@@ -314,17 +503,23 @@ const AuthPage = ({
           : <>{_("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{_('Sign Up')}</a></>}
       >
         {errorBanner}
-        <form className="sefaria-auth-stack" onSubmit={submitEmail}>
+        <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-stack" onSubmit={submitEmail}>
           <Input label={_('Email Address')} type="email" name="email" dir="ltr" autoComplete="email"
-                 placeholder="you@example.com" value={fields.email} onChange={setField('email')} />
+                 placeholder="you@example.com" value={fields.email} onChange={setField('email')}
+                 onFocus={isRegister ? startRegistration : undefined} />
           <Input label={_('Password')} type="password" name="password" dir="ltr"
                  autoComplete={isRegister ? 'new-password' : 'current-password'}
                  value={fields.password} onChange={setField('password')}
+                 onFocus={isRegister ? startRegistration : undefined}
                  trailingLink={isRegister ? null : { text: _('Forgot password?'), onClick: (e) => { e.preventDefault(); setView('forgot'); setError(null); } }}
                  revealLabel={_('Show password')} hideLabel={_('Hide password')} />
-          {isRegister && <Input label={_('First Name')} name="first_name" placeholder={_('First Name')} value={fields.first} onChange={setField('first')} />}
-          {isRegister && <Input label={_('Last Name')} name="last_name" placeholder={_('Last Name')} value={fields.last} onChange={setField('last')} />}
-          {isRegister && <div id="auth-captcha-slot" />}
+          {isRegister && <Input label={_('First Name')} name="first_name" placeholder={_('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
+          {isRegister && <Input label={_('Last Name')} name="last_name" placeholder={_('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+          {isRegister && (
+            <Captcha error={captchaError}>
+              <div id="auth-captcha-slot" />
+            </Captcha>
+          )}
           <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
             <span>{isRegister ? _('Create Account') : _('Sign In')}</span>
           </Button>
@@ -373,6 +568,7 @@ AuthPage.propTypes = {
   googleClientId: PropTypes.string,
   appleClientId: PropTypes.string,
   recaptchaSiteKey: PropTypes.string,
+  ssoRedirectState: PropTypes.string,
   next: PropTypes.string,
   csrfToken: PropTypes.string,
   dir: PropTypes.oneOf(['ltr', 'rtl']),

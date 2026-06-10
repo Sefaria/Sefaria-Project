@@ -17,12 +17,16 @@ async function mockProviderSdks(page: Page) {
           googleInitializeCalls: [],
           googleRenderCalls: [],
           googlePromptCalls: 0,
-          appleInitCalls: []
+          googleButtonClicks: 0,
+          googleCallback: null,
+          appleInitCalls: [],
+          appleSignInCalls: 0
         };
         window.google = {
           accounts: {
             id: {
               initialize: function(config) {
+                window.__ssoTest.googleCallback = config.callback || null;
                 window.__ssoTest.googleInitializeCalls.push({
                   client_id: config.client_id,
                   ux_mode: config.ux_mode,
@@ -34,6 +38,14 @@ async function mockProviderSdks(page: Page) {
                 window.__ssoTest.googleRenderCalls.push(options);
                 if (element) {
                   element.setAttribute('data-sso-test-rendered', 'google');
+                  var button = document.createElement('button');
+                  button.type = 'button';
+                  button.style.width = '100%';
+                  button.style.height = '100%';
+                  button.addEventListener('click', function() {
+                    window.__ssoTest.googleButtonClicks += 1;
+                  });
+                  element.appendChild(button);
                 }
               },
               prompt: function() {
@@ -55,7 +67,10 @@ async function mockProviderSdks(page: Page) {
           googleInitializeCalls: [],
           googleRenderCalls: [],
           googlePromptCalls: 0,
-          appleInitCalls: []
+          googleButtonClicks: 0,
+          googleCallback: null,
+          appleInitCalls: [],
+          appleSignInCalls: 0
         };
         window.AppleID = {
           auth: {
@@ -66,6 +81,10 @@ async function mockProviderSdks(page: Page) {
                 state: config.state,
                 usePopup: config.usePopup
               });
+            },
+            signIn: function() {
+              window.__ssoTest.appleSignInCalls += 1;
+              return Promise.resolve();
             }
           }
         };
@@ -106,7 +125,13 @@ test.describe('SSO Phase 2 auth page provider behavior', () => {
     expect(googleCall.hasCallback).toBe(true);
     expect(googleCall.login_uri).toBeUndefined();
 
-    await expect(page.locator('#google-signin-button[data-sso-test-rendered="google"]')).toBeVisible();
+    await expect(page.getByText('Continue with Google', { exact: true })).toBeVisible();
+    await expect(page.getByText('Continue with Apple', { exact: true })).toBeVisible();
+    await expect(page.locator('#google-signin-button .sefaria-provider-sdk-overlay[data-sso-test-rendered="google"]')).toBeAttached();
+    await page.locator('#google-signin-button').click();
+    await page.getByRole('button', { name: 'Continue with Apple' }).click();
+    await expect.poll(() => page.evaluate(() => window.__ssoTest.googleButtonClicks)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__ssoTest.appleSignInCalls)).toBe(1);
     await expect.poll(() => page.evaluate(() => window.__ssoTest?.googlePromptCalls || 0)).toBe(0);
 
     const appleCall = await latestAppleInitCall(page);
@@ -158,15 +183,34 @@ test.describe('SSO Phase 2 auth page provider behavior', () => {
     });
 
     await page.goto('/register', { waitUntil: 'domcontentloaded' });
-    await page.locator('#register-form').evaluate((form: HTMLFormElement) => {
-      form.noValidate = true;
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    });
+    await page.getByRole('button', { name: 'Continue with Email' }).click();
+    await page.locator('#register-form').dispatchEvent('submit');
 
-    const error = page.locator('#register-form .errorlist li');
+    const error = page.locator('#register-form .sefaria-auth-error');
     await expect(error).toContainText('already registered via social sign-in');
     await expect(error.getByRole('link', { name: /Sign in with Google/i })).toHaveAttribute('href', '#google-signin-button');
-    await expect(error.getByRole('link', { name: /Sign in with Apple/i })).toHaveAttribute('href', '#appleid-signin');
+    await expect(error.getByRole('link', { name: /Sign in with Apple/i })).toHaveAttribute('href', '#apple-signin-button');
+  });
+
+  test('desktop Google SDK callback posts the issued credential', async ({ page }) => {
+    await mockProviderSdks(page);
+    let requestBody = '';
+    await page.route('**/api/auth/google/callback', async (route: Route) => {
+      requestBody = route.request().postData() || '';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'ok' }),
+      });
+    });
+
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await latestGoogleInitializeCall(page);
+    await page.evaluate(() => {
+      window.__ssoTest.googleCallback({ credential: 'credential-from-google-sdk' });
+    });
+
+    await expect.poll(() => requestBody).toContain('credential-from-google-sdk');
   });
 });
 
@@ -202,6 +246,9 @@ declare global {
       googleInitializeCalls: GoogleInitializeCall[];
       googleRenderCalls: Array<Record<string, unknown>>;
       googlePromptCalls: number;
+      googleButtonClicks: number;
+      googleCallback: null | ((response: { credential: string }) => void);
+      appleSignInCalls: number;
       appleInitCalls: Array<{
         clientId?: string;
         redirectURI?: string;

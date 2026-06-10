@@ -21,7 +21,7 @@ The Figma is already built as a component system (variants, properties, tokens) 
 
 1. Establish a **token-driven, Storybook-first component library** under `static/js/common/`, starting with form primitives.
 2. Ship a canonical **`Input`/`TextField`** covering every state in the Figma: default, focus, filled, error, disabled, password-mask + show/hide, inline error message with info icon, label, required.
-3. Consolidate **buttons** (including the Google/Apple provider buttons) into the existing `Button` contract.
+3. Consolidate **buttons**, including the custom Google/Apple treatments shown in Figma, into the component library.
 4. Make components **RTL/LTR aware**, including the mixed case Penina flagged: an LTR value field (email/password) inside an RTL (Hebrew) UI.
 5. Keep **CSS classes as the styling canon** so server-rendered consumers can share the exact same styling without mounting React.
 6. Be **AI-friendly**: one canonical path per primitive, predictable props, no competing variants.
@@ -47,7 +47,7 @@ Component names in the right column are the **Figma source-of-truth names** (fil
 | **`Input` / `TextField`** | P0 ✅ | Figma **`Input Field`** (`187:76581`). All 10 named states (incl. *with link*, *filled/error*, *placeholder/error*, password mask/unmask) + RTL/LTR + a11y. **Built & verified** (`static/js/common/Input.jsx`, stories + Playwright tests). |
 | ~~`FormField`~~ | — | **Dropped — absorbed into `Input`.** The Figma `Input Field` already bundles label + control + inline error, so `Input` is the complete field unit. A separate `FormField` would be a redundant second path. |
 | **`Button`** (consolidation) | P1 | Figma **`Buttons [for now]`** (`187:76568`): primary (navy), secondary (white/bordered), states default/hover/disabled. |
-| **`ProviderButton`** | P1 | **Custom** secondary button + provider icon + **black text**, triggering the Google/Apple SDK programmatically (not SDK-rendered chrome). |
+| **`ProviderButton`** | P1 | Custom secondary button with provider icon and black text. Apple invokes its SDK directly; Google layers the official GIS interaction target transparently over the custom visual. |
 | **`Captcha`** wrapper | P1 | Figma **`Captcha`** (`192:6701` section) — adds the missing error state. |
 | **`Divider`** ("or" / "או") | P2 | Between SSO and email sections. |
 | **`AuthCard`** / layout primitive | P2 | Figma **`Form Card`** — responsive; mobile = all screens **≤ 842px**. May extend `Card.jsx`. |

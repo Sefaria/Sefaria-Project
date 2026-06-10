@@ -6,7 +6,7 @@ const meta = {
   title: "Common/ProviderButton",
   component: ProviderButton,
   parameters: { layout: "padded" },
-  decorators: [(Story) => <div style={{ maxWidth: 320 }}><Story /></div>],
+  decorators: [(Story) => <div style={{ width: 353 }}><Story /></div>],
 };
 export default meta;
 
@@ -17,13 +17,12 @@ export const GoogleDisabled = { args: { provider: "google", disabled: true } };
 export const Hebrew = {
   render: () => (
     <div dir="rtl" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <ProviderButton provider="google" label="להמשיך עם Google" />
-      <ProviderButton provider="apple" label="להמשיך עם Apple" />
+      <ProviderButton provider="google" label="להמשיך עם גוגל" />
+      <ProviderButton provider="apple" label="להמשיך עם אפל" />
     </div>
   ),
 };
 
-/** The full auth button set as it appears on the choose screen (Figma `Buttons [for now]`). */
 export const AuthButtonSet = {
   render: () => (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

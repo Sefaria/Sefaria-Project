@@ -138,10 +138,11 @@
 button.sefaria-common-button.auth-primary,
 a.sefaria-common-button.auth-primary {
   background-color: var(--sef-action-primary);
-  border: none;
-  border-radius: var(--sef-radius);
+  border: var(--sef-stroke-strong) solid var(--sef-action-primary);
+  border-radius: 4px;
   font-size: var(--sef-font-size-field);
-  font-weight: 500;
+  font-weight: 600;
+  height: 51px;
 }
 button.sefaria-common-button.auth-primary,
 button.sefaria-common-button.auth-primary *,
@@ -163,41 +164,73 @@ button.sefaria-common-button.auth-primary:disabled * {
   color: var(--sef-text-disabled);
 }
 
-/* Secondary — white fill, bordered, BLACK text ("Continue with Google/Apple").
- * Per the Figma note, third-party button text uses Semantic/Text/Primary, not the navy. */
-button.sefaria-common-button.auth-secondary,
-a.sefaria-common-button.auth-secondary {
-  background-color: var(--sef-surface);
-  border: var(--sef-stroke-strong) solid var(--sef-border-default);
-  border-radius: var(--sef-radius);
-  font-size: var(--sef-font-size-field);
-  font-weight: 500;
+.sefaria-provider-button-shell {
+  position: relative;
+  width: 100%;
+  height: 51px;
 }
-button.sefaria-common-button.auth-secondary,
-button.sefaria-common-button.auth-secondary *,
-a.sefaria-common-button.auth-secondary,
-a.sefaria-common-button.auth-secondary * {
+.sefaria-provider-button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 51px;
+  padding: var(--sef-space-4) var(--sef-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sef-space-2);
+  background-color: var(--sef-surface);
+  border: var(--sef-stroke-strong) solid var(--sef-provider-border);
+  border-radius: 4px;
+  color: var(--sef-text-primary);
+  cursor: pointer;
+  font-family: var(--sef-font-en);
+  font-size: var(--sef-font-size-field);
+  font-weight: 600;
+  line-height: 1;
+}
+.sefaria-provider-button-shell[dir="rtl"] .sefaria-provider-button,
+[dir="rtl"] .sefaria-provider-button {
+  font-family: var(--sef-font-he);
+  font-weight: 700;
+}
+.sefaria-provider-button,
+.sefaria-provider-button * {
   color: var(--sef-text-primary);
 }
-button.sefaria-common-button.auth-secondary:hover,
-a.sefaria-common-button.auth-secondary:hover {
+.sefaria-provider-button:hover,
+.sefaria-provider-button-shell:hover .sefaria-provider-button {
   background-color: var(--sef-secondary-hover);
+  border-color: #264764;
 }
-button.sefaria-common-button.auth-secondary:disabled {
-  background-color: var(--sef-surface-disabled);
+.sefaria-provider-button:disabled,
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-button {
+  background-color: var(--sef-border-default);
   border-color: var(--sef-border-default);
   cursor: not-allowed;
 }
-button.sefaria-common-button.auth-secondary:disabled,
-button.sefaria-common-button.auth-secondary:disabled * {
+.sefaria-provider-button:disabled,
+.sefaria-provider-button:disabled *,
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-button,
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-button * {
   color: var(--sef-text-disabled);
 }
-/* keep provider brand-icon colors (do NOT apply the theme recolor filter) */
-button.sefaria-common-button.auth-secondary img.button-icon,
-a.sefaria-common-button.auth-secondary img.button-icon {
-  filter: none;
-  height: 18px;
-  margin-inline-end: var(--sef-space-2);
+.sefaria-provider-button-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.sefaria-provider-sdk-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.0001;
+  overflow: hidden;
+}
+.sefaria-provider-sdk-overlay > div,
+.sefaria-provider-sdk-overlay iframe {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
 }
 
 /* ===================== Divider ("or" / "או") ===================== */
@@ -308,24 +341,6 @@ a.sefaria-common-button.auth-secondary img.button-icon {
   gap: var(--sef-space-3);
 }
 
-/* SDK-rendered provider buttons (Google GSI / Apple JS) get a stable full-width slot */
-.sefaria-sso-btn {
-  width: 100%;
-  min-height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.sefaria-sso-btn > div,
-.sefaria-sso-btn iframe {
-  margin: 0 auto !important;
-}
-#appleid-signin {
-  width: 100%;
-  height: 40px;
-  cursor: pointer;
-}
-
 @media (max-width: 842px) {
   .sefaria-auth-card {
     max-width: 100%;
@@ -364,3 +379,8 @@ a.sefaria-common-button.auth-secondary img.button-icon {
   text-align: center;
 }
 .sefaria-auth-error a { color: var(--sef-error); text-decoration: underline; }
+.sefaria-auth-provider-action {
+  display: block;
+  margin-top: var(--sef-space-2);
+  font-weight: 500;
+}

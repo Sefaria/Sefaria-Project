@@ -34,6 +34,7 @@ In line already (no work): auto-link direction, registration block core, web pro
 2. Email/password attempts by SSO accounts are blocked **and** informative (message + deep link) on **both** the login and registration paths.
 3. Google One Tap appears only on overlay-free ("clean") sessions, across desktop and mobile web, and never on `/login` or `/register`.
 4. Provider auth uses popup on desktop and redirect on mobile web.
+5. Provider-linked accounts remain provider-managed: account settings identify the connected provider(s) and registration email, and do not expose email-change or provider-unlink controls.
 
 ---
 
@@ -59,18 +60,19 @@ Auto-link + password-erase makes the **verified-email assumption load-bearing**:
 - [ ] The registration block message includes a working sign-in link.
 - [ ] One Tap is suppressed when any marketing banner/modal/cookie overlay is present or was dismissed this session, and on `/login` + `/register`; shown on clean sessions (desktop + mobile web).
 - [ ] Google & Apple use popup on desktop, redirect on mobile web.
-- [ ] Tests updated to cover password-erase, login-path block, and email_verified rejection.
+- [ ] Provider-linked account settings show the provider(s) and registration email, without email-change or unlink controls.
+- [ ] Tests updated to cover password-erase, login-path block, email_verified rejection, and provider-managed account settings.
 
 ---
 
 ## Open Questions
 
 1. "Overlay present" detection — what is the authoritative signal for marketing banner / modal / cookie message presence (a JS flag, DOM selectors, a cookie)? Needs a definition from the front-end overlay code.
-2. Should password-erase be reversible via "Set a password" in Settings → Login Methods (it already exists), and should we surface that to the user at link time?
+2. Provider linkage is permanent in this phase. Account settings show the provider(s) and registration email rather than offering password restoration, email changes, or unlinking.
 
 ## Implementation decisions
 
 - SSO-only form failures use a structured `sso_only_account` code plus provider names; translated validation strings do not contain HTML.
 - Google mobile redirect preserves signed state in a short-lived first-party cookie so `login_uri` remains an exact registered URI. Apple uses its signed `state` parameter.
 - Interruptive UI reports through `window.SefariaInterruptiveUI`; the session is marked in `sessionStorage`, and One Tap is initialized programmatically only after the clean-session gate.
-- Users without a usable password must set one before disconnecting any provider, even when another provider remains connected.
+- Provider-linked accounts do not expose provider unlinking. Their account email remains tied to the verified provider identity.

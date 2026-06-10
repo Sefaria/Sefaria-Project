@@ -13,12 +13,12 @@
 | Concern | Location |
 |---|---|
 | Auto-link branch (Task 1) | `sso/service.py` — `get_or_create_social_user`, existing-user branch |
-| Unlink last-method guard (consistent with password-erase) | `sso/service.py` — `unlink_provider` (`has_usable_password()`) |
+| Provider-managed account settings | `reader/views.py` — `account_settings`; `templates/account_settings.html` |
 | Provider token verification (Task 1b `email_verified`) | `sso/providers/google.py`, `sso/providers/apple.py` — `verify_token` |
 | Registration block (Task 2a) | `sefaria/forms.py` — `SefariaNewUserForm.clean_email` |
 | Login path (Task 2b) | `sefaria/views.py` — `CustomLoginView` (`SefariaLoginForm` / `EmailAuthenticationForm`) |
 | One Tap render (Task 3) | `templates/base.html` — Google One Tap block + init JS |
-| Provider presentation (Task 4) | `templates/registration/login.html`, `register.html` — Apple `usePopup`, Google `ux_mode` |
+| Provider presentation (Task 4) | `static/js/auth/AuthPage.jsx` — Apple `usePopup`, Google `ux_mode`, signed redirect state |
 | Existing tests | `sso/tests.py` (auto-link, callbacks); `e2e-tests/tests/sso-settings.spec.ts` |
 
 ## External
