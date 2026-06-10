@@ -75,7 +75,7 @@ const MAIN_STROKE = 6;
 const COMMENTARY_STROKE = 3;
 const MAX_STATION_R = 16;
 
-let w, colW, svg, lang, currentNet,
+let w, colW, svg, lang, currentNet, hubElem,
     popUpElem, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -104,6 +104,9 @@ function loadAndRender(ref) {
         currentNet = net;
         changePageTitle((net.ref || ref) + " | Timeline");
         render(net);
+        if (hubElem) {  // start with the base text open for reading
+            showTextPopup(net.ref, hubElem.getBoundingClientRect());
+        }
     });
 }
 
@@ -278,13 +281,17 @@ function computeGeometry(model) {
         if (departs.length) L.endX = Math.max(L.endX, Math.max(...departs) + 18);
     }
 
-    // Merges: a line flows into another (Tosefta → Talmud).
+    // Merges: a line flows into another (Tosefta → Talmud).  The merging line
+    // runs past the target's corner and bends down onto its horizontal a bit
+    // further right, so the junction reads clearly instead of underlapping
+    // the target's own fork.
     for (const line of model.rows) {
         const spec = TRACK_SPECS[line];
         if (spec && spec.merge && lines[spec.merge]) {
             const L = lines[line], T = lines[spec.merge];
-            const joinX = Math.max(T.startX + 8, L.endX + 2 * BEND);
-            L.mergePath = forkPath(L.endX, L.y, T.y, joinX - L.endX);
+            const joinX = Math.max(T.startX + 46, L.endX + 2 * BEND);
+            L.endX = joinX - 2 * BEND;
+            L.mergePath = forkPath(L.endX, L.y, T.y);
             T.endX = Math.max(T.endX, joinX + 12);
         }
     }
@@ -307,6 +314,7 @@ function forkPath(x0, fromY, toY, span) {
 
 function render(net) {
     d3.select("#timelinePage svg").remove();
+    hubElem = null;
     const model = buildModel(net);
     w = window.innerWidth ? window.innerWidth - 4 : 1000;
     colW = (w - M.left - M.right) / ERAS.length;
@@ -426,6 +434,9 @@ function drawHub(model, net) {
         .attr("text-anchor", "middle").attr("fill", "#333")
         .attr("font-size", 13).attr("font-weight", "bold")
         .text(isHebrew() && net.heRef ? net.heRef : net.ref);
+    hub.style("cursor", "pointer")
+        .on("click", () => showTextPopup(net.ref, hubElem.getBoundingClientRect()));
+    hubElem = hub.node();
 }
 
 /*****          Labels          *****/
@@ -581,9 +592,8 @@ function setupPopup(options) {
         }
         .interface-hebrew .sefaria-footer {
             direction: rtl;
-            font-family: "Heebo", sans-serif
-        };
-
+            font-family: "Heebo", sans-serif;
+        }
         #sefaria-close {
                 font-family: "Crimson Text";
                 font-size: 36px;
@@ -591,7 +601,8 @@ function setupPopup(options) {
                 line-height: 48px;
                 position: absolute;
                 top: -5px;
-                left: 20px;
+                left: 10px;
+                padding: 0 12px;
                 cursor: pointer;
                 color: #999;
                 border: 0;
@@ -718,7 +729,7 @@ function showStationPopup(station, rect) {
             a.textContent = ref;
             a.addEventListener("click", (e) => {
                 e.stopPropagation();
-                showTextPopup(ref, popUpElem.getBoundingClientRect());
+                showTextPopup(ref);  // no anchor: swap content in place
             });
             refs.appendChild(a);
         }
@@ -766,7 +777,11 @@ async function showTextPopup(ref, rect) {
     enTitle.textContent = source.ref;
     heTitle.textContent = source.heRef;
 
-    positionPopup(rect);
+    if (rect) {
+        positionPopup(rect);
+    } else {
+        popUpElem.style.display = "block";  // already placed; just swap content
+    }
 
     [].forEach.call(popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', "/" + Sefaria.normRef(source.ref));});
 
