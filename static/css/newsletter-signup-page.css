@@ -526,6 +526,12 @@ span.errorIcon {
   min-height: 50px;
 }
 
+.newsletterFormView .submitButton .loadingMessage,
+.newsletterConfirmationView .embeddedLearningLevel .saveButton .loadingMessage {
+  font-size: inherit;
+  font-style: normal;
+}
+
 /* Form actions container */
 .formActions {
   margin-top: 40px;
@@ -539,12 +545,10 @@ span.errorIcon {
 }
 
 .successView .homepageLink {
-  width: auto;
-  min-width: unset;
-  max-width: max-content;
-  padding-left: 40px;
-  padding-right: 40px;
-  display: inline-flex;
+  width: 200px;
+  min-width: 200px;
+  height: auto;
+  min-height: 50px;
 }
 
 /* Section dividers — top border + spacing */
@@ -893,7 +897,8 @@ span.errorIcon {
   }
 
   /* Full width buttons on mobile */
-  .newsletterFormView .submitButton {
+  .newsletterFormView .submitButton,
+  .successView .homepageLink {
     width: 100%;
     min-width: unset;
   }
