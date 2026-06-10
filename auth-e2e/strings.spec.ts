@@ -28,7 +28,7 @@ test.describe('Auth strings render in Hebrew', () => {
     await page.goto('/register');
     await expect(card(page).locator('.sefaria-auth-card-heading')).toHaveText('יצירת חשבון');
     await card(page).getByText('להמשיך עם אימייל').click();
-    await expect(card(page)).toContainText('סיסמה');      // Password
+    await expect(card(page)).toContainText('סיסמא');      // Password
     await expect(card(page)).toContainText('שם פרטי');    // First Name
     await expect(card(page)).toContainText('שם משפחה');   // Last Name
     await expect(card(page).locator('button.auth-primary')).toContainText('יצירת חשבון'); // Create Account
@@ -38,7 +38,7 @@ test.describe('Auth strings render in Hebrew', () => {
     await page.goto('/login');
     await card(page).getByText('להמשיך עם אימייל').click();
     await expect(card(page).locator('form button.auth-primary')).toContainText('התחברות'); // Sign In
-    await expect(card(page).locator('.sefaria-input-trailingLink')).toHaveText('שכחת סיסמה?'); // Forgot password?
+    await expect(card(page).locator('.sefaria-input-trailingLink')).toHaveText('שכחת סיסמא?'); // Forgot password?
   });
 
   test('forgot-password flow strings', async ({ page }) => {

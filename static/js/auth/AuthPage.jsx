@@ -408,6 +408,17 @@ const AuthPage = ({
   // Render the full localized compliance sentence, substituting the (localized) link
   // labels with anchors — keeps correct word order in both English and Hebrew.
   const legal = (() => {
+    if (dir === 'rtl') {
+      return (
+        <LegalText>
+          {_('Auth legal prefix')}
+          <a href="/terms">{_('Auth Terms of Use')}</a>
+          {_('Auth legal conjunction')}
+          <a href="/privacy-policy">{_('Auth Privacy Policy')}</a>
+          {_('Auth legal suffix')}
+        </LegalText>
+      );
+    }
     const sentence = _("By continuing, you are agreeing to Sefaria's Terms of Use and Privacy Policy.");
     const links = [[_('Terms of Use'), '/terms'], [_('Privacy Policy'), '/privacy-policy']];
     const parts = [];
@@ -455,6 +466,7 @@ const AuthPage = ({
   // ---- views --------------------------------------------------------------
   const renderChoose = () => (
     <AuthCard
+      className="sefaria-auth-card--choose"
       dir={dir}
       heading={flow === 'login' ? _('Sign In') : _('Create an Account')}
       sub={flow === 'login'
@@ -462,31 +474,35 @@ const AuthPage = ({
         : <>{_('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{_('Sign In')}</a></>}
     >
       {errorBanner}
-      <div className="sefaria-auth-stack">
-        {googleClientId && (
-          <ProviderButton
-            id="google-signin-button"
-            provider="google"
-            label={_('Continue with Google')}
-            disabled={!googleReady}
-            sdkOverlayRef={googleBtnRef}
-          />
-        )}
-        {appleClientId && (
-          <ProviderButton
-            id="apple-signin-button"
-            provider="apple"
-            label={_('Continue with Apple')}
-            disabled={!appleReady}
-            onClick={startAppleSignIn}
-          />
-        )}
-        <Divider>{_('or')}</Divider>
+      <div className="sefaria-auth-choose">
+        <div className="sefaria-auth-sso-group">
+          <div className="sefaria-auth-provider-options">
+            {googleClientId && (
+              <ProviderButton
+                id="google-signin-button"
+                provider="google"
+                label={_('Continue with Google')}
+                disabled={!googleReady}
+                sdkOverlayRef={googleBtnRef}
+              />
+            )}
+            {appleClientId && (
+              <ProviderButton
+                id="apple-signin-button"
+                provider="apple"
+                label={_('Continue with Apple')}
+                disabled={!appleReady}
+                onClick={startAppleSignIn}
+              />
+            )}
+          </div>
+          <Divider>{_('or')}</Divider>
+        </div>
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={() => { setView('email'); setError(null); }}>
           <span>{_('Continue with Email')}</span>
         </Button>
+        {legal}
       </div>
-      {legal}
     </AuthCard>
   );
 
@@ -494,6 +510,7 @@ const AuthPage = ({
     const isRegister = flow === 'register';
     return (
       <AuthCard
+        className={isRegister ? 'sefaria-auth-card--register-email' : 'sefaria-auth-card--login-email'}
         dir={dir}
         onBack={goChoose}
         backLabel={_('Back')}
@@ -503,18 +520,22 @@ const AuthPage = ({
           : <>{_("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{_('Sign Up')}</a></>}
       >
         {errorBanner}
-        <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-stack" onSubmit={submitEmail}>
-          <Input label={_('Email Address')} type="email" name="email" dir="ltr" autoComplete="email"
-                 placeholder="you@example.com" value={fields.email} onChange={setField('email')}
-                 onFocus={isRegister ? startRegistration : undefined} />
-          <Input label={_('Password')} type="password" name="password" dir="ltr"
-                 autoComplete={isRegister ? 'new-password' : 'current-password'}
-                 value={fields.password} onChange={setField('password')}
-                 onFocus={isRegister ? startRegistration : undefined}
-                 trailingLink={isRegister ? null : { text: _('Forgot password?'), onClick: (e) => { e.preventDefault(); setView('forgot'); setError(null); } }}
-                 revealLabel={_('Show password')} hideLabel={_('Hide password')} />
-          {isRegister && <Input label={_('First Name')} name="first_name" placeholder={_('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
-          {isRegister && <Input label={_('Last Name')} name="last_name" placeholder={_('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+        <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
+          <div className="sefaria-auth-fields">
+            <Input label={dir === 'rtl' ? _('Auth Email') : _('Email Address')} type="email" name="email"
+                   dir={dir} inputDir="ltr" autoComplete="email"
+                   placeholder="you@example.com" value={fields.email} onChange={setField('email')}
+                   onFocus={isRegister ? startRegistration : undefined} />
+            <Input label={dir === 'rtl' ? _('Auth Password') : _('Password')} type="password" name="password"
+                   dir={dir} inputDir="ltr"
+                   autoComplete={isRegister ? 'new-password' : 'current-password'}
+                   value={fields.password} onChange={setField('password')}
+                   onFocus={isRegister ? startRegistration : undefined}
+                   trailingLink={isRegister ? null : { text: dir === 'rtl' ? _('Auth Forgot password?') : _('Forgot password?'), onClick: (e) => { e.preventDefault(); setView('forgot'); setError(null); } }}
+                   revealLabel={_('Show password')} hideLabel={_('Hide password')} />
+            {isRegister && <Input dir={dir} label={_('First Name')} name="first_name" placeholder={_('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
+            {isRegister && <Input dir={dir} label={_('Last Name')} name="last_name" placeholder={_('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+          </div>
           {isRegister && (
             <Captcha error={captchaError}>
               <div id="auth-captcha-slot" />
@@ -523,8 +544,8 @@ const AuthPage = ({
           <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
             <span>{isRegister ? _('Create Account') : _('Sign In')}</span>
           </Button>
+          {legal}
         </form>
-        {legal}
       </AuthCard>
     );
   };
@@ -533,8 +554,9 @@ const AuthPage = ({
     <AuthCard dir={dir} onBack={() => { setView('email'); setError(null); }} backLabel={_('Back')}
       heading={_('Forgot Password?')}>
       {errorBanner}
-      <form className="sefaria-auth-stack" onSubmit={submitForgot}>
-        <Input label={_('Email Address')} type="email" name="email" dir="ltr"
+      <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
+        <Input label={dir === 'rtl' ? _('Auth Email') : _('Email Address')} type="email" name="email"
+               dir={dir} inputDir="ltr"
                value={fields.email} onChange={setField('email')} />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
           <span>{_('Send Reset Link')}</span>

@@ -9,7 +9,7 @@
 .sefaria-input {
   display: flex;
   flex-direction: column;
-  gap: var(--sef-space-1);
+  gap: var(--sef-space-2);
   width: 100%;
   font-family: var(--sef-font-en);
 }
@@ -50,10 +50,10 @@
 .sefaria-input-control {
   width: 100%;
   box-sizing: border-box;
-  height: 44px;
-  padding: 0 var(--sef-space-3);
+  height: 45px;
+  padding: 0 var(--sef-space-4);
   border: var(--sef-stroke) solid var(--sef-border-default);
-  border-radius: var(--sef-radius);
+  border-radius: 4px;
   background: var(--sef-surface);
   color: var(--sef-text-primary);
   font-family: inherit;
@@ -116,7 +116,6 @@
   display: flex;
   align-items: center;
   gap: var(--sef-space-1);
-  margin-top: var(--sef-space-1);
   color: var(--sef-error);
   font-size: var(--sef-font-size-error);
   line-height: 1.3;
@@ -237,7 +236,7 @@ button.sefaria-common-button.auth-primary:disabled * {
 .sefaria-divider {
   display: flex;
   align-items: center;
-  gap: var(--sef-space-3);
+  gap: var(--sef-space-1);
   color: var(--sef-text-muted);
   font-size: var(--sef-font-size-label);
 }
@@ -252,9 +251,9 @@ button.sefaria-common-button.auth-primary:disabled * {
 /* ===================== Legal text (ToS / Privacy) ===================== */
 .sefaria-legal-text {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--sef-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--sef-text-primary);
   text-align: center;
 }
 .sefaria-legal-text a {
@@ -263,13 +262,16 @@ button.sefaria-common-button.auth-primary:disabled * {
 }
 
 /* ===================== Auth page (navy source-connections background) ===================== */
+body.auth-page-body #content {
+  padding-top: 60px;
+}
 .sefaria-auth-page {
   box-sizing: border-box;
   min-height: calc(100vh - 60px); /* viewport minus the site header */
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: var(--sef-space-6);
+  padding: 56px var(--sef-space-6);
   background-color: var(--sef-action-primary); /* fallback while the image loads */
   background-image: url('/static/img/auth/auth-bg-desktop.png');
   background-size: cover;
@@ -279,7 +281,7 @@ button.sefaria-common-button.auth-primary:disabled * {
 @media (max-width: 842px) {
   .sefaria-auth-page {
     padding: 0;
-    min-height: calc(100vh - 50px);
+    min-height: calc(100vh - 60px);
     /* mobile asset is the 180°-rotated version — waves sit at the top */
     background-image: url('/static/img/auth/auth-bg-mobile.png');
     background-position: center top;
@@ -291,23 +293,30 @@ button.sefaria-common-button.auth-primary:disabled * {
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  max-width: 460px;
+  max-width: 640px;
   background: var(--sef-surface);
   border-radius: 16px;
-  padding: var(--sef-space-12);
+  padding: 56px var(--sef-space-12);
   display: flex;
   flex-direction: column;
-  gap: var(--sef-space-6);
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
   font-family: var(--sef-font-en);
 }
+.sefaria-auth-card--choose { min-height: 535px; }
+.sefaria-auth-card--login-email { min-height: 538px; }
+.sefaria-auth-card--register-email { min-height: 823px; }
 .sefaria-auth-card[dir="rtl"] { font-family: var(--sef-font-he); }
 
 .sefaria-auth-card-back {
   position: absolute;
-  inset-inline-start: var(--sef-space-6);
-  top: var(--sef-space-6);
+  inset-inline-start: 32px;
+  top: 32px;
   display: inline-flex;
-  padding: 0;
+  width: 48px;
+  height: 48px;
+  padding: var(--sef-space-3);
   margin: 0;
   background: none;
   border: none;
@@ -315,7 +324,16 @@ button.sefaria-common-button.auth-primary:disabled * {
   color: var(--sef-text-primary);
 }
 .sefaria-auth-card-back img { width: 24px; height: 24px; display: block; }
+.sefaria-auth-card[dir="rtl"] .sefaria-auth-card-back img { transform: scaleX(-1); }
 
+.sefaria-auth-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sef-space-3);
+  width: 100%;
+  max-width: 348px;
+}
 .sefaria-auth-card-heading {
   margin: 0;
   font-family: var(--english-serif-font-family, Georgia, "Times New Roman", serif);
@@ -325,7 +343,9 @@ button.sefaria-common-button.auth-primary:disabled * {
   color: var(--sef-text-primary);
 }
 .sefaria-auth-card[dir="rtl"] .sefaria-auth-card-heading {
-  font-family: var(--hebrew-serif-font-family, "Frank Ruhl Libre", serif);
+  font-family: var(--sef-font-he);
+  font-weight: 500;
+  line-height: 1;
 }
 .sefaria-auth-card-sub {
   text-align: center;
@@ -333,6 +353,10 @@ button.sefaria-common-button.auth-primary:disabled * {
   color: var(--sef-text-primary);
 }
 .sefaria-auth-card-sub a { color: var(--sef-text-link); text-decoration: underline; }
+.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
+  width: 100%;
+  max-width: 348px;
+}
 
 /* vertical stack of buttons / fields inside the card */
 .sefaria-auth-stack {
@@ -340,10 +364,36 @@ button.sefaria-common-button.auth-primary:disabled * {
   flex-direction: column;
   gap: var(--sef-space-3);
 }
+.sefaria-auth-choose,
+.sefaria-auth-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-6);
+}
+.sefaria-auth-sso-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-6);
+}
+.sefaria-auth-provider-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sef-space-4);
+}
+.sefaria-auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.sefaria-auth-card[dir="rtl"] button.sefaria-common-button.auth-primary {
+  font-family: var(--sef-font-he);
+  font-weight: 700;
+}
 
 @media (max-width: 842px) {
   .sefaria-auth-card {
     max-width: 100%;
+    min-height: 0;
     border-radius: 0;
     padding: var(--sef-space-6);
   }

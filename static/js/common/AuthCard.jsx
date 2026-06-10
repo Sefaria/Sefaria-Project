@@ -15,15 +15,19 @@ import PropTypes from 'prop-types';
  * @param backLabel aria-label for the back button (localized)
  * @param dir      "ltr" | "rtl"
  */
-const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', dir, children }) => (
-  <div className="sefaria-auth-card" dir={dir}>
+const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', dir, className = '', children }) => (
+  <div className={`sefaria-auth-card ${className}`.trim()} dir={dir}>
     {onBack && (
       <button type="button" className="sefaria-auth-card-back" onClick={onBack} aria-label={backLabel}>
         <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
       </button>
     )}
-    {heading && <h1 className="sefaria-auth-card-heading">{heading}</h1>}
-    {sub && <div className="sefaria-auth-card-sub">{sub}</div>}
+    {(heading || sub) && (
+      <div className="sefaria-auth-card-header">
+        {heading && <h1 className="sefaria-auth-card-heading">{heading}</h1>}
+        {sub && <div className="sefaria-auth-card-sub">{sub}</div>}
+      </div>
+    )}
     {children}
   </div>
 );
@@ -34,6 +38,7 @@ AuthCard.propTypes = {
   onBack: PropTypes.func,
   backLabel: PropTypes.string,
   dir: PropTypes.oneOf(['ltr', 'rtl']),
+  className: PropTypes.string,
   children: PropTypes.node,
 };
 

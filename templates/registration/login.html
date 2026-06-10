@@ -5,6 +5,8 @@
 
 {% block meta_description %}{% meta_desc %}{% trans "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users." %}{% endmeta_desc %}{% endblock %}
 
+{% block bodyclasses %}auth-page-body{% endblock %}
+
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/auth-components.css' %}">

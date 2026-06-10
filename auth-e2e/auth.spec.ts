@@ -26,8 +26,14 @@ test.describe('Auth page (live) — spec 1602', () => {
 
   test('content-swap to email login keeps the URL and shows the form', async ({ page }) => {
     await page.goto('/login');
+    const headerBox = await page.locator('#s2.headerOnly').boundingBox();
+    const chooseCardBox = await page.locator('.sefaria-auth-card').boundingBox();
+    expect(headerBox && chooseCardBox && chooseCardBox.y - headerBox.height).toBe(56);
+
     await page.getByRole('button', { name: 'Continue with Email' }).click();
     await expect(page.locator('input[name="email"]')).toBeVisible();
+    const emailCardBox = await page.locator('.sefaria-auth-card').boundingBox();
+    expect(headerBox && emailCardBox && emailCardBox.y - headerBox.height).toBe(56);
     await expect(page.locator('input[name="password"]')).toBeVisible();
     await expect(page.locator('.sefaria-input-trailingLink')).toHaveText('Forgot password?');
     await expect(page.locator('button.auth-primary')).toContainText('Sign In');
@@ -68,7 +74,13 @@ test.describe('Auth page (live) — spec 1602', () => {
 
   test('register email form shows the fields in Figma order', async ({ page }) => {
     await page.goto('/register');
+    const headerBox = await page.locator('#s2.headerOnly').boundingBox();
+    const chooseCardBox = await page.locator('.sefaria-auth-card').boundingBox();
+    expect(headerBox && chooseCardBox && chooseCardBox.y - headerBox.height).toBe(56);
+
     await page.getByRole('button', { name: 'Continue with Email' }).click();
+    const emailCardBox = await page.locator('.sefaria-auth-card').boundingBox();
+    expect(headerBox && emailCardBox && emailCardBox.y - headerBox.height).toBe(56);
     await expect(page.locator('.sefaria-input-label')).toHaveText([
       'Email Address', 'Password', 'First Name', 'Last Name',
     ]);

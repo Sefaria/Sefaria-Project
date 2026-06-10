@@ -80,7 +80,7 @@ Visiting `/login` while logged in shows the existing "already logged in as … /
 - [ ] One Tap suppressed on `/login` and `/register`, present elsewhere.
 - [ ] Inline errors (incl. captcha) match Figma; native browser tooltips gone.
 - [ ] SSO collision strings show with working deep links.
-- [ ] Full EN/HE via the existing interface-strings mechanism; RTL correct, including LTR email/password fields in Hebrew.
+- [x] Full EN/HE via the existing interface-strings mechanism. Hebrew uses the Figma `Hebrew Examples` typography and wording, keeps labels/errors/navigation RTL while email/password values remain LTR, mirrors the back arrow to the top-right, and preserves provider icon order.
 - [ ] Playwright covers the new flows; QA handoff to Cyril complete.
 
 ---

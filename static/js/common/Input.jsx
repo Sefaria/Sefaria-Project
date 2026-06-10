@@ -25,7 +25,8 @@ import PropTypes from 'prop-types';
  * @param error          error message string, or null/empty for no error
  * @param disabled       disables the field
  * @param required       marks the field required
- * @param dir            "ltr" | "rtl" — set "ltr" for email/password in a Hebrew UI
+ * @param dir            "ltr" | "rtl" — direction for labels, links, and errors
+ * @param inputDir       "ltr" | "rtl" — direction for the control value only
  * @param autoComplete   autocomplete hint
  * @param trailingLink   { text, href?, onClick? } — the Figma "with link" variant (e.g. "Forgot password?")
  * @param revealLabel    aria-label for the show-password control (localized)
@@ -43,6 +44,7 @@ const Input = ({
   disabled = false,
   required = false,
   dir,
+  inputDir,
   autoComplete,
   trailingLink = null,
   revealLabel = 'Show password',
@@ -94,7 +96,7 @@ const Input = ({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
-          dir={dir}
+          dir={inputDir || dir}
           autoComplete={autoComplete}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={errorId}
@@ -135,6 +137,7 @@ Input.propTypes = {
   disabled: PropTypes.bool,
   required: PropTypes.bool,
   dir: PropTypes.oneOf(['ltr', 'rtl']),
+  inputDir: PropTypes.oneOf(['ltr', 'rtl']),
   autoComplete: PropTypes.string,
   trailingLink: PropTypes.shape({
     text: PropTypes.string.isRequired,

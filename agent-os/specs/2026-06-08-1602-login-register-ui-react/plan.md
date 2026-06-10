@@ -83,7 +83,7 @@ Reimplement `/login`, `/register`, and password-reset as a React app mounted via
 ### Task 11: Wire all copy through the existing interface-strings mechanism
 - Use `Sefaria._()` / `InterfaceText` throughout (the same way the rest of the React app does); no hard-coded literals.
 - Add new source strings (auth copy from Penina's doc + SSO-collision/captcha/reset strings) the existing way interface strings are added. **No Weblate pipeline work.**
-- Verify HE + RTL, including LTR email/password fields in Hebrew.
+- Verify HE + RTL against Figma `Hebrew Examples` (`187:76018`): Heebo typography, RTL labels and links, LTR email/password controls, provider icons on the right, and a mirrored top-right back arrow.
 
 ---
 
