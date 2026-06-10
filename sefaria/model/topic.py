@@ -39,6 +39,14 @@ class SubCatBookSet:
         return hash(self.sub_cat_path)
 
 
+def _localized_category_title(name, lang):
+    """Localized display title for a category whose shared name is `name`."""
+    term = Term().load({"name": name})
+    if term:
+        return term.get_primary_title(lang) or name
+    return name
+
+
 class AuthorWorksAggregation(ABC):
     @abstractmethod
     def get_description(self, lang):
@@ -50,6 +58,12 @@ class AuthorWorksAggregation(ABC):
 
     @abstractmethod
     def get_url(self):
+        pass
+
+    @abstractmethod
+    def get_category_label(self, lang):
+        """A short category label for display: a single book's own category, or a
+        category aggregation's parent category. None when none is available."""
         pass
 
 
@@ -66,6 +80,12 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
 
     def get_url(self):
         return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
+
+    def get_category_label(self, lang):
+        cats = getattr(self._index, 'categories', None)
+        if not cats:
+            return None
+        return _localized_category_title(cats[0], lang)  # the book's top-level category
 
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
@@ -88,6 +108,12 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
 
     def get_url(self):
         return f'/texts/{"/".join(self._index_category.path)}'
+
+    def get_category_label(self, lang):
+        path = self._index_category.path
+        if not path:
+            return None
+        return _localized_category_title(path[0], lang)  # the top-level category
 
 
 class AuthorAggregationFactory:
@@ -787,7 +813,9 @@ class AuthorTopic(PersonTopic):
         for agg in aggregations:
             unique_urls.append({"url": agg.get_url(),
                                 "title": {"en": agg.get_title('en'), "he": agg.get_title('he')},
-                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')}})
+                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')},
+                                "isCategory": isinstance(agg, AuthorCategoryAggregation),
+                                "category": {"en": agg.get_category_label('en'), "he": agg.get_category_label('he')}})
         return unique_urls
 
     @staticmethod

@@ -4350,6 +4350,47 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result {
   padding-bottom: 20px;
 }
+.searchPOCResults .result {
+  margin-bottom: 20px;
+}
+.searchPOCLangFilter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.searchPOCLangLabel {
+  font-size: 0.85em;
+  color: #666;
+  margin-right: 4px;
+}
+.searchPOCLangPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #444;
+  font-size: 0.82em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.searchPOCLangPill:hover {
+  border-color: #999;
+  background: #f5f5f5;
+}
+.searchPOCLangPill.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+.searchPOCLangCount {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
 .searchContent .result a:hover,
 .sidebarSearch .result a:hover {
   text-decoration: none;

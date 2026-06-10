@@ -31,7 +31,7 @@ import django
 django.setup()
 
 from sefaria.model import *
-from sefaria.search import index_all, get_new_and_current_index_names, index_client, es_client, TextIndexer, setup_logging
+from sefaria.search import index_all, index_all_of_type, get_new_and_current_index_names, index_client, es_client, TextIndexer, setup_logging
 from sefaria.local_settings import SEFARIA_BOT_API_KEY
 from sefaria.pagesheetrank import update_pagesheetrank
 
@@ -283,6 +283,25 @@ def run_index_all(result: ReindexingResult) -> bool:
         return False
 
 
+def run_index_entities(result: ReindexingResult) -> bool:
+    """Rebuild the entity indexes (topic and book) with error handling.
+
+    Each type is reindexed independently via index_all_of_type(), which handles its
+    own blue-green index creation and alias swap. A failure in one type is recorded
+    but does not prevent the other from running.
+    """
+    logger.debug("Starting entity index rebuild (topic, book)")
+    all_ok = True
+    for entity_type in ("topic", "book"):
+        try:
+            index_all_of_type(entity_type)
+            result.record_step_success(f"index_{entity_type}", f"{entity_type} index rebuilt successfully")
+        except Exception as e:
+            result.record_step_failure(f"index_{entity_type}", str(e))
+            all_ok = False
+    return all_ok
+
+
 def should_retry_with_backoff(attempt: int, max_retries: int, context: str = "") -> bool:
     """
     Sleep with backoff and determine if operation should be retried.
@@ -433,10 +452,18 @@ def main():
     if not run_index_all(result):
         # This is critical - but we still try the sheets API
         result.add_warning("Full index rebuild failed")
-    
-    # Step 3: Catch-up sheets by timestamp
+
+    # Step 3: Entity indexes (topic, book)
     logger.info(SUBSECTION_LINE)
-    logger.info("STEP 3: Sheets Catch-up by Timestamp")
+    logger.info("STEP 3: Entity Index Rebuild (topic, book)")
+    logger.info(SUBSECTION_LINE)
+
+    if not run_index_entities(result):
+        result.add_warning("Entity index rebuild (topic/book) failed")
+
+    # Step 4: Catch-up sheets by timestamp
+    logger.info(SUBSECTION_LINE)
+    logger.info("STEP 4: Sheets Catch-up by Timestamp")
     logger.info(SUBSECTION_LINE)
     
     run_sheets_by_timestamp(last_sheet_timestamp, result)
