@@ -33,7 +33,7 @@ spec:
                 memory: 15Gi
             env:
             - name: SEARCH_HOST
-              value: "elasticsearch-1b-es-http.elasticsearch.svc"
+              value: "{{ .Values.nginx.SEARCH_HOST }}"
             - name: SEARCH_PORT
               value: "9200"
             - name: SEARCH_PATH
