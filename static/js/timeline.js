@@ -318,6 +318,22 @@ function computeGeometry(model) {
         const bundleRight = Math.max(...group.map(m => m.verticalX != null ? m.verticalX : -Infinity));
         group.forEach(m => { m.labelX = bundleRight + 14; });
     }
+
+    // Every fork and merge contributes a known vertical segment; collect them
+    // so labels (e.g. the hub's) can be placed on the less crowded side.
+    model.obstacles = [];
+    for (const line of model.rows) {
+        const L = lines[line];
+        const parent = lines[lineParent(line)];
+        if (L.forkPath && parent) {
+            model.obstacles.push({x: L.verticalX, y0: Math.min(parent.y, L.y), y1: Math.max(parent.y, L.y)});
+        }
+        const spec = TRACK_SPECS[line];
+        if (L.mergePath && spec && lines[spec.merge]) {
+            const T = lines[spec.merge];
+            model.obstacles.push({x: L.endX + BEND, y0: Math.min(L.y, T.y), y1: Math.max(L.y, T.y)});
+        }
+    }
 }
 
 function forkPath(x0, fromY, toY, span) {
@@ -454,11 +470,21 @@ function drawHub(model, net) {
     hub.append("circle")
         .attr("cx", x).attr("cy", y).attr("r", 5.5)
         .attr("fill", "none").attr("stroke", lineColor(model.hubLine)).attr("stroke-width", 3);
+    // Place the hub label on whichever side of the line is less crowded:
+    // count fork/merge verticals crossing the label box, plus (below only)
+    // the hub line's station labels.
+    const refText = isHebrew() && net.heRef ? net.heRef : net.ref;
+    const halfW = refText.length * 3.9 + 8;
+    const lx = Math.min(Math.max(x, halfW + 10), w - halfW - 10);
+    const crowding = (boxY0, boxY1, includeStations) =>
+        (model.obstacles || []).filter(o => o.x > lx - halfW && o.x < lx + halfW && o.y0 < boxY1 && o.y1 > boxY0).length
+        + (includeStations ? L.stations.filter(st => Math.abs(st.x - lx) < halfW + 40).length : 0);
+    const labelAbove = crowding(y - 38, y - 20, false) < crowding(y + 20, y + 38, true);
     hub.append("text")
-        .attr("x", x).attr("y", y + 32)
+        .attr("x", lx).attr("y", labelAbove ? y - 24 : y + 32)
         .attr("text-anchor", "middle").attr("fill", "#333")
         .attr("font-size", 13).attr("font-weight", "bold")
-        .text(isHebrew() && net.heRef ? net.heRef : net.ref);
+        .text(refText);
     hub.style("cursor", "pointer")
         .on("click", () => showTextPopup(net.ref, hubElem.getBoundingClientRect()));
     hubElem = hub.node();
@@ -667,8 +693,8 @@ function setupPopup(options) {
         "hebrew": "קרא עוד ›"
     }[options.interfaceLang];
     const centerMapText = {
-        "english": "Center Map ⊙",
-        "hebrew": "מרכז מפה ⊙"
+        "english": "Center This ⊙",
+        "hebrew": "מרכז כאן ⊙"
     }[options.interfaceLang];
     const poweredByText = {
         "english": "Powered by",
