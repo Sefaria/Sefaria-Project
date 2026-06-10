@@ -37,8 +37,8 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
     return currentSessionCounter;
   }
   const nextSessionCounter = currentSessionCounter + 1;
-  localStorage.setItem(storageKeys.sessionCounter, String(nextSessionCounter));
-  localStorage.setItem(storageKeys.lastSessionAtSec, String(nowSec));
+  localStorage.setItem(storageKeys.sessionCounter, nextSessionCounter);
+  localStorage.setItem(storageKeys.lastSessionAtSec, nowSec);
   return nextSessionCounter;
 };
 
@@ -101,7 +101,7 @@ const SiteWideBanner = ({
   learnMoreText,
   cookieName,
   gtagParams,
-  useBackoffDismissal,
+  enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
 }) => {
@@ -109,10 +109,10 @@ const SiteWideBanner = ({
   const storageKeys = getPromoStorageKeys(cookieName);
   const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
   const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
-  if (useBackoffDismissal) {
+  if (enableBackoffDismissal) {
     migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
   }
-  const promoSessionCounter = useBackoffDismissal
+  const promoSessionCounter = enableBackoffDismissal
     ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
     : null;
 
@@ -125,7 +125,7 @@ const SiteWideBanner = ({
   }, [cookieName, gtagParams]);
 
   const isDismissed = () => {
-    if (useBackoffDismissal) {
+    if (enableBackoffDismissal) {
       let backoffState = {};
       try {
         backoffState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
@@ -152,7 +152,7 @@ const SiteWideBanner = ({
 
   const closeBanner = () => {
     setBannerVisibility("hidden");
-    if (useBackoffDismissal) {
+    if (enableBackoffDismissal) {
       let previousState = {};
       try {
         previousState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
@@ -188,7 +188,7 @@ const SiteWideBanner = ({
         </div>
         <div className="siteWideBannerButtonBox">
           {actionButtons(trackBannerInteraction)}
-          {useBackoffDismissal && (
+          {enableBackoffDismissal && (
             <a
               className="button small siteWideBannerMaybeLater"
               onClick={closeBanner}
@@ -207,7 +207,7 @@ const SiteWideBanner = ({
             {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
           </a>
         )}
-        {!useBackoffDismissal && (
+        {!enableBackoffDismissal && (
           <button
             className="siteWideBannerClose"
             onClick={closeBanner}
@@ -229,7 +229,7 @@ SiteWideBanner.propTypes = {
   learnMoreText: PropTypes.string,
   cookieName: PropTypes.string.isRequired,
   gtagParams: PropTypes.object.isRequired,
-  useBackoffDismissal: PropTypes.bool,
+  enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
@@ -280,7 +280,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       </>)}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
-      useBackoffDismissal={true}
+      enableBackoffDismissal={true}
       nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
       promoSessionLengthSeconds={promoSessionLengthSeconds}
     />
