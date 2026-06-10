@@ -24,8 +24,7 @@ def _make_request(factory, path, active_module, params=None):
 
 
 def test_voices_sidebar_page_redirects_to_library(factory):
-    library_domain = reader_views.DOMAIN_MODULES.get("en", {}).get("library", "")
-    request = _make_request(factory, "/about", VOICES_MODULE)
+    library_domain = reader_views.DOMAIN_MODULES.get("en", {}).get(LIBRARY_MODULE, "")
     response = reader_views.serve_static(request, "about", by_lang=True)
     assert response.status_code == 301
     assert library_domain in response["Location"]
