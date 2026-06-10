@@ -4874,6 +4874,19 @@ def search_poc_api(request):
         raw = entity_search(SEARCH_INDEX_NAME_BOOK, fields + ["author_names^2"], [])
         return [{"id": h["_id"], "score": h["_score"], **h["_source"]} for h in raw]
 
+    def query_matches_author_title(author_hit):
+        # The author search matches on descriptions/variants too, so a book-title
+        # query like "Genesis" can return an author who merely wrote *about* Genesis
+        # (e.g. Avivah Gottlieb Zornberg). Only treat the query as resolving to an
+        # author when it actually matches one of the author's own titles — title_en,
+        # title_he, or a titleVariant — normalized. Otherwise fall back to the flat
+        # book search so the book itself surfaces.
+        src = author_hit.get("_source", {})
+        q_norm = query.strip().lower()
+        candidates = [src.get("title_en") or "", src.get("title_he") or ""]
+        candidates += src.get("titleVariants") or []
+        return any(q_norm == (c or "").strip().lower() for c in candidates)
+
     if entity_type == "book":
         # Books tab: if the query resolves to an author, return that author's works
         # aggregated by category (so e.g. the 88 Mishneh Torah volumes collapse to a
@@ -4882,7 +4895,7 @@ def search_poc_api(request):
         # search over the book index.
         author_hits = entity_search(
             SEARCH_INDEX_NAME_TOPIC, fields, [{"term": {"subtype": "author"}}], size=1)
-        if author_hits:
+        if author_hits and query_matches_author_title(author_hits[0]):
             slug = author_hits[0]["_source"].get("slug")
             author = AuthorTopic.init(slug) if slug else None
             if author and isinstance(author, AuthorTopic):
