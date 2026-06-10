@@ -372,7 +372,10 @@ class LinkNetwork(object):
         return None if cat in self.EXCLUDED_CATEGORIES else cat
 
     def stop_key(self, index):
-        # Distinct stops within a line, e.g. Bavli vs. Yerushalmi on the Talmud line.
+        # Distinct stops within a line, e.g. Bavli vs. Yerushalmi on the Talmud
+        # line, or Second Temple works riding the Tanakh line.
+        if index.categories[0] == "Second Temple":
+            return "Second Temple"
         if index.categories[0] == "Talmud" and len(index.categories) > 1 \
                 and index.categories[1] in ("Bavli", "Yerushalmi"):
             return index.categories[1]

@@ -403,12 +403,14 @@ function drawTracks(model) {
         if (L.mergePath) {
             g.append("path").attr("d", L.mergePath).attr("stroke", color).attr("stroke-width", width);
         }
-        // Label sits just right of the elbow that starts the line (or the line
-        // start for trunks and stubs), pushed further right when a merge
-        // descends through that zone.
+        // Label sits just right of the elbow that starts the line, pushed
+        // further right when a merge descends through that zone.  Trunks and
+        // stubs have no elbow, so their label sits higher, clear of a station
+        // that may sit right at the line start.
         const labelX = Math.max(L.labelX != null ? L.labelX : L.startX + 4, L.labelMinX || 0);
+        const labelY = L.labelX != null ? L.y - 11 : L.y - 24;
         svg.append("text")
-            .attr("x", labelX).attr("y", L.y - 11).attr("text-anchor", "start")
+            .attr("x", labelX).attr("y", labelY).attr("text-anchor", "start")
             .attr("fill", color).attr("font-size", 12).attr("font-weight", "bold")
             .text(lineLabel(line));
     }
@@ -427,10 +429,11 @@ function drawStations(model) {
                 .attr("fill", "#fff")
                 .attr("stroke", lineColor(line))
                 .attr("stroke-width", isCommentaryLine(line) ? 2.5 : 3.5);
+            const name = shortStationName(st);
             station.append("text")
                 .attr("x", x).attr("y", L.y + r + 14 + (st.labelTier ? 13 : 0))
                 .attr("text-anchor", "middle").attr("fill", "#777").attr("font-size", 11)
-                .text(shortStationName(st) + " · " + st.works.length);
+                .text(name ? name + " · " + st.works.length : st.works.length);
             station.on("click", () => showStationPopup(st, station.node().getBoundingClientRect()));
         }
     }
@@ -488,15 +491,17 @@ function stationName(st) {
     if (st.works.every(w => w.work === st.works[0].work)) {
         return isHebrew() && st.works[0].heWork ? st.works[0].heWork : st.works[0].work;
     }
+    if (st.era === 0) return null;  // "Early Biblical" is silly; the line name suffices
     const era = ERAS[st.era];
     if (isHebrew()) return era.he;
-    const start = st.era === 0 ? SCALE_START : ERAS[st.era - 1].end;
+    const start = ERAS[st.era - 1].end;
     const end = st.era === ERAS.length - 1 ? SCALE_END : era.end;
     return (st.year < (start + end) / 2 ? "Early " : "Late ") + era.en;
 }
 
 function shortStationName(st) {
     const name = stationName(st);
+    if (!name) return null;
     return name.length > 20 ? name.slice(0, 19) + "…" : name;
 }
 
@@ -742,7 +747,8 @@ function showStationPopup(station, rect) {
     clearTextBox();
 
     linkerHeader.style["border-top-color"] = Sefaria.palette.categoryColor(baseCategory(station.line));
-    enTitle.textContent = lineLabel(station.line) + " · " + stationName(station);
+    const name = stationName(station);
+    enTitle.textContent = lineLabel(station.line) + (name ? " · " + name : "");
     heTitle.textContent = "";
     linkerFooter.style.display = "none";
 
