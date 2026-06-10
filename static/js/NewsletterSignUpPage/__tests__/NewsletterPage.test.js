@@ -124,19 +124,17 @@ const pageText = () => container.textContent;
 const expectSupplementalContentVisible = () => {
   expect(pageText()).toContain("Weekly Parashah Study Companion");
   expect(pageText()).toContain("Timeless Topics");
-  expect(pageText()).toContain("What the people are saying about our emails...");
+  expect(pageText()).toContain("What people are saying about our emails...");
 };
 
 const expectSupplementalContentHidden = () => {
   expect(pageText()).not.toContain("Weekly Parashah Study Companion");
   expect(pageText()).not.toContain("Timeless Topics");
-  expect(pageText()).not.toContain("What the people are saying about our emails...");
+  expect(pageText()).not.toContain("What people are saying about our emails...");
 };
 
-const expectFooterVisible = () => {
-  expect(pageText()).toContain("Donate");
-  expect(pageText()).toContain("Leave a Testimonial");
-  expect(pageText()).toContain("Claim Your Letter in the Torah");
+const expectHeaderVisible = () => {
+  expect(pageText()).toContain("Stay Connected");
 };
 
 // ============================================================================
@@ -144,32 +142,32 @@ const expectFooterVisible = () => {
 // ============================================================================
 
 describe("NewsletterPage", () => {
-  it("shows supplemental content and persistent footer on initial render", () => {
+  it("shows supplemental content and header on initial render", () => {
     renderPage();
 
     expectSupplementalContentVisible();
-    expectFooterVisible();
+    expectHeaderVisible();
   });
 
-  it("hides supplemental content and keeps footer visible on confirmation stage", () => {
+  it("hides supplemental content and keeps header visible on confirmation stage", () => {
     renderPage();
 
     clickByTestId("set-confirmation");
 
     expectSupplementalContentHidden();
-    expectFooterVisible();
+    expectHeaderVisible();
   });
 
-  it("keeps supplemental content hidden and footer visible on success stage", () => {
+  it("keeps supplemental content hidden and header visible on success stage", () => {
     renderPage();
 
     clickByTestId("set-success");
 
     expectSupplementalContentHidden();
-    expectFooterVisible();
+    expectHeaderVisible();
   });
 
-  it("does not render email examples in Hebrew but keeps testimonials and footer visible", () => {
+  it("does not render email examples in Hebrew but keeps testimonials and header visible", () => {
     Sefaria.interfaceLang = "hebrew";
 
     renderPage();
@@ -177,7 +175,7 @@ describe("NewsletterPage", () => {
     expect(pageText()).not.toContain("Learn about our weekly study emails...");
     expect(pageText()).not.toContain("Weekly Parashah Study Companion");
     expect(pageText()).not.toContain("Timeless Topics");
-    expect(pageText()).toContain("תגובות לאימיילים של ספריא...");
-    expectFooterVisible();
+    expect(pageText()).toContain("מה אנשים אומרים על המיילים שלנו...");
+    expectHeaderVisible();
   });
 });
