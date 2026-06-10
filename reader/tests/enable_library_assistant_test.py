@@ -88,5 +88,29 @@ class EnableLibraryAssistantViewTest(TestCase):
         self.assertTrue(
             UserExperimentSettings.objects.filter(user=self.user, experiments=True).exists()
         )
+        self.assertEqual(UserExperimentSettings.objects.filter(user=self.user).count(), 1)
         # No state change on the second visit → no duplicate CRM webhook.
         mock_dispatch.assert_not_called()
+
+    def test_protocol_relative_next_falls_back_to_home(self, _mock_dispatch):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url, {"next": "//evil.example.com/phish"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/")
+
+    def test_welcome_param_appended_to_existing_query_string(self, _mock_dispatch):
+        self.client.force_login(self.user)
+        response = self.client.get(self.url, {"next": "/Genesis.1?ref=promo", "welcome": "to-sefaria"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/Genesis.1?ref=promo&welcome=to-sefaria")
+
+    def test_cross_site_request_is_not_enrolled(self, _mock_dispatch):
+        # A cross-site subresource load must not silently enroll a logged-in user.
+        self.client.force_login(self.user)
+        response = self.client.get(self.url, {"next": "/Genesis.1"}, HTTP_SEC_FETCH_SITE="cross-site")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/Genesis.1")
+        self.assertFalse(UserExperimentSettings.objects.filter(user=self.user).exists())
