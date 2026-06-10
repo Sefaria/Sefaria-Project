@@ -75,7 +75,7 @@ const MAIN_STROKE = 6;
 const COMMENTARY_STROKE = 3;
 const MAX_STATION_R = 16;
 
-let w, colW, svg, lang, currentNet, hubElem,
+let w, colW, svg, lang, currentNet, hubElem, currentPopupRef,
     popUpElem, textBox, heTitle, enTitle, heElems, enElems, linkerHeader, linkerFooter;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -430,8 +430,12 @@ function drawStations(model) {
                 .attr("stroke", lineColor(line))
                 .attr("stroke-width", isCommentaryLine(line) ? 2.5 : 3.5);
             const name = shortStationName(st);
+            // Tier-1 labels sit at a fixed depth below the line (not relative to
+            // their own circle), so labels of different-sized neighbors don't land
+            // at nearly the same height and collide.
+            const labelY = st.labelTier ? L.y + MAX_STATION_R + 27 : L.y + r + 14;
             station.append("text")
-                .attr("x", x).attr("y", L.y + r + 14 + (st.labelTier ? 13 : 0))
+                .attr("x", x).attr("y", labelY)
                 .attr("text-anchor", "middle").attr("fill", "#777").attr("font-size", 11)
                 .text(name ? name + " · " + st.works.length : st.works.length);
             station.on("click", () => showStationPopup(st, station.node().getBoundingClientRect()));
@@ -625,6 +629,11 @@ function setupPopup(options) {
         .sefaria-read-more-button a {
             text-decoration: none;
             color: #666;
+            cursor: pointer;
+        }
+        .sefaria-buttons {
+            display: flex;
+            gap: 8px;
         }
         #sefaria-linker-header {
             position: relative;
@@ -657,6 +666,10 @@ function setupPopup(options) {
         "english": "Read More ›",
         "hebrew": "קרא עוד ›"
     }[options.interfaceLang];
+    const centerMapText = {
+        "english": "Center Map ⊙",
+        "hebrew": "מרכז מפה ⊙"
+    }[options.interfaceLang];
     const poweredByText = {
         "english": "Powered by",
         "hebrew": '<center>מונע ע"י<br></center>'
@@ -670,8 +683,13 @@ function setupPopup(options) {
 
         <div class="sefaria-footer">
             <div class="sefaria-powered-by-box">${poweredByText}<div id="sefaria-logo">&nbsp;</div></div>
-            <span class="sefaria-read-more-button">
-                <a class = "sefaria-popup-ref" href = "">${readMoreText}</a>
+            <span class="sefaria-buttons">
+                <span class="sefaria-read-more-button" id="sefaria-center-map">
+                    <a>${centerMapText}</a>
+                </span>
+                <span class="sefaria-read-more-button">
+                    <a class = "sefaria-popup-ref" href = "">${readMoreText}</a>
+                </span>
             </span>
         </div>`;
 
@@ -699,6 +717,9 @@ function setupPopup(options) {
     enElems = popUpElem.querySelectorAll(".en");
 
     popUpElem.querySelector('#sefaria-close').addEventListener('click', hidePopup, false);
+    popUpElem.querySelector('#sefaria-center-map').addEventListener('click', function () {
+        if (currentPopupRef) refocusNetwork(currentPopupRef);
+    }, false);
     popUpElem.addEventListener('keydown', function (e) {
         var key = e.which || e.keyCode;
         if (key === 27) { // 27 is escape
@@ -818,6 +839,12 @@ async function showTextPopup(ref, rect) {
 
     enTitle.textContent = source.ref;
     heTitle.textContent = "";
+
+    // The center-map button re-roots the map on this text; hide it when
+    // this text is already the center.
+    currentPopupRef = source.ref;
+    popUpElem.querySelector('#sefaria-center-map').style.display =
+        (currentNet && currentNet.ref === source.ref) ? "none" : "inline";
 
     if (rect) {
         positionPopup(rect);

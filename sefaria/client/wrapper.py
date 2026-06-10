@@ -430,13 +430,14 @@ class LinkNetwork(object):
         key = (line, self.work_key(index))
         node = self.nodes.get(key)
         if node is None:
+            commentary = line.endswith("/Commentary")
             node = {
                 "work": key[1],
                 "heWork": self.he_work(index, key[1]),
                 "line": line,
-                "stop": self.stop_key(index),
+                "stop": None if commentary else self.stop_key(index),  # commentary stations name like any other
                 "category": line.split("/")[0],
-                "commentary": line.endswith("/Commentary"),
+                "commentary": commentary,
                 "year": year,
                 "direction": "future" if side == "late" else "past",
                 "refs": set(),
