@@ -655,7 +655,7 @@ p.registration-links a:hover{
   text-decoration: underline;
 }
 
-/* SC-44545: login form layout to match Figma 35:425 (desktop) / 35:742 (mobile) */
+/* Login form layout to match Figma 35:425 (desktop) / 35:742 (mobile) */
 #login.registrationContent {
   width: 300px;
   max-width: calc(100% - 32px);
