@@ -22,9 +22,12 @@ if ! git fetch --no-tags origin "${TARGET}" "${SOURCE}" >/dev/null 2>&1; then
 fi
 
 # Map target branch → helmrelease env directory (matches deploy-static.yaml convention)
+# master maps to the staging env (master deploys to staging); used only for the
+# cosmetic rollback-reference lookup on reverse preprod → master back-merges.
 case "$TARGET" in
   preprod) ENV_DIR="preprod" ;;
   prod)    ENV_DIR="prod" ;;
+  master)  ENV_DIR="staging" ;;
   *)       ENV_DIR="$TARGET" ;;
 esac
 
