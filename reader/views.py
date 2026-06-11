@@ -1918,17 +1918,6 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
-def find_holiday_in_hebcal_results(response):
-    for hebcal_holiday in json.loads(response.text)['items']:
-        if hebcal_holiday['category'] != 'holiday':
-            continue
-        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-            if result['type'] == 'Topic':
-                topic = Topic.init(result['key'])
-                if topic:
-                    return topic.contents()
-    return None
-
 @catch_error_as_json
 def table_of_contents_api(request):
     include_authors = bool(int(request.GET.get("include_authors", False)))
