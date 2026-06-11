@@ -641,6 +641,30 @@ export class ResourcePanelPage extends HelperBase {
     await expect(this.panel.locator('.headword').first()).toBeVisible({ timeout: t(15000) });
   }
 
+  /**
+   * Assert the long-pressed/selected word is wrapped in `.queryTextHighlight`
+   * (TextRange.jsx `addHighlights`) within the main reader's Hebrew text, and
+   * rendered with the blue highlight background (s2.css `#D2DCFF`).
+   */
+  async expectWordHighlighted(): Promise<void> {
+    const highlightSpan = this.page.locator('.readerPanelBox:not(.sidebar) .segment .he .queryTextHighlight').first();
+    await expect(highlightSpan).toBeVisible({ timeout: t(10000) });
+    await expect(highlightSpan).toHaveCSS('background-color', 'rgb(210, 220, 255)');
+  }
+
+  /**
+   * Assert no segment in the main reader retains keyboard focus — i.e. the
+   * `.basetext .segment:focus` light-blue background (s2.css) isn't left
+   * showing after a long-press selection. See TextColumn.jsx `handleTouchEnd`,
+   * which blurs the segment after setting selected words.
+   */
+  async expectNoSegmentFocused(): Promise<void> {
+    const focusedSegment = await this.page.evaluate(() =>
+      !!document.activeElement?.closest('.readerPanelBox:not(.sidebar) .segment')
+    );
+    expect(focusedSegment).toBe(false);
+  }
+
   async expectNamedEntityDisambiguation(): Promise<void> {
     await expect(this.panel.locator('.named-entity-ambiguous').first()).toBeVisible({ timeout: t(15000) });
   }

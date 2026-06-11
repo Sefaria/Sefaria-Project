@@ -55,6 +55,38 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
     await pm.onResourcePanel().expectLexiconHasResults();
   });
 
+  /**
+   * Regression test for the blue `.queryTextHighlight` highlight applied to
+   * the long-pressed word (TextRange.jsx `addHighlights`, ReaderApp.jsx
+   * `setSelectedWords`). The highlighted word should appear in the main
+   * reader, and the segment should not retain the `.segment:focus` light-blue
+   * background (TextColumn.jsx `handleTouchEnd` blurs after selection).
+   */
+  test('RP-050d: Long press highlights the selected word in blue and clears segment focus', async () => {
+    await pm.onResourcePanel().selectHebrewWordByLongPress();
+    await pm.onResourcePanel().expectLexiconOpen();
+    await pm.onResourcePanel().expectWordHighlighted();
+    await pm.onResourcePanel().expectNoSegmentFocused();
+  });
+
+  /**
+   * Regression test for ReaderApp.jsx `setSelectedWords`: when a connections
+   * panel (e.g. Lexicon) is already open, the base panel must still receive
+   * `textHighlights`/`highlightedRefs` so the blue highlight is applied to
+   * the newly long-pressed word.
+   */
+  test('RP-050e: Long press still highlights the word in blue when the Lexicon panel is already open', async () => {
+    await pm.onResourcePanel().selectHebrewWordByLongPress();
+    await pm.onResourcePanel().expectLexiconOpen();
+    await pm.onResourcePanel().expectWordHighlighted();
+
+    // Lexicon panel already open; long-press again and confirm the highlight
+    // is still applied.
+    await pm.onResourcePanel().selectHebrewWordByLongPress();
+    await pm.onResourcePanel().expectLexiconOpen();
+    await pm.onResourcePanel().expectWordHighlighted();
+  });
+
   test('RP-051: Selecting 2 Hebrew words auto-opens the Lexicon for the phrase', async () => {
     await pm.onResourcePanel().selectHebrewWords(2);
     await pm.onResourcePanel().expectLexiconOpen();
