@@ -270,9 +270,9 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       mainText={CHATBOT_BANNER_MAIN_TEXT}
       secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
       actionButtons={(track) => isLoggedIn ? (
-        <a className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+        <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("Loading...") : Sefaria._("Try It")}</span>
-        </a>
+        </button>
       ) : (<>
         <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
           <span>{Sefaria._("Log in to Try")}</span>
