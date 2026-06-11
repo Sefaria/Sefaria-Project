@@ -1,22 +1,10 @@
 var $  = require('jquery');
+// Canonical CSRF token reader (meta tag first, cookie fallback). Shared with the
+// fetch()-based call sites so the dual-cookie fix lives in exactly one place.
+var getCsrfToken = require('../sefaria/csrf').getCsrfToken;
 
 function init() {
     $(document).ajaxSend(function(event, xhr, settings) {
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = $.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
         function sameOrigin(url) {
             // url could be relative or scheme relative or absolute
             var host = document.location.host; // host + port
@@ -31,16 +19,6 @@ function init() {
         }
         function safeMethod(method) {
             return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-        }
-
-        function getCsrfToken() {
-            // Prefer the server-rendered token over the cookie. A cauldron host
-            // inherits the parent-domain (.sefaria.org) csrftoken cookie alongside
-            // its own, and getCookie returns the first match while Django validates
-            // against the last — the meta tag always matches what Django validates.
-            var meta = document.querySelector('meta[name="csrf-token"]');
-            if (meta && meta.content) { return meta.content; }
-            return getCookie('csrftoken');
         }
 
         if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
