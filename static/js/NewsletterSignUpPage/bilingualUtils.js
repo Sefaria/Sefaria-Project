@@ -34,10 +34,6 @@ export const BILINGUAL_TEXT = {
     en: "Let us know how to reach you and what information you’d like to receive!",
     he: "ספרו לנו איך נוכל ליצור אתכם קשר בצורה הטובה ביותר ומה תרצו לשמוע מאיתנו!",
   },
-  MANAGE_SUBTITLE: {
-    en: "Choose which newsletters you'd like to receive.",
-    he: "בחר אילו ניוזלטרים תרצה לקבל.",
-  },
   MANAGING_SUBSCRIPTIONS_FOR: {
     en: "Managing subscriptions for",
     he: "נהל מינויים עבור",

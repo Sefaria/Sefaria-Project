@@ -145,16 +145,27 @@ export default function NewsletterFormView({
         <h2 className="newsletterFormTitle" ref={formTitleRef}>
           <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_TITLE : BILINGUAL_TEXT.SUBSCRIBE_TITLE} />
         </h2>
-        <p className="newsletterFormSubtitle">
-          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_SUBTITLE : BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE} />
-        </p>
+        {!isLoggedIn && (
+          <p className="newsletterFormSubtitle">
+            <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE} />
+          </p>
+        )}
       </div>
 
-      {/* EMAIL INFO SECTION (for logged-in users) */}
+      {/* EMAIL INFO + MARKETING TOGGLE SECTION (for logged-in users)
+          Marketing toggle sits directly under the email display so the
+          opt-in choice is the first decision the user makes. */}
       {isLoggedIn && (
-        <div className="newsletterEmailInfo">
-          <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} /> <strong>{userEmail}</strong>
-        </div>
+        <>
+          <div className="newsletterEmailInfo">
+            <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} /> <strong>{userEmail}</strong>
+          </div>
+          <MarketingEmailToggle
+            wantsMarketingEmails={formData.wantsMarketingEmails}
+            onToggle={onMarketingEmailToggle}
+            disabled={isSubmitting}
+          />
+        </>
       )}
 
       {/* FORM FIELDS SECTION */}
@@ -266,15 +277,6 @@ export default function NewsletterFormView({
               />
             ))}
           </div>
-
-          {/* MARKETING EMAIL TOGGLE (logged-in users only) */}
-          {isLoggedIn && (
-            <MarketingEmailToggle
-              wantsMarketingEmails={formData.wantsMarketingEmails}
-              onToggle={onMarketingEmailToggle}
-              disabled={isSubmitting}
-            />
-          )}
         </div>
 
         <div className="formActions">
