@@ -44,13 +44,6 @@ http {
     keepalive 32;
   }
 
-  {{- if .Values.nameService.enabled }}
-  upstream nameupstream {
-    server ${NAME_HOST}:80;
-    keepalive 32;
-  }
-  {{- end }}
-
   server {
     listen 80;
     listen [::]:80;
@@ -60,17 +53,6 @@ http {
       access_log off;
       return 200 "healthy\n";
     }
-
-    {{- if .Values.nameService.enabled }}
-    # autocomplete endpoints are served by the standalone name service
-    location ~ ^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter) {
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://nameupstream;
-    }
-    {{- end }}
 
     location / {
         proxy_pass http://varnishupstream;
@@ -116,19 +98,6 @@ http {
       add_header 'Access-Control-Allow-Origin' '';
       proxy_pass http://elasticsearch_upstream/;
     }
-
-    {{- if $.Values.nameService.enabled }}
-    # autocomplete endpoints are served by the standalone name service
-    location ~ ^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter) {
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto https;
-      proxy_set_header X-Forwarded-Port 443;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://nameupstream;
-    }
-    {{- end }}
 
     location /nginx-health {
       access_log off;
@@ -267,19 +236,6 @@ http {
       proxy_set_header X-Internal-Proxy 1;
       proxy_pass http://varnishupstream;
     }
-
-    {{- if $.Values.nameService.enabled }}
-    # autocomplete endpoints are served by the standalone name service.
-    # NB: must precede the "location ~ /api/" block; the first matching regex wins.
-    location ~ ^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter) {
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_set_header X-Internal-Proxy 1;
-      proxy_pass http://nameupstream;
-    }
-    {{- end }}
 
     location ~ /api/ {
       proxy_set_header Host $host;

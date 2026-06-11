@@ -34,11 +34,7 @@ data:
     set -e
 
     export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USERNAME:$ELASTIC_PASSWORD | base64)
-    # this ConfigMap is shared across revisions: an old pod restarting after a
-    # nameService flag flip sees the nameupstream block without having NAME_HOST
-    # in its spec; fall back to varnish so the config stays parseable
-    export NAME_HOST=${NAME_HOST:-$VARNISH_HOST}
-    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER},${NAME_HOST}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${SEARCH_PORT},${SEARCH_PATH},${SEARCH_SSL_ENABLE},${RELEASE_TAG},${STRAPI_LOCATION},${ELASTIC_AUTH_HEADER}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf
 
     nginx -c /nginx.conf -g 'daemon off;'
 

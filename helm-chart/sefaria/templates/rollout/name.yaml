@@ -2,9 +2,9 @@
 ---
 # The standalone name (autocomplete) service.  Runs the web image with
 # NAME_SERVICE=true so every host serves only the completion endpoints
-# (sefaria/urls_name.py).  nginx routes /api/name and the other completion
-# paths here; web pods run with DISABLE_AUTOCOMPLETER=true and no longer
-# build autocompleters.
+# (sefaria/urls_name.py).  varnish routes /api/name and the other completion
+# paths here (see configmap/varnish-config.yaml); web pods run with
+# DISABLE_AUTOCOMPLETER=true and no longer build autocompleters.
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:

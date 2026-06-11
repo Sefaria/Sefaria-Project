@@ -3,7 +3,7 @@
 # completions: name pods build all autocompleters at startup, which takes
 # minutes longer than web pods need (they skip the build when the name
 # service is enabled).  Without this gate every deploy would open a window
-# where nginx routes /api/name to a revision-pinned service with no ready
+# where varnish routes /api/name to a revision-pinned service with no ready
 # endpoints.
 apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate

@@ -144,7 +144,7 @@ web:
 nameService:
   # Standalone autocomplete ("name") service.  Runs the web image with
   # NAME_SERVICE=true, serving only /api/name and the other completion
-  # endpoints (see sefaria/urls_name.py); nginx routes those paths to it
+  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
   # Rebuild signals reach the name service over the multiserver Redis
   # channel -- do not disable MULTISERVER_ENABLED while this is on, or
