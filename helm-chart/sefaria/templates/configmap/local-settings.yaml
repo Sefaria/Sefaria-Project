@@ -48,3 +48,7 @@ data:
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
+  {{- if .Values.chroma.enabled }}
+  CHROMA_HOST: "{{ .Values.deployEnv }}-chroma"
+  CHROMA_PORT: "8000"
+  {{- end }}
