@@ -110,7 +110,7 @@ Edit metadata across multiple Version records, or permanently delete selected ve
 
 | Endpoint | Method | Purpose | Auth |
 |----------|--------|---------|------|
-| `/api/version-indices` | GET | Find indices with matching version | None |
+| `/api/version-indices` | GET | Find indices with matching version | Staff |
 | `/api/version-bulk-edit` | POST | Bulk update version metadata | Staff |
 | `/api/version-rename` | POST | Rename `versionTitle` for a single index (called per-index by the client to rename across many indices) | Staff |
 | `/api/version-bulk-delete` | POST | Bulk hard-delete versions | Staff |
