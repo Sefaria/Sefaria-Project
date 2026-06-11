@@ -321,12 +321,12 @@ class ReaderPanel extends Component {
     this.replaceHistory = true;
     this.conditionalSetState({ collectionName: name });
   }
-  setSelectedWords(words){
+  setSelectedWords(words, wordRefs){
     words = (typeof words !== "undefined" && words.length) ?  words : "";
     words = words.trim();
     this.replaceHistory = false;
     if (this.props.multiPanel) {
-      this.props.setSelectedWords(words);
+      this.props.setSelectedWords(words, wordRefs);
     } else {
       this.conditionalSetState({'selectedWords':  words});
     }

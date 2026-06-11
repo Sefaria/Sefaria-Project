@@ -23,12 +23,14 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
-    this._touchStartTime = 0;
-    this._touchStartX    = 0;
-    this._touchStartY    = 0;
-    this._penDownTime    = 0;
-    this._penDownX       = 0;
-    this._penDownY       = 0;
+    this._touchStartTime      = 0;
+    this._touchStartX         = 0;
+    this._touchStartY         = 0;
+    this._penDownTime         = 0;
+    this._penDownX            = 0;
+    this._penDownY            = 0;
+    this._pendingLongPressData = null;
+    this.handleSelectionChange = this.handleSelectionChange.bind(this);
   }
   componentDidMount() {
     this._isMounted          = true;
@@ -121,9 +123,28 @@ class TextColumn extends Component {
 
   handleTouchStart(event) {
     const touch = event.touches[0];
-    this._touchStartTime = Date.now();
-    this._touchStartX    = touch ? touch.clientX : 0;
-    this._touchStartY    = touch ? touch.clientY : 0;
+    this._touchStartTime      = Date.now();
+    this._touchStartX         = touch ? touch.clientX : 0;
+    this._touchStartY         = touch ? touch.clientY : 0;
+    this._pendingLongPressData = null;
+    document.addEventListener('selectionchange', this.handleSelectionChange);
+  }
+  handleSelectionChange() {
+    if (!this._touchStartTime) return;
+    const selection = window.getSelection();
+    if (selection.type !== 'Range') return;
+    // Capture refs and words now, then immediately clear to suppress the Google lookup pane
+    const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+    const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
+    let $segments = this.$container.find(".segment");
+    let start     = $segments.index($start);
+    let end       = $segments.index($end);
+    start = start === -1 ? end : start;
+    end   = end   === -1 ? start : end;
+    const refs = [];
+    $segments.slice(start, end + 1).each(function() { refs.push($(this).attr("data-ref")); });
+    this._pendingLongPressData = { refs, selectedWords: Sefaria.util.getNormalizedSelectionString() };
+    selection.removeAllRanges();
   }
   handleTouchMove(event) {
     const touch = event.touches[0];
@@ -135,10 +156,23 @@ class TextColumn extends Component {
     }
   }
   handleTouchEnd(event) {
+    document.removeEventListener('selectionchange', this.handleSelectionChange);
     if (this._touchStartTime && Date.now() - this._touchStartTime >= 500) {
-      this.handleTextSelection();
+      if (this._pendingLongPressData) {
+        const { refs, selectedWords } = this._pendingLongPressData;
+        if (selectedWords) {
+          event.preventDefault(); // prevent synthetic click from re-highlighting the paragraph
+          if (document.activeElement) { document.activeElement.blur(); } // avoid :focus background competing with the orange word highlight
+          if (selectedWords !== this.props.selectedWords) { this.props.setSelectedWords(selectedWords, refs); }
+        } else {
+          if (refs.length > 0) { this.props.setTextListHighlight(refs); }
+        }
+      } else {
+        this.handleTextSelection();
+      }
     }
-    this._touchStartTime = 0;
+    this._touchStartTime       = 0;
+    this._pendingLongPressData = null;
   }
   handlePointerDown(event) {
     if (event.pointerType === 'pen') {
@@ -537,6 +571,7 @@ class TextColumn extends Component {
       onPointerMove={this.handlePointerMove}
       onPointerLeave={this.handlePointerLeave}
       onPointerUp={this.handlePointerUp}
+      onContextMenu={e => e.preventDefault()}
     >
       {pre}
       {content}

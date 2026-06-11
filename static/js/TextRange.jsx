@@ -38,6 +38,7 @@ class TextRange extends Component {
         !this.props.filter.compare(nextProps.filter))         { return true; }
     if (this.props.highlightedRefs && nextProps.highlightedRefs &&
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
+    if (this.props.textHighlights !== nextProps.textHighlights)         { return true; }
     if (!Sefaria.areBothVersionsEqual(this.props.currVersions, nextProps.currVersions)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
@@ -299,7 +300,7 @@ class TextRange extends Component {
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
                             Sefaria.util.inArray(data.spanningRefs?.[0] || data.sectionRef, this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
-      const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
+      const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is highlighted
       let parashahHeader = null;
         if (this.props.showParashahHeaders) {
         const parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
@@ -466,7 +467,8 @@ class TextSegment extends Component {
     return false;
   }
   componentDidUpdate(prevProps) {
-    if (this.props.highlight !== prevProps.highlight && !!this.props.textHighlights) {
+    if (prevProps.highlight && !this.props.highlight &&
+        !!this.props.textHighlights && this.props.textHighlights === prevProps.textHighlights) {
       this.props.unsetTextHighlight();
     }
   }
@@ -648,7 +650,7 @@ class TextSegment extends Component {
 
     const classes=classNames({
       segment: 1,
-      highlight: this.props.highlight && this.props.showHighlight,
+      highlight: this.props.highlight && this.props.showHighlight && !this.props.textHighlights,
       invisibleHighlight: this.props.highlight,
       heOnly: heOnly,
       enOnly: enOnly,

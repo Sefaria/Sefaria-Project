@@ -1814,20 +1814,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     this.setState({panels: this.state.panels});
   }
-  setSelectedWords(n, words){
+  setSelectedWords(n, words, wordRefs){
     const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
+      this.state.panels[n].textHighlights = words ? [words] : null;
+      if (wordRefs) { this.state.panels[n].highlightedRefs = wordRefs; }
       this.setState({panels: this.state.panels});
     } else if (!next && this.state.panels.length === 1) {
-      const refs = this.state.panels[n].highlightedRefs?.length
+      const refs = wordRefs || (this.state.panels[n].highlightedRefs?.length
         ? this.state.panels[n].highlightedRefs
-        : this.state.panels[n].refs;
+        : this.state.panels[n].refs);
       const hebrewOrWhitespace = new RegExp("[\\s:\\u0590-\\u05ff.]+");
       const shouldOpenLexicon = words &&
         hebrewOrWhitespace.test(words) &&
         words.split(" ").length < 3 &&
         refs.length === 1;
+      this.state.panels[n].textHighlights = words ? [words] : null;
+      if (wordRefs) { this.state.panels[n].highlightedRefs = wordRefs; }
       this.openTextListAt(n + 1, refs, {
         selectedWords: words,
         connectionsMode: shouldOpenLexicon ? "Lexicon" : undefined,
@@ -1863,6 +1867,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
+        parent.textHighlights = null;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
