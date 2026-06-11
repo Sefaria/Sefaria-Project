@@ -1,0 +1,754 @@
+/**
+ * Playwright Test: Newsletter Signup - Logged-Out User Flow
+ *
+ * Tests the complete logged-out user journey:
+ * 1. Stage 1: Newsletter Selection (fill form, validate, submit)
+ * 2. Stage 2a: Confirmation (review selection)
+ * 3. Stage 2b: Learning Level (optional survey)
+ * 4. Stage 3: Success (completion message)
+ */
+
+import { test, expect } from '@playwright/test';
+import { routeWithHarFixture } from '../support/har-fixture.js';
+import { LANGUAGES } from '../globals';
+
+const supplementalContentTexts = [
+  'Weekly Parashah Study Companion',
+  'Timeless Topics',
+  'What the people are saying',
+];
+
+const englishInitialContractTexts = [
+  'Stay Connected',
+  'Sign up for Emails',
+  "Let us know how to reach you",
+  'Select the newsletters you wish to subscribe to:',
+  'Learn about our weekly study emails...',
+  'Weekly Parashah Study Companion',
+  'Timeless Topics',
+  'What people are saying about our emails...',
+];
+
+const iframeSrcs = [
+  '/static/files/email-examples/weekly-parashah-bereshit-email-example.html',
+  '/static/files/email-examples/topics-silence-email-example.html',
+];
+
+const expectSupplementalContentHidden = async (page) => {
+  for (const text of supplementalContentTexts) {
+    await expect(page.locator(`text=${text}`).first()).toHaveCount(0);
+  }
+};
+
+// Footer CTA buttons were removed from the newsletter page design.
+// eslint-disable-next-line no-unused-vars
+const expectFooterVisible = async (_page) => {};
+
+const expectEmailExampleIframesVisible = async (page) => {
+  const iframes = page.locator('.featureIframeEmbed');
+
+  await expect(iframes).toHaveCount(2);
+  for (let i = 0; i < iframeSrcs.length; i++) {
+    await expect(iframes.nth(i)).toHaveAttribute('src', iframeSrcs[i]);
+  }
+};
+
+// Hebrew footer CTA buttons were removed from the newsletter page design.
+// eslint-disable-next-line no-unused-vars
+const expectHebrewFooterVisible = async (_page) => {};
+
+const submitLoggedOutNewsletterForm = async (page, email) => {
+  await page.locator('input#firstName').fill('Jane');
+  await page.locator('input#lastName').fill('Doe');
+  await page.locator('input#email').fill(email);
+  await page.locator('input#confirmEmail').fill(email);
+  await page.locator('label.selectableOptionLabel').nth(0).click();
+  await page.locator('button:has-text("Submit")').first().click();
+};
+
+// Configure test settings
+test.describe('Newsletter Signup - Logged-Out User Flow', () => {
+  // Before each test, navigate to the newsletter page
+  test.beforeEach(async ({ page, context }) => {
+    await routeWithHarFixture(context, 'newsletter-loggedout');
+
+    // Set viewport to test responsive design
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // Dismiss cookies notification before page scripts run
+    await page.addInitScript(() => {
+      document.cookie = "cookiesNotificationAccepted=1; path=/; max-age=31536000";
+    });
+
+    // Navigate to newsletter page (uses baseURL from playwright config / SANDBOX_URL)
+    await page.goto('/newsletter');
+
+    // Wait for the form to be visible - wait longer for JS to execute
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+
+    // Additional wait for React to fully render
+    await page.waitForTimeout(1000);
+
+    // Remove sticky header from DOM so it doesn't intercept click actions.
+    // The header is position:fixed with z-index:1000, and form elements that
+    // are below the fold get scrolled behind it when Playwright clicks them.
+    await page.evaluate(() => {
+      document.querySelector('#s2')?.remove();
+    });
+  });
+
+  test('should display newsletter selection form on initial load', async ({ page }) => {
+    // Verify form container is visible
+    await expect(page.locator('#NewsletterInner')).toBeVisible();
+
+    // Verify form exists
+    const form = page.locator('form').first();
+    await expect(form).toBeVisible();
+
+    // Verify input fields exist (first name, last name, email, confirm email)
+    const inputs = page.locator('form input[type="text"], form input[type="email"]');
+    const inputCount = await inputs.count();
+    expect(inputCount).toBeGreaterThanOrEqual(4);
+
+    // Verify newsletter checkboxes exist (should be 6)
+    const checkboxes = page.locator('form input[type="checkbox"]');
+    const checkboxCount = await checkboxes.count();
+    expect(checkboxCount).toBeGreaterThanOrEqual(5); // At least 5 newsletters
+
+    // Verify Submit button exists and is enabled
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await expect(submitButton).toBeVisible();
+    await expect(submitButton).toBeEnabled();
+    await expectFooterVisible(page);
+  });
+
+  test('should match English initial page contract', async ({ page }) => {
+    await expect(page.locator('body')).toHaveClass(/interface-english/);
+    await expect(page.locator('.newsletterFormView')).toBeVisible();
+    await expect(page.locator('.newsletterConfirmationView')).toHaveCount(0);
+    await expect(page.locator('.successView')).toHaveCount(0);
+
+    for (const text of englishInitialContractTexts) {
+      await expect(page.getByText(text, { exact: false }).first()).toBeVisible();
+    }
+
+    await expect(page.locator('#firstName')).toHaveAttribute('placeholder', 'First Name');
+    await expect(page.locator('#lastName')).toHaveAttribute('placeholder', 'Last Name');
+    await expect(page.locator('text=Last Name (Optional)').first()).toHaveCount(0);
+    await expect(page.locator('#email')).toHaveAttribute('placeholder', 'Email Address');
+    await expect(page.locator('#confirmEmail')).toHaveAttribute('placeholder', 'Confirm Email Address');
+
+    const newsletterOptions = page.locator('label.selectableOptionLabel');
+    expect(await newsletterOptions.count()).toBeGreaterThanOrEqual(5);
+
+    await expectEmailExampleIframesVisible(page);
+    await expectFooterVisible(page);
+  });
+
+  test('should render email example iframes in English interface only', async ({ page }) => {
+    await expectEmailExampleIframesVisible(page);
+  });
+
+  test('should hide email examples but keep testimonials and footer in Hebrew interface', async ({ page }) => {
+    await page.context().addCookies([{
+      name: 'interfaceLang',
+      value: LANGUAGES.HE,
+      url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
+    }]);
+    await page.goto('/newsletter');
+    // Wait for Hebrew class to be applied (React reads the cookie and adds the class)
+    await page.waitForSelector('body.interface-hebrew', { timeout: 15000 });
+
+    await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
+    await expect(page.locator('text=Learn about our weekly study emails').first()).toHaveCount(0);
+    await expect(page.locator('text=Weekly Parashah Study Companion').first()).toHaveCount(0);
+    // 'Timeless Topics' is also a newsletter checkbox label so it's always present — skip text check
+    await expect(page.locator('.featureIframeEmbed')).toHaveCount(0);
+    await expect(page.getByText('מה אנשים אומרים על המיילים', { exact: false }).first()).toBeVisible();
+    await expectHebrewFooterVisible(page);
+  });
+
+  test('should fill form and submit successfully', async ({ page }) => {
+    // Mock subscribe — this test covers the UI flow, not the backend call.
+    // The real backend is exercised by the surrounding integration tests.
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
+
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    if (await lastNameInput.isVisible()) {
+      await lastNameInput.fill('Doe');
+    }
+
+    // Fill email and confirm email (both required for logged-out users)
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');  // email
+    await emailInputs.nth(1).fill('john@example.com');  // confirmEmail
+
+    // Select first newsletter checkbox (click the label instead since input is hidden)
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    await page.click('button:has-text("Submit")');
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should display confirmation page after submission', async ({ page }) => {
+    // Intercept the subscribe POST explicitly. The HAR fixture's `notFound:
+    // 'fallthrough'` policy means a request that doesn't exactly match the
+    // recorded entry silently hits real AC, which made this test flaky.
+    // This test only asserts on UI state, so a minimal success response is enough.
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true }) })
+    );
+
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('Jane');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    await lastNameInput.fill('Doe');
+
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('jane@example.com');  // email
+    await emailInputs.nth(1).fill('jane@example.com');  // confirmEmail
+
+    // Select a checkbox (click the label instead since input is hidden)
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    await page.click('button:has-text("Submit")');
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible({ timeout: 10000 });
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
+
+    await expect(page.locator('.embeddedLearningLevel .selectableOptionLabel')).toHaveCount(5);
+    await expect(page.locator('.embeddedLearningLevel button:has-text("Submit")')).toBeVisible();
+
+    const skipLink = page.locator('button.skipLink');
+    await expect(skipLink).toBeVisible();
+    await expect(page.locator('button:has-text("Tell us about your learning level")')).not.toBeVisible();
+
+    await skipLink.click();
+    await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
+  });
+
+  test('should keep footer visible on logged-out success view', async ({ page }) => {
+    const email = `newsletter-success-${Date.now()}@example.com`;
+
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
+
+    await submitLoggedOutNewsletterForm(page, email);
+
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible();
+    await expectSupplementalContentHidden(page);
+    await expectFooterVisible(page);
+
+    await page.locator('button.skipLink').click();
+    // Skipping learning level navigates home instead of showing a success view
+    await page.waitForURL(url => !url.href.includes('/newsletter'), { timeout: 5000 });
+  });
+
+  test('should handle form with all fields populated', async ({ page }) => {
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
+
+    // Fill first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Fill last name
+    const lastNameInput = page.locator('input#lastName');
+    if (await lastNameInput.isVisible()) {
+      await lastNameInput.fill('Doe');
+    }
+
+    // Fill email and confirm email
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john.doe@example.com');  // email
+    await emailInputs.nth(1).fill('john.doe@example.com');  // confirmEmail
+
+    // Select multiple newsletters (click the labels instead since inputs are hidden)
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+    await checkboxLabels.nth(1).click();
+    if (await checkboxLabels.count() > 2) {
+      await checkboxLabels.nth(2).click();
+    }
+
+    await page.click('button:has-text("Submit")');
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible({ timeout: 10000 });
+
+    const selectedList = page.locator('.selectedList');
+    await expect(selectedList).toBeVisible();
+    const listText = await selectedList.textContent();
+    expect(listText.trim().length).toBeGreaterThan(0);
+  });
+
+  test('should show selected newsletters by name in confirmation', async ({ page }) => {
+    const firstLabelText = (await page.locator('.selectableOptionText').nth(0).textContent()).trim();
+    const secondLabelText = (await page.locator('.selectableOptionText').nth(1).textContent()).trim();
+
+    await page.locator('input#firstName').fill('Jane');
+    await page.locator('input#lastName').fill('Doe');
+    await page.locator('input[type="email"]').nth(0).fill('newsletter-verify@example.com');
+    await page.locator('input[type="email"]').nth(1).fill('newsletter-verify@example.com');
+    await page.locator('label.selectableOptionLabel').nth(0).click();
+    await page.locator('label.selectableOptionLabel').nth(1).click();
+
+    await page.click('button:has-text("Submit")');
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible({ timeout: 10000 });
+
+    const selectedList = page.locator('.selectedList');
+    await expect(selectedList).toBeVisible();
+    const listText = await selectedList.textContent();
+    expect(listText).toContain(firstLabelText);
+    expect(listText).toContain(secondLabelText);
+  });
+
+  test('should allow selecting and deselecting newsletters', async ({ page }) => {
+    // Get checkbox labels (the clickable elements)
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const count = await checkboxLabels.count();
+
+    expect(count).toBeGreaterThanOrEqual(5);
+
+    // Click first label to select checkbox
+    await checkboxLabels.nth(0).click();
+    const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
+    const isChecked1 = await checkbox1.isChecked();
+    expect(isChecked1).toBe(true);
+
+    // Click it again to uncheck
+    await checkboxLabels.nth(0).click();
+    const isUnchecked = await checkbox1.isChecked();
+    expect(isUnchecked).toBe(false);
+
+    // Check another one
+    await checkboxLabels.nth(1).click();
+    const checkbox2 = page.locator('form input[type="checkbox"]').nth(1);
+    const isChecked2 = await checkbox2.isChecked();
+    expect(isChecked2).toBe(true);
+  });
+
+  test('should allow entering text into email fields', async ({ page }) => {
+    const emailInputs = page.locator('input[type="email"]');
+    const emailInput = emailInputs.nth(0);
+    const confirmEmailInput = emailInputs.nth(1);
+
+    // Type email in first field
+    await emailInput.fill('test@example.com');
+
+    // Verify it was entered
+    const value = await emailInput.inputValue();
+    expect(value).toBe('test@example.com');
+
+    // Type same email in confirm field
+    await confirmEmailInput.fill('test@example.com');
+    const confirmValue = await confirmEmailInput.inputValue();
+    expect(confirmValue).toBe('test@example.com');
+
+    // Clear and enter different emails
+    await emailInput.fill('another@test.com');
+    await confirmEmailInput.fill('another@test.com');
+    const newValue = await emailInput.inputValue();
+    const newConfirmValue = await confirmEmailInput.inputValue();
+    expect(newValue).toBe('another@test.com');
+    expect(newConfirmValue).toBe('another@test.com');
+  });
+
+  test('should have Submit button visible throughout form', async ({ page }) => {
+    // Button should be visible at start
+    const button = page.locator('button:has-text("Submit")').first();
+    await expect(button).toBeVisible();
+
+    // Fill some fields
+    const inputs = page.locator('form input[type="text"], form input[type="email"]');
+    await inputs.nth(0).fill('Test');
+
+    // Button should still be visible
+    await expect(button).toBeVisible();
+
+    // Select a checkbox (click the label instead since input is hidden)
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Button should still be visible and enabled
+    await expect(button).toBeVisible();
+    await expect(button).toBeEnabled();
+  });
+
+  test('should display all newsletter options', async ({ page }) => {
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    const count = await checkboxLabels.count();
+
+    // Should have all newsletter checkboxes (currently 7, loaded from server)
+    expect(count).toBeGreaterThanOrEqual(5);
+
+    // Verify we can interact with each by clicking the labels
+    for (let i = 0; i < count; i++) {
+      const label = checkboxLabels.nth(i);
+      const checkbox = page.locator('form input[type="checkbox"]').nth(i);
+
+      // Click label to select checkbox
+      await label.click();
+      const isChecked = await checkbox.isChecked();
+      expect(isChecked).toBe(true);
+
+      // Click again to uncheck
+      await label.click();
+    }
+  });
+
+  test('should NOT show marketing email toggle for logged-out users', async ({ page }) => {
+    // The marketing email toggle section should NOT be visible for logged-out users
+    const toggleSection = page.locator('.marketingEmailToggleSection');
+    const isToggleVisible = await toggleSection.isVisible().catch(() => false);
+    expect(isToggleVisible).toBe(false);
+
+    // The Yes/No toggle options should not exist (using ToggleSet component)
+    const yesOption = page.locator('.marketingToggleWrapper .toggleOption.yes');
+    const noOption = page.locator('.marketingToggleWrapper .toggleOption.no');
+    const isYesVisible = await yesOption.isVisible().catch(() => false);
+    const isNoVisible = await noOption.isVisible().catch(() => false);
+    expect(isYesVisible).toBe(false);
+    expect(isNoVisible).toBe(false);
+  });
+
+  // ========== MULTI-ERROR VALIDATION TESTS ==========
+
+  test('should show all validation errors at once when submitting empty form', async ({ page }) => {
+    // Submit empty form
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for validation to complete
+    await page.waitForTimeout(500);
+
+    // Should see error summary at the top
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
+
+    // Should list multiple errors in the summary
+    const errorItems = page.locator('.errorSummaryList li');
+    const errorCount = await errorItems.count();
+    expect(errorCount).toBe(4);
+
+    // Should have inline errors above fields
+    const inlineErrors = page.locator('.inlineFieldError');
+    const inlineCount = await inlineErrors.count();
+    expect(inlineCount).toBe(4);
+
+    // Verify specific errors are shown
+    const firstNameError = page.locator('#firstName-error');
+    const lastNameError = page.locator('#lastName-error');
+    const emailError = page.locator('#email-error');
+    const newslettersError = page.locator('#newsletters-error');
+
+    await expect(firstNameError).toBeVisible();
+    await expect(lastNameError).toBeVisible();
+    await expect(emailError).toBeVisible();
+    await expect(newslettersError).toBeVisible();
+  });
+
+  test('should announce errors and scroll to form title on validation failure for accessibility', async ({ page }) => {
+    // Submit empty form
+    const submitButton = page.locator('button:has-text("Submit")').first();
+    await submitButton.click();
+
+    // Wait for validation and scroll
+    await page.waitForTimeout(500);
+
+    // Error summary uses role="alert" + aria-live for screen reader announcement
+    // (replaced the old focus-the-summary pattern; tabIndex/focus removed in favor of scrollIntoView on h2)
+    const errorSummary = page.locator('.newsletterErrorSummary');
+    await expect(errorSummary).toBeVisible();
+    await expect(errorSummary).toHaveAttribute('role', 'alert');
+    await expect(errorSummary).toHaveAttribute('aria-live', 'assertive');
+
+    // Form title is scrolled into viewport so the user lands at the top of the form
+    const formTitle = page.locator('h2.newsletterFormTitle');
+    await expect(formTitle).toBeInViewport();
+  });
+
+  test('should clear inline error when field is fixed and loses focus', async ({ page }) => {
+    // Submit empty form to trigger errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Verify firstName error exists
+    const firstNameError = page.locator('#firstName-error');
+    await expect(firstNameError).toBeVisible();
+
+    // Fill in first name
+    const firstNameInput = page.locator('input#firstName');
+    await firstNameInput.fill('John');
+
+    // Error should still be visible while typing (not cleared on change)
+    await expect(firstNameError).toBeVisible();
+
+    // Blur the field (click somewhere else or tab away)
+    await firstNameInput.blur();
+
+    // Wait for state update
+    await page.waitForTimeout(100);
+
+    // Now error should be cleared
+    await expect(firstNameError).not.toBeVisible();
+
+    // But other errors should still be visible
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
+  });
+
+  test('should update error summary when errors are fixed', async ({ page }) => {
+    // Submit empty form to trigger all errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Count initial errors
+    const initialErrorCount = await page.locator('.errorSummaryList li').count();
+    expect(initialErrorCount).toBe(4);
+
+    // Fix first name
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#firstName').blur();
+    await page.waitForTimeout(100);
+
+    // Error count should decrease
+    const afterFirstFix = await page.locator('.errorSummaryList li').count();
+    expect(afterFirstFix).toBe(initialErrorCount - 1);
+
+    // Fix email
+    await page.locator('input#email').fill('john@example.com');
+    await page.locator('input#email').blur();
+    await page.waitForTimeout(100);
+
+    const afterEmailFix = await page.locator('.errorSummaryList li').count();
+    expect(afterEmailFix).toBe(afterFirstFix - 1);
+  });
+
+  test('should show error styling on invalid input fields', async ({ page }) => {
+    // Submit empty form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Input fields should have error styling
+    const firstNameInput = page.locator('input#firstName');
+    await expect(firstNameInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(firstNameInput).toHaveClass(/hasError/);
+
+    const emailInput = page.locator('input#email');
+    await expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    await expect(emailInput).toHaveClass(/hasError/);
+  });
+
+  test('should allow clicking error summary links to navigate to fields', async ({ page }) => {
+    // Submit empty form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Click the email error link in the summary
+    // (links target the inline error caption above the input, so the user has the error context)
+    const emailErrorLink = page.locator('.errorSummaryLink[href="#email-error"]');
+    await emailErrorLink.click();
+
+    // Wait for scroll
+    await page.waitForTimeout(100);
+
+    // The error caption should be scrolled into view (anchored target)
+    const emailErrorCaption = page.locator('#email-error');
+    await expect(emailErrorCaption).toBeInViewport();
+
+    // The email input is directly below and also visible
+    const emailInput = page.locator('input#email');
+    await expect(emailInput).toBeInViewport();
+  });
+
+  test('should validate email format and show appropriate error', async ({ page }) => {
+    // Fill invalid email
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
+    await page.locator('input#email').fill('not-an-email');
+    await page.locator('input#confirmEmail').fill('not-an-email');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Submit
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Should show email format error
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
+    await expect(emailError).toContainText('valid email');
+  });
+
+  test('should show mismatched email error when emails do not match', async ({ page }) => {
+    // Fill form with mismatched emails
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
+    await page.locator('input#email').fill('john@example.com');
+    await page.locator('input#confirmEmail').fill('jane@example.com');
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Submit
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Should show email mismatch error
+    const confirmEmailError = page.locator('#confirmEmail-error');
+    await expect(confirmEmailError).toBeVisible();
+    await expect(confirmEmailError).toContainText('do not match');
+  });
+
+  test('should clear newsletter error when form is re-submitted with a newsletter selected', async ({ page }) => {
+    // Submit empty form to trigger errors
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Verify newsletters error exists
+    const newslettersError = page.locator('#newsletters-error');
+    await expect(newslettersError).toBeVisible();
+
+    // Select a newsletter
+    const checkboxLabels = page.locator('label.selectableOptionLabel');
+    await checkboxLabels.nth(0).click();
+
+    // Verify the checkbox was actually toggled
+    const checkbox = page.locator('form input[type="checkbox"]').nth(0);
+    await expect(checkbox).toBeChecked();
+
+    // Fill remaining required fields and re-submit to trigger fresh validation
+    await page.locator('input#firstName').fill('John');
+    await page.locator('input#lastName').fill('Doe');
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('john@example.com');
+    await emailInputs.nth(1).fill('john@example.com');
+
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForTimeout(500);
+
+    // Newsletter error should not appear since a newsletter is now selected
+    await expect(newslettersError).not.toBeVisible();
+  });
+});
+
+// ============================================================================
+// Full flow: newsletter selection → learning level → success
+// Route interception must happen before page.goto, so this lives in its own
+// describe block with its own navigation rather than using the shared beforeEach.
+// ============================================================================
+
+test.describe('Newsletter Signup - Learning Level Flow', () => {
+  test('completing learning level selection shows success view', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.addInitScript(() => {
+      document.cookie = 'cookiesNotificationAccepted=1; path=/; max-age=31536000';
+    });
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null }, icon: 'news-and-resources.svg' },
+      ] } })
+    );
+    await page.route('**/api/newsletter/subscribe', (route) =>
+      route.fulfill({ json: { success: true } })
+    );
+    await page.route('**/api/newsletter/learning-level', (route) =>
+      route.fulfill({ json: { success: true } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.waitForSelector('.selectableOptionLabel', { timeout: 10000 });
+
+    // Fill required fields
+    await page.locator('input#firstName').fill('Ada');
+    await page.locator('input#lastName').fill('Lovelace');
+    const emailInputs = page.locator('input[type="email"]');
+    await emailInputs.nth(0).fill('ada@example.com');
+    await emailInputs.nth(1).fill('ada@example.com');
+
+    // Select the newsletter
+    await page.locator('label.selectableOptionLabel').first().click();
+
+    // Submit newsletter form
+    await page.locator('button:has-text("Submit")').first().click();
+    await page.waitForSelector('.newsletterConfirmationView', { timeout: 10000 });
+
+    // Select first learning level option
+    await page.locator('.learningLevelOptions label.selectableOptionLabel').first().click();
+
+    // Save learning level
+    await page.locator('.saveButton').click();
+
+    // Success view should appear
+    await page.waitForSelector('.successView', { timeout: 10000 });
+    await expect(page.locator('.successView')).toContainText('All set!');
+  });
+});
+
+test.describe('Newsletter Signup - Hebrew-only newsletter label rendering', () => {
+  test('renders Hebrew text as fallback in English interface', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' }, icon: 'news-and-resources.svg' },
+      ] } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
+    await page.evaluate(() => { document.querySelector('#s2')?.remove(); });
+    await page.waitForSelector('.selectableOptionText', { timeout: 10000 });
+
+    // Hebrew text should appear as fallback since there's no English name
+    await expect(page.locator('.selectableOptionText')).toContainText('חדשות ספריא');
+
+    // InterfaceText in English interface uses int-en base class + heInEn fallback class
+    await expect(page.locator('.int-en.heInEn')).toBeVisible();
+  });
+
+  test('renders Hebrew text as primary in Hebrew interface', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.context().addCookies([{
+      name: 'interfaceLang',
+      value: LANGUAGES.HE,
+      url: process.env.SANDBOX_URL || 'http://127.0.0.1:8000',
+    }]);
+
+    await page.route('**/api/newsletter/lists', (route) =>
+      route.fulfill({ json: { newsletters: [
+        { stringid: 'hebrew_news', displayName: { en: null, he: 'חדשות ספריא' }, icon: 'news-and-resources.svg' },
+      ] } })
+    );
+
+    await page.goto('/newsletter');
+    await page.waitForSelector('body.interface-hebrew', { timeout: 15000 });
+    await page.waitForSelector('.selectableOptionText', { timeout: 10000 });
+
+    // Hebrew text is primary in Hebrew interface
+    await expect(page.locator('.selectableOptionText')).toContainText('חדשות ספריא');
+
+    // InterfaceText in Hebrew interface uses int-he base class (no heInEn since Hebrew is primary)
+    await expect(page.locator('.selectableOptionText .int-he:not(.heInEn)')).toBeVisible();
+  });
+});

@@ -4,20 +4,45 @@
 
 {% block meta_title %}{% meta_title %}{% trans "Sign up for Sefaria's Newsletter" %}{% endmeta_title %}{% endblock %}
 
-{% block meta_description %}{% meta_desc %}{% trans "Sign up for Sefaria's Newsletter" %}{% endmeta_desc %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sign up for one or more of our email lists to get learning resources and stay up-to-date on what is happening at Sefaria." %}{% endmeta_desc %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/newsletter-signup-page.css' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/news-and-resources.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/educator-resources.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/new-text-release-updates.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/weekly-study-guide.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/technology-updates.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/timeless-topics.svg' %}">
+<link rel="preload" as="image" href="{% static 'icons/newsletter-signup/newsletter-selected-checkbox.svg' %}">
+<link rel="prefetch" href="{% static 'files/email-examples/weekly-parashah-bereshit-email-example.html' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/parashah-bereshit-banner.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/parashah-bereshit-progress-bar.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/reflection-question-bullet.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/study-guide-pages-icon.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/divider-line.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/citation-background-texture.png' %}">
+<link rel="prefetch" href="{% static 'files/email-examples/topics-silence-email-example.html' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/topics-silence-banner.png' %}">
+<link rel="prefetch" as="image" href="{% static 'files/email-examples/topics-divider-line.png' %}">
+{% endblock %}
+
+{% block css %}
+{% endblock %}
+
 
 {% block js %}
 <script>
     {% autoescape off %}
-    DJANGO_VARS.containerId = 'newsletterPageContent';
+    DJANGO_VARS.containerId = 'NewsletterInner';
     DJANGO_VARS.reactComponentName = 'NewsletterPage';
     {% endautoescape %}
 </script>
 {% endblock %}
 
 {% block content %}
-<div id="newsletterPageOuter" class="staticPageFrame">
-  <div id="newsletterPageContent" class="staticPageInner">
+<div id="NewsletterOuter" class="staticPageFrame">
+  <div id="NewsletterInner" class="staticPageInner">
     <h1 id="appLoading">Loading...</h1>
   </div>
 </div>
