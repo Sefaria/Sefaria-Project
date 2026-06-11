@@ -12,7 +12,7 @@
  * Backend endpoint: POST /api/text-upload
  */
 import React, { useState, useRef } from 'react';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from '../../sefaria/csrf';
 import ModToolsSection from './shared/ModToolsSection';
 import { splitCsvByIndex } from '../utils';
 
@@ -121,7 +121,7 @@ const postJob = async (job) => {
 
   const response = await fetch('/api/text-upload', {
     method: 'POST',
-    headers: { 'X-CSRFToken': Cookies.get('csrftoken') },
+    headers: { 'X-CSRFToken': getCsrfToken() },
     credentials: 'same-origin',
     body: formData,
   });

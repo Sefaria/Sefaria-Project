@@ -1,4 +1,11 @@
 // --- Django CSRF support for AJAX -----------
+//
+// NOTE: getCsrfToken() below is intentionally a standalone copy of
+// static/js/sefaria/csrf.js. This file is included inline (via Django's include
+// tag) into legacy server-rendered pages that do NOT load the webpack bundle, so
+// it cannot import the shared helper. Keep the meta-tag-first logic here in sync
+// with sefaria/csrf.js. The bundled twin (static/js/lib/django-csrf.js) imports
+// the shared helper instead of duplicating it.
 
 jQuery(document).ajaxSend(function(event, xhr, settings) {
     function getCookie(name) {
@@ -32,7 +39,17 @@ jQuery(document).ajaxSend(function(event, xhr, settings) {
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
 
+    function getCsrfToken() {
+        // Prefer the server-rendered token over the cookie. A cauldron host
+        // inherits the parent-domain (.sefaria.org) csrftoken cookie alongside
+        // its own, and getCookie returns the first match while Django validates
+        // against the last — the meta tag always matches what Django validates.
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) { return meta.content; }
+        return getCookie('csrftoken');
+    }
+
     if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        xhr.setRequestHeader("X-CSRFToken", getCsrfToken());
     }
 });

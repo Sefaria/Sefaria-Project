@@ -1,22 +1,10 @@
 var $  = require('jquery');
+// Canonical CSRF token reader (meta tag first, cookie fallback). Shared with the
+// fetch()-based call sites so the dual-cookie fix lives in exactly one place.
+var getCsrfToken = require('../sefaria/csrf').getCsrfToken;
 
 function init() {
     $(document).ajaxSend(function(event, xhr, settings) {
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = $.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
         function sameOrigin(url) {
             // url could be relative or scheme relative or absolute
             var host = document.location.host; // host + port
@@ -34,7 +22,7 @@ function init() {
         }
 
         if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-            xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            xhr.setRequestHeader("X-CSRFToken", getCsrfToken());
         }
     });
 }
