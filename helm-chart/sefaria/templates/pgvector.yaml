@@ -1,0 +1,89 @@
+{{- if .Values.pgvector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-pgvector"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pgvector-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pgvector-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: pgvector
+        {{- include "sefaria.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: pgvector
+        image: "{{ .Values.pgvector.image }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "{{ .Values.pgvector.user }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.pgvector.password }}"
+        - name: POSTGRES_DB
+          value: "{{ .Values.pgvector.db }}"
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: pgvector-storage
+          mountPath: /var/lib/postgresql/data
+        resources: {{ toYaml .Values.pgvector.resources | nindent 10 }}
+      volumes:
+      - name: pgvector-storage
+        {{- if .Values.pgvector.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: "{{ .Values.deployEnv }}-pgvector-pvc"
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+---
+{{- if .Values.pgvector.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.deployEnv }}-pgvector-pvc"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.pgvector.persistence.storageClass }}
+  storageClassName: "{{ .Values.pgvector.persistence.storageClass }}"
+  {{- end }}
+  resources:
+    requests:
+      storage: "{{ .Values.pgvector.persistence.size }}"
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.deployEnv }}-pgvector"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: pgvector-{{ .Values.deployEnv }}
+    {{- include "sefaria.selectorLabels" . | nindent 4 }}
+  ports:
+  - port: 5432
+    targetPort: 5432
+{{- end }}
