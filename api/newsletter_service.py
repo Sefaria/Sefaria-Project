@@ -176,12 +176,22 @@ class NewsletterClient:
                 "Content-Type": "application/json",
             }
         )
-        # Retry once on connection-phase failures (stale socket from idle pool).
-        # `connect=1` fires before any bytes reach the server so it is safe for
-        # all HTTP methods including POST/PUT. `read=False` is intentional —
-        # read failures happen after bytes are sent and retrying would risk
-        # double-submitting requests to AC.
-        _retry = Retry(connect=1, read=False, redirect=False, status=False)
+        # Retry once on transient connection-phase failures.
+        # `connect=1` fires before any bytes reach the server so it is safe
+        # for all HTTP methods including POST/PUT.
+        # `read=1` with `allowed_methods={"GET","HEAD"}` catches the more
+        # common stale-pooled-socket case (firewall silently closed an idle
+        # connection; urllib3 wraps the failed write as a ProtocolError and
+        # classifies it as a read error). Scoped to idempotent reads only —
+        # AC's subscribe/unsubscribe POSTs are not idempotent and replaying
+        # them risks double-submitting.
+        _retry = Retry(
+            connect=1,
+            read=1,
+            redirect=False,
+            status=False,
+            allowed_methods=frozenset({"GET", "HEAD"}),
+        )
         self._session.mount("https://", HTTPAdapter(max_retries=_retry))
 
     def make_request(

@@ -161,16 +161,18 @@ class TestMakeRequest:
         call_kwargs = mock_request.call_args
         assert "json" not in call_kwargs[1]
 
-    def test_session_configured_with_connect_retry(self):
-        """HTTPS adapter is mounted with connect=1 retry to handle stale idle sockets.
+    def test_session_configured_with_retry_policy(self):
+        """HTTPS adapter is mounted with a retry policy that recovers from
+        transient connection failures without risking double-submit on POST/PUT.
 
-        After a Django worker sits idle, firewalls silently drop the TCP connection.
-        The next request picks up the dead socket from urllib3's pool and raises
-        ConnectionError. connect=1 tells urllib3 to open a fresh connection and
-        retry transparently before the error reaches make_request.
+        connect=1 retries TCP/TLS handshake failures — safe for any method
+        because no bytes reach AC before the failure.
 
-        read=False is intentional: read failures happen after bytes are sent to AC,
-        so retrying a POST/PUT there could double-submit (e.g. subscribe twice).
+        read=1 with allowed_methods={"GET","HEAD"} retries stale-pooled-socket
+        failures (urllib3 wraps these as ProtocolError and classifies them as
+        read errors). Restricted to idempotent reads only — POST/PUT must not
+        be replayed because AC's subscribe/unsubscribe operations are not
+        idempotent and replaying could subscribe a contact twice.
         """
         from requests.adapters import HTTPAdapter
         from urllib3.util.retry import Retry
@@ -182,7 +184,12 @@ class TestMakeRequest:
         retry = adapter.max_retries
         assert isinstance(retry, Retry)
         assert retry.connect == 1
-        assert retry.read is False
+        assert retry.read == 1
+        # Equality with the exact frozenset doubles as proof that POST/PUT/DELETE
+        # are NOT retried — they're not in the allowlist, so a stale-socket failure
+        # on a non-idempotent write surfaces as ActiveCampaignError rather than a
+        # silent replay.
+        assert retry.allowed_methods == frozenset({"GET", "HEAD"})
 
     def test_connection_error_raised_when_all_retries_exhausted(self):
         """ActiveCampaignError is raised when the connection fails and retries are exhausted.
