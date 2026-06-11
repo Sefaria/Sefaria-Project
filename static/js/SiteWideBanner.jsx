@@ -189,12 +189,13 @@ const SiteWideBanner = ({
         <div className="siteWideBannerButtonBox">
           {actionButtons(trackBannerInteraction)}
           {enableBackoffDismissal && (
-            <a
+            <button
+              type="button"
               className="button small siteWideBannerMaybeLater"
               onClick={closeBanner}
             >
               <span>{Sefaria._("Maybe later")}</span>
-            </a>
+            </button>
           )}
         </div>
         {learnMoreUrl && (
@@ -242,8 +243,7 @@ const PROJECT = 'Library Assistant';
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  const learnMoreUrls = promoLearnMoreUrls || CHATBOT_BANNER_LEARN_MORE_URLS;
-  const learnMoreUrl = learnMoreUrls[Sefaria._getShortInterfaceLang()] || learnMoreUrls.en || CHATBOT_BANNER_LEARN_MORE_URLS.en;
+  // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
 
   const handleJoin = async () => {
     setIsActionPending(true);
