@@ -189,12 +189,13 @@ const SiteWideBanner = ({
         <div className="siteWideBannerButtonBox">
           {actionButtons(trackBannerInteraction)}
           {enableBackoffDismissal && (
-            <a
+            <button
+              type="button"
               className="button small siteWideBannerMaybeLater"
               onClick={closeBanner}
             >
               <span>{Sefaria._("Maybe later")}</span>
-            </a>
+            </button>
           )}
         </div>
         {learnMoreUrl && (
