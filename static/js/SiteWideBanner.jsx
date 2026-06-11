@@ -52,14 +52,14 @@ const migrateLegacyCookieToBackoffState = ({ cookieName, storageKeys }) => {
   // A legacy dismissal is recorded only as `${cookieName}=1` with no timestamp, so we
   // can't recover when it was set. But any existing legacy cookie necessarily predates
   // this deploy, so we treat it as a single "Maybe later" from long ago: backdate the
-  // time gate (lastMaybeLaterAtSec: 0) so only the session gate remains before re-showing.
+  // time gate (lastDismissalTime: 0) so only the session gate remains before re-showing.
   if (!document.cookie.includes(cookieName)) {
     return;
   }
   const migratedState = {
     maybeLaterCount: 1,
-    lastMaybeLaterAtSec: 0,
-    sessionCountAtLastMaybeLater: 0,
+    lastDismissalTime: 0,
+    sessionCountAtLastDismissal: 0,
     dismissedForever: false,
   };
   localStorage.setItem(storageKeys.state, JSON.stringify(migratedState));
@@ -83,8 +83,8 @@ const shouldHideForBackoff = ({ state, sessionCounter, nudgeSchedule = NUDGE_SCH
   }
 
   // Otherwise, re-show only once BOTH gates since the last "Maybe later" have cleared.
-  const sessionsSinceDismissal = sessionCounter - Number(state.sessionCountAtLastMaybeLater || 0);
-  const secondsSinceDismissal = Math.floor(Date.now() / 1000) - Number(state.lastMaybeLaterAtSec || 0);
+  const sessionsSinceDismissal = sessionCounter - Number(state.sessionCountAtLastDismissal || 0);
+  const secondsSinceDismissal = Math.floor(Date.now() / 1000) - Number(state.lastDismissalTime || 0);
 
   const enoughSessionsHavePassed = sessionsSinceDismissal >= nudgeRule.sessions;
   const enoughTimeHasPassed = secondsSinceDismissal >= nudgeRule.days * SECONDS_PER_DAY;
@@ -165,8 +165,8 @@ const SiteWideBanner = ({
       );
       const nextState = {
         maybeLaterCount: nextMaybeLaterCount,
-        lastMaybeLaterAtSec: Math.floor(Date.now() / 1000),
-        sessionCountAtLastMaybeLater: promoSessionCounter,
+        lastDismissalTime: Math.floor(Date.now() / 1000),
+        sessionCountAtLastDismissal: promoSessionCounter,
         dismissedForever: nextMaybeLaterCount >= MAX_MAYBE_LATER_CLICKS,
       };
       localStorage.setItem(storageKeys.state, JSON.stringify(nextState));
