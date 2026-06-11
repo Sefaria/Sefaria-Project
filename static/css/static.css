@@ -637,6 +637,39 @@ p.registration-links a:hover{
   color: var(--dark-grey);
   text-decoration: none;
 }
+.registrationContent p.registration-prompt {
+  margin: 8px 0 0;                  /* directly under the H1, above the form (confirm vs Figma 35:425) */
+  text-align: center;
+  color: var(--darker-grey);        /* #575757 — Figma Semantic/Action/Secondary */
+  font-size: 14px;
+  line-height: 18px;
+}
+.registrationContent p.registration-prompt a {
+  color: var(--sefaria-blue);       /* #18345D — Figma Semantic/Text/Link */
+  font-weight: 600;                 /* Roboto SemiBold per Figma "Link button" */
+  font-size: 14px;                  /* overrides base.css `.registrationContent a { font-size: 16px }` */
+  text-decoration: underline;
+  margin-inline-start: 4px;         /* 4px gap between prompt and link; RTL-safe */
+}
+.registrationContent p.registration-prompt a:hover {
+  text-decoration: underline;
+}
+
+/* Login form layout to match Figma 35:425 (desktop) / 35:742 (mobile) */
+#login.registrationContent {
+  width: 300px;
+  max-width: calc(100% - 32px);
+}
+#login.registrationContent .inner { width: 100%; }
+#login.registrationContent h1 { margin: 0 0 16px; }
+#login.registrationContent .registration-prompt { margin: 0 0 24px; }
+#login.registrationContent #login-form { margin: 0; }
+#login.registrationContent #login-form > p { margin: 0; padding: 0; }
+#login.registrationContent #login-form > p + p { margin-top: 16px; }
+#login.registrationContent #login-form input { height: 48px; margin: 0; width: 100%; box-sizing: border-box; }
+#login.registrationContent #login-submit-button { height: 48px; margin: 24px 0 0; width: 100%; }
+#login.registrationContent #resetLink { display: block; text-align: center; margin: 16px 0 0; }
+
 #visualizationsPage {
   text-align: left;
 }
