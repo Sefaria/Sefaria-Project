@@ -257,12 +257,11 @@ enabling the delete button. Both API calls share the same `performBulkEdit` help
 component.
 
 **Rename Version Title**:
-```
 POST /api/version-rename
 Body: { versionTitle, newVersionTitle, language (optional), index }
-Response (success): 200 { status: "ok" }
+Response (Celery enabled): 202 { task_id: "..." }
+Response (success, Celery disabled): 200 { status: "ok" }
 Response (failure): non-200 { error: "..." }
-```
 The `/api/version-rename` endpoint operates on a single `(index, versionTitle)` pair. To rename
 a `versionTitle` across many indices the frontend iterates over the selected indices in
 `renameVersions` and calls this endpoint once per index, aggregating per-index successes and
