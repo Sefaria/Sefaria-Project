@@ -348,6 +348,21 @@ entries:
     version: 0.86.0-more-ram-elastic2.1
   - apiVersion: v2
     appVersion: v6.101.12
+    created: "2026-06-12T14:57:36.750074572Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 50a58377095778ba01a33d259e50b4d4d026a0618d390500985ffdef4bd6f4be
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.86.0-autocompleterefactor.3.tgz
+    version: 0.86.0-autocompleterefactor.3
+  - apiVersion: v2
+    appVersion: v6.101.12
     created: "2026-06-11T16:36:36.684923774Z"
     description: Chart to deploy complete Sefaria environment
     digest: bebf98ce3f52701d485675c4c5684e1b2cea720887e091ce104100ecf0b66578
@@ -17940,4 +17955,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-06-11T16:36:36.681188871Z"
+generated: "2026-06-12T14:57:36.74688183Z"
