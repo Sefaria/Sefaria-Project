@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Tests for the autocompleter guards that support the standalone name service.
-
-When DISABLE_AUTOCOMPLETER and NAME_SERVICE_DEPLOYED are both set (web/task pods
-in a deployment with a name service), build methods must no-op and accessors must
-fail fast rather than lazily building in-request.  When only DISABLE_AUTOCOMPLETER
-is set (cauldrons, local dev), the legacy lazy-build fallback must remain intact.
+Tests for the DISABLE_AUTOCOMPLETER guards that support the standalone name
+service.  The flag is strict: a disabled process neither builds completers
+(no-op with a warning) nor serves them (accessors fail fast rather than
+lazily building in-request); completion traffic belongs to the name service.
 
 These tests touch no database: the guards return before any data access.
 """
@@ -45,12 +43,11 @@ def empty_completer_state():
 
 
 @pytest.fixture
-def served_externally(monkeypatch, empty_completer_state):
+def autocompleter_disabled(monkeypatch, empty_completer_state):
     monkeypatch.setattr(text_mod, "DISABLE_AUTOCOMPLETER", True)
-    monkeypatch.setattr(text_mod, "NAME_SERVICE_DEPLOYED", True)
 
 
-def test_build_methods_noop_when_served_externally(served_externally):
+def test_build_methods_noop_when_disabled(autocompleter_disabled):
     library.build_full_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
@@ -63,7 +60,7 @@ def test_build_methods_noop_when_served_externally(served_externally):
     assert not library._cross_lexicon_auto_completer_is_ready
 
 
-def test_accessors_raise_when_served_externally(served_externally):
+def test_accessors_raise_when_disabled(autocompleter_disabled):
     with pytest.raises(RuntimeError):
         library.full_auto_completer("en")
     with pytest.raises(RuntimeError):

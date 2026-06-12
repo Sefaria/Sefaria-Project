@@ -214,19 +214,15 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
-# Turns off search autocomplete suggestions, which are reinitialized on every server reload
-# which can be annoying for local development.
+# When True this process neither builds nor serves autocompleters: startup skips the
+# expensive build (which otherwise reruns on every server reload) and the completion
+# endpoints fail fast.  Completion traffic belongs to the name service when deployed.
 DISABLE_AUTOCOMPLETER = False
 
 # When True this process is a standalone name (autocomplete) service: every host serves
 # only the completion endpoints in sefaria/urls_name.py.  Deployed alongside web servers
 # that run with DISABLE_AUTOCOMPLETER = True.
 NAME_SERVICE = False
-
-# When True a name service serves completion traffic for this deployment, so a
-# DISABLE_AUTOCOMPLETER server fails fast on completer access instead of falling back
-# to the legacy in-request lazy build.
-NAME_SERVICE_DEPLOYED = False
 
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False

@@ -107,8 +107,6 @@ spec:
           # autocompleter builds and stop gating readiness on them
           - name: DISABLE_AUTOCOMPLETER
             value: "true"
-          - name: NAME_SERVICE_DEPLOYED
-            value: "true"
           {{- end }}
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION

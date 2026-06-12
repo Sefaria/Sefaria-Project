@@ -89,10 +89,8 @@ spec:
             value: tasks
           {{- if .Values.nameService.enabled }}
           # defensive: celery code must never lazily build or serve completers;
-          # with these set the accessors fail fast instead
+          # the accessors fail fast under DISABLE_AUTOCOMPLETER
           - name: DISABLE_AUTOCOMPLETER
-            value: "true"
-          - name: NAME_SERVICE_DEPLOYED
             value: "true"
           {{- end }}
           - name: REDIS_HOST
