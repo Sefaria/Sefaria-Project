@@ -162,9 +162,11 @@ spec:
           periodSeconds: 15
           timeoutSeconds: 10
         # multiserver rebuild events are processed synchronously in-request, so a
-        # worker can legitimately be busy for several minutes rebuilding the
-        # completers; the generous failureThresholds keep kubelet from killing or
-        # de-routing the pod mid-rebuild
+        # worker can legitimately be blocked for several minutes rebuilding the
+        # completers.  The probes are split: liveness stays generous so kubelet
+        # does not kill a pod mid-rebuild (it will return to service on its own),
+        # while readiness fails fast so a blocked pod is taken out of rotation
+        # quickly and re-enters as soon as it answers again.
         livenessProbe:
           httpGet:
             path: /healthz
@@ -176,9 +178,9 @@ spec:
           httpGet:
             path: /healthz
             port: 80
-          periodSeconds: 60
-          timeoutSeconds: 60
-          failureThreshold: 10
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 2
         volumeMounts:
         - mountPath: /app/sefaria/local_settings.py
           name: local-settings
