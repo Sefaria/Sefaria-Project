@@ -19,6 +19,18 @@ spec:
     blueGreen:
       activeService: name-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
+      # Same end-to-end gate as web/nodejs: hold promotion until the new
+      # revision answers healthz-rollout through its own nginx, so the name
+      # rollout flips (or aborts) in lockstep with the rest of the stack and
+      # never scales down the old revision's pods while varnish still pins them.
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
   selector:
     matchLabels:
       app: name-{{ .Values.deployEnv }}
