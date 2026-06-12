@@ -71,7 +71,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -1918,17 +1918,6 @@ def parashat_hashavua_api(request):
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
-def find_holiday_in_hebcal_results(response):
-    for hebcal_holiday in json.loads(response.text)['items']:
-        if hebcal_holiday['category'] != 'holiday':
-            continue
-        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-            if result['type'] == 'Topic':
-                topic = Topic.init(result['key'])
-                if topic:
-                    return topic.contents()
-    return None
-
 @catch_error_as_json
 def table_of_contents_api(request):
     include_authors = bool(int(request.GET.get("include_authors", False)))
@@ -3519,6 +3508,19 @@ def generate_topic_prompts_api(request, slug: str):
     return jsonResponse({"error": "This API only accepts POST requests."})
 
 
+def rebuild_full_auto_completer_across_servers():
+    """
+    Rebuilds the full auto completer locally and, when this server cannot serve
+    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
+    the multiserver channel so the name service picks it up.  When this server
+    holds its own completers the publish is skipped, preserving the historical
+    local-only rebuild semantics rather than triggering a fleet-wide build.
+    """
+    library.build_full_auto_completer()
+    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+
+
 @staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
@@ -3545,7 +3547,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_full_auto_completer()
+        rebuild_full_auto_completer_across_servers()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3562,7 +3564,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_full_auto_completer()
+            rebuild_full_auto_completer_across_servers()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3597,7 +3599,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_full_auto_completer()
+            rebuild_full_auto_completer_across_servers()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())

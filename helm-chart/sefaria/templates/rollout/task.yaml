@@ -87,6 +87,12 @@ spec:
             value: "{{ .Values.deployEnv }}"
           - name: STACK_COMPONENT
             value: tasks
+          {{- if .Values.nameService.enabled }}
+          # defensive: celery code must never lazily build or serve completers;
+          # the accessors fail fast under DISABLE_AUTOCOMPLETER
+          - name: DISABLE_AUTOCOMPLETER
+            value: "true"
+          {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
