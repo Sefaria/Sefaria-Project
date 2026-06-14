@@ -1199,7 +1199,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const path = decodeURI(url.pathname);
     const ref = path.slice(1).replace(/%3F/g, '?');
-    return {path, ref};
+    return {path, ref, search: url.search};
   }
   bootstrapUrl(href, options) {
     if (this.shouldAlertBeforeCloseEditor()) {
@@ -1208,13 +1208,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
     const opts = options || {};
-    const {path, ref} = this._getPathAndRefFromUrl(href);
+    const result = this._getPathAndRefFromUrl(href);
+    if (!result) { return false; }
+    const {path, ref, search} = result;
     if (Sefaria.isRef(ref)) {
       // Route bot refs through the same path as Header search ref navigation.
       this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
       return true;
     }
-    return this.openURL(path + url.search, true);
+    return this.openURL(path + search, true);
   }
 
   updateModuleLinkHref(link) {
@@ -2455,7 +2457,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
+              {showChatbotBanner && (
+                <ChatbotExperimentBanner
+                  promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls}
+                  promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
+                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
+                />
+              )}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}
