@@ -242,6 +242,7 @@ class LinkerOutput(MarkedUpTextChunk):
                     "llm_resolved_method_non_segment": {"type": "string", "required": False, "nullable": True},
                     "llm_resolved_phrase_non_segment": {"type": "string", "required": False, "nullable": True},
                     "llm_ambiguous_option_valid": {"type": "boolean", "required": False, "nullable": True},
+                    "llm_resolved_ref_but_rejected": {"type": "string", "required": False, "nullable": True},
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
                     **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}

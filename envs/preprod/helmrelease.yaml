@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.85.10-preprod.1"
+      version: "0.85.8-preprod.3"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -220,8 +220,6 @@ spec:
         ref: local-settings-secrets-production
       backupManager:
         ref: backup-manager-secret-production
-      slackWebhook:
-        ref: slack-webhook-production
     instrumentation:
       enabled: false
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"

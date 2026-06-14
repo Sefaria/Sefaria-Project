@@ -22,7 +22,7 @@ from dataclasses import asdict
 from functools import lru_cache
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -374,7 +374,9 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        'chatbot_promo_maybe_later_json': remoteConfigCache.get(CHATBOT_PROMO_MAYBE_LATER_JSON, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
     if user_has_experiments(request.user):
@@ -5149,6 +5151,17 @@ def module_favicon(request, filename):
     # Tell client to cache for 1 month, since favicons change infrequently
     response["Cache-Control"] = "max-age=2592000"
     
+    return response
+
+
+def serve_llms_txt(request):
+    """
+    Serve llms.txt from the static directory.
+    This provides LLM-friendly documentation about Sefaria's API and resources.
+    """
+    llms_path = os.path.join(STATICFILES_DIRS[0], 'llms.txt')
+    response = FileResponse(open(llms_path, 'rb'), content_type='text/plain; charset=utf-8')
+    response["Cache-Control"] = "max-age=86400"  # 1 day
     return response
 
 
