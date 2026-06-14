@@ -1,6 +1,5 @@
 /* Testing done using Jest */
 import { getCsrfToken } from '../csrf';
-import Cookies from 'js-cookie';
 
 const META_SELECTOR = 'meta[name="csrf-token"]';
 
@@ -22,7 +21,7 @@ function removeMetaToken() {
 describe('getCsrfToken', () => {
   afterEach(() => {
     removeMetaToken();
-    Cookies.remove('csrftoken');
+    jest.restoreAllMocks();
   });
 
   it('returns the meta-tag token when present', () => {
@@ -30,23 +29,28 @@ describe('getCsrfToken', () => {
     expect(getCsrfToken()).toBe('META_TOKEN');
   });
 
-  it('prefers the meta-tag token over a conflicting cookie (the dual-cookie fix)', () => {
+  it('reads only the meta tag, never a conflicting cookie (the dual-cookie fix)', () => {
     // This is the core guarantee: when production's .sefaria.org csrftoken and a
     // cauldron's host-scoped csrftoken both reach the browser, we must NOT trust
     // the cookie. The meta tag (rendered from Django's {{ csrf_token }}) wins.
+    document.cookie = 'csrftoken=COOKIE_TOKEN';
     setMetaToken('META_TOKEN');
-    Cookies.set('csrftoken', 'COOKIE_TOKEN');
     expect(getCsrfToken()).toBe('META_TOKEN');
   });
 
-  it('falls back to the cookie when no meta tag is present', () => {
-    Cookies.set('csrftoken', 'COOKIE_TOKEN');
-    expect(getCsrfToken()).toBe('COOKIE_TOKEN');
+  it('returns "" and warns when no meta tag is present (no cookie fallback)', () => {
+    // A cookie fallback would silently reintroduce the dual-cookie 403, so a
+    // missing meta tag must fail loudly rather than read the cookie.
+    document.cookie = 'csrftoken=COOKIE_TOKEN';
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(getCsrfToken()).toBe('');
+    expect(warn).toHaveBeenCalled();
   });
 
-  it('falls back to the cookie when the meta tag is empty', () => {
+  it('returns "" and warns when the meta tag is empty', () => {
     setMetaToken('');
-    Cookies.set('csrftoken', 'COOKIE_TOKEN');
-    expect(getCsrfToken()).toBe('COOKIE_TOKEN');
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(getCsrfToken()).toBe('');
+    expect(warn).toHaveBeenCalled();
   });
 });
