@@ -30,7 +30,10 @@ class TextColumn extends Component {
     this._penDownX            = 0;
     this._penDownY            = 0;
     this._pendingLongPressData = null;
-    this.handleSelectionChange = this.handleSelectionChange.bind(this);
+    this._touchActive          = false;
+    this._longPressTriggered   = false;
+    this._longPressTimer       = null;
+    this._suppressNextFocus    = false;
   }
   componentDidMount() {
     this._isMounted          = true;
@@ -62,7 +65,9 @@ class TextColumn extends Component {
 
     if (prevProps.mode === "Text" && this.props.mode === "TextAndConnections") {
       // When opening mobile connections panel, scroll to highlighted
-      this.scrollToHighlighted();
+      const shouldFocus = !this._suppressNextFocus;
+      this._suppressNextFocus = false;
+      this.scrollToHighlighted(shouldFocus);
 
     } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders && !this.initialScrollTopSet) {
       // After scroll placeholders are first rendered, scroll down so top placeholder
@@ -80,7 +85,9 @@ class TextColumn extends Component {
       !prevProps.srefs.compare(this.props.srefs)) {
       // When the highlighted segment has changed, scroll to it.
       // refs length should be equal so as not to scroll when infinite scroll changes refs
-      this.scrollToHighlighted();
+      const shouldFocus = !this._suppressNextFocus;
+      this._suppressNextFocus = false;
+      this.scrollToHighlighted(shouldFocus);
 
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
         !Sefaria.areBothVersionsEqual(prevProps.currVersions, this.props.currVersions)) {
@@ -127,24 +134,51 @@ class TextColumn extends Component {
     this._touchStartX         = touch ? touch.clientX : 0;
     this._touchStartY         = touch ? touch.clientY : 0;
     this._pendingLongPressData = null;
-    document.addEventListener('selectionchange', this.handleSelectionChange);
+    this._touchActive          = true;
+    this._longPressTriggered   = false;
+    clearTimeout(this._longPressTimer);
+    this._longPressTimer = setTimeout(() => this.handleLongPress(), 500);
   }
-  handleSelectionChange() {
-    if (!this._touchStartTime) return;
-    const selection = window.getSelection();
-    if (selection.type !== 'Range') return;
-    // Capture refs and words now, then immediately clear to suppress the Google lookup pane
-    const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
-    const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
-    let $segments = this.$container.find(".segment");
-    let start     = $segments.index($start);
-    let end       = $segments.index($end);
-    start = start === -1 ? end : start;
-    end   = end   === -1 ? start : end;
-    const refs = [];
-    $segments.slice(start, end + 1).each(function() { refs.push($(this).attr("data-ref")); });
-    this._pendingLongPressData = { refs, selectedWords: Sefaria.util.getNormalizedSelectionString() };
-    selection.removeAllRanges();
+  // Find the word under (x, y) ourselves, independent of the browser's native
+  // long-press-to-select gesture (which is unreliable on Android Chrome and
+  // races with this timer - see handleTouchStart). Returns the text node and
+  // start/end offsets of the word, without touching window.getSelection() -
+  // `user-select: none` (used to suppress the native gesture) can prevent
+  // Selection.addRange() from taking effect on some Android builds.
+  getWordAtPoint(x, y) {
+    let range;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (!pos) { return null; }
+      range = document.createRange();
+      range.setStart(pos.offsetNode, pos.offset);
+    }
+    if (!range || range.startContainer.nodeType !== Node.TEXT_NODE) { return null; }
+
+    const textNode  = range.startContainer;
+    const text      = textNode.textContent;
+    const isBoundary = c => !c || /\s/.test(c);
+    let start = range.startOffset;
+    let end   = range.startOffset;
+    while (start > 0 && !isBoundary(text[start - 1])) { start--; }
+    while (end < text.length && !isBoundary(text[end])) { end++; }
+    if (start === end) { return null; }
+
+    return { textNode, word: text.slice(start, end) };
+  }
+  handleLongPress() {
+    if (!this._touchActive) { return; } // already lifted or cancelled by touchmove
+    this._longPressTriggered = true;
+    const hit = this.getWordAtPoint(this._touchStartX, this._touchStartY);
+    if (!hit) { return; }
+
+    const $segment = $(hit.textNode.parentNode).closest(".segment");
+    const ref = $segment.attr("data-ref");
+    if (!ref || !hit.word) { return; }
+    this._pendingLongPressData = { refs: [ref], selectedWords: hit.word };
+    if (navigator.vibrate) { navigator.vibrate(10); }
   }
   handleTouchMove(event) {
     const touch = event.touches[0];
@@ -153,26 +187,26 @@ class TextColumn extends Component {
     const dy = touch.clientY - this._touchStartY;
     if (Math.sqrt(dx * dx + dy * dy) > 8) {
       this._touchStartTime = 0;
+      clearTimeout(this._longPressTimer);
     }
   }
   handleTouchEnd(event) {
-    document.removeEventListener('selectionchange', this.handleSelectionChange);
-    if (this._touchStartTime && Date.now() - this._touchStartTime >= 500) {
-      if (this._pendingLongPressData) {
-        const { refs, selectedWords } = this._pendingLongPressData;
-        if (selectedWords) {
-          event.preventDefault(); // prevent synthetic click from re-highlighting the paragraph
-          if (document.activeElement) { document.activeElement.blur(); } // avoid :focus background competing with the orange word highlight
-          if (selectedWords !== this.props.selectedWords) { this.props.setSelectedWords(selectedWords, refs); }
-        } else {
-          if (refs.length > 0) { this.props.setTextListHighlight(refs); }
-        }
+    clearTimeout(this._longPressTimer);
+    if (this._longPressTriggered && this._pendingLongPressData) {
+      const { refs, selectedWords } = this._pendingLongPressData;
+      if (selectedWords) {
+        event.preventDefault(); // prevent synthetic click from re-highlighting the paragraph
+        if (document.activeElement) { document.activeElement.blur(); }
+        this._suppressNextFocus = true; // avoid :focus background competing with the blue word highlight once the connections panel opens
+        if (selectedWords !== this.props.selectedWords) { this.props.setSelectedWords(selectedWords, refs); }
       } else {
-        this.handleTextSelection();
+        if (refs.length > 0) { this.props.setTextListHighlight(refs); }
       }
     }
     this._touchStartTime       = 0;
     this._pendingLongPressData = null;
+    this._touchActive          = false;
+    this._longPressTriggered    = false;
   }
   handlePointerDown(event) {
     if (event.pointerType === 'pen') {
@@ -571,7 +605,7 @@ class TextColumn extends Component {
       onPointerMove={this.handlePointerMove}
       onPointerLeave={this.handlePointerLeave}
       onPointerUp={this.handlePointerUp}
-      onContextMenu={e => e.preventDefault()}
+      onContextMenu={e => { if (!this._touchActive) { e.preventDefault(); } }} // Android: a touch-originated contextmenu is part of the native long-press-to-select gesture; preventing it suppresses selection entirely. Only block the desktop right-click menu.
     >
       {pre}
       {content}

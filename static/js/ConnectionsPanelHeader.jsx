@@ -164,6 +164,8 @@ class ConnectionsPanelHeader extends Component {
     } else {
       const style = !this.props.multiPanel && this.props.connectionsMode === "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
       const cStyle = !this.props.multiPanel && this.props.connectionsMode === "Resources" ? {"justifyContent": "center"} : style;
+      const showCloseButton = !this.props.multiPanel &&
+        (this.props.connectionsMode === "Resources" || this.props.connectionsMode === "Lexicon");
       // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
       let classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
       return (<div className={classes} style={style}>
@@ -179,6 +181,9 @@ class ConnectionsPanelHeader extends Component {
                         recentFilters={this.props.recentFilters}
                         textCategory={this.props.previousCategory}
                         setFilter={this.props.setFilter} />
+                        : null }
+                      {showCloseButton ?
+                      <CloseButton icon="circledX" onClick={this.props.closeConectionsInPanel} />
                         : null }
                     </div>
                   </div>
@@ -198,6 +203,7 @@ ConnectionsPanelHeader.propTypes = {
     setConnectionsMode:     PropTypes.func.isRequired,
     setConnectionsCategory: PropTypes.func.isRequired,
     closePanel:             PropTypes.func.isRequired,
+    closeConectionsInPanel: PropTypes.func,
     toggleLanguage:         PropTypes.func,
     interfaceLang:          PropTypes.string.isRequired,
     backButtonSettings:     PropTypes.object,

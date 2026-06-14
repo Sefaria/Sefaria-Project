@@ -1836,6 +1836,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         selectedWords: words,
         connectionsMode: shouldOpenLexicon ? "Lexicon" : undefined,
       });
+      // Single-panel (mobile) layout stacks the new Connections/Lexicon panel
+      // below the text, off-screen. Scroll it into view once it's rendered.
+      requestAnimationFrame(() => {
+        const connectionsPanel = document.querySelector(".connectionsPanel");
+        if (connectionsPanel) { connectionsPanel.scrollIntoView({behavior: "smooth", block: "start"}); }
+      });
     }
   }
   setUnreadNotificationsCount(n) {

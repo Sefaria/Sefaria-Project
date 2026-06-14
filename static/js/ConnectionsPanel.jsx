@@ -599,6 +599,7 @@ class ConnectionsPanel extends Component {
             baseRefs={this.props.srefs}
             setFilter={this.props.setFilter}
             closePanel={this.props.closePanel}
+            closeConectionsInPanel={this.props.closeConectionsInPanel}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}
             backButtonSettings={this.props.backButtonSettings}
@@ -632,6 +633,7 @@ ConnectionsPanel.propTypes = {
   onCitationClick: PropTypes.func,
   openNav: PropTypes.func,
   closePanel: PropTypes.func,
+  closeConectionsInPanel: PropTypes.func,
   toggleLanguage: PropTypes.func,
   selectedWords: PropTypes.string,
   selectedNamedEntity: PropTypes.string,

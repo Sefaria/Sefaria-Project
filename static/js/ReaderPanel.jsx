@@ -327,8 +327,22 @@ class ReaderPanel extends Component {
     this.replaceHistory = false;
     if (this.props.multiPanel) {
       this.props.setSelectedWords(words, wordRefs);
+    } else if (this.state.mode === "TextAndConnections") {
+      this.conditionalSetState({selectedWords: words, textHighlights: words ? [words] : null});
     } else {
-      this.conditionalSetState({'selectedWords':  words});
+      // No connections panel open yet (mobile single-panel layout) - open one,
+      // showing the Lexicon if the selection looks like a single word.
+      const refs = wordRefs || this.state.highlightedRefs;
+      const hebrewOrWhitespace = new RegExp("[\\s:\\u0590-\\u05ff.]+");
+      const shouldOpenLexicon = !!words &&
+        hebrewOrWhitespace.test(words) &&
+        words.split(" ").length < 3 &&
+        refs && refs.length === 1;
+      this.openConnectionsInPanel(refs, {
+        selectedWords: words,
+        textHighlights: words ? [words] : null,
+        connectionsMode: shouldOpenLexicon ? "Lexicon" : undefined,
+      });
     }
   }
   clearSelectedWords() {

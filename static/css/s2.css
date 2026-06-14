@@ -6035,6 +6035,15 @@ big {
   cursor: pointer;
   display: block;
   background-color: inherit;
+  -webkit-touch-callout: none; /* iOS Safari: suppress the Copy/Look Up/Translate menu so long-press can open the Lexicon instead */
+}
+@media (pointer: coarse) {
+  /* Touchscreens: suppress the native long-press-to-select gesture so our
+     own timer-based long-press handler (TextColumn.jsx) isn't raced by it. */
+  .segment {
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }
 .continuous .segment {
   display: inline;
@@ -6608,6 +6617,10 @@ But not to use a display block directive that might break continuous mode for ot
 .connectionsHeader .readerNavMenuCloseButton.circledX,
 .readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
+}
+.singlePanel .connectionsPanelHeader .readerNavMenuCloseButton.circledX {
+  margin-inline-start: auto;
+  align-self: center;
 }
 
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
