@@ -9,10 +9,6 @@
 <head>
     {% block meta_title %}{% meta_title %}{{ title|striptags }}{% endmeta_title %}{% endblock %}
     <meta charset="utf-8"/>
-    {# Server-rendered CSRF token. Read this in JS rather than the csrftoken cookie: #}
-    {# when a parent-domain (.sefaria.org) cookie coexists with a host-scoped one (e.g. on #}
-    {# cauldrons), the cookie readers and Django can disagree on which token is valid → 403. #}
-    {# This value is exactly the token Django validates against. See sefaria/csrf.js. #}
     <meta name="csrf-token" content="{{ csrf_token }}"/>
     {% block meta_description %}{% meta_desc %}{{ desc|striptags }}{% endmeta_desc %}{% endblock %}
 
