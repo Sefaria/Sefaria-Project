@@ -129,11 +129,11 @@ Each query combines three scoring mechanisms, applied over English and Hebrew fi
 
 #### Author-aware book results
 
-When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses the model's existing `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
+When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
 
 > **Note:** It is possible to trigger the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions. This can cause queries like "Genesis" to return all of Rashi's books because his name appeared in a description. To fix this, ensure that the aggregated-works view now only activates when the query directly matches an author entity in the `topic` index.
 
-To support useful labels in the aggregated view, the author-works aggregation was extended to report, per entry, whether it is a category aggregation and a localized category label. The Name API (`/api/name`) gained an opt-in `get_author_books` flag that returns the same aggregated structure, so the autocomplete path and the POC endpoint share this data.
+To support useful labels in the aggregated view, the author-works aggregation was extended to report, per entry, whether it is a category aggregation and a localized category label. 
 
 ### Sample request / response
 
@@ -205,9 +205,9 @@ GET /api/entity-search?q=Rambam&type=book
 
 ### Scheduled reindex
 
-The scheduled cron job (`scripts/scheduled/reindex_elasticsearch_cronjob.py`) rebuilds the `topic` and `book` indices on the same schedule as `text`/`sheet`. Each index is rebuilt using a blue-green strategy: a fresh index is built in the background under a temporary name, and only swapped in as the live index once it's complete. This means search stays available on the old data during the rebuild, with zero downtime. A failure rebuilding one index type is recorded but does not block the other from completing.
+The scheduled cron job rebuilds the `topic` and `book` indices on the same schedule as `text`/`sheet`. Each index is rebuilt using a blue-green strategy: a fresh index is built in the background under a temporary name, and only swapped in as the live index once it's complete. This means search stays available on the old data during the rebuild, with zero downtime. A failure rebuilding one index type is recorded but does not block the other from completing.
 
-We need both sample scripts to minimally populate a dev environment, as well as a script for a **full reindex** which runs the reindex for `topic` and/or `book` on demand.
+We need sample scripts to minimally populate a dev environment, as well as a script for a **full reindex** which runs the reindex for `topic` and/or `book` on demand.
 
 ### Local development setup
 
