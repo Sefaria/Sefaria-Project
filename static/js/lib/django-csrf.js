@@ -1,6 +1,4 @@
 var $  = require('jquery');
-// Canonical CSRF token reader (meta tag first, cookie fallback). Shared with the
-// fetch()-based call sites so the dual-cookie fix lives in exactly one place.
 var getCsrfToken = require('../sefaria/csrf').getCsrfToken;
 
 function init() {
