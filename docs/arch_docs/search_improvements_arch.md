@@ -127,13 +127,11 @@ Each query combines three scoring mechanisms, applied over English and Hebrew fi
 
 **Routing:** `topic` and `author` queries both search the `topic` index, filtered by `subtype`. Book queries additionally boost `author_names` so a search for "Rambam" surfaces his works even when his name isn't in the book title.
 
-The prefix match is the dominant query cost and the main performance risk to validate at scale.
-
 #### Author-aware book results
 
 When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses the model's existing `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
 
-> **Bug fixed.** An earlier version triggered the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions. This caused queries like "Genesis" to return all of Rashi's books because his name appeared in a description. Fixed: the aggregated-works view now only activates when the query directly matches an author entity in the `topic` index.
+> **Note:** It is possible to trigger the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions. This can cause queries like "Genesis" to return all of Rashi's books because his name appeared in a description. To fix this, ensure that the aggregated-works view now only activates when the query directly matches an author entity in the `topic` index.
 
 To support useful labels in the aggregated view, the author-works aggregation was extended to report, per entry, whether it is a category aggregation and a localized category label. The Name API (`/api/name`) gained an opt-in `get_author_books` flag that returns the same aggregated structure, so the autocomplete path and the POC endpoint share this data.
 
@@ -230,6 +228,7 @@ SEARCH_INDEX_NAME_BOOK = 'book'
 - **Denormalization staleness.** `author_names` on book docs and `authored_slugs` on author docs are snapshots taken at index time; an author rename requires reindexing affected books to stay consistent.
 - **Numeric token false positives.** Queries containing numbers (e.g., "Genesis 1:1") match books with "1" in the title or `titleVariants` — "I Kings", "Vol. I", numbered tractates, etc. — producing noisy results. Needs a fix before production (e.g., exclude purely-numeric tokens from `titleVariants` matching, or treat numeric-heavy queries as ref queries rather than book searches).
 - **Cauldron test environment.** Getting Elasticsearch and the reindex cron job working correctly in our cauldron test environment carries non-trivial setup complexity. This needs to be budgeted as part of the production path — it is not automatic from the existing cron wiring.
+- **Prefix Matching** - To match strings like `Mo` to `Moses`, we use a strategy that treats ending word fragments as search prefixes. It should be noted that this approach comes with query cost and the main Elastic Search query performance risk to validate at scale.
 
 ### Frontend Limitations (and tech debt)
 
