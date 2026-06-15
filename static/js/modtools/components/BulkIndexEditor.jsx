@@ -24,6 +24,7 @@
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
@@ -456,12 +457,24 @@ const BulkIndexEditor = () => {
           ...indexSpecificUpdates
         };
 
-        const urlParams = { update: '1' };
         const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
-        const payload = { json: JSON.stringify(postData) };
 
-        // Update index via raw API
-        await Sefaria.apiRequestWithBody(`/api/v2/raw/index/${indexPath}`, urlParams, payload);
+        // Update index via raw API. index_api reads request.POST.get("json"), so the
+        // body must be form-encoded (application/x-www-form-urlencoded), not JSON.
+        const updateResponse = await fetch(`/api/v2/raw/index/${indexPath}?update=1`, {
+          method: 'POST',
+          mode: 'same-origin',
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRFToken': Cookies.get('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({ json: JSON.stringify(postData) }).toString()
+        });
+        const updateData = await updateResponse.json();
+        if (!updateResponse.ok || updateData.error) {
+          throw new Error(updateData.error || "Failed to update index");
+        }
 
         // Clear caches (non-JSON endpoint)
         const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
