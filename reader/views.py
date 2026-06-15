@@ -4073,16 +4073,9 @@ def enable_library_assistant(request):
         next_url = "/"
 
     if not request.user.is_authenticated:
-        # The promo always routes through login/register first, so reaching this
-        # anonymously is unexpected — send them to log in, then back here to enroll.
         return redirect_to_login(request.get_full_path())
 
-    # Enrollment is a state change reached via GET (the post-login redirect is a
-    # top-level navigation, so no CSRF token is available). Guard against a cross-site
-    # subresource (e.g. <img src=".../enable-library-assistant">) silently enrolling a
-    # logged-in user: skip the opt-in when the browser reports a cross-site request.
-    # The real same-origin/same-site post-login navigation — and clients that don't send
-    # Sec-Fetch-Site — are unaffected. We still redirect either way.
+    # Prevent cross-site enrollment via GET.
     if request.headers.get("Sec-Fetch-Site") != "cross-site":
         _set_user_experiments(request.user, True)
 
