@@ -181,10 +181,32 @@ export class ModuleHeaderPage extends HelperBase {
    * (see ProfilePic.jsx `showDefault` state).
    */
   async openUserMenu(): Promise<void> {
+    // Wait for the page to settle first. A click that lands while React is still
+    // hydrating/re-rendering the header (e.g. right after creating a sheet, when
+    // /sheets/new redirects to /sheets/<id>) is swallowed before the dropdown's
+    // toggle handler is attached, so the menu never opens.
+    await this.page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(this.page);
     const trigger = this.page.locator(MODULE_SELECTORS.HEADER.USER_MENU_BUTTON_LOGGED_IN);
     await expect(trigger).toBeVisible({ timeout: t(10000) });
-    await trigger.click();
+
+    // The profile dropdown's menu (`.dropdownLinks-menu`) toggles the `open`
+    // class when its trigger is clicked. Both header dropdowns use the
+    // `headerDropdownMenu` wrapper, so scope to the one containing `.profile-pic`.
+    // Retry the click until the menu actually opens — this absorbs clicks that
+    // get dropped during a post-navigation re-render.
+    const menu = this.page.locator(
+      '.header .headerDropdownMenu:has(.profile-pic) .dropdownLinks-menu'
+    );
+    await expect(async () => {
+      const isOpen = await menu
+        .evaluate((el) => el.classList.contains('open'))
+        .catch(() => false);
+      if (!isOpen) {
+        await trigger.click();
+      }
+      await expect(menu).toHaveClass(/(^|\s)open(\s|$)/, { timeout: t(1500) });
+    }).toPass({ timeout: t(15000) });
   }
 
   async logout() {

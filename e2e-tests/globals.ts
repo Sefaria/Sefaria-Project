@@ -92,9 +92,9 @@ export const BROWSER_SETTINGS = {
         user: testHeLAUser,
         site: 'IL' as const,
         // Set to match the account's Django staff status. qa+automationLAHebrew is
-        // NOT currently staff, so the LA menu shows 4 items (no "Settings"). Flip
-        // to true once the account is made staff (then it sees 5, like enLAUser).
-        isModerator: false,
+        // now staff, so the LA More-options menu renders the extra "Settings" item
+        // first (5 items total, like enLAUser) — the chatbot's `is-moderator` branch.
+        isModerator: true,
     },
 };
 
