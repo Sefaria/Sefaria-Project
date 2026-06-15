@@ -174,6 +174,7 @@ const BulkIndexEditor = () => {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
 
   // Load categories on mount
   useEffect(() => {
@@ -270,6 +271,7 @@ const BulkIndexEditor = () => {
 
     setSaving(true);
     setMsg("Saving changes...");
+    setProgress({ current: 0, total: pick.size, label: "" });
 
     // Process updates to ensure correct data types
     const processedUpdates = {};
@@ -357,7 +359,9 @@ const BulkIndexEditor = () => {
     const errors = [];
     const warnings = [];
 
+    let processed = 0;
     for (const indexTitle of pick) {
+      setProgress({ current: processed, total: pick.size, label: indexTitle });
       try {
         setMsg(`Updating ${indexTitle}...`);
 
@@ -487,6 +491,9 @@ const BulkIndexEditor = () => {
       } catch (e) {
         const errorMsg = e.message || 'Unknown error';
         errors.push(`${indexTitle}: ${errorMsg}`);
+      } finally {
+        processed++;
+        setProgress({ current: processed, total: pick.size, label: indexTitle });
       }
     }
 
@@ -497,6 +504,7 @@ const BulkIndexEditor = () => {
       setMsg(`Successfully updated ${successCount} indices.${warningText}`);
       if (!warnings.length) setUpdates({});
     }
+    setProgress({ current: 0, total: 0, label: "" });
     setSaving(false);
   };
 
@@ -671,6 +679,24 @@ const BulkIndexEditor = () => {
               {saving ? <><span className="loadingSpinner" />Saving...</> : `Save Changes to ${pick.size} Indices`}
             </button>
           </div>
+
+          {saving && progress.total > 0 && (
+            <div className="saveProgress">
+              <div className="saveProgressHeader">
+                <span>{progress.current} of {progress.total} indices</span>
+                <span>{Math.round((progress.current / progress.total) * 100)}%</span>
+              </div>
+              <div className="saveProgressTrack">
+                <div
+                  className="saveProgressBar"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+              {progress.label && (
+                <div className="saveProgressLabel">Updating: {progress.label}</div>
+              )}
+            </div>
+          )}
         </>
       )}
 
