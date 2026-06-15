@@ -21,6 +21,7 @@ import { LibraryAssistantPage } from "./libraryAssistantPage"
 import { ResourcePanelPage } from "./resourcePanelPage"
 import { MobileHamburgerPage } from "./mobileHamburgerPage"
 import { VoicesTopicPage } from "./voicesTopicPage"
+import { LibraryTopicPage } from "./libraryTopicPage"
 
 
 export class PageManager {
@@ -45,6 +46,7 @@ export class PageManager {
     private readonly resourcePanelPage: ResourcePanelPage
     private readonly mobileHamburgerPage: MobileHamburgerPage
     private readonly voicesTopicPage: VoicesTopicPage
+    private readonly libraryTopicPage: LibraryTopicPage
 
 
 
@@ -70,6 +72,7 @@ export class PageManager {
         this.resourcePanelPage = new ResourcePanelPage(page, language)
         this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
         this.voicesTopicPage = new VoicesTopicPage(page, language)
+        this.libraryTopicPage = new LibraryTopicPage(page, language)
 
     }
 
@@ -152,6 +155,10 @@ export class PageManager {
 
     onVoicesTopic() {
         return this.voicesTopicPage
+    }
+
+    onLibraryTopic() {
+        return this.libraryTopicPage
     }
 
 

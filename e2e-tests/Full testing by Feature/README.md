@@ -12,6 +12,7 @@ New here? Read the root [handbook](../README.md) first.
 | --- | --- | --- | --- |
 | [Resource Panel/](Resource%20Panel/README.md) | `RP-001` → `RP-212` (79 active across 19 specs) | The `ConnectionsPanel` reader sidebar that opens when a segment is clicked — Resources hub, TOC nav, About-This-Text, Translations, Lexicon, Connections/Text lists, Topics, Web Pages, Sheets, Manuscripts, Notes, Add-to-Sheet, Share, Search-in-Text, Feedback, Guide, Hebrew UI. | Library / `www.<domain>` |
 | [Voices Topics/](Voices%20Topics/README.md) | `TOV-001` → `TOV-019` (17 active across 2 specs) | Voices topic pages (`voices.<domain>/topics/<slug>`) and the `/topics` landing — display, language support, sheet listing, sorting, related-topic nav, A–Z browse, cross-module language persistence. | Voices / `voices.<domain>` |
+| [Library Topics/](Library%20Topics/README.md) | `LIB-001` → `LIB-029` (31 active across 8 specs) | Library topic pages (`www.<domain>/topics/<slug>`) and the `/topics` landing — text-source display, language support + source-language toggle, source listing / infinite scroll / filter / sort, related-topic + category nav, search autocomplete, A–Z browse, cross-module (Library↔Voices) behavior, error handling, a11y/responsive, performance/analytics. | Library / `www.<domain>` |
 
 Each suite has its own README with a mode/navigation map, per-test detail, reference data (API-verified slugs/refs), and a "common gotchas" playbook. **The [Resource Panel README](Resource%20Panel/README.md) is the gold-standard template** — model new feature docs on it.
 

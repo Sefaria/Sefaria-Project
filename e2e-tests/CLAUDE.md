@@ -13,6 +13,7 @@ Playwright end-to-end test suite for Sefaria. Two web modules and one embedded p
 - **Library Assistant** — `<lc-chatbot>` custom element embedded on the Library module. See [assistant/README.md](assistant/README.md) for the full LA-specific guide.
 - **Resource Panel** — `ConnectionsPanel` reader sidebar, RP-001 → RP-212. See [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
 - **Voices Topics** — `/topics/<slug>` and `/topics` landing on the Voices module, TOV-001 → TOV-019 (non-skipped). See [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md).
+- **Library Topics** — `/topics/<slug>` and `/topics` landing on the Library module, LIB-001 → LIB-029 (31 active). Same `TopicPage.jsx` component as Voices, but renders text sources + a source-language toggle. See [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md).
 
 Tests run against the sandbox URL pointed at by `SANDBOX_URL` / `SANDBOX_URL_IL` env vars. Each Playwright "project" in [playwright.config.ts](../playwright.config.ts) pairs a browser (Chromium/Firefox/WebKit) with a folder under `e2e-tests/`. **Mobile tests live under a separate config** ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`; the desktop projects never exercise it. See [mobile web/README.md](mobile%20web/README.md) and §20 below.
 
@@ -208,6 +209,7 @@ Conventions:
 | Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` | `chrome-assistant` | `www.<sandbox>` |
 | Resource Panel (`ConnectionsPanel`, RP-NNN) | `Full testing by Feature/Resource Panel/` | `chrome/firefox/safari-resource-panel` | `www.<sandbox>` |
 | Voices Topics (`/topics/<slug>` + `/topics` landing, TOV-NNN) | `Full testing by Feature/Voices Topics/` | `chrome/firefox/safari-voices-topics` | `voices.<sandbox>` |
+| Library Topics (`/topics/<slug>` + `/topics` landing, LIB-NNN) | `Full testing by Feature/Library Topics/` | `chrome/firefox/safari-library-topics` | `www.<sandbox>` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile web/` *(separate config — `playwright.mobileweb.config.ts`)* | `chrome-mobile-library` (Pixel 5), `safari-mobile-library` (iPhone 13) | `www.<sandbox>` |
 | End-to-end smoke / release gate | `Sanity/` | `chrome-sanity`, `firefox-sanity`, `safari-sanity` | `www.<sandbox>` |
 | Cross-cutting or unplaceable (help redirects, etc.) | `Misc/` | `chrome-misc`, `firefox-misc`, `safari-misc` | `www.<sandbox>` |
@@ -434,6 +436,7 @@ npx playwright test --project=chrome-library
 npx playwright test --project=chrome-assistant         # Library Assistant suite
 npx playwright test --project=chrome-resource-panel    # Resource Panel suite
 npx playwright test --project=chrome-voices-topics     # Voices Topics suite
+npx playwright test --project=chrome-library-topics    # Library Topics suite
 
 # Mobile suite (separate config — runs under width < 843 px viewport)
 npx playwright test --config=playwright.mobileweb.config.ts
@@ -588,6 +591,7 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly. Also recomm
 | Library Assistant deep-dive guide (incl. coverage + backlog) | [assistant/README.md](assistant/README.md) |
 | Resource Panel deep-dive guide | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Voices Topics deep-dive guide | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
+| Library Topics deep-dive guide | [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md) |
 | Canonical POM example | [pages/resourcePanelPage.ts](pages/resourcePanelPage.ts), [pages/voicesTopicPage.ts](pages/voicesTopicPage.ts) |
 | Canonical spec example | [library/header.spec.ts](library/header.spec.ts) (minimal), [Full testing by Feature/Resource Panel/opening-and-general.spec.ts](Full%20testing%20by%20Feature/Resource%20Panel/opening-and-general.spec.ts) (POM-pure) |
 | Shadow-DOM / web-component POM example | [pages/libraryAssistantPage.ts](pages/libraryAssistantPage.ts) |

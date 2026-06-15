@@ -28,12 +28,13 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 | [pageManager.ts](pageManager.ts) | Mounts all 20 page objects and exposes the `pm.onX()` accessors. Register every new POM here. |
 | [helperBase.ts](helperBase.ts) | Base class every page object extends — provides `this.page` and `this.language`. |
 
-**Mounted page objects (20) — reached via `pm.<accessor>()`:**
+**Mounted page objects (21) — reached via `pm.<accessor>()`:**
 
 | File | Accessor | Owns | Status |
 | --- | --- | --- | --- |
 | [resourcePanelPage.ts](resourcePanelPage.ts) | `onResourcePanel()` | ConnectionsPanel reader sidebar (RP-*) | ⭐ **canonical model** |
 | [voicesTopicPage.ts](voicesTopicPage.ts) | `onVoicesTopic()` | Voices topic pages (TOV-*) | ⭐ **canonical model** |
+| [libraryTopicPage.ts](libraryTopicPage.ts) | `onLibraryTopic()` | Library topic pages (LIB-*) — text sources, source-language toggle, infinite scroll | ✅ TopicPage counterpart to `voicesTopicPage.ts` |
 | [moduleSidebarPage.ts](moduleSidebarPage.ts) | `onModuleSidebar()` | Sticky nav sidebar + footer links | ✅ good role-based example |
 | [libraryAssistantPage.ts](libraryAssistantPage.ts) | `onLibraryAssistant()` | LA `<lc-chatbot>` (open shadow DOM) | ✅ shadow-DOM exemplar |
 | [mobileHamburgerPage.ts](mobileHamburgerPage.ts) | `onMobileHamburger()` | Mobile hamburger drawer (HAM-*) | ✅ standard |

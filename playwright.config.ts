@@ -152,6 +152,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.VOICES,
       },
     },
+    // Library Topics feature-coverage tests — Library module
+    {
+      name: 'chrome-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -212,6 +221,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.VOICES,
       },
     },
+    {
+      name: 'firefox-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -270,6 +287,14 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'safari-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
 
