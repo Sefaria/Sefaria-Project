@@ -129,6 +129,32 @@ const detectCommentaryPattern = (title) => {
   return null;
 };
 
+/**
+ * Check whether an exact Index with this title exists.
+ * Uses /api/v2/index/{title}, which rejects (404) for unknown titles.
+ */
+const indexExists = async (title) => {
+  try {
+    const data = await Sefaria.getIndexDetails(title);
+    return !!data;
+  } catch (e) {
+    return false;
+  }
+};
+
+/**
+ * Check whether a Term exists for this collective title.
+ * The terms API returns 404 (rejects) when the term doesn't exist.
+ */
+const termExists = async (name) => {
+  try {
+    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(name)}`, null, null, 'GET');
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 const BulkIndexEditor = () => {
   // Search state
   const [vtitle, setVtitle] = useState("");
@@ -329,6 +355,7 @@ const BulkIndexEditor = () => {
 
     let successCount = 0;
     const errors = [];
+    const warnings = [];
 
     for (const indexTitle of pick) {
       try {
@@ -378,6 +405,28 @@ const BulkIndexEditor = () => {
             }
           } catch (e) {
             delete indexSpecificUpdates.authors;
+          }
+        }
+
+        // Validate base_text_titles: every entry must be an existing Index.
+        // If any is missing, drop the whole field for this index.
+        if (indexSpecificUpdates.base_text_titles?.length) {
+          const titles = indexSpecificUpdates.base_text_titles;
+          const exists = await Promise.all(titles.map(t => indexExists(t)));
+          const missing = titles.filter((t, i) => !exists[i]);
+          if (missing.length) {
+            delete indexSpecificUpdates.base_text_titles;
+            warnings.push(`${indexTitle}: skipped base_text_titles (no such index: ${missing.join(', ')})`);
+          }
+        }
+
+        // Validate collective_title: a matching Term must exist.
+        // If not, drop the field for this index.
+        if (indexSpecificUpdates.collective_title) {
+          const exists = await termExists(indexSpecificUpdates.collective_title);
+          if (!exists) {
+            warnings.push(`${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}")`);
+            delete indexSpecificUpdates.collective_title;
           }
         }
 
@@ -441,11 +490,12 @@ const BulkIndexEditor = () => {
       }
     }
 
+    const warningText = warnings.length ? ` Warnings: ${warnings.join('; ')}` : '';
     if (errors.length) {
-      setMsg(`Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+      setMsg(`Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}${warningText}`);
     } else {
-      setMsg(`Successfully updated ${successCount} indices`);
-      setUpdates({});
+      setMsg(`Successfully updated ${successCount} indices.${warningText}`);
+      if (!warnings.length) setUpdates({});
     }
     setSaving(false);
   };
@@ -470,11 +520,14 @@ const BulkIndexEditor = () => {
         <label>{fieldMeta.label}:</label>
 
         {fieldMeta.help && (
-          <div className="fieldHelp">
-            {fieldMeta.help}
-            {fieldMeta.auto && (
-              <span className="autoSupport"> (Supports 'auto' for commentary texts)</span>
-            )}
+          <div className="fieldHelp">{fieldMeta.help}</div>
+        )}
+
+        {fieldMeta.auto && (
+          <div className="autoWarning">
+            ⚠ <code>'auto'</code> only works for titles using the "X on Y" naming
+            pattern (e.g., "Rashi on Genesis"). It is skipped for any selected index
+            whose title doesn't match.
           </div>
         )}
 

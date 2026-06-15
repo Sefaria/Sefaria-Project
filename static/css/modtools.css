@@ -956,6 +956,22 @@
   line-height: 1.5;
 }
 
+.modTools .autoWarning {
+  font-size: 13px;
+  color: var(--mt-warning-text);
+  background: var(--mt-warning-bg);
+  border: 1px solid var(--mt-warning-border);
+  border-radius: var(--mt-radius-sm);
+  padding: var(--mt-space-xs) var(--mt-space-sm);
+  margin-bottom: var(--mt-space-sm);
+  line-height: 1.5;
+}
+
+.modTools .autoWarning code {
+  background: transparent;
+  font-weight: 700;
+}
+
 .modTools .requiredFieldNote {
   font-size: 12px;
   font-style: italic;
