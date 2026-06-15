@@ -6,14 +6,15 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, t } from '../globals';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
   MODULE_URLS,
   SITE_CONFIGS,
   EXTERNAL_URLS,
-  SEARCH_DROPDOWN
+  SEARCH_DROPDOWN,
+  USER_MENU_ITEMS
 } from '../constants';
 
 test.describe('Voices Module Header Tests - English', () => {
@@ -101,5 +102,23 @@ test.describe('Voices Module Header Tests - English', () => {
     }
 
     await pm.onModuleHeader().logout();
+  });
+});
+
+test.describe('Voices Module Header Tests - Logged In', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+  });
+
+  test('MOD-H017: Voices user menu contains all expected items including Saved and History', async () => {
+    await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
+    // Presence-only: every expected item — notably Saved and History — exists in the
+    // logged-in Voices user-menu dropdown.
+    await pm.onModuleHeader().assertUserMenuItems(USER_MENU_ITEMS.VOICES_LOGGED_IN);
   });
 });

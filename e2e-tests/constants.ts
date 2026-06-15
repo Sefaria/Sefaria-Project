@@ -73,7 +73,9 @@ export const MODULE_SELECTORS = {
     LANGUAGE: 'img[src="/static/icons/globallanguageswitcher_mdl.svg"]',
     MODULE_SWITCHER: 'img[src="/static/icons/moduleswitcher_mdl.svg"]',
     USER_MENU: 'img[src="/static/icons/profile_loggedout_mdl.svg"]',
-    BOOKMARKS: 'img[src="/static/icons/bookmarks.svg"]',
+    // Library "Saved items" bookmark icon (Header.jsx `librarySavedIcon`, Button icon="bookmarkset_outline_mdl").
+    // Logged-in Library only; replaced by the notification icon on Voices.
+    BOOKMARKS: 'img[src="/static/icons/bookmarkset_outline_mdl.svg"]',
     NOTIFICATIONS: 'img[src="/static/icons/notification.svg"]'
   },
   DROPDOWN: '.dropdownLinks-menu',
@@ -94,8 +96,19 @@ export const MODULE_SELECTORS = {
     CREATE_BUTTON: '.header button:has-text("Create")',
     CREATE_LINK: '.header a:has-text("Create")',
     PROFILE_PIC: '.header .profile-pic',
-    SAVED_TEXTS_LINK: '.librarySavedIcon a[href="/texts/saved"]'
+    // Library "Saved items" bookmark link in the header (logged-in Library only).
+    // Renders as a Button with href ending in /saved and aria-label "Saved items".
+    SAVED_ITEMS_LINK: 'a[role="button"][aria-label="Saved items"]'
   }
+} as const;
+
+// Expected items in the logged-in user-menu dropdown, per module (Header.jsx LoggedInDropdown).
+// Matched as visible `a.dropdownItem` labels within the profile menu. The user's own
+// name (a separate `<strong>` item) and the Site Language toggle (not a dropdownItem) are
+// intentionally excluded — these are the deterministic, language-invariant nav items.
+export const USER_MENU_ITEMS = {
+  LIBRARY_LOGGED_IN: ['Account Settings', 'Torah Tracker', 'New Additions', 'Help', 'Log Out'],
+  VOICES_LOGGED_IN: ['Profile', 'Saved', 'History', 'Account Settings', 'Help', 'Log Out'],
 } as const;
 
 // Reader and text selectors

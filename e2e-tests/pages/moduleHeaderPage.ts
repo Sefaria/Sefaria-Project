@@ -209,6 +209,43 @@ export class ModuleHeaderPage extends HelperBase {
     }).toPass({ timeout: t(15000) });
   }
 
+  /**
+   * The open profile (logged-in) user-menu panel. Scoped to the dropdown whose
+   * trigger holds the `.profile-pic`, so it never collides with the module switcher.
+   */
+  private get userMenuPanel() {
+    return this.page.locator(
+      '.header .headerDropdownMenu:has(.profile-pic) .dropdownLinks-menu'
+    );
+  }
+
+  /**
+   * Existence check: assert the Library "Saved items" (bookmark) icon renders in the
+   * header. Only present for a logged-in user on the Library module (Header.jsx
+   * `librarySavedIcon`). Verifies presence, not navigation.
+   */
+  async expectSavedItemsIcon(): Promise<void> {
+    await hideAllModalsAndPopups(this.page);
+    const icon = this.header.getByRole('button', { name: /saved items/i });
+    await expect(icon).toBeVisible({ timeout: t(10000) });
+    await expect(icon).toHaveAttribute('href', /\/saved$/);
+  }
+
+  /**
+   * Existence check: open the logged-in user menu and assert every expected item
+   * label is present as a visible dropdown item. Verifies the items exist, not that
+   * they navigate anywhere.
+   */
+  async assertUserMenuItems(labels: readonly string[]): Promise<void> {
+    await this.openUserMenu();
+    for (const label of labels) {
+      const item = this.userMenuPanel
+        .locator(MODULE_SELECTORS.DROPDOWN_OPTION)
+        .filter({ hasText: label });
+      await expect(item.first()).toBeVisible({ timeout: t(8000) });
+    }
+  }
+
   async logout() {
     if (!(await this.isLoggedIn())) return;
 

@@ -6,15 +6,16 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, t } from '../globals';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
   MODULE_URLS,
   SITE_CONFIGS,
   EXTERNAL_URLS,
   SEARCH_DROPDOWN,
-  MODULE_SELECTORS
+  MODULE_SELECTORS,
+  USER_MENU_ITEMS
 } from '../constants';
 
 test.describe('Library Module Header Tests - English', () => {
@@ -189,5 +190,27 @@ test.describe('Library Module Header Tests - English', () => {
       // Close dropdown
       await page.keyboard.press('Escape');
     }, MODULE_URLS.EN.LIBRARY);
+  });
+});
+
+test.describe('Library Module Header Tests - Logged In', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+  });
+
+  test('MOD-H015: Library header shows the Saved items (bookmark) icon when logged in', async () => {
+    await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
+    // Presence-only: the bookmark icon renders in the header for a logged-in Library user.
+    await pm.onModuleHeader().expectSavedItemsIcon();
+  });
+
+  test('MOD-H016: Library user menu contains all expected items', async () => {
+    // Presence-only: every expected item exists in the logged-in user-menu dropdown.
+    await pm.onModuleHeader().assertUserMenuItems(USER_MENU_ITEMS.LIBRARY_LOGGED_IN);
   });
 });
