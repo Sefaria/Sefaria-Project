@@ -24,7 +24,7 @@
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
 import { useState, useEffect } from 'react';
-import { getCsrfToken } from "./sefaria/csrf";
+import { getCsrfToken } from '../../sefaria/csrf';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
