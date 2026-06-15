@@ -179,6 +179,43 @@ aggregation's parent category). The Name API (`/api/name`) gained an opt-in
 `get_author_books` flag that returns the same aggregated author-works structure, so
 the autocomplete path and the POC endpoint can share this data.
 
+### Ranking sketch (proposal — not yet implemented)
+
+> ⚠️ **This is only a sketch.** The query path above describes what exists today. The
+> following is a more explicit ranking recipe we may adopt to make relevance tuning
+> legible and easy to tweak. The boost numbers are illustrative starting points, not
+> measured values — treat them as a strawman to argue with, not a spec.
+
+The goal is a *relatively simple, lexical* ranking with no learning-to-rank or
+vectors: **score = how well the query matches the titles (dominant) + a small
+popularity nudge (tie-breaker).** One reusable `function_score` template,
+parameterized per index.
+
+**Per-field weights.** Not all text fields are equal — an exact title hit should
+beat a description hit. Illustrative boosts (same set for all three entity types):
+
+| Match | Boost | Rationale |
+|---|---|---|
+| `title_en.keyword` / `title_he.keyword` — exact full string | ×10 | full-string match ≈ certainly what they want |
+| `title_en` / `title_he` — phrase (all words, in order) | ×6 | strong intent signal |
+| `title_en` / `title_he` — tokens (stemmed, any order) | ×5 | normal word match |
+| `titleVariants` | ×3 | alternate spellings → recall (Rambam/Maimonides) |
+| `description_en` / `description_he` | ×1 | weak signal, breaks ties only |
+
+**The `should` ladder.** These clauses live in a `bool.should`, so each one that
+matches *adds* to the score. A document matching exactly *and* as a phrase *and* by
+tokens stacks all three boosts and rises to the top — which is the behavior we want.
+`fuzziness: AUTO` on the token clause forgives typos ("Ramban" → "Rambam").
+
+**Popularity prior, per entity** (the only part that differs by index):
+
+- **Topics / authors** — `function_score` with `field_value_factor` on `numSources`,
+  `modifier: log1p`. The log keeps popularity a *tie-breaker, not a hammer*, so
+  lexical relevance still leads.
+- **Books** — **no popularity number is indexed**, so books rank on pure lexical
+  score for now. We could potentially value certain categories of books over others, such as Tanakh over Commentary.
+
+
 ---
 
 ## Operational scripts
