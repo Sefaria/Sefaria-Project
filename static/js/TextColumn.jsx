@@ -605,7 +605,7 @@ class TextColumn extends Component {
       onPointerMove={this.handlePointerMove}
       onPointerLeave={this.handlePointerLeave}
       onPointerUp={this.handlePointerUp}
-      onContextMenu={e => { if (!this._touchActive) { e.preventDefault(); } }} // Android: a touch-originated contextmenu is part of the native long-press-to-select gesture; preventing it suppresses selection entirely. Only block the desktop right-click menu.
+      onContextMenu={e => e.preventDefault()} // Suppress both the desktop right-click menu and the iOS/Android long-press context menu (e.g. "Download/Share/Print"); our own long-press handling drives selection instead.
     >
       {pre}
       {content}
