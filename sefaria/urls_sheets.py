@@ -23,6 +23,8 @@ urlpatterns = [
     re_path(r'^getstarted/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
     re_path(r'^sheets/?$', reader_views.sheets_redirect_to_getstarted),
     re_path(r'^sheets/new/?$', sheets_views.new_sheet),
+    re_path(r'^community-upload/?$', reader_views.community_upload_page),
+    re_path(r'^community-upload-guide/?$', reader_views.community_upload_guide_page),
     path('sheets/<int:sheet_id>', sheets_views.view_sheet),
     path('sheets/visual/<int:sheet_id>', sheets_views.view_visual_sheet),
     re_path(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),

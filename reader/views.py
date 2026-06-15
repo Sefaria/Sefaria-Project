@@ -1237,6 +1237,20 @@ def menu_page(request, props=None, page="", title="", desc=""):
     })
 
 
+@login_required
+@ensure_csrf_cookie
+def community_upload_page(request):
+    title = _("Upload Your Book")
+    desc = _("Upload your book to Sefaria's community library.")
+    return menu_page(request, page="communityUpload", title=title, desc=desc)
+
+
+def community_upload_guide_page(request):
+    title = _("Community Upload Formatting Guide")
+    desc = _("Learn how to format your book for upload to Sefaria.")
+    return menu_page(request, page="communityUploadGuide", title=title, desc=desc)
+
+
 def _get_user_calendar_params(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)

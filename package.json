@@ -141,6 +141,7 @@
     "css-loader": "^3.2.0",
     "husky": "^8.0.0",
     "jest": "^24.9.0",
+    "md-to-slack": "^1.1.7",
     "nodemon": "^1.9.2",
     "playwright": "^1.52.0",
     "sass": "^1.89.1",

@@ -15,5 +15,6 @@ SITE_SETTINGS = {
 	"COLLECTIONS_BUCKET": "jmc-collection-images",
 	"PROFILES_BUCKET": 'jmc-profile-pictures',
 	"UGC_BUCKET": 'jmc-sheet-user-uploaded-media',
-	"TOPICS_BUCKET": 'topicimages'
+	"TOPICS_BUCKET": 'topicimages',
+	"COMMUNITY_BOOKS_BUCKET": "jmc-community-books",
 }

@@ -1,0 +1,642 @@
+/* community-books.css
+ * Styles for the Community Books upload, review, and display features.
+ * Scoped under top-level feature class names to avoid bleeding into other pages.
+ */
+
+/* ============================================================
+   Upload Page — .communityUploadPage
+   ============================================================ */
+
+.communityUploadPage h1 {
+  font-size: 28px;
+  color: #18345a;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.communityUploadPage .uploadForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 700px;
+}
+
+.communityUploadPage .formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.communityUploadPage .formField label,
+.communityUploadPage .formField legend,
+.communityUploadPage .formField > span[id] {
+  font-size: 14px;
+  font-weight: 600;
+  color: #18345a;
+  font-family: sans-serif;
+}
+
+.communityUploadPage fieldset.formField {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.communityUploadPage .formField input[type="text"],
+.communityUploadPage .formField input[type="url"],
+.communityUploadPage .formField input[type="email"],
+.communityUploadPage .formField textarea,
+.communityUploadPage .formField select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #c8c8c8;
+  border-radius: 4px;
+  font-size: 15px;
+  color: #333;
+  box-sizing: border-box;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.communityUploadPage .formField input[type="text"]:focus,
+.communityUploadPage .formField input[type="url"]:focus,
+.communityUploadPage .formField input[type="email"]:focus,
+.communityUploadPage .formField textarea:focus,
+.communityUploadPage .formField select:focus {
+  outline: none;
+  border-color: #18345a;
+}
+
+.communityUploadPage .formField textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Radio groups */
+.communityUploadPage .radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.communityUploadPage .radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.communityUploadPage .radioGroup input[type="radio"] {
+  accent-color: #18345a;
+  cursor: pointer;
+}
+
+/* File upload area */
+.communityUploadPage .fileUpload {
+  border: 2px dashed #c8c8c8;
+  border-radius: 4px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  background: #fafafa;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.communityUploadPage .fileUpload:hover,
+.communityUploadPage .fileUpload.dragOver {
+  border-color: #18345a;
+  background: #f0f4fa;
+}
+
+.communityUploadPage .fileUpload.hasFile {
+  border-color: #18345a;
+  background: #f0f4fa;
+}
+
+.communityUploadPage .formField.hasError .fileUpload {
+  border-color: #e53e3e;
+}
+
+.communityUploadPage .fileUpload .uploadIcon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.communityUploadPage .fileUpload .uploadPrompt {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.communityUploadPage .fileUpload .uploadHint {
+  font-size: 12px;
+  color: #999;
+}
+
+.communityUploadPage .fileUpload .fileName {
+  color: #18345a;
+  font-weight: 600;
+}
+
+.communityUploadPage .fileUpload .fileSize {
+  font-weight: 400;
+  color: #555;
+}
+
+.communityUploadPage .fileUpload input[type="file"] {
+  display: none;
+}
+
+/* License description text */
+.communityUploadPage .licenseDescription {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* Checkboxes */
+.communityUploadPage .checkboxField {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.communityUploadPage .checkboxField input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: #18345a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.communityUploadPage .checkboxField label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+/* Submit button */
+.communityUploadPage .submitButton {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #18345a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.communityUploadPage .submitButton:hover {
+  background: #0f2240;
+}
+
+.communityUploadPage .submitButton:disabled {
+  background: #888;
+  cursor: not-allowed;
+}
+
+/* Error banner */
+.communityUploadPage .errorBanner {
+  padding: 12px 16px;
+  border: 1px solid #e53e3e;
+  border-radius: 4px;
+  background: #fff5f5;
+  color: #c53030;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* Validation errors */
+.communityUploadPage .fieldError {
+  font-size: 12px;
+  color: #e53e3e;
+  margin-top: 2px;
+}
+
+.communityUploadPage .formField.hasError input,
+.communityUploadPage .formField.hasError textarea,
+.communityUploadPage .formField.hasError select {
+  border-color: #e53e3e;
+}
+
+/* ============================================================
+   Structure Preview — .structurePreview
+   ============================================================ */
+
+.structurePreview {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 16px;
+  background: #fff;
+  max-width: 700px;
+  margin-top: 8px;
+}
+
+.structurePreview h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #18345a;
+  margin: 0 0 12px 0;
+}
+
+.structurePreview .chapterList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.structurePreview .chapterItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 12px;
+  background: #f7f7f7;
+  border-radius: 4px;
+}
+
+.structurePreview .chapterTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.structurePreview .chapterMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #777;
+}
+
+.structurePreview .chapterMeta span::before {
+  content: "";
+}
+
+/* ============================================================
+   Success Message — .successMessage (community books context)
+   ============================================================ */
+
+.communityUploadPage .successMessage,
+.communityBookUploadSuccess .successMessage {
+  padding: 16px 20px;
+  border: 1px solid #38a169;
+  border-radius: 4px;
+  background: #f0fff4;
+  color: #276749;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+
+.communityUploadPage .successMessage a,
+.communityBookUploadSuccess .successMessage a {
+  color: #276749;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Search Badge — .communityBookBadge
+   ============================================================ */
+
+.communityBookBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #ede9fe;
+  color: #5b21b6;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+.communityBookBadge .badgeIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Community Book Block — .communityBookBlock
+   (card for topic page tab)
+   ============================================================ */
+
+.communityBookBlock {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 16px 20px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+
+.communityBookBlock .bookTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.communityBookBlock .bookTitle a {
+  color: #18345a;
+  text-decoration: none;
+}
+
+.communityBookBlock .bookTitle a:hover {
+  text-decoration: underline;
+}
+
+.communityBookBlock .bookDescription {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+}
+
+.communityBookBlock .bookMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #777;
+  flex-wrap: wrap;
+}
+
+.communityBookBlock .bookMeta .metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.communityBookBlock .licenseBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid #c8c8c8;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #555;
+  background: #f5f5f5;
+}
+
+/* ============================================================
+   Status Banner — .communityBookStatusBanner
+   ============================================================ */
+
+.communityBookStatusBanner {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.communityBookStatusBanner.pending {
+  background: #fffbeb;
+  border-color: #f6c944;
+  color: #92660a;
+}
+
+.communityBookStatusBanner.approved {
+  background: #f0fff4;
+  border-color: #38a169;
+  color: #276749;
+}
+
+.communityBookStatusBanner.rejected {
+  background: #fff5f5;
+  border-color: #e53e3e;
+  color: #c53030;
+}
+
+/* ============================================================
+   Formatting Guide Page — .communityUploadGuidePage
+   ============================================================ */
+
+.communityUploadGuidePage h1 {
+  font-size: 28px;
+  color: #18345a;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.communityUploadGuidePage .guideIntro {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  max-width: 700px;
+}
+
+.communityUploadGuidePage .guideSection {
+  max-width: 700px;
+  margin-bottom: 32px;
+}
+
+.communityUploadGuidePage .guideSection h2 {
+  font-size: 20px;
+  color: #18345a;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.communityUploadGuidePage .guideSection h3 {
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+}
+
+.communityUploadGuidePage .guideSection p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  margin: 0 0 10px 0;
+}
+
+.communityUploadGuidePage .guideSection ul,
+.communityUploadGuidePage .guideSection ol {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  padding-inline-start: 24px;
+  margin: 0 0 10px 0;
+}
+
+/* Example code blocks */
+.communityUploadGuidePage .exampleBlock {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  color: #1f2937;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 8px 0 12px 0;
+}
+
+/* Template download links (button-like) */
+.communityUploadGuidePage .templateDownload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: #18345a;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+  margin-top: 8px;
+}
+
+.communityUploadGuidePage .templateDownload:hover {
+  background: #0f2240;
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ============================================================
+   Topics ReactTags — scoped to upload form
+   ============================================================ */
+
+.communityUploadPage .react-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.communityUploadPage .react-tags.is-focused {
+  border-color: #18345a;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 52, 90, 0.15);
+}
+
+.communityUploadPage .react-tags__selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.communityUploadPage .react-tags__selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #e8eef6;
+  border: 1px solid #b0c0d8;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #18345a;
+  cursor: default;
+}
+
+.communityUploadPage .react-tags__selected-tag:after {
+  content: "×";
+  margin-left: 4px;
+  font-size: 15px;
+  color: #7a9abf;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.communityUploadPage .react-tags__selected-tag:hover:after {
+  color: #c0392b;
+}
+
+.communityUploadPage .react-tags__search {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 160px;
+}
+
+.communityUploadPage .react-tags__search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+  padding: 2px 0;
+}
+
+.communityUploadPage .react-tags__search-input::placeholder {
+  color: #aaa;
+}
+
+.communityUploadPage .react-tags__suggestions {
+  position: absolute;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-width: 200px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+.communityUploadPage .react-tags__suggestions ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.communityUploadPage .react-tags__suggestions li {
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #222;
+}
+
+.communityUploadPage .react-tags__suggestions li:hover,
+.communityUploadPage .react-tags__suggestions li.is-active {
+  background: #f0f4fa;
+  color: #18345a;
+}
+
+.communityUploadPage .react-tags__suggestions mark {
+  background: none;
+  font-weight: 600;
+  color: #18345a;
+}
+
+.communityUploadPage .topicsHint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.communityUploadGuidePage .templateDownload .downloadIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
