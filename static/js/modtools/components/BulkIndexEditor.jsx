@@ -24,7 +24,7 @@
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from "./sefaria/csrf";
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
@@ -466,7 +466,7 @@ const BulkIndexEditor = () => {
           mode: 'same-origin',
           credentials: 'same-origin',
           headers: {
-            'X-CSRFToken': Cookies.get('csrftoken'),
+            'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: new URLSearchParams({ json: JSON.stringify(postData) }).toString()
