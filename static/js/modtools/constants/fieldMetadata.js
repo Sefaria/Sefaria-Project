@@ -54,7 +54,7 @@ export const INDEX_FIELD_METADATA = {
   "authors": {
     label: "Authors",
     type: "array",
-    placeholder: "Author names (one per line or comma-separated)",
+    placeholder: "Author names (comma-separated)",
     help: "Enter author names. Backend expects a list of strings. Use 'auto' to detect from title.",
     auto: true
   },
@@ -119,23 +119,16 @@ export const INDEX_FIELD_METADATA = {
   "base_text_titles": {
     label: "Base Text Titles",
     type: "array",
-    placeholder: "Base text names (one per line or comma-separated)",
+    placeholder: "Base text names (comma-separated)",
     help: "Enter base text names that this commentary depends on. Use 'auto' to detect from title (e.g., 'Genesis' for 'Rashi on Genesis'). Backend expects a list of strings.",
     auto: true
   },
   "collective_title": {
-    label: "English Collective Title",
+    label: "Collective Title",
     type: "text",
     placeholder: "Collective title or 'auto' for auto-detection",
-    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis'). If Hebrew equivalent is provided, term will be created automatically.",
+    help: "Enter collective title or type 'auto' to detect from title (e.g., 'Rashi' for 'Rashi on Genesis').",
     auto: true
-  },
-  "he_collective_title": {
-    label: "Hebrew Collective Title (Term)",
-    type: "text",
-    placeholder: "Hebrew equivalent of collective title",
-    help: "Hebrew equivalent of the collective title. If the term doesn't exist, it will be created automatically with both English and Hebrew titles.",
-    dir: "rtl"
   }
 };
 

@@ -12,7 +12,6 @@
  *
  * Special features:
  * - Auto-detection for commentary texts ("X on Y" pattern)
- * - Automatic term creation for collective titles
  * - Author validation against AuthorTopic
  * - TOC zoom level setting on schema nodes
  *
@@ -77,7 +76,6 @@ const HELP_CONTENT = (
         <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
         <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
         <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
-        <tr><td><code>he_collective_title</code></td><td>Hebrew collective title (creates a Term if both en/he provided)</td></tr>
         <tr><td><code>toc_zoom</code></td><td>Table of contents zoom level (0-10, 0=fully expanded)</td></tr>
       </tbody>
     </table>
@@ -93,13 +91,6 @@ const HELP_CONTENT = (
       <li><code>collective_title: 'auto'</code> - Extracts the commentary name (e.g., "Rashi")</li>
       <li><code>authors: 'auto'</code> - Looks up the commentary name as an AuthorTopic</li>
     </ul>
-
-    <h3>Term Creation</h3>
-    <p>
-      If you provide both <code>collective_title</code> (English) and <code>he_collective_title</code>
-      (Hebrew), the tool will automatically create a Term for that collective title if it
-      doesn't already exist. This is required for the collective title to display properly.
-    </p>
 
     <div className="warning">
       <strong>Important Notes:</strong>
@@ -136,37 +127,6 @@ const detectCommentaryPattern = (title) => {
     };
   }
   return null;
-};
-
-/**
- * Create a term if it doesn't exist
- */
-const createTermIfNeeded = async (enTitle, heTitle) => {
-  if (!enTitle || !heTitle) {
-    throw new Error("Both English and Hebrew titles are required to create a term");
-  }
-
-  try {
-    // Check if term already exists
-    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, null, 'GET');
-    return true; // Term exists
-  } catch (e) {
-    if (e.message.includes('404') || e.message.includes('not found')) {
-      // Create term
-      const payload = {
-        json: JSON.stringify({
-          name: enTitle,
-          titles: [
-            { lang: "en", text: enTitle, primary: true },
-            { lang: "he", text: heTitle, primary: true }
-          ]
-        })
-      };
-      await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, payload);
-      return true;
-    }
-    throw e;
-  }
 };
 
 const BulkIndexEditor = () => {
@@ -405,17 +365,6 @@ const BulkIndexEditor = () => {
           }
         }
 
-        // Handle term creation for collective_title
-        if (indexSpecificUpdates.collective_title && indexSpecificUpdates.he_collective_title) {
-          try {
-            await createTermIfNeeded(indexSpecificUpdates.collective_title, indexSpecificUpdates.he_collective_title);
-            delete indexSpecificUpdates.he_collective_title;
-          } catch (e) {
-            errors.push(`${indexTitle}: Failed to create term: ${e.message}`);
-            continue;
-          }
-        }
-
         // Handle authors auto-detection
         if (indexSpecificUpdates.authors === 'auto' && pattern?.commentaryName) {
           try {
@@ -567,7 +516,6 @@ const BulkIndexEditor = () => {
         <strong>Important Notes:</strong>
         <ul>
           <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
-          <li><strong>Collective Title:</strong> If Hebrew equivalent is provided, terms will be created automatically.</li>
           <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").</li>
           <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
           <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded).</li>
