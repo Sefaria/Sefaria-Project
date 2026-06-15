@@ -7,6 +7,11 @@
 
 <head>
 
+	{# Server-rendered CSRF token — this page is standalone (does not extend base.html), #}
+	{# so it needs its own copy. Read in JS via sefaria/csrf.js / django-csrf.js rather than #}
+	{# the csrftoken cookie, which can be ambiguous when a parent-domain (.sefaria.org) #}
+	{# cookie coexists with a host-scoped one (e.g. on cauldrons). See base.html. #}
+	<meta name="csrf-token" content="{{ csrf_token }}"/>
 	<title>{{ page_title }} | Sefaria</title>
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
