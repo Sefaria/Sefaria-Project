@@ -396,18 +396,24 @@ const BulkIndexEditor = () => {
           }
         }
 
-        // Handle authors auto-detection
-        if (indexSpecificUpdates.authors === 'auto' && pattern?.commentaryName) {
-          try {
-            const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
-            const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
-            const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
-            if (exactMatch) {
-              indexSpecificUpdates.authors = [exactMatch.key];
-            } else {
+        // Handle authors auto-detection. Like the other 'auto' fields, this only
+        // applies to "X on Y" titles; for any non-matching title the field is dropped
+        // so the literal string 'auto' is never written to the index.
+        if (indexSpecificUpdates.authors === 'auto') {
+          if (pattern?.commentaryName) {
+            try {
+              const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
+              const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+              const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
+              if (exactMatch) {
+                indexSpecificUpdates.authors = [exactMatch.key];
+              } else {
+                delete indexSpecificUpdates.authors;
+              }
+            } catch (e) {
               delete indexSpecificUpdates.authors;
             }
-          } catch (e) {
+          } else {
             delete indexSpecificUpdates.authors;
           }
         }
