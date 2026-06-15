@@ -349,9 +349,14 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   const authPath = path.join(__dirname, settings.file);
   if (!fs.existsSync(authPath)) {
     throw new Error(
-      `Auth file '${settings.file}' is missing. global-setup.ts is expected to write it ` +
-      `before any worker starts — check that 'globalSetup' is wired in playwright.config.ts ` +
-      `and that PLAYWRIGHT_*_EMAIL / PLAYWRIGHT_*_PASSWORD env vars are populated.`
+      `Auth file '${settings.file}' is missing — this test requires a logged-in user that was ` +
+      `never set up, so it cannot run. global-setup.ts writes this file once before any worker ` +
+      `starts; an absent file means that account's login FAILED or was SKIPPED during global-setup ` +
+      `(login failures are non-fatal there, so the run continues for other suites). ` +
+      `Look at the [global-setup] output at the top of this run for a "FAILED to authenticate" / ` +
+      `"SKIPPED" line naming this profile and explaining why — common causes: missing or wrong ` +
+      `PLAYWRIGHT_*_EMAIL / PLAYWRIGHT_*_PASSWORD credentials, an unreachable /login, or (for a ` +
+      `Hebrew / .org.il profile) an account whose Site-Language is not Hebrew. Fix that account and re-run.`
     );
   }
   const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));

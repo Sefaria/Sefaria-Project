@@ -161,10 +161,28 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
     await page.locator('input[name="password"]').first().press('Enter');
 
     // Authenticated-state oracle: profile pic only renders for a logged-in user.
-    await page
-      .locator('.profile-pic, .accountBox, img.profile-pic-image')
-      .first()
-      .waitFor({ state: 'visible', timeout: t(30000) });
+    try {
+      await page
+        .locator('.profile-pic, .accountBox, img.profile-pic-image')
+        .first()
+        .waitFor({ state: 'visible', timeout: t(30000) });
+    } catch {
+      const landedHost = new URL(page.url()).hostname;
+      if (landedHost !== baseHost) {
+        throw new Error(
+          `IL login on ${baseHost} did not reach a logged-in state — after submitting the form ` +
+          `the browser landed on ${landedHost} (URL: ${page.url()}). This is Sefaria's MDL ` +
+          `language router redirecting the user to their account Site-Language's domain, which ` +
+          `means this account's Site-Language is NOT Hebrew, so the .org.il session it issues is ` +
+          `unusable. Fix: set this account's Settings → Site Language to Hebrew (עברית), or point ` +
+          `the PLAYWRIGHT_LA_USER_HE_* credentials at a genuine Hebrew-preference account.`
+        );
+      }
+      throw new Error(
+        `IL login on ${baseHost} did not reach a logged-in state (no profile pic after 30s; ` +
+        `URL: ${page.url()}). Verify the PLAYWRIGHT_LA_USER_HE_* credentials are valid.`
+      );
+    }
 
     const state = await context.storageState();
     state.cookies = fixCookieDomainsForCrossSubdomain(state.cookies as any) as any;
@@ -211,37 +229,66 @@ export default async function globalSetup(_config: FullConfig) {
 
   console.log(`[global-setup] Authenticating against ${baseURL}`);
 
+  // Per-group login is non-fatal: one bad/misconfigured account must not block the
+  // suites that don't use it. A failed group leaves its auth file(s) absent on disk;
+  // goToPageWithUser then throws a clear, immediate error for any test that needs it.
+  const failures: { label: string; files: string[]; reason: string }[] = [];
+
   for (const group of userGroups) {
     const { credentials, profiles, label } = group;
     if (!credentials.email || !credentials.password) {
+      const reason = 'missing credentials env vars (PLAYWRIGHT_*_EMAIL / PLAYWRIGHT_*_PASSWORD)';
+      failures.push({ label, files: profiles.map(p => p.file), reason });
       console.warn(
-        `[global-setup] Skipping ${label}: missing credentials env vars. ` +
-        `Auth files [${profiles.map(p => p.file).join(', ')}] will not exist; ` +
-        `any test using those profiles will throw a clear error.`
+        `[global-setup] SKIPPED ${label}: ${reason}. ` +
+        `Auth file(s) [${profiles.map(p => p.file).join(', ')}] will not exist; ` +
+        `any test using those profiles will fail immediately with a clear error.`
       );
       continue;
     }
 
     const loginURL = group.site === 'IL' ? baseURLIL : baseURL;
     console.log(`[global-setup] Logging in ${label} (${credentials.email}) on ${loginURL}`);
-    const baseState = group.site === 'IL'
-      ? await loginAndCaptureStateIL(loginURL, credentials)
-      : await loginAndCaptureState(loginURL, credentials);
 
-    for (const profile of profiles) {
-      const variant = stampVariant(baseState, profile);
-      const target = path.join(__dirname, profile.file);
-      fs.writeFileSync(target, JSON.stringify(variant, null, 2));
-      const hasSession = variant.cookies.some((c: any) => c.name === 'sessionid' && c.value);
-      console.log(`[global-setup]   wrote ${profile.file} (sessionid present: ${hasSession})`);
-      if (!hasSession) {
+    try {
+      const baseState = group.site === 'IL'
+        ? await loginAndCaptureStateIL(loginURL, credentials)
+        : await loginAndCaptureState(loginURL, credentials);
+
+      // Validate the captured session BEFORE writing anything — never persist a
+      // logged-out auth file, which would fail tests confusingly downstream.
+      const baseHasSession = baseState.cookies.some((c: any) => c.name === 'sessionid' && c.value);
+      if (!baseHasSession) {
         throw new Error(
-          `[global-setup] ${label} login produced no sessionid cookie. ` +
-          `Check credentials and that ${loginURL}/login is reachable.`
+          `login produced no sessionid cookie. Check credentials and that ${loginURL}/login is reachable.`
         );
       }
+
+      for (const profile of profiles) {
+        const variant = stampVariant(baseState, profile);
+        const target = path.join(__dirname, profile.file);
+        fs.writeFileSync(target, JSON.stringify(variant, null, 2));
+        console.log(`[global-setup]   wrote ${profile.file}`);
+      }
+    } catch (e: any) {
+      const reason = e?.message ? String(e.message) : String(e);
+      failures.push({ label, files: profiles.map(p => p.file), reason });
+      console.error(
+        `\n[global-setup] FAILED to authenticate ${label} on ${loginURL}.\n` +
+        `[global-setup]     Reason: ${reason}\n` +
+        `[global-setup]     Auth file(s) NOT written: ${profiles.map(p => p.file).join(', ')}.\n` +
+        `[global-setup]     Suites that don't use ${label} will still run; any test that does ` +
+        `use it fails immediately with a clear message.\n`
+      );
+      continue;
     }
   }
 
+  if (failures.length > 0) {
+    console.error(
+      `[global-setup] Completed with ${failures.length} unavailable profile group(s): ` +
+      failures.map(f => f.label).join(', ') + '. See the FAILED/SKIPPED lines above for the reason of each.'
+    );
+  }
   console.log(`[global-setup] Done.`);
 }
