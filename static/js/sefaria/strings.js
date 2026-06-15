@@ -37,12 +37,14 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
     "Skip to main content": "דלגו לתוכן האתר",
-    "Try Sefaria's new Library Assistant [Experimental]": "נסו את עוזר הספרייה החדש של ספריא [ניסיוני]",
-    "Discover & explore texts in the Sefaria Library with our new AI-powered assistant.": "התחילו ללמוד ולגלות מקורות בספריית ספריא בעזרת העוזר החדש שלנו המופעל על ידי בינה מלאכותית",
+    "Enhance Your Learning Experience": "העמיקו את הלמידה שלכם",
     "Log in to Join": "התחברות כדי להצטרף", 
+    "Maybe later": "אולי מאוחר יותר",
+
     "Create an Account": "יצירת חשבון",
-    "Join the Experiment": "הצטרפו לניסוי",
-    "Joining...": "מצרפים אותך...",
+    "Try It": "נסו עכשיו",
+    "Log in to Try": "התחברות כדי להתנסות",
+    
     //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
