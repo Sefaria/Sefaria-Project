@@ -6648,7 +6648,24 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .singlePanel .connectionsPanelHeader .readerNavMenuCloseButton.circledX {
   margin-inline-start: auto;
-  align-self: center;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  width: auto;
+  /* Enlarge the tap target to fill the header's height and extend through
+     the panel's right padding to its edge, without changing the icon's
+     visual size (still 20x20 via .circledX img). */
+  padding-inline-end: 15px;
+  margin-inline-end: -15px;
+}
+.readerNavMenuCloseButton.circledX {
+  -webkit-touch-callout: none; /* iOS: suppress the native long-press menu on the button itself */
+}
+.readerNavMenuCloseButton.circledX img {
+  -webkit-touch-callout: none; /* Android/iOS: suppress the native "open/save image" long-press menu */
+  pointer-events: none; /* let touches pass through to the <a> rather than targeting the <img> */
 }
 
 .connectionsHeader .readerNavMenuCloseButton.circledX img,

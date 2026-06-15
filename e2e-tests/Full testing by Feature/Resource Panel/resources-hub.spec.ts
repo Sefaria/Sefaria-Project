@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, devices, Page } from '@playwright/test';
 import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
@@ -78,5 +78,138 @@ test.describe('Resource Panel — Resources Hub — English', () => {
 
   test('RP-016: Tools section shows Add to Sheet, Dictionaries, Notes, Share, Feedback, Advanced', async () => {
     await pm.onResourcePanel().expectToolsSectionButtons();
+  });
+
+  test('RP-024: On a regular desktop browser, the circled-X close button does not have the mobile enlarged tap target', async () => {
+    await pm.onResourcePanel().expectMode('Resources');
+    await pm.onResourcePanel().expectCloseButtonTapTargetNotEnlarged();
+  });
+});
+
+/**
+ * RP-025 — Tablet browsers (multi-panel layout).
+ *
+ * `reader/views.py` sets `multiPanel = not request.user_agent.is_mobile`.
+ * The `user_agents` library parses iPad/tablet UAs as `is_mobile = False`
+ * (`is_tablet = True`), so a tablet browser gets the same multi-panel,
+ * `.connectionsHeader .readerNavMenuCloseButton.circledX` close button as a
+ * regular desktop browser — fixed-size (20x32, s2.css ~line 6626/6645), not
+ * the `.singlePanel` mobile rule's enlarged tap target.
+ */
+test.describe('Resource Panel — Tablet browser — close button', () => {
+  test.use({
+    viewport: { width: 1024, height: 1366 },
+    userAgent: devices['iPad Pro 11'].userAgent,
+  });
+
+  test('RP-025: On a tablet browser, the circled-X close button does not have the mobile enlarged tap target', async ({ context }) => {
+    const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
+    const pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onResourcePanel().waitForReaderReady();
+    await pm.onResourcePanel().clickSegment('Genesis 1:1');
+
+    await pm.onResourcePanel().expectMode('Resources');
+    await pm.onResourcePanel().expectCloseButtonTapTargetNotEnlarged();
+  });
+});
+
+/**
+ * RP-017 / RP-018 — Mobile single-panel close button (bug regression).
+ *
+ * Layout assumption (see README.md section 8.4): `multiPanel` is decided
+ * server-side from the User-Agent (`reader/views.py`:
+ * `"multiPanel": not request.user_agent.is_mobile and ...`), not from the
+ * viewport alone. This block emulates a real mobile device (UA + viewport,
+ * via `devices['Pixel 5']`) so `ReaderApp.jsx` renders the single-panel
+ * (`multiPanel === false`) layout, in which `ConnectionsPanelHeader.jsx`
+ * renders a circled-X `<CloseButton>` for `mode === "Resources" | "Lexicon"`
+ * (`showCloseButton`).
+ *
+ * Bug (reported on a real Pixel 10, mobile Chrome): tapping the circled-X in
+ * Lexicon mode triggers Android's haptic feedback and native link
+ * context-menu (titled "Close", from the button's `aria-label`/`title`)
+ * instead of closing the panel. Root cause: `CloseButton` in `Misc.jsx`
+ * always renders `<a href={url} ...>`, and when no `url` prop is passed
+ * (as in this Resources/Lexicon close button), `url` defaults to `""`, so
+ * the element is a real `<a href="">`. A long-press (or any
+ * slightly-held tap) on a real `<a href>` on Android Chrome opens the
+ * native "open link" context menu, which intercepts the gesture before
+ * React's `onClick` ever fires — and is OS browser-chrome UI that
+ * Playwright's synthetic `.click()`/`.tap()` cannot reproduce (RP-017
+ * passes even on the buggy code because it bypasses this entirely).
+ *
+ * RP-018 instead asserts the underlying DOM condition that triggers the
+ * native menu: the close button must not render as a real anchor
+ * (`href=""`) when it has no destination URL.
+ */
+test.describe('Resource Panel — Mobile single-panel — close button', () => {
+  // Pixel 5 emulation (isMobile/hasTouch) is Chromium-only — Firefox rejects
+  // `isMobile` outright when creating the context, and WebKit doesn't
+  // actually emulate a mobile UA/touch environment via these options.
+  // Restrict this block to chrome-resource-panel so it isn't run (or
+  // silently misrun) under firefox-resource-panel / safari-resource-panel.
+  test.skip(({ browserName }) => browserName !== 'chromium', 'Pixel 5 (mobile) emulation requires Chromium');
+
+  const { defaultBrowserType, ...pixel5 } = devices['Pixel 5'];
+  test.use({ ...pixel5 });
+
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+    await pm.onMobileResourcePanel().waitForReaderReady();
+  });
+
+  test('RP-017: Tapping the circled-X close button in Resources mode closes the panel', async () => {
+    await pm.onMobileResourcePanel().tapSegment('Genesis 1:1');
+    await pm.onMobileResourcePanel().expectMode('Resources');
+
+    await pm.onMobileResourcePanel().tapCloseButton();
+    await pm.onMobileResourcePanel().expectMode('Text');
+  });
+
+  test('RP-020: Clicking (mouse) the circled-X close button in Resources mode closes the panel', async () => {
+    await pm.onMobileResourcePanel().tapSegment('Genesis 1:1');
+    await pm.onMobileResourcePanel().expectMode('Resources');
+
+    await pm.onMobileResourcePanel().clickCloseButton();
+    await pm.onMobileResourcePanel().expectMode('Text');
+  });
+
+  test('RP-018: The circled-X close button is not rendered as a real link (no href="")', async () => {
+    await pm.onMobileResourcePanel().tapSegment('Genesis 1:1');
+    await pm.onMobileResourcePanel().expectMode('Resources');
+
+    // An empty-string href makes this a real <a href> element. On Android
+    // Chrome that causes a long-press to open the native link context menu
+    // (titled "Close", from aria-label) instead of firing onClick.
+    const href = await pm.onMobileResourcePanel().getCloseButtonHref();
+    expect(href).toBeNull();
+  });
+
+  test('RP-019: The circled-X close button suppresses native long-press image/link menus', async () => {
+    await pm.onMobileResourcePanel().tapSegment('Genesis 1:1');
+    await pm.onMobileResourcePanel().expectMode('Resources');
+
+    // Even with no `href`, the inner <img alt="Close"> is independently
+    // long-pressable on Android/iOS (native "open/save image" menu, titled
+    // from its alt text). `pointer-events: none` + `draggable="false"` on
+    // the <img>, plus a prevented `contextmenu` on the <a>, suppress this so
+    // a tap reaches `onClick` and closes the panel immediately.
+    const guards = await pm.onMobileResourcePanel().getCloseButtonLongPressGuards();
+    expect(guards.imgPointerEvents).toBe('none');
+    expect(guards.imgDraggable).toBe('false');
+    expect(guards.contextMenuPrevented).toBe(true);
+  });
+
+  test('RP-021: The circled-X close button has an enlarged tap target', async () => {
+    await pm.onMobileResourcePanel().tapSegment('Genesis 1:1');
+    await pm.onMobileResourcePanel().expectMode('Resources');
+
+    await pm.onMobileResourcePanel().expectCloseButtonTapTargetEnlarged();
   });
 });

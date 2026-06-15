@@ -1222,7 +1222,7 @@ class CloseButton extends Component {
     const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
     
     if (icon == "circledX"){
-      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("Close")} aria-hidden="true"/>;
+      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("Close")} aria-hidden="true" draggable="false"/>;
     } else if (icon == "chevron") {
       var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
@@ -1232,10 +1232,11 @@ class CloseButton extends Component {
     
     return (
       <a
-        href={url}
+        {...(url ? {href: url} : {role: "button", tabIndex: 0})}
         className={classes}
         onClick={this.onClick}
         onKeyDown={(e) => Util.handleKeyboardClick(e, this.onClick)}
+        onContextMenu={(e) => e.preventDefault()}
         aria-label={altText}
         title={altText}
       >

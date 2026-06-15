@@ -195,6 +195,32 @@ export class ResourcePanelPage extends HelperBase {
   }
 
   /**
+   * Regression check for the mobile-only enlarged tap target
+   * (`.singlePanel .connectionsPanelHeader .readerNavMenuCloseButton.circledX`
+   * in s2.css): on multi-panel layouts — regular desktop browsers and tablets
+   * (both reported as `multiPanel === true` by `reader/views.py`, since
+   * `request.user_agent.is_mobile` is false for both) — the close button
+   * renders via `.connectionsHeader .readerNavMenuCloseButton.circledX`
+   * (fixed 20x32, see s2.css line ~6626/6645) and must NOT pick up the
+   * `.singlePanel` rule's enlarged tap target: no stretched alignment and no
+   * extra padding/negative margin extending it to the panel edge.
+   */
+  async expectCloseButtonTapTargetNotEnlarged(): Promise<void> {
+    await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
+    const style = await this.closeButton.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return {
+        alignSelf: computed.alignSelf,
+        paddingInlineEnd: computed.paddingInlineEnd,
+        marginInlineEnd: computed.marginInlineEnd,
+      };
+    });
+    expect(style.alignSelf).not.toBe('stretch');
+    expect(style.paddingInlineEnd).toBe('0px');
+    expect(parseFloat(style.marginInlineEnd)).toBeGreaterThanOrEqual(0);
+  }
+
+  /**
    * Scroll the panel's internal scroll container (`.connectionsPanel .texts`)
    * and return the resulting scrollTop. `.texts` is the wrapper that
    * ConnectionsPanel.componentDidMount installs its scroll listener on

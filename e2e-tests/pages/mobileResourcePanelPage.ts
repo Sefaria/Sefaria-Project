@@ -174,8 +174,45 @@ export class MobileResourcePanelPage extends HelperBase {
     await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
   }
 
+  /** The close button's `href` attribute, or `null` if the attribute is absent. */
+  async getCloseButtonHref(): Promise<string | null> {
+    await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
+    return this.closeButton.getAttribute('href');
+  }
+
+  /**
+   * Checks the close button's defenses against Android/iOS native long-press
+   * menus:
+   *  - the icon `<img>` has `pointer-events: none` (so touches land on the
+   *    `<a>`, not the image — avoiding the native "open/save image" menu)
+   *    and `draggable="false"`.
+   *  - the `<a>` itself has its `contextmenu` event prevented.
+   */
+  async getCloseButtonLongPressGuards(): Promise<{ imgPointerEvents: string; imgDraggable: string | null; contextMenuPrevented: boolean }> {
+    await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
+    const img = this.closeButton.locator('img').first();
+    const imgPointerEvents = await img.evaluate((el) => getComputedStyle(el).pointerEvents);
+    const imgDraggable = await img.getAttribute('draggable');
+    const contextMenuPrevented = await this.closeButton.evaluate((el) => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      el.dispatchEvent(event);
+      return event.defaultPrevented;
+    });
+    return { imgPointerEvents, imgDraggable, contextMenuPrevented };
+  }
+
   /** Tap the circled-X close button and assert the panel closes. */
   async tapCloseButton(): Promise<void> {
+    await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
+    // Use a real touch tap (not `.click()`'s synthetic mouse click) — the
+    // bug this guards against (Android's native long-press context menu on
+    // the close button) only manifests on touch input.
+    await this.closeButton.tap();
+    await expect(this.panel).toBeHidden({ timeout: t(10000) });
+  }
+
+  /** Click (mouse) the circled-X close button and assert the panel closes. */
+  async clickCloseButton(): Promise<void> {
     await expect(this.closeButton).toBeVisible({ timeout: t(5000) });
     await this.closeButton.click();
     await expect(this.panel).toBeHidden({ timeout: t(10000) });
@@ -196,6 +233,31 @@ export class MobileResourcePanelPage extends HelperBase {
     const headerMid = headerBox.y + headerBox.height / 2;
     const btnMid = btnBox.y + btnBox.height / 2;
     expect(Math.abs(headerMid - btnMid)).toBeLessThan(4);
+  }
+
+  /**
+   * Regression check for the enlarged tap-target fix
+   * (`.singlePanel .connectionsPanelHeader .readerNavMenuCloseButton.circledX`
+   * in s2.css: `align-self: stretch` + `padding-inline-end: 15px;
+   * margin-inline-end: -15px`): the close button's hit area should span the
+   * full header height (covers above/below the glyph) and reach the
+   * viewport's right edge (covers the area to the right of the glyph),
+   * while the icon itself (`.circledX img`, 20x20) stays small and centered.
+   */
+  async expectCloseButtonTapTargetEnlarged(): Promise<void> {
+    const headerBox = await this.header.boundingBox();
+    const btnBox = await this.closeButton.boundingBox();
+    const viewport = this.page.viewportSize();
+    if (!headerBox || !btnBox || !viewport) {
+      throw new Error('Could not measure header / close button bounding boxes / viewport');
+    }
+    // Tap target fills the header's height.
+    expect(Math.abs(btnBox.height - headerBox.height)).toBeLessThan(2);
+    // Tap target extends to the viewport's right edge.
+    expect(Math.abs((btnBox.x + btnBox.width) - viewport.width)).toBeLessThan(2);
+    // Tap target is meaningfully larger than the 20x20 icon it contains.
+    expect(btnBox.width).toBeGreaterThan(20);
+    expect(btnBox.height).toBeGreaterThan(20);
   }
 
   // ============================================================
