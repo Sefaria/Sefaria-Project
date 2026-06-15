@@ -201,6 +201,7 @@ shared_patterns = [
 
     re_path(r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', reader_views.revert_api),
 
+    path('api/img-gen/', reader_views.social_image_api, {"tref": ""}),
     path('api/img-gen/<path:tref>', reader_views.social_image_api),
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),

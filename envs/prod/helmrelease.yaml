@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.85.8-prod.2"
+      version: "0.85.8-prod.3"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project
@@ -45,7 +45,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.100.0-prod.1"
+        tag: "v6.100.0-prod.2"
       replicaCount: 7
       resources:
         web:
@@ -81,7 +81,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.100.0-prod.1"
+        tag: "v6.100.0-prod.2"
       replicaCount: 4
       resources:
         requests:
@@ -170,7 +170,7 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.100.0-prod.1"
+        tag: "v6.100.0-prod.2"
       SEARCH_HOST: "elasticsearch-1b-es-http.elasticsearch.svc"
       SEARCH_PORT: "9200"
       SEARCH_PATH: ""
@@ -187,7 +187,7 @@ spec:
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.100.0-prod.1"
+        tag: "v6.100.0-prod.2"
       replicaCount: 1
       resources:
         requests:
@@ -226,8 +226,6 @@ spec:
         ref: local-settings-secrets-production
       backupManager:
         ref: backup-manager-secret-production
-      slackWebhook:
-        ref: slack-webhook-production
     instrumentation:
       enabled: false
       otelEndpoint: "http://otel-collector-collector.monitoring:4317"

@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.85.9"
+      version: "0.85.11"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project-helm-repo
@@ -30,7 +30,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.101.0"
+        tag: "v6.101.13"
       resources:
         web:
           resources:
@@ -54,7 +54,7 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.101.0"
+        tag: "v6.101.13"
       resources:
         requests:
           memory: "400Mi"
@@ -76,11 +76,11 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.101.0"
+        tag: "v6.101.13"
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.101.0"
+        tag: "v6.101.13"
     datadog:
       enabled: true
     tasks:
@@ -120,8 +120,6 @@ spec:
         ref: local-settings-secrets
       backupManager:
         ref: backup-manager
-      slackWebhook:
-        ref: slack-webhook-helm
     localSettings:
       DEBUG: true
       DOMAIN_LANGUAGE:

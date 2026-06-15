@@ -18999,6 +18999,23 @@
           "Misc"
         ],
         "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskEnqueued"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`."
+          },
           "200": {
             "content": {
               "application/json": {
@@ -19007,11 +19024,11 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion."
           }
         },
         "summary": "Find Refs",
-        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual refernces in any arbitrary text that gets sent to it via a structured POST request and returns a response object identifying each located reference including its start and end position within the submitted text."
+        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via a structured POST request.\n\n**This is an asynchronous API.** The endpoint immediately returns a `task_id` with HTTP 202. You must poll `GET /api/async/{task_id}` to retrieve the task status. When the task completes successfully, the `/api/async/{task_id}` response will include a `result` field containing the same `FindRefsAPIResponse` object described in the 200 response schema below."
       }
     },
     "/api/search-wrapper": {
@@ -19070,7 +19087,7 @@
         "parameters": [
           {
             "name": "lang",
-            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to `en` if omitted. `bi` is accepted and returns English. ",
+            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to the language associated with the request host if omitted. `bi` is accepted but does not return a bilingual image; it uses the language associated with the request host.",
             "schema": {
               "enum": [
                 "he",
@@ -19130,7 +19147,7 @@
           }
         },
         "summary": "Social Media Image",
-        "description": "Given a Sefaria text `Ref` and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page."
+        "description": "Given a Sefaria text `Ref` or page path and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page. If no path is provided, the endpoint returns a fallback image for the request host."
       },
       "parameters": [
         {
@@ -19143,7 +19160,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
+          "description": "A valid Sefaria ref or page path. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -19277,6 +19294,114 @@
               }
             },
             "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/async/{task_id}": {
+      "get": {
+        "operationId": "get-async-task-status",
+        "summary": "Get Async Task Status",
+        "description": "Poll the status of an asynchronous task. Returns the current state of the task and, when complete, the result or error. This endpoint is generic — it works for any task enqueued by an asynchronous Sefaria API (e.g. `POST /api/find-refs`).\n\n**States:**\n- `PENDING` — The task has not yet started (or the task ID is unknown).\n- `STARTED` — The task is currently being executed.\n- `RETRY` — The task failed and is being retried.\n- `SUCCESS` — The task completed successfully. The `result` field contains the task output; its shape depends on which API enqueued the task.\n- `FAILURE` — The task failed permanently. The `error` field contains the error message.\n\n**HTTP status codes:**\n- `202` — Task is still running (state is `PENDING`, `STARTED`, or `RETRY`).\n- `200` — Task completed successfully.\n- `500` — Task failed permanently.",
+        "tags": [
+          "Misc"
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "description": "The task ID returned by an asynchronous API endpoint (e.g. `POST /api/find-refs`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Task is still in progress (`PENDING`, `STARTED`, or `RETRY`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskPending"
+                },
+                "examples": {
+                  "Pending": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "PENDING",
+                      "ready": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Task completed successfully. The shape of the `result` field depends on which API enqueued the task. For tasks started by `POST /api/find-refs`, `result` is a `FindRefsAPIResponse` object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskSuccess"
+                },
+                "examples": {
+                  "find-refs task (success)": {
+                    "summary": "Result for a task enqueued by POST /api/find-refs",
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "SUCCESS",
+                      "ready": true,
+                      "result": {
+                        "title": {
+                          "results": [],
+                          "refData": {}
+                        },
+                        "body": {
+                          "results": [
+                            {
+                              "startChar": 0,
+                              "endChar": 11,
+                              "text": "Genesis 1:1",
+                              "linkFailed": false,
+                              "refs": [
+                                "Genesis 1:1"
+                              ]
+                            }
+                          ],
+                          "refData": {
+                            "Genesis 1:1": {
+                              "heRef": "בראשית א׳:א׳",
+                              "url": "Genesis.1.1",
+                              "primaryCategory": "Tanakh"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Task failed permanently. The `error` field contains the error message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskFailure"
+                },
+                "examples": {
+                  "Failure": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "FAILURE",
+                      "ready": true,
+                      "error": "An unexpected error occurred while processing the request."
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -28782,6 +28907,123 @@
           "percentAvailableInvalid": {
             "description": "True when the percentAvailable figure could not be calculated.",
             "type": "boolean"
+          }
+        }
+      },
+      "AsyncTaskEnqueued": {
+        "title": "Async Task Enqueued",
+        "description": "Response returned when an asynchronous task has been successfully enqueued.",
+        "type": "object",
+        "required": [
+          "task_id"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Unique identifier for the enqueued task. Pass this to `GET /api/async/{task_id}` to poll for results."
+          }
+        },
+        "example": {
+          "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a"
+        }
+      },
+      "AsyncTaskPending": {
+        "title": "Async Task Pending",
+        "description": "Response returned while a task is still in progress.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "STARTED",
+              "RETRY"
+            ],
+            "description": "Current state of the task. `PENDING` means not yet started; `STARTED` means actively running; `RETRY` means the task failed and is being retried."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `false` while the task is in progress.",
+            "example": false
+          },
+          "meta": {
+            "type": "object",
+            "description": "Optional progress or metadata reported by the task while it is running."
+          }
+        }
+      },
+      "AsyncTaskSuccess": {
+        "title": "Async Task Success",
+        "description": "Response returned when a task has completed successfully. The shape of `result` depends on which API enqueued the task.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready",
+          "result"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "SUCCESS"
+            ],
+            "description": "Always `SUCCESS` for this response."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `true` when the task has completed.",
+            "example": true
+          },
+          "result": {
+            "description": "The task output. Its shape depends on which API enqueued the task. For `POST /api/find-refs` tasks, this is a `FindRefsAPIResponse` object.",
+            "type": "object"
+          }
+        }
+      },
+      "AsyncTaskFailure": {
+        "title": "Async Task Failure",
+        "description": "Response returned when a task has failed permanently.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready",
+          "error"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "FAILURE"
+            ],
+            "description": "Always `FAILURE` for this response."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `true` when the task has failed permanently.",
+            "example": true
+          },
+          "error": {
+            "type": "string",
+            "description": "Human-readable description of the error that caused the task to fail."
           }
         }
       }
