@@ -1,5 +1,5 @@
-var $  = require('jquery');
-var getCsrfToken = require('../sefaria/csrf').getCsrfToken;
+const $  = require('jquery');
+const getCsrfToken = require('../sefaria/csrf').getCsrfToken;
 
 function init() {
     $(document).ajaxSend(function(event, xhr, settings) {
