@@ -1,9 +1,6 @@
 /**
  * BulkIndexEditor - Bulk edit Index metadata across multiple indices
  *
- * NOTE: This component is currently DISABLED in ModeratorToolsPanel.
- * It is retained for future re-enablement but not rendered in the UI.
- *
  * Similar workflow to BulkVersionEditor, but operates on Index records
  * (the text metadata) rather than Version records (text content/translations).
  *
@@ -15,7 +12,6 @@
  *
  * Special features:
  * - Auto-detection for commentary texts ("X on Y" pattern)
- * - Automatic term creation for collective titles
  * - Author validation against AuthorTopic
  * - TOC zoom level setting on schema nodes
  *
@@ -27,6 +23,7 @@
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
 import { useState, useEffect } from 'react';
+import { getCsrfToken } from '../../sefaria/csrf';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
 import ModToolsSection from './shared/ModToolsSection';
@@ -79,7 +76,6 @@ const HELP_CONTENT = (
         <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
         <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
         <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
-        <tr><td><code>he_collective_title</code></td><td>Hebrew collective title (creates a Term if both en/he provided)</td></tr>
         <tr><td><code>toc_zoom</code></td><td>Table of contents zoom level (0-10, 0=fully expanded)</td></tr>
       </tbody>
     </table>
@@ -95,13 +91,6 @@ const HELP_CONTENT = (
       <li><code>collective_title: 'auto'</code> - Extracts the commentary name (e.g., "Rashi")</li>
       <li><code>authors: 'auto'</code> - Looks up the commentary name as an AuthorTopic</li>
     </ul>
-
-    <h3>Term Creation</h3>
-    <p>
-      If you provide both <code>collective_title</code> (English) and <code>he_collective_title</code>
-      (Hebrew), the tool will automatically create a Term for that collective title if it
-      doesn't already exist. This is required for the collective title to display properly.
-    </p>
 
     <div className="warning">
       <strong>Important Notes:</strong>
@@ -141,33 +130,28 @@ const detectCommentaryPattern = (title) => {
 };
 
 /**
- * Create a term if it doesn't exist
+ * Check whether an exact Index with this title exists.
+ * Uses /api/v2/index/{title}, which rejects (404) for unknown titles.
  */
-const createTermIfNeeded = async (enTitle, heTitle) => {
-  if (!enTitle || !heTitle) {
-    throw new Error("Both English and Hebrew titles are required to create a term");
-  }
-
+const indexExists = async (title) => {
   try {
-    // Check if term already exists
-    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, null, 'GET');
-    return true; // Term exists
+    const data = await Sefaria.getIndexDetails(title);
+    return !!data;
   } catch (e) {
-    if (e.message.includes('404') || e.message.includes('not found')) {
-      // Create term
-      const payload = {
-        json: JSON.stringify({
-          name: enTitle,
-          titles: [
-            { lang: "en", text: enTitle, primary: true },
-            { lang: "he", text: heTitle, primary: true }
-          ]
-        })
-      };
-      await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(enTitle)}`, null, payload);
-      return true;
-    }
-    throw e;
+    return false;
+  }
+};
+
+/**
+ * Check whether a Term exists for this collective title.
+ * The terms API returns 404 (rejects) when the term doesn't exist.
+ */
+const termExists = async (name) => {
+  try {
+    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(name)}`, null, null, 'GET');
+    return true;
+  } catch (e) {
+    return false;
   }
 };
 
@@ -190,6 +174,7 @@ const BulkIndexEditor = () => {
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0, label: "" });
 
   // Load categories on mount
   useEffect(() => {
@@ -286,6 +271,7 @@ const BulkIndexEditor = () => {
 
     setSaving(true);
     setMsg("Saving changes...");
+    setProgress({ current: 0, total: pick.size, label: "" });
 
     // Process updates to ensure correct data types
     const processedUpdates = {};
@@ -371,8 +357,11 @@ const BulkIndexEditor = () => {
 
     let successCount = 0;
     const errors = [];
+    const warnings = [];
 
+    let processed = 0;
     for (const indexTitle of pick) {
+      setProgress({ current: processed, total: pick.size, label: indexTitle });
       try {
         setMsg(`Updating ${indexTitle}...`);
 
@@ -407,30 +396,47 @@ const BulkIndexEditor = () => {
           }
         }
 
-        // Handle term creation for collective_title
-        if (indexSpecificUpdates.collective_title && indexSpecificUpdates.he_collective_title) {
-          try {
-            await createTermIfNeeded(indexSpecificUpdates.collective_title, indexSpecificUpdates.he_collective_title);
-            delete indexSpecificUpdates.he_collective_title;
-          } catch (e) {
-            errors.push(`${indexTitle}: Failed to create term: ${e.message}`);
-            continue;
+        // Handle authors auto-detection. Like the other 'auto' fields, this only
+        // applies to "X on Y" titles; for any non-matching title the field is dropped
+        // so the literal string 'auto' is never written to the index.
+        if (indexSpecificUpdates.authors === 'auto') {
+          if (pattern?.commentaryName) {
+            try {
+              const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
+              const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
+              const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
+              if (exactMatch) {
+                indexSpecificUpdates.authors = [exactMatch.key];
+              } else {
+                delete indexSpecificUpdates.authors;
+              }
+            } catch (e) {
+              delete indexSpecificUpdates.authors;
+            }
+          } else {
+            delete indexSpecificUpdates.authors;
           }
         }
 
-        // Handle authors auto-detection
-        if (indexSpecificUpdates.authors === 'auto' && pattern?.commentaryName) {
-          try {
-            const response = await Sefaria.apiRequestWithBody(`/api/name/${pattern.commentaryName}`, null, null, 'GET');
-            const matches = response.completion_objects?.filter(t => t.type === 'AuthorTopic') || [];
-            const exactMatch = matches.find(t => t.title.toLowerCase() === pattern.commentaryName.toLowerCase());
-            if (exactMatch) {
-              indexSpecificUpdates.authors = [exactMatch.key];
-            } else {
-              delete indexSpecificUpdates.authors;
-            }
-          } catch (e) {
-            delete indexSpecificUpdates.authors;
+        // Validate base_text_titles: every entry must be an existing Index.
+        // If any is missing, drop the whole field for this index.
+        if (indexSpecificUpdates.base_text_titles?.length) {
+          const titles = indexSpecificUpdates.base_text_titles;
+          const exists = await Promise.all(titles.map(t => indexExists(t)));
+          const missing = titles.filter((t, i) => !exists[i]);
+          if (missing.length) {
+            delete indexSpecificUpdates.base_text_titles;
+            warnings.push(`${indexTitle}: skipped base_text_titles (no such index: ${missing.join(', ')})`);
+          }
+        }
+
+        // Validate collective_title: a matching Term must exist.
+        // If not, drop the field for this index.
+        if (indexSpecificUpdates.collective_title) {
+          const exists = await termExists(indexSpecificUpdates.collective_title);
+          if (!exists) {
+            warnings.push(`${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}")`);
+            delete indexSpecificUpdates.collective_title;
           }
         }
 
@@ -459,12 +465,24 @@ const BulkIndexEditor = () => {
           ...indexSpecificUpdates
         };
 
-        const urlParams = { update: '1' };
         const indexPath = encodeURIComponent(indexTitle.replace(/ /g, "_"));
-        const payload = { json: JSON.stringify(postData) };
 
-        // Update index via raw API
-        await Sefaria.apiRequestWithBody(`/api/v2/raw/index/${indexPath}`, urlParams, payload);
+        // Update index via raw API. index_api reads request.POST.get("json"), so the
+        // body must be form-encoded (application/x-www-form-urlencoded), not JSON.
+        const updateResponse = await fetch(`/api/v2/raw/index/${indexPath}?update=1`, {
+          method: 'POST',
+          mode: 'same-origin',
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({ json: JSON.stringify(postData) }).toString()
+        });
+        const updateData = await updateResponse.json();
+        if (!updateResponse.ok || updateData.error) {
+          throw new Error(updateData.error || "Failed to update index");
+        }
 
         // Clear caches (non-JSON endpoint)
         const resetResponse = await fetch(`/admin/reset/${encodeURIComponent(indexTitle)}`, {
@@ -479,15 +497,20 @@ const BulkIndexEditor = () => {
       } catch (e) {
         const errorMsg = e.message || 'Unknown error';
         errors.push(`${indexTitle}: ${errorMsg}`);
+      } finally {
+        processed++;
+        setProgress({ current: processed, total: pick.size, label: indexTitle });
       }
     }
 
+    const warningText = warnings.length ? ` Warnings: ${warnings.join('; ')}` : '';
     if (errors.length) {
-      setMsg(`Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}`);
+      setMsg(`Updated ${successCount} of ${pick.size} indices. Errors: ${errors.join('; ')}${warningText}`);
     } else {
-      setMsg(`Successfully updated ${successCount} indices`);
-      setUpdates({});
+      setMsg(`Successfully updated ${successCount} indices.${warningText}`);
+      if (!warnings.length) setUpdates({});
     }
+    setProgress({ current: 0, total: 0, label: "" });
     setSaving(false);
   };
 
@@ -511,11 +534,14 @@ const BulkIndexEditor = () => {
         <label>{fieldMeta.label}:</label>
 
         {fieldMeta.help && (
-          <div className="fieldHelp">
-            {fieldMeta.help}
-            {fieldMeta.auto && (
-              <span className="autoSupport"> (Supports 'auto' for commentary texts)</span>
-            )}
+          <div className="fieldHelp">{fieldMeta.help}</div>
+        )}
+
+        {fieldMeta.auto && (
+          <div className="autoWarning">
+            ⚠ <code>'auto'</code> only works for titles using the "X on Y" naming
+            pattern (e.g., "Rashi on Genesis"). It is skipped for any selected index
+            whose title doesn't match.
           </div>
         )}
 
@@ -557,7 +583,6 @@ const BulkIndexEditor = () => {
         <strong>Important Notes:</strong>
         <ul>
           <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
-          <li><strong>Collective Title:</strong> If Hebrew equivalent is provided, terms will be created automatically.</li>
           <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").</li>
           <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
           <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded).</li>
@@ -660,6 +685,24 @@ const BulkIndexEditor = () => {
               {saving ? <><span className="loadingSpinner" />Saving...</> : `Save Changes to ${pick.size} Indices`}
             </button>
           </div>
+
+          {saving && progress.total > 0 && (
+            <div className="saveProgress">
+              <div className="saveProgressHeader">
+                <span>{progress.current} of {progress.total} indices</span>
+                <span>{Math.round((progress.current / progress.total) * 100)}%</span>
+              </div>
+              <div className="saveProgressTrack">
+                <div
+                  className="saveProgressBar"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+              {progress.label && (
+                <div className="saveProgressLabel">Updating: {progress.label}</div>
+              )}
+            </div>
+          )}
         </>
       )}
 
