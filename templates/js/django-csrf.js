@@ -1,21 +1,12 @@
 // --- Django CSRF support for AJAX -----------
+//
+// Included into server-rendered pages via `include`, so Django inlines
+// {{ csrf_token }} directly below. We use that value, never the csrftoken
+// cookie: on a cauldron the inherited .sefaria.org cookie can disagree with
+// what Django validates against, yielding a 403. Bundled React pages instead
+// use the runtime reader in static/js/sefaria/csrf.js.
 
 jQuery(document).ajaxSend(function(event, xhr, settings) {
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
     function sameOrigin(url) {
         // url could be relative or scheme relative or absolute
         var host = document.location.host; // host + port
@@ -33,6 +24,6 @@ jQuery(document).ajaxSend(function(event, xhr, settings) {
     }
 
     if (!safeMethod(settings.type) && sameOrigin(settings.url)) {
-        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
     }
 });
