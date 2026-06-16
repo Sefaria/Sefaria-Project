@@ -301,38 +301,60 @@ def get_version_context(version) -> dict:
     }
 
 
-def get_section_context(section_ref) -> dict:
-    """Metadata derived from the section Ref, shared by every chunk produced from it."""
-    section_normal = section_ref.normal()
-
-    pageranks = [ref_data.pagesheetrank for ref_data in RefDataSet.from_ref(section_ref)]
+def get_chunk_context(chunk_ref) -> dict:
+    """Metadata derived from the chunk's Ref (single segment or range)."""
+    pageranks = [ref_data.pagesheetrank for ref_data in RefDataSet.from_ref(chunk_ref)]
     pagerank = sum(pageranks) / len(pageranks) if pageranks else RefData.DEFAULT_PAGESHEETRANK
 
-    topics = [Topic.init(link.toTopic) for link in section_ref.topiclinkset(with_char_level_links=False)]
-    topics = [topic for topic in topics if topic]
+    seen_topic_pairs = set()
+    topic_names = []
+    topic_slugs = []
+    for link in chunk_ref.topiclinkset(with_char_level_links=False):
+        topic = Topic.init(link.toTopic)
+        if not topic:
+            continue
+        pair = (topic.get_primary_title("en"), topic.slug)
+        if pair not in seen_topic_pairs:
+            seen_topic_pairs.add(pair)
+            topic_names.append(pair[0])
+            topic_slugs.append(pair[1])
 
-    linked_refs = [
-        ref_str
-        for link in section_ref.linkset()
-        for ref_str in link.refs
-        if ref_str != section_normal
-    ]
+    seen_linked_refs = set()
+    linked_refs = []
+    for link in chunk_ref.linkset():
+        for ref_str in link.refs:
+            if ref_str in seen_linked_refs:
+                continue
+            try:
+                other_ref = Ref(ref_str)
+            except Exception:
+                continue
+            if chunk_ref.contains(other_ref):
+                continue
+            seen_linked_refs.add(ref_str)
+            linked_refs.append(ref_str)
 
     return {
         "pagerank": pagerank,
-        "associated_topic_names": [topic.get_primary_title("en") for topic in topics],
-        "associated_topic_slugs": [topic.slug for topic in topics],
+        "associated_topic_names": topic_names,
+        "associated_topic_slugs": topic_slugs,
         "linked_refs": linked_refs,
     }
 
 
+def chunk_ref_from_segments(source_segment_refs: list):
+    """Build a Ref spanning the chunk's source segments (ranged if >1 segment)."""
+    if len(source_segment_refs) == 1:
+        return Ref(source_segment_refs[0])
+    return Ref(source_segment_refs[0]).to(Ref(source_segment_refs[-1]))
+
+
 def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chunker, result,
-                     index_context: dict, version_context: dict, section_context: dict) -> list:
+                     index_context: dict, version_context: dict) -> list:
     chunk_texts = [chunk.text for chunk in result.chunks]
     vectors = chunker.encoder(chunk_texts)
 
     section_normal = section_ref.normal()
-    section_url = section_ref.url()
     section_slug = slugify(section_normal)
     vtitle_slug = slugify(vtitle)
 
@@ -342,7 +364,10 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             f"{section_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
         ).hexdigest()[:12]
         doc_id = f"chunk_{lang}_{section_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
-        # Patot chunker internals — how/why this chunk was produced. Not filterable; useful for debugging.
+
+        chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
+        chunk_context = get_chunk_context(chunk_ref)
+
         chunker_metadata = {
             "source_segment_refs": chunk.source_segment_refs,
             "chunk_kind": chunk.kind,
@@ -352,15 +377,15 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             "chunk_score": chunk.score,
         }
         rows.append((
-            doc_id, index_title, section_normal, section_url, version_context["language"], vtitle,
+            doc_id, index_title, chunk_ref.normal(), chunk_ref.url(), version_context["language"], vtitle,
             version_context["direction"], chunk.text, vector,
             index_context["primary_category"], index_context["all_categories"],
             version_context["is_primary"], version_context["is_source"],
             json.dumps(index_context["composition_date"]), index_context["composition_place"],
-            index_context["era_name"], section_context["pagerank"],
+            index_context["era_name"], chunk_context["pagerank"],
             index_context["author_names"], index_context["author_slugs"],
-            section_context["associated_topic_names"], section_context["associated_topic_slugs"],
-            section_context["linked_refs"], json.dumps(chunker_metadata),
+            chunk_context["associated_topic_names"], chunk_context["associated_topic_slugs"],
+            chunk_context["linked_refs"], json.dumps(chunker_metadata),
         ))
     return rows
 
@@ -378,9 +403,8 @@ def process_section(conn, section_ref, lang: str, vtitle: str, index_title: str,
         result_tracker.sections_skipped_empty += 1
         return
 
-    section_context = get_section_context(section_ref)
     rows = build_chunk_rows(section_ref, lang, vtitle, index_title, chunker, chunk_result,
-                            index_context, version_context, section_context)
+                            index_context, version_context)
     upsert_chunks(conn, rows)
     conn.commit()
 
