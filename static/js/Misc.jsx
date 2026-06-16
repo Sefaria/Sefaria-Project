@@ -2898,45 +2898,6 @@ class CookiesNotification extends Component {
 }
 
 
-const CommunityPagePreviewControls = ({date}) => {
-
-  const dateStr = (date, offset) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + offset)
-
-    return (
-      (d.getMonth() + 1) + "/" +
-      d.getDate() + "/" +
-      d.getFullYear().toString().slice(2)
-    );
-  };
-
-  const tomorrow = dateStr(date, 1);
-  const yesterday = dateStr(date, -1)
-
-  return (
-    <div id="communityPagePreviewControls">
-      <InterfaceText>You are previewing the Community page for </InterfaceText>
-      <a className="date" href={"/admin/community-preview?date=" + date}>
-        <InterfaceText>{date}</InterfaceText>
-      </a>
-      <div>
-        <a href={"/admin/community-preview?date=" + yesterday}>
-          <InterfaceText>{"« " + yesterday}</InterfaceText>
-        </a>
-        <a href={"/admin/community-preview?date=" + tomorrow}>
-          <InterfaceText>{tomorrow + " »"}</InterfaceText>
-        </a>
-      </div>
-      <div>
-        <a href={"/admin/reset/community?next=" + date}>
-          <InterfaceText>Refresh Cache</InterfaceText>
-        </a>
-      </div>
-    </div>
-  );
-};
-
 
 const SheetTitle = (props) => (
   <span className="title"
@@ -3665,7 +3626,6 @@ export {
   InterfaceText,
   EnglishText,
   HebrewText,
-  CommunityPagePreviewControls,
   LanguageToggleButton,
   Link,
   LoadingMessage,

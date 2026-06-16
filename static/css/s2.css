@@ -389,10 +389,38 @@ body.hasBannerMessage #s2.headerOnly {
   opacity: 0.85;
   margin-top: 4px;
 }
+.siteWideBanner .bannerSecondaryText a {
+  text-decoration: underline;
+}
 .siteWideBanner .siteWideBannerButtonBox {
   display: flex;
+  align-items: center;
   gap: 20px;
   margin-inline-start: 50px;
+}
+.siteWideBanner .siteWideBannerButtonBox .siteWideBannerMaybeLater {
+  margin-bottom: 0;
+}
+.siteWideBanner .siteWideBannerMaybeLater,
+.siteWideBanner .siteWideBannerMaybeLater:hover {
+  color:#18345D;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px;
+  background-color: transparent;
+  border-radius: 0px;
+  box-shadow: revert;
+  white-space: nowrap;
+}
+.siteWideBanner .logInToTry {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 18px;
+  margin-bottom: 0;
 }
 .siteWideBanner .siteWideBannerClose {
   margin-inline-start: 70px;
@@ -2701,80 +2729,6 @@ a.cardTitle:hover {
     margin-inline-end: 10px;
     vertical-align: middle;
     margin-top: -4px;
-}
-.readerPanel .communityPage h2 {
-  text-transform: none;
-  font-size: 22px;
-  color: var(--dark-grey);
-  margin-top: 0;
-  margin-bottom: 0;
-}
-.communityPage .gridBoxRow:first-child,
-.communityPage .recentlyPublished {
-  border-top: 1px solid var(--lighter-grey);
-}
-.communityPage .gridBox {
-  margin-bottom: 30px;
-}
-.communityPage .gridBox .gridBoxItem {
-  padding: 0
-}
-.communityPage .gridBox {
-  margin-bottom: 25px;
-}
-.communityPage .navBlock {
-  padding: 25px 0 0 0;
-  border: none;
-}
-.communityPage .navBlockTitle {
-  padding-top: 0;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
-}
-.communityPage .readingLinks {
-  margin-top: 20px;
-}
-.communityPage .readingLinksHeader {
-  color: var(--dark-grey);
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-.communityPage .readingLinks a {
-  font-size: 18px;
-}
-.communityPage .calendarDate {
-  font-size: 14px;
-  color: var(--medium-grey);
-  margin-bottom: 15px;
-}
-.featuredSheetHeading {
-  color: var(--dark-grey);
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-.featuredSheet .navBlockDescription {
-  margin-bottom: 12px;
-}
-.featuredSheetBottom {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-.featuredSheetDate {
-  color: var(--medium-grey);
-  font-size: 14px;
-}
-.communityPage .recentlyPublished {
-  padding-top: 30px;
-}
-.communityPage .recentlyPublished .gridBoxRow {
-  border: none;
-}
-.communityPage .recentlyPublished .loadingMessage {
-  margin-top: 30px;
-}
-.recentlyPublished .loadMore {
-  margin-top: 30px;
 }
 .bilingual .readerNavMenu .he {
   display: none;
@@ -13801,33 +13755,6 @@ a.topicLexiconTitle.contentText {
   .headerWithButtons .end {
     text-align: center;
   }
-}
-#communityPagePreviewControls {
-  position: fixed;
-  width: 380px;
-  bottom: 0;
-  right: 0;
-  color: white;
-  z-index: 9999;
-  background-color: var(--sefaria-blue);
-  padding: 20px;
-  line-height: 1.6;
-  text-align: center;
-  border: 1px solid #ccc;
-}
-.interface-hebrew #communityPagePreviewControls {
-  right: auto;
-  left: 0;
-}
-#communityPagePreviewControls a.date {
-  display: block;
-  font-size: 22px;
-}
-#communityPagePreviewControls a {
-  margin-inline-end: 10px;
-}
-#communityPagePreviewControls a:hover {
-  color: inherit;
 }
 .bold {
   font-weight: bold; /* because apparently it isn't recommended to use <b> or <strong> to style thing https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong#usage_notes */

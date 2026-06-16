@@ -19,7 +19,7 @@ shared_patterns = [
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
     re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
-    re_path(fr'password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{{1,13}}-[0-9A-Za-z]{{1,20}})/$',
+    path('password/reset/confirm/<uidb64>/<token>/',
         sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     re_path(fr'password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(),
         name='password_reset_complete'),
@@ -63,7 +63,6 @@ shared_patterns = [
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
-
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
@@ -113,7 +112,10 @@ shared_patterns = [
     re_path(r'^api/site_stats/?$', reader_views.site_stats_api),
     re_path(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     re_path(r'^api/background-data', reader_views.background_data_api),
-
+    re_path(r'^api/version-indices$', sefaria_views.version_indices_api),
+    re_path(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
+    re_path(r'^api/version-bulk-delete$', sefaria_views.version_bulk_delete_api),
+    re_path(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     re_path(r'^api/sheets/?$', sheets_views.save_sheet_api),
     path('api/sheets/<int:sheet_id>/delete', sheets_views.delete_sheet_api),
     path('api/sheets/<int:sheet_id>/add', sheets_views.add_source_to_sheet_api),
@@ -199,6 +201,7 @@ shared_patterns = [
 
     re_path(r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', reader_views.revert_api),
 
+    path('api/img-gen/', reader_views.social_image_api, {"tref": ""}),
     path('api/img-gen/<path:tref>', reader_views.social_image_api),
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),
@@ -226,6 +229,7 @@ shared_patterns = [
     path('sefaria.js', sefaria_views.sefaria_js),
 
     re_path(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
+    path('linker.v3.js.map', sefaria_views.linker_js_map),
     re_path(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
     re_path(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     re_path(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
@@ -243,7 +247,6 @@ shared_patterns = [
     re_path(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     re_path(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     re_path(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
-    re_path(r'^admin/reset/community$', reader_views.community_reset),
     re_path(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     re_path(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     re_path(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
@@ -269,7 +272,6 @@ shared_patterns = [
     re_path(r'^admin/spam/profiles', sefaria_views.profile_spam_dashboard),
     re_path(r'^admin/versions-csv', sefaria_views.versions_csv),
     re_path(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-    re_path(r'^admin/community-preview', reader_views.community_preview),
     re_path(r'^admin/descriptions/authors/update', sefaria_views.update_authors_from_sheet),
     re_path(r'^admin/descriptions/categories/update', sefaria_views.update_categories_from_sheet),
     re_path(r'^admin/descriptions/texts/update', sefaria_views.update_texts_from_sheet),
@@ -294,7 +296,7 @@ maintenance_patterns = [
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),
 ]
-# Everything else gets maintenance message
+# Everything else gets maintenance message.
 maintenance_patterns += [
     re_path(r'.*', sefaria_views.maintenance_message)
 ]

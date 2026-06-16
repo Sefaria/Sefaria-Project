@@ -37,7 +37,14 @@ const Strings = {
     "Sign up": "להרשמה",
     "Sign Up": "להרשמה",
     "Skip to main content": "דלגו לתוכן האתר",
+    "Enhance Your Learning Experience": "העמיקו את הלמידה שלכם",
+    "Log in to Join": "התחברות כדי להצטרף", 
+    "Maybe later": "אולי מאוחר יותר",
 
+    "Create an Account": "יצירת חשבון",
+    "Try It": "נסו עכשיו",
+    "Log in to Try": "התחברות כדי להתנסות",
+    
     //HeaderAutocomplete
     "Books": "ספרים",
     "Terms": "מונחים",
@@ -45,7 +52,7 @@ const Strings = {
     "Categories": "קטגוריות",
 
     // Landing Pages
-    "Learn More": "למדו עוד",
+    "Learn More": "למידע נוסף",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",

@@ -621,6 +621,7 @@ def export_version_csv(index, version_list):
     assert isinstance(version_list, list) or isinstance(version_list, VersionSet)
     assert all(isinstance(v, Version) for v in version_list)
 
+    version_list = list(version_list)
     csv.field_size_limit(sys.maxsize)
 
     output = io.BytesIO()
@@ -633,28 +634,24 @@ def export_version_csv(index, version_list):
     writer.writerow(["Version Source"] + [v.versionSource for v in version_list])
     writer.writerow(["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    # Build rows directly from walked segment refs instead of enumerating sections from vstate.
+    segment_rows = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for i, version in enumerate(version_list):
+        def action(segment_text, en_tref, _he_tref, _version):
+            """Populate one column per version while preserving blanks for missing segments."""
+            if en_tref not in segment_rows:
+                segment_rows[en_tref] = [""] * len(version_list)
+            segment_rows[en_tref][i] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
-        # populate each version
-        for version in version_list:
-            section = section_ref.text(vtitle=version.versionTitle, lang=version.language).text
-            for ref in segment_refs:
-                if ref.sections[-1] > len(section):
-                    seg_vers[ref.normal()] += [""]
-                else:
-                    seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    # Walk order is per-version; re-sort once so output stays in normal textual order.
+    for tref in sorted(segment_rows, key=lambda tref: Ref(tref).order_id()):
+        writer.writerow([tref] + segment_rows[tref])
 
     return output.getvalue()
 
@@ -675,52 +672,54 @@ def export_merged_csv(index, lang=None):
     writer.writerow(["Version Source"] + ["-"])
     writer.writerow(["Version Notes"] + ["-"])
 
-    section_refs = index.all_section_refs()
+    schema = index.schema
+    he_tref = index.get_title("he")
+    # Load candidate versions once, then merge segment-by-segment in memory.
+    versions = VersionSet({"title": index.title, "language": lang})
+    versions = [v for v in versions if not v.is_copyrighted()]
+    merged_segments = {}
 
-    for section_ref in section_refs:
-        segment_refs = section_ref.all_subrefs()
-        seg_vers = {}
+    for version in versions:
+        def action(segment_text, en_tref, _he_tref, _version):
+            """Mimic merged-text precedence by keeping the first non-empty segment encountered."""
+            if en_tref not in merged_segments:
+                merged_segments[en_tref] = ""
+            if not merged_segments[en_tref]:
+                merged_segments[en_tref] = segment_text
 
-        # set blank array for version data
-        for ref in segment_refs:
-            seg_vers[ref.normal()] = []
+        # Traverse a fully loaded version once, emitting each segment without per-section DB reads.
+        version.walk_thru_contents(action, schema=schema, heTref=he_tref)
 
-        # populate each version
-        section = section_ref.text(lang=lang, exclude_copyrighted=True).text
-        for ref in segment_refs:
-            if ref.sections[-1] > len(section):
-                seg_vers[ref.normal()] += [""]
-            else:
-                seg_vers[ref.normal()] += [section[ref.sections[-1] - 1]]
-
-        # write lines for each section
-        for ref in segment_refs:
-            writer.writerow([ref.normal()] + seg_vers[ref.normal()])
+    # Emit merged rows in canonical ref order to match previous CSV shape.
+    for tref in sorted(merged_segments, key=lambda tref: Ref(tref).order_id()):
+        writer.writerow([tref, merged_segments[tref]])
 
     return output.getvalue()
 
 
-def import_versions_from_stream(csv_stream, columns, user_id):
+def import_versions_from_stream(csv_stream, columns, user_id, skip_toc_refresh=False):
     csv.field_size_limit(sys.maxsize)
     reader = csv.reader(csv_stream)
     rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns, user_id)
+    return _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=skip_toc_refresh)
 
 
-def import_versions_from_file(csv_filename, columns):
+def import_versions_from_file(csv_filename, columns, user_id):
     """
     Import the versions in the columns listed in `columns`
     :param columns: zero-based list of column numbers with a new version in them
+    :param user_id: the ID of the user importing the versions
+    :param csv_filename: the filename of the CSV file to import
     :return:
     """
     csv.field_size_limit(sys.maxsize)
     with open(csv_filename, 'rb') as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
-    return _import_versions_from_csv(rows, columns)
+    return _import_versions_from_csv(rows, columns, user_id)
 
 
-def _import_versions_from_csv(rows, columns, user_id):
+def _import_versions_from_csv(rows, columns, user_id, skip_toc_refresh=False):
 
     multi = str(rows[0][0]).strip().lower() == "version title"
     jobs = []  # (idx_title, vt, lang, src, notes, text_map)
@@ -765,4 +764,4 @@ def _import_versions_from_csv(rows, columns, user_id):
                 "versionNotes": notes,
             }).save()
 
-        modify_bulk_text(user_id, v, text_map, type=action)
+        modify_bulk_text(user_id, v, text_map, type=action, skip_toc_refresh=skip_toc_refresh)
