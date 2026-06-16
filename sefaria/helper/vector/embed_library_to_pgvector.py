@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS library_chunks (
     associated_topic_names  TEXT[],
     associated_topic_slugs  TEXT[],
     linked_refs             TEXT[],
-    metadata                JSONB NOT NULL,
+    chunker_metadata        JSONB NOT NULL,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -86,7 +86,7 @@ INSERT INTO library_chunks
     (doc_id, index_title, ref, url, language, version_title, direction, text, embedding,
      primary_category, all_categories, is_primary, is_source, composition_date, composition_place,
      era_name, pagerank, author_names, author_slugs, associated_topic_names, associated_topic_slugs,
-     linked_refs, metadata, updated_at)
+     linked_refs, chunker_metadata, updated_at)
 VALUES %s
 ON CONFLICT (doc_id) DO UPDATE SET
     text = EXCLUDED.text,
@@ -108,7 +108,7 @@ ON CONFLICT (doc_id) DO UPDATE SET
     associated_topic_names = EXCLUDED.associated_topic_names,
     associated_topic_slugs = EXCLUDED.associated_topic_slugs,
     linked_refs = EXCLUDED.linked_refs,
-    metadata = EXCLUDED.metadata,
+    chunker_metadata = EXCLUDED.chunker_metadata,
     updated_at = now()
 """
 
@@ -237,21 +237,29 @@ def upsert_chunks(conn, rows: list):
         execute_values(cur, UPSERT_SQL, rows, template=UPSERT_TEMPLATE)
 
 
-def build_segment_records(section_ref, lang: str, vtitle: str) -> list:
-    texts = section_ref.text(lang=lang, vtitle=vtitle).ja().flatten_to_array()
-    subrefs = section_ref.all_subrefs()
+def collect_segment_records_by_section(version) -> dict:
+    """
+    Walk through every segment of `version` once (via Version.walk_thru_contents) and
+    group the resulting SegmentRecords by their section ref's normal form.
 
-    if len(subrefs) != len(texts):
-        logger.debug(
-            f"Subref/text count mismatch for {section_ref.normal()} ({lang}/{vtitle}): "
-            f"{len(subrefs)} subrefs vs {len(texts)} texts - truncating to shorter."
-        )
+    This replaces issuing a separate `section_ref.text(lang=lang, vtitle=vtitle)` lookup
+    per section, which is very expensive when repeated across every section of a version.
+    """
+    segment_records_by_section: dict = {}
+    section_counters: dict = {}
 
-    segment_records = []
-    for i, (subref, text) in enumerate(zip(subrefs, texts)):
-        if text and text.strip():
-            segment_records.append(SegmentRecord(tref=subref.normal(), text=text, segment_index=i))
-    return segment_records
+    def collect(segment_str, tref, _he_tref, _version):
+        oref = Ref(tref)
+        section_normal = oref.section_ref().normal()
+        segment_index = section_counters.get(section_normal, 0)
+        section_counters[section_normal] = segment_index + 1
+        if segment_str and segment_str.strip():
+            segment_records_by_section.setdefault(section_normal, []).append(
+                SegmentRecord(tref=oref.normal(), text=segment_str, segment_index=segment_index)
+            )
+
+    version.walk_thru_contents(collect)
+    return segment_records_by_section
 
 
 def time_period_to_dict(time_period) -> dict | None:
@@ -334,7 +342,8 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             f"{section_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
         ).hexdigest()[:12]
         doc_id = f"chunk_{lang}_{section_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
-        metadata = {
+        # Patot chunker internals — how/why this chunk was produced. Not filterable; useful for debugging.
+        chunker_metadata = {
             "source_segment_refs": chunk.source_segment_refs,
             "chunk_kind": chunk.kind,
             "chunk_pass_number": chunk.pass_number,
@@ -351,16 +360,15 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             index_context["era_name"], section_context["pagerank"],
             index_context["author_names"], index_context["author_slugs"],
             section_context["associated_topic_names"], section_context["associated_topic_slugs"],
-            section_context["linked_refs"], json.dumps(metadata),
+            section_context["linked_refs"], json.dumps(chunker_metadata),
         ))
     return rows
 
 
 def process_section(conn, section_ref, lang: str, vtitle: str, index_title: str, chunker, result_tracker: EmbeddingResult,
-                    index_context: dict, version_context: dict):
+                    index_context: dict, version_context: dict, segment_records: list):
     section_normal = section_ref.normal()
 
-    segment_records = build_segment_records(section_ref, lang, vtitle)
     if not segment_records:
         result_tracker.sections_skipped_empty += 1
         return
@@ -394,6 +402,8 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult):
         version_context = get_version_context(version)
         already_done = fetch_done_refs(conn, index.title, version_context["language"], vtitle)
 
+        segment_records_by_section = collect_segment_records_by_section(version)
+
         for section_ref in section_refs:
             section_normal = section_ref.normal()
             if section_normal in already_done:
@@ -401,8 +411,9 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult):
                 continue
 
             try:
+                segment_records = segment_records_by_section.get(section_normal, [])
                 process_section(conn, section_ref, lang, vtitle, index.title, chunker, result_tracker,
-                                index_context, version_context)
+                                index_context, version_context, segment_records)
             except Exception as e:
                 conn.rollback()
                 result_tracker.record_failure(index.title, lang, vtitle, section_normal, e)
