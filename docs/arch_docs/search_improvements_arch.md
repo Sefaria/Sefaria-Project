@@ -127,6 +127,18 @@ Each query combines three scoring mechanisms, applied over English and Hebrew fi
 
 **Routing:** `topic` and `author` queries both search the `topic` index, filtered by `subtype`. Book queries additionally boost `author_names` so a search for "Rambam" surfaces his works even when his name isn't in the book title.
 
+#### Product-configurable ranking (RemoteConfig)
+
+A natural extension is to lift the ranking weights out of code and into a RemoteConfig JSON entry, so the product team can tune result ordering without a code change or reindex. The per-field **match boosts** map onto this cleanly: the weights in the `multi_match` field list — e.g. `["title_en^3", "title_he^3", "titleVariants^2", "description_en", "author_names^2"]` — are already a `{field: weight}` dictionary. The `^3` on `title_en` means a query word found in the title counts three times as much as the same word found in a description, so a search for "Rashi" ranks *Rashi on Genesis* (title match) above a book that merely mentions Rashi in its description. Exposing that dictionary as config lets product retune it live.
+
+The catch is that **not every ranking factor reduces to a single per-field weight.** The inputs fall into a few kinds, only one of which fits the flat model:
+
+- **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `description_en`, `author_names`, …). One weight per field, safe for product to edit directly.
+- **Document signals — need more structure.** Numeric properties that should lift a document *regardless of the query* — e.g. ranking authors with more `numSources` above those with fewer, or a future per-book page rank to float more-studied books to the top. These feed a `function_score`, not the field list, and a bare weight is not enough: the raw values live on very different scales (`numSources` spans 0–7,000+), so each needs a scaling modifier (e.g. log) and missing-value handling, not just a multiplier.
+- **Categorical preferences — don't fit at all.** Wanting certain categories to outrank others (e.g. surfacing Halakhah above a niche category) is a weight per *value*, not per *field* — a different shape again (`{category: weight}`), wired as filtered boost clauses.
+
+In short, the match-boost weights are a clean, low-risk knob to hand to product via RemoteConfig, but signal- and category-based factors require purpose-built structure in the query builder and can't be collapsed into the same flat field→weight map. A RemoteConfig schema for this should therefore separate these concerns (e.g. a `match_boosts` map distinct from `signal_boosts`) rather than expose one undifferentiated dictionary — and should validate keys against the real index fields, since a typo'd field name would silently boost nothing.
+
 #### Author-aware book results
 
 When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
