@@ -62,6 +62,7 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
@@ -1821,7 +1822,7 @@ def version_rename_api(request):
     Rename Version.versionTitle for a single index.
 
     Request:
-      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+      PATCH {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
 
     Response:
       Celery enabled: 202 {"task_id": "..."}
@@ -1830,8 +1831,8 @@ def version_rename_api(request):
     Callers that need to rename a versionTitle across many indices should call
     this endpoint once per index and aggregate per-index results.
     """
-    if request.method != "POST":
-        return HttpResponseBadRequest("POST required")
+    if request.method != "PATCH":
+        return HttpResponseBadRequest("PATCH required")
 
     try:
         data = json.loads(request.body)
@@ -1865,14 +1866,12 @@ def version_rename_api(request):
     }
 
     if CELERY_ENABLED:
-        from sefaria.helper.texts.tasks import rename_version_title
         async_result = rename_version_title.apply_async(
             args=(rename_payload,),
             queue=CeleryQueue.TASKS.value,
         )
         return celeryResponse(async_result.id)
 
-    from sefaria.helper.texts.tasks import run_version_rename
     result, status_code = run_version_rename(
         user_id=request.user.id,
         version_title=version_title,

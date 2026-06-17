@@ -496,7 +496,7 @@ const BulkVersionEditor = () => {
           ...(lang ? { language: lang } : {})
         };
         try {
-          const response = await Sefaria.apiRequestWithBody(url, null, payload);
+          const response = await Sefaria.apiRequestWithBody(url, null, payload, "PATCH");
           if (response.task_id) {
             successes.push(indexTitle);
           } else if (response.status === "ok") {
@@ -529,6 +529,12 @@ const BulkVersionEditor = () => {
         console.error("Rename queueing failed", { url, failureCount, total, failures });
         setMsg({ type: MESSAGE_TYPES.ERROR, message: `All ${failureCount} renames failed to queue:\n${failureList}` });
       }
+    } catch (error) {
+      // The per-index loop catches expected request failures; this guards against an
+      // unexpected error in the surrounding orchestration so the user isn't left with a
+      // stale progress message and no feedback.
+      console.error("Rename aborted unexpectedly", { url, total, error });
+      setMsg({ type: MESSAGE_TYPES.ERROR, message: `Rename aborted: ${error.message || "Unknown error"}` });
     } finally {
       setSaving(false);
       setRenaming(false);

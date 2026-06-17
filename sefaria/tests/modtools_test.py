@@ -583,7 +583,7 @@ class TestVersionRenameAPI:
     @pytest.mark.django_db
     def test_rename_requires_staff(self, regular_client):
         """Non-staff users should be denied access."""
-        response = regular_client.post(
+        response = regular_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'Test',
@@ -595,15 +595,15 @@ class TestVersionRenameAPI:
         assert response.status_code in [302, 403]
 
     @pytest.mark.django_db
-    def test_rename_requires_post(self, staff_client):
-        """GET requests should be rejected."""
-        response = staff_client.get('/api/version-rename')
-        assert response.status_code == 400
+    def test_rename_requires_patch(self, staff_client):
+        """Non-PATCH methods (e.g. GET, POST) should be rejected."""
+        assert staff_client.get('/api/version-rename').status_code == 400
+        assert staff_client.post('/api/version-rename').status_code == 400
 
     @pytest.mark.django_db
     def test_rename_missing_fields(self, staff_client):
         """Missing required fields should return 400."""
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({'index': 'Genesis'}),
             content_type='application/json'
@@ -615,7 +615,7 @@ class TestVersionRenameAPI:
     @pytest.mark.django_db
     def test_rename_empty_new_title(self, staff_client):
         """Empty newVersionTitle should return 400."""
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'Test',
@@ -632,7 +632,7 @@ class TestVersionRenameAPI:
     @pytest.mark.django_db
     def test_rename_same_title_rejected(self, staff_client):
         """newVersionTitle equal to versionTitle should return 400."""
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'SameTitle',
@@ -648,7 +648,7 @@ class TestVersionRenameAPI:
     @pytest.mark.django_db
     def test_rename_missing_version_returns_404(self, staff_client):
         """If the version doesn't exist for the given index, return 404."""
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'NonexistentVersionForRename',
@@ -682,9 +682,9 @@ class TestVersionRenameAPI:
 
         dummy_task = DummyTask()
         monkeypatch.setattr("sefaria.views.CELERY_ENABLED", True)
-        monkeypatch.setattr("sefaria.helper.texts.tasks.rename_version_title", dummy_task)
+        monkeypatch.setattr("sefaria.views.rename_version_title", dummy_task)
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'AnyTitle',
@@ -713,7 +713,7 @@ class TestVersionRenameAPI:
         })
         test_version.save()
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionForRename',
@@ -757,7 +757,7 @@ class TestVersionRenameAPI:
         })
         v2.save()
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionForRenameCollision_Old',
@@ -794,7 +794,7 @@ class TestVersionRenameAPI:
         })
         test_version.save()
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionRenameLang',
@@ -838,7 +838,7 @@ class TestVersionRenameAPI:
         })
         v_he.save()
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionRenameAmbiguous',
@@ -883,7 +883,7 @@ class TestVersionRenameAPI:
         })
         v_he.save()
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionRenameDisambig',
@@ -936,7 +936,7 @@ class TestVersionRenameAPI:
         # Sanity check: same coarse language, distinct family — the case the old check got wrong.
         assert v_english.languageFamilyName != v_german.languageFamilyName
 
-        response = staff_client.post(
+        response = staff_client.patch(
             '/api/version-rename',
             data=json.dumps({
                 'versionTitle': 'TestVersionRenameFamily_Old',
