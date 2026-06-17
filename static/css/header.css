@@ -19,6 +19,17 @@
   justify-content: space-between;
   background: white;
 }
+
+/* When a header dropdown menu is open, lift the header's stacking context above the
+   floating Library assistant chatbot (.lc-chatbot-container, z-index: 9999) so the open
+   menu isn't obscured. The menu is nested inside .headerInner's stacking context, so a
+   z-index on the menu itself can't escape the header's 1001 ceiling — we have to raise
+   the context. Scoped via :has() to only go into effect while a menu is open. 
+   The rest of the time the header stays at 1001. */
+.headerInner:has(.dropdownLinks-menu.open) {
+  z-index: 10000;
+}
+
 @media (max-width: 842px) {
   .headerInner {
     padding: 0 15px;
