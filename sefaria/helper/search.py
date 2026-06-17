@@ -139,9 +139,21 @@ def normalize_filters(filters, filter_fields):
 
 
 def extract_filter_values(filters, filter_fields, field_name):
-    remaining_filters = [f for f, ff in zip(filters, filter_fields) if ff != field_name]
-    remaining_filter_fields = [ff for ff in filter_fields if ff != field_name]
-    extracted_values = [f for f, ff in zip(filters, filter_fields) if ff == field_name]
+    """
+    Remove filters that target `field_name` from parallel filter lists.
+
+    Returns the remaining filters, their remaining field names, and the extracted
+    filter values that matched `field_name`.
+    """
+    remaining_filters = []
+    remaining_filter_fields = []
+    extracted_values = []
+    for filter_value, filter_field in zip(filters, filter_fields):
+        if filter_field == field_name:
+            extracted_values.append(filter_value)
+        else:
+            remaining_filters.append(filter_value)
+            remaining_filter_fields.append(filter_field)
     return remaining_filters, remaining_filter_fields, extracted_values
 
 
