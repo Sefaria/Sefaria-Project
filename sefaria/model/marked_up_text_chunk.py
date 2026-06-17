@@ -86,12 +86,20 @@ class MarkedUpTextChunk(AbstractMongoRecord):
             raise DuplicateRecordError(f"{type(self).__name__}._validate(): Duplicate primary key {self.pkeys}, found {pkey_query} to already exist in the database.")
 
 
+        # Some indexes (e.g. Encyclopedia Talmudit) return TextChunk.text as a
+        # list of paragraph strings even for a segment-level ref. Index by
+        # segment position so span char-offsets resolve into the right string.
+        text = tc.text
+        if isinstance(text, list):
+            idx = oref.sections[-1] - 1 if oref.sections else 0
+            if 0 <= idx < len(text) and isinstance(text[idx], str):
+                text = text[idx]
+
         for span in self.spans:
             if span['type'] == MUTCSpanType.CITATION.value and 'ref' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
             if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
-            text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
                 raise InputError(f"{type(self).__name__}._validate(): Span text does not match the text in the corresponding TextChunk for {span.get('ref', span.get('topicSlug'))}"
