@@ -65,7 +65,6 @@ node_modules
 ##########
 .cursor/
 .claude/
-CLAUDE.md
 
 # pystest cache #
 #####################
