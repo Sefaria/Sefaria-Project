@@ -1822,7 +1822,7 @@ def version_rename_api(request):
     Rename Version.versionTitle for a single index.
 
     Request:
-      PATCH {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
 
     Response:
       Celery enabled: 202 {"task_id": "..."}
@@ -1831,8 +1831,8 @@ def version_rename_api(request):
     Callers that need to rename a versionTitle across many indices should call
     this endpoint once per index and aggregate per-index results.
     """
-    if request.method != "PATCH":
-        return HttpResponseBadRequest("PATCH required")
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
 
     try:
         data = json.loads(request.body)

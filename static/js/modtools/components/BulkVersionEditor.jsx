@@ -496,7 +496,7 @@ const BulkVersionEditor = () => {
           ...(lang ? { language: lang } : {})
         };
         try {
-          const response = await Sefaria.apiRequestWithBody(url, null, payload, "PATCH");
+          const response = await Sefaria.apiRequestWithBody(url, null, payload);
           if (response.task_id) {
             successes.push(indexTitle);
           } else if (response.status === "ok") {
