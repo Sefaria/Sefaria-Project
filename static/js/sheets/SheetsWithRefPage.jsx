@@ -16,7 +16,9 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     // we can return the searchState's available filters to the original list.  Once origAvailableFilters are loaded,
     // they are never changed.
 
-    const [refs, setRefs] = useState(srefs);
+    const [refs, setRefs] = useState(srefs.en);
+    const shortLang = Sefaria._getShortInterfaceLang();
+    const displayRef = srefs[shortLang] || srefs.en;
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray;
 
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
@@ -195,7 +197,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           sortTypeArray={sortTypeArray}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
-          query={refs}
+          query={displayRef}
           type={'sheet'}
           totalResults={new SearchTotal({value: sortedSheets.length})}
           compare={false}
