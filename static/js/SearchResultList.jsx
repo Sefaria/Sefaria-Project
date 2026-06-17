@@ -9,6 +9,7 @@ import Sefaria from './sefaria/sefaria';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchState from './sefaria/searchState';
+import SemanticSearchResult from './SemanticSearchResult';
 import {
   DropdownModal,
   DropdownButton,
@@ -76,12 +77,36 @@ const SearchTopic = (props) => {
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
+      this.state = {
+        semanticResults: [],
+        semanticLoading: false,
+        semanticExpanded: true,
+      };
     }
     componentDidMount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
+        if (this.props.type === "text" && this.props.query) {
+            this._fetchSemanticResults(this.props.query);
+        }
     }
     componentWillUnmount() {
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
+    }
+    componentDidUpdate(prevProps) {
+        if (this.props.type === "text" && this.props.query !== prevProps.query && this.props.query) {
+            this._fetchSemanticResults(this.props.query);
+        }
+    }
+    _fetchSemanticResults(query) {
+        this.setState({ semanticLoading: true, semanticResults: [] });
+        fetch(`/api/fuzzy-search?q=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(data => {
+                this.setState({ semanticResults: data.results || [], semanticLoading: false });
+            })
+            .catch(() => {
+                this.setState({ semanticLoading: false });
+            });
     }
     handleScroll() {
       if (!this.props.moreToLoad) { return; }
@@ -143,8 +168,24 @@ class SearchResultList extends Component {
         const haveResults      = !!results.length;
         results                = haveResults ? results : noResultsMessage;
 
+        const { semanticResults, semanticLoading, semanticExpanded } = this.state;
+        const semanticSection = (this.props.type === "text" && (semanticResults.length > 0 || semanticLoading)) ? (
+            <div id="semanticResults">
+                <div className="semanticResultsHeader" onClick={() => this.setState({ semanticExpanded: !semanticExpanded })} style={{cursor: "pointer"}}>
+                    <span className="int-en">Semantic Matches {semanticResults.length > 0 && `(${semanticResults.length})`}</span>
+                    <span className="int-he">תוצאות סמנטיות {semanticResults.length > 0 && `(${semanticResults.length})`}</span>
+                    <i className={`fa fa-caret-${semanticExpanded ? "up" : "down"}`} style={{marginInlineStart: "0.4em"}}/>
+                </div>
+                {semanticExpanded && (semanticLoading
+                    ? <LoadingMessage message="Finding semantic matches..." heMessage="מחפש התאמות סמנטיות..." />
+                    : semanticResults.map(r => <SemanticSearchResult key={r.ref} result={r} />)
+                )}
+            </div>
+        ) : null;
+
         return (
           <div>
+              {semanticSection}
               <div className="searchResultList">
                   {queryFullyLoaded || haveResults ? results : null}
                   {this.props.isQueryRunning ? loadingMessage : null}

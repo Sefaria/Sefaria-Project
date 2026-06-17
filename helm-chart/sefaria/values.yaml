@@ -141,6 +141,20 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
+chroma:
+  enabled: false
+  containerImage:
+    imageRegistry: chromadb/chroma
+    tag: latest
+  storage: 10Gi
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "250m"
+    limits:
+      memory: "6Gi"
+      cpu: "1000m"
+
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name

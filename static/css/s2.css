@@ -4032,6 +4032,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--dark-grey);
 }
 
+#semanticResults {
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  max-width: 665px;
+}
+.semanticResultsHeader {
+  font-weight: bold;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--light-grey);
+  user-select: none;
+}
+#semanticResults .result {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--light-grey);
+}
+#semanticResults .result:last-child {
+  border-bottom: none;
+}
+.semantic-keyphrases {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.semantic-keyphrases-label {
+  font-size: 12px;
+  color: var(--dark-grey);
+  margin-inline-end: 2px;
+  white-space: nowrap;
+}
+.semantic-keyphrase-tag {
+  display: inline-block;
+  background-color: #EDEDED;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--dark-grey);
+}
+
 @media (min-width: 701px) {
   /* prevent width of left-pane from changing due to content size when filters applied */
   .searchContent .searchResultList {
