@@ -83,12 +83,47 @@ export:
   schedule: "0 3 1 * *"
   serviceAccount: text-export-write
 
+pgvector:
+  enabled: false
+  image: pgvector/pgvector:pg17
+  user: sefaria
+  password: sefaria
+  db: sefaria_vectors
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClass: "standard-rwo"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "4Gi"
+      cpu: "1000m"
+
 # PostgreSQL configuration - can be overridden per environment
 postgres:
   # host: defaults to DATABASES_HOST from secret if not specified
   db: "sefaria_auth"
   restore: false
   sync: false
+
+qdrant:
+  enabled: false
+  image: qdrant/qdrant:v1.18.2
+  port: 6333
+  collection: sefaria_texts
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: "standard-rwo"
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "2Gi"
+      cpu: "500m"
 
 
 web:
