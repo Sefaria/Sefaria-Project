@@ -1,15 +1,6 @@
 :root {
   --bp-tablet-min: 843px;
   --bp-desktop-min: 1087px;
-
-  /* Stacking layers. The floating Library assistant chatbot (.lc-chatbot-container)
-     occupies the overlay layer at z-index 9999 — that value is owned by the external
-     ai-chatbot web component, so --z-overlay documents it here rather than setting it.
-     An open header menu must clear that overlay layer, hence +1 (kept relative so it
-     tracks --z-overlay instead of being a free-floating magic number). */
-  --z-header: 1001;
-  --z-overlay: 9999;
-  --z-header-menu-open: calc(var(--z-overlay) + 1);
 }
 
 .headerInner,
@@ -28,21 +19,14 @@
   justify-content: space-between;
   background: white;
 }
-
-/* When a header dropdown menu is open, lift the header's stacking context above the
-   floating Library assistant chatbot (the --z-overlay layer) so the open menu isn't
-   obscured. The menu is nested inside .headerInner's stacking context, so a z-index on
-   the menu itself can't escape the header's --z-header ceiling — we have to raise the
-   context. Scoped via :has() to only go into effect while a menu is open; the rest of
-   the time the header stays at --z-header (so the focused skip-link remains reachable). */
-.headerInner:has(.dropdownLinks-menu.open) {
-  z-index: var(--z-header-menu-open);
-}
-
 @media (max-width: 842px) {
   .headerInner {
     padding: 0 15px;
   }
+}
+
+.headerInner:has(.dropdownLinks-menu.open) {
+  z-index: var(--z-header-menu-open);
 }
 
 .headerInner.boxShadow {
