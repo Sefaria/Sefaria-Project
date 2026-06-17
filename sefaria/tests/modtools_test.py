@@ -815,6 +815,150 @@ class TestVersionRenameAPI:
         # Cleanup
         v_new.delete()
 
+    @pytest.mark.django_db
+    def test_rename_multiple_matches_requires_language(self, staff_client):
+        """When several versions share a versionTitle across language families and no
+        language is given, the rename must refuse rather than pick one arbitrarily."""
+        from sefaria.model import Version, VersionSet
+
+        v_en = Version({
+            'versionTitle': 'TestVersionRenameAmbiguous',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_en.save()
+        v_he = Version({
+            'versionTitle': 'TestVersionRenameAmbiguous',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_he.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameAmbiguous',
+                'newVersionTitle': 'TestVersionRenameAmbiguous_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 409
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'language' in data['error'].lower()
+
+        # Neither version should have been renamed.
+        assert len(VersionSet({'versionTitle': 'TestVersionRenameAmbiguous', 'title': 'Genesis'})) == 2
+        assert Version().load({'versionTitle': 'TestVersionRenameAmbiguous_New', 'title': 'Genesis'}) is None
+
+        # Cleanup
+        v_en.delete()
+        v_he.delete()
+
+    @pytest.mark.django_db
+    def test_rename_multiple_matches_resolved_by_language(self, staff_client):
+        """Passing language disambiguates among same-titled versions and renames only that one."""
+        from sefaria.model import Version
+
+        v_en = Version({
+            'versionTitle': 'TestVersionRenameDisambig',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_en.save()
+        v_he = Version({
+            'versionTitle': 'TestVersionRenameDisambig',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_he.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameDisambig',
+                'newVersionTitle': 'TestVersionRenameDisambig_New',
+                'language': 'en',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # Only the English version was renamed; the Hebrew one keeps its title.
+        renamed = Version().load({'versionTitle': 'TestVersionRenameDisambig_New', 'title': 'Genesis'})
+        assert renamed is not None
+        assert renamed.language == 'en'
+        assert Version().load({'versionTitle': 'TestVersionRenameDisambig', 'title': 'Genesis', 'language': 'he'}) is not None
+
+        # Cleanup
+        renamed.delete()
+        v_he.delete()
+
+    @pytest.mark.django_db
+    def test_rename_collision_different_language_family_allowed(self, staff_client):
+        """A title clash in a *different* language family is not a collision, even when the
+        coarse language field (LTR/RTL) is identical."""
+        from sefaria.model import Version, VersionSet
+
+        # Both versions are LTR (language='en'), but different actual language families.
+        v_english = Version({
+            'versionTitle': 'TestVersionRenameFamily_Old',
+            'language': 'en',
+            'actualLanguage': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_english.save()
+        v_german = Version({
+            'versionTitle': 'TestVersionRenameFamily_New',
+            'language': 'en',
+            'actualLanguage': 'de',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_german.save()
+        # Sanity check: same coarse language, distinct family — the case the old check got wrong.
+        assert v_english.languageFamilyName != v_german.languageFamilyName
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameFamily_Old',
+                'newVersionTitle': 'TestVersionRenameFamily_New',
+                'language': 'en',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200, response.content
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # The English version took the new title; the German version is untouched. Both coexist.
+        assert len(VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'})) == 2
+        assert Version().load({'versionTitle': 'TestVersionRenameFamily_Old', 'title': 'Genesis'}) is None
+
+        # Cleanup
+        for v in VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'}):
+            v.delete()
+
 
 class TestCheckIndexDependenciesAPI:
     """Tests for /api/check-index-dependencies endpoint."""

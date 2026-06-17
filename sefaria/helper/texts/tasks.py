@@ -108,18 +108,36 @@ def run_version_rename(user_id: int, version_title: str, new_version_title: str,
     Rename one versionTitle and return a tuple of (response_payload, http_status).
     """
     try:
+        # `language` ("he"/"en", i.e. RTL/LTR) is only a coarse filter; multiple versions can
+        # share a title + versionTitle across distinct language families. Load the full set so
+        # we never silently rename an arbitrary one of several matches.
         load_query = {"title": index_title, "versionTitle": version_title}
         if language:
             load_query["language"] = language
-        version = Version().load(load_query)
-        if not version:
+        candidates = VersionSet(load_query)
+        if len(candidates) == 0:
             return {"status": "error", "index": index_title, "error": f'No Version "{version_title}" found'}, 404
+        if len(candidates) > 1:
+            return {
+                "status": "error",
+                "index": index_title,
+                "error": f'Multiple versions named "{version_title}" found; specify a language to disambiguate',
+            }, 409
+        version = candidates[0]
 
-        collision_query = {"title": index_title, "versionTitle": new_version_title}
-        if language:
-            collision_query["language"] = language
-        existing = Version().load(collision_query)
-        if existing and getattr(existing, "_id", None) != getattr(version, "_id", None):
+        # A duplicate is defined by sharing the same actual language family (e.g. "arabic"),
+        # not the coarse language/direction field. Read the family name off the loaded version
+        # rather than the optional `language` param, and exclude this version from the query so a
+        # single match unambiguously means "some other version already occupies this identity".
+        collision_query = {
+            "title": index_title,
+            "versionTitle": new_version_title,
+            "_id": {"$ne": version._id},
+        }
+        language_family = getattr(version, "languageFamilyName", None)
+        if language_family:
+            collision_query["languageFamilyName"] = language_family
+        if Version().load(collision_query):
             return {"status": "error", "index": index_title, "error": f'Version "{new_version_title}" already exists'}, 409
 
         lang = version.language
