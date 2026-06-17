@@ -129,9 +129,14 @@ def get_query_obj(
 
 
 def normalize_filters(filters, filter_fields):
-    filters, filter_fields, linked_ref_filters = extract_filter_values(filters, filter_fields, "linked_refs")
+    filters, filter_fields, linked_ref_filters = extract_filter_values(
+        filters,
+        filter_fields,
+        "linked_refs",
+    )
     if not linked_ref_filters:
         return filters, filter_fields
+
     linked_refs = normalize_linked_ref_filters(linked_ref_filters)
     filters += linked_refs
     filter_fields += ["linked_refs"] * len(linked_refs)
