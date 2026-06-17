@@ -257,7 +257,7 @@ enabling the delete button. Both API calls share the same `performBulkEdit` help
 component.
 
 **Rename Version Title**:
-POST /api/version-rename
+PATCH /api/version-rename
 Body: { versionTitle, newVersionTitle, language (optional), index }
 Response (Celery enabled): 202 { task_id: "..." }
 Response (success, Celery disabled): 200 { status: "ok" }
