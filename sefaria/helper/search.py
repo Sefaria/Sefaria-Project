@@ -103,10 +103,7 @@ def get_query_obj(
         for a in aggs:
             search_obj.aggs.bucket(a, "terms", field=a, size=10000)
 
-    if "linked_refs" in filter_fields:
-        linked_refs = normalize_linked_ref_filters([f for f, ff in zip(filters, filter_fields) if ff == "linked_refs"])
-        filters = [f for f, ff in zip(filters, filter_fields) if ff != "linked_refs"] + linked_refs
-        filter_fields = [ff for ff in filter_fields if ff != "linked_refs"] + ["linked_refs"] * len(linked_refs)
+    filters, filter_fields = normalize_filters(filters, filter_fields)
 
     # filters
     if len(filters) == 0:
@@ -129,6 +126,23 @@ def get_query_obj(
         search_obj.query = inner_query
     search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
     return search_obj[start:start + size]
+
+
+def normalize_filters(filters, filter_fields):
+    filters, filter_fields, linked_ref_filters = extract_filter_values(filters, filter_fields, "linked_refs")
+    if not linked_ref_filters:
+        return filters, filter_fields
+    linked_refs = normalize_linked_ref_filters(linked_ref_filters)
+    filters += linked_refs
+    filter_fields += ["linked_refs"] * len(linked_refs)
+    return filters, filter_fields
+
+
+def extract_filter_values(filters, filter_fields, field_name):
+    remaining_filters = [f for f, ff in zip(filters, filter_fields) if ff != field_name]
+    remaining_filter_fields = [ff for ff in filter_fields if ff != field_name]
+    extracted_values = [f for f, ff in zip(filters, filter_fields) if ff == field_name]
+    return remaining_filters, remaining_filter_fields, extracted_values
 
 
 def normalize_linked_ref_filters(refs):
