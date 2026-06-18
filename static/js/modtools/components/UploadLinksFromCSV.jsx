@@ -8,7 +8,7 @@
  */
 import React from 'react';
 import Component from 'react-class';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from '../../sefaria/csrf';
 import { saveAs } from 'file-saver';
 import ModToolsSection from './shared/ModToolsSection';
 import { stripHtmlTags } from '../utils';
@@ -161,7 +161,7 @@ class UploadLinksFromCSV extends Component {
     const data = new FormData(event.target);
     const request = new Request(
       '/modtools/links',
-      { headers: { 'X-CSRFToken': Cookies.get('csrftoken') } }
+      { headers: { 'X-CSRFToken': getCsrfToken() } }
     );
     fetch(request, {
       method: 'POST',
