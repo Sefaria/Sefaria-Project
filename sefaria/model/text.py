@@ -5804,7 +5804,7 @@ class Library(object):
         """
         Returns an array of all index records
         """
-        return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
+        return [self._index_map[k] for k in list(self._index_title_maps["en"].keys()) if k in self._index_map]
 
     def get_title_node_dict(self, lang="en"):
         """
