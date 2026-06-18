@@ -5378,6 +5378,14 @@ class Library(object):
         previous one until the new one is fully ready.
         """
         from .autospell import AutoCompleter
+        # The counter increment is intentionally *outside* the lock: coalescing depends on pending
+        # requests bumping `requested` before they queue on the lock, so a single in-flight build can
+        # cover them all. Do NOT move it inside the lock — that serializes the increments and defeats
+        # coalescing. Under gevent the read-modify-write is atomic (no yield point); the threading
+        # fallback (dev/test only) can race it, but the worst case is one extra coalesce, never a
+        # crash. The BoundedSemaphore guards against over-release (it raises); note a reentrant
+        # acquire would *hang*, not crash, so the build body must never call back into a
+        # getter/builder — it does not (AutoCompleter.__init__ touches only cached loaders).
         mine = self._full_ac_requested = self._full_ac_requested + 1
         with self._full_ac_build_lock:
             if self._full_ac_completed >= mine:
