@@ -24,7 +24,7 @@ spec:
       containers:
         - name: embed-library-to-pgvector
           image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
-          command: ["/app/run", "/app/scripts/embed_library_to_pgvector.py"]
+          command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count={{ .Values.jobs.embedLibraryToPgvector.shardCount }}"
           env:
