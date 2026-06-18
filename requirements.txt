@@ -223,7 +223,7 @@ parso==0.8.4
     # via jedi
 pathos==0.2.6
     # via -r ./requirements.txt
-patot[chunking,pdf] @ git+https://github.com/Sefaria/patot@v0.1.1
+patot[chunking,pdf] @ git+https://github.com/Sefaria/patot@v0.1.2
     # via -r ./requirements.txt
 pexpect==4.9.0
     # via ipython
