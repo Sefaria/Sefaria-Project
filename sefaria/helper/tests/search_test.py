@@ -3,6 +3,44 @@ import json
 from sefaria.helper.search import *
 
 
+def test_extract_filter_values():
+    filters = ["Genesis 3:1-3", "Tanakh/Torah/Genesis", "Moses"]
+    filter_fields = ["linked_refs", "path", "tags"]
+
+    remaining_filters, remaining_filter_fields, extracted_values = extract_filter_values(
+        filters,
+        filter_fields,
+        "linked_refs",
+    )
+
+    assert remaining_filters == ["Tanakh/Torah/Genesis", "Moses"]
+    assert remaining_filter_fields == ["path", "tags"]
+    assert extracted_values == ["Genesis 3:1-3"]
+
+
+def test_normalize_linked_ref_filters():
+    assert normalize_linked_ref_filters(["Genesis 3:1-3"]) == [
+        "Genesis 3:1",
+        "Genesis 3:2",
+        "Genesis 3:3",
+    ]
+
+
+def test_normalize_filters_with_linked_refs():
+    filters, filter_fields = normalize_filters(
+        ["Genesis 3:1-3", "Tanakh/Torah/Genesis"],
+        ["linked_refs", "path"],
+    )
+
+    assert filters == [
+        "Tanakh/Torah/Genesis",
+        "Genesis 3:1",
+        "Genesis 3:2",
+        "Genesis 3:3",
+    ]
+    assert filter_fields == ["path", "linked_refs", "linked_refs", "linked_refs"]
+
+
 def test_query_obj():
     # stam query
     s = get_query_obj("moshe", "text", "exact", False, 0, 0, 10, [], [], [], "sort", ['comp_date', 'order'])
