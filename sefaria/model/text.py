@@ -4433,6 +4433,10 @@ class Library(object):
         self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
+            if tree.key not in self._index_map:
+                logger.error(
+                    "Index inconsistency: root node key %r has no matching Index.title; "
+                    "this record will be omitted from all_index_records", tree.key)
             try:
                 for lang in self.langs:
                     tree_titles = tree.title_dict(lang)
@@ -4958,7 +4962,14 @@ class Library(object):
         return root_nodes
 
     def all_index_records(self):
-        return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
+        title_keys = list(self._index_title_maps["en"].keys())
+        missing = [k for k in title_keys if k not in self._index_map]
+        if missing:
+            logger.error(
+                "all_index_records: %d index(es) present in title map but missing from index map "
+                "(likely a partial title rename where Index.title != root node key): %s",
+                len(missing), missing)
+        return [self._index_map[k] for k in title_keys if k in self._index_map]
 
     def get_title_node_dict(self, lang="en"):
         """
