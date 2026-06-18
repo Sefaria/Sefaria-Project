@@ -33,7 +33,7 @@ import Hebrew from './sefaria/hebrew.js';
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
-import Cookies from "js-cookie";
+import { getCsrfToken } from "./sefaria/csrf";
 
 
 
@@ -1295,7 +1295,7 @@ const EditTextInfo = function({initTitle, close}) {
     try {
       const request = new Request(
         `/api/terms/${collectiveTitle}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+        {headers: {'X-CSRFToken': getCsrfToken()}}
       );
       const response = await fetch(request, {
         method: 'POST',
