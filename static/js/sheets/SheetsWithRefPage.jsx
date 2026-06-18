@@ -17,8 +17,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     // they are never changed.
 
     const enRefs = srefs.en;
-    const shortLang = Sefaria._getShortInterfaceLang();
-    const displayRef = srefs[shortLang] || enRefs;
+    const displayRef = Sefaria._v(srefs) || enRefs;
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray;
 
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
