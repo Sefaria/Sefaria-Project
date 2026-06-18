@@ -3,4 +3,19 @@
 
 set -e  # exit immediately if any command fails
 
+# GUI git clients (Cursor, VS Code, etc.) do not load shell profiles — ensure npm is on PATH
+if ! command -v npm >/dev/null 2>&1; then
+  export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+  if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck disable=SC1091
+    . "$HOME/.nvm/nvm.sh"
+  fi
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "husky - npm not found in PATH. Install Node.js or commit from a terminal." >&2
+  exit 127
+fi
+
 npm run scss-compile
