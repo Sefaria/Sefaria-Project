@@ -4996,8 +4996,9 @@ class Library(object):
         self._cross_lexicon_auto_completer = None
         # Per-completer build locks + coalescing counters. The lock serializes concurrent
         # rebuilds (gevent greenlet herd / replayed multiserver events) so only one ~1GiB build
-        # runs at a time; the requested/completed counters let a request that arrives while a
-        # build is in flight be satisfied by that build instead of re-running it. See the
+        # runs at a time; the requested/completed counters let a request that was already pending
+        # when a build's reads began be satisfied by that build instead of re-running it (a request
+        # that arrives later still rebuilds, so it never gets stale data). See the
         # build_*_auto_completer methods.
         self._full_ac_build_lock = _AutoCompleterBuildLock(1)
         self._lexicon_ac_build_lock = _AutoCompleterBuildLock(1)
@@ -5369,16 +5370,26 @@ class Library(object):
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
 
         Serialized behind a gevent-cooperative lock so a herd of concurrent greenlets (or replayed
-        multiserver events) cannot launch many large builds at once. A request that arrives while a
-        build is already in flight is coalesced into it rather than re-running. The new completer is
-        built into a local and atomically swapped in, so readers keep serving the previous one until
-        the new one is fully ready.
+        multiserver events) cannot launch many large builds at once. A request that was already
+        pending when an in-flight build's reads began is coalesced into that build; a request that
+        arrives later (e.g. a rebuild after a topic edit) is not coalesced and triggers its own fresh
+        build, so it can never be satisfied by a snapshot that predates its data change. The new
+        completer is built into a local and atomically swapped in, so readers keep serving the
+        previous one until the new one is fully ready.
         """
         from .autospell import AutoCompleter
         mine = self._full_ac_requested = self._full_ac_requested + 1
         with self._full_ac_build_lock:
             if self._full_ac_completed >= mine:
-                return  # a build that started after our request already finished — coalesced
+                return  # our request was covered by a build whose reads began after it — coalesced
+            # Snapshot the request counter *before* reading Mongo. Only requests already pending when
+            # this build's reads begin are covered; a request that increments the counter later (e.g.
+            # a topic edit's post-save rebuild) gets a higher number than `covered` and triggers its
+            # own fresh build instead of being satisfied by our now-stale snapshot. Sound because
+            # every caller increments the counter *after* committing its data (reader/views.py topic
+            # edits do t.save() then build_*), so "pending before our snapshot" implies "committed
+            # before our reads."
+            covered = self._full_ac_requested
             new_ac = {
                 lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
             }
@@ -5386,7 +5397,7 @@ class Library(object):
                 new_ac[lang].set_other_lang_ac(new_ac["he" if lang == "en" else "en"])
             self._full_auto_completer = new_ac
             self._full_auto_completer_is_ready = True
-            self._full_ac_completed = self._full_ac_requested
+            self._full_ac_completed = covered
 
     def build_lexicon_auto_completers(self):
         """
@@ -5400,13 +5411,14 @@ class Library(object):
         mine = self._lexicon_ac_requested = self._lexicon_ac_requested + 1
         with self._lexicon_ac_build_lock:
             if self._lexicon_ac_completed >= mine:
-                return  # coalesced into an already-finished build
+                return  # coalesced; see build_full_auto_completer
+            covered = self._lexicon_ac_requested  # snapshot before reads; see build_full_auto_completer
             new_ac = {
                 lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
             }
             self._lexicon_auto_completer = new_ac
             self._lexicon_auto_completer_is_ready = True
-            self._lexicon_ac_completed = self._lexicon_ac_requested
+            self._lexicon_ac_completed = covered
 
     def build_cross_lexicon_auto_completer(self):
         """
@@ -5419,11 +5431,12 @@ class Library(object):
         mine = self._cross_lexicon_ac_requested = self._cross_lexicon_ac_requested + 1
         with self._cross_lexicon_ac_build_lock:
             if self._cross_lexicon_ac_completed >= mine:
-                return  # coalesced into an already-finished build
+                return  # coalesced; see build_full_auto_completer
+            covered = self._cross_lexicon_ac_requested  # snapshot before reads; see build_full_auto_completer
             new_ac = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer = new_ac
             self._cross_lexicon_auto_completer_is_ready = True
-            self._cross_lexicon_ac_completed = self._cross_lexicon_ac_requested
+            self._cross_lexicon_ac_completed = covered
 
 
     def cross_lexicon_auto_completer(self):
