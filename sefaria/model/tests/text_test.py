@@ -531,6 +531,58 @@ def dep_counts(name, indx):
     return ret
 
 
+@pytest.mark.deep
+def test_index_name_change_with_nonprimary_version_first():
+    """Renaming an Index must migrate all of its versions, even when a
+    non-primary version is iterated first.
+
+    The cascade migrates versions via a direct Mongo update, not a per-document
+    .save(). A per-document save would fail Version._validate's "at least one
+    version must be primary" check on the first version saved: the Index title
+    has already changed, so index.versionSet() (queried by the new title) is
+    empty until a primary version is saved. If that first version is non-primary,
+    the check raises InputError and the cascade dies, stranding Texts/Links under
+    the old title.
+
+    We reproduce that ordering by inserting the non-primary version first:
+    VersionSet iterates in insertion order, so it migrates first. Raw inserts
+    keep setup from running Version._validate.
+    """
+    from sefaria.system.database import db
+
+    old = "Test Rename Nonprimary First"
+    new = "Test Rename Nonprimary First NEW"
+    chapter = [['1'], ['2'], ["original text", "2nd"]]
+
+    index = model.Index({
+        "title": old,
+        "heTitle": "כותרת בדיקה",
+        "titleVariants": [old],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+    }).save()
+
+    # Insert raw so we control collection order: NON-PRIMARY first, primary second.
+    db.texts.insert_many([
+        {"title": old, "versionTitle": "Secondary TEST", "versionSource": "blabla",
+         "language": "en", "isPrimary": False, "direction": "ltr", "chapter": chapter},
+        {"title": old, "versionTitle": "Primary TEST", "versionSource": "blabla",
+         "language": "he", "isPrimary": True, "direction": "rtl", "chapter": chapter},
+    ])
+
+    try:
+        assert model.VersionSet({"title": old}).count() == 2
+
+        index.title = new
+        index.save()  # raises InputError on the pre-fix code
+
+        assert model.VersionSet({"title": old}).count() == 0
+        assert model.VersionSet({"title": new}).count() == 2
+    finally:
+        model.IndexSet({"title": {"$in": [old, new]}}).delete()
+        model.VersionSet({"title": {"$in": [old, new]}}).delete()
+
+
 def test_version_word_count():
     #simple
     assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
