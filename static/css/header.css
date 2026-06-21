@@ -13,7 +13,7 @@
   position: absolute;
   width: 100%;
   height: 60px;
-  z-index: 1001;
+  z-index: var(--z-header);
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
@@ -23,6 +23,10 @@
   .headerInner {
     padding: 0 15px;
   }
+}
+
+.headerInner:has(.dropdownLinks-menu.open) {
+  z-index: var(--z-header-menu-open);
 }
 
 .headerInner.boxShadow {

@@ -100,6 +100,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
