@@ -15789,13 +15789,15 @@ span.ref-link-color-3 {color: blue}
 }
 /* The old fixed/overflow:hidden containers clipped any sub-pixel horizontal
    overflow (e.g. 100vw rules). Now that the document scrolls, re-establish that
-   clip on the document-level scroller to prevent side-to-side scroll wobble.
-   Use overflow-x: clip (not hidden): clip leaves overflow-y as visible, whereas
-   hidden forces overflow-y to compute as auto and turns these into scroll
-   containers, fighting the document-level scrolling. hidden is the fallback for
-   browsers without clip support (Safari < 16). */
-html:has(.readerApp.singlePanel),
-body:has(.readerApp.singlePanel),
+   clip to prevent side-to-side scroll wobble -- but ONLY on the inner app
+   container, never on html/body. Mobile browsers auto-hide the URL/nav bar only
+   while the root document scroller has clean (visible) overflow; setting any
+   overflow on html/body disables that hide. #s2 is position:static/height:auto
+   here, so it is NOT the scroller -- clipping it leaves the document as the
+   scroller (toolbar still hides) while still clipping the in-flow reader content.
+   Use overflow-x: clip (not hidden): clip keeps overflow-y visible, whereas
+   hidden would force overflow-y to auto and make #s2 a scroll container. hidden
+   is the fallback for browsers without clip support (Safari < 16). */
 #s2:has(.readerApp.singlePanel) {
   overflow-x: hidden;
   overflow-x: clip;
