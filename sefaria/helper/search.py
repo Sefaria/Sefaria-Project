@@ -1,6 +1,8 @@
 from functools import wraps
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
+from sefaria.model import Ref
+from sefaria.system.exceptions import InputError
 import re
 
 
@@ -101,6 +103,8 @@ def get_query_obj(
         for a in aggs:
             search_obj.aggs.bucket(a, "terms", field=a, size=10000)
 
+    filters, filter_fields = normalize_filters(filters, filter_fields)
+
     # filters
     if len(filters) == 0:
         inner_query = core_query
@@ -122,6 +126,56 @@ def get_query_obj(
         search_obj.query = inner_query
     search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
     return search_obj[start:start + size]
+
+
+def normalize_filters(filters, filter_fields):
+    if not filter_fields:
+        return filters, filter_fields
+
+    filters, filter_fields, linked_ref_filters = extract_filter_values(
+        filters,
+        filter_fields,
+        "linked_refs",
+    )
+    if not linked_ref_filters:
+        return filters, filter_fields
+
+    linked_refs = normalize_linked_ref_filters(linked_ref_filters)
+    filters += linked_refs
+    filter_fields += ["linked_refs"] * len(linked_refs)
+    return filters, filter_fields
+
+
+def extract_filter_values(filters, filter_fields, field_name):
+    """
+    Remove filters that target `field_name` from parallel filter lists.
+
+    Returns the remaining filters, their remaining field names, and the extracted
+    filter values that matched `field_name`.
+    """
+    remaining_filters = []
+    remaining_filter_fields = []
+    extracted_values = []
+    for filter_value, filter_field in zip(filters, filter_fields):
+        if filter_field == field_name:
+            extracted_values.append(filter_value)
+        else:
+            remaining_filters.append(filter_value)
+            remaining_filter_fields.append(filter_field)
+    return remaining_filters, remaining_filter_fields, extracted_values
+
+
+def normalize_linked_ref_filters(refs):
+    """
+    Expand raw refs into normalized segment refs for linked_refs search filters.
+    """
+    segment_refs = []
+    for ref in refs:
+        try:
+            segment_refs += [segment_ref.normal() for segment_ref in Ref(ref).all_segment_refs()]
+        except InputError:
+            segment_refs.append("__invalid_ref__")
+    return segment_refs or ["__invalid_ref__"]
 
 
 def get_filter_obj(type, filters, filter_fields):
