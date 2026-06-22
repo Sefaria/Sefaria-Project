@@ -129,6 +129,9 @@ def get_query_obj(
 
 
 def normalize_filters(filters, filter_fields):
+    if not filter_fields:
+        return filters, filter_fields
+
     filters, filter_fields, linked_ref_filters = extract_filter_values(
         filters,
         filter_fields,
