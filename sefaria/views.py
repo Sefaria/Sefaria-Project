@@ -45,9 +45,9 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
@@ -62,6 +62,7 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
@@ -1813,6 +1814,74 @@ def version_bulk_edit_api(request):
         "failures": failures
     }
     return jsonResponse(result)
+
+
+@staff_member_required
+def version_rename_api(request):
+    """
+    Rename Version.versionTitle for a single index.
+
+    Request:
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+
+    Response:
+      Celery enabled: 202 {"task_id": "..."}
+      Celery disabled: 200 {"status": "ok"} or non-200 {"error": "..."}
+
+    Callers that need to rename a versionTitle across many indices should call
+    this endpoint once per index and aggregate per-index results.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        new_version_title = data["newVersionTitle"]
+        index_title = data["index"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not isinstance(new_version_title, str):
+        return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
+
+    new_version_title = new_version_title.strip()
+    if not new_version_title:
+        return jsonResponse({"error": "newVersionTitle may not be empty"}, status=400)
+
+    if isinstance(version_title, str) and version_title.strip() == new_version_title:
+        return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
+
+    language = data.get("language")
+    rename_payload = {
+        "user_id": request.user.id,
+        "versionTitle": version_title,
+        "newVersionTitle": new_version_title,
+        "index": index_title,
+        "language": language,
+    }
+
+    if CELERY_ENABLED:
+        async_result = rename_version_title.apply_async(
+            args=(rename_payload,),
+            queue=CeleryQueue.TASKS.value,
+        )
+        return celeryResponse(async_result.id)
+
+    result, status_code = run_version_rename(
+        user_id=request.user.id,
+        version_title=version_title,
+        new_version_title=new_version_title,
+        index_title=index_title,
+        language=language,
+    )
+    if result.get("status") == "error" and "error" in result:
+        return jsonResponse({"error": result["error"]}, status=status_code)
+    return jsonResponse(result, status=status_code)
 
 
 @staff_member_required
