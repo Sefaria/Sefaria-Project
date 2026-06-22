@@ -40,6 +40,8 @@ spec:
               value: "5432"
             - name: REDIS_HOST
               value: "redis-embed-librry"
+            - name: TQDM_DISABLE
+              value: "1"
           envFrom:
             - secretRef:
                 name: local-settings-secrets
