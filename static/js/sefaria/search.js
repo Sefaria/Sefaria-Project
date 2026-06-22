@@ -457,10 +457,17 @@ class Search {
         const registry = {};        // Mappings of "/" separated category path strings to FilterNode objects
 
         // create combined list of filters with {aggKey, docCount, path}
+        // Applied filters are included so they always appear in the tree, even when the
+        // aggregation has no bucket for them. Seed their docCount from the aggregation
+        // bucket (when present) so an applied filter shows its real count rather than 0
+        // (sc-44603: a selected filter like Psalms otherwise renders as "(0)" because the
+        // placeholder shadowed the matching bucket).
+        const bucketDocCounts = {};
+        aggregation_buckets.forEach(f => { bucketDocCounts[f["key"]] = f["doc_count"]; });
         let filters = [
             ...appliedFilters.map(fkey => ({
                 aggKey: fkey,
-                docCount: 0,
+                docCount: bucketDocCounts[fkey] || 0,
                 path: fkey.split("/")
             })),
             ...aggregation_buckets.map(f => ({
