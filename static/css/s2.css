@@ -15789,11 +15789,16 @@ span.ref-link-color-3 {color: blue}
 }
 /* The old fixed/overflow:hidden containers clipped any sub-pixel horizontal
    overflow (e.g. 100vw rules). Now that the document scrolls, re-establish that
-   clip on the document-level scroller to prevent side-to-side scroll wobble. */
+   clip on the document-level scroller to prevent side-to-side scroll wobble.
+   Use overflow-x: clip (not hidden): clip leaves overflow-y as visible, whereas
+   hidden forces overflow-y to compute as auto and turns these into scroll
+   containers, fighting the document-level scrolling. hidden is the fallback for
+   browsers without clip support (Safari < 16). */
 html:has(.readerApp.singlePanel),
 body:has(.readerApp.singlePanel),
 #s2:has(.readerApp.singlePanel) {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 #s2:has(.readerApp.singlePanel) #readerAppWrap {
   height: auto;
