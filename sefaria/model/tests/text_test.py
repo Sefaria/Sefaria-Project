@@ -531,27 +531,20 @@ def dep_counts(name, indx):
     return ret
 
 
-@pytest.mark.deep
-def test_index_name_change_with_nonprimary_version_first():
-    """Renaming an Index must migrate all of its versions, even when a
-    non-primary version is iterated first.
+def test_index_rename_migrates_versions():
+    """Renaming an Index must migrate all of its versions to the new title,
+    leaving none stranded under the old one — including non-primary versions.
 
-    The cascade migrates versions via a direct Mongo update, not a per-document
-    .save(). A per-document save would fail Version._validate's "at least one
-    version must be primary" check on the first version saved: the Index title
-    has already changed, so index.versionSet() (queried by the new title) is
-    empty until a primary version is saved. If that first version is non-primary,
-    the check raises InputError and the cascade dies, stranding Texts/Links under
-    the old title.
-
-    We reproduce that ordering by inserting the non-primary version first:
-    VersionSet iterates in insertion order, so it migrates first. Raw inserts
-    keep setup from running Version._validate.
+    This is the behavior that broke (the rename cascade once stranded versions
+    when a non-primary version was processed first). We assert the user-facing
+    outcome through index.save() rather than the cascade's internals, so the
+    test survives future refactors of how the migration is performed.
+    Complements test_index_title_setter, which renames an index with no versions.
     """
     from sefaria.system.database import db
 
-    old = "Test Rename Nonprimary First"
-    new = "Test Rename Nonprimary First NEW"
+    old = "Test Rename Versions"
+    new = "Test Rename Versions NEW"
     chapter = [['1'], ['2'], ["original text", "2nd"]]
 
     index = model.Index({
@@ -562,7 +555,7 @@ def test_index_name_change_with_nonprimary_version_first():
         "categories": ["Musar"],
     }).save()
 
-    # Insert raw so we control collection order: NON-PRIMARY first, primary second.
+    # Insert raw to skip Version._validate during setup and include a non-primary version.
     db.texts.insert_many([
         {"title": old, "versionTitle": "Secondary TEST", "versionSource": "blabla",
          "language": "en", "isPrimary": False, "direction": "ltr", "chapter": chapter},
@@ -574,10 +567,12 @@ def test_index_name_change_with_nonprimary_version_first():
         assert model.VersionSet({"title": old}).count() == 2
 
         index.title = new
-        index.save()  # raises InputError on the pre-fix code
+        index.save()
 
         assert model.VersionSet({"title": old}).count() == 0
         assert model.VersionSet({"title": new}).count() == 2
+        # The text itself is still reachable under the new title.
+        assert model.Ref(f"{new} 3:1").text("en").text == "original text"
     finally:
         model.IndexSet({"title": {"$in": [old, new]}}).delete()
         model.VersionSet({"title": {"$in": [old, new]}}).delete()
