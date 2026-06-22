@@ -5813,7 +5813,17 @@ class Library(object):
         """
         Returns an array of all index records
         """
-        return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
+        records = []
+        for k in list(self._index_title_maps["en"].keys()):
+            record = self._index_map.get(k)
+            if record is None:
+                # The title is present in the title-map but missing from the index-map,
+                # i.e. the two caches have drifted out of sync. Skip it rather than
+                # crashing callers (e.g. TOC build at startup), and log for investigation.
+                logger.warning("all_index_records: title '{}' found in title-map but missing from index-map; skipping".format(k))
+                continue
+            records.append(record)
+        return records
 
     def get_title_node_dict(self, lang="en"):
         """
