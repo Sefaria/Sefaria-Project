@@ -22,6 +22,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -33,6 +34,7 @@ from sefaria.search import setup_logging
 
 import psycopg2
 from psycopg2.extras import execute_values
+from tqdm import tqdm
 
 from patot import ChunkerConfig, PatotChunker
 from patot.records import SegmentRecord
@@ -230,6 +232,15 @@ def fetch_done_refs(conn, index_title: str, language: str, version_title: str) -
         return {row[0] for row in cur.fetchall()}
 
 
+def is_passage_based(index) -> bool:
+    return index.get_primary_corpus() in {"Tanakh", "Bavli"}
+
+
+def get_passages_for_index(index) -> list:
+    prefix = re.escape(index.title)
+    return list(PassageSet({"full_ref": {"$regex": fr"^{prefix} \d"}}))
+
+
 def upsert_chunks(conn, rows: list):
     if not rows:
         return
@@ -260,6 +271,18 @@ def collect_segment_records_by_section(version) -> dict:
 
     version.walk_thru_contents(collect)
     return segment_records_by_section
+
+
+def collect_segment_text_by_ref(version) -> dict:
+    """Walk version once and return a flat {segment_ref_normal: text} map."""
+    segment_text_by_ref: dict = {}
+
+    def collect(segment_str, tref, _he_tref, _version):
+        if segment_str and segment_str.strip():
+            segment_text_by_ref[tref] = segment_str
+
+    version.walk_thru_contents(collect)
+    return segment_text_by_ref
 
 
 def time_period_to_dict(time_period) -> dict | None:
@@ -377,7 +400,7 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             "chunk_score": chunk.score,
         }
         rows.append((
-            doc_id, index_title, chunk_ref.normal(), chunk_ref.url(), version_context["language"], vtitle,
+            doc_id, index_title, section_ref.normal(), section_ref.url(), version_context["language"], vtitle,
             version_context["direction"], chunk.text, vector,
             index_context["primary_category"], index_context["all_categories"],
             version_context["is_primary"], version_context["is_source"],
@@ -413,7 +436,7 @@ def process_section(conn, section_ref, lang: str, vtitle: str, index_title: str,
     logger.debug(f"Embedded {section_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
 
 
-def process_index(conn, index, chunker, result_tracker: EmbeddingResult):
+def _process_index_by_sections(conn, index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
     section_refs = index.all_section_refs()
     if not section_refs:
         logger.debug(f"No section refs for index {index.title}, skipping")
@@ -428,19 +451,92 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult):
 
         segment_records_by_section = collect_segment_records_by_section(version)
 
-        for section_ref in section_refs:
-            section_normal = section_ref.normal()
-            if section_normal in already_done:
-                result_tracker.sections_skipped_resume += 1
-                continue
+        with tqdm(total=len(section_refs), desc=f"{index.title[:40]} ({lang})",
+                  unit="sec", leave=False, file=sys.stderr) as section_pbar:
+            for section_ref in section_refs:
+                section_normal = section_ref.normal()
+                if section_normal in already_done:
+                    result_tracker.sections_skipped_resume += 1
+                else:
+                    try:
+                        segment_records = segment_records_by_section.get(section_normal, [])
+                        process_section(conn, section_ref, lang, vtitle, index.title, chunker, result_tracker,
+                                        index_context, version_context, segment_records)
+                    except Exception as e:
+                        conn.rollback()
+                        result_tracker.record_failure(index.title, lang, vtitle, section_normal, e)
+                section_pbar.update(1)
 
-            try:
-                segment_records = segment_records_by_section.get(section_normal, [])
-                process_section(conn, section_ref, lang, vtitle, index.title, chunker, result_tracker,
-                                index_context, version_context, segment_records)
-            except Exception as e:
-                conn.rollback()
-                result_tracker.record_failure(index.title, lang, vtitle, section_normal, e)
+        if version_pbar is not None:
+            version_pbar.update(1)
+            version_pbar.set_postfix(index=index.title[:30], lang=lang)
+
+
+def _process_index_by_passages(conn, index, chunker, result_tracker: EmbeddingResult, passages: list, version_pbar=None):
+    index_context = get_index_context(index)
+
+    for version in VersionSet({"title": index.title}):
+        lang, vtitle = version.language, version.versionTitle
+        version_context = get_version_context(version)
+        already_done = fetch_done_refs(conn, index.title, version_context["language"], vtitle)
+
+        segment_text_by_ref = collect_segment_text_by_ref(version)
+
+        with tqdm(total=len(passages), desc=f"{index.title[:40]} ({lang})",
+                  unit="passage", leave=False, file=sys.stderr) as passage_pbar:
+            for passage in passages:
+                passage_normal = passage.full_ref
+                if passage_normal in already_done:
+                    result_tracker.sections_skipped_resume += 1
+                    passage_pbar.update(1)
+                    continue
+
+                segment_records = [
+                    SegmentRecord(tref=ref_str, text=segment_text_by_ref[ref_str], segment_index=i)
+                    for i, ref_str in enumerate(passage.ref_list)
+                    if ref_str in segment_text_by_ref
+                ]
+
+                if not segment_records:
+                    result_tracker.sections_skipped_empty += 1
+                    passage_pbar.update(1)
+                    continue
+
+                try:
+                    passage_ref = Ref(passage.full_ref)
+                    chunk_result = chunker.chunk_segments(segment_records)
+                    if not chunk_result.chunks:
+                        result_tracker.sections_skipped_empty += 1
+                    else:
+                        rows = build_chunk_rows(passage_ref, lang, vtitle, index.title, chunker, chunk_result,
+                                                index_context, version_context)
+                        upsert_chunks(conn, rows)
+                        conn.commit()
+                        result_tracker.sections_embedded += 1
+                        result_tracker.chunks_written += len(rows)
+                        logger.debug(f"Embedded passage {passage_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
+                except Exception as e:
+                    conn.rollback()
+                    result_tracker.record_failure(index.title, lang, vtitle, passage_normal, e)
+
+                passage_pbar.update(1)
+
+        if version_pbar is not None:
+            version_pbar.update(1)
+            version_pbar.set_postfix(index=index.title[:30], lang=lang)
+
+
+def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
+    if is_passage_based(index):
+        passages = get_passages_for_index(index)
+        if passages:
+            logger.info(f"Passage-based chunking for {index.title}: {len(passages)} passages")
+            _process_index_by_passages(conn, index, chunker, result_tracker, passages, version_pbar)
+        else:
+            logger.warning(f"No passages found for {index.title}, falling back to section-based")
+            _process_index_by_sections(conn, index, chunker, result_tracker, version_pbar)
+    else:
+        _process_index_by_sections(conn, index, chunker, result_tracker, version_pbar)
 
 
 def main():
@@ -474,9 +570,7 @@ def main():
         embedding_cache_enabled=True,
         embedding_cache_path="/tmp/patot/embedding_cache.sqlite",
         runtime_analytics=ChunkingRuntimeAnalytics(),
-        # Avoids needing stanza_model_dir, which defaults to a hardcoded dev path
-        # ("/Users/yon/stanza_resources") and would require additional egress to download.
-        extract_html_footnotes_to_segments=False,
+        extract_html_footnotes_to_segments=True,
     )
     chunker = PatotChunker(api_key=api_key, config=config)
 
@@ -491,17 +585,21 @@ def main():
         shard_indexes = shard_indexes[:args.limit_indexes]
         logger.info(f"--limit-indexes set: processing only {len(shard_indexes)} index(es)")
 
-    for index in shard_indexes:
-        logger.info(f"Processing index: {index.title}")
-        try:
-            process_index(conn, index, chunker, result)
-        except Exception as e:
-            result.record_failure(index.title, "-", "-", "-", e)
-        result.indexes_processed += 1
+    total_versions = sum(VersionSet({"title": idx.title}).count() for idx in shard_indexes)
+    logger.info(f"Total versions in this shard: {total_versions}")
 
-        if result.indexes_processed % 10 == 0:
-            logger.info(result.get_summary())
-            logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
+    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr) as version_pbar:
+        for index in shard_indexes:
+            logger.info(f"Processing index: {index.title}")
+            try:
+                process_index(conn, index, chunker, result, version_pbar)
+            except Exception as e:
+                result.record_failure(index.title, "-", "-", "-", e)
+            result.indexes_processed += 1
+
+            if result.indexes_processed % 10 == 0:
+                logger.info(result.get_summary())
+                logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
 
     logger.info(result.get_summary())
     logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
