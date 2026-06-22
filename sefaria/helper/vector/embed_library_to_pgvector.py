@@ -370,10 +370,26 @@ def get_chunk_context(chunk_ref) -> dict:
 
 
 def chunk_ref_from_segments(source_segment_refs: list):
-    """Build a Ref spanning the chunk's source segments (ranged if >1 segment)."""
-    if len(source_segment_refs) == 1:
-        return Ref(source_segment_refs[0])
-    return Ref(source_segment_refs[0]).to(Ref(source_segment_refs[-1]))
+    """Build a Ref spanning the chunk's source segments (ranged if >1 segment).
+
+    Footnote pseudo-refs (containing '::fn:') are not parseable by Sefaria's Ref
+    class, so we strip them — using only the base segment part of the ref string.
+    """
+    def to_base_ref(r: str) -> str:
+        return r.split("::fn:")[0] if "::fn:" in r else r
+
+    base_refs = [to_base_ref(r) for r in source_segment_refs]
+    # Deduplicate while preserving order (footnotes from the same segment produce duplicates).
+    seen = set()
+    unique_refs = []
+    for r in base_refs:
+        if r not in seen:
+            seen.add(r)
+            unique_refs.append(r)
+
+    if len(unique_refs) == 1:
+        return Ref(unique_refs[0])
+    return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
 
 
 def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker, result,

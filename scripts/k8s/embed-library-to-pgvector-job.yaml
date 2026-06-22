@@ -28,7 +28,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: embed-library-to-pgvector
-          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-4b499c9-202606220557
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-b1dccda-202606220936
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=10"
