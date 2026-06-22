@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS library_chunks (
     index_title             TEXT NOT NULL,
     ref                     TEXT NOT NULL,
     url                     TEXT NOT NULL,
+    chunked_from_ref        TEXT NOT NULL,
     language                TEXT NOT NULL,
     version_title           TEXT NOT NULL,
     direction               TEXT NOT NULL,
@@ -85,7 +86,7 @@ CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
 
 UPSERT_SQL = """
 INSERT INTO library_chunks
-    (doc_id, index_title, ref, url, language, version_title, direction, text, embedding,
+    (doc_id, index_title, ref, url, chunked_from_ref, language, version_title, direction, text, embedding,
      primary_category, all_categories, is_primary, is_source, composition_date, composition_place,
      era_name, pagerank, author_names, author_slugs, associated_topic_names, associated_topic_slugs,
      linked_refs, chunker_metadata, updated_at)
@@ -93,7 +94,9 @@ VALUES %s
 ON CONFLICT (doc_id) DO UPDATE SET
     text = EXCLUDED.text,
     embedding = EXCLUDED.embedding,
+    ref = EXCLUDED.ref,
     url = EXCLUDED.url,
+    chunked_from_ref = EXCLUDED.chunked_from_ref,
     language = EXCLUDED.language,
     version_title = EXCLUDED.version_title,
     direction = EXCLUDED.direction,
@@ -115,7 +118,7 @@ ON CONFLICT (doc_id) DO UPDATE SET
 """
 
 UPSERT_TEMPLATE = (
-    "(%s, %s, %s, %s, %s, %s, %s, %s, %s::vector, "
+    "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector, "
     "%s, %s::text[], %s, %s, %s::jsonb, %s, "
     "%s, %s, %s::text[], %s::text[], %s::text[], %s::text[], "
     "%s::text[], %s::jsonb, now())"
@@ -223,10 +226,11 @@ def ensure_schema(conn):
             conn.commit()
 
 
-def fetch_done_refs(conn, index_title: str, language: str, version_title: str) -> set:
+def fetch_done_unit_refs(conn, index_title: str, language: str, version_title: str) -> set:
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT DISTINCT ref FROM library_chunks WHERE index_title = %s AND language = %s AND version_title = %s",
+            "SELECT DISTINCT chunked_from_ref FROM library_chunks "
+            "WHERE index_title = %s AND language = %s AND version_title = %s",
             (index_title, language, version_title),
         )
         return {row[0] for row in cur.fetchall()}
@@ -372,21 +376,21 @@ def chunk_ref_from_segments(source_segment_refs: list):
     return Ref(source_segment_refs[0]).to(Ref(source_segment_refs[-1]))
 
 
-def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chunker, result,
+def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker, result,
                      index_context: dict, version_context: dict) -> list:
     chunk_texts = [chunk.text for chunk in result.chunks]
     vectors = chunker.encoder(chunk_texts)
 
-    section_normal = section_ref.normal()
-    section_slug = slugify(section_normal)
+    unit_normal = unit_ref.normal()
+    unit_slug = slugify(unit_normal)
     vtitle_slug = slugify(vtitle)
 
     rows = []
     for chunk_index, (chunk, vector) in enumerate(zip(result.chunks, vectors), start=1):
         chunk_hash = hashlib.sha256(
-            f"{section_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
+            f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
         ).hexdigest()[:12]
-        doc_id = f"chunk_{lang}_{section_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
+        doc_id = f"chunk_{lang}_{unit_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
 
         chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
@@ -400,7 +404,7 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
             "chunk_score": chunk.score,
         }
         rows.append((
-            doc_id, index_title, section_ref.normal(), section_ref.url(), version_context["language"], vtitle,
+            doc_id, index_title, chunk_ref.normal(), chunk_ref.url(), unit_normal, version_context["language"], vtitle,
             version_context["direction"], chunk.text, vector,
             index_context["primary_category"], index_context["all_categories"],
             version_context["is_primary"], version_context["is_source"],
@@ -413,113 +417,48 @@ def build_chunk_rows(section_ref, lang: str, vtitle: str, index_title: str, chun
     return rows
 
 
-def process_section(conn, section_ref, lang: str, vtitle: str, index_title: str, chunker, result_tracker: EmbeddingResult,
-                    index_context: dict, version_context: dict, segment_records: list):
-    section_normal = section_ref.normal()
+def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
+                   unit_label: str, version_pbar=None):
+    """
+    Core per-index loop shared by section-based and passage-based processing.
 
-    if not segment_records:
-        result_tracker.sections_skipped_empty += 1
-        return
-
-    chunk_result = chunker.chunk_segments(segment_records)
-    if not chunk_result.chunks:
-        result_tracker.sections_skipped_empty += 1
-        return
-
-    rows = build_chunk_rows(section_ref, lang, vtitle, index_title, chunker, chunk_result,
-                            index_context, version_context)
-    upsert_chunks(conn, rows)
-    conn.commit()
-
-    result_tracker.sections_embedded += 1
-    result_tracker.chunks_written += len(rows)
-    logger.debug(f"Embedded {section_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
-
-
-def _process_index_by_sections(conn, index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
-    section_refs = index.all_section_refs()
-    if not section_refs:
-        logger.debug(f"No section refs for index {index.title}, skipping")
-        return
-
+    `get_units_for_version(version)` must return a list of (unit_ref, segment_records) pairs,
+    where unit_ref is a Ref whose .normal() is used as the resume key and stored in library_chunks.ref.
+    """
     index_context = get_index_context(index)
 
     for version in VersionSet({"title": index.title}):
         lang, vtitle = version.language, version.versionTitle
         version_context = get_version_context(version)
-        already_done = fetch_done_refs(conn, index.title, version_context["language"], vtitle)
+        already_done = fetch_done_unit_refs(conn, index.title, version_context["language"], vtitle)
 
-        segment_records_by_section = collect_segment_records_by_section(version)
+        units = get_units_for_version(version)
 
-        with tqdm(total=len(section_refs), desc=f"{index.title[:40]} ({lang})",
-                  unit="sec", leave=False, file=sys.stderr) as section_pbar:
-            for section_ref in section_refs:
-                section_normal = section_ref.normal()
-                if section_normal in already_done:
+        with tqdm(total=len(units), desc=f"{index.title[:40]} ({lang})",
+                  unit=unit_label, leave=False, file=sys.stderr) as pbar:
+            for unit_ref, segment_records in units:
+                unit_normal = unit_ref.normal()
+                if unit_normal in already_done:
                     result_tracker.sections_skipped_resume += 1
+                elif not segment_records:
+                    result_tracker.sections_skipped_empty += 1
                 else:
                     try:
-                        segment_records = segment_records_by_section.get(section_normal, [])
-                        process_section(conn, section_ref, lang, vtitle, index.title, chunker, result_tracker,
-                                        index_context, version_context, segment_records)
+                        chunk_result = chunker.chunk_segments(segment_records)
+                        if not chunk_result.chunks:
+                            result_tracker.sections_skipped_empty += 1
+                        else:
+                            rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
+                                                    index_context, version_context)
+                            upsert_chunks(conn, rows)
+                            conn.commit()
+                            result_tracker.sections_embedded += 1
+                            result_tracker.chunks_written += len(rows)
+                            logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
                     except Exception as e:
                         conn.rollback()
-                        result_tracker.record_failure(index.title, lang, vtitle, section_normal, e)
-                section_pbar.update(1)
-
-        if version_pbar is not None:
-            version_pbar.update(1)
-            version_pbar.set_postfix(index=index.title[:30], lang=lang)
-
-
-def _process_index_by_passages(conn, index, chunker, result_tracker: EmbeddingResult, passages: list, version_pbar=None):
-    index_context = get_index_context(index)
-
-    for version in VersionSet({"title": index.title}):
-        lang, vtitle = version.language, version.versionTitle
-        version_context = get_version_context(version)
-        already_done = fetch_done_refs(conn, index.title, version_context["language"], vtitle)
-
-        segment_text_by_ref = collect_segment_text_by_ref(version)
-
-        with tqdm(total=len(passages), desc=f"{index.title[:40]} ({lang})",
-                  unit="passage", leave=False, file=sys.stderr) as passage_pbar:
-            for passage in passages:
-                passage_normal = passage.full_ref
-                if passage_normal in already_done:
-                    result_tracker.sections_skipped_resume += 1
-                    passage_pbar.update(1)
-                    continue
-
-                segment_records = [
-                    SegmentRecord(tref=ref_str, text=segment_text_by_ref[ref_str], segment_index=i)
-                    for i, ref_str in enumerate(passage.ref_list)
-                    if ref_str in segment_text_by_ref
-                ]
-
-                if not segment_records:
-                    result_tracker.sections_skipped_empty += 1
-                    passage_pbar.update(1)
-                    continue
-
-                try:
-                    passage_ref = Ref(passage.full_ref)
-                    chunk_result = chunker.chunk_segments(segment_records)
-                    if not chunk_result.chunks:
-                        result_tracker.sections_skipped_empty += 1
-                    else:
-                        rows = build_chunk_rows(passage_ref, lang, vtitle, index.title, chunker, chunk_result,
-                                                index_context, version_context)
-                        upsert_chunks(conn, rows)
-                        conn.commit()
-                        result_tracker.sections_embedded += 1
-                        result_tracker.chunks_written += len(rows)
-                        logger.debug(f"Embedded passage {passage_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
-                except Exception as e:
-                    conn.rollback()
-                    result_tracker.record_failure(index.title, lang, vtitle, passage_normal, e)
-
-                passage_pbar.update(1)
+                        result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
+                pbar.update(1)
 
         if version_pbar is not None:
             version_pbar.update(1)
@@ -529,14 +468,37 @@ def _process_index_by_passages(conn, index, chunker, result_tracker: EmbeddingRe
 def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
-        if passages:
-            logger.info(f"Passage-based chunking for {index.title}: {len(passages)} passages")
-            _process_index_by_passages(conn, index, chunker, result_tracker, passages, version_pbar)
-        else:
+        if not passages:
             logger.warning(f"No passages found for {index.title}, falling back to section-based")
-            _process_index_by_sections(conn, index, chunker, result_tracker, version_pbar)
-    else:
-        _process_index_by_sections(conn, index, chunker, result_tracker, version_pbar)
+        else:
+            logger.info(f"Passage-based chunking for {index.title}: {len(passages)} passages")
+
+            def get_units_for_version(version):
+                segment_text_by_ref = collect_segment_text_by_ref(version)
+                return [
+                    (
+                        Ref(passage.full_ref),
+                        [SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
+                         for i, r in enumerate(passage.ref_list) if r in segment_text_by_ref],
+                    )
+                    for passage in passages
+                ]
+
+            _process_index(conn, index, chunker, result_tracker, get_units_for_version,
+                           unit_label="passage", version_pbar=version_pbar)
+            return
+
+    section_refs = index.all_section_refs()
+    if not section_refs:
+        logger.debug(f"No section refs for index {index.title}, skipping")
+        return
+
+    def get_units_for_version(version):
+        segment_records_by_section = collect_segment_records_by_section(version)
+        return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
+
+    _process_index(conn, index, chunker, result_tracker, get_units_for_version,
+                   unit_label="sec", version_pbar=version_pbar)
 
 
 def main():
