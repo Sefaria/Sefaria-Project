@@ -1,5 +1,8 @@
 name: Continuous
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types:
       - opened

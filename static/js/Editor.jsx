@@ -1266,7 +1266,7 @@ const Element = (props) => {
 
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" ontentEditable suppressContentEditableWarning
+                <div role="button" contentEditable suppressContentEditableWarning
                      aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
                      onClick={(event) => handleClick(event, editor)}
                 >
