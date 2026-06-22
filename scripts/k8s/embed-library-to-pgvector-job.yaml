@@ -28,7 +28,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: embed-library-to-pgvector
-          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-0366ca3-202606191607
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-4b499c9-202606220557
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=10"
@@ -38,6 +38,8 @@ spec:
               value: "pgvector.default.svc.cluster.local"
             - name: PGVECTOR_PORT
               value: "5432"
+            - name: REDIS_HOST
+              value: "redis-embed-librry"
           envFrom:
             - secretRef:
                 name: local-settings-secrets
