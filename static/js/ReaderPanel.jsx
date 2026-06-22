@@ -890,7 +890,7 @@ class ReaderPanel extends Component {
                     initialWidth={this.state.width}
                     toggleSignUpModal={this.props.toggleSignUpModal} />);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef}
                                  searchState={this.state['searchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
