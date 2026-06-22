@@ -32,7 +32,7 @@ spec:
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=10"
-            - "--limit-indexes=10"
+            - "--limit-indexes=2"
           env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
