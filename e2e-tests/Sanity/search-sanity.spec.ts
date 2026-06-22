@@ -20,8 +20,7 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9a: Library - Click search suggestion and arrive at destination', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Type in search to trigger suggestions
     const searchBox = page.getByRole('banner').getByRole('combobox', { name: /search/i });
     await searchBox.fill('abraham');
@@ -47,11 +46,9 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9b: Library - Submit search and get results', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Type search term and submit
     const searchBox = page.getByRole('banner').getByRole('combobox', { name: /search/i });
-    await hideAllModalsAndPopups(page);
     await searchBox.fill('avraham');
     await searchBox.press('Enter');
 
@@ -77,7 +74,6 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9c: Library - Search dropdown sections and icons validation', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Test search dropdown with 'mid' to trigger all sections
@@ -99,7 +95,6 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9d: Voices - Click search suggestion and arrive at destination', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Type in search to trigger suggestions
@@ -127,7 +122,6 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9e: Voices - Submit search and get results', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Type search term and submit
@@ -135,8 +129,9 @@ test.describe('Search Sanity Tests', () => {
     await searchBox.fill('shabbat');
     await searchBox.press('Enter');
 
-    // Wait for search results page
-    await page.waitForLoadState('domcontentloaded');
+    // Voices is an SPA: domcontentloaded fires before the URL updates, so wait
+    // for the URL itself to flip before asserting on it.
+    await page.waitForURL(/\/search\?q=shabbat/, { timeout: t(15000) });
     await hideAllModalsAndPopups(page);
 
     // Verify we're on search results page
@@ -156,7 +151,6 @@ test.describe('Search Sanity Tests', () => {
   // =================================================================
   test('Sanity 9f: Voices - Search dropdown sections and icons validation', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Test search dropdown with 'rashi' to trigger all Voices sections
