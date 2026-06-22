@@ -451,7 +451,7 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
         units = get_units_for_version(version)
 
         with tqdm(total=len(units), desc=f"{index.title[:40]} ({lang})",
-                  unit=unit_label, leave=False, file=sys.stderr) as pbar:
+                  unit=unit_label, leave=False, file=sys.stderr, disable=False) as pbar:
             for unit_ref, segment_records in units:
                 unit_normal = unit_ref.normal()
                 if unit_normal in already_done:
@@ -548,7 +548,7 @@ def main():
         embedding_cache_enabled=True,
         embedding_cache_path="/tmp/patot/embedding_cache.sqlite",
         runtime_analytics=ChunkingRuntimeAnalytics(),
-        extract_html_footnotes_to_segments=True,
+        extract_html_footnotes_to_segments=False,
     )
     chunker = PatotChunker(api_key=api_key, config=config)
 
@@ -566,7 +566,7 @@ def main():
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in shard_indexes)
     logger.info(f"Total versions in this shard: {total_versions}")
 
-    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr) as version_pbar:
+    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=False) as version_pbar:
         for index in shard_indexes:
             logger.info(f"Processing index: {index.title}")
             try:
