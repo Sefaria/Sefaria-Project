@@ -214,6 +214,10 @@ def parse_args() -> argparse.Namespace:
         default=int(os.environ.get("SHARD_THREADS", 10)),
         help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
     )
+    parser.add_argument(
+        "--max-versions", type=int, default=None,
+        help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
     return parser.parse_args()
 
@@ -469,7 +473,7 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
         units = get_units_for_version(version)
 
         with tqdm(total=len(units), desc=f"{index.title[:40]} ({lang})",
-                  unit=unit_label, leave=False, file=sys.stderr, disable=False) as pbar:
+                  unit=unit_label, leave=False, file=sys.stderr, disable=None) as pbar:
             for unit_ref, segment_records in units:
                 unit_normal = unit_ref.normal()
                 if unit_normal in already_done:
@@ -589,10 +593,17 @@ def main():
         shard_indexes = shard_indexes[:args.limit_indexes]
         logger.info(f"--limit-indexes set: processing only {len(shard_indexes)} index(es)")
 
+    if args.max_versions is not None:
+        before = len(shard_indexes)
+        shard_indexes = [idx for idx in shard_indexes
+                         if VersionSet({"title": idx.title}).count() <= args.max_versions]
+        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(shard_indexes)} index(es), "
+                    f"{len(shard_indexes)} remaining")
+
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in shard_indexes)
     logger.info(f"Total versions in this shard: {total_versions}")
 
-    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=False) as version_pbar:
+    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=None) as version_pbar:
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:

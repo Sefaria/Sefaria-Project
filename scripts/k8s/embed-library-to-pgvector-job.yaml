@@ -28,7 +28,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: embed-library-to-pgvector
-          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-c9dd8e4-202606220957
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-c371fc0-202606230755
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=1"
@@ -42,6 +42,8 @@ spec:
             - name: REDIS_HOST
               value: "redis-embed-librry"
             - name: TQDM_DISABLE
+              value: "1"
+            - name: PYTHONUNBUFFERED
               value: "1"
           envFrom:
             - secretRef:
