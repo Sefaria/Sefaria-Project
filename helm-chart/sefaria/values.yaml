@@ -441,25 +441,6 @@ cronJobs:
   syncMongoProductionData:
     enabled: false
 
-# Settings for one-shot Jobs
-jobs:
-  # Chunks and embeds the entire library (all versions, all languages) via patot +
-  # Gemini, upserting into the pgvector "library_chunks" table. Disabled by default -
-  # enable for a one-shot run, then disable again.
-  embedLibraryToPgvector:
-    enabled: false
-    shardCount: 10
-    backoffLimit: 6
-    pgvector:
-      host: pgvector.default.svc.cluster.local
-      port: 5432
-    resources:
-      requests:
-        memory: "4Gi"
-        cpu: "1"
-      limits:
-        memory: "8Gi"
-
 localSettings:
   DEBUG: true
   DOMAIN_LANGUAGE: {}
