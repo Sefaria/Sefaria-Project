@@ -64,6 +64,7 @@ SEPARATOR_LINE = "=" * 60
 # Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
 _pool: psycopg2.pool.ThreadedConnectionPool | None = None
+_pool_semaphore: threading.Semaphore | None = None
 
 # Arbitrary fixed key for serializing schema setup across concurrently-starting shards.
 SCHEMA_ADVISORY_LOCK_KEY = 727274002
@@ -261,15 +262,19 @@ def get_db_connection():
 
 @contextmanager
 def pooled_conn():
-    """Check out a connection from the shared pool; roll back and return it on exit."""
-    conn = _pool.getconn()
+    """Block until a connection is available, check it out, roll back and return it on exit."""
+    _pool_semaphore.acquire()
     try:
-        yield conn
-    except Exception:
-        conn.rollback()
-        raise
+        conn = _pool.getconn()
+        try:
+            yield conn
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            _pool.putconn(conn)
     finally:
-        _pool.putconn(conn)
+        _pool_semaphore.release()
 
 
 def ensure_schema(conn):
@@ -616,8 +621,9 @@ def main():
     ensure_schema(schema_conn)
     schema_conn.close()
 
-    global _pool
+    global _pool, _pool_semaphore
     _pool = psycopg2.pool.ThreadedConnectionPool(1, args.db_pool_size, **_db_connect_kwargs())
+    _pool_semaphore = threading.Semaphore(args.db_pool_size)
 
     all_indexes = library.all_index_records()
     shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
