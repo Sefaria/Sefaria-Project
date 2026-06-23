@@ -6447,7 +6447,10 @@ def prepare_index_regex_for_dependency_process(index_object, as_list=False):
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
-    VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    # Direct update to bypass Version._validate() — during a rename the Index title changes first,
+    # so saving versions one-by-one would fail the "at least one primary version" check until the
+    # first primary is saved. No Version dependencies are registered on the `title` field, so nothing is lost.
+    db.texts.update_many({"title": kwargs["old"]}, {"$set": {"title": kwargs["new"]}})
 
 
 def process_index_title_change_in_dependant_records(indx, **kwargs):
