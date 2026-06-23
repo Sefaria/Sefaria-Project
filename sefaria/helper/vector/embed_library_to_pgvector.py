@@ -37,6 +37,7 @@ from sefaria.search import setup_logging
 import psycopg2
 from psycopg2.extras import execute_values
 import tqdm as _tqdm_module
+import tqdm.auto as _tqdm_auto_module
 from tqdm import tqdm
 
 # Patot's internal tqdm bars hardcode disable=False and ignore TQDM_DISABLE.
@@ -47,7 +48,7 @@ if os.environ.get("TQDM_DISABLE"):
         kwargs["disable"] = True
         _orig_tqdm_init(self, *args, **kwargs)
     _tqdm_module.tqdm.__init__ = _patched_tqdm_init
-    _tqdm_module.auto.tqdm.__init__ = _patched_tqdm_init
+    _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
 
 from patot import ChunkerConfig, PatotChunker
 from patot.records import SegmentRecord
