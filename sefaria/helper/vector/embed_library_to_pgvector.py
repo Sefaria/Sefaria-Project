@@ -36,7 +36,18 @@ from sefaria.search import setup_logging
 
 import psycopg2
 from psycopg2.extras import execute_values
+import tqdm as _tqdm_module
 from tqdm import tqdm
+
+# Patot's internal tqdm bars hardcode disable=False and ignore TQDM_DISABLE.
+# Patch the class before patot is imported so all tqdm instances respect the env var.
+if os.environ.get("TQDM_DISABLE"):
+    _orig_tqdm_init = _tqdm_module.tqdm.__init__
+    def _patched_tqdm_init(self, *args, **kwargs):
+        kwargs["disable"] = True
+        _orig_tqdm_init(self, *args, **kwargs)
+    _tqdm_module.tqdm.__init__ = _patched_tqdm_init
+    _tqdm_module.auto.tqdm.__init__ = _patched_tqdm_init
 
 from patot import ChunkerConfig, PatotChunker
 from patot.records import SegmentRecord
