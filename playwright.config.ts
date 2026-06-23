@@ -163,8 +163,8 @@ export default defineConfig({
     },
     // Voices Bookmarks & History feature-coverage tests — Voices module
     {
-      name: 'chrome-voices-bookmarks',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      name: 'chrome-bookmarks-(saved)-and-history',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -240,7 +240,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-voices-bookmarks',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -316,7 +316,7 @@ export default defineConfig({
     },
     {
       name: 'safari-voices-bookmarks',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,

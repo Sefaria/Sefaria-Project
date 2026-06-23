@@ -35,21 +35,21 @@ End-to-end tests for **bookmarking Source Sheets on the Voices module**, the **/
 
 ```bash
 # Whole suite (Chromium)
-npx playwright test --project=chrome-voices-bookmarks
+npx playwright test --project=chrome-bookmarks-(saved)-and-history
 
 # One test by ID
-npx playwright test --project=chrome-voices-bookmarks -g "VBM-006"
+npx playwright test --project=chrome-bookmarks-(saved)-and-history -g "VBM-006"
 
 # UI / debug
-npx playwright test --project=chrome-voices-bookmarks --ui
-npx playwright test --project=chrome-voices-bookmarks --debug
+npx playwright test --project=chrome-bookmarks-(saved)-and-history --ui
+npx playwright test --project=chrome-bookmarks-(saved)-and-history --debug
 
 # Cross-browser
 npx playwright test --project=firefox-voices-bookmarks
 npx playwright test --project=safari-voices-bookmarks
 
 # Slow environment
-TIMEOUT_MULTIPLIER=2 npx playwright test --project=chrome-voices-bookmarks
+TIMEOUT_MULTIPLIER=2 npx playwright test --project=chrome-bookmarks-(saved)-and-history
 ```
 
 Projects (`chrome/firefox/safari-voices-bookmarks`) are defined in [`playwright.config.ts`](../../../playwright.config.ts) with `baseURL = MODULE_URLS.EN.VOICES`. Current pass rate: **10 passed / 0 failed**, stable across repeated runs at full parallelism (8 workers).
