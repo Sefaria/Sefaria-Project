@@ -26,6 +26,7 @@ import re
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from datetime import datetime
 
 import django
@@ -35,6 +36,7 @@ from sefaria.model import *
 from sefaria.search import setup_logging
 
 import psycopg2
+import psycopg2.pool
 from psycopg2.extras import execute_values
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -59,10 +61,9 @@ logger = logging.getLogger(__name__)
 
 SEPARATOR_LINE = "=" * 60
 
-# Thread-local storage: each worker thread gets its own DB connection and PatotChunker.
+# Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
-_thread_connections: list = []
-_thread_connections_lock = threading.Lock()
+_pool: psycopg2.pool.ThreadedConnectionPool | None = None
 
 # Arbitrary fixed key for serializing schema setup across concurrently-starting shards.
 SCHEMA_ADVISORY_LOCK_KEY = 727274002
@@ -227,6 +228,11 @@ def parse_args() -> argparse.Namespace:
         help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
     )
     parser.add_argument(
+        "--db-pool-size", type=int,
+        default=int(os.environ.get("DB_POOL_SIZE", 50)),
+        help="Max DB connections in the shared pool (defaults to DB_POOL_SIZE env var, or 50).",
+    )
+    parser.add_argument(
         "--max-versions", type=int, default=None,
         help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
     )
@@ -239,14 +245,31 @@ def shard_for_title(title: str, shard_count: int) -> int:
     return int(hashlib.sha256(title.encode("utf-8")).hexdigest(), 16) % shard_count
 
 
-def get_db_connection():
-    return psycopg2.connect(
+def _db_connect_kwargs() -> dict:
+    return dict(
         host=os.environ.get("PGVECTOR_HOST", "pgvector.default.svc.cluster.local"),
         port=int(os.environ.get("PGVECTOR_PORT", 5432)),
         user=os.environ["POSTGRES_USER"],
         password=os.environ["POSTGRES_PASSWORD"],
         dbname=os.environ.get("PGVECTOR_DB") or os.environ["POSTGRES_USER"],
     )
+
+
+def get_db_connection():
+    return psycopg2.connect(**_db_connect_kwargs())
+
+
+@contextmanager
+def pooled_conn():
+    """Check out a connection from the shared pool; roll back and return it on exit."""
+    conn = _pool.getconn()
+    try:
+        yield conn
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        _pool.putconn(conn)
 
 
 def ensure_schema(conn):
@@ -467,7 +490,7 @@ def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker
     return rows
 
 
-def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
+def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
                    version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
@@ -480,7 +503,9 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
     for version in VersionSet({"title": index.title}):
         lang, vtitle = version.language, version.versionTitle
         version_context = get_version_context(version)
-        already_done = fetch_done_unit_refs(conn, index.title, version_context["language"], vtitle)
+
+        with pooled_conn() as conn:
+            already_done = fetch_done_unit_refs(conn, index.title, version_context["language"], vtitle)
 
         units = get_units_for_version(version)
 
@@ -498,13 +523,13 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
                     else:
                         rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
                                                 index_context, version_context)
-                        upsert_chunks(conn, rows)
-                        conn.commit()
+                        with pooled_conn() as conn:
+                            upsert_chunks(conn, rows)
+                            conn.commit()
                         result_tracker.increment("sections_embedded")
                         result_tracker.increment("chunks_written", len(rows))
                         logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
                 except Exception as e:
-                    conn.rollback()
                     result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
 
         if version_pbar is not None:
@@ -512,7 +537,7 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
+def process_index(index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -531,7 +556,7 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version
                     for passage in passages
                 ]
 
-            _process_index(conn, index, chunker, result_tracker, get_units_for_version,
+            _process_index(index, chunker, result_tracker, get_units_for_version,
                            version_pbar=version_pbar)
             return
 
@@ -544,16 +569,13 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version
         segment_records_by_section = collect_segment_records_by_section(version)
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
-    _process_index(conn, index, chunker, result_tracker, get_units_for_version,
+    _process_index(index, chunker, result_tracker, get_units_for_version,
                    version_pbar=version_pbar)
 
 
 def thread_init(api_key: str, config):
-    """Per-thread initializer: open a dedicated DB connection and create a PatotChunker."""
-    thread_local.conn = get_db_connection()
+    """Per-thread initializer: create a PatotChunker (DB connections come from the shared pool)."""
     thread_local.chunker = PatotChunker(api_key=api_key, config=config)
-    with _thread_connections_lock:
-        _thread_connections.append(thread_local.conn)
 
 
 def main():
@@ -579,7 +601,7 @@ def main():
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
-    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
+    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}, db_pool_size={args.db_pool_size}")
     logger.info(SEPARATOR_LINE)
 
     config = ChunkerConfig(
@@ -593,6 +615,9 @@ def main():
     schema_conn = get_db_connection()
     ensure_schema(schema_conn)
     schema_conn.close()
+
+    global _pool
+    _pool = psycopg2.pool.ThreadedConnectionPool(1, args.db_pool_size, **_db_connect_kwargs())
 
     all_indexes = library.all_index_records()
     shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
@@ -616,7 +641,7 @@ def main():
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(thread_local.conn, index, thread_local.chunker, result, version_pbar)
+                process_index(index, thread_local.chunker, result, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
             result.increment("indexes_processed")
@@ -638,11 +663,7 @@ def main():
     logger.info(result.get_summary())
     logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
 
-    for conn in _thread_connections:
-        try:
-            conn.close()
-        except Exception:
-            pass
+    _pool.closeall()
 
     if not result.is_success():
         sys.exit(1)
