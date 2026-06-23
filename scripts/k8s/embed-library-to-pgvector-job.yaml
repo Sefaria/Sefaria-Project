@@ -28,29 +28,28 @@ spec:
       restartPolicy: Never
       containers:
         - name: embed-library-to-pgvector
-          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-c371fc0-202606230755
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-2042435-202606231818
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=1"
-            - "--threads=50"
-            - "--limit-indexes=50"
+            - "--threads=150"
           env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
             - name: PGVECTOR_PORT
               value: "5432"
             - name: REDIS_HOST
-              value: "redis-embed-librry"
+              value: "redis-production"
             - name: TQDM_DISABLE
               value: "1"
             - name: PYTHONUNBUFFERED
               value: "1"
           envFrom:
             - secretRef:
-                name: local-settings-secrets
+                name: local-settings-secrets-production
                 optional: true
             - configMapRef:
-                name: local-settings-embed-librry
+                name: local-settings-production
                 optional: true
             - secretRef:
                 name: pgvector-secret
@@ -59,9 +58,10 @@ spec:
           resources:
             requests:
               memory: "4Gi"
-              cpu: "1"
+              cpu: "2"
             limits:
-              memory: "8Gi"
+              memory: "16Gi"
+              cpu: "4"
           volumeMounts:
             - mountPath: /app/sefaria/local_settings.py
               name: local-settings
@@ -70,7 +70,7 @@ spec:
       volumes:
         - name: local-settings
           configMap:
-            name: local-settings-file-embed-librry
+            name: local-settings-file-production
             items:
               - key: local_settings.py
                 path: local_settings.py
