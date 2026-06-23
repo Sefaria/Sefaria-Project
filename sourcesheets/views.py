@@ -84,7 +84,6 @@ def new_sheet(request):
         'language':    "bilingual",
         'numbered':    0,
         'assignable':    0,
-        'divineNames':    "noSub",
         'collaboration':    "none",
         'highlightMode':    0,
         'langLayout':    "heRight",

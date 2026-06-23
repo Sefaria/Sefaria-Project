@@ -1304,7 +1304,7 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
         "title": title if title else oref.normal() if not sources else oref.normal() + " with " + ", ".join([s.replace(" on " + text, "") for s in sources]),
         "sources": [],
         "status": 0,
-        "options": {"numbered": 0, "divineNames": "noSub"},
+        "options": {"numbered": 0},
         "generatedBy": generatedBy or "make_sheet_from_text",
         "promptedToPublish": datetime.now().isoformat(),
     }
