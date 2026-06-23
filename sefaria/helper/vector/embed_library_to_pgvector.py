@@ -24,6 +24,8 @@ import logging
 import os
 import re
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 import django
@@ -44,6 +46,11 @@ from patot.analytics import ChunkingRuntimeAnalytics
 logger = logging.getLogger(__name__)
 
 SEPARATOR_LINE = "=" * 60
+
+# Thread-local storage: each worker thread gets its own DB connection and PatotChunker.
+thread_local = threading.local()
+_thread_connections: list = []
+_thread_connections_lock = threading.Lock()
 
 # Arbitrary fixed key for serializing schema setup across concurrently-starting shards.
 SCHEMA_ADVISORY_LOCK_KEY = 727274002
@@ -126,9 +133,10 @@ UPSERT_TEMPLATE = (
 
 
 class EmbeddingResult:
-    """Track per-shard embedding progress, failures, and warnings."""
+    """Track per-shard embedding progress, failures, and warnings. Thread-safe."""
 
     def __init__(self):
+        self._lock = threading.Lock()
         self.start_time = datetime.now()
         self.indexes_processed = 0
         self.sections_embedded = 0
@@ -137,14 +145,19 @@ class EmbeddingResult:
         self.sections_skipped_empty = 0
         self.failures = []
 
+    def increment(self, field: str, n: int = 1):
+        with self._lock:
+            setattr(self, field, getattr(self, field) + n)
+
     def record_failure(self, index_title, lang, vtitle, section_ref, error):
-        self.failures.append({
-            "index_title": index_title,
-            "language": lang,
-            "version_title": vtitle,
-            "ref": section_ref,
-            "error": str(error),
-        })
+        with self._lock:
+            self.failures.append({
+                "index_title": index_title,
+                "language": lang,
+                "version_title": vtitle,
+                "ref": section_ref,
+                "error": str(error),
+            })
         logger.error(
             f"Failed section - index: {index_title}, lang: {lang}, version: {vtitle}, "
             f"ref: {section_ref}, error: {error}"
@@ -195,6 +208,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--limit-indexes", type=int, default=None,
         help="Process only the first N indexes assigned to this shard (for smoke testing).",
+    )
+    parser.add_argument(
+        "--threads", type=int,
+        default=int(os.environ.get("SHARD_THREADS", 10)),
+        help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
     return parser.parse_args()
@@ -455,21 +473,21 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
             for unit_ref, segment_records in units:
                 unit_normal = unit_ref.normal()
                 if unit_normal in already_done:
-                    result_tracker.sections_skipped_resume += 1
+                    result_tracker.increment("sections_skipped_resume")
                 elif not segment_records:
-                    result_tracker.sections_skipped_empty += 1
+                    result_tracker.increment("sections_skipped_empty")
                 else:
                     try:
                         chunk_result = chunker.chunk_segments(segment_records)
                         if not chunk_result.chunks:
-                            result_tracker.sections_skipped_empty += 1
+                            result_tracker.increment("sections_skipped_empty")
                         else:
                             rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
                                                     index_context, version_context)
                             upsert_chunks(conn, rows)
                             conn.commit()
-                            result_tracker.sections_embedded += 1
-                            result_tracker.chunks_written += len(rows)
+                            result_tracker.increment("sections_embedded")
+                            result_tracker.increment("chunks_written", len(rows))
                             logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
                     except Exception as e:
                         conn.rollback()
@@ -517,6 +535,14 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version
                    unit_label="sec", version_pbar=version_pbar)
 
 
+def thread_init(api_key: str, config):
+    """Per-thread initializer: open a dedicated DB connection and create a PatotChunker."""
+    thread_local.conn = get_db_connection()
+    thread_local.chunker = PatotChunker(api_key=api_key, config=config)
+    with _thread_connections_lock:
+        _thread_connections.append(thread_local.conn)
+
+
 def main():
     args = parse_args()
     setup_logging(args.debug)
@@ -540,7 +566,7 @@ def main():
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
-    logger.info(f"Shard {args.shard_index} of {args.shard_count}")
+    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
     logger.info(SEPARATOR_LINE)
 
     config = ChunkerConfig(
@@ -550,10 +576,10 @@ def main():
         runtime_analytics=ChunkingRuntimeAnalytics(),
         extract_html_footnotes_to_segments=False,
     )
-    chunker = PatotChunker(api_key=api_key, config=config)
 
-    conn = get_db_connection()
-    ensure_schema(conn)
+    schema_conn = get_db_connection()
+    ensure_schema(schema_conn)
+    schema_conn.close()
 
     all_indexes = library.all_index_records()
     shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
@@ -567,22 +593,36 @@ def main():
     logger.info(f"Total versions in this shard: {total_versions}")
 
     with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=False) as version_pbar:
-        for index in shard_indexes:
+        def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(conn, index, chunker, result, version_pbar)
+                process_index(thread_local.conn, index, thread_local.chunker, result, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
-            result.indexes_processed += 1
+            result.increment("indexes_processed")
 
-            if result.indexes_processed % 10 == 0:
-                logger.info(result.get_summary())
-                logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
+        with ThreadPoolExecutor(
+            max_workers=args.threads,
+            initializer=thread_init,
+            initargs=(api_key, config),
+        ) as executor:
+            futures = [executor.submit(run_index, index) for index in shard_indexes]
+            completed = 0
+            for future in as_completed(futures):
+                future.result()
+                completed += 1
+                if completed % 10 == 0:
+                    logger.info(result.get_summary())
+                    logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
 
     logger.info(result.get_summary())
     logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
 
-    conn.close()
+    for conn in _thread_connections:
+        try:
+            conn.close()
+        except Exception:
+            pass
 
     if not result.is_success():
         sys.exit(1)

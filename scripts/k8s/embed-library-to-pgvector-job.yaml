@@ -20,8 +20,8 @@ metadata:
   name: embed-library-to-pgvector-custom
 spec:
   completionMode: Indexed
-  completions: 10
-  parallelism: 10
+  completions: 1
+  parallelism: 1
   backoffLimit: 6
   template:
     spec:
@@ -31,8 +31,9 @@ spec:
           image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-c9dd8e4-202606220957
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
-            - "--shard-count=10"
-            - "--limit-indexes=2"
+            - "--shard-count=1"
+            - "--threads=50"
+            - "--limit-indexes=50"
           env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
