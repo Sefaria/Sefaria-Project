@@ -48,7 +48,7 @@ export default defineConfig({
 
 
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 1,
+  retries: process.env.CI ? 2 : 2,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -161,6 +161,15 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Voices Bookmarks & History feature-coverage tests — Voices module
+    {
+      name: 'chrome-voices-bookmarks',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
@@ -229,6 +238,14 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    {
+      name: 'firefox-voices-bookmarks',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -295,6 +312,14 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-voices-bookmarks',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks History',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.VOICES,
       },
     },
 
