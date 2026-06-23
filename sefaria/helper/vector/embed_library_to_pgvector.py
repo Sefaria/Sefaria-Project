@@ -468,7 +468,7 @@ def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker
 
 
 def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   unit_label: str, version_pbar=None):
+                   version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -484,31 +484,28 @@ def _process_index(conn, index, chunker, result_tracker: EmbeddingResult, get_un
 
         units = get_units_for_version(version)
 
-        with tqdm(total=len(units), desc=f"{index.title[:40]} ({lang})",
-                  unit=unit_label, leave=False, file=sys.stderr, disable=None) as pbar:
-            for unit_ref, segment_records in units:
-                unit_normal = unit_ref.normal()
-                if unit_normal in already_done:
-                    result_tracker.increment("sections_skipped_resume")
-                elif not segment_records:
-                    result_tracker.increment("sections_skipped_empty")
-                else:
-                    try:
-                        chunk_result = chunker.chunk_segments(segment_records)
-                        if not chunk_result.chunks:
-                            result_tracker.increment("sections_skipped_empty")
-                        else:
-                            rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
-                                                    index_context, version_context)
-                            upsert_chunks(conn, rows)
-                            conn.commit()
-                            result_tracker.increment("sections_embedded")
-                            result_tracker.increment("chunks_written", len(rows))
-                            logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
-                    except Exception as e:
-                        conn.rollback()
-                        result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
-                pbar.update(1)
+        for unit_ref, segment_records in units:
+            unit_normal = unit_ref.normal()
+            if unit_normal in already_done:
+                result_tracker.increment("sections_skipped_resume")
+            elif not segment_records:
+                result_tracker.increment("sections_skipped_empty")
+            else:
+                try:
+                    chunk_result = chunker.chunk_segments(segment_records)
+                    if not chunk_result.chunks:
+                        result_tracker.increment("sections_skipped_empty")
+                    else:
+                        rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
+                                                index_context, version_context)
+                        upsert_chunks(conn, rows)
+                        conn.commit()
+                        result_tracker.increment("sections_embedded")
+                        result_tracker.increment("chunks_written", len(rows))
+                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
+                except Exception as e:
+                    conn.rollback()
+                    result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
 
         if version_pbar is not None:
             version_pbar.update(1)
@@ -535,7 +532,7 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version
                 ]
 
             _process_index(conn, index, chunker, result_tracker, get_units_for_version,
-                           unit_label="passage", version_pbar=version_pbar)
+                           version_pbar=version_pbar)
             return
 
     section_refs = index.all_section_refs()
@@ -548,7 +545,7 @@ def process_index(conn, index, chunker, result_tracker: EmbeddingResult, version
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(conn, index, chunker, result_tracker, get_units_for_version,
-                   unit_label="sec", version_pbar=version_pbar)
+                   version_pbar=version_pbar)
 
 
 def thread_init(api_key: str, config):
