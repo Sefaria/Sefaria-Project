@@ -15760,3 +15760,75 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
+
+/* SC-30249: Allow document-level scrolling on singlePanel (mobile) so mobile
+   browsers can collapse their URL/nav bars during productive scrolling. */
+#s2:has(.readerApp.singlePanel) {
+  position: static;
+  height: auto;
+  min-height: 100vh;
+}
+/* The old fixed/overflow:hidden containers clipped any sub-pixel horizontal
+   overflow (e.g. 100vw rules). Now that the document scrolls, re-establish that
+   clip to prevent side-to-side scroll wobble -- but ONLY on the inner app
+   container, never on html/body. Mobile browsers auto-hide the URL/nav bar only
+   while the root document scroller has clean (visible) overflow; setting any
+   overflow on html/body disables that hide. #s2 is position:static/height:auto
+   here, so it is NOT the scroller -- clipping it leaves the document as the
+   scroller (toolbar still hides) while still clipping the in-flow reader content.
+   Use overflow-x: clip (not hidden): clip keeps overflow-y visible, whereas
+   hidden would force overflow-y to auto and make #s2 a scroll container. hidden
+   is the fallback for browsers without clip support (Safari < 16). */
+#s2:has(.readerApp.singlePanel) {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+#s2:has(.readerApp.singlePanel) #readerAppWrap {
+  height: auto;
+  min-height: 100vh;
+}
+.readerApp.singlePanel > .header .headerInner {
+  position: fixed;
+  top: 0;
+}
+.readerApp.singlePanel .readerControlsOuter {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+}
+.readerApp.singlePanel #main {
+  min-height: 0;
+}
+.readerApp.singlePanel #panelWrapBox {
+  position: relative;
+  height: auto;
+}
+.readerApp.singlePanel .readerPanel {
+  height: auto;
+  overflow: visible;
+}
+.readerApp.singlePanel .readerContent {
+  height: auto;
+}
+.readerApp.singlePanel .textColumn {
+  height: auto;
+  overflow-y: visible;
+}
+.readerApp.singlePanel .textList {
+  position: fixed;
+  height: 54vh;
+  bottom: 0;
+  z-index: 1002;
+}
+.readerApp.singlePanel .textList.fullPanel {
+  height: 100vh;
+}
+.readerApp.singlePanel .readerNavMenu,
+.readerApp.singlePanel .homeFeedWrapper {
+  position: static;
+  height: auto;
+}
+.readerApp.singlePanel .readerNavMenu .content,
+.readerApp.singlePanel .homeFeedWrapper .content {
+  overflow-y: visible;
+}
