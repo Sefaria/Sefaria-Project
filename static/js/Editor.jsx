@@ -393,44 +393,6 @@ export const serialize = (content) => {
     return children.join('')
 };
 
-const replaceDivineNames = (str, divineName) => {
-    // Regexes for identifying divine names with or without nikkud / trop
-    // Currently ignores אֵל & צְבָאוֹת & שדי
-    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'’"\-\s]|$)/g;
-
-    // don't match אֲדֹנִי
-    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'’"\-]|$)/g;
-
-    // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
-    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'’"\-]|$)/g;
-
-    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'’"\-]|$)/g;
-
-    // const shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
-
-
-    const divineSubs = {
-                        "noSub": "יהוה",
-                        "yy": "יי",
-                        "ykvk": "יקוק",
-                        "h": "ה׳"
-                    };
-
-
-
-
-    const adoshemSub = divineName=="noSub" ? "אדני" : "אדושם";
-    const elokaiSub = divineName=="noSub" ? "ה" : "ק";
-
-    const newStr = str.replace(divineRE, "$1$2"+ divineSubs[divineName])
-        .replace(adoshemRE, "$1$2"+ adoshemSub)
-        .replace(elokaiRE, "$1$2$3"+ elokaiSub +"$5$6")
-        .replace(elokaRE, "$1$2$3"+ elokaiSub +"$5");
-
-    return newStr
-
-}
-
 function renderSheetItem(source) {
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
 
@@ -692,7 +654,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
+const BoxedSheetElement = ({ attributes, children, element }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -707,40 +669,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
-
-
-    useEffect(() => {
-      const replacement = divineName || "noSub";
-      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
-
-      for (const editor of editors) {
-        Editor.withoutNormalizing(editor, () => {
-          for (const [node, path] of Editor.nodes(editor, {
-            at: [],                 // whole document
-            match: Text.isText,     // only text nodes
-            reverse: true           // bottom-up keeps paths stable
-          })) {
-            const newText = replaceDivineNames(node.text, replacement);
-            if (newText !== node.text) {
-              // Split out any existing marks (bold/italic/…)
-              const { text: _old, ...marks } = node;
-
-              // Remove the old leaf node
-              Transforms.removeNodes(editor, { at: path });
-
-              // Insert a new leaf with updated text + same marks
-              Transforms.insertNodes(
-                editor,
-                { text: newText, ...marks },
-                { at: path }
-              );
-            }
-          }
-        });
-      }
-    }, [divineName]);
-
-
 
   const onHeChange = (value) => {
     sheetHeSourceSetValue(value)
@@ -1223,12 +1151,12 @@ const Element = (props) => {
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} {...attributes} />
             );
 
 
@@ -1338,7 +1266,7 @@ const Element = (props) => {
 
             const pClasses = {center: element["text-align"] == "center" };
             return (
-                <div role="button" ontentEditable suppressContentEditableWarning
+                <div role="button"
                      aria-label={"Add new line"} data-trigger="true" className={classNames(addNewLineClasses)}
                      onClick={(event) => handleClick(event, editor)}
                 >
@@ -2933,36 +2861,6 @@ const SefariaEditor = (props) => {
         }, [readyForNormalize]
     )
 
-    useEffect(
-        () => {
-            const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-            for (const [node, path] of nodes) {
-                if (node.text && props.divineNameReplacement) {
-                    const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
-                    if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, { at: path })
-                    }
-                }
-            }
-            editor.divineNames = props.divineNameReplacement
-
-            // some edit to the editor is required to show the replacement and save
-            // -- this simply just moves the cursor to the top of the doc and then back to its previous spot
-            const temp_select = editor.selection
-
-            Transforms.select(editor, {
-              anchor: {path: [0, 0], offset: 0},
-              focus: {path: [0, 0], offset: 0},
-            });
-
-            Transforms.select(editor, temp_select)
-            saveDocument(currentDocument);
-
-        },
-        [props.divineNameReplacement]
-    )
-
-
   useEffect(() => {
     editor.highlightedNode = null;
   }, []);
@@ -3080,7 +2978,7 @@ const SefariaEditor = (props) => {
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
             summary: summary,
-            options: { ...doc.options, divineNames: props.divineNameReplacement },
+            options: doc.options,
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
             title: title,

@@ -65,13 +65,11 @@ test.describe('Library Module Sidebar Tests', () => {
 
   test('MOD-S006: Library - About link loads in same tab', async () => {
     // About should load in same tab to modularization cauldron
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /\w*\.org/, opensNewTab: false });
     await expect(page).toHaveURL(/\w*\.org/);
   });
 
   test('MOD-S007: Library - Help link href and behavior (Zendesk)', async () => {
-    await hideAllModalsAndPopups(page);
     // First verify the href is to the Zendesk
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.\w*\.org/, opensNewTab: true });
 
@@ -87,13 +85,11 @@ test.describe('Library Module Sidebar Tests', () => {
   });
 
   test('MOD-S009: Library - Newsletter loads in same tab', async () => {
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Newsletter', href: /newsletter/, opensNewTab: false });
     await expect(page).toHaveURL(/newsletter/);
   });
 
   test('MOD-S010: Library - Blog opens in new tab', async () => {
-    await hideAllModalsAndPopups(page);
     const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Blog', href: /blog|\.org\.il/, opensNewTab: true });
     await expect(newPage!).toHaveURL(/blog|\.org\.il/);
     await newPage!.close();
@@ -116,15 +112,12 @@ test.describe('Library Module Sidebar Tests', () => {
   });
 
   test('MOD-S012: Library - Ways to Give loads, Donate href verified', async () => {
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Ways to Give', href: /ways-to-give/, opensNewTab: false });
     await expect(page).toHaveURL(/ways-to-give/);
 
     await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
   });
   test('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
-    await hideAllModalsAndPopups(page);
-
     // Both links present in the sidebar footer with expected hrefs
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Terms', href: /terms/ });
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Privacy Policy', href: /privacy-policy/ });

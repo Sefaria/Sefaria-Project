@@ -283,7 +283,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
       'change translations on the app'
     ],
     sheetPath: '/sheets/429277?lang=bi',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-Library-s-A-%D7%90-Menu',
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-Sefaria-Library-A-%D7%90-Menu',
     upToDate: 'yes',
     views: 318
   },
@@ -308,7 +308,7 @@ export const HELP_SHEET_REDIRECTS: ReadonlyArray<HelpSheetRedirect> = [
     sheetTitle: 'The Table of Contents',
     includedTopics: [],
     sheetPath: '/sheets/519205?lang=en',
-    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472576952988-Quick-Guide-Meet-the-Table-of-Contents'
+    zendeskUrl: 'https://help.sefaria.org/hc/en-us/articles/18472576952988-Quick-Guide-Meet-the-Sefaria-Library-Table-of-Contents'
   },
   {
     category: 'Sheets',
@@ -510,7 +510,7 @@ export const HELP_SHEET_REDIRECTS_HE: ReadonlyArray<HelpSheetRedirect> = [
   {
     sheetTitle: 'הדפסת מקורות בספריא',
     sheetPath: '/sheets/242573?lang=he',
-    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18490652948508-%D7%94%D7%93%D7%A4%D7%A1%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94'
+    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18490652948508-%D7%94%D7%93%D7%A4%D7%A1%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%AA-%D7%A1%D7%A4%D7%A8%D7%99%D7%90'
   },
   {
     sheetTitle: 'מציאת מקור בספריא',
@@ -545,12 +545,12 @@ export const HELP_SHEET_REDIRECTS_HE: ReadonlyArray<HelpSheetRedirect> = [
   {
     sheetTitle: 'אתר ספריא- עמודים עיקריים ומבנה האתר',
     sheetPath: '/sheets/332893?lang=he',
-    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18472380899484-%D7%94%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%94%D7%9E%D7%94%D7%99%D7%A8-%D7%9C%D7%A2%D7%9E%D7%95%D7%93-%D7%94%D7%91%D7%99%D7%AA'
+    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18472380899484-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A2%D7%9E%D7%95%D7%93-%D7%94%D7%91%D7%99%D7%AA-%D7%A9%D7%9C-%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%AA-%D7%A1%D7%A4%D7%A8%D7%99%D7%90'
   },
   {
     sheetTitle: 'קישוריות בין מקורות בספריא',
     sheetPath: '/sheets/242826?lang=he',
-    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18613227644316-%D7%90%D7%99%D7%AA%D7%95%D7%A8-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A7%D7%95%D7%A9%D7%A8%D7%99%D7%9D'
+    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18613227644316-%D7%90%D7%99%D7%AA%D7%95%D7%A8-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A7%D7%95%D7%A9%D7%A8%D7%99%D7%9D-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%AA-%D7%A1%D7%A4%D7%A8%D7%99%D7%90'
   },
   {
     sheetTitle: 'בחירת שפה בספריא',
@@ -585,7 +585,7 @@ export const HELP_SHEET_REDIRECTS_HE: ReadonlyArray<HelpSheetRedirect> = [
   {
     sheetTitle: 'הדפסת מקורות בספריא',
     sheetPath: '/sheets/242573.1?lang=he',
-    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18490652948508-%D7%94%D7%93%D7%A4%D7%A1%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94'
+    zendeskUrl: 'https://help.sefaria.org/hc/he/articles/18490652948508-%D7%94%D7%93%D7%A4%D7%A1%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%AA-%D7%A1%D7%A4%D7%A8%D7%99%D7%90'
   },
   {
     sheetTitle: 'פרסום דפי מקורות',
