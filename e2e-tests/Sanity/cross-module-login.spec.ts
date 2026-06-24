@@ -15,9 +15,9 @@ import { PageManager } from '../pages/pageManager';
 // CLAUDE.md rule §2.21) or page.route-intercept /login. See README §14
 // "Destructive auth tests".
 
-test.describe('Cross-Module Login Scenarios', {tag: '@sanity'},() => {
+test.describe('Cross-Module Login Scenarios', () => {
 
-  test('Scenario 1: Login on Library, verify logged in state and remain on Library', async ({ context }) => {
+  test('Scenario 1: Login on Library, verify logged in state and remain on Library', { tag: '@sanity' }, async ({ context }) => {
     // Start as not logged in
     let page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -57,7 +57,7 @@ test.describe('Cross-Module Login Scenarios', {tag: '@sanity'},() => {
     await expect(logoutOption).toBeVisible();
   });
 
-  test('Scenario 2: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', async ({ context }) => {
+  test('Scenario 2: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Library (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
 
@@ -277,7 +277,7 @@ test.describe('Cross-Module Login Scenarios', {tag: '@sanity'},() => {
     await voicesTab2.close();
   });
 
-  test('Scenario 8: Logged in Library user navigates to sheet link, opens in Voices while logged in', async ({ context }) => {
+  test('Scenario 8: Logged in Library user navigates to sheet link, opens in Voices while logged in', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Library (using auth state)
     const page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
 
@@ -306,7 +306,7 @@ test.describe('Cross-Module Login Scenarios', {tag: '@sanity'},() => {
     await expect(profileImg).toBeVisible();
   });
 
-  test('Scenario 9: Logged in Voices user navigates to text link, opens in Library while logged in', async ({ context }) => {
+  test('Scenario 9: Logged in Voices user navigates to text link, opens in Library while logged in', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Voices (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
 

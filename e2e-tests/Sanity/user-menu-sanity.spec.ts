@@ -20,7 +20,7 @@ import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../constants';
 
-test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
+test.describe.serial('User Flow Sanity Tests', () => {
 
   // =================================================================
   // TEST 1: LOGIN
@@ -52,7 +52,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 2: PROFILE VIEW
   // =================================================================
-  test('Sanity 2: User can view profile with correct artifacts', async ({ context }) => {
+  test('Sanity 2: User can view profile with correct artifacts', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Voices (Profile menu only available on Voices)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -81,7 +81,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 3: PROFILE EDITING
   // =================================================================
-  test('Sanity 3: User can edit profile successfully', async ({ context }) => {
+  test('Sanity 3: User can edit profile successfully', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Voices (where profile lives)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -121,7 +121,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 4: ACCOUNT SETTINGS
   // =================================================================
-  test('Sanity 4: User can edit account settings', async ({ context }) => {
+  test('Sanity 4: User can edit account settings', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Library (Account Settings only available on Library)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -154,7 +154,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 5: LANGUAGE SWITCHING
   // =================================================================
-  test('Sanity 5: User can change site language', async ({ context }) => {
+  test('Sanity 5: User can change site language', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -183,7 +183,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 6: MODULE SWITCHER - ALL DESTINATIONS
   // =================================================================
-  test('Sanity 6: Module switcher reaches all destinations', async ({ context }) => {
+  test('Sanity 6: Module switcher reaches all destinations', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -234,7 +234,7 @@ test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
   // enAdmin appears in no spec file). Invalidating its session here therefore
   // has no cross-test effect, while still exercising the real /logout server
   // round-trip — i.e. fidelity is preserved.
-  test('Sanity 7: User can logout successfully', async ({ context }) => {
+  test('Sanity 7: User can logout successfully', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in (admin profile — see comment above for why)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enAdmin);
     const pm = new PageManager(page, LANGUAGES.EN);
