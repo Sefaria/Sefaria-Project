@@ -721,7 +721,7 @@ In the bilingual app, prefer an **English-stable `data-name`** or English-keyed 
 
 The shared-session model has a sharp edge: tests that destroy or rotate the server-side session (UI logout, UI re-login as a globalSetup-managed account, password change) **cannot use a profile that other concurrent tests read**. The on-disk `sessionid` is shared across workers; when one worker hits `/logout`, Django's `session.flush()` deletes the row and every other worker holding that `sessionid` is silently logged out on its next request.
 
-**Currently in the suite:** the only destructive-auth test is **Sanity 7** ("User can logout successfully" in [Sanity/user-flow-sanity.spec.ts](Sanity/user-flow-sanity.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` for exactly this reason — no other Sanity test depends on the admin session staying alive, so destroying it every run is harmless. (This was a real flake: `Sanity 8h`/`8i` intermittently failed with "User Logged out" pills until Sanity 7 was moved off `enUser`.)
+**Currently in the suite:** the only destructive-auth test is **Sanity 7** ("User can logout successfully" in [Sanity/user-menu-sanity.spec.ts](Sanity/user-menu-sanity.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` for exactly this reason — no other Sanity test depends on the admin session staying alive, so destroying it every run is harmless. (This was a real flake: `Sanity 8h`/`8i` intermittently failed with "User Logged out" pills until Sanity 7 was moved off `enUser`.)
 
 **When writing a new destructive-auth test, either:**
 

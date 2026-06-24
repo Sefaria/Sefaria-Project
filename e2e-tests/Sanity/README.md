@@ -11,7 +11,7 @@ Runs under the `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects (`b
 | Spec file | IDs | Area |
 | --- | --- | --- |
 | [cross-module-login.spec.ts](cross-module-login.spec.ts) | Scenarios 1–9 | Auth-state persistence across Library ↔ Voices: login, module-switch, multi-tab concurrent-session handling, cross-module deep links. |
-| [user-flow-sanity.spec.ts](user-flow-sanity.spec.ts) | Sanity 1–7 | Core user workflows: login, view profile, edit profile, edit account settings, change language, module switcher, logout. |
+| [user-menu-sanity.spec.ts](user-menu-sanity.spec.ts) | Sanity 1–7 | Core user workflows: login, view profile, edit profile, edit account settings, change language, module switcher, logout. |
 | [sheet-workflow-sanity.spec.ts](sheet-workflow-sanity.spec.ts) | Sanity 8a–8j | Full sheet lifecycle (serial): create → title → add source/image/YouTube/reader-source → publish → unpublish → add to collection → delete. |
 | [search-sanity.spec.ts](search-sanity.spec.ts) | Sanity 9a–9f | Search across both modules: suggestion click-through, results submission, dropdown section/icon validation (module-specific). |
 | [cross-module-redirects.spec.ts](cross-module-redirects.spec.ts) | 4 suites | Library→Voices URL redirects, query-param preservation, 301 status codes, no-redirect-loop on Voices. |
@@ -37,7 +37,7 @@ Runs under the `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects (`b
 
 > ⚠️ **Tripwire:** Scenarios 4–7 perform parallel UI logins as the same QA user. They pass only because Sefaria's Django config doesn't regenerate sibling sessions on fresh login; if that policy tightens upstream, these become the next flake (flagged at the top of the spec, and in [../CLAUDE.md](../CLAUDE.md) rule 21).
 
-### user-flow-sanity.spec.ts — Sanity 1–7
+### user-menu-sanity.spec.ts — Sanity 1–7
 
 | ID | Test | Asserts |
 | --- | --- | --- |
@@ -92,12 +92,16 @@ Two describes (English + Hebrew), each **data-driven from [../helpDeskLinksConst
 npx playwright test --project=chrome-sanity
 npm run test:sanity                  # same thing
 
+# See WHICH tests are tagged @sanity without running them (source of truth for
+# what `npm run test:sanity` will execute — includes tagged tests in any folder)
+npx playwright test --project=chrome-sanity --list
+
 # Cross-browser
 npx playwright test --project=firefox-sanity
 npx playwright test --project=safari-sanity
 
 # One spec
-npx playwright test Sanity/user-flow-sanity.spec.ts --project=chrome-sanity
+npx playwright test Sanity/user-menu-sanity.spec.ts --project=chrome-sanity
 
 # One test / scenario by name
 npx playwright test -g 'Sanity 8a'
