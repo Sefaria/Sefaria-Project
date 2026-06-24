@@ -746,6 +746,11 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
+
+    // Newsletter Sign-up Page
+    "Confirm Email Address": 'אשר כתובת דוא"ל',
+    "Newsletter options": "אפשרויות ניוזלטר",
+    "Marketing email preference": 'העדפת דוא"ל שיווקי',
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -856,6 +861,5 @@ const Strings = {
     }
   },
 };
-
 
 export default Strings;

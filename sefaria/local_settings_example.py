@@ -143,6 +143,13 @@ MAINTENANCE_MESSAGE = ""
 STRAPI_LOCATION = None
 STRAPI_PORT = None
 
+# ActiveCampaign API credentials for newsletter sign-up.
+# Get your token from ActiveCampaign → Settings → Developer.
+# Set to None to disable newsletter functionality; the sign-up page will show
+# a "not available" message instead of the form.
+ACTIVECAMPAIGN_API_TOKEN = None
+ACTIVECAMPAIGN_ACCOUNT_NAME = None
+
 
 MANAGERS = ADMINS
 
