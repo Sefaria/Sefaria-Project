@@ -28,11 +28,12 @@ spec:
       restartPolicy: Never
       containers:
         - name: embed-library-to-pgvector
-          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-2042435-202606231818
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-65180a8-202606232007
           command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
           args:
             - "--shard-count=1"
             - "--threads=150"
+            - "--db-pool-size=50"
           env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
