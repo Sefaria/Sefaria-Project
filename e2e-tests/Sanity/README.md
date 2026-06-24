@@ -131,14 +131,26 @@ It also means tests can **migrate to their proper feature folder over time** and
 in the Sanity run the whole way — the tag travels with the test, the folder no longer
 matters.
 
-- **CLI:** `npm run test:sanity` (or `npx playwright test --project=chrome-sanity`).
-- **VS Code Playwright extension:** in the **Testing** sidebar's *Playwright* panel,
-  check only **`chrome-sanity`** (or firefox/safari), then run — its Test Explorer
-  node lists only the `@sanity`-tagged tests. A tagged test also appears under its
-  home project; running it via the sanity node executes it once.
+**To run the full tagged suite, use the CLI** — `npm run test:sanity` (alias for
+`npx playwright test --project=chrome-sanity`). This is the only way that reliably
+runs every `@sanity`-tagged test across all folders. Use `firefox-sanity` /
+`safari-sanity` for the other browsers.
+
+> ⚠️ **The VS Code Playwright Test Explorer is organised by folder, not by tag.**
+> The tree mirrors the filesystem, so a `@sanity`-tagged test in (say)
+> `Full testing by Feature/…` is listed under *that* folder — it never appears under
+> the `Sanity/` node. **Pressing "Run" on the `Sanity/` folder therefore only runs
+> the specs physically inside `Sanity/` — it will NOT run tagged tests that live
+> elsewhere.** To run the true tagged suite from the extension, either:
+>
+> - **filter the tree by tag** — type `@sanity` in the Test Explorer filter box, then run the filtered set; or
+> - **run via the project** — in the *Playwright* panel, enable only `chrome-sanity` and "Run all tests" (that project greps the whole tree by tag).
+>
+> When in doubt, just run `npm run test:sanity` from the terminal — it's the source of truth.
 
 Every spec in this folder is tagged `@sanity` at the `describe` level, so the curated
-folder suite is included automatically.
+folder suite is included automatically — pressing "Run" on the `Sanity/` folder in the
+extension runs all of *these*, just not the tagged tests in other folders.
 
 ---
 
