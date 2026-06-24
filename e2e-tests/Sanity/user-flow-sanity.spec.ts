@@ -27,12 +27,9 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   test('Sanity 1: User can login successfully', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Navigate to login page
-    await hideAllModalsAndPopups(page);
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Log in');
 
@@ -58,9 +55,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   test('Sanity 2: User can view profile with correct artifacts', async ({ context }) => {
     // Start logged in on Voices (Profile menu only available on Voices)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
 
     // Navigate to profile via user menu
     await openHeaderDropdown(page, 'user');
@@ -89,7 +84,6 @@ test.describe.serial('User Flow Sanity Tests', () => {
   test('Sanity 3: User can edit profile successfully', async ({ context }) => {
     // Start logged in on Voices (where profile lives)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Navigate directly to edit profile page (/settings/profile redirects to Voices)
@@ -130,10 +124,8 @@ test.describe.serial('User Flow Sanity Tests', () => {
   test('Sanity 4: User can edit account settings', async ({ context }) => {
     // Start logged in on Library (Account Settings only available on Library)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Navigate to account settings via user menu
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Account Settings');
@@ -164,7 +156,6 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   test('Sanity 5: User can change site language', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Verify starts in English
@@ -194,10 +185,8 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   test('Sanity 6: Module switcher reaches all destinations', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Navigate to Voices
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     await hideAllModalsAndPopups(page);
@@ -227,13 +216,29 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 7: LOGOUT
   // =================================================================
+  //
+  // ⚠️ Uses BROWSER_SETTINGS.enAdmin — NOT enUser — by design.
+  //
+  // Sefaria's /logout endpoint destroys the user's server-side session row,
+  // which invalidates the sessionid cookie in *every* worker context that
+  // shares that account's storage state. Every other sanity spec authenticates
+  // as the standard testUser (enUser); if Sanity 7 logged that account out,
+  // any concurrently-running sheet-workflow / cross-module-login test would
+  // suddenly find itself logged out mid-flight. This was the root cause of
+  // the chrome-sanity flake where Sanity 8h-8j (Unpublish / Add to collection /
+  // Delete) failed at random under default parallelism (verified 2026-05-20
+  // by reproducing the failure and inspecting the screenshot — "User Logged
+  // out" pill on the sheet page).
+  //
+  // The admin account is unused elsewhere in Sanity (verified via grep:
+  // enAdmin appears in no spec file). Invalidating its session here therefore
+  // has no cross-test effect, while still exercising the real /logout server
+  // round-trip — i.e. fidelity is preserved.
   test('Sanity 7: User can logout successfully', async ({ context }) => {
-    // Start logged in
-    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
+    // Start logged in (admin profile — see comment above for why)
+    const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enAdmin);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
-    
+
     // Verify logged in
     expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
     await page.waitForTimeout(t(1000));

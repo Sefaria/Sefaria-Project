@@ -910,7 +910,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
-def texts_category_list(request, cats):
+def texts_category_list(request, cats=None):
     """
     List of texts in a category.
     """
@@ -946,7 +946,7 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_category_page(request, topicCategory):
+def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
     """
@@ -1001,7 +1001,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
@@ -1169,7 +1169,7 @@ def edit_collection_page(request, slug=None):
         "noindex": True
     })
     
-def groups_redirect(request, group):
+def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
     """
@@ -4839,7 +4839,7 @@ def annual_report(request, report_year=None):
 
 
 @ensure_csrf_cookie
-def explore(request, topCat, bottomCat, book1, book2, lang=None):
+def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
