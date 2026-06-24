@@ -140,6 +140,12 @@ def _to_dataclass(obj: DjangoSemanticTextChunk) -> SemanticTextChunkData:
     )
 
 
+_ALLOWED_FILTER_FIELDS = frozenset({
+    'index_title', 'language', 'version_title', 'ref', 'chunked_from_ref',
+    'primary_category', 'is_primary', 'is_source', 'era_name', 'direction',
+})
+
+
 class SemanticTextChunk:
     def ensure_schema(self) -> None:
         with connections['vector_db'].cursor() as cur:
@@ -170,8 +176,9 @@ class SemanticTextChunk:
     def delete(self, doc_ids: list) -> None:
         DjangoSemanticTextChunk.objects.filter(doc_id__in=doc_ids).delete()
 
-    def search_by_embedding(self, embedding: list, limit: int = 10) -> list:
-        qs = DjangoSemanticTextChunk.objects.order_by(
+    def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None) -> list:
+        safe_filters = {k: v for k, v in (filters or {}).items() if k in _ALLOWED_FILTER_FIELDS}
+        qs = DjangoSemanticTextChunk.objects.filter(**safe_filters).order_by(
             CosineDistance('embedding', embedding)
         )[:limit]
         return [_to_dataclass(obj) for obj in qs]

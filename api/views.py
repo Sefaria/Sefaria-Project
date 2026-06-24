@@ -1,8 +1,14 @@
+import json
+
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
+from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
-from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
-from django.views import View
 from .api_warnings import *
 
 
@@ -67,3 +73,45 @@ class Text(View):
             return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
+
+
+_SEARCH_RESULT_FIELDS = (
+    'ref', 'text', 'url', 'index_title', 'language', 'version_title',
+    'primary_category', 'all_categories',
+)
+
+
+class KnnSearch(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        auth = request.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+        token = auth[len("Bearer "):]
+        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+        if not expected or token != expected:
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
+
+        filters = body.get("filters") or None
+        limit = int(body.get("limit", 10))
+
+        from semantic_search.search import semantic_search
+        results = semantic_search(query, filters=filters, limit=limit)
+        return jsonResponse({
+            "results": [
+                {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
+                for r in results
+            ]
+        })

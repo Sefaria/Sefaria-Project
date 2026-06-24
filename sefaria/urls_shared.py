@@ -76,6 +76,7 @@ shared_patterns = [
     path('api/texts/<path:tref>', reader_views.texts_api),
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
+    path('api/knn-search', api_views.KnnSearch.as_view()),
     re_path(r'^api/index/?$', reader_views.table_of_contents_api),
     re_path(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     re_path(r'^api/index/titles/?$', reader_views.text_titles_api),
