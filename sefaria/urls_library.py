@@ -21,6 +21,7 @@ urlpatterns = [
     re_path(r'^texts/recent/?$', reader_views.old_recent_redirect),
     re_path(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     re_path(r'^calendars/?$', reader_views.calendars),
+    path('search-poc', reader_views.search_poc, name="search_poc"),
     re_path(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     re_path(r'^modtools/?$', reader_views.modtools),
     path('modtools/upload_text', sefaria_views.modtools_upload_workflowy),

@@ -166,6 +166,7 @@ shared_patterns = [
     path('api/search-wrapper/es8', reader_views.search_wrapper_api),
     path('api/search-wrapper', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-path-filter/<path:book_title>', reader_views.search_path_filter),
+    path('api/search-poc', reader_views.search_poc_api),
 
     re_path(r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', reader_views.follow_api),
     re_path(r'^api/(?P<kind>(followers|followees))/(?P<uid>\d+)$', reader_views.follow_list_api),

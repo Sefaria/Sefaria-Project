@@ -213,7 +213,9 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       }
       const inputQuery = getInputValue();
       if (!inputQuery) return;
-      submitSearch(inputQuery);
+      
+      //    submitSearch(inputQuery);  // original code
+      submitSearch(inputQuery, undefined, undefined, true);  // temporary change
     };
 
     const handleSearchButtonClick = (event) => {
@@ -489,12 +491,13 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
 
     const showSearchWrapper = (query) => {
         query = query.trim();
-        if (typeof sjs !== "undefined") {
-          query = encodeURIComponent(query);
-          window.location = `/search?q=${query}`;
-          return;
-        }
-        showSearch(query);
+        // if (typeof sjs !== "undefined") {
+        //   query = encodeURIComponent(query);
+        //   window.location = `/search?q=${query}`;
+        //   return;
+        // }
+        // showSearch(query);
+        window.location = query ? `/search-poc?q=${encodeURIComponent(query)}` : "/search-poc";
 
         onNavigate && onNavigate();
     };
