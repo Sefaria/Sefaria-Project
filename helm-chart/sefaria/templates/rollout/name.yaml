@@ -1,68 +1,60 @@
+{{- if .Values.nameService.enabled }}
 ---
-# apiVersion: apps/v1
-# kind: Deployment
+# The standalone name (autocomplete) service.  Runs the web image with
+# NAME_SERVICE=true so every host serves only the completion endpoints
+# (sefaria/urls_name.py).  varnish routes /api/name and the other completion
+# paths here (see configmap/varnish-config.yaml); web pods run with
+# DISABLE_AUTOCOMPLETER=true and no longer build autocompleters.
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: {{ .Values.deployEnv }}-web
+  name: {{ .Values.deployEnv }}-name
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
-    app: web-{{ .Values.deployEnv }}
-    # releaseRevision: "{{ .Release.Revision }}"
+    app: name-{{ .Values.deployEnv }}
   annotations:
     rollout.argoproj.io/revision: "{{ .Release.Revision }}"
 spec:
   strategy:
     blueGreen:
-      activeService: web-{{ .Values.deployEnv }}
+      activeService: name-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
       {{- if .Values.rollouts.prePromotionAnalysis }}
+      # Same end-to-end gate as web/nodejs: hold promotion until the new
+      # revision answers healthz-rollout through its own nginx, so the name
+      # rollout flips (or aborts) in lockstep with the rest of the stack and
+      # never scales down the old revision's pods while varnish still pins them.
       prePromotionAnalysis:
         templates:
-          # - templateName: rollout-readiness-{{ .Values.deployEnv }}
           - templateName: rollout-ready-{{ .Values.deployEnv }}
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
       {{- end }}
-      {{- if .Values.deploymentMessage }}
-      postPromotionAnalysis:
-        templates:
-          - templateName: rollout-complete-{{ .Values.deployEnv }}
-        args:
-          - name: revision
-            value: "{{ .Release.Revision }}"
-          - name: deployment
-            value: {{ .Values.deployEnv }}
-          - name: version
-            value: {{ .Values.web.containerImage.tag }}
-          - name: chartVersion
-            value: {{ .Chart.Version }}
-      {{- end }}
   selector:
     matchLabels:
-      app: web-{{ .Values.deployEnv }}
-      # releaseRevision: "{{ .Release.Revision }}"
+      app: name-{{ .Values.deployEnv }}
   revisionHistoryLimit: 2
-  replicas: {{ .Values.web.replicaCount }}
+  replicas: {{ .Values.nameService.replicaCount }}
   progressDeadlineSeconds: 1200
   template:
     metadata:
       labels:
-        app: web-{{ .Values.deployEnv }}
+        app: name-{{ .Values.deployEnv }}
         tier: application
         deployEnv: "{{ .Values.deployEnv }}"
-        stackRole: django
+        # not "django": CI scripts select pytest/selenium pods by stackRole=django
+        stackRole: name
         releaseRevision: "{{ .Release.Revision }}"
         {{- if .Values.datadog.enabled }}
         tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
-        tags.datadoghq.com/service: "web"
+        tags.datadoghq.com/service: "name"
         tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
         admission.datadoghq.com/enabled: "true"
         {{- end }}
       {{- if .Values.datadog.enabled }}
       annotations:
-        ad.datadoghq.com/web.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-web"}]'
+        ad.datadoghq.com/name.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-name"}]'
         admission.datadoghq.com/python-lib.version: "v4.7.1"
       {{- end }}
     spec:
@@ -76,24 +68,27 @@ spec:
                 values:
                 - mongo
             topologyKey: kubernetes.io/hostname
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - "web-{{ .Values.deployEnv }}"
-            topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - "name-{{ .Values.deployEnv }}"
+              topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
-      - name: web
+      - name: name
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
-        args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 420 --threads {{ .Values.web.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        args: [ "gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 420 --threads {{ .Values.nameService.resources.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
         env:
           # WEB_CONCURRENCY is used for determining the number of server workers
           - name: WEB_CONCURRENCY
-            value: "{{ .Values.web.resources.web.gunicornWorkerCount }}"
+            value: "{{ .Values.nameService.resources.gunicornWorkerCount }}"
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
           - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -101,20 +96,16 @@ spec:
           - name: ENV_NAME
             value: "{{ .Values.deployEnv }}"
           - name: STACK_COMPONENT
-            value: web
-          {{- if .Values.nameService.enabled }}
-          # completion endpoints are routed to the name service; web pods skip
-          # autocompleter builds and stop gating readiness on them
-          - name: DISABLE_AUTOCOMPLETER
+            value: name
+          - name: NAME_SERVICE
             value: "true"
-          {{- end }}
+          # The name service is the one place autocompleters must build, even if
+          # a shared configmap disables them for the rest of the stack.
+          - name: DISABLE_AUTOCOMPLETER
+            value: "false"
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
-          - name: DD_PROFILING_ENABLED
-            value: "true"
-          - name: DD_PROFILING_MAX_FRAMES
-            value: "128"
           - name: DD_RUNTIME_METRICS_ENABLED
             value: "true"
           - name: DD_ENTITY_ID
@@ -124,32 +115,14 @@ spec:
           {{- end }}
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
+          # not used on the completion path, but the mounted local_settings lists
+          # them as required env and degrades noisily without them
           - name: NODEJS_HOST
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
-          {{- if .Values.instrumentation.enabled }}
-          - name: OTEL_SERVICE_NAME
-            value: {{ .Values.deployEnv }}-web
-          - name: OTEL_EXPORTER_OTLP_ENDPOINT
-            value: {{ .Values.instrumentation.otelEndpoint }}
-          - name: OTEL_PROPAGATORS
-            value: tracecontext,baggage,b3,jaeger
-          - name: OTEL_RESOURCE_ATTRIBUTES_POD_NAME
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: metadata.name
-          - name: OTEL_RESOURCE_ATTRIBUTES_NODE_NAME
-            valueFrom:
-              fieldRef:
-                apiVersion: v1
-                fieldPath: spec.nodeName
-          - name: OTEL_RESOURCE_ATTRIBUTES
-            value: k8s.container.name=app,k8s.deployment.name={{ .Values.deployEnv }}-web,k8s.namespace.name={{ .Release.Namespace }},k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)
-          {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo
@@ -172,16 +145,15 @@ spec:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
           - configMapRef:
-              name: local-settings-web-{{ .Values.deployEnv }}
+              name: local-settings-name-{{ .Values.deployEnv }}
               optional: true
           - secretRef:
-              name: local-settings-web-secrets-{{ .Values.deployEnv }}
+              name: local-settings-name-secrets-{{ .Values.deployEnv }}
               optional: true
         ports:
           - containerPort: 80
             protocol: TCP
-        resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
-        # set failure thresholds
+        resources: {{ toYaml .Values.nameService.resources.resources | nindent 10 }}
         startupProbe:
           httpGet:
             path: /healthz-rollout
@@ -189,22 +161,27 @@ spec:
           failureThreshold: 40 # 40 attempts x 15 secs = 10 minutes for the pod to successfully start
           periodSeconds: 15
           timeoutSeconds: 10
+        # multiserver rebuild events are processed synchronously in-request, so a
+        # worker can legitimately be blocked for several minutes rebuilding the
+        # completers.  The probes are split: liveness stays generous so kubelet
+        # does not kill a pod mid-rebuild (it will return to service on its own),
+        # while readiness fails fast so a blocked pod is taken out of rotation
+        # quickly and re-enters as soon as it answers again.
         livenessProbe:
           httpGet:
             path: /healthz
             port: 80
-          # initialDelaySeconds: 120
           periodSeconds: 60
           timeoutSeconds: 60
+          failureThreshold: 10
         readinessProbe:
           httpGet:
             path: /healthz
             port: 80
-          # initialDelaySeconds: 120
-          periodSeconds: 60
-          timeoutSeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 2
         volumeMounts:
-        # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
         - mountPath: /app/sefaria/local_settings.py
           name: local-settings
           subPath: local_settings.py
@@ -218,7 +195,6 @@ spec:
         - mountPath: /client-secret
           name: client-secret
           readOnly: true
-        #TODO: what is this used for?  Is it needed? There's no env var pointing to this location
         - mountPath: /google-cloud-secret
           name: backup-manager-secret
           readOnly: true
@@ -246,7 +222,7 @@ spec:
             optional: true
         - name: client-secret
           secret:
-            secretName: {{ template "sefaria.secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
+            secretName: {{ template "sefaria.secrets.googleClient" . }}
         - name: backup-manager-secret  # used to access google cloud
           secret:
             secretName: {{ template "sefaria.secrets.backupManager" . }}
@@ -264,3 +240,4 @@ spec:
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
+{{- end }}

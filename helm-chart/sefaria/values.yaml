@@ -141,6 +141,34 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
+nameService:
+  # Standalone autocomplete ("name") service.  Runs the web image with
+  # NAME_SERVICE=true, serving only /api/name and the other completion
+  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
+  # Rebuild signals reach the name service over the multiserver Redis
+  # channel -- do not disable MULTISERVER_ENABLED while this is on, or
+  # topic edits and /admin/reset/ac will no longer refresh completions.
+  enabled: false
+  # key-pair values to load into name pod environment.  Takes precedence over global localsettings
+  localsettings:
+  replicaCount: 1
+  resources:
+    # Scale with gunicornThreadCount and replicaCount.  Do NOT scale with
+    # gunicornWorkerCount: each multiserver rebuild event is delivered to a
+    # single process per pod, so sibling workers would serve stale
+    # completions forever.  Threads share the rebuilt completers and keep
+    # health probes answering while a rebuild runs.
+    gunicornWorkerCount: 1
+    gunicornThreadCount: 4
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "200m"
+      limits:
+        memory: "4Gi"
+        cpu: "1000m"
+
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
@@ -530,6 +558,12 @@ keda:
     apiVersion: apps/v1
     kind: Deployment
     maxReplicas: 1
+  nameService:
+    # Scales with the same traffic trigger as web/redis so the name pod sleeps
+    # and wakes with the rest of the stack (it needs redis at boot).  After an
+    # idle scale-to-zero, the first wake rebuilds the autocompleters, so
+    # completions return ~minutes after the rest of the site.
+    enabled: true
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).
   # Requires Envoy Gateway v1.1+ (BackendTrafficPolicy responseOverride).
   splash:

@@ -19,6 +19,10 @@ spec:
         templates:
           - templateName: rollout-ready-{{ .Values.deployEnv }}
           - templateName: rollout-priming-{{ .Values.deployEnv }}
+          {{- if .Values.nameService.enabled }}
+          # don't flip traffic before the name service has built its completers
+          - templateName: rollout-ready-name-{{ .Values.deployEnv }}
+          {{- end }}
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
