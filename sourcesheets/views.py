@@ -876,10 +876,12 @@ def tag_list_api(request, sort_by="count"):
     return response
 
 
-def user_tag_list_api(request, user_id):
+def user_tag_list_api(request, user_id=None):
     """
     API to retrieve the list of public tags ordered by count.
     """
+    if user_id is None:
+        return jsonResponse({"error": "user_id is required."}, status=400)
     #if int(user_id) != request.user.id:
         #return jsonResponse({"error": "You are not authorized to view that."})
     response = sheet_topics_counts({"owner": int(user_id)})
@@ -941,7 +943,9 @@ def sheet_list_to_story_list(request, sid_list, public=True):
     return dict_list
 
 
-def story_form_sheets_by_tag(request, tag):
+def story_form_sheets_by_tag(request, tag=None):
+    if tag is None:
+        return jsonResponse({"error": "tag is required."}, status=400)
     sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
@@ -950,10 +954,12 @@ def story_form_sheets_by_tag(request, tag):
     return response
 
 
-def sheets_by_tag_api(request, tag):
+def sheets_by_tag_api(request, tag=None):
     """
     API to get a list of sheets by `tag`.
     """
+    if tag is None:
+        return jsonResponse({"error": "tag is required."}, status=400)
     sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}

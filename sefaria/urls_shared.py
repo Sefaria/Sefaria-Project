@@ -59,7 +59,7 @@ shared_patterns = [
     path('sheets/tags/<path:tag>', reader_views.topic_page_redirect),
     re_path(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
     re_path(r'^groups/?(?P<group>[^/]+)?$', reader_views.groups_redirect),
-    re_path(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
+    re_path(r'^contributors/(?P<uid>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
