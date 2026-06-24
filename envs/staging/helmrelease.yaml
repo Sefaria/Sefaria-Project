@@ -33,6 +33,7 @@ spec:
         tag: "v6.102.0"
       resources:
         web:
+          gunicornWorkerCount: 2
           resources:
             requests:
               memory: "8Gi"
