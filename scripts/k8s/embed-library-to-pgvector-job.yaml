@@ -1,0 +1,78 @@
+# One-off Indexed Job: embeds the full library, 10 shards × 10 indexes each.
+#
+# Apply:  kubectl apply -f scripts/k8s/embed-library-to-pgvector-job.yaml
+# Delete: kubectl delete job embed-library-to-pgvector-custom
+#
+# Required secrets (must already exist in the namespace):
+#   pgvector-secret       — keys: POSTGRES_USER, POSTGRES_PASSWORD
+#   gemini-api-key        — key:  GEMINI_API_KEY
+#   local-settings-secrets — Sefaria app secrets
+# Required configmaps:
+#   local-settings-embed-librry      — env vars (DJANGO_SETTINGS_MODULE etc.)
+#   local-settings-file-embed-librry — local_settings.py file
+#
+# Image: update IMAGE below to the latest sefaria-web-sc-43834 tag after a
+#        new build, or swap in any sefaria-web image that includes this script.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: embed-library-to-pgvector-custom
+spec:
+  completionMode: Indexed
+  completions: 1
+  parallelism: 1
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: embed-library-to-pgvector
+          image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834:sha-65180a8-202606232007
+          command: ["/app/run", "/app/sefaria/helper/vector/embed_library_to_pgvector.py"]
+          args:
+            - "--shard-count=1"
+            - "--threads=150"
+            - "--db-pool-size=50"
+          env:
+            - name: PGVECTOR_HOST
+              value: "pgvector.default.svc.cluster.local"
+            - name: PGVECTOR_PORT
+              value: "5432"
+            - name: REDIS_HOST
+              value: "redis-production"
+            - name: TQDM_DISABLE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: local-settings-secrets-production
+                optional: true
+            - configMapRef:
+                name: local-settings-production
+                optional: true
+            - secretRef:
+                name: pgvector-secret
+            - secretRef:
+                name: gemini-api-key
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "16Gi"
+              cpu: "4"
+          volumeMounts:
+            - mountPath: /app/sefaria/local_settings.py
+              name: local-settings
+              subPath: local_settings.py
+              readOnly: true
+      volumes:
+        - name: local-settings
+          configMap:
+            name: local-settings-file-production
+            items:
+              - key: local_settings.py
+                path: local_settings.py
+  ttlSecondsAfterFinished: 432000
