@@ -19,14 +19,12 @@ in `kubectl logs`.
 
 import argparse
 import hashlib
-import json
 import logging
 import os
 import re
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import contextmanager
 from datetime import datetime
 
 import django
@@ -34,10 +32,8 @@ django.setup()
 
 from sefaria.model import *
 from sefaria.search import setup_logging
+from semantic_search.semantic_text_chunk import SemanticTextChunk, SemanticTextChunkData
 
-import psycopg2
-import psycopg2.pool
-from psycopg2.extras import execute_values
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
 from tqdm import tqdm
@@ -63,87 +59,6 @@ SEPARATOR_LINE = "=" * 60
 
 # Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
-_pool: psycopg2.pool.ThreadedConnectionPool | None = None
-_pool_semaphore: threading.Semaphore | None = None
-
-# Arbitrary fixed key for serializing schema setup across concurrently-starting shards.
-SCHEMA_ADVISORY_LOCK_KEY = 727274002
-
-SCHEMA_SQL = """
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE IF NOT EXISTS library_chunks (
-    doc_id                  TEXT PRIMARY KEY,
-    index_title             TEXT NOT NULL,
-    ref                     TEXT NOT NULL,
-    url                     TEXT NOT NULL,
-    chunked_from_ref        TEXT NOT NULL,
-    language                TEXT NOT NULL,
-    version_title           TEXT NOT NULL,
-    direction               TEXT NOT NULL,
-    text                    TEXT NOT NULL,
-    embedding               VECTOR(1536) NOT NULL,
-    primary_category        TEXT,
-    all_categories          TEXT[],
-    is_primary              BOOLEAN,
-    is_source               BOOLEAN,
-    composition_date        JSONB,
-    composition_place       TEXT,
-    era_name                TEXT,
-    pagerank                DOUBLE PRECISION,
-    author_names            TEXT[],
-    author_slugs            TEXT[],
-    associated_topic_names  TEXT[],
-    associated_topic_slugs  TEXT[],
-    linked_refs             TEXT[],
-    chunker_metadata        JSONB NOT NULL,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
-    ON library_chunks (index_title, language, version_title);
-"""
-
-UPSERT_SQL = """
-INSERT INTO library_chunks
-    (doc_id, index_title, ref, url, chunked_from_ref, language, version_title, direction, text, embedding,
-     primary_category, all_categories, is_primary, is_source, composition_date, composition_place,
-     era_name, pagerank, author_names, author_slugs, associated_topic_names, associated_topic_slugs,
-     linked_refs, chunker_metadata, updated_at)
-VALUES %s
-ON CONFLICT (doc_id) DO UPDATE SET
-    text = EXCLUDED.text,
-    embedding = EXCLUDED.embedding,
-    ref = EXCLUDED.ref,
-    url = EXCLUDED.url,
-    chunked_from_ref = EXCLUDED.chunked_from_ref,
-    language = EXCLUDED.language,
-    version_title = EXCLUDED.version_title,
-    direction = EXCLUDED.direction,
-    primary_category = EXCLUDED.primary_category,
-    all_categories = EXCLUDED.all_categories,
-    is_primary = EXCLUDED.is_primary,
-    is_source = EXCLUDED.is_source,
-    composition_date = EXCLUDED.composition_date,
-    composition_place = EXCLUDED.composition_place,
-    era_name = EXCLUDED.era_name,
-    pagerank = EXCLUDED.pagerank,
-    author_names = EXCLUDED.author_names,
-    author_slugs = EXCLUDED.author_slugs,
-    associated_topic_names = EXCLUDED.associated_topic_names,
-    associated_topic_slugs = EXCLUDED.associated_topic_slugs,
-    linked_refs = EXCLUDED.linked_refs,
-    chunker_metadata = EXCLUDED.chunker_metadata,
-    updated_at = now()
-"""
-
-UPSERT_TEMPLATE = (
-    "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::vector, "
-    "%s, %s::text[], %s, %s, %s::jsonb, %s, "
-    "%s, %s, %s::text[], %s::text[], %s::text[], %s::text[], "
-    "%s::text[], %s::jsonb, now())"
-)
 
 
 class EmbeddingResult:
@@ -229,11 +144,6 @@ def parse_args() -> argparse.Namespace:
         help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
     )
     parser.add_argument(
-        "--db-pool-size", type=int,
-        default=int(os.environ.get("DB_POOL_SIZE", 50)),
-        help="Max DB connections in the shared pool (defaults to DB_POOL_SIZE env var, or 50).",
-    )
-    parser.add_argument(
         "--max-versions", type=int, default=None,
         help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
     )
@@ -246,58 +156,6 @@ def shard_for_title(title: str, shard_count: int) -> int:
     return int(hashlib.sha256(title.encode("utf-8")).hexdigest(), 16) % shard_count
 
 
-def _db_connect_kwargs() -> dict:
-    return dict(
-        host=os.environ.get("PGVECTOR_HOST", "pgvector.default.svc.cluster.local"),
-        port=int(os.environ.get("PGVECTOR_PORT", 5432)),
-        user=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        dbname=os.environ.get("PGVECTOR_DB") or os.environ["POSTGRES_USER"],
-    )
-
-
-def get_db_connection():
-    return psycopg2.connect(**_db_connect_kwargs())
-
-
-@contextmanager
-def pooled_conn():
-    """Block until a connection is available, check it out, roll back and return it on exit."""
-    _pool_semaphore.acquire()
-    try:
-        conn = _pool.getconn()
-        try:
-            yield conn
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            _pool.putconn(conn)
-    finally:
-        _pool_semaphore.release()
-
-
-def ensure_schema(conn):
-    with conn.cursor() as cur:
-        cur.execute("SELECT pg_advisory_lock(%s)", (SCHEMA_ADVISORY_LOCK_KEY,))
-        try:
-            cur.execute(SCHEMA_SQL)
-            conn.commit()
-        finally:
-            cur.execute("SELECT pg_advisory_unlock(%s)", (SCHEMA_ADVISORY_LOCK_KEY,))
-            conn.commit()
-
-
-def fetch_done_unit_refs(conn, index_title: str, language: str, version_title: str) -> set:
-    with conn.cursor() as cur:
-        cur.execute(
-            "SELECT DISTINCT chunked_from_ref FROM library_chunks "
-            "WHERE index_title = %s AND language = %s AND version_title = %s",
-            (index_title, language, version_title),
-        )
-        return {row[0] for row in cur.fetchall()}
-
-
 def is_passage_based(index) -> bool:
     return index.get_primary_corpus() in {"Tanakh", "Bavli"}
 
@@ -305,13 +163,6 @@ def is_passage_based(index) -> bool:
 def get_passages_for_index(index) -> list:
     prefix = re.escape(index.title)
     return list(PassageSet({"full_ref": {"$regex": fr"^{prefix} \d"}}))
-
-
-def upsert_chunks(conn, rows: list):
-    if not rows:
-        return
-    with conn.cursor() as cur:
-        execute_values(cur, UPSERT_SQL, rows, template=UPSERT_TEMPLATE)
 
 
 def collect_segment_records_by_section(version) -> dict:
@@ -454,7 +305,7 @@ def chunk_ref_from_segments(source_segment_refs: list):
     return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
 
 
-def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker, result,
+def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, chunker, result,
                      index_context: dict, version_context: dict) -> list:
     chunk_texts = [chunk.text for chunk in result.chunks]
     vectors = chunker.encoder(chunk_texts)
@@ -463,7 +314,7 @@ def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker
     unit_slug = slugify(unit_normal)
     vtitle_slug = slugify(vtitle)
 
-    rows = []
+    chunks = []
     for chunk_index, (chunk, vector) in enumerate(zip(result.chunks, vectors), start=1):
         chunk_hash = hashlib.sha256(
             f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
@@ -481,22 +332,37 @@ def build_chunk_rows(unit_ref, lang: str, vtitle: str, index_title: str, chunker
             "chunk_triggered": chunk.triggered,
             "chunk_score": chunk.score,
         }
-        rows.append((
-            doc_id, index_title, chunk_ref.normal(), chunk_ref.url(), unit_normal, version_context["language"], vtitle,
-            version_context["direction"], chunk.text, vector,
-            index_context["primary_category"], index_context["all_categories"],
-            version_context["is_primary"], version_context["is_source"],
-            json.dumps(index_context["composition_date"]), index_context["composition_place"],
-            index_context["era_name"], chunk_context["pagerank"],
-            index_context["author_names"], index_context["author_slugs"],
-            chunk_context["associated_topic_names"], chunk_context["associated_topic_slugs"],
-            chunk_context["linked_refs"], json.dumps(chunker_metadata),
+        chunks.append(SemanticTextChunkData(
+            doc_id=doc_id,
+            index_title=index_title,
+            ref=chunk_ref.normal(),
+            url=chunk_ref.url(),
+            chunked_from_ref=unit_normal,
+            language=version_context["language"],
+            version_title=vtitle,
+            direction=version_context["direction"],
+            text=chunk.text,
+            embedding=vector,
+            primary_category=index_context["primary_category"],
+            all_categories=index_context["all_categories"],
+            is_primary=version_context["is_primary"],
+            is_source=version_context["is_source"],
+            composition_date=index_context["composition_date"],
+            composition_place=index_context["composition_place"],
+            era_name=index_context["era_name"],
+            pagerank=chunk_context["pagerank"],
+            author_names=index_context["author_names"],
+            author_slugs=index_context["author_slugs"],
+            associated_topic_names=chunk_context["associated_topic_names"],
+            associated_topic_slugs=chunk_context["associated_topic_slugs"],
+            linked_refs=chunk_context["linked_refs"],
+            chunker_metadata=chunker_metadata,
         ))
-    return rows
+    return chunks
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   version_pbar=None):
+                   chunk_store: SemanticTextChunk, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -509,8 +375,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
         lang, vtitle = version.language, version.versionTitle
         version_context = get_version_context(version)
 
-        with pooled_conn() as conn:
-            already_done = fetch_done_unit_refs(conn, index.title, version_context["language"], vtitle)
+        already_done = chunk_store.get_indexed_unit_refs(index.title, version_context["language"], vtitle)
 
         units = get_units_for_version(version)
 
@@ -526,14 +391,12 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     if not chunk_result.chunks:
                         result_tracker.increment("sections_skipped_empty")
                     else:
-                        rows = build_chunk_rows(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
-                                                index_context, version_context)
-                        with pooled_conn() as conn:
-                            upsert_chunks(conn, rows)
-                            conn.commit()
+                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
+                                                      index_context, version_context)
+                        chunk_store.upsert(chunk_data)
                         result_tracker.increment("sections_embedded")
-                        result_tracker.increment("chunks_written", len(rows))
-                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(rows)} chunk(s)")
+                        result_tracker.increment("chunks_written", len(chunk_data))
+                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(chunk_data)} chunk(s)")
                 except Exception as e:
                     result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
 
@@ -542,7 +405,8 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, version_pbar=None):
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk,
+                  version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -562,7 +426,7 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, version_pbar=
                 ]
 
             _process_index(index, chunker, result_tracker, get_units_for_version,
-                           version_pbar=version_pbar)
+                           chunk_store=chunk_store, version_pbar=version_pbar)
             return
 
     section_refs = index.all_section_refs()
@@ -575,11 +439,11 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, version_pbar=
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(index, chunker, result_tracker, get_units_for_version,
-                   version_pbar=version_pbar)
+                   chunk_store=chunk_store, version_pbar=version_pbar)
 
 
 def thread_init(api_key: str, config):
-    """Per-thread initializer: create a PatotChunker (DB connections come from the shared pool)."""
+    """Per-thread initializer: create a PatotChunker."""
     thread_local.chunker = PatotChunker(api_key=api_key, config=config)
 
 
@@ -603,10 +467,11 @@ def main():
         raise SystemExit("Missing GEMINI_API_KEY environment variable.")
 
     result = EmbeddingResult()
+    chunk_store = SemanticTextChunk()
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
-    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}, db_pool_size={args.db_pool_size}")
+    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
     logger.info(SEPARATOR_LINE)
 
     config = ChunkerConfig(
@@ -617,13 +482,7 @@ def main():
         extract_html_footnotes_to_segments=False,
     )
 
-    schema_conn = get_db_connection()
-    ensure_schema(schema_conn)
-    schema_conn.close()
-
-    global _pool, _pool_semaphore
-    _pool = psycopg2.pool.ThreadedConnectionPool(1, args.db_pool_size, **_db_connect_kwargs())
-    _pool_semaphore = threading.Semaphore(args.db_pool_size)
+    chunk_store.ensure_schema()
 
     all_indexes = library.all_index_records()
     shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
@@ -647,7 +506,7 @@ def main():
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(index, thread_local.chunker, result, version_pbar)
+                process_index(index, thread_local.chunker, result, chunk_store, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
             result.increment("indexes_processed")
@@ -668,8 +527,6 @@ def main():
 
     logger.info(result.get_summary())
     logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
-
-    _pool.closeall()
 
     if not result.is_success():
         sys.exit(1)

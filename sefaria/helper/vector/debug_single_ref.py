@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+from dataclasses import asdict
 from datetime import datetime
 
 import django
@@ -29,36 +30,18 @@ from sefaria.helper.vector.embed_library_to_pgvector import (
     collect_segment_records_by_section,
     get_index_context,
     get_version_context,
-    build_chunk_rows,
+    build_chunk_data,
 )
 
-# Column names matching the library_chunks table, in the same order as build_chunk_rows tuples.
-_COLUMNS = [
-    "doc_id", "index_title", "ref", "url", "language", "version_title",
-    "direction", "text", "embedding",
-    "primary_category", "all_categories", "is_primary", "is_source",
-    "composition_date", "composition_place", "era_name", "pagerank",
-    "author_names", "author_slugs",
-    "associated_topic_names", "associated_topic_slugs",
-    "linked_refs", "chunker_metadata",
-]
 
-
-def row_to_dict(row: tuple) -> dict:
-    d = dict(zip(_COLUMNS, row))
+def chunk_to_dict(chunk) -> dict:
+    d = asdict(chunk)
     vector = d["embedding"]
     d["embedding"] = {
         "preview_dims_0_7": list(vector[:8]),
         "norm": sum(x * x for x in vector) ** 0.5,
         "total_dims": len(vector),
     }
-    # composition_date and chunker_metadata arrive as JSON strings from build_chunk_rows
-    for key in ("composition_date", "chunker_metadata"):
-        if isinstance(d[key], str):
-            try:
-                d[key] = json.loads(d[key])
-            except (json.JSONDecodeError, TypeError):
-                pass
     return d
 
 
@@ -122,11 +105,11 @@ def main():
         if not chunk_result.chunks:
             continue
 
-        rows = build_chunk_rows(
+        chunks = build_chunk_data(
             section_ref, version_context["language"], version.versionTitle, index.title,
             chunker, chunk_result, index_context, version_context,
         )
-        output["rows"].extend(row_to_dict(row) for row in rows)
+        output["rows"].extend(chunk_to_dict(c) for c in chunks)
 
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2, default=str)
