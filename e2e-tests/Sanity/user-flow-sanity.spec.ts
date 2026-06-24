@@ -20,7 +20,7 @@ import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../constants';
 
-test.describe.serial('User Flow Sanity Tests', () => {
+test.describe.serial('User Flow Sanity Tests', { tag: '@sanity' }, () => {
 
   // =================================================================
   // TEST 1: LOGIN

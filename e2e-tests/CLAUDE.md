@@ -213,8 +213,10 @@ Conventions:
 | Library Topics (`/topics/<slug>` + `/topics` landing, LIB-NNN) | `Full testing by Feature/Library Topics/` | `chrome/firefox/safari-library-topics` | `www.<sandbox>` |
 | Voices Bookmarks & History (sheet-page bookmark + `/saved`, VBM-NNN) | `Full testing by Feature/Voices Bookmarks (Saved) and History/` | `chrome/firefox/safari-voices-bookmarks` | `voices.<sandbox>` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile web/` *(separate config — `playwright.mobileweb.config.ts`)* | `chrome-mobile-library` (Pixel 5), `safari-mobile-library` (iPhone 13) | `www.<sandbox>` |
-| End-to-end smoke / release gate | `Sanity/` | `chrome-sanity`, `firefox-sanity`, `safari-sanity` | `www.<sandbox>` |
+| End-to-end smoke / release gate | `Sanity/` (+ any `@sanity`-tagged test, anywhere) | `chrome-sanity`, `firefox-sanity`, `safari-sanity` | `www.<sandbox>` |
 | Cross-cutting or unplaceable (help redirects, etc.) | `Misc/` | `chrome-misc`, `firefox-misc`, `safari-misc` | `www.<sandbox>` |
+
+> The `*-sanity` projects are **tag-scoped**, not folder-scoped (`testDir: './e2e-tests'` + `grep: /@sanity/`): they run every test tagged `{ tag: '@sanity' }` regardless of folder. To add a release-gate test that lives elsewhere to the sanity run, tag it in place — don't copy it into `Sanity/`. See [Sanity/README.md](Sanity/README.md) §3.
 
 Rule of thumb:
 
@@ -440,6 +442,12 @@ npx playwright test --project=chrome-resource-panel    # Resource Panel suite
 npx playwright test --project=chrome-voices-topics     # Voices Topics suite
 npx playwright test --project=chrome-library-topics    # Library Topics suite
 npx playwright test --project=chrome-bookmarks-(saved)-and-history  # Voices Bookmarks & History suite
+
+# Sanity = TAG-scoped: runs every test tagged `{ tag: '@sanity' }` anywhere in
+# the tree, not just the Sanity/ folder (testDir './e2e-tests' + grep /@sanity/).
+# Add a release-gate test to this run by tagging it in place — never copy it
+# into Sanity/. See Sanity/README.md §3.
+npx playwright test --project=chrome-sanity            # @sanity-tagged release-gate suite
 
 # Mobile suite (separate config — runs under width < 843 px viewport)
 npx playwright test --config=playwright.mobileweb.config.ts

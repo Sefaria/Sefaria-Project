@@ -117,9 +117,16 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
+    // every test tagged `@sanity`, so a release-gate test can be marked without
+    // leaving its home folder (no copy/paste). Lets us move tests to their
+    // proper feature folder over time while they stay in the sanity run.
+    // Safe to give one baseURL because the suite navigates to absolute
+    // MODULE_URLS, never relative paths.
     {
       name: 'chrome-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -200,7 +207,8 @@ export default defineConfig({
     },
     {
       name: 'firefox-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -276,7 +284,8 @@ export default defineConfig({
     },
     {
       name: 'safari-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,

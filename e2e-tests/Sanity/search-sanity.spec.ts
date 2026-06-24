@@ -13,7 +13,7 @@ import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS, SEARCH_DROPDOWN } from '../constants';
 
-test.describe('Search Sanity Tests', () => {
+test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
 
   // =================================================================
   // TEST 1: LIBRARY - Search suggestion click and navigation

@@ -2,7 +2,7 @@
 
 The **release-gate smoke suite**. These tests validate the core user-facing workflows and cross-module integration that must work before every release — authentication state, navigation, profile/settings, the full sheet lifecycle, search, and URL redirects across the Library and Voices modules. A failing Sanity test is a blocking issue.
 
-Runs under the `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects (`baseURL` = `www.<sandbox-domain>`). New here? Read the root [handbook](../README.md) first — it covers setup, the PageManager pattern, and the conventions these specs follow.
+Runs under the `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects (`baseURL` = `www.<sandbox-domain>`). **These projects are tag-scoped, not folder-scoped** — they run every test tagged `@sanity` anywhere in the tree, not just the specs in this folder (see §3). New here? Read the root [handbook](../README.md) first — it covers setup, the PageManager pattern, and the conventions these specs follow.
 
 ---
 
@@ -88,8 +88,13 @@ Two describes (English + Hebrew), each **data-driven from [../helpDeskLinksConst
 ## 3. Running
 
 ```bash
-# Whole Sanity suite
+# Whole Sanity suite (Chromium) — every test tagged @sanity, anywhere in the tree
 npx playwright test --project=chrome-sanity
+npm run test:sanity                  # same thing
+
+# Cross-browser
+npx playwright test --project=firefox-sanity
+npx playwright test --project=safari-sanity
 
 # One spec
 npx playwright test Sanity/user-flow-sanity.spec.ts --project=chrome-sanity
@@ -102,6 +107,38 @@ npx playwright test -g 'Sanity 9c'
 npx playwright test Sanity/cross-module-redirects.spec.ts --project=chrome-sanity
 npx playwright test Misc/help-sheet-redirects.spec.ts --project=chrome-misc
 ```
+
+### The `@sanity` tag — membership is by tag, not by folder
+
+The `chrome-sanity` / `firefox-sanity` / `safari-sanity` projects are defined in
+[../../playwright.config.ts](../../playwright.config.ts) with `testDir: './e2e-tests'`
+and `grep: /@sanity/` — they scan the **whole tree** and run every test tagged
+`@sanity`, regardless of which folder it lives in. (Safe with a single `baseURL`
+because the suite navigates to absolute `MODULE_URLS`, never relative paths.)
+
+This means you can pull a release-gate test that lives in **another** folder
+(Resource Panel, Library Topics, Voices, …) into the Sanity run **without copy/paste
+or moving it** — just tag it `@sanity` where it sits:
+
+```ts
+// stays in its home folder; just gets the tag
+test.describe('Resource Panel — connections', { tag: '@sanity' }, () => { ... });
+// or per-test:
+test('RP-012: connections list shows related texts', { tag: '@sanity' }, async () => { ... });
+```
+
+It also means tests can **migrate to their proper feature folder over time** and stay
+in the Sanity run the whole way — the tag travels with the test, the folder no longer
+matters.
+
+- **CLI:** `npm run test:sanity` (or `npx playwright test --project=chrome-sanity`).
+- **VS Code Playwright extension:** in the **Testing** sidebar's *Playwright* panel,
+  check only **`chrome-sanity`** (or firefox/safari), then run — its Test Explorer
+  node lists only the `@sanity`-tagged tests. A tagged test also appears under its
+  home project; running it via the sanity node executes it once.
+
+Every spec in this folder is tagged `@sanity` at the `describe` level, so the curated
+folder suite is included automatically.
 
 ---
 
@@ -127,9 +164,10 @@ npx playwright test Misc/help-sheet-redirects.spec.ts --project=chrome-misc
 ## 6. Adding a Sanity test
 
 1. Decide it's genuinely **release-gate** material — a core workflow or cross-module invariant. Narrow feature coverage belongs in a module folder or a `Full testing by Feature/` suite, not here.
-2. Give it the next `Sanity N` (or `Scenario N`) label in the relevant spec.
-3. If it **destroys or rotates a session** (logout, re-login of a globalSetup profile, password change), read §5 first — use `enAdmin` or intercept the request.
-4. Keep it independent unless it genuinely needs shared state (then opt into `serial`, like the sheet workflow).
+2. **New test that belongs in `Sanity/`:** add it to the relevant spec with the next `Sanity N` (or `Scenario N`) label, and make sure its `describe` carries `{ tag: '@sanity' }` — that tag is what puts it in the sanity run, not its location.
+3. **Existing test elsewhere you want in the Sanity run:** don't move or copy it — add `{ tag: '@sanity' }` to its `test()` or `test.describe()` in its home folder (see §3). It then runs under the sanity projects while staying put for its own feature suite.
+4. If it **destroys or rotates a session** (logout, re-login of a globalSetup profile, password change), read §5 first — use `enAdmin` or intercept the request.
+5. Keep it independent unless it genuinely needs shared state (then opt into `serial`, like the sheet workflow).
 
 ## 7. Related
 

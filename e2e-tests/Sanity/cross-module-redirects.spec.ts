@@ -3,7 +3,7 @@ import { goToPageWithUser, hideAllModalsAndPopups, normalizeUrl, urlMatches, ass
 import { BROWSER_SETTINGS, t } from '../globals';
 import { MODULE_URLS } from '../constants';
 
-test.describe('Cross-Module Redirects - Library to Voices', () => {
+test.describe('Cross-Module Redirects - Library to Voices', { tag: '@sanity' }, () => {
 
   test.beforeEach(async ({ context }) => {
     // goToPageWithUser handles auth setup, navigation, and modal hiding
@@ -101,7 +101,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
   });
 });
 
-test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Preservation', () => {
+test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Preservation', { tag: '@sanity' }, () => {
 
   test.beforeEach(async ({ context }) => {
     // goToPageWithUser handles auth setup, navigation, and modal hiding
@@ -136,7 +136,7 @@ test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Pres
   });
 });
 
-test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', () => {
+test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', { tag: '@sanity' }, () => {
 
   test.beforeEach(async ({ context }) => {
     // goToPageWithUser handles auth setup, navigation, and modal hiding
@@ -178,7 +178,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
 
 
 
-test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
+test.describe('Voices-Module Redirects - No Redirect Loops on Voices', { tag: '@sanity' }, () => {
 
   test.beforeEach(async ({ context }) => {
     // goToPageWithUser handles auth setup, navigation, and modal hiding

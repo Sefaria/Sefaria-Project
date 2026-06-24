@@ -182,6 +182,8 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | `Full testing by Feature/Voices Topics/` | `chrome-voices-topics` | `firefox-voices-topics` | `safari-voices-topics` | `voices.<domain>` |
 | `mobile web/` *(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<domain>` |
 
+The `*-sanity` projects are the one exception to the folder→project mapping above: they are **tag-scoped**, not folder-scoped (`testDir: './e2e-tests'` + `grep: /@sanity/`). They run every test tagged `@sanity` anywhere in the tree — the `Sanity/` folder is just where most of them currently live. See [Sanity/README.md](Sanity/README.md) §3.
+
 Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used *inside* tests when asserting Hebrew-site behavior — they are not separate Playwright projects.
 
 ---
@@ -562,7 +564,10 @@ Before opening a PR:
 # Run the project that matches your change
 npx playwright test --project=chrome-library
 
-# If you touched cross-module behavior, also run Sanity
+# If you touched cross-module behavior, also run Sanity.
+# Sanity is TAG-scoped: it runs every test tagged `{ tag: '@sanity' }` anywhere
+# in the tree, not just the Sanity/ folder. Tag a test in place to add it to
+# this run — don't copy it into Sanity/. See Sanity/README.md §3.
 npx playwright test --project=chrome-sanity
 ```
 

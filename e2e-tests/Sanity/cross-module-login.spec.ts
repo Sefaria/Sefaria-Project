@@ -15,7 +15,7 @@ import { PageManager } from '../pages/pageManager';
 // CLAUDE.md rule §2.21) or page.route-intercept /login. See README §14
 // "Destructive auth tests".
 
-test.describe('Cross-Module Login Scenarios', () => {
+test.describe('Cross-Module Login Scenarios', {tag: '@sanity'},() => {
 
   test('Scenario 1: Login on Library, verify logged in state and remain on Library', async ({ context }) => {
     // Start as not logged in
