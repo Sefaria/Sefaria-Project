@@ -7502,6 +7502,18 @@ But not to use a display block directive that might break continuous mode for ot
   margin-bottom: 15px;
   border-bottom: 1px solid #CCCCCC;
   padding-bottom: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.connectionsPanel .connectionPanelSectionHeader .timelineMapButton {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--medium-grey);
+}
+.connectionsPanel .connectionPanelSectionHeader .timelineMapButton:hover {
+  color: var(--dark-grey);
+  text-decoration: underline;
 }
 .connectionsPanel .connectionPanelSectionHeader .connectionPanelSectionHeaderInner{
   font-size: 14px;
@@ -13599,6 +13611,9 @@ body .homeFeedWrapper.userStats {
 .userStats .chartLabel {
   text-align: center;
   padding-top: 8px;
+}
+#timelinePage {
+  padding-top:60px;
 }
 a.topicLexiconTitle.contentText {
   color: black;

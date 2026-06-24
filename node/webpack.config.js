@@ -209,7 +209,10 @@ var timelineConfig = config({
     output: {
         path: path.resolve(buildDir + 'timeline'),
         filename: 'timeline.js'
-    }
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.timeline.json'}),
+    ]
 });
 
 var categorizeSheetsConfig = config({

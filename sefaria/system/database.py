@@ -200,6 +200,8 @@ def ensure_indices(active_db=None):
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{}),
+        ('linknet', ["early_refs"],{}),
+        ('linknet', ["late_refs"], {}),
         ('webpages', ["expandedRefs"],{}),
         ('websites', ["domains"], {}),
         ('manuscript_pages', ['expanded_refs'], {}),

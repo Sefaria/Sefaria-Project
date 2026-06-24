@@ -4818,29 +4818,54 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return None
 
-    def distance(self, ref, max_dist=None):
+    def distance(self, ref, max_dist=None, fast=False):
         """
-
         :param ref: ref which you want to compare distance with
         :param max_dist: maximum distance beyond which the function will return -1. it's suggested you set this param b/c alternative is very slow
+        :param fast: Use heuristics to return distance quickly.  May return max_dist wrongly, in edge cases.
         :return: int: num refs between self and ref. -1 if self and ref aren't in the same index
         """
+        # todo: what if the refs have different depth?
+        # todo: ranged refs haven't really been considered
+        self_section_len = len(self.sections)
+        ref_section_len = len(ref.sections)
+
         if self.index_node != ref.index_node:
             return -1
 
-        # convert to base 0
-        sec1 = self.sections[:]
-        sec2 = ref.sections[:]
-        for i in range(len(sec1)):
-            sec1[i] -= 1
-        for i in range(len(sec2)):
-            sec2[i] -= 1
+        if fast and self_section_len != ref_section_len:
+            return -1 # we can do better than that.
 
-        distance = self.get_state_ja().distance(sec1,sec2)
-        if max_dist and distance > max_dist:
+        if self_section_len == 0 or ref_section_len == 0:
+            return 0
+
+        if self.index_node.depth == self_section_len:
+            # If they're the same section, math is simple subtraction
+            if self.sections[:-1] == ref.sections[:-1]:
+                return abs(self.sections[-1] - ref.sections[-1])
+
+            # They're different sections, see if it's def. too far
+            if max_dist:
+                # Are they far?
+                if fast and self.index_node.depth > 1 and abs(self.sections[-2] - ref.sections[-2]) > max_dist:
+                    return -1
+
+                if self.precedes(ref):
+                    if ref.sections[-1] > max_dist:
+                        return -1
+                else:
+                    if self.sections[-1] > max_dist:
+                        return -1
+
+        if fast and self.index_node.depth == self_section_len + 1 and abs(self.sections[-1] - ref.sections[-1]) > max_dist:
             return -1
-        else:
-            return distance
+
+        # Couldn't short circuit, proceed with full computation
+        # convert to base 0
+        sec1 = [i - 1 for i in self.sections]
+        sec2 = [i - 1 for i in ref.sections]
+
+        return self.get_state_ja().distance(sec1, sec2, depth=self.index_node.depth)
 
     def get_all_anchor_refs(self, expanded_self, document_tref_list, document_tref_expanded):
         """
