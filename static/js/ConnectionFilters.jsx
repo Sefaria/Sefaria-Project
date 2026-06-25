@@ -116,8 +116,10 @@ class TextFilter extends Component {
     const enDesc = this.props.description
     const heDesc = this.props.heDescription
     const showDescription = true; //showCount;//
-    return (
-      <a href={url} onClick={this.handleClick}>
+    // Render the active recent filter (the secondary text's title) as a non-link, so right-click
+    // doesn't offer "Open Link in New Tab", which duplicated the current two-panel view.
+    const renderAsTitle = this.props.inRecentFilters && this.props.on;
+    const inner = (
         <div data-name={enBook} className={classes} style={style} >
             <div className={upperClass}>
                 <span className="filterInner">
@@ -134,8 +136,10 @@ class TextFilter extends Component {
                       : null }</div> : null}
             </div>
         </div>
-      </a>
     );
+    return renderAsTitle ?
+      <span className="textFilterTitle">{inner}</span> :
+      <a href={url} onClick={this.handleClick}>{inner}</a>;
   }
 }
 TextFilter.propTypes = {
