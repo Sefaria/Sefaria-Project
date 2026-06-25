@@ -1503,12 +1503,23 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         )
 
         if response.status_code != 200:
+            logger.error(
+                f"Strapi returned HTTP {response.status_code} for graphql-cache. "
+                f"Response body: {response.text[:500]}"
+            )
             return jsonResponse(
                 {"error": f"Strapi request failed with status {response.status_code}"},
                 status=500,
             )
 
         result_json = response.text
+
+        # GraphQL always returns HTTP 200, even for query errors — check the body for errors too
+        parsed = response.json()
+        if parsed.get("errors"):
+            logger.error(
+                f"Strapi GraphQL query returned errors: {parsed['errors']}"
+            )
 
         # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
         set_cache_elem(
@@ -1518,7 +1529,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return HttpResponse(result_json, content_type="application/json")
 
     except Exception as e:
-        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}", exc_info=True)
         return jsonResponse({"error": "Internal server error"}, status=500)
 
 
