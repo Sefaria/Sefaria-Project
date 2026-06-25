@@ -144,24 +144,31 @@ class Project(models.Model):
     def __str__(self):
         return self.project_name
 
-    def contents(self):
-        """Return a JSON-safe dict of all fields (datetimes as ISO strings)."""
+    # PII / internal staff metadata. Only serialized for authenticated staff;
+    # see contents() and powered_by.views.powered_by_api.
+    PRIVATE_FIELDS = (
+        "creator", "creator_email", "is_developer", "job_title", "found_sefaria",
+        "submitter", "salesforce_id", "notes",
+    )
+
+    def contents(self, authenticated=False):
+        """
+        Return a JSON-safe dict of fields (datetimes as ISO strings).
+
+        Public fields are always included. PII / internal fields
+        (`PRIVATE_FIELDS`: creator_email, submitter, salesforce_id, notes) are
+        included only when `authenticated` is True, which the view sets from
+        `request.user.is_staff`.
+        """
         def iso(dt):
             return dt.isoformat() if dt else None
 
-        return {
+        contents = {
             "id": self.id,
             "submission_date": iso(self.submission_date),
             "created_at": iso(self.created_at),
             "updated_at": iso(self.updated_at),
             "submission_source": self.submission_source,
-            "creator": self.creator,
-            "creator_email": self.creator_email,
-            "submitter": self.submitter,
-            "salesforce_id": self.salesforce_id,
-            "is_developer": self.is_developer,
-            "job_title": self.job_title,
-            "found_sefaria": self.found_sefaria,
             "sefaria_tools_used": self.sefaria_tools_used,
             "tech_used_raw": self.tech_used_raw,
             "technical_experience": self.technical_experience,
@@ -182,5 +189,10 @@ class Project(models.Model):
             "consent_to_display": self.consent_to_display,
             "is_published": self.is_published,
             "featured": self.featured,
-            "notes": self.notes,
         }
+
+        if authenticated:
+            for field in self.PRIVATE_FIELDS:
+                contents[field] = getattr(self, field)
+
+        return contents

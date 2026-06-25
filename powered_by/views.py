@@ -8,8 +8,10 @@ def powered_by_api(request):
     """
     Basic GET endpoint returning all Powered by Sefaria projects.
 
+    PII / internal fields (Project.PRIVATE_FIELDS) are only included for staff.
     No filtering or pagination. Returns:
-        {"projects": [ { ...all project fields... }, ... ]}
+        {"projects": [ { ...public project fields... }, ... ]}
     """
-    projects = [project.contents() for project in Project.objects.all()]
+    authenticated = request.user.is_staff
+    projects = [project.contents(authenticated=authenticated) for project in Project.objects.all()]
     return jsonResponse({"projects": projects})
