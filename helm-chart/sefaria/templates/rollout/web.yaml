@@ -158,6 +158,9 @@ spec:
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:
+              name: {{ template "sefaria.secrets.pgvectorPassword" . }}
+              optional: true
+          - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
           - configMapRef:
