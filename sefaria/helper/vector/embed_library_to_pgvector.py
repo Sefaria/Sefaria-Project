@@ -30,6 +30,7 @@ from datetime import datetime
 import django
 django.setup()
 
+from django.conf import settings as django_settings
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.semantic_text_chunk import SemanticTextChunk, SemanticTextChunkData
@@ -462,9 +463,9 @@ def main():
     if not (0 <= args.shard_index < args.shard_count):
         raise SystemExit(f"--shard-index ({args.shard_index}) must be in [0, {args.shard_count})")
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = django_settings.GEMINI_API_KEY
     if not api_key:
-        raise SystemExit("Missing GEMINI_API_KEY environment variable.")
+        raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
 
     result = EmbeddingResult()
     chunk_store = SemanticTextChunk()

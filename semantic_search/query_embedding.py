@@ -1,5 +1,4 @@
-import os
-
+from django.conf import settings
 from patot.embedding import GeminiEmbedder, l2_normalize_vector
 
 _MODEL = "gemini-embedding-001"
@@ -8,9 +7,9 @@ _TASK_TYPE = "RETRIEVAL_QUERY"  # paired with "RETRIEVAL_DOCUMENT" used at index
 
 
 def embed_query(query: str) -> list:
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = settings.GEMINI_API_KEY
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is not set")
+        raise ValueError("GEMINI_API_KEY is not set in Django settings")
     embedder = GeminiEmbedder(api_key=api_key)
     embedding = embedder.embed_text(
         model=_MODEL,

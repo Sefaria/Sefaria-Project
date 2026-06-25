@@ -180,8 +180,6 @@ INSTALLED_APPS = (
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
-SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
-
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'
