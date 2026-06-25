@@ -27,6 +27,7 @@ const Strings = {
     "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
     "Moderator Tools": "כלי מנהלים",
     " with " : " עם ",
+    "Sheets With": "דפי מקורות עם",
     "Connections" : "קשרים",
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",

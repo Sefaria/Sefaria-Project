@@ -37,18 +37,11 @@ class Sheet extends Component {
     const sheetRef = "Sheet " + data.id + (this.props.highlightedNode ? "." + this.props.highlightedNode : "");
     this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
-    this.updateDivineNameStateWithSheetValue()
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
-    } else {
-      this.updateDivineNameStateWithSheetValue()
     }
-  }
-  updateDivineNameStateWithSheetValue() {
-    const sheet = this.getSheetFromCache();
-    this.props.setDivineNameReplacement(sheet.options.divineNames)
   }
   handleClick(e) {
     const target = e.target.closest('a');
@@ -78,8 +71,6 @@ class Sheet extends Component {
                         sheetSourceClick={this.props.onSegmentClick}
                         highlightedNode={this.props.highlightedNode}
                         highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-                        setDivineNameReplacement={this.props.setDivineNameReplacement}
-                        divineNameReplacement={this.props.divineNameReplacement}
                         toggleSignUpModal={this.props.toggleSignUpModal}
                         historyObject={this.props.historyObject}
                         editable={true}

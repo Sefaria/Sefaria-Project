@@ -3439,6 +3439,13 @@ class Ref(object, metaclass=RefCacheType):
         d["toSections"] = d["toSections"][:-1] + [end]
         return Ref(_obj=d)
 
+    def get_subrefs_count(self, state_ja=None):
+        """Number of subrefs in the ref."""
+        if self.index_node.is_virtual:
+            return len(self.text().text)
+        ja = state_ja or self.get_state_ja()
+        return ja.sub_array_length([i - 1 for i in self.sections])
+
     def as_ranged_segment_ref(self):
         """
         Expresses a section level (or higher) Ref as a ranged ref at segment level.
@@ -3633,12 +3640,13 @@ class Ref(object, metaclass=RefCacheType):
         if prev_ref:
             prev_ref._next = self if add_self else next_ref
 
-    def prev_segment_ref(self):
+    def prev_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next previous populated segment.
 
         If this ref is not segment level, will return ``self```
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.starting_ref()
@@ -3649,34 +3657,35 @@ class Ref(object, metaclass=RefCacheType):
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] - 1]
             return Ref(_obj=d)
         else:
-            r = r.prev_section_ref()
+            r = r.prev_section_ref(vstate=vstate)
             if not r:
                 return None
+            last_index = r.get_subrefs_count(self.get_state_ja(vstate=vstate))
             d = r._core_dict()
-            newSections = r.sections + [self.get_state_ja().sub_array_length([i - 1 for i in r.sections])]
-            d["sections"] = d["toSections"] = newSections
+            d["sections"] = d["toSections"] = r.sections + [last_index]
             return Ref(_obj=d)
 
-    def next_segment_ref(self):
+    def next_segment_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the next populated segment.
 
         If this ref is not segment level, will return ``self```
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
         r = self.ending_ref()
         if not r.is_segment_level():
             return r
-        sectionRef = r.section_ref()
-        sectionLength = self.get_state_ja().sub_array_length([i - 1 for i in sectionRef.sections])
-        if r.sections[-1] < sectionLength:
+        section_ref = r.section_ref()
+        section_length = section_ref.get_subrefs_count(self.get_state_ja(vstate=vstate))
+        if r.sections[-1] < section_length:
             d = r._core_dict()
             d["sections"] = d["toSections"] = r.sections[:-1] + [r.sections[-1] + 1]
             return Ref(_obj=d)
         else:
             try:
-                return r.next_section_ref().subref(1)
+                return r.next_section_ref(vstate=vstate).subref(1)
             except AttributeError:
                 # No next section
                 return None
@@ -3693,16 +3702,16 @@ class Ref(object, metaclass=RefCacheType):
         o["sections"] = o["toSections"] = [i + 1 for i in self.get_state_ja().last_index(self.index_node.depth)]
         return Ref(_obj=o)
 
-    def first_available_section_ref(self):
+    def first_available_section_ref(self, vstate=None):
         """
         Returns a :class:`Ref` to the first section inside of or following this :class:`Ref` that has some content.
         Return first available segment ref is `self` is depth 1
 
         Returns ``None`` if self is empty and no following :class:`Ref` has content.
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`Ref`
         """
-        # todo: This is now stored on the VersionState. Look for performance gains.
         if isinstance(self.index_node, JaggedArrayNode):
             r = self.padded_ref()
         elif isinstance(self.index_node, TitledTreeNode):
@@ -3723,9 +3732,9 @@ class Ref(object, metaclass=RefCacheType):
         if r.is_book_level():
             # r is depth 1. return first segment
             r = r.subref([1])
-            return r.next_segment_ref() if r.is_empty() else r
+            return r.next_segment_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
         else:
-            return r.next_section_ref() if r.is_empty() else r
+            return r.next_section_ref(vstate=vstate) if r.is_empty(vstate=vstate) else r
 
     #Don't store results on Ref cache - state objects change, and don't yet propogate to this Cache
     def get_state_node(self, meta=None, hint=None):
@@ -3735,11 +3744,16 @@ class Ref(object, metaclass=RefCacheType):
         from . import version_state
         return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
-    def get_state_ja(self, lang="all"):
+    def get_state_ja(self, lang="all", vstate=None):
         """
         :param lang: "all", "he", or "en"
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: :class:`sefaria.datatype.jagged_array`
         """
+        if self.index_node.is_virtual:
+            return
+        if vstate:
+            return vstate.state_node(self.index_node).ja(lang)
         #TODO: also does not work with complex texts...
         return self.get_state_node(hint=[(lang, "availableTexts")]).ja(lang)
 
@@ -3767,17 +3781,16 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.is_text_fully_available("en")
 
-    def is_empty(self, lang=None):
+    def is_empty(self, lang=None, vstate=None):
         """
         Checks if :class:`Ref` has any corresponding data in :class:`Version` records.
 
+        :param vstate: optional pre-fetched VersionState to avoid DB calls
         :return: Bool True is there is not text at this ref in any language
         """
-
-        # The commented code is easier to understand, but the code we're using puts a lot less on the wire.
-        # return not len(self.versionset())
-        # depricated
-        # return db.texts.find(self.condition_query(), {"_id": 1}).count() == 0
+        if vstate and not self.index_node.is_virtual:
+            state_ja = self.get_state_ja(vstate=vstate)
+            return state_ja.subarray_with_ref(self).is_empty()
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
@@ -3935,11 +3948,7 @@ class Ref(object, metaclass=RefCacheType):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
-        if self.index_node.is_virtual:
-            size = len(self.text().text)
-            return self.subrefs(size)
-        state_ja = state_ja or self.get_state_ja(lang)
-        size = state_ja.sub_array_length([i - 1 for i in self.sections])
+        size = self.get_subrefs_count(state_ja or self.get_state_ja(lang))
         if size is None:
             size = 0
         return self.subrefs(size)
@@ -6438,7 +6447,10 @@ def prepare_index_regex_for_dependency_process(index_object, as_list=False):
 
 
 def process_index_title_change_in_versions(indx, **kwargs):
-    VersionSet({"title": kwargs["old"]}).update({"title": kwargs["new"]})
+    # Direct update to bypass Version._validate() — during a rename the Index title changes first,
+    # so saving versions one-by-one would fail the "at least one primary version" check until the
+    # first primary is saved. No Version dependencies are registered on the `title` field, so nothing is lost.
+    db.texts.update_many({"title": kwargs["old"]}, {"$set": {"title": kwargs["new"]}})
 
 
 def process_index_title_change_in_dependant_records(indx, **kwargs):

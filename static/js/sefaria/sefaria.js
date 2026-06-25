@@ -9,7 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from './csrf';
 import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
@@ -956,7 +956,7 @@ Sefaria = extend(Sefaria, {
         method,
         mode: 'same-origin',
         headers: {
-            'X-CSRFToken': Cookies.get('csrftoken'),
+            'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin',

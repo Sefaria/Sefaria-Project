@@ -1765,9 +1765,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.openTextListAt(n+1, refs);
     }
   }
-  setDivineNameReplacement(mode) {
-    this.setState({divineNameReplacement: mode})
-  }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
     const connectionsPanel = this.state.panels[n];
@@ -2411,8 +2408,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
-                      divineNameReplacement={this.state.divineNameReplacement}
-                      setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
                       editorSaveState={this.state.editorSaveState}
