@@ -6,7 +6,7 @@ queries the prod pgvector DB directly for the top 100 nearest neighbors, and
 records what rank the target ref appears at.
 
 Requires env vars: PGVECTOR_HOST, PGVECTOR_DB_PORT, POSTGRES_USER, POSTGRES_PASSWORD,
-PGVECTOR_DB (defaults to sefaria_semantic), GEMINI_API_KEY.
+PGVECTOR_DB (defaults to pgvector), GEMINI_API_KEY.
 
 Usage:
     ./run scripts/eval_knn_search_queries.py
@@ -39,7 +39,7 @@ def _get_conn():
         _local.conn = psycopg2.connect(
             host=os.environ.get("PGVECTOR_HOST", "localhost"),
             port=os.environ.get("PGVECTOR_DB_PORT", "5432"),
-            dbname=os.environ.get("PGVECTOR_DB", "sefaria_semantic"),
+            dbname=os.environ.get("PGVECTOR_DB", "pgvector"),
             user=os.environ["POSTGRES_USER"],
             password=os.environ["POSTGRES_PASSWORD"],
         )
