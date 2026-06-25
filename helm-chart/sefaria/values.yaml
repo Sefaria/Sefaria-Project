@@ -408,6 +408,15 @@ secrets:
     # should be commented out and vice-versa.
     ref: elastic-admin
     # data:
+  pgvectorPassword:
+    ref: pgvector-secret
+    # data:
+  semanticSearchApiToken:
+    ref: semantic-search-api-token
+    # data:
+  geminiApiKey:
+    ref: gemini-api-key
+    # data:
 
 # Settings for various cronjobs
 cronJobs:
@@ -468,6 +477,10 @@ localSettings:
   CSRF_COOKIE_SECURE: true
   CSRF_COOKIE_HTTPONLY: false
   CSRF_COOKIE_SAMESITE: "Lax"
+  PGVECTOR_HOST: pgvector.default.svc.cluster.local
+  PGVECTOR_PORT: "5432"
+  PGVECTOR_DB: sefaria_semantic
+  POSTGRES_USER: postgres
 
 instrumentation:
   enabled: false
