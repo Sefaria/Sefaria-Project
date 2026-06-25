@@ -34,19 +34,25 @@ if ! HELMRELEASE_CONTENT=$(git show "origin/${TARGET}:envs/${ENV_DIR}/helmreleas
   HELMRELEASE_CONTENT=""
 fi
 
-PREV_APP=$(echo "$HELMRELEASE_CONTENT" | python3 -c "
-import sys, re
-t = sys.stdin.read()
-m = re.search(r'containerImage:\s*\n\s*imageRegistry:[^\n]+\n\s*tag:\s*[\"\'']?([^\"\''\s]+)[\"\'']?', t)
-print(m.group(1) if m else 'unknown')
-" 2>&1) || PREV_APP="unknown"
-
-PREV_CHART=$(echo "$HELMRELEASE_CONTENT" | python3 -c "
-import sys, re
-t = sys.stdin.read()
-m = re.search(r'chart: sefaria\s*\n\s*version:\s*[\"\'']?([^\"\''\s]+)[\"\'']?', t)
-print(m.group(1) if m else 'unknown')
-" 2>&1) || PREV_CHART="unknown"
+# Extract the app image tag and chart version in one pass. The Python source is written
+# to a temp file via a single-quoted heredoc so bash performs NO substitution on the regex
+# (the prior `python3 -c "..."` form silently mangled the backslashes/quotes, yielding
+# "unknown"), and the YAML is passed through an env var rather than escaped on the command
+# line. A top-level heredoc (not nested inside $(...)) keeps this portable to bash 3.2.
+PARSE_PY=$(mktemp)
+cat > "$PARSE_PY" <<'PYEOF'
+import os, re
+t = os.environ.get("HELMRELEASE_CONTENT", "")
+app = re.search(r'containerImage:\s*\n\s*imageRegistry:[^\n]+\n\s*tag:\s*["\']?([^"\'\s]+)', t)
+chart = re.search(r'chart:\s+sefaria\s*\n\s*version:\s*["\']?([^"\'\s]+)', t)
+print(app.group(1) if app else "unknown", chart.group(1) if chart else "unknown")
+PYEOF
+VERSIONS=$(HELMRELEASE_CONTENT="$HELMRELEASE_CONTENT" python3 "$PARSE_PY" 2>&1) || VERSIONS="unknown unknown"
+rm -f "$PARSE_PY"
+PREV_APP="${VERSIONS%% *}"
+PREV_CHART="${VERSIONS##* }"
+PREV_APP="${PREV_APP:-unknown}"
+PREV_CHART="${PREV_CHART:-unknown}"
 
 if [[ "$PREV_APP" == "unknown" || "$PREV_CHART" == "unknown" ]]; then
   echo "WARNING: Could not determine rollback versions (app=${PREV_APP}, chart=${PREV_CHART}). Rollback reference in PR may be incomplete." >&2
