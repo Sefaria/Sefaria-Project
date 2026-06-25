@@ -479,7 +479,7 @@ localSettings:
   CSRF_COOKIE_SAMESITE: "Lax"
   PGVECTOR_HOST: pgvector.default.svc.cluster.local
   PGVECTOR_DB_PORT: "5432"
-  PGVECTOR_DB: sefaria_semantic
+  PGVECTOR_DB: pgvector
   POSTGRES_USER: postgres
 
 instrumentation:

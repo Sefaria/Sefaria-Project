@@ -26,7 +26,7 @@ DATABASES = {
     },
     'vector_db': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sefaria_semantic',
+        'NAME': 'pgvector',
         'USER': '',
         'PASSWORD': '',
         'HOST': 'localhost',
