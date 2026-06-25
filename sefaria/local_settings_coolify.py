@@ -18,7 +18,15 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
-    }
+    },
+    'vector_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGVECTOR_DB', 'sefaria_semantic'),
+        'USER': os.getenv('POSTGRES_USER', 'admin'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
+        'HOST': os.getenv('PGVECTOR_HOST', 'localhost'),
+        'PORT': os.getenv('PGVECTOR_DB_PORT', '5432'),
+    },
 }
 
 ADMIN_PATH = 'admin'
