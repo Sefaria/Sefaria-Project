@@ -214,60 +214,78 @@ class TocTree(object):
         self._library = lib
         self._collections_in_library = []
 
-        # Store first section ref.
+        # Store first section ref. A single vstate doc missing "title" must not abort startup.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
-        self._vs_lookup = {vs["title"]: {
-            "first_section_ref": vs.get("first_section_ref"),
-            "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
-            "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
-        } for vs in vss}
+        self._vs_lookup = {}
+        for vs in vss:
+            try:
+                self._vs_lookup[vs["title"]] = {
+                    "first_section_ref": vs.get("first_section_ref"),
+                    "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
+                    "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
+                }
+            except Exception as e:
+                logger.warning("TocTree: skipping malformed vstate record {}: {}".format(vs.get("_id"), e))
 
         # Build Category object tree from stored Category objects
         for c in CategorySet(sort=[("depth", 1)]):
             self._add_category(c)
 
-        # Get all of the first comment links
+        # Get all of the first comment links. A single link missing either field must not abort startup.
         ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
-        self._first_comment_lookup = {frozenset(l["first_comment_indexes"]): l["first_comment_section_ref"] for l in ls}
+        self._first_comment_lookup = {}
+        for l in ls:
+            try:
+                self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
+            except Exception as e:
+                logger.warning("TocTree: skipping malformed first_comment link {}: {}".format(l.get("_id"), e))
 
-        # Place Indexes
+        # Place Indexes. Wrap each index so one malformed record (empty categories,
+        # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
+        # aborting the whole TOC build and preventing server startup.
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
-            if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
-                continue
-            node = self._make_index_node(i, mobile=mobile)
-            cat = self.lookup(i.categories)
-            if not cat:
-                logger.warning("Failed to find category for {}".format(i.categories))
-                continue
-            cat.append(node)
-            vs = self._vs_lookup.get(i.title, None)
-            if not vs:
-                continue
-            # If any text in this category is incomplete, the category itself and its parents are incomplete
-            for field in ("enComplete", "heComplete"):
-                for acat in [cat] + list(reversed(cat.ancestors())):
-                    # Start each category completeness as True, set to False whenever we hit an incomplete text below it
-                    flag = False if not vs[field] else getattr(acat, field, True)
-                    setattr(acat, field, flag)
-                    if acat.get_primary_title() == "Commentary":
-                        break # Don't consider a category incomplete for containing incomplete commentaries
+            try:
+                if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+                    continue
+                node = self._make_index_node(i, mobile=mobile)
+                cat = self.lookup(i.categories)
+                if not cat:
+                    logger.warning("Failed to find category for {}".format(i.categories))
+                    continue
+                cat.append(node)
+                vs = self._vs_lookup.get(i.title, None)
+                if not vs:
+                    continue
+                # If any text in this category is incomplete, the category itself and its parents are incomplete
+                for field in ("enComplete", "heComplete"):
+                    for acat in [cat] + list(reversed(cat.ancestors())):
+                        # Start each category completeness as True, set to False whenever we hit an incomplete text below it
+                        flag = False if not vs[field] else getattr(acat, field, True)
+                        setattr(acat, field, flag)
+                        if acat.get_primary_title() == "Commentary":
+                            break # Don't consider a category incomplete for containing incomplete commentaries
 
-            self._path_hash[tuple(i.categories + [i.title])] = node
+                self._path_hash[tuple(i.categories + [i.title])] = node
+            except Exception as e:
+                logger.error("TocTree: skipping index '{}' due to error building its TOC node: {}".format(getattr(i, "title", "<unknown>"), e))
 
-        # Include Collections in TOC that has a `toc` field set
+        # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
-            self._collections_in_library.append(c.slug)
-            node = TocCollectionNode(collection_object=c)
-            categories = node.categories
-            cat  = self.lookup(node.categories)
-            if not cat:
-                logger.warning("Failed to find category for {}".format(categories))
-                continue
-            cat.append(node)
-           
-            self._path_hash[tuple(node.categories + [c.slug])] = node
+            try:
+                self._collections_in_library.append(c.slug)
+                node = TocCollectionNode(collection_object=c)
+                categories = node.categories
+                cat  = self.lookup(node.categories)
+                if not cat:
+                    logger.warning("Failed to find category for {}".format(categories))
+                    continue
+                cat.append(node)
+
+                self._path_hash[tuple(node.categories + [c.slug])] = node
+            except Exception as e:
+                logger.error("TocTree: skipping collection '{}' due to error building its TOC node: {}".format(getattr(c, "slug", "<unknown>"), e))
 
         self._sort()
 

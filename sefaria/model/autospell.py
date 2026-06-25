@@ -123,18 +123,22 @@ class AutoCompleter(object):
             unames = []
             normal_user_names = []
             for id, u in users.items():
-                fullname = u.first_name + " " + u.last_name
-                normal_name = self.normalizer(fullname)
-                self.title_trie[normal_name] = {
-                    "title": fullname,
-                    "type": "User",
-                    "key": profiles[id]["user"]["slug"],
-                    "pic": profiles[id]["user"]["profile_pic_url_small"],
-                    "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
-                    "is_primary": True,
-                }
-                unames += [fullname]
-                normal_user_names += [normal_name]
+                # One user/profile with a missing name or profile field must not abort startup.
+                try:
+                    fullname = (u.first_name or "") + " " + (u.last_name or "")
+                    normal_name = self.normalizer(fullname)
+                    self.title_trie[normal_name] = {
+                        "title": fullname,
+                        "type": "User",
+                        "key": profiles[id]["user"]["slug"],
+                        "pic": profiles[id]["user"]["profile_pic_url_small"],
+                        "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
+                        "is_primary": True,
+                    }
+                    unames += [fullname]
+                    normal_user_names += [normal_name]
+                except Exception as e:
+                    logger.warning("AutoCompleter: skipping user {}: {}".format(id, e))
             self.spell_checker.train_phrases(unames)
             self.ngram_matcher.train_phrases(unames, normal_user_names)
         if include_collections:
@@ -490,9 +494,13 @@ class LexiconTrie(datrie.Trie):
         super(LexiconTrie, self).__init__(letter_scope)
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
-            self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
-            for ahw in entry.get_alt_headwords():
-                self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
+            # One malformed lexicon entry (e.g. missing headword) must not abort startup.
+            try:
+                self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
+                for ahw in entry.get_alt_headwords():
+                    self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
+            except Exception as e:
+                logger.warning("LexiconTrie({}): skipping entry {}: {}".format(lexicon_name, getattr(entry, "_id", "<unknown>"), e))
 
 
 class TitleTrie(datrie.Trie):

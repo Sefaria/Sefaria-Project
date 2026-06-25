@@ -5027,7 +5027,15 @@ class Library(object):
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
         # simple texts
-        self._index_map = {i.title: i for i in IndexSet() if i.nodes}
+        # Build the map record-by-record so one corrupt Index (e.g. accessing .title/.nodes
+        # raises) logs and is skipped rather than aborting the whole rebuild.
+        self._index_map = {}
+        for i in IndexSet():
+            try:
+                if i.nodes:
+                    self._index_map[i.title] = i
+            except Exception as e:
+                logger.error("_build_index_maps: skipping malformed index record {}: {}".format(getattr(i, "_id", "<unknown>"), e))
         forest = [i.nodes for i in list(self._index_map.values())]
         self._title_node_maps = {lang: {} for lang in self.langs}
         self._index_title_maps = {lang:{} for lang in self.langs}
@@ -5040,6 +5048,10 @@ class Library(object):
                     self._title_node_maps[lang].update(tree_titles)
             except IndexSchemaError as e:
                 logger.error("Error in generating title node dictionary: {}".format(e))
+            except Exception as e:
+                # A corrupt node (bad get_titles_object()/children) raises something other than
+                # IndexSchemaError; isolate it to this tree instead of aborting the rebuild.
+                logger.error("_build_index_maps: skipping tree '{}' due to error building title dict: {}".format(getattr(tree, "key", "<unknown>"), e))
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5242,9 +5254,14 @@ class Library(object):
             if child_topic is None:
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
-            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
+            # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
+            try:
+                topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
+            except Exception as e:
+                logger.warning("While building topic TOC, skipping topic '{}': {}".format(child, e))
         if len(children) > 0:
-            topic_json['children'].sort(key=lambda x: x['displayOrder'])
+            # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
+            topic_json['children'].sort(key=lambda x: x.get('displayOrder', 0))
         if topic is None:
             return topic_json['children']
         return topic_json
@@ -5260,11 +5277,20 @@ class Library(object):
         topic_stack = [t for t in topic_toc]
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
-            if curr_topic['slug'] in discovered_slugs: continue
-            discovered_slugs.add(curr_topic['slug'])
+            # A topic-toc node missing 'slug' must not abort the mapping build.
+            curr_slug = curr_topic.get('slug')
+            if curr_slug is None:
+                logger.warning("build_topic_toc_category_mapping: skipping topic-toc node with no slug.")
+                continue
+            if curr_slug in discovered_slugs: continue
+            discovered_slugs.add(curr_slug)
             for child_topic in curr_topic.get('children', []):
                 topic_stack += [child_topic]
-                topic_toc_category_mapping[child_topic['slug']] = curr_topic['slug']
+                child_slug = child_topic.get('slug')
+                if child_slug is None:
+                    logger.warning("build_topic_toc_category_mapping: child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
+                    continue
+                topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
 
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
@@ -5673,13 +5699,17 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
-            self._full_term_mapping[term.name] = term
-            self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
-                                                    "he": term.get_primary_title("he")}
-            if hasattr(term, "ref"):
-                for lang in self.langs:
-                    for title in term.get_titles(lang):
-                        self._term_ref_maps[lang][title] = term.ref
+            # One term with a missing/corrupt title_group must not abort startup.
+            try:
+                self._full_term_mapping[term.name] = term
+                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                        "he": term.get_primary_title("he")}
+                if hasattr(term, "ref"):
+                    for lang in self.langs:
+                        for title in term.get_titles(lang):
+                            self._term_ref_maps[lang][title] = term.ref
+            except Exception as e:
+                logger.warning("build_term_mappings: skipping term '{}': {}".format(getattr(term, "name", "<unknown>"), e))
 
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
@@ -5746,7 +5776,13 @@ class Library(object):
         :returns: topic map for the given slug Dictionary
         """
         from .topic import Topic, TopicSet
-        self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
+        # One topic with a missing/corrupt title_group must not abort startup.
+        self._topic_mapping = {}
+        for t in TopicSet():
+            try:
+                self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
+            except Exception as e:
+                logger.warning("_build_topic_mapping: skipping topic '{}': {}".format(getattr(t, "slug", "<unknown>"), e))
         return self._topic_mapping
 
     def get_linker(self, lang: str, rebuild=False):
@@ -5811,9 +5847,20 @@ class Library(object):
 
     def all_index_records(self):
         """
-        Returns an array of all index records
+        Returns an array of all index records.
+
+        `_index_title_maps` is keyed by each index's root node key (`nodes.key`), while
+        `_index_map` is keyed by index title. These normally coincide, but a single bad
+        record where `title != nodes.key` would otherwise raise KeyError here and abort
+        server startup. Skip-and-log instead so one corrupt index can't take down the boot.
         """
-        return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
+        records = []
+        for k in list(self._index_title_maps["en"].keys()):
+            try:
+                records.append(self._index_map[k])
+            except KeyError:
+                logger.error("all_index_records: no index record for key '{}' (likely title/nodes.key mismatch); skipping.".format(k))
+        return records
 
     def get_title_node_dict(self, lang="en"):
         """

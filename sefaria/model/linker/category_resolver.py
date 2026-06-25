@@ -1,9 +1,12 @@
 from collections import defaultdict
+import structlog
 from sefaria.model.category import Category
 from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
+
+logger = structlog.get_logger(__name__)
 
 
 class ResolvedCategory(AbstractResolvedEntity):
@@ -45,10 +48,18 @@ class CategoryMatcher:
     def __init__(self, lang: str, category_registry: list[Category]) -> None:
         self._title_to_cat: dict[str, list[Category]] = defaultdict(list)
         for cat in category_registry:
-            for match_template in cat.get_match_templates():
-                for term in match_template.get_terms():
-                    for title in term.get_titles(lang):
-                        self._title_to_cat[title] += [cat]
+            # One category whose match_template references a nonexistent/corrupt term
+            # (term.get_terms() yields None, or term.get_titles() raises) must not abort startup.
+            try:
+                for match_template in cat.get_match_templates():
+                    for term in match_template.get_terms():
+                        if term is None:
+                            logger.warning("CategoryMatcher: category '{}' has a match_template referencing a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            continue
+                        for title in term.get_titles(lang):
+                            self._title_to_cat[title] += [cat]
+            except Exception as e:
+                logger.warning("CategoryMatcher: skipping category '{}': {}".format("/".join(getattr(cat, "path", []) or []), e))
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)
