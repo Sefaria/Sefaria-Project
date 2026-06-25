@@ -4,7 +4,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
+from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError, BAD_RECORD_EXCEPTIONS
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -224,7 +224,7 @@ class TocTree(object):
                     "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
                     "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
                 }
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("TocTree: skipping malformed vstate record {}: {}".format(vs.get("_id"), e))
 
         # Build Category object tree from stored Category objects
@@ -237,7 +237,7 @@ class TocTree(object):
         for l in ls:
             try:
                 self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("TocTree: skipping malformed first_comment link {}: {}".format(l.get("_id"), e))
 
         # Place Indexes. Wrap each index so one malformed record (empty categories,
@@ -267,7 +267,7 @@ class TocTree(object):
                             break # Don't consider a category incomplete for containing incomplete commentaries
 
                 self._path_hash[tuple(i.categories + [i.title])] = node
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.error("TocTree: skipping index '{}' due to error building its TOC node: {}".format(getattr(i, "title", "<unknown>"), e))
 
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
@@ -284,7 +284,7 @@ class TocTree(object):
                 cat.append(node)
 
                 self._path_hash[tuple(node.categories + [c.slug])] = node
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.error("TocTree: skipping collection '{}' due to error building its TOC node: {}".format(getattr(c, "slug", "<unknown>"), e))
 
         self._sort()

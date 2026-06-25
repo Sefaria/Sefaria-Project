@@ -30,7 +30,8 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
+    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError, \
+    BAD_RECORD_EXCEPTIONS
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -5034,7 +5035,7 @@ class Library(object):
             try:
                 if i.nodes:
                     self._index_map[i.title] = i
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.error("_build_index_maps: skipping malformed index record {}: {}".format(getattr(i, "_id", "<unknown>"), e))
         forest = [i.nodes for i in list(self._index_map.values())]
         self._title_node_maps = {lang: {} for lang in self.langs}
@@ -5048,7 +5049,7 @@ class Library(object):
                     self._title_node_maps[lang].update(tree_titles)
             except IndexSchemaError as e:
                 logger.error("Error in generating title node dictionary: {}".format(e))
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 # A corrupt node (bad get_titles_object()/children) raises something other than
                 # IndexSchemaError; isolate it to this tree instead of aborting the rebuild.
                 logger.error("_build_index_maps: skipping tree '{}' due to error building title dict: {}".format(getattr(tree, "key", "<unknown>"), e))
@@ -5257,7 +5258,7 @@ class Library(object):
             # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
             try:
                 topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("While building topic TOC, skipping topic '{}': {}".format(child, e))
         if len(children) > 0:
             # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
@@ -5708,7 +5709,7 @@ class Library(object):
                     for lang in self.langs:
                         for title in term.get_titles(lang):
                             self._term_ref_maps[lang][title] = term.ref
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("build_term_mappings: skipping term '{}': {}".format(getattr(term, "name", "<unknown>"), e))
 
     def get_simple_term_mapping(self, rebuild=False):
@@ -5781,7 +5782,7 @@ class Library(object):
         for t in TopicSet():
             try:
                 self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("_build_topic_mapping: skipping topic '{}': {}".format(getattr(t, "slug", "<unknown>"), e))
         return self._topic_mapping
 

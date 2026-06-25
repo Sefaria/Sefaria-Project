@@ -5,6 +5,7 @@ from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
+from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +59,7 @@ class CategoryMatcher:
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]
-            except Exception as e:
+            except BAD_RECORD_EXCEPTIONS as e:
                 logger.warning("CategoryMatcher: skipping category '{}': {}".format("/".join(getattr(cat, "path", []) or []), e))
 
     def match(self, raw_ref: RawRef) -> list[Category]:
