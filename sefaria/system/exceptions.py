@@ -120,4 +120,13 @@ class ComplexBookLevelRefError(InputError):
 # (IndexSchemaError, BookNameError, SheetNotFoundError, DictionaryEntryNotFoundError,
 # etc.); the builtins cover poking at malformed Mongo docs (missing fields, None values,
 # bad indices).
+#
+# TypeError and AttributeError are deliberately EXCLUDED. Both are builtins whose dominant
+# cause is an ordinary code bug, not bad data: AttributeError fires on a renamed/removed
+# method, an attribute typo, or a None-that-should-be-an-object; TypeError fires on a
+# wrong-arity call or a non-callable. Catching them here would degrade a refactoring bug
+# from a loud boot crash into a per-record warning that fires on EVERY record, silently
+# building an incomplete library — a worse, invisible failure mode. The genuine bad-data
+# None cases they might catch should instead be handled at the source with explicit `or ""` /
+# `.get()` guards.
 BAD_RECORD_EXCEPTIONS = (InputError, KeyError, ValueError, IndexError)
