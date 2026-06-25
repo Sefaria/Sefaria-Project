@@ -17,6 +17,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 shared_patterns = [
     re_path(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
+    re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
     re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/',
@@ -59,11 +60,10 @@ shared_patterns = [
     path('sheets/tags/<path:tag>', reader_views.topic_page_redirect),
     re_path(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
     re_path(r'^groups/?(?P<group>[^/]+)?$', reader_views.groups_redirect),
-    re_path(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
+    re_path(r'^contributors/(?P<uid>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
-
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
@@ -101,6 +101,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
@@ -113,7 +114,11 @@ shared_patterns = [
     re_path(r'^api/site_stats/?$', reader_views.site_stats_api),
     re_path(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     re_path(r'^api/background-data', reader_views.background_data_api),
-
+    re_path(r'^api/version-indices$', sefaria_views.version_indices_api),
+    re_path(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
+    re_path(r'^api/version-rename$', sefaria_views.version_rename_api),
+    re_path(r'^api/version-bulk-delete$', sefaria_views.version_bulk_delete_api),
+    re_path(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     re_path(r'^api/sheets/?$', sheets_views.save_sheet_api),
     path('api/sheets/<int:sheet_id>/delete', sheets_views.delete_sheet_api),
     path('api/sheets/<int:sheet_id>/add', sheets_views.add_source_to_sheet_api),
@@ -199,6 +204,7 @@ shared_patterns = [
 
     re_path(r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', reader_views.revert_api),
 
+    path('api/img-gen/', reader_views.social_image_api, {"tref": ""}),
     path('api/img-gen/<path:tref>', reader_views.social_image_api),
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),

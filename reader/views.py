@@ -11,6 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
+from enum import Enum
 import pytz
 from html import unescape
 import redis
@@ -18,9 +19,10 @@ import os
 import re
 import uuid
 from dataclasses import asdict
+from functools import lru_cache
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -29,7 +31,10 @@ from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict, FileResponse
+from django.urls import Resolver404, resolve
+from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
@@ -65,7 +70,7 @@ from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
     CHATBOT_API_BASE_URL, CELERY_ENABLED
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -84,7 +89,8 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
-from sefaria.image_generator import make_img_http_response
+from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
+    make_static_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
@@ -104,6 +110,13 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+class SocialImagePageType(Enum):
+    """Kinds of social images supported by /api/img-gen/."""
+    REF = "ref"
+    STATIC = "static"
+    MODULE_FALLBACK = "module_fallback"
 
 
 class PageTypes:
@@ -331,7 +344,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
+        "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -362,7 +375,9 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        'chatbot_promo_maybe_later_json': remoteConfigCache.get(CHATBOT_PROMO_MAYBE_LATER_JSON, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
     if user_has_experiments(request.user):
@@ -654,6 +669,71 @@ def _extract_version_params(request, key):
     languageFamilyName, versionTitle = params.split('|')
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
+
+def _extract_version_title_param(request, key: str) -> str | None:
+    """
+    Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
+    and older links that pass only the version title.
+    """
+    params = request.GET.get(key)
+    if not params:
+        return None
+    params = params.replace("_", " ")
+    if "|" in params:
+        _, version_title = params.split("|", 1)
+        return version_title or None
+    return params
+
+
+@lru_cache(maxsize=512)
+def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
+    """
+    Decide what kind of image /api/img-gen/ should return for this path.
+
+    The image API receives one free-form path string. It may be a text ref
+    like "Genesis.1.1", a normal static page like "jobs", or a module page
+    like "topics/shabbat". We classify the string with Django routing before
+    trying Ref(...), so non-text pages do not accidentally become broken ref
+    images.
+    """
+    # Cache common paths to avoid repeating Django route resolution for every
+    # social image request.
+    if not tref:
+        # /api/img-gen/ with no path is valid. It means "give me the default
+        # fallback image for the current host/module."
+        return SocialImagePageType.MODULE_FALLBACK
+
+    path = f"/{tref.lstrip('/')}"
+    try:
+        # The same path can mean different things on different Sefaria modules.
+        # Resolve against the module's own URLconf (defined in sefaria/hosts.py)
+        # so that /topics, /sheets, etc. are classified the same way Django
+        # would classify them for that host. get_host() looks up the host
+        # definition by module name — 'library' or 'voices' — and .urlconf
+        # gives the dotted path of the URLconf it uses (e.g. sefaria.urls_library).
+        match = resolve(path, urlconf=get_host(module).urlconf)
+    except Resolver404:
+        # Unknown paths get the module fallback instead of raising an error.
+        # This keeps Open Graph images available even when a page cannot be
+        # represented by a custom image.
+        return SocialImagePageType.MODULE_FALLBACK
+
+    if match.func in {serve_static, serve_static_by_lang}:
+        # Static pages are shared between modules and should use the simple
+        # Sefaria fallback image, not Library or Voices module branding.
+        return SocialImagePageType.STATIC
+
+    if module == LIBRARY_MODULE and match.func == catchall:
+        # Only the Library module should generate text-ref images. A ref-like
+        # string on Voices should stay module-branded because Voices pages are
+        # not currently supported by the text image generator.
+        return SocialImagePageType.REF
+
+    # Topics, sheets, and other module pages do not have custom image builders
+    # yet, so they use the module fallback image.
+    return SocialImagePageType.MODULE_FALLBACK
+
+
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -830,7 +910,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
-def texts_category_list(request, cats):
+def texts_category_list(request, cats=None):
     """
     List of texts in a category.
     """
@@ -866,7 +946,7 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_category_page(request, topicCategory):
+def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
     """
@@ -921,7 +1001,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
@@ -1089,7 +1169,7 @@ def edit_collection_page(request, slug=None):
         "noindex": True
     })
     
-def groups_redirect(request, group):
+def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
     """
@@ -1154,6 +1234,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
+        "page":           page,
     })
 
 
@@ -1244,6 +1325,7 @@ def notifications(request):
     return menu_page(request, props, page="notifications", title=title)
 
 
+@ensure_csrf_cookie
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
@@ -1769,11 +1851,28 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang", "en")
+    # Host language is the safest default because crawlers hit this endpoint
+    # directly. lang=en/he may override it, but lang=bi is not a real image
+    # mode yet, so it falls back to the host language.
+    domain_lang = current_domain_lang(request)
+    default_lang = "he" if domain_lang == "hebrew" else "en"
+    lang = request.GET.get("lang") or default_lang
     if lang == "bi":
-        lang = "en"
-    version = request.GET.get("ven", None) if lang == "en" else request.GET.get("vhe", None)
-    platform = request.GET.get("platform", "twitter")
+        lang = default_lang
+    if lang not in {"en", "he"}:
+        lang = default_lang
+    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    platform = request.GET.get("platform") or "facebook"
+    if platform not in {"facebook", "twitter"}:
+        platform = "facebook"
+    module = normalize_social_image_module(getattr(request, "active_module", None))
+    page_type = _classify_social_image_path(tref, module)
+
+    if page_type == SocialImagePageType.STATIC:
+        return make_static_img_http_response(platform)
+
+    if page_type == SocialImagePageType.MODULE_FALLBACK:
+        return make_module_fallback_img_http_response(lang, platform, module)
 
     try:
         ref = Ref(tref)
@@ -1794,7 +1893,7 @@ def social_image_api(request, tref):
         ref_str = None
 
 
-    res = make_img_http_response(text, cat, ref_str, lang, platform)
+    res = make_img_http_response(text, cat, ref_str, lang, platform, module)
 
     return res
 
@@ -1898,18 +1997,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(index_record, callback=request.GET.get("callback", None))
 
     def handle_post_request(request, title, raw):
-        j = json.loads(request.POST.get("json"))
-        if not j:
+        json_data = json.loads(request.POST.get("json"))
+        if not json_data:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         user_type, uid = determine_user_type_and_id(request)
         if uid is None:
             return jsonResponse({"error": "Authentication failed. Must be staff or provide a valid API key."})
         elif user_type == CONTENT_TYPE:
-            return index_post(request, uid, j, "API", raw)
+            return index_post(request, uid, json_data, "API", raw)
         elif user_type == ADMIN_TYPE:
             admin_post = csrf_protect(index_post)
-            return admin_post(request, uid, j, None, raw)
+            return admin_post(request, uid, json_data, None, raw)
 
     def determine_user_type_and_id(request):
         if request.user.is_staff:
@@ -2203,14 +2302,16 @@ def links_api(request, link_id_or_ref=None):
         return categories or None
 
     if request.method == "GET":
-        callback=request.GET.get("callback", None)
+        callback = request.GET.get("callback", None)
         if link_id_or_ref is None:
             return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        Ref(link_id_or_ref)
+        #The Ref instantiation is also used to validate the Ref and let an error bubble up.
+        oref = Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        if with_text and oref.is_book_level():
+            error_msg = "with_text is not supported for whole-book refs. Request a specific section or segment, or set with_text to 0.  Alternatively, the whole database is available as a downloadable export."
+            return jsonResponse({"error": error_msg, "ref": oref.normal()}, callback, 400)
         categories = _get_requested_categories(request)
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories), callback)
 
@@ -2548,11 +2649,11 @@ def lock_text_api(request, title, lang, version):
     vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
 
     if request.GET.get("action", None) == "unlock":
-        vobj.status = None
+        updates = {"status": None}  # None signals deletion in tracker
     else:
-        vobj.status = "locked"
+        updates = {"status": "locked"}
 
-    vobj.save()
+    tracker.update_version_metadata(request.user.id, vobj, updates)
     return jsonResponse({"status": "ok"})
 
 
@@ -2568,23 +2669,28 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
-    def update_version(request, title, lang, version):
+    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+
+    def update_version(request, title, lang, version, user_id):
         flags = json.loads(request.POST.get("json"))
         title = title.replace("_", " ")
         version = version.replace("_", " ")
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
+
+        # Build updates dict for tracker function
+        updates = {}
         if flags.get("newVersionTitle"):
-            vobj.versionTitle = flags.get("newVersionTitle")
+            updates["versionTitle"] = flags.get("newVersionTitle")
         for flag in _attributes_to_save:
             if flag in flags:
                 if flag == 'license' and flags[flag] == "":
-                    delattr(vobj, flag)
+                    updates[flag] = None  # None signals deletion in tracker
                 else:
-                    setattr(vobj, flag, flags[flag])
-        vobj.save()
-        return jsonResponse({"status": "ok"})
+                    updates[flag] = flags[flag]
 
-    _attributes_to_save = Version.optional_attrs + ["versionSource", "direction", "isSource", "isPrimary"]
+        if updates:
+            tracker.update_version_metadata(user_id, vobj, updates)
+        return jsonResponse({"status": "ok"})
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
@@ -2597,9 +2703,11 @@ def flag_text_api(request, title, lang, version):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can flag texts."})
 
-        return update_version(request, title, lang, version)
+        return update_version(request, title, lang, version, apikey["uid"])
     elif request.user.is_staff:
-        protected_post = csrf_protect(update_version)
+        def update_version_with_user(request, title, lang, version):
+            return update_version(request, title, lang, version, request.user.id)
+        protected_post = csrf_protect(update_version_with_user)
         return protected_post(request, title, lang, version)
     else:
         return jsonResponse({"error": "Unauthorized"})
@@ -3949,6 +4057,42 @@ def experiments_opt_in_api(request):
     return jsonResponse({"status": "ok"})
 
 
+def enable_library_assistant(request):
+    """
+    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
+    The promo points login/register's ?next= here, so once authentication
+    completes the user lands here; we enroll them in the experiments whitelist and
+    bounce them back to where they were. On that reload the Library Assistant appears
+    with no extra "Join" click. Normal logins (which don't route through here) are
+    unaffected.
+    """
+    next_url = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
+
+    # Prevent cross-site enrollment via GET.
+    if request.headers.get("Sec-Fetch-Site") != "cross-site":
+        _set_user_experiments(request.user, True)
+
+    # The register flow appends ?welcome=to-sefaria to its redirect target; forward
+    # it onto the final destination so the new-user welcome still shows after the hop.
+    welcome = request.GET.get("welcome")
+    if welcome:
+        parsed = urllib.parse.urlparse(next_url)
+        next_url = urllib.parse.urlunparse(parsed._replace(
+            query=urllib.parse.urlencode(urllib.parse.parse_qsl(parsed.query) + [("welcome", welcome)])
+        ))
+
+    return redirect(next_url)
+
+
 @login_required
 @csrf_protect
 def account_user_update(request):
@@ -4672,7 +4816,7 @@ def serve_static(request, page, by_lang=False):
 
 
 # TODO: This really should be handled by a CMS :)
-def annual_report(request, report_year):
+def annual_report(request, report_year=None):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
@@ -4691,7 +4835,7 @@ def annual_report(request, report_year):
 
 
 @ensure_csrf_cookie
-def explore(request, topCat, bottomCat, book1, book2, lang=None):
+def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -4842,7 +4986,7 @@ def redirect_to_module(request, target_path, target_module=None):
         # Cross-module redirect
         # Get the target domain from settings
         lang_code = get_short_lang(request.interfaceLang)
-        target_domain = DOMAIN_MODULES.get(lang_code, {}).get(target_module)
+        target_domain = settings.DOMAIN_MODULES.get(lang_code, {}).get(target_module)
         target_url = urllib.parse.urljoin(target_domain, target_path)
         if params:
             target_url += f"?{params}"
@@ -5040,6 +5184,17 @@ def module_favicon(request, filename):
     # Tell client to cache for 1 month, since favicons change infrequently
     response["Cache-Control"] = "max-age=2592000"
     
+    return response
+
+
+def serve_llms_txt(request):
+    """
+    Serve llms.txt from the static directory.
+    This provides LLM-friendly documentation about Sefaria's API and resources.
+    """
+    llms_path = os.path.join(STATICFILES_DIRS[0], 'llms.txt')
+    response = FileResponse(open(llms_path, 'rb'), content_type='text/plain; charset=utf-8')
+    response["Cache-Control"] = "max-age=86400"  # 1 day
     return response
 
 

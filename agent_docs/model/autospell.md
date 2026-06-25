@@ -63,7 +63,7 @@ Provides autocomplete and spell-correction for the Sefaria search bar. Combines 
 - **Non-obvious**: IDF values are computed incrementally during training and reflect the state at training time, not retroactively updated. The `_missing_idf_value` for unknown tokens equals `log(total_documents)` (maximum possible IDF).
 
 ## Non-Obvious Patterns
-- **Normalization**: All strings are normalized before trie insertion and lookup. Hebrew normalization converts final letters; English is lowercased. Non-scope characters are transliterated via `unidecode`.
+- **Normalization**: All strings are normalized before trie insertion and lookup. Hebrew normalization converts final letters; English is lowercased. Non-scope characters are transliterated via `unidecode`. Apostrophe-like characters (`'`, curly single quotes, Hebrew geresh) are stripped so queries match titles with or without them.
 - **`letter_scope`**: A fixed string of allowed characters that defines the `datrie` alphabet. Includes Hebrew with nikkud, ASCII, digits, and a few punctuation/Unicode control characters. Any character outside this scope gets `unidecode`-transliterated during normalization.
 - **Ordering via PAD multiplier**: Object types are ordered in bands of 1,000,000. Within a band, `sub_order_fn` provides fine-grained ranking (e.g., topics ordered by `numSources`, authors get a -100 bonus).
 - **Type limiting**: `Completions._candidate_order` penalizes the 4th+ result of any type by 100x, ensuring diverse result types.

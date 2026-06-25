@@ -57,6 +57,10 @@
       "description": "Operations related to Sefaria collections — curated groups of source sheets"
     },
     {
+      "name": "Ref",
+      "description": "Operations related to validating and analyzing text references"
+    },
+    {
       "name": "Misc",
       "description": "Miscellaneous API endpoints"
     }
@@ -12405,7 +12409,12 @@
           "name": "tref",
           "description": "A valid segment-level Sefaria textual `Ref`. ",
           "schema": {
-            "$ref": "#/components/schemas/ref"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ref"
+              }
+            ],
+            "default": "Deuteronomy 1.2"
           },
           "in": "path",
           "required": true
@@ -18999,6 +19008,23 @@
           "Misc"
         ],
         "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskEnqueued"
+                },
+                "examples": {
+                  "Example": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Task enqueued. Poll `GET /api/async/{task_id}` to retrieve results. When the task completes successfully, the result will have the shape described by `FindRefsAPIResponse`."
+          },
           "200": {
             "content": {
               "application/json": {
@@ -19007,11 +19033,11 @@
                 }
               }
             },
-            "description": "Successful Response"
+            "description": "Shape of the `result` field returned by `GET /api/async/{task_id}` on successful completion."
           }
         },
         "summary": "Find Refs",
-        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual refernces in any arbitrary text that gets sent to it via a structured POST request and returns a response object identifying each located reference including its start and end position within the submitted text."
+        "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual references in any arbitrary text that gets sent to it via a structured POST request.\n\n**This is an asynchronous API.** The endpoint immediately returns a `task_id` with HTTP 202. You must poll `GET /api/async/{task_id}` to retrieve the task status. When the task completes successfully, the `/api/async/{task_id}` response will include a `result` field containing the same `FindRefsAPIResponse` object described in the 200 response schema below."
       }
     },
     "/api/search-wrapper": {
@@ -19070,25 +19096,27 @@
         "parameters": [
           {
             "name": "lang",
-            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. ",
+            "description": "The language the social image should return, `en` for English language or `he` for Hebrew. Defaults to the language associated with the request host if omitted. `bi` is accepted but does not return a bilingual image; it uses the language associated with the request host.",
             "schema": {
               "enum": [
                 "he",
                 "en"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "en"
             },
             "in": "query"
           },
           {
             "name": "platform",
-            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation.",
+            "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation. Defaults to `facebook` if omitted or invalid. Use `twitter` for X/Twitter cards.",
             "schema": {
               "enum": [
                 "facebook",
                 "twitter"
               ],
-              "type": "string"
+              "type": "string",
+              "default": "facebook"
             },
             "in": "query"
           },
@@ -19128,7 +19156,7 @@
           }
         },
         "summary": "Social Media Image",
-        "description": "Given a Sefaria text `Ref` and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page."
+        "description": "Given a Sefaria text `Ref` or page path and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page. If no path is provided, the endpoint returns a fallback image for the request host."
       },
       "parameters": [
         {
@@ -19141,7 +19169,7 @@
             }
           },
           "name": "tref",
-          "description": "A valid Sefaria ref. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
+          "description": "A valid Sefaria ref or page path. A Sefaria ref is a human-readable text citation, e.g. `Genesis 1:1`, `Berakhot 2a`, or `Rashi on Genesis 1:1`.",
           "schema": {
             "allOf": [
               {
@@ -19222,6 +19250,141 @@
         }
       ]
     },
+    "/api/ref/{tref}": {
+      "summary": "Ref",
+      "description": "Validates a text reference string and returns metadata about it, including its type, structure, and navigation information (prev/next refs, parent ref, etc.).",
+      "get": {
+        "operationId": "get-ref",
+        "tags": [
+          "Ref"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefJSON"
+                },
+                "examples": {
+                  "JaggedArrayNode (Segment Level)": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Genesis 1:1",
+                      "hebrew": "בראשית א׳:א׳",
+                      "url_ref": "Genesis.1.1",
+                      "index_title": "Genesis",
+                      "node_type": "JaggedArrayNode",
+                      "navigation_refs": {
+                        "shortest_path_to_root": ["Genesis", "Genesis 1"],
+                        "first_available_section_ref": "Genesis 1",
+                        "prev_segment_ref": null,
+                        "next_segment_ref": "Genesis 1:2"
+                      },
+                      "depth": 2,
+                      "address_types": ["Perek", "Pasuk"],
+                      "section_names": ["Chapter", "Verse"],
+                      "start_indexes": [1, 1],
+                      "start_labels": ["1", "1"],
+                      "end_indexes": [1, 1],
+                      "end_labels": ["1", "1"]
+                    }
+                  },
+                  "JaggedArrayNode (Section Level)": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Genesis 1",
+                      "hebrew": "בראשית א׳",
+                      "url_ref": "Genesis.1",
+                      "index_title": "Genesis",
+                      "node_type": "JaggedArrayNode",
+                      "navigation_refs": {
+                        "shortest_path_to_root": ["Genesis"],
+                        "first_available_section_ref": "Genesis 1",
+                        "prev_section_ref": null,
+                        "next_section_ref": "Genesis 2",
+                        "first_subref": "Genesis 1:1",
+                        "last_subref": "Genesis 1:31"
+                      },
+                      "depth": 2,
+                      "address_types": ["Perek", "Pasuk"],
+                      "section_names": ["Chapter", "Verse"],
+                      "start_indexes": [1],
+                      "start_labels": ["1"],
+                      "end_indexes": [1],
+                      "end_labels": ["1"]
+                    }
+                  },
+                  "SchemaNode": {
+                    "value": {
+                      "is_ref": true,
+                      "normalized": "Ramban on Genesis",
+                      "hebrew": "רמב\"ן על בראשית",
+                      "url_ref": "Ramban_on_Genesis",
+                      "index_title": "Ramban on Genesis",
+                      "node_type": "SchemaNode",
+                      "navigation_refs": {
+                        "shortest_path_to_root": [],
+                        "first_available_section_ref": "Ramban on Genesis, Introduction 1"
+                      },
+                      "children": ["Introduction", ""]
+                    }
+                  },
+                  "Invalid Ref": {
+                    "value": {
+                      "is_ref": false
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returns reference metadata. If the reference string is invalid, returns `{\"is_ref\": false}` with HTTP 200."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Returned when the reference string causes a parsing error."
+          }
+        },
+        "summary": "Ref",
+        "description": "Validates a text reference (`tref`) and returns structured metadata about it.\n\nThe response varies based on the `node_type` of the referenced text:\n\n- **JaggedArrayNode**: Standard text nodes (e.g. biblical chapters/verses, Talmud pages). Returns `depth`, `address_types`, `section_names`, and positional indexes/labels.\n- **SchemaNode**: Nodes with named children (e.g. a commentary with an introduction and main text). Returns `children` list.\n- **DictionaryEntryNode**: Individual dictionary entries. Returns `lexicon_name` and `headword`, plus the JaggedArrayNode fields.\n- **DictionaryNode**: Dictionary root nodes. Returns `lexicon_name`.\n- **SheetNode**: User-created source sheets. Returns `sheet_id`.\n\nIf the node has a default child (a child node that represents the primary content), the response includes a `default_child_node` object with the child's `node_type`, `node_index`, and optionally `depth`, `address_types` and `sectionNames` (for JaggedArrayNode children) or `lexicon_name` (for DictionaryNode parents).\n\nAll types include `navigation_refs` with `shortest_path_to_root` (array of ancestor refs from immediate parent to book level) and `first_available_section_ref`. Segment-level refs also get `prev_segment_ref`/`next_segment_ref`, and section-level refs get `prev_section_ref`/`next_section_ref`."
+      },
+      "parameters": [
+        {
+          "name": "tref",
+          "description": "A text reference string to validate and analyze. Can be any Sefaria reference, including book-level, section-level, segment-level, or ranged references.",
+          "schema": {
+            "type": "string",
+            "default": "Genesis 1:1"
+          },
+          "in": "path",
+          "required": true,
+          "examples": {
+            "Segment Level": {
+              "value": "Genesis 1:1"
+            },
+            "Section Level": {
+              "value": "Berakhot 22a"
+            },
+            "Book Level": {
+              "value": "Ramban on Genesis"
+            },
+            "Range": {
+              "value": "Genesis 1:1-3"
+            }
+          }
+        }
+      ]
+    },
     "/api/profile/{slug}": {
       "summary": "Public Profile",
       "description": "Returns the public profile for a Sefaria user.",
@@ -19275,6 +19438,114 @@
               }
             },
             "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/async/{task_id}": {
+      "get": {
+        "operationId": "get-async-task-status",
+        "summary": "Get Async Task Status",
+        "description": "Poll the status of an asynchronous task. Returns the current state of the task and, when complete, the result or error. This endpoint is generic — it works for any task enqueued by an asynchronous Sefaria API (e.g. `POST /api/find-refs`).\n\n**States:**\n- `PENDING` — The task has not yet started (or the task ID is unknown).\n- `STARTED` — The task is currently being executed.\n- `RETRY` — The task failed and is being retried.\n- `SUCCESS` — The task completed successfully. The `result` field contains the task output; its shape depends on which API enqueued the task.\n- `FAILURE` — The task failed permanently. The `error` field contains the error message.\n\n**HTTP status codes:**\n- `202` — Task is still running (state is `PENDING`, `STARTED`, or `RETRY`).\n- `200` — Task completed successfully.\n- `500` — Task failed permanently.",
+        "tags": [
+          "Misc"
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "description": "The task ID returned by an asynchronous API endpoint (e.g. `POST /api/find-refs`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Task is still in progress (`PENDING`, `STARTED`, or `RETRY`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskPending"
+                },
+                "examples": {
+                  "Pending": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "PENDING",
+                      "ready": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Task completed successfully. The shape of the `result` field depends on which API enqueued the task. For tasks started by `POST /api/find-refs`, `result` is a `FindRefsAPIResponse` object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskSuccess"
+                },
+                "examples": {
+                  "find-refs task (success)": {
+                    "summary": "Result for a task enqueued by POST /api/find-refs",
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "SUCCESS",
+                      "ready": true,
+                      "result": {
+                        "title": {
+                          "results": [],
+                          "refData": {}
+                        },
+                        "body": {
+                          "results": [
+                            {
+                              "startChar": 0,
+                              "endChar": 11,
+                              "text": "Genesis 1:1",
+                              "linkFailed": false,
+                              "refs": [
+                                "Genesis 1:1"
+                              ]
+                            }
+                          ],
+                          "refData": {
+                            "Genesis 1:1": {
+                              "heRef": "בראשית א׳:א׳",
+                              "url": "Genesis.1.1",
+                              "primaryCategory": "Tanakh"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Task failed permanently. The `error` field contains the error message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncTaskFailure"
+                },
+                "examples": {
+                  "Failure": {
+                    "value": {
+                      "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a",
+                      "state": "FAILURE",
+                      "ready": true,
+                      "error": "An unexpected error occurred while processing the request."
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -27722,6 +27993,206 @@
           "lastPath": "Torah"
         }
       },
+      "RefJSON": {
+        "title": "Root Type for RefJSON",
+        "description": "The JSON returned from the `ref` endpoint. Contains metadata about a validated text reference, including its type, structure, and navigation information. The fields returned vary based on the `node_type`.",
+        "type": "object",
+        "properties": {
+          "is_ref": {
+            "description": "Whether the provided string is a valid Sefaria reference.",
+            "type": "boolean"
+          },
+          "normalized": {
+            "description": "The normalized (canonical) form of the reference string.",
+            "type": "string"
+          },
+          "hebrew": {
+            "description": "The Hebrew form of the reference string.",
+            "type": "string"
+          },
+          "url_ref": {
+            "description": "A URL-friendly form of the reference (spaces replaced with underscores, etc.).",
+            "type": "string"
+          },
+          "index_title": {
+            "description": "The title of the book/index this reference belongs to.",
+            "type": "string"
+          },
+          "node_type": {
+            "description": "The type of the index node. Determines which additional fields are present in the response.",
+            "type": "string",
+            "enum": ["JaggedArrayNode", "SchemaNode", "DictionaryNode", "DictionaryEntryNode", "SheetNode"]
+          },
+          "navigation_refs": {
+            "description": "An object containing related references for navigating within the text.",
+            "type": "object",
+            "properties": {
+              "shortest_path_to_root": {
+                "description": "An array of references representing the hierarchical path from the book level down to the immediate parent. Empty array if at book level.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "first_available_section_ref": {
+                "description": "The first section-level reference that has available text content.",
+                "type": "string",
+                "nullable": true
+              },
+              "prev_segment_ref": {
+                "description": "The previous segment-level reference. Only present for segment-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "next_segment_ref": {
+                "description": "The next segment-level reference. Only present for segment-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "prev_section_ref": {
+                "description": "The previous section-level reference. Only present for section-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "next_section_ref": {
+                "description": "The next section-level reference. Only present for section-level refs.",
+                "type": "string",
+                "nullable": true
+              },
+              "first_subref": {
+                "description": "The first sub-reference within this ref. Present for non-segment-level refs with depth.",
+                "type": "string"
+              },
+              "last_subref": {
+                "description": "The last sub-reference within this ref. Present for non-segment-level refs with depth.",
+                "type": "string"
+              }
+            }
+          },
+          "depth": {
+            "description": "The depth of the text structure (e.g. 2 for Chapter/Verse). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "integer"
+          },
+          "address_types": {
+            "description": "The address type for each level of depth (e.g. [\"Perek\", \"Pasuk\"]). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "section_names": {
+            "description": "Human-readable names for each level of depth (e.g. [\"Chapter\", \"Verse\"]). Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "start_indexes": {
+            "description": "The numeric index values for the start of this reference at each depth level. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "start_labels": {
+            "description": "The display labels for the start of this reference at each depth level. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "end_indexes": {
+            "description": "The numeric index values for the end of this reference at each depth level. For non-range refs, same as start_indexes. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "end_labels": {
+            "description": "The display labels for the end of this reference at each depth level. For non-range refs, same as start_labels. Present for JaggedArrayNode and DictionaryEntryNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "description": "The primary titles of child nodes. Present only for SchemaNode.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lexicon_name": {
+            "description": "The name of the lexicon (dictionary). Present for DictionaryNode and DictionaryEntryNode.",
+            "type": "string"
+          },
+          "headword": {
+            "description": "The headword of the dictionary entry. Present only for DictionaryEntryNode.",
+            "type": "string"
+          },
+          "sheet_id": {
+            "description": "The ID of the source sheet. Present only for SheetNode.",
+            "type": "integer"
+          },
+          "default_child_node": {
+            "description": "Information about the default child node, if the current node has one. A default child is a child node that represents the primary content of a schema node.",
+            "type": "object",
+            "properties": {
+              "node_type": {
+                "description": "The type of the default child node.",
+                "type": "string"
+              },
+              "node_index": {
+                "description": "The index of the default child within the parent's children array.",
+                "type": "integer"
+              },
+              "depth": {
+                "description": "The depth of the default child. Present only when the default child is a JaggedArrayNode.",
+                "type": "integer"
+              },
+              "address_types": {
+                "description": "The address type for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "section_names": {
+                "description": "Human-readable names for each level of depth. Present only when the default child is a JaggedArrayNode.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "lexicon_name": {
+                "description": "The lexicon name. Present only when the parent is a DictionaryNode.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "example": {
+          "is_ref": true,
+          "normalized": "Genesis 1:1",
+          "hebrew": "בראשית א׳:א׳",
+          "url_ref": "Genesis.1.1",
+          "index_title": "Genesis",
+          "node_type": "JaggedArrayNode",
+          "navigation_refs": {
+            "shortest_path_to_root": ["Genesis", "Genesis 1"],
+            "first_available_section_ref": "Genesis 1",
+            "prev_segment_ref": null,
+            "next_segment_ref": "Genesis 1:2"
+          },
+          "depth": 2,
+          "address_types": ["Perek", "Pasuk"],
+          "section_names": ["Chapter", "Verse"],
+          "start_indexes": [1, 1],
+          "start_labels": ["1", "1"],
+          "end_indexes": [1, 1],
+          "end_labels": ["1", "1"]
+        }
+      },
       "SheetDetailJSON": {
         "title": "Root Type for SheetDetailJSON",
         "description": "JSON containing the full content and metadata of a single Sefaria source sheet, including all of its sources.",
@@ -28780,6 +29251,123 @@
           "percentAvailableInvalid": {
             "description": "True when the percentAvailable figure could not be calculated.",
             "type": "boolean"
+          }
+        }
+      },
+      "AsyncTaskEnqueued": {
+        "title": "Async Task Enqueued",
+        "description": "Response returned when an asynchronous task has been successfully enqueued.",
+        "type": "object",
+        "required": [
+          "task_id"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "Unique identifier for the enqueued task. Pass this to `GET /api/async/{task_id}` to poll for results."
+          }
+        },
+        "example": {
+          "task_id": "b3d9e1a2-4f7c-4e2b-9a1d-6c8e2f0d5b3a"
+        }
+      },
+      "AsyncTaskPending": {
+        "title": "Async Task Pending",
+        "description": "Response returned while a task is still in progress.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "STARTED",
+              "RETRY"
+            ],
+            "description": "Current state of the task. `PENDING` means not yet started; `STARTED` means actively running; `RETRY` means the task failed and is being retried."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `false` while the task is in progress.",
+            "example": false
+          },
+          "meta": {
+            "type": "object",
+            "description": "Optional progress or metadata reported by the task while it is running."
+          }
+        }
+      },
+      "AsyncTaskSuccess": {
+        "title": "Async Task Success",
+        "description": "Response returned when a task has completed successfully. The shape of `result` depends on which API enqueued the task.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready",
+          "result"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "SUCCESS"
+            ],
+            "description": "Always `SUCCESS` for this response."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `true` when the task has completed.",
+            "example": true
+          },
+          "result": {
+            "description": "The task output. Its shape depends on which API enqueued the task. For `POST /api/find-refs` tasks, this is a `FindRefsAPIResponse` object.",
+            "type": "object"
+          }
+        }
+      },
+      "AsyncTaskFailure": {
+        "title": "Async Task Failure",
+        "description": "Response returned when a task has failed permanently.",
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "ready",
+          "error"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "The task identifier."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "FAILURE"
+            ],
+            "description": "Always `FAILURE` for this response."
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "Always `true` when the task has failed permanently.",
+            "example": true
+          },
+          "error": {
+            "type": "string",
+            "description": "Human-readable description of the error that caused the task to fail."
           }
         }
       }

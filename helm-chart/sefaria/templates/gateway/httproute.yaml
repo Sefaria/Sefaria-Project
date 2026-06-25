@@ -47,6 +47,54 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /api/version-bulk-edit
+        - path:
+            type: Exact
+            value: /api/version-rename
+        - path:
+            type: Exact
+            value: /api/version-bulk-delete
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/text-upload
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        # Covers /modtools/upload_text, /modtools/links,
+        # /modtools/links/{tref1}/{tref2}, and /modtools/index_links/{tref1}/{tref2}.
+        - path:
+            type: PathPrefix
+            value: /modtools/
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /download/bulk/
+      timeouts:
+        request: 2m
+        backendRequest: 2m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80

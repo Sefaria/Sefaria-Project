@@ -9,7 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from './csrf';
 import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
@@ -956,7 +956,7 @@ Sefaria = extend(Sefaria, {
         method,
         mode: 'same-origin',
         headers: {
-            'X-CSRFToken': Cookies.get('csrftoken'),
+            'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin',
@@ -2042,10 +2042,11 @@ Sefaria = extend(Sefaria, {
     return true;
   },
   addPrivateNote: function(note) {
-    // Add a single private note to the cache of private notes.
+    // Add a single private note to the caches of private notes.
     var notes = this.privateNotes(note["anchorRef"]) || [];
     notes = [note].concat(notes);
     this._saveItemsByRef(notes, this._privateNotes);
+    this._allPrivateNotes = null; // Note format in _allPrivateNotes differs from _privateNotes; clearing it ensures we'll fetch fresh data from the API next time.
   },
   clearPrivateNotes: function() {
     this._privateNotes = {};
