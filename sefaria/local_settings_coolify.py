@@ -25,7 +25,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', 'admin'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
         'HOST': os.getenv('PGVECTOR_HOST', 'localhost'),
-        'PORT': os.getenv('PGVECTOR_PORT', '5432'),
+        'PORT': os.getenv('PGVECTOR_DB_PORT', '5432'),
     },
 }
 
