@@ -178,6 +178,8 @@ INSTALLED_APPS = (
     'semantic_search',
 )
 
+DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
+
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'

@@ -4,7 +4,6 @@ Unit tests for the semantic_search app.
 All tests run without a live pgvector connection and without a Gemini API key.
 ORM-touching code is mocked at the DjangoSemanticTextChunk.objects boundary.
 """
-import os
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -327,8 +326,8 @@ class TestDelete:
 
 class TestEmbedQuery:
     def test_missing_api_key_raises_value_error(self):
-        with patch("semantic_search.query_embedding.os") as mock_os:
-            mock_os.environ.get.return_value = None
+        with patch("semantic_search.query_embedding.settings") as mock_settings:
+            mock_settings.GEMINI_API_KEY = ""
             with pytest.raises(ValueError, match="GEMINI_API_KEY"):
                 embed_query("test query")
 
@@ -337,7 +336,8 @@ class TestEmbedQuery:
     def test_calls_embed_text_with_correct_params(self, mock_embedder_cls, mock_norm):
         mock_embedder_cls.return_value.embed_text.return_value = [0.1] * 1536
         mock_norm.return_value = [0.2] * 1536
-        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
+        with patch("semantic_search.query_embedding.settings") as mock_settings:
+            mock_settings.GEMINI_API_KEY = "test-key"
             embed_query("love thy neighbor")
         mock_embedder_cls.return_value.embed_text.assert_called_once_with(
             model="gemini-embedding-001",
@@ -353,7 +353,8 @@ class TestEmbedQuery:
         normalized = [0.4] * 1536
         mock_embedder_cls.return_value.embed_text.return_value = raw
         mock_norm.return_value = normalized
-        with patch.dict(os.environ, {"GEMINI_API_KEY": "key"}):
+        with patch("semantic_search.query_embedding.settings") as mock_settings:
+            mock_settings.GEMINI_API_KEY = "key"
             result = embed_query("query")
         mock_norm.assert_called_once_with(raw)
         assert result == normalized
@@ -363,7 +364,8 @@ class TestEmbedQuery:
     def test_embedder_initialized_with_api_key(self, mock_embedder_cls, mock_norm):
         mock_embedder_cls.return_value.embed_text.return_value = [0.0] * 1536
         mock_norm.return_value = [0.0] * 1536
-        with patch.dict(os.environ, {"GEMINI_API_KEY": "my-secret-key"}):
+        with patch("semantic_search.query_embedding.settings") as mock_settings:
+            mock_settings.GEMINI_API_KEY = "my-secret-key"
             embed_query("test")
         mock_embedder_cls.assert_called_once_with(api_key="my-secret-key")
 
