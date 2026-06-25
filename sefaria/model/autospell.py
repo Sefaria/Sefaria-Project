@@ -126,7 +126,7 @@ class AutoCompleter(object):
             for id, u in users.items():
                 # One user/profile with a missing name or profile field must not abort startup.
                 try:
-                    fullname = (u.first_name or "") + " " + (u.last_name or "")
+                    fullname = f"{u.first_name or ''} {u.last_name or ''}"
                     normal_name = self.normalizer(fullname)
                     self.title_trie[normal_name] = {
                         "title": fullname,
