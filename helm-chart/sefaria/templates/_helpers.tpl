@@ -63,30 +63,6 @@ elastic-admin-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "sefaria.secrets.pgvectorPassword" }}
-{{- if .Values.secrets.pgvectorPassword.ref -}}
-{{- .Values.secrets.pgvectorPassword.ref }}
-{{- else -}}
-pgvector-secret-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
-{{- define "sefaria.secrets.semanticSearchApiToken" }}
-{{- if .Values.secrets.semanticSearchApiToken.ref -}}
-{{- .Values.secrets.semanticSearchApiToken.ref }}
-{{- else -}}
-semantic-search-api-token-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
-{{- define "sefaria.secrets.geminiApiKey" }}
-{{- if .Values.secrets.geminiApiKey.ref -}}
-{{- .Values.secrets.geminiApiKey.ref }}
-{{- else -}}
-gemini-api-key-{{ .Values.deployEnv }}
-{{- end }}
-{{- end }}
-
 {{- define "sefaria.tarballName" }}
 {{- if .Values.restore.tarball -}}
 {{- .Values.restore.tarball }}
