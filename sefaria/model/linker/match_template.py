@@ -76,11 +76,7 @@ class MatchTemplateTrie:
                     self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
                     self.__add_nodes_to_leaves(node, curr_dict_queue)
             except BAD_RECORD_EXCEPTIONS as e:
-                try:
-                    node_label = node.ref()
-                except Exception:
-                    node_label = node.get_primary_title('en')
-                logger.warning("MatchTemplateTrie: skipping node '{}': {}".format(node_label, e))
+                logger.warning("MatchTemplateTrie: skipping node '{}': {}".format(str(node), e))
         return trie
 
     @staticmethod
