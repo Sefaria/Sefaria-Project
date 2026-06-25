@@ -89,7 +89,15 @@ data:
             'PASSWORD': os.getenv("DATABASES_PASSWORD"),
             'HOST': {{ if .Values.postgres.host }}'{{ .Values.postgres.host }}'{{ else }}os.getenv("DATABASES_HOST"){{ end }},
             'PORT': os.getenv("DATABASES_PORT"),
-        }
+        },
+        'vector_db': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('PGVECTOR_DB', 'sefaria_semantic'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+            'HOST': os.getenv('PGVECTOR_HOST', 'localhost'),
+            'PORT': os.getenv('PGVECTOR_PORT', '5432'),
+        },
     }
 
     CACHES = {
@@ -374,5 +382,8 @@ data:
 
     WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
     WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    SEMANTIC_SEARCH_API_TOKEN = os.getenv("SEMANTIC_SEARCH_API_TOKEN", "")
 
     FAIL_IF_NODE_SSR_UNAVAILABLE = False
