@@ -1,24 +1,26 @@
 /**
- * SEARCH SANITY TESTS
+ * SEARCH — feature-coverage tests (SRCH-NNN)
  *
  * Tests critical search functionality across Library and Voices modules.
  * Validates search suggestions, search results, and dropdown UI elements.
  *
- * PRIORITY: Critical - Run before every release
+ * The @sanity-tagged subset here is part of the release-gate suite
+ * (see Sanity/README.md). Tests navigate to absolute MODULE_URLS, so the
+ * project baseURL is incidental.
  */
 
 import { test, expect } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, t } from '../globals';
-import { PageManager } from '../pages/pageManager';
-import { MODULE_URLS, SEARCH_DROPDOWN } from '../constants';
+import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { LANGUAGES, t } from '../../globals';
+import { PageManager } from '../../pages/pageManager';
+import { MODULE_URLS, SEARCH_DROPDOWN } from '../../constants';
 
-test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
+test.describe('Search', { tag: '@sanity' }, () => {
 
   // =================================================================
   // TEST 1: LIBRARY - Search suggestion click and navigation
   // =================================================================
-  test('Sanity 9a: Library - Click search suggestion and arrive at destination', async ({ context }) => {
+  test('SRCH-001: Library - Click search suggestion and arrive at destination', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
 
     // Type in search to trigger suggestions
@@ -44,7 +46,7 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 2: LIBRARY - Submit search and verify results
   // =================================================================
-  test('Sanity 9b: Library - Submit search and get results', async ({ context }) => {
+  test('SRCH-002: Library - Submit search and get results', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
 
     // Type search term and submit
@@ -72,7 +74,7 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 3: LIBRARY - Search dropdown sections validation
   // =================================================================
-  test('Sanity 9c: Library - Search dropdown sections and icons validation', async ({ context }) => {
+  test('SRCH-003: Library - Search dropdown sections and icons validation', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -93,7 +95,7 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 4: VOICES - Search suggestion click and navigation
   // =================================================================
-  test('Sanity 9d: Voices - Click search suggestion and arrive at destination', async ({ context }) => {
+  test('SRCH-004: Voices - Click search suggestion and arrive at destination', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -120,7 +122,7 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 5: VOICES - Submit search and verify results
   // =================================================================
-  test('Sanity 9e: Voices - Submit search and get results', async ({ context }) => {
+  test('SRCH-005: Voices - Submit search and get results', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -149,7 +151,7 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
   // =================================================================
   // TEST 6: VOICES - Search dropdown sections validation
   // =================================================================
-  test('Sanity 9f: Voices - Search dropdown sections and icons validation', async ({ context }) => {
+  test('SRCH-006: Voices - Search dropdown sections and icons validation', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -171,13 +173,13 @@ test.describe('Search Sanity Tests', { tag: '@sanity' }, () => {
 /**
  * TEST SUMMARY:
  *
- * 6 search sanity tests covering both Library and Voices modules:
- * 9a. Library - Search Suggestion Click: Click topic suggestion and navigate to topic page
- * 9b. Library - Search Submit: Submit search query and verify results page
- * 9c. Library - Dropdown Validation: Validate search dropdown sections and icons
- * 9d. Voices - Search Suggestion Click: Click suggestion and navigate to destination
- * 9e. Voices - Search Submit: Submit search query and verify results page
- * 9f. Voices - Dropdown Validation: Validate Voices-specific dropdown sections and icons
+ * 6 search tests covering both Library and Voices modules (all @sanity):
+ * SRCH-001. Library - Search Suggestion Click: Click topic suggestion and navigate to topic page
+ * SRCH-002. Library - Search Submit: Submit search query and verify results page
+ * SRCH-003. Library - Dropdown Validation: Validate search dropdown sections and icons
+ * SRCH-004. Voices - Search Suggestion Click: Click suggestion and navigate to destination
+ * SRCH-005. Voices - Search Submit: Submit search query and verify results page
+ * SRCH-006. Voices - Dropdown Validation: Validate Voices-specific dropdown sections and icons
  *
  * KEY FEATURES:
  * - Tests both search suggestion (autocomplete) and search submission flows

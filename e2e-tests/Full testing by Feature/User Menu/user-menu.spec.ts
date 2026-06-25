@@ -1,10 +1,12 @@
 /**
- * USER FLOW SANITY TESTS
+ * USER MENU — feature-coverage tests (UMN-NNN)
  *
- * Split into independent tests for better failure isolation and reporting.
- * Each test validates one critical user flow.
+ * Login, profile view/edit, account settings, language switch, module switcher,
+ * logout — the flows reachable from the header user menu. Split into independent
+ * tests for failure isolation.
  *
- * PRIORITY: Critical - Run before every release
+ * The @sanity-tagged subset (UMN-002 … UMN-007) is part of the release-gate
+ * suite (see Sanity/README.md). UMN-001 (UI login) is intentionally NOT tagged.
  */
 
 import { test, expect, Page, BrowserContext } from '@playwright/test';
@@ -15,17 +17,17 @@ import {
   openHeaderDropdown,
   selectDropdownOption,
   changeLanguage,
-} from '../utils';
-import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../globals';
-import { PageManager } from '../pages/pageManager';
-import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../constants';
+} from '../../utils';
+import { LANGUAGES, testUser, BROWSER_SETTINGS, t } from '../../globals';
+import { PageManager } from '../../pages/pageManager';
+import { MODULE_URLS, MODULE_SELECTORS, EXTERNAL_URLS } from '../../constants';
 
-test.describe.serial('User Flow Sanity Tests', () => {
+test.describe.serial('User Menu', () => {
 
   // =================================================================
   // TEST 1: LOGIN
   // =================================================================
-  test('Sanity 1: User can login successfully', async ({ context }) => {
+  test('UMN-001: User can login successfully', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -52,7 +54,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 2: PROFILE VIEW
   // =================================================================
-  test('Sanity 2: User can view profile with correct artifacts', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-002: User can view profile with correct artifacts', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Voices (Profile menu only available on Voices)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -81,7 +83,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 3: PROFILE EDITING
   // =================================================================
-  test('Sanity 3: User can edit profile successfully', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-003: User can edit profile successfully', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Voices (where profile lives)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -121,7 +123,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 4: ACCOUNT SETTINGS
   // =================================================================
-  test('Sanity 4: User can edit account settings', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-004: User can edit account settings', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in on Library (Account Settings only available on Library)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -154,7 +156,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 5: LANGUAGE SWITCHING
   // =================================================================
-  test('Sanity 5: User can change site language', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-005: User can change site language', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -183,7 +185,7 @@ test.describe.serial('User Flow Sanity Tests', () => {
   // =================================================================
   // TEST 6: MODULE SWITCHER - ALL DESTINATIONS
   // =================================================================
-  test('Sanity 6: Module switcher reaches all destinations', { tag: '@sanity' }, async ({ context }) => {
+  test('UMN-006: Module switcher reaches all destinations', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
 
@@ -221,20 +223,20 @@ test.describe.serial('User Flow Sanity Tests', () => {
   //
   // Sefaria's /logout endpoint destroys the user's server-side session row,
   // which invalidates the sessionid cookie in *every* worker context that
-  // shares that account's storage state. Every other sanity spec authenticates
-  // as the standard testUser (enUser); if Sanity 7 logged that account out,
-  // any concurrently-running sheet-workflow / cross-module-login test would
-  // suddenly find itself logged out mid-flight. This was the root cause of
-  // the chrome-sanity flake where Sanity 8h-8j (Unpublish / Add to collection /
+  // shares that account's storage state. Every other release-gate spec
+  // authenticates as the standard testUser (enUser); if UMN-007 logged that
+  // account out, any concurrently-running sheet-lifecycle / cross-module test
+  // would suddenly find itself logged out mid-flight. This was the root cause of
+  // the chrome-sanity flake where SHT-008–010 (Unpublish / Add to collection /
   // Delete) failed at random under default parallelism (verified 2026-05-20
   // by reproducing the failure and inspecting the screenshot — "User Logged
   // out" pill on the sheet page).
   //
-  // The admin account is unused elsewhere in Sanity (verified via grep:
-  // enAdmin appears in no spec file). Invalidating its session here therefore
-  // has no cross-test effect, while still exercising the real /logout server
-  // round-trip — i.e. fidelity is preserved.
-  test('Sanity 7: User can logout successfully', { tag: '@sanity' }, async ({ context }) => {
+  // The admin account is unused elsewhere in the release-gate suite (verified
+  // via grep: enAdmin appears in no other spec). Invalidating its session here
+  // therefore has no cross-test effect, while still exercising the real /logout
+  // server round-trip — i.e. fidelity is preserved.
+  test('UMN-007: User can logout successfully', { tag: '@sanity' }, async ({ context }) => {
     // Start logged in (admin profile — see comment above for why)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enAdmin);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -256,14 +258,14 @@ test.describe.serial('User Flow Sanity Tests', () => {
 /**
  * TEST SUMMARY:
  *
- * 7 independent sanity tests:
- * 1. Login - Verifies authentication works
- * 2. Profile View - Confirms profile displays correctly
- * 3. Profile Edit - Tests profile editing functionality
- * 4. Account Settings - Tests settings modification
- * 5. Logout - Verifies logout works
- * 6. Language Switch - Tests EN ↔ HE toggle
- * 7. Module Switcher - Tests all 4 destinations
+ * 7 independent user-menu tests (UMN-002 … UMN-007 are @sanity):
+ * UMN-001. Login - Verifies authentication works (NOT @sanity)
+ * UMN-002. Profile View - Confirms profile displays correctly
+ * UMN-003. Profile Edit - Tests profile editing functionality
+ * UMN-004. Account Settings - Tests settings modification
+ * UMN-005. Language Switch - Tests EN ↔ HE toggle
+ * UMN-006. Module Switcher - Tests all 4 destinations
+ * UMN-007. Logout - Verifies logout works
  *
  * KEY FIXES:
  * - Profile menu only exists on VOICES module

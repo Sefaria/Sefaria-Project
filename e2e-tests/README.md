@@ -12,7 +12,7 @@ This README is the **handbook for humans**. Read it cover-to-cover when you join
 | --- | --- |
 | A **human** joining the team or writing/running tests | **This file** — the full handbook |
 | An **AI agent** operating in this directory | [CLAUDE.md](CLAUDE.md) — the same conventions, compressed into prescriptive rules, plus agent-specific patterns (FA-icon clicks, jQuery URL encoding, dialog ordering, network interception) |
-| Running the **release-gate** suite | [Sanity/README.md](Sanity/README.md) — per-test inventory |
+| Understanding / running the **release-gate** suite | [Sanity/README.md](Sanity/README.md) — what a sanity test is + the `@sanity` tag |
 | Testing the **Library Assistant** chatbot | [assistant/README.md](assistant/README.md) |
 | Testing the **Resource Panel** (RP-NNN) | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Testing **Voices Topics** (TOV-NNN) | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
@@ -142,8 +142,8 @@ e2e-tests/
 │   └── README.md          ← Library folder guide (MOD-H/MOD-S IDs; legacy texts-tree note)
 ├── voices/                ← Voices-module UI tests (header, sidebar)
 │   └── README.md          ← Voices folder guide
-├── Sanity/                ← Release-gate smoke suite + redirect tests
-│   └── README.md          ← per-test inventory for this suite
+├── Sanity/                ← DOCS ONLY: what a sanity test is + the @sanity tag convention
+│   └── README.md          ← the release-gate suite is defined by the @sanity tag, not this folder
 ├── Misc/                  ← Cross-cutting / platform-level tests (help-sheet redirects)
 │   └── README.md          ← Misc folder guide
 ├── assistant/             ← Library Assistant (<lc-chatbot>) tests
@@ -175,14 +175,16 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | --- | --- | --- | --- | --- |
 | `library/` | `chrome-library` | `firefox-library` | `safari-library` | `www.<domain>` |
 | `voices/` | `chrome-voices` | `firefox-voices` | `safari-voices` | `voices.<domain>` |
-| `Sanity/` | `chrome-sanity` | `firefox-sanity` | `safari-sanity` | `www.<domain>` |
 | `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<domain>` |
 | `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<domain>` |
 | `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<domain>` |
 | `Full testing by Feature/Voices Topics/` | `chrome-voices-topics` | `firefox-voices-topics` | `safari-voices-topics` | `voices.<domain>` |
+| `Full testing by Feature/Search/` | `chrome-search` | `firefox-search` | `safari-search` | `www.<domain>` |
+| `Full testing by Feature/User Menu/` | `chrome-user-menu` | `firefox-user-menu` | `safari-user-menu` | `www.<domain>` |
+| `Full testing by Feature/Cross-Module/` | `chrome-cross-module` | `firefox-cross-module` | `safari-cross-module` | `www.<domain>` |
 | `mobile web/` *(separate config — [`playwright.mobileweb.config.ts`](../playwright.mobileweb.config.ts))* | `chrome-mobile-library` (Pixel 5) | — | `safari-mobile-library` (iPhone 13) | `www.<domain>` |
 
-The `*-sanity` projects are the one exception to the folder→project mapping above: they are **tag-scoped**, not folder-scoped (`testDir: './e2e-tests'` + `grep: /@sanity/`). They run every test tagged `@sanity` anywhere in the tree — the `Sanity/` folder is just where most of them currently live. See [Sanity/README.md](Sanity/README.md) §3.
+The `*-sanity` projects are **not** in the table because they are **tag-scoped, not folder-scoped** (`testDir: './e2e-tests'` + `grep: /@sanity/`): they run every test tagged `@sanity` anywhere in the tree. The tagged specs live in their feature folders; `Sanity/` itself is **docs only**. See [Sanity/README.md](Sanity/README.md).
 
 Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are derived from `SANDBOX_URL_IL` and are used *inside* tests when asserting Hebrew-site behavior — they are not separate Playwright projects.
 
@@ -197,18 +199,21 @@ Hebrew module URLs (`MODULE_URLS.HE.LIBRARY`, `MODULE_URLS.HE.VOICES`) are deriv
 | Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` |
 | Connections sidebar / Resource Panel (RP-NNN tests) | `Full testing by Feature/Resource Panel/` |
 | Voices topic pages or `/topics` landing (TOV-NNN tests) | `Full testing by Feature/Voices Topics/` |
+| Header search — autocomplete / results / dropdown (SRCH-NNN) | `Full testing by Feature/Search/` |
+| User-menu flows — profile / account / language / switcher / logout (UMN-NNN) | `Full testing by Feature/User Menu/` |
+| Cross-module integration — auth persistence + Library→Voices redirects (XMOD-NNN) | `Full testing by Feature/Cross-Module/` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile web/` *(run via `--config=playwright.mobileweb.config.ts`)* |
-| End-to-end release-gate smoke (login → profile → settings → logout, cross-module auth) | `Sanity/` |
-| Platform-level invariants, cross-module URL redirects, static-route assertions | `Misc/` |
+| Platform-level invariants, help-sheet redirects, static-route assertions | `Misc/` |
+| Release-gate smoke | **no folder — tag the test `{ tag: '@sanity' }`** in its feature folder (see [Sanity/README.md](Sanity/README.md)) |
 
-**Rule of thumb:** if a feature ships in one module only and has its own deep, CSV-driven test matrix, it earns its own folder under `Full testing by Feature/`. Otherwise, if it ships in one module only, use that module's folder; if it crosses modules, use `Sanity/`; if it's a platform-level invariant, use `Misc/`.
+**Rule of thumb:** if a feature ships in one module only and has its own deep test matrix, it earns its own folder under `Full testing by Feature/`. Otherwise, if it ships in one module only, use that module's folder; if it crosses modules, use `Full testing by Feature/Cross-Module/`; if it's a platform-level invariant, use `Misc/`. Release-gate status is orthogonal to location — it's the `@sanity` **tag**, applied wherever the test lives.
 
 ---
 
 ## Architecture in one diagram
 
 ```text
-spec.ts (in library/ | voices/ | Sanity/ | Misc/ | assistant/ | mobile web/ |
+spec.ts (in library/ | voices/ | Misc/ | assistant/ | mobile web/ | Full testing by Feature/<area>/ |
          Full testing by Feature/<feature>/)
     │
     ├── new PageManager(page, language)
@@ -721,14 +726,14 @@ In the bilingual app, prefer an **English-stable `data-name`** or English-keyed 
 
 The shared-session model has a sharp edge: tests that destroy or rotate the server-side session (UI logout, UI re-login as a globalSetup-managed account, password change) **cannot use a profile that other concurrent tests read**. The on-disk `sessionid` is shared across workers; when one worker hits `/logout`, Django's `session.flush()` deletes the row and every other worker holding that `sessionid` is silently logged out on its next request.
 
-**Currently in the suite:** the only destructive-auth test is **Sanity 7** ("User can logout successfully" in [Sanity/user-menu-sanity.spec.ts](Sanity/user-menu-sanity.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` for exactly this reason — no other Sanity test depends on the admin session staying alive, so destroying it every run is harmless. (This was a real flake: `Sanity 8h`/`8i` intermittently failed with "User Logged out" pills until Sanity 7 was moved off `enUser`.)
+**Currently in the suite:** the only destructive-auth test is **`UMN-007`** ("User can logout successfully" in [Full testing by Feature/User Menu/user-menu.spec.ts](Full%20testing%20by%20Feature/User%20Menu/user-menu.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` for exactly this reason — no other concurrent test depends on the admin session staying alive, so destroying it every run is harmless. (This was a real flake: `SHT-008`/`SHT-009` intermittently failed with "User Logged out" pills until the logout test was moved off `enUser`.)
 
 **When writing a new destructive-auth test, either:**
 
 - **Use a profile no other concurrent test depends on.** Today that means `enAdmin` for any non-admin destructive flow. For an admin-dependent destructive flow you'd need a dedicated 4th account — flag it before merging. Never use `enUser`.
 - **Intercept the destructive request.** `page.route('**/logout', route => route.fulfill({ status: 302, headers: { Location: '/' } }))` keeps the server-side session alive while preserving the UI redirect.
 
-**Existing tripwire:** `cross-module-login.spec.ts` Scenarios 4–7 perform parallel UI logins as the same QA user. They pass only because Sefaria's Django config doesn't regenerate sibling sessions on fresh login; if that policy ever tightens upstream, those scenarios become the next flake. (CLAUDE.md rule 21 has the full treatment.)
+**Existing tripwire:** the Cross-Module login spec's `XMOD-L04`–`XMOD-L07` ([Full testing by Feature/Cross-Module/login.spec.ts](Full%20testing%20by%20Feature/Cross-Module/login.spec.ts)) perform parallel UI logins as the same QA user. They pass only because Sefaria's Django config doesn't regenerate sibling sessions on fresh login; if that policy ever tightens upstream, those scenarios become the next flake. (CLAUDE.md rule 21 has the full treatment.)
 
 ### Legacy patterns to recognise
 
@@ -773,7 +778,7 @@ export { expect } from '@playwright/test';
 - [pages/README.md](pages/README.md) — page-object index: canonical models (`resourcePanelPage`, `voicesTopicPage`), every `pm.onX()` accessor, and the legacy/orphan markers
 - [library/README.md](library/README.md), [voices/README.md](voices/README.md), [Misc/README.md](Misc/README.md) — per-folder guides for the module and cross-cutting test folders
 - [Full testing by Feature/README.md](Full%20testing%20by%20Feature/README.md) — index of the deep, plan-driven feature suites and when a feature earns its own folder
-- [Sanity/README.md](Sanity/README.md) — per-test inventory for the Sanity release-gate suite
+- [Sanity/README.md](Sanity/README.md) — what a Sanity test is + the `@sanity` tag convention (the suite is tag-defined, not a folder)
 - [assistant/README.md](assistant/README.md) — Library Assistant (`<lc-chatbot>`) testing guide
 - [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) — Resource Panel guide: mode-navigation map, per-mode selector reference, auth-gated features, and the Common-gotchas catalogue
 - [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) — Voices Topics guide: per-test detail, CSV-vs-product adaptations, source-component map, reference topic (`torah`)

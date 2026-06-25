@@ -118,11 +118,10 @@ export default defineConfig({
       },
     },
     // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
-    // every test tagged `@sanity`, so a release-gate test can be marked without
-    // leaving its home folder (no copy/paste). Lets us move tests to their
-    // proper feature folder over time while they stay in the sanity run.
-    // Safe to give one baseURL because the suite navigates to absolute
-    // MODULE_URLS, never relative paths.
+    // every test tagged `@sanity`, wherever it lives — the release-gate set is
+    // defined by the tag, not by any folder. (The Sanity/ folder is now docs
+    // only; the specs live in their feature folders.) Safe to give one baseURL
+    // because the suite navigates to absolute MODULE_URLS, never relative paths.
     {
       name: 'chrome-sanity',
       testDir: './e2e-tests',
@@ -175,6 +174,33 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    // Search feature-coverage tests — spans Library + Voices (navigates absolute MODULE_URLS)
+    {
+      name: 'chrome-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // User Menu feature-coverage tests (profile/account/language/module switcher/logout)
+    {
+      name: 'chrome-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
+    {
+      name: 'chrome-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
 
@@ -254,6 +280,30 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.VOICES,
       },
     },
+    {
+      name: 'firefox-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
 
     // Safari - Library-specific modularization tests
     {
@@ -329,6 +379,30 @@ export default defineConfig({
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'safari-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
 

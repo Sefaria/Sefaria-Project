@@ -21,10 +21,11 @@ Tests are generated dynamically — one per redirect mapping in `helpDeskLinksCo
 Use this folder for **platform-level invariants** — redirects, static-route assertions, and cross-cutting behavior that isn't tied to one module's feature UI. Decision guide (full version in the root handbook's [Where does my test go?](../README.md#where-does-my-test-go)):
 
 - Module-specific UI → `library/` or `voices/`.
-- End-to-end release-gate smoke / cross-module auth journeys → `Sanity/`.
-- Platform invariants, redirects, static routes that don't fit a module → **`Misc/`**.
+- Cross-module auth journeys / Library→Voices page redirects → `Full testing by Feature/Cross-Module/`.
+- Release-gate smoke → tag the test `{ tag: '@sanity' }` wherever it lives; see [../Sanity/README.md](../Sanity/README.md).
+- Platform invariants, help-sheet redirects, static routes that don't fit a module → **`Misc/`**.
 
-> Note: the cross-module **redirect** tests live in `Sanity/cross-module-redirects.spec.ts`, not here — `Misc/` currently holds only the help-sheet redirects. The two are documented together in [../Sanity/README.md](../Sanity/README.md).
+> Note: the cross-module **page-redirect** tests (Library→Voices) live in [../Full testing by Feature/Cross-Module/redirects.spec.ts](../Full%20testing%20by%20Feature/Cross-Module/redirects.spec.ts), not here — `Misc/` holds only the help-sheet → Zendesk redirects.
 
 ## Running
 
@@ -36,5 +37,5 @@ npx playwright test Misc/help-sheet-redirects.spec.ts --project=chrome-misc
 ## Related
 
 - [../helpDeskLinksConstants.ts](../helpDeskLinksConstants.ts) — the redirect mappings that drive the tests
-- [../Sanity/README.md](../Sanity/README.md) — documents both redirect suites (cross-module + help-sheet)
+- [../Full testing by Feature/Cross-Module/README.md](../Full%20testing%20by%20Feature/Cross-Module/README.md) — the cross-module page-redirect suite (`XMOD-R`)
 - [../README.md](../README.md) — the suite handbook
