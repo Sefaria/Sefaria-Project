@@ -37,6 +37,8 @@ spec:
           env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
+            - name: PGVECTOR_PORT
+              value: "5432"
             - name: PGVECTOR_DB_PORT
               value: "5432"
             - name: REDIS_HOST
