@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semantic_search.query_embedding import embed_query
+from semantic_search.linked_refs import get_linked_ref_enhancements
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search
 from semantic_search.semantic_text_chunk import (
@@ -299,6 +300,74 @@ class TestGetIndexedUnitRefs:
         with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
             result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert result == set()
+
+
+# ---------------------------------------------------------------------------
+# filter_by_refs
+# ---------------------------------------------------------------------------
+
+class TestFilterByRefs:
+    def test_empty_refs_skips_query(self):
+        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects") as mock_objects:
+            assert SemanticTextChunk().filter_by_refs([]) == []
+        mock_objects.filter.assert_not_called()
+
+    def test_filters_by_ref_or_chunked_from_ref(self):
+        mock_objects = MagicMock()
+        mock_objects.filter.return_value = []
+        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
+            SemanticTextChunk().filter_by_refs(["Genesis 1:1", "Exodus 2:2"])
+        query_arg = mock_objects.filter.call_args.args[0]
+        assert "OR" in str(query_arg)
+        assert "ref__in" in str(query_arg)
+        assert "chunked_from_ref__in" in str(query_arg)
+
+
+# ---------------------------------------------------------------------------
+# linked ref enhancement
+# ---------------------------------------------------------------------------
+
+class TestLinkedRefEnhancement:
+    def test_counts_direct_linked_refs_and_applies_threshold(self):
+        chunks = [
+            make_chunk_data(ref="Genesis 1:1", linked_refs=["Ref A", "Ref B"]),
+            make_chunk_data(ref="Genesis 1:2", linked_refs=["Ref B", "Ref C"]),
+        ]
+        result = get_linked_ref_enhancements(chunks, link_depth=1, min_link_count=2)
+        assert result.appended_refs == ["Ref B"]
+        assert result.ref_counts == {"Ref B": 2}
+
+    def test_excludes_original_result_refs(self):
+        chunks = [
+            make_chunk_data(ref="Genesis 1:1", chunked_from_ref="Genesis 1", linked_refs=["Genesis 1:1", "Genesis 1", "Ref B"]),
+            make_chunk_data(ref="Genesis 1:2", linked_refs=["Ref B"]),
+        ]
+        result = get_linked_ref_enhancements(chunks, link_depth=1, min_link_count=1)
+        assert result.appended_refs == ["Ref B"]
+
+    def test_depth_two_fetches_and_counts_next_hop_links(self):
+        first_hop = make_chunk_data(ref="Ref B", linked_refs=["Ref D", "Ref E"])
+        chunk_store = MagicMock()
+        chunk_store.filter_by_refs.return_value = [first_hop]
+        chunks = [
+            make_chunk_data(ref="Genesis 1:1", linked_refs=["Ref B", "Ref D"]),
+        ]
+
+        result = get_linked_ref_enhancements(
+            chunks,
+            link_depth=2,
+            min_link_count=2,
+            chunk_store=chunk_store,
+        )
+
+        chunk_store.filter_by_refs.assert_called_once_with(["Ref B", "Ref D"])
+        assert result.appended_refs == ["Ref D"]
+        assert result.ref_counts == {"Ref D": 2}
+
+    def test_invalid_params_return_no_appended_refs(self):
+        chunk = make_chunk_data(linked_refs=["Ref B"])
+        assert get_linked_ref_enhancements([chunk], link_depth=0, min_link_count=1).appended_refs == []
+        assert get_linked_ref_enhancements([chunk], link_depth=1, min_link_count=0).appended_refs == []
 
 
 # ---------------------------------------------------------------------------

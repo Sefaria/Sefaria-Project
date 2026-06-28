@@ -169,37 +169,111 @@ _SEARCH_RESULT_FIELDS = (
 )
 
 
+def _require_semantic_search_auth(request):
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonResponse({"error": "Unauthorized"}, status=401)
+    token = auth[len("Bearer "):]
+    expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+    if not expected or token != expected:
+        return jsonResponse({"error": "Unauthorized"}, status=401)
+    return None
+
+
+def _parse_json_body(request):
+    try:
+        return json.loads(request.body), None
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+
+def _serialize_search_results(results):
+    return [
+        {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
+        for r in results
+    ]
+
+
+def _positive_int_param(body, name, default):
+    try:
+        value = int(body.get(name, default))
+    except (TypeError, ValueError):
+        raise ValueError(f"'{name}' must be an integer")
+    if value < 1:
+        raise ValueError(f"'{name}' must be greater than 0")
+    return value
+
+
 class KnnSearch(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request):
-        auth = request.headers.get("Authorization", "")
-        if not auth.startswith("Bearer "):
-            return jsonResponse({"error": "Unauthorized"}, status=401)
-        token = auth[len("Bearer "):]
-        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
-        if not expected or token != expected:
-            return jsonResponse({"error": "Unauthorized"}, status=401)
+        auth_error = _require_semantic_search_auth(request)
+        if auth_error:
+            return auth_error
 
-        try:
-            body = json.loads(request.body)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return jsonResponse({"error": "Invalid JSON body"}, status=400)
+        body, body_error = _parse_json_body(request)
+        if body_error:
+            return body_error
 
         query = body.get("query", "").strip()
         if not query:
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
 
         filters = body.get("filters") or None
-        limit = int(body.get("limit", 10))
+        try:
+            limit = _positive_int_param(body, "limit", 10)
+        except ValueError as e:
+            return jsonResponse({"error": str(e)}, status=400)
 
         from semantic_search.search import semantic_search
         results = semantic_search(query, filters=filters, limit=limit)
         return jsonResponse({
-            "results": [
-                {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
-                for r in results
-            ]
+            "results": _serialize_search_results(results)
+        })
+
+
+class KnnSearchLinkedRefs(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        auth_error = _require_semantic_search_auth(request)
+        if auth_error:
+            return auth_error
+
+        body, body_error = _parse_json_body(request)
+        if body_error:
+            return body_error
+
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
+
+        filters = body.get("filters") or None
+        try:
+            limit = _positive_int_param(body, "limit", 10)
+            linked_refs_depth = _positive_int_param(body, "linked_refs_depth", 1)
+            min_link_count = _positive_int_param(body, "min_link_count", 2)
+        except ValueError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+        from semantic_search.linked_refs import get_linked_ref_enhancements
+        from semantic_search.search import semantic_search
+
+        results = semantic_search(query, filters=filters, limit=limit)
+        enhancement = get_linked_ref_enhancements(
+            results,
+            link_depth=linked_refs_depth,
+            min_link_count=min_link_count,
+        )
+        return jsonResponse({
+            "results": _serialize_search_results(results),
+            "appended_refs": enhancement.appended_refs,
+            "appended_ref_counts": enhancement.ref_counts,
+            "linked_refs_depth": linked_refs_depth,
+            "min_link_count": min_link_count,
         })

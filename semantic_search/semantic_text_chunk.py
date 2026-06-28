@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from django.db import connections
+from django.db.models import Q
 from pgvector.django import CosineDistance
 
 from .models import DjangoSemanticTextChunk
@@ -185,3 +186,13 @@ class SemanticTextChunk:
 
     def filter(self, **kwargs) -> list:
         return [_to_dataclass(obj) for obj in DjangoSemanticTextChunk.objects.filter(**kwargs)]
+
+    def filter_by_refs(self, refs: list[str]) -> list:
+        if not refs:
+            return []
+        return [
+            _to_dataclass(obj)
+            for obj in DjangoSemanticTextChunk.objects.filter(
+                Q(ref__in=refs) | Q(chunked_from_ref__in=refs)
+            )
+        ]
