@@ -7,7 +7,7 @@ import { MODULE_URLS } from '../constants';
 /**
  * Mobile hamburger menu — Library module (English).
  *
- * Renders against the mobile viewport configured in `playwright.mobile.config.ts`
+ * Renders against the mobile viewport configured in `playwright.mobileweb.config.ts`
  * (Pixel 5: 393 × 851). Mobile chrome is gated on viewport width < 843 px
  * — see `static/css/breakpoints.css` --bp-tablet-min.
  *

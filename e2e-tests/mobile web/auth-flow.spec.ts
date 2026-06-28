@@ -99,12 +99,14 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     ).toBeVisible({ timeout: t(10000) });
   });
 
-  test('HAM-A003: From login, "Create a new account" navigates to register; back button returns to login', async () => {
+  test('HAM-A003: From login, "Sign Up" navigates to register; back button returns to login', async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
-    const createLink = page.getByRole('link', { name: /Create a new account/i });
-    await expect(createLink).toBeVisible({ timeout: t(5000) });
-    await createLink.tap();
+    // Cross-flow nav under the login title: "Don't have an account? Sign Up".
+    // Scope to #login so the header's own Sign Up button can't match.
+    const signUpLink = page.locator('#login').getByRole('link', { name: /^Sign Up$/i });
+    await expect(signUpLink).toBeVisible({ timeout: t(5000) });
+    await signUpLink.tap();
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/\/register/, { timeout: t(15000) });
