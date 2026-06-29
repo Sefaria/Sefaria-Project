@@ -111,11 +111,10 @@ class TestGetVersionContext:
         assert context["is_source"] is True
 
 
-class TestGetSectionContext:
+class TestGetChunkContext:
     def test_mishnah_berakhot_1(self):
         section_ref = Ref("Mishnah Berakhot 1")
-        context = pgv.get_section_context(section_ref)
-
+        context = pgv.get_chunk_context(section_ref)
         assert isinstance(context["pagerank"], float)
         assert context["pagerank"] > 0
 
