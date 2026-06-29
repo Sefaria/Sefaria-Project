@@ -214,13 +214,25 @@ def _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, ne
             post_modify_text(user, action, oref, lang, vtitle, old_text, new_text, version_id, skip_links=skip_links, count_after=False, **kwargs)
 
 
+def _sync_pgvector_text(oref, lang, vtitle) -> None:
+    """Dispatch a Celery task to re-embed pgvector chunks for the changed ref."""
+    try:
+        from django.conf import settings as _s
+        if "vector_db" not in getattr(_s, "DATABASES", {}):
+            return
+        from semantic_search.tasks import sync_text_and_embedding
+    except ImportError:
+        return
+    sync_text_and_embedding.delay(oref.index.title, lang, vtitle, [oref.normal()])
+
+
 def count_and_index(oref, lang, vtitle, to_count=1):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
 
     # count available segments of text
     if to_count:
         count_segments(oref.index)
-    
+
     if SEARCH_INDEX_ON_SAVE:
         model.IndexQueue({
             "ref": oref.normal(),
@@ -228,6 +240,8 @@ def count_and_index(oref, lang, vtitle, to_count=1):
             "version": vtitle,
             "type": "ref",
         }).save()
+
+    _sync_pgvector_text(oref, lang, vtitle)
 
 
 def count_segments(index, skip_toc_refresh=False):

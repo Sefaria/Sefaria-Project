@@ -1,0 +1,514 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Embed Library to pgvector
+
+Chunks and embeds the entire Sefaria library (every Index, every Version, every
+language) using the patot semantic chunker + Gemini embedding pipeline, and upserts
+the resulting chunks into a pgvector-backed Postgres table (`library_chunks`).
+
+Designed to run as a sharded Kubernetes Indexed Job: each pod processes the subset of
+indexes whose title hashes (mod --shard-count) into --shard-index. Resumable - on
+restart, (index, language, version_title) combinations whose section refs are already
+present in pgvector are skipped, so a restart does not re-embed (and re-bill Gemini
+for) already-completed work.
+
+Note: Logging is configured via sefaria.search.setup_logging() so output is visible
+in `kubectl logs`.
+"""
+
+import argparse
+import hashlib
+import logging
+import os
+import re
+import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+
+import django
+django.setup()
+
+from django.conf import settings as django_settings
+from django.db import connections
+from sefaria.model import *
+from sefaria.search import setup_logging
+from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context
+from semantic_search.embedder import GeminiEmbedder
+from semantic_search.models import DjangoSemanticTextChunk
+from semantic_search.semantic_text_chunk import SemanticTextChunk
+
+import tqdm as _tqdm_module
+import tqdm.auto as _tqdm_auto_module
+from tqdm import tqdm
+
+# Patot's internal tqdm bars hardcode disable=False and ignore TQDM_DISABLE.
+# Patch the class before patot is imported so all tqdm instances respect the env var.
+if os.environ.get("TQDM_DISABLE"):
+    _orig_tqdm_init = _tqdm_module.tqdm.__init__
+    def _patched_tqdm_init(self, *args, **kwargs):
+        kwargs["disable"] = True
+        _orig_tqdm_init(self, *args, **kwargs)
+    _tqdm_module.tqdm.__init__ = _patched_tqdm_init
+    _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
+
+from patot import ChunkerConfig, PatotChunker
+from patot.records import SegmentRecord
+from patot.analytics import ChunkingRuntimeAnalytics
+
+_slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
+
+logger = logging.getLogger(__name__)
+
+SEPARATOR_LINE = "=" * 60
+
+_SCHEMA_ADVISORY_LOCK_KEY = 727274002
+_SCHEMA_SQL = """
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS library_chunks (
+    doc_id                  TEXT PRIMARY KEY,
+    index_title             TEXT NOT NULL,
+    ref                     TEXT NOT NULL,
+    url                     TEXT NOT NULL,
+    chunked_from_ref        TEXT NOT NULL,
+    language                TEXT NOT NULL,
+    version_title           TEXT NOT NULL,
+    direction               TEXT NOT NULL,
+    text                    TEXT NOT NULL,
+    embedding               VECTOR(1536) NOT NULL,
+    primary_category        TEXT,
+    all_categories          TEXT[],
+    is_primary              BOOLEAN,
+    is_source               BOOLEAN,
+    composition_date        JSONB,
+    composition_place       TEXT,
+    era_name                TEXT,
+    pagerank                DOUBLE PRECISION,
+    author_names            TEXT[],
+    author_slugs            TEXT[],
+    associated_topic_names  TEXT[],
+    associated_topic_slugs  TEXT[],
+    linked_refs             TEXT[],
+    chunker_metadata        JSONB NOT NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
+    ON library_chunks (index_title, language, version_title);
+"""
+
+
+def _ensure_schema() -> None:
+    with connections['vector_db'].cursor() as cur:
+        cur.execute("SELECT pg_advisory_lock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
+        try:
+            cur.execute(_SCHEMA_SQL)
+        finally:
+            cur.execute("SELECT pg_advisory_unlock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
+
+# Thread-local storage: each worker thread gets its own PatotChunker.
+thread_local = threading.local()
+
+
+class EmbeddingResult:
+    """Track per-shard embedding progress, failures, and warnings. Thread-safe."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self.start_time = datetime.now()
+        self.indexes_processed = 0
+        self.sections_embedded = 0
+        self.chunks_written = 0
+        self.sections_skipped_resume = 0
+        self.sections_skipped_empty = 0
+        self.failures = []
+
+    def increment(self, field: str, n: int = 1):
+        with self._lock:
+            setattr(self, field, getattr(self, field) + n)
+
+    def record_failure(self, index_title, lang, vtitle, section_ref, error):
+        with self._lock:
+            self.failures.append({
+                "index_title": index_title,
+                "language": lang,
+                "version_title": vtitle,
+                "ref": section_ref,
+                "error": str(error),
+            })
+        logger.error(
+            f"Failed section - index: {index_title}, lang: {lang}, version: {vtitle}, "
+            f"ref: {section_ref}, error: {error}"
+        )
+
+    def is_success(self) -> bool:
+        return len(self.failures) == 0
+
+    def get_summary(self) -> str:
+        duration = datetime.now() - self.start_time
+        lines = [
+            SEPARATOR_LINE,
+            "EMBED LIBRARY TO PGVECTOR SUMMARY",
+            SEPARATOR_LINE,
+            f"Duration: {duration}",
+            f"Indexes processed: {self.indexes_processed}",
+            f"Sections embedded: {self.sections_embedded}",
+            f"Chunks written: {self.chunks_written}",
+            f"Sections skipped (already done): {self.sections_skipped_resume}",
+            f"Sections skipped (empty): {self.sections_skipped_empty}",
+            f"Failures: {len(self.failures)}",
+        ]
+        if self.failures:
+            lines.append("-" * 40)
+            for failure in self.failures[:20]:
+                lines.append(
+                    f"  - {failure['index_title']} {failure['ref']} "
+                    f"({failure['language']}/{failure['version_title']}): {failure['error']}"
+                )
+            if len(self.failures) > 20:
+                lines.append(f"  ... and {len(self.failures) - 20} more")
+        lines.append(SEPARATOR_LINE)
+        return "\n".join(lines)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Chunk and embed the Sefaria library into pgvector.")
+    parser.add_argument(
+        "--shard-index", type=int,
+        default=int(os.environ.get("JOB_COMPLETION_INDEX", 0)),
+        help="This pod's shard index (defaults to JOB_COMPLETION_INDEX).",
+    )
+    parser.add_argument(
+        "--shard-count", type=int,
+        default=int(os.environ.get("SHARD_COUNT", 1)),
+        help="Total number of shards (defaults to SHARD_COUNT env var, or 1).",
+    )
+    parser.add_argument(
+        "--limit-indexes", type=int, default=None,
+        help="Process only the first N indexes assigned to this shard (for smoke testing).",
+    )
+    parser.add_argument(
+        "--threads", type=int,
+        default=int(os.environ.get("SHARD_THREADS", 10)),
+        help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
+    )
+    parser.add_argument(
+        "--max-versions", type=int, default=None,
+        help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
+    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
+    return parser.parse_args()
+
+
+def shard_for_title(title: str, shard_count: int) -> int:
+    """Stable (non-salted) hash so all shards agree on index->shard assignment."""
+    return int(hashlib.sha256(title.encode("utf-8")).hexdigest(), 16) % shard_count
+
+
+def is_passage_based(index) -> bool:
+    return index.get_primary_corpus() in {"Tanakh", "Bavli"}
+
+
+def get_passages_for_index(index) -> list:
+    prefix = re.escape(index.title)
+    return list(PassageSet({"full_ref": {"$regex": fr"^{prefix} \d"}}))
+
+
+def collect_segment_records_by_section(version) -> dict:
+    """
+    Walk through every segment of `version` once (via Version.walk_thru_contents) and
+    group the resulting SegmentRecords by their section ref's normal form.
+
+    This replaces issuing a separate `section_ref.text(lang=lang, vtitle=vtitle)` lookup
+    per section, which is very expensive when repeated across every section of a version.
+    """
+    segment_records_by_section: dict = {}
+    section_counters: dict = {}
+
+    def collect(segment_str, tref, _he_tref, _version):
+        oref = Ref(tref)
+        section_normal = oref.section_ref().normal()
+        segment_index = section_counters.get(section_normal, 0)
+        section_counters[section_normal] = segment_index + 1
+        if segment_str and segment_str.strip():
+            segment_records_by_section.setdefault(section_normal, []).append(
+                SegmentRecord(tref=oref.normal(), text=segment_str, segment_index=segment_index)
+            )
+
+    version.walk_thru_contents(collect)
+    return segment_records_by_section
+
+
+def collect_segment_text_by_ref(version) -> dict:
+    """Walk version once and return a flat {segment_ref_normal: text} map."""
+    segment_text_by_ref: dict = {}
+
+    def collect(segment_str, tref, _he_tref, _version):
+        if segment_str and segment_str.strip():
+            segment_text_by_ref[tref] = segment_str
+
+    version.walk_thru_contents(collect)
+    return segment_text_by_ref
+
+
+
+def chunk_ref_from_segments(source_segment_refs: list):
+    """Build a Ref spanning the chunk's source segments (ranged if >1 segment).
+
+    Footnote pseudo-refs (containing '::fn:') are not parseable by Sefaria's Ref
+    class, so we strip them — using only the base segment part of the ref string.
+    """
+    def to_base_ref(r: str) -> str:
+        return r.split("::fn:")[0] if "::fn:" in r else r
+
+    base_refs = [to_base_ref(r) for r in source_segment_refs]
+    # Deduplicate while preserving order (footnotes from the same segment produce duplicates).
+    seen = set()
+    unique_refs = []
+    for r in base_refs:
+        if r not in seen:
+            seen.add(r)
+            unique_refs.append(r)
+
+    if len(unique_refs) == 1:
+        return Ref(unique_refs[0])
+    return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
+
+
+def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
+                     result, index_context: dict, version_context: dict) -> list[DjangoSemanticTextChunk]:
+    unit_normal = unit_ref.normal()
+    unit_slug = _slugify(unit_normal)
+    vtitle_slug = _slugify(vtitle)
+
+    chunks = []
+    for chunk_index, chunk in enumerate(result.chunks, start=1):
+        vector = embedder.embed_text(chunk.text, "RETRIEVAL_DOCUMENT")
+        chunk_hash = hashlib.sha256(
+            f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
+        ).hexdigest()[:12]
+        doc_id = f"chunk_{lang}_{unit_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
+
+        chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
+        chunk_context = get_chunk_context(chunk_ref)
+
+        chunks.append(DjangoSemanticTextChunk(
+            doc_id=doc_id,
+            index_title=index_title,
+            ref=chunk_ref.normal(),
+            url=chunk_ref.url(),
+            chunked_from_ref=unit_normal,
+            language=version_context["language"],
+            version_title=vtitle,
+            direction=version_context["direction"],
+            text=chunk.text,
+            embedding=vector,
+            primary_category=index_context["primary_category"],
+            all_categories=index_context["all_categories"],
+            is_primary=version_context["is_primary"],
+            is_source=version_context["is_source"],
+            composition_date=index_context["composition_date"],
+            composition_place=index_context["composition_place"],
+            era_name=index_context["era_name"],
+            pagerank=chunk_context["pagerank"],
+            author_names=index_context["author_names"],
+            author_slugs=index_context["author_slugs"],
+            associated_topic_names=chunk_context["associated_topic_names"],
+            associated_topic_slugs=chunk_context["associated_topic_slugs"],
+            linked_refs=chunk_context["linked_refs"],
+            chunker_metadata={
+                "source_segment_refs": chunk.source_segment_refs,
+                "chunk_kind": chunk.kind,
+                "chunk_pass_number": chunk.pass_number,
+                "chunk_token_count": chunk.token_count,
+                "chunk_triggered": chunk.triggered,
+                "chunk_score": chunk.score,
+            },
+        ))
+    return chunks
+
+
+def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
+                   chunk_store: SemanticTextChunk, version_pbar=None):
+    """
+    Core per-index loop shared by section-based and passage-based processing.
+
+    `get_units_for_version(version)` must return a list of (unit_ref, segment_records) pairs,
+    where unit_ref is a Ref whose .normal() is used as the resume key and stored in library_chunks.ref.
+    """
+    index_context = get_index_context(index)
+
+    for version in VersionSet({"title": index.title}):
+        lang, vtitle = version.language, version.versionTitle
+        version_context = get_version_context(version)
+
+        already_done = chunk_store.get_indexed_unit_refs(index.title, version_context["language"], vtitle)
+
+        units = get_units_for_version(version)
+
+        for unit_ref, segment_records in units:
+            unit_normal = unit_ref.normal()
+            if unit_normal in already_done:
+                result_tracker.increment("sections_skipped_resume")
+            elif not segment_records:
+                result_tracker.increment("sections_skipped_empty")
+            else:
+                try:
+                    chunk_result = chunker.chunk_segments(segment_records)
+                    if not chunk_result.chunks:
+                        result_tracker.increment("sections_skipped_empty")
+                    else:
+                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
+                                                      chunk_result, index_context, version_context)
+                        chunk_store.upsert(chunk_data)
+                        result_tracker.increment("sections_embedded")
+                        result_tracker.increment("chunks_written", len(chunk_data))
+                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(chunk_data)} chunk(s)")
+                except Exception as e:
+                    result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
+
+        if version_pbar is not None:
+            version_pbar.update(1)
+            version_pbar.set_postfix(index=index.title[:30], lang=lang)
+
+
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk,
+                  version_pbar=None):
+    if is_passage_based(index):
+        passages = get_passages_for_index(index)
+        if not passages:
+            logger.warning(f"No passages found for {index.title}, falling back to section-based")
+        else:
+            logger.info(f"Passage-based chunking for {index.title}: {len(passages)} passages")
+
+            def get_units_for_version(version):
+                segment_text_by_ref = collect_segment_text_by_ref(version)
+                return [
+                    (
+                        Ref(passage.full_ref),
+                        [SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
+                         for i, r in enumerate(passage.ref_list) if r in segment_text_by_ref],
+                    )
+                    for passage in passages
+                ]
+
+            _process_index(index, chunker, result_tracker, get_units_for_version,
+                           chunk_store=chunk_store, version_pbar=version_pbar)
+            return
+
+    section_refs = index.all_section_refs()
+    if not section_refs:
+        logger.debug(f"No section refs for index {index.title}, skipping")
+        return
+
+    def get_units_for_version(version):
+        segment_records_by_section = collect_segment_records_by_section(version)
+        return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
+
+    _process_index(index, chunker, result_tracker, get_units_for_version,
+                   chunk_store=chunk_store, version_pbar=version_pbar)
+
+
+def thread_init(api_key: str, config):
+    """Per-thread initializer: create a PatotChunker and a GeminiEmbedder."""
+    thread_local.chunker = PatotChunker(api_key=api_key, config=config)
+    thread_local.embedder = GeminiEmbedder(api_key=api_key)
+
+
+def main():
+    args = parse_args()
+    setup_logging(args.debug)
+
+    if PatotChunker is None:
+        raise SystemExit(
+            "patot[chunking] extras are not installed (transformers/semantic-chunkers/semantic-router "
+            "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency."
+        )
+
+    if args.shard_count < 1:
+        raise SystemExit("--shard-count must be at least 1")
+    if not (0 <= args.shard_index < args.shard_count):
+        raise SystemExit(f"--shard-index ({args.shard_index}) must be in [0, {args.shard_count})")
+
+    api_key = django_settings.GEMINI_API_KEY
+    if not api_key:
+        raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
+
+    result = EmbeddingResult()
+    chunk_store = SemanticTextChunk()
+
+    logger.info(SEPARATOR_LINE)
+    logger.info("EMBED LIBRARY TO PGVECTOR")
+    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
+    logger.info(SEPARATOR_LINE)
+
+    _ensure_schema()
+
+    config = ChunkerConfig(
+        debug=False,
+        embedding_cache_enabled=True,
+        embedding_cache_path="/tmp/patot/embedding_cache.sqlite",
+        runtime_analytics=ChunkingRuntimeAnalytics(),
+        extract_html_footnotes_to_segments=False,
+    )
+
+    all_indexes = library.all_index_records()
+    shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
+    logger.info(f"This shard owns {len(shard_indexes)} of {len(all_indexes)} indexes")
+
+    if args.limit_indexes is not None:
+        shard_indexes = shard_indexes[:args.limit_indexes]
+        logger.info(f"--limit-indexes set: processing only {len(shard_indexes)} index(es)")
+
+    if args.max_versions is not None:
+        before = len(shard_indexes)
+        shard_indexes = [idx for idx in shard_indexes
+                         if VersionSet({"title": idx.title}).count() <= args.max_versions]
+        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(shard_indexes)} index(es), "
+                    f"{len(shard_indexes)} remaining")
+
+    total_versions = sum(VersionSet({"title": idx.title}).count() for idx in shard_indexes)
+    logger.info(f"Total versions in this shard: {total_versions}")
+
+    with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=None) as version_pbar:
+        def run_index(index):
+            logger.info(f"Processing index: {index.title}")
+            try:
+                process_index(index, thread_local.chunker, result, chunk_store, version_pbar)
+            except Exception as e:
+                result.record_failure(index.title, "-", "-", "-", e)
+            result.increment("indexes_processed")
+
+        with ThreadPoolExecutor(
+            max_workers=args.threads,
+            initializer=thread_init,
+            initargs=(api_key, config),
+        ) as executor:
+            futures = [executor.submit(run_index, index) for index in shard_indexes]
+            completed = 0
+            for future in as_completed(futures):
+                future.result()
+                completed += 1
+                if completed % 10 == 0:
+                    logger.info(result.get_summary())
+                    logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
+
+    logger.info(result.get_summary())
+    logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
+
+    if not result.is_success():
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warning("Interrupted by user")
+        sys.exit(130)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+        sys.exit(1)

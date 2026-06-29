@@ -4,6 +4,13 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 
 from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
+_pgv = None
+try:
+    from semantic_search import pgvector_dependencies as _pgv
+except ImportError:
+    pass
+_PGVECTOR_DEPS = _pgv is not None
+
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
 import structlog
@@ -177,3 +184,28 @@ subscribe(text.reset_simple_term_mapping,                                   cate
 # todo: notes? reviews?
 # todo: Scheme name change in Index
 # todo: term change in nodes
+
+# pgvector incremental updates
+if _PGVECTOR_DEPS:
+    # Index
+    subscribe(_pgv.process_index_save_in_pgvector,              text.Index, "save")
+    subscribe(_pgv.process_index_title_change_in_pgvector,      text.Index, "attributeChange", "title")
+    subscribe(_pgv.process_index_delete_in_pgvector,            text.Index, "delete")
+    # Version
+    subscribe(_pgv.process_version_save_in_pgvector,            text.Version, "save")
+    subscribe(_pgv.process_version_title_change_in_pgvector,    text.Version, "attributeChange", "versionTitle")
+    subscribe(_pgv.process_version_delete_in_pgvector,          text.Version, "delete")
+    # Topic slug change (now tracked via Topic.pkeys)
+    subscribe(_pgv.process_topic_slug_change_in_pgvector,       topic.Topic, "attributeChange", "slug")
+    # Author topic save (catches primary title / name changes)
+    subscribe(_pgv.process_author_topic_save_in_pgvector,       topic.AuthorTopic, "save")
+    # Categories
+    subscribe(_pgv.process_category_path_change_in_pgvector,    category.Category, "attributeChange", "path")
+    # RefTopicLinks
+    subscribe(_pgv.process_ref_topic_link_change_in_pgvector,   topic.RefTopicLink, "save")
+    subscribe(_pgv.process_ref_topic_link_change_in_pgvector,   topic.RefTopicLink, "delete")
+    # Links
+    subscribe(_pgv.process_link_change_in_pgvector,             link.Link, "save")
+    subscribe(_pgv.process_link_change_in_pgvector,             link.Link, "delete")
+    # RefData (pagerank)
+    subscribe(_pgv.process_ref_data_save_in_pgvector,           ref_data.RefData, "save")
