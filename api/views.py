@@ -213,6 +213,7 @@ class KnnSearch(View):
             results = semantic_search(query, filters=filters, limit=limit)
         except EmbeddingError as e:
             return jsonResponse({"error": str(e)}, status=502)
+        return jsonResponse({
             "results": [
                 {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
                 for r in results
