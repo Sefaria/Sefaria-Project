@@ -23,7 +23,15 @@ DATABASES = {
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    }
+    },
+    'vector_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'pgvector',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
 }
 
 """
@@ -357,3 +365,6 @@ CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 # Use the local Vite dev server script instead of the hosted UMD bundle.
 CHATBOT_USE_LOCAL_SCRIPT = True
+
+GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
+SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/semantic-search endpoint

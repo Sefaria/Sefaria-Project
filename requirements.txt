@@ -223,6 +223,8 @@ parso==0.8.4
     # via jedi
 pathos==0.2.6
     # via -r ./requirements.txt
+patot[chunking,pdf] @ git+https://github.com/Sefaria/patot@v0.1.5
+    # via -r ./requirements.txt
 pexpect==4.9.0
     # via ipython
 pickleshare==0.7.5
@@ -243,6 +245,7 @@ protobuf==5.29.3
     # via
     #   google-api-core
     #   googleapis-common-protos
+pgvector==0.4.2
 psycopg2-binary==2.9.9 #for dev: psycopg2-binary==2.9.9
 ptyprocess==0.7.0
     # via pexpect
@@ -349,7 +352,7 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.12.2
+typing-extensions>=4.14.1
     # via
     #   beautifulsoup4
     #   kombu

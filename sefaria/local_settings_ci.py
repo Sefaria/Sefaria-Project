@@ -12,7 +12,15 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
-    }
+    },
+    'vector_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGVECTOR_DB', 'pgvector'),
+        'USER': os.environ.get('POSTGRES_USER', 'sefaria'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('PGVECTOR_HOST', 'localhost'),
+        'PORT': os.environ.get('PGVECTOR_DB_PORT', '5432'),
+    },
 }
 
 DOMAIN_MODULES = {
@@ -223,3 +231,6 @@ structlog.configure(
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+GEMINI_API_KEY = ""
+SEMANTIC_SEARCH_API_TOKEN = ""

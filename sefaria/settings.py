@@ -173,7 +173,12 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django_hosts',
+    'django.contrib.postgres',
+    'pgvector.django',
+    'semantic_search',
 )
+
+DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 LOGIN_URL = 'login'
 
