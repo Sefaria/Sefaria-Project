@@ -2833,9 +2833,10 @@ _media: {},
     } else {
       // we need to get the heRef for each history item
       Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
+        if (Sefaria.isSheetRef(h.ref)) { resolve(h); return; }   // sheet: keep without a bad API call
         Sefaria.getRef(h.ref).then(oref => {
-          h.he_ref = oref.heRef;
-          resolve(h);
+            h.he_ref = oref.heRef;
+            resolve(h);
         });
       }))).then(new_hist_array => {
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
