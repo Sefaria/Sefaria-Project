@@ -30,9 +30,9 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError, \
-    BAD_RECORD_EXCEPTIONS
-from sefaria.helper.slack.send_message import log_and_signal
+    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
+from sefaria.helper.slack.send_message import log_and_signal, bad_record_guard
+skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -5033,27 +5033,21 @@ class Library(object):
         # raises) logs and is skipped rather than aborting the whole rebuild.
         self._index_map = {}
         for i in IndexSet():
-            try:
+            with skip_bad_record("reset_cache,init_library_cache", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
                 if i.nodes:
                     self._index_map[i.title] = i
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "error", "[pathway:reset_cache,init_library_cache] _build_index_maps: skipping malformed index record {}: {}".format(getattr(i, "_id", "<unknown>"), e))
         forest = [i.nodes for i in list(self._index_map.values())]
         self._title_node_maps = {lang: {} for lang in self.langs}
         self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
-            try:
+            # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
+            # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
+            with skip_bad_record("reset_cache,init_library_cache", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
                 for lang in self.langs:
                     tree_titles = tree.title_dict(lang)
                     self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                     self._title_node_maps[lang].update(tree_titles)
-            except IndexSchemaError as e:
-                logger.error("Error in generating title node dictionary: {}".format(e))
-            except BAD_RECORD_EXCEPTIONS as e:
-                # A corrupt node (bad get_titles_object()/children) raises something other than
-                # IndexSchemaError; isolate it to this tree instead of aborting the rebuild.
-                log_and_signal(logger, "error", "[pathway:reset_cache,init_library_cache] _build_index_maps: skipping tree '{}' due to error building title dict: {}".format(getattr(tree, "key", "<unknown>"), e))
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5245,10 +5239,8 @@ class Library(object):
             # not abort the whole topic-ToC build.
             children = []
             for t in ts:
-                try:
+                with skip_bad_record("rebuild_toc,init_library_cache", "get_topic_toc_json_recursive top-level topic"):
                     children.append(t.slug)
-                except BAD_RECORD_EXCEPTIONS as e:
-                    log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] get_topic_toc_json_recursive: skipping malformed top-level topic: {}".format(e))
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
@@ -5265,10 +5257,8 @@ class Library(object):
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
             # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
-            try:
+            with skip_bad_record("rebuild_toc,init_library_cache", "topic TOC child", record=child):
                 topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] While building topic TOC, skipping topic '{}': {}".format(child, e))
         if len(children) > 0:
             # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
             topic_json['children'].sort(key=lambda x: x.get('displayOrder', 0))
@@ -5710,7 +5700,7 @@ class Library(object):
         self._full_term_mapping = {}
         for term in TermSet():
             # One term with a missing/corrupt title_group must not abort startup.
-            try:
+            with skip_bad_record("reset_cache,init_library_cache", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
                 self._full_term_mapping[term.name] = term
                 self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
                                                         "he": term.get_primary_title("he")}
@@ -5718,8 +5708,6 @@ class Library(object):
                     for lang in self.langs:
                         for title in term.get_titles(lang):
                             self._term_ref_maps[lang][title] = term.ref
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:reset_cache,init_library_cache] build_term_mappings: skipping term '{}': {}".format(getattr(term, "name", "<unknown>"), e))
 
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
@@ -5789,10 +5777,8 @@ class Library(object):
         # One topic with a missing/corrupt title_group must not abort startup.
         self._topic_mapping = {}
         for t in TopicSet():
-            try:
+            with skip_bad_record("reset_cache,init_library_cache", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
                 self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:reset_cache,init_library_cache] _build_topic_mapping: skipping topic '{}': {}".format(getattr(t, "slug", "<unknown>"), e))
         return self._topic_mapping
 
     def get_linker(self, lang: str, rebuild=False):
@@ -5866,10 +5852,10 @@ class Library(object):
         """
         records = []
         for k in list(self._index_title_maps["en"].keys()):
-            try:
+            # Deliberately narrow to KeyError (the title/nodes.key mismatch), not the full
+            # bad-record family — per the BAD_RECORD_EXCEPTIONS decision for this site.
+            with skip_bad_record("rebuild_toc,init_library_cache", "all_index_records key (title/nodes.key mismatch)", record=k, level="error", exceptions=KeyError):
                 records.append(self._index_map[k])
-            except KeyError:
-                log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] all_index_records: no index record for key '{}' (likely title/nodes.key mismatch); skipping.".format(k))
         return records
 
     def get_title_node_dict(self, lang="en"):
@@ -6042,10 +6028,8 @@ class Library(object):
         # .title raises) is logged-and-skipped rather than aborting startup.
         self._virtual_books = []
         for index in IndexSet({'lexiconName': {'$exists': True}}):
-            try:
+            with skip_bad_record("init_library_cache", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
                 self._virtual_books.append(index.title)
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:init_library_cache] build_virtual_books: skipping malformed index {}: {}".format(getattr(index, "_id", "<unknown>"), e))
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):

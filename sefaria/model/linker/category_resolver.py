@@ -5,10 +5,10 @@ from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
-from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
-from sefaria.helper.slack.send_message import log_and_signal
+from sefaria.helper.slack.send_message import log_and_signal, bad_record_guard
 
 logger = structlog.get_logger(__name__)
+skip_bad_record = bad_record_guard(logger)
 
 
 class ResolvedCategory(AbstractResolvedEntity):
@@ -52,7 +52,7 @@ class CategoryMatcher:
         for cat in category_registry:
             # One category whose match_template references a nonexistent/corrupt term
             # (term.get_terms() yields None, or term.get_titles() raises) must not abort startup.
-            try:
+            with skip_bad_record("init_library_cache", "CategoryMatcher category", record="/".join(getattr(cat, "path", []) or [])):
                 for match_template in cat.get_match_templates():
                     for term in match_template.get_terms():
                         if term is None:
@@ -60,8 +60,6 @@ class CategoryMatcher:
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:init_library_cache] CategoryMatcher: skipping category '{}': {}".format("/".join(getattr(cat, "path", []) or []), e))
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)

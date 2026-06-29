@@ -4,8 +4,9 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError, BAD_RECORD_EXCEPTIONS
-from sefaria.helper.slack.send_message import log_and_signal
+from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
+from sefaria.helper.slack.send_message import bad_record_guard
+skip_bad_record = bad_record_guard(logger)
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -219,14 +220,12 @@ class TocTree(object):
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
         self._vs_lookup = {}
         for vs in vss:
-            try:
+            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree vstate record", record=vs.get("_id")):
                 self._vs_lookup[vs["title"]] = {
                     "first_section_ref": vs.get("first_section_ref"),
                     "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
                     "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
                 }
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping malformed vstate record {}: {}".format(vs.get("_id"), e))
 
         # Build Category object tree from stored Category objects
         for c in CategorySet(sort=[("depth", 1)]):
@@ -236,17 +235,15 @@ class TocTree(object):
         ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
         self._first_comment_lookup = {}
         for l in ls:
-            try:
+            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree first_comment link", record=l.get("_id")):
                 self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping malformed first_comment link {}: {}".format(l.get("_id"), e))
 
         # Place Indexes. Wrap each index so one malformed record (empty categories,
         # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
         # aborting the whole TOC build and preventing server startup.
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
-            try:
+            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree index", record=getattr(i, "title", "<unknown>"), level="error"):
                 if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                     continue
                 node = self._make_index_node(i, mobile=mobile)
@@ -268,13 +265,11 @@ class TocTree(object):
                             break # Don't consider a category incomplete for containing incomplete commentaries
 
                 self._path_hash[tuple(i.categories + [i.title])] = node
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping index '{}' due to error building its TOC node: {}".format(getattr(i, "title", "<unknown>"), e))
 
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
-            try:
+            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree collection", record=getattr(c, "slug", "<unknown>"), level="error"):
                 self._collections_in_library.append(c.slug)
                 node = TocCollectionNode(collection_object=c)
                 categories = node.categories
@@ -285,8 +280,6 @@ class TocTree(object):
                 cat.append(node)
 
                 self._path_hash[tuple(node.categories + [c.slug])] = node
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping collection '{}' due to error building its TOC node: {}".format(getattr(c, "slug", "<unknown>"), e))
 
         self._sort()
 
@@ -341,15 +334,14 @@ class TocTree(object):
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
-        try:
+        # One malformed or orphaned category (get_primary_title raises, or its parent isn't
+        # yet in the path hash -> KeyError) is skipped+signaled rather than aborting the
+        # whole TocTree build.
+        with skip_bad_record("rebuild_toc,init_library_cache", "TocTree._add_category", record='/'.join(getattr(cat, "path", []) or [])):
             tc = TocCategory(category_object=cat)
             parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
             parent.append(tc)
             self._path_hash[tuple(cat.path)] = tc
-        except KeyError:
-            logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
-        except BAD_RECORD_EXCEPTIONS as e:
-            log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree._add_category: skipping malformed category '{}': {}".format('/'.join(getattr(cat, "path", []) or []), e))
 
     def get_root(self):
         return self._root
@@ -469,11 +461,8 @@ class TocNode(schema.TitledTreeNode):
             # drops its subtree.
             d["contents"] = []
             for n in self.children:
-                try:
+                with skip_bad_record("rebuild_toc,init_library_cache", "TocTree.serialize node", record=getattr(n, "title", None) or n.__class__.__name__, level="error"):
                     d["contents"].append(n.serialize(**kwargs))
-                except BAD_RECORD_EXCEPTIONS as e:
-                    label = n.primary_title("en")
-                    log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree.serialize: skipping node '{}': {}".format(label, e))
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
         if kwargs.get("thin") is True:

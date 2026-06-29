@@ -1,5 +1,8 @@
 import requests
+from contextlib import contextmanager
+from collections import defaultdict
 from sefaria.settings import SLACK_URL
+from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
 
 
 def send_message(channel, username, pretext, text, fallback=None, icon_emoji=':robot_face:', color="#a30200", timeout=None):
@@ -63,3 +66,41 @@ def log_and_signal(log, level, message):
     """
     getattr(log, level)(message)
     notify_engineering_signal(message, level=level)
+
+
+# Per-(pathway, what) tally of records skipped by bad_record_guard. The skip-and-continue
+# behavior is otherwise silent degradation; this makes it visible — e.g. log get_skip_counts()
+# at the end of boot, or expose it on a health endpoint — so "silently incomplete library"
+# stops being invisible. See the BAD_RECORD_EXCEPTIONS decision.
+skip_counts = defaultdict(lambda: defaultdict(int))
+
+
+def get_skip_counts():
+    """Return a plain-dict snapshot of skip_counts: {pathway: {what: count}}."""
+    return {pathway: dict(whats) for pathway, whats in skip_counts.items()}
+
+
+def bad_record_guard(log):
+    """
+    Bind a module's structlog logger once and return a `with`-guard for per-record loops.
+
+    Inside the guard, a caught exception means: tally it in skip_counts, log+signal it (to
+    the bound logger and #engineering-signal), and skip the record — instead of letting one
+    corrupt record abort the whole build. By default it catches BAD_RECORD_EXCEPTIONS only,
+    so systemic failures (AttributeError, Mongo connectivity, ImportError, ...) still
+    propagate and abort loudly; pass `exceptions=` to narrow further (e.g. KeyError).
+
+    Usage:
+        skip_bad_record = bad_record_guard(logger)   # once, at module top
+        for rec in SomeSet():
+            with skip_bad_record("init_library_cache", "build_virtual_books", record=rec_id):
+                ...build using rec...
+    """
+    @contextmanager
+    def skip_bad_record(pathway, what, record=None, level="warning", exceptions=BAD_RECORD_EXCEPTIONS):
+        try:
+            yield
+        except exceptions as e:
+            skip_counts[pathway][what] += 1
+            log_and_signal(log, level, "[pathway:{}] {}: skipping {!r}: {}".format(pathway, what, record, e))
+    return skip_bad_record

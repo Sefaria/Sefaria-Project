@@ -17,9 +17,9 @@ from sefaria.model.following import aggregate_profiles
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
-from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
-from sefaria.helper.slack.send_message import log_and_signal
+from sefaria.helper.slack.send_message import bad_record_guard
 logger = structlog.get_logger(__name__)
+skip_bad_record = bad_record_guard(logger)
 
 
 letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
@@ -126,7 +126,7 @@ class AutoCompleter(object):
             normal_user_names = []
             for id, u in users.items():
                 # One user/profile with a missing name or profile field must not abort startup.
-                try:
+                with skip_bad_record("init_library_cache", "AutoCompleter user", record=id):
                     fullname = f"{u.first_name or ''} {u.last_name or ''}"
                     normal_name = self.normalizer(fullname)
                     self.title_trie[normal_name] = {
@@ -139,8 +139,6 @@ class AutoCompleter(object):
                     }
                     unames += [fullname]
                     normal_user_names += [normal_name]
-                except BAD_RECORD_EXCEPTIONS as e:
-                    log_and_signal(logger, "warning", "[pathway:init_library_cache] AutoCompleter: skipping user {}: {}".format(id, e))
             self.spell_checker.train_phrases(unames)
             self.ngram_matcher.train_phrases(unames, normal_user_names)
         if include_collections:
@@ -497,12 +495,10 @@ class LexiconTrie(datrie.Trie):
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
             # One malformed lexicon entry (e.g. missing headword) must not abort startup.
-            try:
+            with skip_bad_record("init_library_cache", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", "<unknown>")):
                 self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
                 for ahw in entry.get_alt_headwords():
                     self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
-            except BAD_RECORD_EXCEPTIONS as e:
-                log_and_signal(logger, "warning", "[pathway:init_library_cache] LexiconTrie({}): skipping entry {}: {}".format(lexicon_name, getattr(entry, "_id", "<unknown>"), e))
 
 
 class TitleTrie(datrie.Trie):
