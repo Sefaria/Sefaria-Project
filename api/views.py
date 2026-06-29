@@ -193,7 +193,13 @@ class KnnSearch(View):
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
 
         filters = body.get("filters") or None
-        limit = int(body.get("limit", 10))
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
+        raw_limit = body.get("limit", 10)
+        if not isinstance(raw_limit, int) or isinstance(raw_limit, bool):
+            return jsonResponse({"error": "'limit' must be an integer"}, status=400)
+        limit = max(1, min(raw_limit, 100))
 
         from semantic_search.search import semantic_search
         results = semantic_search(query, filters=filters, limit=limit)
