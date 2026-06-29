@@ -29,7 +29,9 @@ test.describe.serial('Sheet Lifecycle', { tag: '@sanity' }, () => {
 
     // Create sheet by clicking the Create button in header
     await page.getByRole('button', { name: 'Create' }).first().click();
-    await page.waitForURL(/\/sheets\/\d+/);
+    // Web-first URL assertion — Create triggers a client-side (SPA) route change;
+    // waitForURL waits for the `load` event, which can lag past the URL update.
+    await expect(page).toHaveURL(/\/sheets\/\d+/, { timeout: t(15000) });
     await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
 

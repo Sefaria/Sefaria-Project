@@ -62,7 +62,10 @@ test.describe.serial('User Menu', () => {
     // Navigate to profile via user menu
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Profile');
-    await page.waitForURL(/\/profile\//, { timeout: t(10000) });
+    // Web-first URL assertion — the profile nav is a client-side (SPA) route
+    // change; waitForURL waits for the `load` event, which lags here. toHaveURL
+    // polls the URL without depending on `load`.
+    await expect(page).toHaveURL(/\/profile\//, { timeout: t(10000) });
     await hideAllModalsAndPopups(page);
 
     // Verify profile page loaded (#main is hidden, check .content instead)
