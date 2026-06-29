@@ -17,7 +17,7 @@ from sefaria.model.following import aggregate_profiles
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
-from sefaria.helper.slack.send_message import bad_record_guard
+from sefaria.helper.skip_tracking import bad_record_guard
 logger = structlog.get_logger(__name__)
 skip_bad_record = bad_record_guard(logger)
 

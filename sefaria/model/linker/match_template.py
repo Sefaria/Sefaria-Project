@@ -5,7 +5,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
-from sefaria.helper.slack.send_message import bad_record_guard
+from sefaria.helper.skip_tracking import bad_record_guard
 import structlog
 
 logger = structlog.get_logger(__name__)

@@ -5,7 +5,7 @@ from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
-from sefaria.helper.slack.send_message import log_skip, bad_record_guard
+from sefaria.helper.skip_tracking import log_skip, bad_record_guard
 
 logger = structlog.get_logger(__name__)
 skip_bad_record = bad_record_guard(logger)

@@ -55,7 +55,7 @@ def init_library_cache():
         library.build_linker('he')
         library.build_linker('en')
 
-    from sefaria.helper.slack.send_message import signal_and_reset_skip_counts
+    from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
     signal_and_reset_skip_counts("init_library_cache")
 
     if server_coordinator:

@@ -69,7 +69,7 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.helper.slack.send_message import signal_and_reset_skip_counts
+from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info

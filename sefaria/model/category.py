@@ -5,7 +5,7 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
-from sefaria.helper.slack.send_message import bad_record_guard
+from sefaria.helper.skip_tracking import bad_record_guard
 skip_bad_record = bad_record_guard(logger)
 from . import abstract as abstract
 from . import schema as schema
