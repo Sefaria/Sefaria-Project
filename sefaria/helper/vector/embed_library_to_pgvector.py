@@ -31,9 +31,12 @@ import django
 django.setup()
 
 from django.conf import settings as django_settings
+from django.db import connections
 from sefaria.model import *
 from sefaria.search import setup_logging
-from semantic_search.semantic_text_chunk import SemanticTextChunk, SemanticTextChunkData
+from semantic_search.embedder import GeminiEmbedder
+from semantic_search.models import DjangoSemanticTextChunk
+from semantic_search.semantic_text_chunk import SemanticTextChunk
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -51,12 +54,59 @@ if os.environ.get("TQDM_DISABLE"):
 
 from patot import ChunkerConfig, PatotChunker
 from patot.records import SegmentRecord
-from patot.pipeline import slugify
 from patot.analytics import ChunkingRuntimeAnalytics
+
+_slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
 
 logger = logging.getLogger(__name__)
 
 SEPARATOR_LINE = "=" * 60
+
+_SCHEMA_ADVISORY_LOCK_KEY = 727274002
+_SCHEMA_SQL = """
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS library_chunks (
+    doc_id                  TEXT PRIMARY KEY,
+    index_title             TEXT NOT NULL,
+    ref                     TEXT NOT NULL,
+    url                     TEXT NOT NULL,
+    chunked_from_ref        TEXT NOT NULL,
+    language                TEXT NOT NULL,
+    version_title           TEXT NOT NULL,
+    direction               TEXT NOT NULL,
+    text                    TEXT NOT NULL,
+    embedding               VECTOR(1536) NOT NULL,
+    primary_category        TEXT,
+    all_categories          TEXT[],
+    is_primary              BOOLEAN,
+    is_source               BOOLEAN,
+    composition_date        JSONB,
+    composition_place       TEXT,
+    era_name                TEXT,
+    pagerank                DOUBLE PRECISION,
+    author_names            TEXT[],
+    author_slugs            TEXT[],
+    associated_topic_names  TEXT[],
+    associated_topic_slugs  TEXT[],
+    linked_refs             TEXT[],
+    chunker_metadata        JSONB NOT NULL,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
+    ON library_chunks (index_title, language, version_title);
+"""
+
+
+def _ensure_schema() -> None:
+    with connections['vector_db'].cursor() as cur:
+        cur.execute("SELECT pg_advisory_lock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
+        try:
+            cur.execute(_SCHEMA_SQL)
+        finally:
+            cur.execute("SELECT pg_advisory_unlock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
 
 # Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
@@ -306,17 +356,15 @@ def chunk_ref_from_segments(source_segment_refs: list):
     return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
 
 
-def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, chunker, result,
-                     index_context: dict, version_context: dict) -> list:
-    chunk_texts = [chunk.text for chunk in result.chunks]
-    vectors = chunker.encoder(chunk_texts)
-
+def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
+                     result, index_context: dict, version_context: dict) -> list[DjangoSemanticTextChunk]:
     unit_normal = unit_ref.normal()
-    unit_slug = slugify(unit_normal)
-    vtitle_slug = slugify(vtitle)
+    unit_slug = _slugify(unit_normal)
+    vtitle_slug = _slugify(vtitle)
 
     chunks = []
-    for chunk_index, (chunk, vector) in enumerate(zip(result.chunks, vectors), start=1):
+    for chunk_index, chunk in enumerate(result.chunks, start=1):
+        vector = embedder.embed_text(chunk.text, "RETRIEVAL_DOCUMENT")
         chunk_hash = hashlib.sha256(
             f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
         ).hexdigest()[:12]
@@ -325,15 +373,7 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, chunker
         chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunker_metadata = {
-            "source_segment_refs": chunk.source_segment_refs,
-            "chunk_kind": chunk.kind,
-            "chunk_pass_number": chunk.pass_number,
-            "chunk_token_count": chunk.token_count,
-            "chunk_triggered": chunk.triggered,
-            "chunk_score": chunk.score,
-        }
-        chunks.append(SemanticTextChunkData(
+        chunks.append(DjangoSemanticTextChunk(
             doc_id=doc_id,
             index_title=index_title,
             ref=chunk_ref.normal(),
@@ -357,7 +397,14 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, chunker
             associated_topic_names=chunk_context["associated_topic_names"],
             associated_topic_slugs=chunk_context["associated_topic_slugs"],
             linked_refs=chunk_context["linked_refs"],
-            chunker_metadata=chunker_metadata,
+            chunker_metadata={
+                "source_segment_refs": chunk.source_segment_refs,
+                "chunk_kind": chunk.kind,
+                "chunk_pass_number": chunk.pass_number,
+                "chunk_token_count": chunk.token_count,
+                "chunk_triggered": chunk.triggered,
+                "chunk_score": chunk.score,
+            },
         ))
     return chunks
 
@@ -392,8 +439,8 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     if not chunk_result.chunks:
                         result_tracker.increment("sections_skipped_empty")
                     else:
-                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, chunker, chunk_result,
-                                                      index_context, version_context)
+                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
+                                                      chunk_result, index_context, version_context)
                         chunk_store.upsert(chunk_data)
                         result_tracker.increment("sections_embedded")
                         result_tracker.increment("chunks_written", len(chunk_data))
@@ -444,8 +491,9 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
 
 
 def thread_init(api_key: str, config):
-    """Per-thread initializer: create a PatotChunker."""
+    """Per-thread initializer: create a PatotChunker and a GeminiEmbedder."""
     thread_local.chunker = PatotChunker(api_key=api_key, config=config)
+    thread_local.embedder = GeminiEmbedder(api_key=api_key)
 
 
 def main():
@@ -475,6 +523,8 @@ def main():
     logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
     logger.info(SEPARATOR_LINE)
 
+    _ensure_schema()
+
     config = ChunkerConfig(
         debug=False,
         embedding_cache_enabled=True,
@@ -482,8 +532,6 @@ def main():
         runtime_analytics=ChunkingRuntimeAnalytics(),
         extract_html_footnotes_to_segments=False,
     )
-
-    chunk_store.ensure_schema()
 
     all_indexes = library.all_index_records()
     shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
