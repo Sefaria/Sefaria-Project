@@ -5,7 +5,7 @@ from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
-from sefaria.helper.slack.send_message import log_and_signal, bad_record_guard
+from sefaria.helper.slack.send_message import log_skip, bad_record_guard
 
 logger = structlog.get_logger(__name__)
 skip_bad_record = bad_record_guard(logger)
@@ -56,7 +56,7 @@ class CategoryMatcher:
                 for match_template in cat.get_match_templates():
                     for term in match_template.get_terms():
                         if term is None:
-                            log_and_signal(logger, "warning", "[pathway:init_library_cache] CategoryMatcher: category '{}' has a match_template referencing a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            log_skip(logger, "init_library_cache", "CategoryMatcher category match_template", "category '{}' references a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]

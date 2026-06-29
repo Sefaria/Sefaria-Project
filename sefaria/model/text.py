@@ -31,7 +31,7 @@ import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
-from sefaria.helper.slack.send_message import log_and_signal, bad_record_guard
+from sefaria.helper.slack.send_message import log_skip, bad_record_guard
 skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
@@ -5280,7 +5280,7 @@ class Library(object):
             # A topic-toc node missing 'slug' must not abort the mapping build.
             curr_slug = curr_topic.get('slug')
             if curr_slug is None:
-                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] build_topic_toc_category_mapping: skipping topic-toc node with no slug.")
+                log_skip(logger, "rebuild_toc,init_library_cache", "build_topic_toc_category_mapping", "skipping topic-toc node with no slug.")
                 continue
             if curr_slug in discovered_slugs: continue
             discovered_slugs.add(curr_slug)
@@ -5288,7 +5288,7 @@ class Library(object):
                 topic_stack += [child_topic]
                 child_slug = child_topic.get('slug')
                 if child_slug is None:
-                    log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] build_topic_toc_category_mapping: child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
+                    log_skip(logger, "rebuild_toc,init_library_cache", "build_topic_toc_category_mapping", "child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
                     continue
                 topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
