@@ -132,7 +132,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
-    pkeys = ["description"]
+    pkeys = ["description", "slug"]
     track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [

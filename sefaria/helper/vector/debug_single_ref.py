@@ -26,10 +26,9 @@ from patot import ChunkerConfig, PatotChunker
 from patot.analytics import ChunkingRuntimeAnalytics
 
 from semantic_search.embedder import GeminiEmbedder
+from sefaria.helper.vector.context import get_index_context, get_version_context
 from sefaria.helper.vector.embed_library_to_pgvector import (
     collect_segment_records_by_section,
-    get_index_context,
-    get_version_context,
     build_chunk_data,
 )
 
