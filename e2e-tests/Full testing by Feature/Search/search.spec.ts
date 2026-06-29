@@ -36,11 +36,9 @@ test.describe('Search', { tag: '@sanity' }, () => {
     await expect(topicSuggestion).toBeVisible({ timeout: t(10000) });
     await topicSuggestion.click();
 
-    // Wait for navigation
-    await page.waitForLoadState('domcontentloaded');
-
-    // Verify we arrived at a topic page
-    expect(page.url()).toMatch(/topic|abraham/i);
+    // Web-first URL assertion — the suggestion click triggers navigation;
+    // poll the URL rather than racing it after a load-state wait.
+    await expect(page).toHaveURL(/topic|abraham/i, { timeout: t(15000) });
   });
 
   // =================================================================
@@ -109,11 +107,9 @@ test.describe('Search', { tag: '@sanity' }, () => {
     await expect(suggestion).toBeVisible({ timeout: t(5000) });
     await suggestion.click();
 
-    // Wait for navigation
-    await page.waitForLoadState('domcontentloaded');
-
-    // Verify we arrived at a topic/author page
-    expect(page.url()).toMatch(/topic|profile|rashi/i);
+    // Web-first URL assertion — the suggestion click triggers navigation;
+    // poll the URL rather than racing it after a load-state wait.
+    await expect(page).toHaveURL(/topic|profile|rashi/i, { timeout: t(15000) });
   });
 
   // =================================================================
