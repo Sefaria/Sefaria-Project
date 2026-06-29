@@ -54,13 +54,10 @@ test.describe('Search', { tag: '@sanity' }, () => {
     await searchBox.fill('avraham');
     await searchBox.press('Enter');
 
-    // Wait for search results page
-    await page.waitForTimeout(t(1000));
-    await page.waitForLoadState('domcontentloaded');
+    // Web-first URL assertion — polls the URL and does NOT wait for the `load`
+    // event, so it's robust against the search submit/navigation landing late.
+    await expect(page).toHaveURL(/\/search\?q=avraham/, { timeout: t(15000) });
     await hideAllModalsAndPopups(page);
-
-    // Verify we're on search results page
-    expect(page.url()).toContain('/search?q=avraham');
 
     // Verify search results are displayed
     const searchContent = page.locator('.searchContent, .content');
@@ -131,13 +128,11 @@ test.describe('Search', { tag: '@sanity' }, () => {
     await searchBox.fill('shabbat');
     await searchBox.press('Enter');
 
-    // Voices is an SPA: domcontentloaded fires before the URL updates, so wait
-    // for the URL itself to flip before asserting on it.
-    await page.waitForURL(/\/search\?q=shabbat/, { timeout: t(15000) });
+    // Voices is an SPA whose `load` event can lag well past the URL update, so
+    // `waitForURL` (which waits for `load` by default) flakes here. Use a
+    // web-first URL assertion that polls the URL without waiting for `load`.
+    await expect(page).toHaveURL(/\/search\?q=shabbat/, { timeout: t(15000) });
     await hideAllModalsAndPopups(page);
-
-    // Verify we're on search results page
-    expect(page.url()).toContain('/search?q=shabbat');
 
     // Verify search results are displayed
     const searchContent = page.locator('.searchContent, .content');
