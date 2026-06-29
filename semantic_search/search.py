@@ -10,5 +10,8 @@ def semantic_search(
     filters: dict | None = None,
     limit: int = 10,
 ) -> list[DjangoSemanticTextChunk]:
-    embedding = embed_query(query, api_key=settings.GEMINI_API_KEY)
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not configured")
+    embedding = embed_query(query, api_key=api_key)
     return SemanticTextChunk().search_by_embedding(embedding, limit=limit, filters=filters)
