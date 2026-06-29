@@ -2,7 +2,7 @@
 Unit tests for the semantic_search app.
 
 All tests run without a live pgvector connection and without a Gemini API key.
-ORM-touching code is mocked at the DjangoSemanticTextChunk.objects boundary.
+ORM-touching code is mocked at the SemanticTextChunk.objects boundary.
 """
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -12,7 +12,7 @@ import pytest
 from semantic_search.embedder import embed_query, l2_normalize_vector
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search
-from semantic_search.semantic_text_chunk import SemanticTextChunk
+from semantic_search.models import SemanticTextChunk
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class TestSearchByEmbeddingFilters:
         mock_objects = MagicMock()
         mock_objects.filter.return_value.order_by.return_value.__getitem__.return_value = []
         with patch(
-            "semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects",
+            "semantic_search.models.SemanticTextChunk.objects",
             mock_objects,
         ):
             SemanticTextChunk().search_by_embedding([0.0] * 1536, filters=filters)
@@ -86,13 +86,13 @@ class TestSearchByEmbeddingFilters:
 
 class TestUpsert:
     def test_empty_list_skips_bulk_create(self):
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk") as mock_cls:
+        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
             SemanticTextChunk().upsert([])
             mock_cls.objects.bulk_create.assert_not_called()
 
     def test_calls_bulk_create_with_conflict_args(self):
         chunk = MagicMock()
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk") as mock_cls:
+        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
             SemanticTextChunk().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             assert kwargs["update_conflicts"] is True
@@ -100,7 +100,7 @@ class TestUpsert:
 
     def test_update_fields_excludes_doc_id_and_created_at(self):
         chunk = MagicMock()
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk") as mock_cls:
+        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
             SemanticTextChunk().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             update_fields = kwargs["update_fields"]
@@ -120,7 +120,7 @@ class TestGetIndexedUnitRefs:
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = [
             "Genesis 1", "Genesis 1", "Genesis 2"
         ]
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
+        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
             result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert isinstance(result, set)
         assert result == {"Genesis 1", "Genesis 2"}
@@ -128,7 +128,7 @@ class TestGetIndexedUnitRefs:
     def test_filters_by_all_three_params(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
+        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
             SemanticTextChunk().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
         mock_objects.filter.assert_called_once_with(
             index_title="Mishnah Berakhot",
@@ -139,27 +139,27 @@ class TestGetIndexedUnitRefs:
     def test_empty_queryset_returns_empty_set(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
+        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
             result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert result == set()
 
 
 # ---------------------------------------------------------------------------
-# delete
+# bulk_delete
 # ---------------------------------------------------------------------------
 
-class TestDelete:
+class TestBulkDelete:
     def test_filters_by_doc_ids(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().delete(["id1", "id2"])
+        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
+            SemanticTextChunk().bulk_delete(["id1", "id2"])
         mock_objects.filter.assert_called_once_with(doc_id__in=["id1", "id2"])
         mock_objects.filter.return_value.delete.assert_called_once()
 
     def test_empty_list_still_calls_filter(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.semantic_text_chunk.DjangoSemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().delete([])
+        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
+            SemanticTextChunk().bulk_delete([])
         mock_objects.filter.assert_called_once_with(doc_id__in=[])
 
 

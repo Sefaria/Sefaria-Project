@@ -32,8 +32,7 @@ from django.conf import settings as django_settings
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import DjangoSemanticTextChunk
-from semantic_search.semantic_text_chunk import SemanticTextChunk
+from semantic_search.models import SemanticTextChunk
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -293,7 +292,7 @@ def chunk_ref_from_segments(source_segment_refs: list):
 
 
 def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
-                     result, index_context: dict, version_context: dict) -> list[DjangoSemanticTextChunk]:
+                     result, index_context: dict, version_context: dict) -> list[SemanticTextChunk]:
     unit_normal = unit_ref.normal()
     unit_slug = _slugify(unit_normal)
     vtitle_slug = _slugify(vtitle)
@@ -309,7 +308,7 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
         chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunks.append(DjangoSemanticTextChunk(
+        chunks.append(SemanticTextChunk(
             doc_id=doc_id,
             index_title=index_title,
             ref=chunk_ref.normal(),
