@@ -128,9 +128,8 @@ class TestGetChunkContext:
 
     def test_segment_ref_has_its_own_pagerank(self):
         # RefData entries exist at the segment level too, distinct from the section.
-        section_pagerank = pgv.get_section_context(Ref("Mishnah Berakhot 1"))["pagerank"]
-        segment_pagerank = pgv.get_section_context(Ref("Mishnah Berakhot 1:1"))["pagerank"]
-
+        section_pagerank = pgv.get_chunk_context(Ref("Mishnah Berakhot 1"))["pagerank"]
+        segment_pagerank = pgv.get_chunk_context(Ref("Mishnah Berakhot 1:1"))["pagerank"]
         assert isinstance(segment_pagerank, float)
         assert segment_pagerank > 0
         assert segment_pagerank != section_pagerank
