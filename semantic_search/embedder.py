@@ -59,6 +59,7 @@ class GeminiEmbedder:
                 continue
 
             if response.status_code in _RETRYABLE_STATUS_CODES:
+                last_error = EmbeddingError(f"{response.status_code} {response.text[:200]}")
                 if attempt < self.max_retries - 1:
                     self._backoff(attempt)
                 continue
