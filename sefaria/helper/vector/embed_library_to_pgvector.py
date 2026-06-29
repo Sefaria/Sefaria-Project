@@ -29,7 +29,6 @@ import django
 django.setup()
 
 from django.conf import settings as django_settings
-from django.db import connections
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
@@ -59,52 +58,6 @@ _slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
 logger = logging.getLogger(__name__)
 
 SEPARATOR_LINE = "=" * 60
-
-_SCHEMA_ADVISORY_LOCK_KEY = 727274002
-_SCHEMA_SQL = """
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE IF NOT EXISTS library_chunks (
-    doc_id                  TEXT PRIMARY KEY,
-    index_title             TEXT NOT NULL,
-    ref                     TEXT NOT NULL,
-    url                     TEXT NOT NULL,
-    chunked_from_ref        TEXT NOT NULL,
-    language                TEXT NOT NULL,
-    version_title           TEXT NOT NULL,
-    direction               TEXT NOT NULL,
-    text                    TEXT NOT NULL,
-    embedding               VECTOR(1536) NOT NULL,
-    primary_category        TEXT,
-    all_categories          TEXT[],
-    is_primary              BOOLEAN,
-    is_source               BOOLEAN,
-    composition_date        JSONB,
-    composition_place       TEXT,
-    era_name                TEXT,
-    pagerank                DOUBLE PRECISION,
-    author_names            TEXT[],
-    author_slugs            TEXT[],
-    associated_topic_names  TEXT[],
-    associated_topic_slugs  TEXT[],
-    linked_refs             TEXT[],
-    chunker_metadata        JSONB NOT NULL,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
-    ON library_chunks (index_title, language, version_title);
-"""
-
-
-def _ensure_schema() -> None:
-    with connections['vector_db'].cursor() as cur:
-        cur.execute("SELECT pg_advisory_lock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
-        try:
-            cur.execute(_SCHEMA_SQL)
-        finally:
-            cur.execute("SELECT pg_advisory_unlock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
 
 # Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
@@ -500,8 +453,6 @@ def main():
     logger.info("EMBED LIBRARY TO PGVECTOR")
     logger.info(f"threads={args.threads}")
     logger.info(SEPARATOR_LINE)
-
-    _ensure_schema()
 
     config = ChunkerConfig(
         debug=False,
