@@ -2,33 +2,16 @@
 """
 Tests for scripts/embed_library_to_pgvector.py.
 
-Pure/deterministic helpers (shard_for_title, time_period_to_dict, EmbeddingResult)
-are tested with no DB access. The context-building helpers (get_index_context,
-get_version_context, get_section_context, collect_segment_records_by_section) hit
-Mongo, so they're tested against existing, stable library records (Genesis,
-Mishneh Torah Sabbath, Mishnah Berakhot) rather than fixtures.
+Pure/deterministic helpers (time_period_to_dict, EmbeddingResult) are tested with no
+DB access. The context-building helpers (get_index_context, get_version_context,
+get_section_context, collect_segment_records_by_section) hit Mongo, so they're tested
+against existing, stable library records (Genesis, Mishneh Torah Sabbath, Mishnah
+Berakhot) rather than fixtures.
 """
-import hashlib
 from types import SimpleNamespace
 
 from sefaria.model import *
 import sefaria.helper.vector.embed_library_to_pgvector as pgv
-
-
-class TestShardForTitle:
-    def test_matches_independent_hash(self):
-        title = "Genesis"
-        shard_count = 4
-        expected = int(hashlib.sha256(title.encode("utf-8")).hexdigest(), 16) % shard_count
-        assert pgv.shard_for_title(title, shard_count) == expected
-
-    def test_deterministic(self):
-        assert pgv.shard_for_title("Mishneh Torah, Sabbath", 8) == pgv.shard_for_title("Mishneh Torah, Sabbath", 8)
-
-    def test_within_range(self):
-        for title in ["Genesis", "Mishnah Berakhot", "Mishneh Torah, Sabbath"]:
-            shard = pgv.shard_for_title(title, 5)
-            assert 0 <= shard < 5
 
 
 class TestTimePeriodToDict:
