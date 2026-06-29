@@ -348,6 +348,8 @@ class TocTree(object):
             self._path_hash[tuple(cat.path)] = tc
         except KeyError:
             logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
+        except BAD_RECORD_EXCEPTIONS as e:
+            log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree._add_category: skipping malformed category '{}': {}".format('/'.join(getattr(cat, "path", []) or []), e))
 
     def get_root(self):
         return self._root
@@ -461,7 +463,17 @@ class TocNode(schema.TitledTreeNode):
     def serialize(self, **kwargs):
         d = {}
         if self.children:
-            d["contents"] = [n.serialize(**kwargs) for n in self.children]
+            # Serialize each child independently so one malformed node (e.g. a broken
+            # title_group, or an index whose author lookup raises) is logged-and-skipped
+            # rather than aborting serialization of the entire ToC. Skipping a node also
+            # drops its subtree.
+            d["contents"] = []
+            for n in self.children:
+                try:
+                    d["contents"].append(n.serialize(**kwargs))
+                except BAD_RECORD_EXCEPTIONS as e:
+                    label = n.primary_title("en")
+                    log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree.serialize: skipping node '{}': {}".format(label, e))
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
         if kwargs.get("thin") is True:

@@ -5240,7 +5240,15 @@ class Library(object):
                                         # this variable will allow us to force all top level categories to have children
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
-            children = [t.slug for t in ts]
+            # This top-level call is outside the per-child guard below, so build the
+            # top-level slug list record-by-record: one malformed top-level topic must
+            # not abort the whole topic-ToC build.
+            children = []
+            for t in ts:
+                try:
+                    children.append(t.slug)
+                except BAD_RECORD_EXCEPTIONS as e:
+                    log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] get_topic_toc_json_recursive: skipping malformed top-level topic: {}".format(e))
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
@@ -6030,7 +6038,14 @@ class Library(object):
         return self._virtual_books
 
     def build_virtual_books(self):
-        self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+        # Build record-by-record so one malformed dictionary index (e.g. accessing
+        # .title raises) is logged-and-skipped rather than aborting startup.
+        self._virtual_books = []
+        for index in IndexSet({'lexiconName': {'$exists': True}}):
+            try:
+                self._virtual_books.append(index.title)
+            except BAD_RECORD_EXCEPTIONS as e:
+                log_and_signal(logger, "warning", "[pathway:init_library_cache] build_virtual_books: skipping malformed index {}: {}".format(getattr(index, "_id", "<unknown>"), e))
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
