@@ -33,8 +33,6 @@ spec:
           args:
             - "--shard-count=1"
             - "--threads=150"
-            - "--db-pool-size=50"
-          env:
             - name: PGVECTOR_HOST
               value: "pgvector.default.svc.cluster.local"
             - name: PGVECTOR_PORT
