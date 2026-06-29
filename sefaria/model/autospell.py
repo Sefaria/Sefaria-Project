@@ -18,6 +18,7 @@ from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
 from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
+from sefaria.helper.slack.send_message import log_and_signal
 logger = structlog.get_logger(__name__)
 
 
@@ -139,7 +140,7 @@ class AutoCompleter(object):
                     unames += [fullname]
                     normal_user_names += [normal_name]
                 except BAD_RECORD_EXCEPTIONS as e:
-                    logger.warning("AutoCompleter: skipping user {}: {}".format(id, e))
+                    log_and_signal(logger, "warning", "[pathway:init_library_cache] AutoCompleter: skipping user {}: {}".format(id, e))
             self.spell_checker.train_phrases(unames)
             self.ngram_matcher.train_phrases(unames, normal_user_names)
         if include_collections:
@@ -501,7 +502,7 @@ class LexiconTrie(datrie.Trie):
                 for ahw in entry.get_alt_headwords():
                     self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.warning("LexiconTrie({}): skipping entry {}: {}".format(lexicon_name, getattr(entry, "_id", "<unknown>"), e))
+                log_and_signal(logger, "warning", "[pathway:init_library_cache] LexiconTrie({}): skipping entry {}: {}".format(lexicon_name, getattr(entry, "_id", "<unknown>"), e))
 
 
 class TitleTrie(datrie.Trie):

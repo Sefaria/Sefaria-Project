@@ -6,6 +6,7 @@ from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
 from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
+from sefaria.helper.slack.send_message import log_and_signal
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -76,7 +77,7 @@ class MatchTemplateTrie:
                     self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
                     self.__add_nodes_to_leaves(node, curr_dict_queue)
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.warning("MatchTemplateTrie: skipping node '{}': {}".format(str(node), e))
+                log_and_signal(logger, "warning", "[pathway:init_library_cache] MatchTemplateTrie: skipping node '{}': {}".format(str(node), e))
         return trie
 
     @staticmethod

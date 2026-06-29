@@ -5,6 +5,7 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError, BAD_RECORD_EXCEPTIONS
+from sefaria.helper.slack.send_message import log_and_signal
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
@@ -225,7 +226,7 @@ class TocTree(object):
                     "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
                 }
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.warning("TocTree: skipping malformed vstate record {}: {}".format(vs.get("_id"), e))
+                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping malformed vstate record {}: {}".format(vs.get("_id"), e))
 
         # Build Category object tree from stored Category objects
         for c in CategorySet(sort=[("depth", 1)]):
@@ -238,7 +239,7 @@ class TocTree(object):
             try:
                 self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.warning("TocTree: skipping malformed first_comment link {}: {}".format(l.get("_id"), e))
+                log_and_signal(logger, "warning", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping malformed first_comment link {}: {}".format(l.get("_id"), e))
 
         # Place Indexes. Wrap each index so one malformed record (empty categories,
         # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
@@ -268,7 +269,7 @@ class TocTree(object):
 
                 self._path_hash[tuple(i.categories + [i.title])] = node
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.error("TocTree: skipping index '{}' due to error building its TOC node: {}".format(getattr(i, "title", "<unknown>"), e))
+                log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping index '{}' due to error building its TOC node: {}".format(getattr(i, "title", "<unknown>"), e))
 
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
@@ -285,7 +286,7 @@ class TocTree(object):
 
                 self._path_hash[tuple(node.categories + [c.slug])] = node
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.error("TocTree: skipping collection '{}' due to error building its TOC node: {}".format(getattr(c, "slug", "<unknown>"), e))
+                log_and_signal(logger, "error", "[pathway:rebuild_toc,init_library_cache] TocTree: skipping collection '{}' due to error building its TOC node: {}".format(getattr(c, "slug", "<unknown>"), e))
 
         self._sort()
 

@@ -6,6 +6,7 @@ from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
 from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
+from sefaria.helper.slack.send_message import log_and_signal
 
 logger = structlog.get_logger(__name__)
 
@@ -55,12 +56,12 @@ class CategoryMatcher:
                 for match_template in cat.get_match_templates():
                     for term in match_template.get_terms():
                         if term is None:
-                            logger.warning("CategoryMatcher: category '{}' has a match_template referencing a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            log_and_signal(logger, "warning", "[pathway:init_library_cache] CategoryMatcher: category '{}' has a match_template referencing a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]
             except BAD_RECORD_EXCEPTIONS as e:
-                logger.warning("CategoryMatcher: skipping category '{}': {}".format("/".join(getattr(cat, "path", []) or []), e))
+                log_and_signal(logger, "warning", "[pathway:init_library_cache] CategoryMatcher: skipping category '{}': {}".format("/".join(getattr(cat, "path", []) or []), e))
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)
