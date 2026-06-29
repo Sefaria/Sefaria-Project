@@ -188,6 +188,8 @@ class KnnSearch(View):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return jsonResponse({"error": "Invalid JSON body"}, status=400)
 
+        if not isinstance(body, dict):
+            return jsonResponse({"error": "JSON body must be an object"}, status=400)
         query = body.get("query", "").strip()
         if not query:
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
