@@ -202,8 +202,15 @@ class KnnSearch(View):
         limit = max(1, min(raw_limit, 100))
 
         from semantic_search.search import semantic_search
-        results = semantic_search(query, filters=filters, limit=limit)
-        return jsonResponse({
+        from semantic_search.embedder import EmbeddingError
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            results = semantic_search(query, filters=filters, limit=limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
             "results": [
                 {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
                 for r in results
