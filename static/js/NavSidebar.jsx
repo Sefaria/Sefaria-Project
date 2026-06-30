@@ -422,7 +422,7 @@ const AboutText = ({index, hideTitle}) => {
 
       </div> : null}
       {description ?
-      <InterfaceText markdown={{en: enDesc, he: heDesc}}/> : null}
+      <InterfaceText markdown={{en: enDesc, he: heDesc}} disallowedMarkdownElements={[]}/> : null}
 
     </SidebarModule>
   );
