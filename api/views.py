@@ -219,3 +219,81 @@ class KnnSearch(View):
                 for r in results
             ]
         })
+
+
+class KnnSearchLinkedRefs(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    @staticmethod
+    def _positive_int_param(body, name, default):
+        value = body.get(name, default)
+        if not isinstance(value, int) or isinstance(value, bool):
+            raise ValueError(f"'{name}' must be an integer")
+        if value < 1:
+            raise ValueError(f"'{name}' must be greater than 0")
+        return value
+
+    def post(self, request):
+        auth = request.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+        token = auth[len("Bearer "):]
+        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+        if not expected or token != expected:
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        if not isinstance(body, dict):
+            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
+
+        filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
+        raw_limit = body.get("limit", 10)
+        if not isinstance(raw_limit, int) or isinstance(raw_limit, bool):
+            return jsonResponse({"error": "'limit' must be an integer"}, status=400)
+        limit = max(1, min(raw_limit, 100))
+
+        try:
+            linked_refs_depth = self._positive_int_param(body, "linked_refs_depth", 1)
+            min_link_count = self._positive_int_param(body, "min_link_count", 2)
+        except ValueError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+        from semantic_search.search import semantic_search
+        from semantic_search.embedder import EmbeddingError
+        from semantic_search.linked_refs import get_linked_ref_enhancements
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            results = semantic_search(query, filters=filters, limit=limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
+
+        enhancement = get_linked_ref_enhancements(
+            results,
+            link_depth=linked_refs_depth,
+            min_link_count=min_link_count,
+        )
+        return jsonResponse({
+            "results": [
+                {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
+                for r in results
+            ],
+            "appended_refs": enhancement.appended_refs,
+            "appended_ref_counts": enhancement.ref_counts,
+            "linked_refs_depth": linked_refs_depth,
+            "min_link_count": min_link_count,
+        })
