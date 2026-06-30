@@ -89,8 +89,10 @@ jobs:
           github.event.inputs.target == 'prod' &&
           steps.create_pr.outputs.pr_url != 'already exists' &&
           steps.create_pr.outputs.pr_url != 'no-changes'
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
+          webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "blocks": [
@@ -124,8 +126,6 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
 
       - name: Summary
         if: steps.create_pr.outputs.pr_url != 'no-changes'
