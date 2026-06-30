@@ -30,17 +30,15 @@
     }
     .interface-english #hirschDedication h1,
     .interface-english #hirschDedication h2 {
-        font-family: "adobe-garamond-pro", Georgia, serif;
+        font-family: var(--english-serif-font-family);
     }
     .interface-hebrew #hirschDedication h1,
     .interface-hebrew #hirschDedication h2 {
-        font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+        font-family: var(--hebrew-serif-font-family);
     }
 
-    /* Sans-serif body */
+    /* Sans-serif body (font-size/line-height inherited from the shared .static p rule) */
     #hirschDedication p {
-        font-size: 18px;
-        line-height: 27px;
         color: #121212;
         margin-bottom: 20px;
     }
@@ -92,12 +90,15 @@
         font-size: 29px;
         font-weight: 500;
         margin-bottom: 16px;
-        font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+        font-family: var(--hebrew-serif-font-family);
     }
-    #hirschDedication .dedicationQuote .int-en,
+    #hirschDedication .dedicationQuote .int-en {
+        font-size: 24px;
+        font-family: var(--english-serif-font-family);
+    }
     #hirschDedication .dedicationQuote .int-he {
         font-size: 24px;
-        font-family: "adobe-garamond-pro", Georgia, serif;
+        font-family: var(--hebrew-serif-font-family);
     }
 {% endblock %}
 
@@ -114,11 +115,11 @@
             <h2>About Joel L. Fleishman</h2>
             <p>Joel L. Fleishman (1934&ndash;2024) was a scholar, lawyer, teacher, philanthropic trailblazer, and Jewish communal leader who devoted his life to two intertwined callings: strengthening American civic society and opening Jewish life, in all its breadth, to deeper participation. He drew generations of students, colleagues, and friends into Jewish texts, traditions, and community through his love for and belief in them. For more than five decades, Joel taught at Duke University, founding what became the Sanford School of Public Policy. His books, including <i>The Foundation: A Great American Secret</i>, remain defining works on the practice and ethics of private philanthropy.</p>
 
-            <figure class="dedicationImage">
-                <figcaption class="imageTitle">Joel L. Fleishman</figcaption>
+            <div class="dedicationImage">
+                <div class="imageTitle">Joel L. Fleishman</div>
                 <img src="{% static 'img/joel-fleishman.png' %}" alt="Joel L. Fleishman"/>
-                <figcaption class="imageCredit">The A.M and Ruth Z. Fleishman Foundation</figcaption>
-            </figure>
+                <div class="imageCredit">The A.M and Ruth Z. Fleishman Foundation</div>
+            </div>
 
             <p>Joel believed that a rich Jewish life is rooted in texts and traditions &mdash; that the treasury of Torah, Talmud, and commentary is not an artifact of the past but a living guide to ethics, spirituality, and action in the present. He was a devoted student of Rabbi Samson Raphael Hirsch, returning to this commentary on the Torah weekly for over four decades. He went through multiple copies of the commentary, each time carefully noting on his copies his own thoughts.</p>
 
@@ -134,11 +135,11 @@
             <h2>יואל ל. פליישמן</h2>
             <p>יואל ל. פליישמן (1934&ndash;2024) היה חוקר, עורך דין, מורה, חלוץ בתחום הפילנתרופיה ומנהיג קהילה יהודי, אשר הקדיש את חייו לשני ייעודים השזורים זה בזה: חיזוק החברה האזרחית האמריקאית ופתיחת החיים היהודיים, על כל רוחבם, לחיבור עמוק יותר. הוא משך דורות של תלמידים, עמיתים וחברים אל תוך המקורות, המסורות וחיי הקהילה היהודיים, מתוך אהבתו אליהם ואמונתו בהם. במשך למעלה מחמישה עשורים, יואל לימד באוניברסיטת דיוק, וייסד את מה שלימים הפך לבית הספר סנפורד למדיניות ציבורית. ספריו, ובהם <i>The Foundation: A Great American Secret</i>, נותרו יצירות מכוננות על אודות העשייה והאתיקה של הפילנתרופיה הפרטית.</p>
 
-            <figure class="dedicationImage">
-                <figcaption class="imageTitle">יואל ל. פליישמן</figcaption>
+            <div class="dedicationImage">
+                <div class="imageTitle">יואל ל. פליישמן</div>
                 <img src="{% static 'img/joel-fleishman.png' %}" alt="יואל ל. פליישמן"/>
-                <figcaption class="imageCredit">קרן א.מ. ורות ז. פליישמן</figcaption>
-            </figure>
+                <div class="imageCredit">קרן א.מ. ורות ז. פליישמן</div>
+            </div>
 
             <p>יואל האמין שחיים יהודיים עשירים מושרשים במקורות ובמנהגי המסורת. הוא טען כי אוצר התורה, התלמוד והפרשנות אינו שריד של העבר אלא מורה דרך חי לאתיקה, רוחניות ופעולה בהווה. הוא היה תלמיד מסור של הרב שמשון רפאל הירש, ושב אל פירושו על התורה מדי שבוע במשך למעלה מארבעה עשורים. הוא למד וקרא כמה וכמה עותקים של הפירוש, ובכל פעם רשם בקפידה על עותקיו את מחשבותיו שלו.</p>
 
