@@ -839,7 +839,7 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-    signal_and_reset_skip_counts("rebuild_toc")
+    signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")

@@ -5033,7 +5033,7 @@ class Library(object):
         # raises) logs and is skipped rather than aborting the whole rebuild.
         self._index_map = {}
         for i in IndexSet():
-            with skip_bad_record("reset_cache,init_library_cache", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
+            with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
                 if i.nodes:
                     self._index_map[i.title] = i
         forest = [i.nodes for i in list(self._index_map.values())]
@@ -5043,7 +5043,7 @@ class Library(object):
         for tree in forest:
             # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
             # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
-            with skip_bad_record("reset_cache,init_library_cache", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
+            with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
                 for lang in self.langs:
                     tree_titles = tree.title_dict(lang)
                     self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
@@ -5239,7 +5239,7 @@ class Library(object):
             # not abort the whole topic-ToC build.
             children = []
             for t in ts:
-                with skip_bad_record("rebuild_toc,init_library_cache", "get_topic_toc_json_recursive top-level topic"):
+                with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic"):
                     children.append(t.slug)
             topic_json = {}
         else:
@@ -5257,7 +5257,7 @@ class Library(object):
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
             # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
-            with skip_bad_record("rebuild_toc,init_library_cache", "topic TOC child", record=child):
+            with skip_bad_record("reset_toc,startup", "topic TOC child", record=child):
                 topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
             # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
@@ -5280,7 +5280,7 @@ class Library(object):
             # A topic-toc node missing 'slug' must not abort the mapping build.
             curr_slug = curr_topic.get('slug')
             if curr_slug is None:
-                log_skip(logger, "rebuild_toc,init_library_cache", "build_topic_toc_category_mapping", "skipping topic-toc node with no slug.")
+                log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "skipping topic-toc node with no slug.")
                 continue
             if curr_slug in discovered_slugs: continue
             discovered_slugs.add(curr_slug)
@@ -5288,7 +5288,7 @@ class Library(object):
                 topic_stack += [child_topic]
                 child_slug = child_topic.get('slug')
                 if child_slug is None:
-                    log_skip(logger, "rebuild_toc,init_library_cache", "build_topic_toc_category_mapping", "child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
+                    log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
                     continue
                 topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
@@ -5700,7 +5700,7 @@ class Library(object):
         self._full_term_mapping = {}
         for term in TermSet():
             # One term with a missing/corrupt title_group must not abort startup.
-            with skip_bad_record("reset_cache,init_library_cache", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
+            with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
                 self._full_term_mapping[term.name] = term
                 self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
                                                         "he": term.get_primary_title("he")}
@@ -5777,7 +5777,7 @@ class Library(object):
         # One topic with a missing/corrupt title_group must not abort startup.
         self._topic_mapping = {}
         for t in TopicSet():
-            with skip_bad_record("reset_cache,init_library_cache", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
+            with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
                 self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
 
@@ -5854,7 +5854,7 @@ class Library(object):
         for k in list(self._index_title_maps["en"].keys()):
             # Deliberately narrow to KeyError (the title/nodes.key mismatch), not the full
             # bad-record family — per the BAD_RECORD_EXCEPTIONS decision for this site.
-            with skip_bad_record("rebuild_toc,init_library_cache", "all_index_records key (title/nodes.key mismatch)", record=k, level="error", exceptions=KeyError):
+            with skip_bad_record("reset_toc,startup", "all_index_records key (title/nodes.key mismatch)", record=k, level="error", exceptions=KeyError):
                 records.append(self._index_map[k])
         return records
 
@@ -6028,7 +6028,7 @@ class Library(object):
         # .title raises) is logged-and-skipped rather than aborting startup.
         self._virtual_books = []
         for index in IndexSet({'lexiconName': {'$exists': True}}):
-            with skip_bad_record("init_library_cache", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
+            with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
                 self._virtual_books.append(index.title)
         return self._virtual_books
 

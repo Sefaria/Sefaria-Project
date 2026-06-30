@@ -2,7 +2,7 @@
 Build-degradation tracking for the cache/library build pathways.
 
 The per-record loops that build the library cache at startup (and on reset_cache /
-rebuild_toc) wrap each record in a guard so that one corrupt/malformed DB record is
+reset_toc) wrap each record in a guard so that one corrupt/malformed DB record is
 logged-and-skipped rather than aborting the whole build (see the BAD_RECORD_EXCEPTIONS
 decision in sefaria.system.exceptions). That skip-and-continue behavior is otherwise
 silent degradation — a "silently incomplete library."
@@ -25,7 +25,7 @@ logger = structlog.get_logger(__name__)
 
 
 # One skipped record, with as much context as was available at the skip site:
-#   pathway     — the build trigger(s) that reach this site (e.g. "rebuild_toc,init_library_cache")
+#   pathway     — the build trigger(s) that reach this site (e.g. "reset_toc,startup")
 #   what        — the loop/site that skipped (e.g. "TocTree index")
 #   record      — identifier of the skipped record (title / _id / slug / path), or None
 #   level       — "warning" or "error"
@@ -95,7 +95,7 @@ def signal_and_reset_skip_counts(pathway):
     """
     Post a single #engineering-signal summary of everything skipped during a build, then
     clear the log so the next build starts clean. Call once at the end of each monitored
-    build pathway (reset_cache, rebuild_toc, init_library_cache); `pathway` is the summary
+    build pathway (reset_cache, reset_toc, startup); `pathway` is the summary
     header naming the triggering pathway.
 
     The summary groups skips by (pathway, what) and, under each group, lists a bounded
@@ -178,7 +178,7 @@ def bad_record_guard(log):
     Usage:
         skip_bad_record = bad_record_guard(logger)   # once, at module top
         for rec in SomeSet():
-            with skip_bad_record("init_library_cache", "build_virtual_books", record=rec_id):
+            with skip_bad_record("startup", "build_virtual_books", record=rec_id):
                 ...build using rec...
     """
     @contextmanager

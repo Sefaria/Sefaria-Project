@@ -126,7 +126,7 @@ class AutoCompleter(object):
             normal_user_names = []
             for id, u in users.items():
                 # One user/profile with a missing name or profile field must not abort startup.
-                with skip_bad_record("init_library_cache", "AutoCompleter user", record=id):
+                with skip_bad_record("startup", "AutoCompleter user", record=id):
                     fullname = f"{u.first_name or ''} {u.last_name or ''}"
                     normal_name = self.normalizer(fullname)
                     self.title_trie[normal_name] = {
@@ -495,7 +495,7 @@ class LexiconTrie(datrie.Trie):
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
             # One malformed lexicon entry (e.g. missing headword) must not abort startup.
-            with skip_bad_record("init_library_cache", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", "<unknown>")):
+            with skip_bad_record("startup", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", "<unknown>")):
                 self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
                 for ahw in entry.get_alt_headwords():
                     self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]

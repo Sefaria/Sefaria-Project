@@ -52,11 +52,11 @@ class CategoryMatcher:
         for cat in category_registry:
             # One category whose match_template references a nonexistent/corrupt term
             # (term.get_terms() yields None, or term.get_titles() raises) must not abort startup.
-            with skip_bad_record("init_library_cache", "CategoryMatcher category", record="/".join(getattr(cat, "path", []) or [])):
+            with skip_bad_record("startup", "CategoryMatcher category", record="/".join(getattr(cat, "path", []) or [])):
                 for match_template in cat.get_match_templates():
                     for term in match_template.get_terms():
                         if term is None:
-                            log_skip(logger, "init_library_cache", "CategoryMatcher category match_template", "category '{}' references a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            log_skip(logger, "startup", "CategoryMatcher category match_template", "category '{}' references a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
                             continue
                         for title in term.get_titles(lang):
                             self._title_to_cat[title] += [cat]

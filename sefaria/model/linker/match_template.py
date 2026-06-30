@@ -69,7 +69,7 @@ class MatchTemplateTrie:
         trie = {}
         for node in nodes:
             # One node with a corrupt match_template/term/schema must not abort startup.
-            with skip_bad_record("init_library_cache", "MatchTemplateTrie node", record=str(node)):
+            with skip_bad_record("startup", "MatchTemplateTrie node", record=str(node)):
                 for match_template in node.get_match_templates():
                     if not node.is_root() and not match_template.matches_scope(self.scope):
                         continue

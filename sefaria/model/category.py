@@ -220,7 +220,7 @@ class TocTree(object):
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
         self._vs_lookup = {}
         for vs in vss:
-            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree vstate record", record=vs.get("_id")):
+            with skip_bad_record("reset_toc,startup", "TocTree vstate record", record=vs.get("_id")):
                 self._vs_lookup[vs["title"]] = {
                     "first_section_ref": vs.get("first_section_ref"),
                     "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
@@ -235,7 +235,7 @@ class TocTree(object):
         ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
         self._first_comment_lookup = {}
         for l in ls:
-            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree first_comment link", record=l.get("_id")):
+            with skip_bad_record("reset_toc,startup", "TocTree first_comment link", record=l.get("_id")):
                 self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
 
         # Place Indexes. Wrap each index so one malformed record (empty categories,
@@ -243,7 +243,7 @@ class TocTree(object):
         # aborting the whole TOC build and preventing server startup.
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
-            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree index", record=getattr(i, "title", "<unknown>"), level="error"):
+            with skip_bad_record("reset_toc,startup", "TocTree index", record=getattr(i, "title", "<unknown>"), level="error"):
                 if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                     continue
                 node = self._make_index_node(i, mobile=mobile)
@@ -269,7 +269,7 @@ class TocTree(object):
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
-            with skip_bad_record("rebuild_toc,init_library_cache", "TocTree collection", record=getattr(c, "slug", "<unknown>"), level="error"):
+            with skip_bad_record("reset_toc,startup", "TocTree collection", record=getattr(c, "slug", "<unknown>"), level="error"):
                 self._collections_in_library.append(c.slug)
                 node = TocCollectionNode(collection_object=c)
                 categories = node.categories
@@ -337,7 +337,7 @@ class TocTree(object):
         # One malformed or orphaned category (get_primary_title raises, or its parent isn't
         # yet in the path hash -> KeyError) is skipped+signaled rather than aborting the
         # whole TocTree build.
-        with skip_bad_record("rebuild_toc,init_library_cache", "TocTree._add_category", record='/'.join(getattr(cat, "path", []) or [])):
+        with skip_bad_record("reset_toc,startup", "TocTree._add_category", record='/'.join(getattr(cat, "path", []) or [])):
             tc = TocCategory(category_object=cat)
             parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
             parent.append(tc)
@@ -461,7 +461,7 @@ class TocNode(schema.TitledTreeNode):
             # drops its subtree.
             d["contents"] = []
             for n in self.children:
-                with skip_bad_record("rebuild_toc,init_library_cache", "TocTree.serialize node", record=getattr(n, "title", None) or n.__class__.__name__, level="error"):
+                with skip_bad_record("reset_toc,startup", "TocTree.serialize node", record=getattr(n, "title", None) or n.__class__.__name__, level="error"):
                     d["contents"].append(n.serialize(**kwargs))
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
