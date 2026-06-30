@@ -232,17 +232,23 @@ SEARCH_INDEX_NAME_BOOK = 'book'
 
 ## Showing Result Counts While Results Load
 
-Product wants the result count to appear before the results finish rendering. A count is cheap for Elasticsearch to compute — it skips the three things that dominate a full search response: **aggregations** (facets visit *every* matching doc and build `size: 10000` bucket tables — ~half the latency), **top-N fetch** (scoring + reading/serializing `_source` for the page of hits), and **highlighting** (re-analyzing each returned doc to build snippets). A bench against a 200k-doc local index put a count-only query ~90%+ faster than the full request. Two ways to exploit this:
+Product wants each tab's result count to appear before that tab's results finish rendering. With the tabbed design this is **four counts** (Sources, Topics, Books, Authors), and they do *not* share a cost profile — the work depends entirely on the index behind the tab.
 
-**Option 1 — Fire a separate, parallel count-only query** (`size: 0`, no `aggs`/`highlight`/`_source`) alongside the main search; paint the count the moment it returns.
-- *Good because:* count appears **earliest** (gated only by network round-trip); **smallest blast radius** — the existing search path is untouched; isolates exact-count cost (`track_total_hits: true`) onto the cheap query.
-- *Cost:* re-runs the query-match scan (≈2× that portion of cluster work per search); two responses to coordinate on the frontend, including the Sefaria + Dicta total merge.
+**The entity tabs (Topics / Books / Authors) need no optimization.** The `topic` and `book` indices hold thousands of docs (not the millions in `text`), the entity query has **no facet aggregations**, and the response **already returns `total`** for free. Read the count straight off the entity response.
 
-**Option 2 — Keep one query, but defer the facets** (drop `aggs` from the primary request, fetch them in a follow-up). The count already ships in `hits.total`, so the first response returns count + first page in roughly half the time.
-- *Good because:* **no redundant scan**; makes the **whole results panel** faster, not just the count; removes the dominant cost (facet aggs) from the critical path; less frontend orchestration around the number.
-- *Cost:* count is **not** earlier than the first page (they arrive together) — if product needs the number *before* any results, this doesn't deliver that; touches the existing query path and changes when filters populate.
+**Only the Sources tab is expensive enough to optimize.** A count is cheap for Elasticsearch to compute — it skips the three things that dominate the *source* search's full response: **aggregations** (facets visit *every* matching doc and build `size: 10000` bucket tables — ~half the latency), **top-N fetch** (scoring + reading/serializing `_source` for the page of hits), and **highlighting** (re-analyzing each returned doc to build snippets). A bench against a 200k-doc local index put a count-only query ~90%+ faster than the full request.
 
-The two are combinable (defer facets *and* fire a count-only query) for both the earliest number and a lighter critical path. Decision pending engineering input.
+**Approach — fire a separate, parallel count-only query** (`size: 0`, no `aggs`/`highlight`/`_source`) alongside the main search and paint the count the moment it returns.
+- *Count appears earliest* — gated only by the network round-trip, not by aggs/fetch/highlight.
+- *Smallest blast radius* — the existing search path is untouched; you add a lightweight call rather than refactoring the query builder.
+- *Isolates exact-count cost* — `track_total_hits: true` (for exact counts above the 10k default cap) rides on the cheap query, not the main results query.
+- *Cost to accept:* it re-runs the query-match scan (≈2× that portion of cluster work per search), and the frontend coordinates two responses — including the Sefaria + Dicta total merge on the Sources tab ([`search.js` total merge](../../static/js/sefaria/search.js)).
+
+This same `size: 0` count query also resolves the open **"eager vs. lazy entity search"** question (see [Open Questions](#open-questions)): to show count badges on all four tabs up front, fire cheap count-only queries per type eagerly to populate the badges, then fetch full per-tab results lazily on tab switch — strictly lighter than firing all full queries in parallel.
+
+**Two count-semantics wrinkles to decide:**
+- *Author-works collapsing.* Book/Author results collapse many works into category entries (the sample shows `"total": 42` with far fewer displayed rows). A count-only query returns the **raw** match total, which won't equal the collapsed row count — product must pick which number the badge shows.
+- *Sources is a two-source sum.* The Sources count merges Sefaria + Dicta totals client-side, so even a count-only Sources query needs both halves before showing a number.
 
 ## Limitations
 
