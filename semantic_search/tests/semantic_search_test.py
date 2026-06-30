@@ -10,7 +10,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
-from semantic_search.linked_refs import get_linked_ref_counts, get_linked_ref_enhancements
+from semantic_search.linked_refs import (
+    get_linked_ref_counts,
+    get_linked_ref_enhancements,
+    get_mean_std_linked_ref_enhancements,
+)
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search
 from semantic_search.models import SemanticTextChunk
@@ -212,6 +216,97 @@ class TestLinkedRefEnhancement:
         )
         assert result.appended_refs == ["Ref B"]
         assert result.ref_counts == {"Ref B": 2}
+
+    def test_mean_2std_threshold_returns_statistical_outliers(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A", "Ref Outlier"],
+            "Genesis 1:2": ["Ref B", "Ref Outlier"],
+            "Genesis 1:3": ["Ref C", "Ref Outlier"],
+            "Genesis 1:4": ["Ref D", "Ref Outlier"],
+            "Genesis 1:5": ["Ref E", "Ref Outlier"],
+            "Genesis 1:6": ["Ref F", "Ref Outlier"],
+            "Genesis 1:7": ["Ref G", "Ref Outlier"],
+            "Genesis 1:8": ["Ref H", "Ref Outlier"],
+            "Genesis 1:9": ["Ref I", "Ref Outlier"],
+            "Genesis 1:10": ["Ref J", "Ref Outlier"],
+        }.get
+        chunks = [
+            make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
+            for i in range(1, 11)
+        ]
+
+        result = get_mean_std_linked_ref_enhancements(chunks, link_source=link_source)
+
+        assert result.threshold_method == "mean_plus_std_multiplier"
+        assert result.appended_refs == ["Ref Outlier"]
+        assert result.ref_counts == {"Ref Outlier": 10}
+        assert result.count_threshold > result.mean_count
+
+    def test_mean_std_threshold_uses_min_count_floor_when_counts_have_no_variance(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A"],
+            "Genesis 1:2": ["Ref B"],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+
+        result = get_mean_std_linked_ref_enhancements(chunks, link_source=link_source)
+
+        assert result.appended_refs == []
+        assert result.ref_counts == {}
+        assert result.std_count == 0
+        assert result.count_threshold == 3
+        assert result.min_count == 3
+
+    def test_mean_std_threshold_accepts_std_multiplier(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A", "Ref SemiOutlier"],
+            "Genesis 1:2": ["Ref B", "Ref SemiOutlier"],
+            "Genesis 1:3": ["Ref C", "Ref SemiOutlier"],
+        }.get
+        chunks = [
+            make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
+            for i in range(1, 4)
+        ]
+
+        stricter = get_mean_std_linked_ref_enhancements(
+            chunks,
+            std_threshold=2,
+            link_source=link_source,
+        )
+        looser = get_mean_std_linked_ref_enhancements(
+            chunks,
+            std_threshold=1,
+            link_source=link_source,
+        )
+
+        assert stricter.appended_refs == []
+        assert looser.appended_refs == ["Ref SemiOutlier"]
+
+    def test_mean_std_threshold_allows_min_count_override(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A"],
+            "Genesis 1:2": ["Ref B"],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+
+        result = get_mean_std_linked_ref_enhancements(
+            chunks,
+            min_count=1,
+            link_source=link_source,
+        )
+
+        assert result.appended_refs == ["Ref A", "Ref B"]
+        assert result.count_threshold == 1
 
     def test_excludes_original_result_refs(self):
         link_source = MagicMock()
