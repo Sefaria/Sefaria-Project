@@ -572,8 +572,15 @@ npx playwright test --project=chrome-library
 # If you touched cross-module behavior, also run Sanity.
 # Sanity is TAG-scoped: it runs every test tagged `{ tag: '@sanity' }` anywhere
 # in the tree, not just the Sanity/ folder. Tag a test in place to add it to
-# this run — don't copy it into Sanity/. See Sanity/README.md §3.
-npx playwright test --project=chrome-sanity
+# this run — don't copy it into Sanity/. See Sanity/README.md.
+#
+# ⚠️ Run via the PROJECT, NOT `npx playwright test --grep "@sanity"`. A bare grep
+# with no --project fans the tagged tests out across EVERY configured project
+# (all 3 browsers × every feature folder), not the one curated chrome-sanity
+# project — far more than the release set, in contexts the tests aren't curated
+# for. A full pass is TWO commands (desktop + mobile):
+npm run test:sanity            # = playwright test --project=chrome-sanity  (mobile excluded)
+npm run test:sanity:mobile     # = playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity
 ```
 
 **Desktop tests should pass at full parallelism.** Auth-related flakes are structurally impossible: [global-setup.ts](global-setup.ts) writes each `auth_*.json` exactly once before any worker starts, and `goToPageWithUser` only ever reads those files. If a test flakes only when others run alongside it, the cause is in the test — usually one of: too-short timeouts on async fetches (bump to `t(40000)+` or use `test.slow()`), multiple sequential `isVisible` races (use one atomic `page.evaluate()`), or URL assertions that don't tolerate auth-required redirects. **Fix the test rather than capping workers** (CLAUDE.md rule 20).

@@ -455,8 +455,12 @@ npx playwright test --project=chrome-bookmarks-(saved)-and-history  # Voices Boo
 # Sanity = TAG-scoped: runs every test tagged `{ tag: '@sanity' }` anywhere in
 # the tree, not just the Sanity/ folder (testDir './e2e-tests' + grep /@sanity/).
 # Add a release-gate test to this run by tagging it in place — never copy it
-# into Sanity/. See Sanity/README.md §3.
-npx playwright test --project=chrome-sanity            # @sanity-tagged release-gate suite
+# into Sanity/. See Sanity/README.md.
+# ⚠️ Run via the PROJECT, not `npx playwright test --grep "@sanity"` (a bare grep
+# fans the tagged tests out across EVERY project — all browsers × every folder —
+# not the one curated chrome-sanity project). A full pass is TWO commands:
+npx playwright test --project=chrome-sanity            # desktop @sanity release-gate suite (mobile excluded)
+npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity  # mobile @sanity slice (Pixel 5)
 npx playwright test --project=chrome-sanity --list     # list which tests are tagged @sanity (no run)
 
 # Mobile suite (separate config — runs under width < 843 px viewport)

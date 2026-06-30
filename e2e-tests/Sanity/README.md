@@ -2,7 +2,23 @@
 
 This folder is **documentation only**. It defines what the Sanity suite *is* and how to add a test to it. The actual specs live in their feature folders — Sanity membership is defined by a **tag**, not by this folder.
 
-> **TL;DR** — A Sanity test is any test marked `{ tag: '@sanity' }`. To run them all: `npm run test:sanity`. To see the live list: `npx playwright test --project=chrome-sanity --list`.
+> **TL;DR** — A Sanity test is any test marked `{ tag: '@sanity' }`. To run them: `npm run test:sanity` (desktop) and `npm run test:sanity:mobile` (mobile). To see the live list: `npx playwright test --project=chrome-sanity --list`.
+
+---
+
+## ⚠️ Run Sanity via its PROJECT, not a bare tag filter
+
+| | |
+| --- | --- |
+| ✅ **Do this** | `npm run test:sanity` &nbsp;(= `playwright test --project=chrome-sanity`) |
+| ❌ **Not this** | `npx playwright test --grep "@sanity"` |
+
+Both commands run the config's account-login `globalSetup` — that part is the same. The difference is **what gets run**:
+
+- `--project=chrome-sanity` runs the **one curated Sanity project**: a single `baseURL`, its own `grep: /@sanity/`, mobile excluded — and runs each tagged test **exactly once**. This is the release-gate suite.
+- `npx playwright test --grep "@sanity"` with **no `--project`** selects the tagged tests and runs them across **every project in the config** — Chromium + Firefox + WebKit × every feature folder. Each tagged test fans out into multiple project contexts it wasn't curated for (mismatched browsers/baseURLs, far more tests than the release set, concurrent auth-dependent tests colliding on the shared session). It is **not** the Sanity run and will behave differently.
+
+**The tag defines *membership*; the `chrome-sanity` *project* is what actually *runs* the suite.** Always invoke the project (`npm run test:sanity`), never a bare `--grep "@sanity"`.
 
 ---
 
@@ -40,37 +56,63 @@ Rule of thumb: **describe-level** when the entire suite is release-gate (e.g. Se
 
 ## 4. Where the current Sanity tests live
 
-| Suite | Folder | IDs tagged `@sanity` |
+| Area | Where | `@sanity` coverage |
 | --- | --- | --- |
 | Search | [../Full testing by Feature/Search/](../Full%20testing%20by%20Feature/Search/) | `SRCH-001` – `SRCH-006` (all) |
 | User Menu | [../Full testing by Feature/User Menu/](../Full%20testing%20by%20Feature/User%20Menu/) | `UMN-002` – `UMN-007` (not `UMN-001`) |
 | Sheet Lifecycle | [../voices/sheet-lifecycle.spec.ts](../voices/sheet-lifecycle.spec.ts) | `SHT-001` – `SHT-010` (all) |
 | Cross-Module (auth) | [../Full testing by Feature/Cross-Module/login.spec.ts](../Full%20testing%20by%20Feature/Cross-Module/login.spec.ts) | `XMOD-L01`, `L02`, `L08`, `L09` |
-| Resource Panel (opening) | [../Full testing by Feature/Resource Panel/opening-and-general.spec.ts](../Full%20testing%20by%20Feature/Resource%20Panel/opening-and-general.spec.ts) | `RP-001` – `RP-006` |
+| Resource Panel | [../Full testing by Feature/Resource Panel/](../Full%20testing%20by%20Feature/Resource%20Panel/) | `RP-001` – `RP-006` + a cross-section (RP-012/015/016/020/023/030/050/061/110/121/181/210) |
+| Library Topics | [../Full testing by Feature/Library Topics/](../Full%20testing%20by%20Feature/Library%20Topics/) | a 14-test cross-section (LIB-001/003/007–013/016/019/025/027/029) |
+| Voices Topics | [../Full testing by Feature/Voices Topics/](../Full%20testing%20by%20Feature/Voices%20Topics/) | `TOV-001/003/004/007/010a/010b/011a/016` |
+| Voices Bookmarks | [../Full testing by Feature/Voices Bookmarks (Saved) and History/](../Full%20testing%20by%20Feature/Voices%20Bookmarks%20%28Saved%29%20and%20History/) | `VBM-001/003/005/006` |
+| Library Assistant (EN + HE) | [../assistant/](../assistant/) | 19 `UX-*` / `LA-NEG-*` tests |
+| Library header/sidebar | [../library/](../library/) | `MOD-H005/006/015/016`, `MOD-S001`–`S005` |
+| Voices header | [../voices/header.spec.ts](../voices/header.spec.ts) | `MOD-H003`, `MOD-H017` |
+| Texts tree traversal | [../library/texts-tree-traversal.spec.ts](../library/texts-tree-traversal.spec.ts) | **whole describe** (`@sanity` at folder level) |
+| **Mobile** (separate config) | [../mobile web/](../mobile%20web/) | `HAM-A001/A002/S002/Q001/N001/N002/M001` — runs under `mobile-sanity`, see §5 |
 
-This table is a convenience snapshot — **the authoritative, always-current inventory is the runner:**
+This table is a convenience snapshot — **the authoritative, always-current inventory is the runner** (desktop `chrome-sanity` ≈ 126, mobile `mobile-sanity` = 7):
 
 ```bash
 npx playwright test --project=chrome-sanity --list
+npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity --list
 ```
 
 ## 5. Running
 
 ```bash
-# The whole tagged suite (Chromium)
+# The whole tagged suite (Chromium desktop)
 npm run test:sanity                                   # = playwright test --project=chrome-sanity
 
-# Cross-browser
+# The mobile slice of the suite (Pixel 5 viewport — see "Mobile" below)
+npm run test:sanity:mobile                            # = playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity
+
+# Cross-browser (desktop)
 npx playwright test --project=firefox-sanity
 npx playwright test --project=safari-sanity
 
 # Just list what's tagged (no run) — source of truth for membership
 npx playwright test --project=chrome-sanity --list
+npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity --list
 
 # One tagged test by ID
 npx playwright test -g 'SHT-001'
 npx playwright test -g 'SRCH-003'
 ```
+
+> ❗ Run via the **project**, not `npx playwright test --grep "@sanity"` — see the callout at the top of this file for why.
+
+### Mobile Sanity
+
+Mobile (`HAM-*`) tests only render below the 843 px breakpoint, so they need the **mobile config** and viewport — they cannot run under the desktop `chrome-sanity` project. The desktop `*-sanity` projects therefore `testIgnore` the `mobile web/` folder, and a dedicated **`mobile-sanity`** project in [../../playwright.mobileweb.config.ts](../../playwright.mobileweb.config.ts) (`testDir: './e2e-tests/mobile web'` + `grep: /@sanity/`, Pixel 5) runs the mobile `@sanity` slice at the correct viewport:
+
+```bash
+npm run test:sanity:mobile
+# = npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity
+```
+
+So a full release-gate pass is **two commands**: `npm run test:sanity` (desktop) + `npm run test:sanity:mobile` (mobile).
 
 > ⚠️ **The VS Code Playwright Test Explorer is organised by folder, not by tag.** A `@sanity`-tagged test is listed under its own feature folder, never under a "Sanity" node — so there is no folder to "press Run on" to get the suite. To run the tagged set from the extension, either type `@sanity` in the Test Explorer filter box, or enable only the `chrome-sanity` project in the *Playwright* panel and Run All. When in doubt, run `npm run test:sanity` from the terminal — it's the source of truth.
 
