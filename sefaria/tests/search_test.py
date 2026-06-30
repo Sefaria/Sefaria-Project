@@ -237,3 +237,44 @@ def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
     assert len(shard_calls) == 1
     assert shard_calls[0]["shard_index"] == 0
     assert shard_calls[0]["shard_count"] == 4
+
+
+def test_reindex_finalize_sanity_gate(monkeypatch):
+    """reindex_finalize must raise ValueError with 'sanity' when new index has too few docs."""
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+
+    counts = {"text-new": 500, "text-current": 1000}
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: counts.get(name, 0))
+
+    put_alias_calls = []
+    monkeypatch.setattr(search.index_client, "put_alias",
+                        lambda index, name: put_alias_calls.append((index, name)))
+
+    with pytest.raises(ValueError, match="sanity"):
+        search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert put_alias_calls == [], "put_alias must NOT be called when the sanity gate fails"
+
+
+def test_restore_index_settings_refreshes_after_put(monkeypatch):
+    """restore_index_settings must call put_settings with replicas key then refresh."""
+    from sefaria import search
+
+    put_settings_calls = []
+    refresh_calls = []
+
+    monkeypatch.setattr(search.index_client, "put_settings",
+                        lambda index, body: put_settings_calls.append({"index": index, "body": body}))
+    monkeypatch.setattr(search.index_client, "refresh",
+                        lambda index: refresh_calls.append(index))
+
+    search.restore_index_settings("text-a")
+
+    assert len(put_settings_calls) == 1, "put_settings should be called exactly once"
+    assert "number_of_replicas" in put_settings_calls[0]["body"]["index"]
+    assert len(refresh_calls) == 1
+    assert refresh_calls[0] == "text-a"

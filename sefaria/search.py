@@ -1213,59 +1213,93 @@ def index_all(skip=0, debug=False):
     logger.info("=" * 60)
 
 
+def _index_doc_count(index_name):
+    """Return the primary doc count for index_name, or 0 on any error."""
+    try:
+        if not index_client.exists(index=index_name):
+            return 0
+        stats = index_client.stats(index=index_name)
+        return stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
+    except Exception:
+        return 0
+
+
+def reindex_init(type, debug=False):
+    """
+    Phase 1: Create the new index with bulk-load settings.
+    Safe to call multiple times (force=True recreates the index).
+    Returns the names dict from get_new_and_current_index_names.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    create_index(names['new'], type, force=True)
+    set_index_bulk_load_settings(names['new'])
+    logger.info(f"reindex_init complete - type: {type}, new_index: {names['new']}")
+    return names
+
+
+def reindex_index_shard(type, shard_index=None, shard_count=None, debug=False):
+    """
+    Phase 2: Index one shard (or the whole corpus if shard_index/shard_count are None)
+    into the existing new index. Does NOT create or alias-swap the index.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    if type == 'text':
+        TextIndexer.clear_cache()
+        TextIndexer.index_all(names['new'], debug=debug, shard_index=shard_index, shard_count=shard_count)
+    elif type == 'sheet':
+        index_public_sheets(names['new'])
+    else:
+        raise ValueError(f"Unknown index type: {type}")
+    logger.info(f"reindex_index_shard complete - type: {type}, shard: {shard_index}/{shard_count}")
+
+
+def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
+    """
+    Phase 3: Restore production index settings, run a sanity gate on doc counts,
+    then swap the alias and drop the old index.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    restore_index_settings(names['new'])
+    new_count = _index_doc_count(names['new'])
+    current_count = _index_doc_count(names['current'])
+    if current_count > 0 and new_count < current_count * min_doc_ratio:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: new index {names['new']} has {new_count} docs "
+            f"but current index {names['current']} has {current_count} "
+            f"(ratio {new_count/current_count:.2%} < required {min_doc_ratio:.0%}). Refusing alias swap."
+        )
+
+    # Switch aliases (moved verbatim from index_all_of_type tail)
+    logger.debug("Switching aliases after indexing")
+    try:
+        index_client.delete_alias(index=names['current'], name=names['alias'])
+        logger.debug(f"Successfully deleted alias from old index - alias: {names['alias']}, old_index: {names['current']}")
+    except NotFoundError:
+        logger.debug(f"Alias not found on old index (may be first run) - alias: {names['alias']}, old_index: {names['current']}")
+
+    # Clear any index with the alias name
+    clear_index(names['alias'])
+
+    # Create new alias
+    index_client.put_alias(index=names['new'], name=names['alias'])
+    logger.debug(f"Successfully created alias for new index - alias: {names['alias']}, new_index: {names['new']}")
+
+    # Cleanup old index
+    if names['new'] != names['current']:
+        logger.debug(f"Cleaning up old index - old_index: {names['current']}")
+        clear_index(names['current'])
+
+    logger.info(f"reindex_finalize complete - type: {type}, alias -> {names['new']} ({new_count} docs)")
+
+
 def index_all_of_type(type, skip=0, debug=False):
     """
     Index all documents of a given type (text or sheet).
-    Handles index creation, alias switching, and cleanup.
+    Composes the three phase functions: init -> index_shard -> finalize.
     """
-    index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    
-    logger.debug("=" * 40)
-    logger.debug(f"Starting index_all_of_type for '{type}' - type: {type}, new_index: {index_names_dict.get('new')}, current_index: {index_names_dict.get('current')}, alias: {index_names_dict.get('alias')}, skip: {skip}, debug: {debug}")
-    
-    # Check if new index already exists
-    new_exists = index_client.exists(index=index_names_dict.get('new'))
-    if new_exists:
-        try:
-            stats = index_client.stats(index=index_names_dict.get('new'))
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}")
-        except Exception:
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}")
-    
-    # Countdown (keeping for backwards compatibility, but logging instead of just printing)
-    logger.debug("Starting countdown before indexing...")
-    for i in range(10):
-        remaining = 10 - i
-        logger.debug(f'STARTING IN T-MINUS {remaining}')
-        logger.debug(f"Countdown - seconds_remaining: {remaining}")
-        pytime.sleep(1)
-
-    # Perform the actual indexing
-    logger.debug(f"Beginning indexing operation - type: {type}, index_name: {index_names_dict.get('new')}")
-    index_all_of_type_by_index_name(type, index_names_dict.get('new'), skip, debug)
-
-    # Switch aliases
-    logger.debug("Switching aliases after indexing")
-    try:
-        index_client.delete_alias(index=index_names_dict.get('current'), name=index_names_dict.get('alias'))
-        logger.debug(f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
-    except NotFoundError:
-        logger.debug(f"Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
-
-    # Clear any index with the alias name
-    clear_index(index_names_dict.get('alias'))
-
-    # Create new alias
-    index_client.put_alias(index=index_names_dict.get('new'), name=index_names_dict.get('alias'))
-    logger.debug(f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}")
-
-    # Cleanup old index
-    if index_names_dict.get('new') != index_names_dict.get('current'):
-        logger.debug(f"Cleaning up old index - old_index: {index_names_dict.get('current')}")
-        clear_index(index_names_dict.get('current'))
-    
-    logger.debug(f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}")
+    reindex_init(type, debug=debug)
+    reindex_index_shard(type, debug=debug)
+    reindex_finalize(type, debug=debug)
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force_recreate=True):
