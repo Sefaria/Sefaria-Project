@@ -40,6 +40,30 @@ def get_linked_ref_enhancements(
     if link_depth < 1 or min_link_count < 1:
         return LinkedRefEnhancement(appended_refs=[], ref_counts={})
 
+    counts = get_linked_ref_counts(
+        chunks,
+        link_depth=link_depth,
+        link_source=link_source,
+    )
+    appended_refs = [
+        ref
+        for ref, count in counts.most_common()
+        if count >= min_link_count
+    ]
+    return LinkedRefEnhancement(
+        appended_refs=appended_refs,
+        ref_counts={ref: counts[ref] for ref in appended_refs},
+    )
+
+
+def get_linked_ref_counts(
+    chunks: list[SemanticTextChunk],
+    link_depth: int = 1,
+    link_source: LinkSource | None = None,
+) -> Counter:
+    if link_depth < 1:
+        return Counter()
+
     link_source = link_source or MongoLinkSource()
     original_refs = {c.ref for c in chunks} | {
         getattr(c, "chunked_from_ref", "")
@@ -66,12 +90,4 @@ def get_linked_ref_enhancements(
             break
         current_refs = next_frontier
 
-    appended_refs = [
-        ref
-        for ref, count in counts.most_common()
-        if count >= min_link_count
-    ]
-    return LinkedRefEnhancement(
-        appended_refs=appended_refs,
-        ref_counts={ref: counts[ref] for ref in appended_refs},
-    )
+    return counts

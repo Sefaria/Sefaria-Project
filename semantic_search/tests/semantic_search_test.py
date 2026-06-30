@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
-from semantic_search.linked_refs import get_linked_ref_enhancements
+from semantic_search.linked_refs import get_linked_ref_counts, get_linked_ref_enhancements
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search
 from semantic_search.models import SemanticTextChunk
@@ -178,6 +178,22 @@ class TestBulkDelete:
 # ---------------------------------------------------------------------------
 
 class TestLinkedRefEnhancement:
+    def test_collects_full_count_distribution(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A", "Ref B"],
+            "Genesis 1:2": ["Ref B", "Ref C"],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+        assert dict(get_linked_ref_counts(chunks, link_source=link_source)) == {
+            "Ref A": 1,
+            "Ref B": 2,
+            "Ref C": 1,
+        }
+
     def test_counts_direct_linked_refs_and_applies_threshold(self):
         link_source = MagicMock()
         link_source.linked_refs_for.side_effect = {
