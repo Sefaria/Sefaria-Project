@@ -378,34 +378,52 @@ def run_sheets_by_timestamp(timestamp: str, result: ReindexingResult, max_retrie
 
 def main():
     """Main entry point for the reindexing cronjob."""
+    import os
     parser = argparse.ArgumentParser(description="Elasticsearch Reindexing Cronjob")
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument("--mode", choices=["monolith", "init", "shard", "finalize"], default="monolith",
+                        help="Execution mode: monolith (full run), init (setup + pagesheetrank), "
+                             "shard (index one shard of texts), finalize (swap aliases + sheets catch-up)")
+    parser.add_argument("--type", choices=["text", "sheet"], default="text",
+                        help="Index type to operate on (used in shard mode)")
+    parser.add_argument("--shard-index", type=int, default=None,
+                        help="Zero-based shard index (overrides JOB_COMPLETION_INDEX env var)")
+    parser.add_argument("--shard-count", type=int, default=None,
+                        help="Total number of shards (overrides SHARD_COUNT env var)")
     args = parser.parse_args()
+
+    # Resolve shard identity from env when not passed on the CLI
+    shard_index = args.shard_index
+    if shard_index is None and os.environ.get("JOB_COMPLETION_INDEX") is not None:
+        shard_index = int(os.environ["JOB_COMPLETION_INDEX"])
+    shard_count = args.shard_count or (int(os.environ["SHARD_COUNT"]) if os.environ.get("SHARD_COUNT") else None)
 
     # Apply centralized logging configuration with the specified debug level
     setup_logging(args.debug)
 
+    from sefaria.search import reindex_init, reindex_index_shard, reindex_finalize
+
     result = ReindexingResult()
-    
+
     logger.info(SEPARATOR_LINE)
-    logger.info("ELASTICSEARCH REINDEXING CRONJOB")
+    logger.info(f"ELASTICSEARCH REINDEXING CRONJOB [mode={args.mode}]")
     logger.info(f"Started at: {result.start_time.isoformat()}")
     logger.info(SEPARATOR_LINE)
-    
+
     # Store timestamp before we start (sheets created after this will be caught by API)
     last_sheet_timestamp = datetime.now().isoformat()
     logger.debug(f"Captured start timestamp for sheet catch-up - timestamp: {last_sheet_timestamp}")
-    
+
     # Pre-flight checks
     logger.debug("Running pre-flight checks...")
-    
+
     # 1. Check Elasticsearch connection
     if not check_elasticsearch_connection():
         result.record_step_failure("preflight_elasticsearch", "Cannot connect to Elasticsearch")
         logger.info(result.get_summary())
         sys.exit(1)
     result.record_step_success("preflight_elasticsearch", "Elasticsearch connection verified")
-    
+
     # 2. Log current index states
     try:
         log_index_state('text', result)
@@ -415,31 +433,80 @@ def main():
         result.record_step_failure("preflight_index_check", str(e))
         logger.info(result.get_summary())
         sys.exit(1)
-    
-    # Step 1: Update PageSheetRank
-    logger.info(SUBSECTION_LINE)
-    logger.info("STEP 1: PageSheetRank Update")
-    logger.info(SUBSECTION_LINE)
-    
-    if not run_pagesheetrank_update(result):
-        # PageSheetRank failure is not critical - continue with warning
-        result.add_warning("PageSheetRank update failed, continuing anyway")
-    
-    # Step 2: Full index rebuild
-    logger.info(SUBSECTION_LINE)
-    logger.info("STEP 2: Full Index Rebuild")
-    logger.info(SUBSECTION_LINE)
-    
-    if not run_index_all(result):
-        # This is critical - but we still try the sheets API
-        result.add_warning("Full index rebuild failed")
-    
-    # Step 3: Catch-up sheets by timestamp
-    logger.info(SUBSECTION_LINE)
-    logger.info("STEP 3: Sheets Catch-up by Timestamp")
-    logger.info(SUBSECTION_LINE)
-    
-    run_sheets_by_timestamp(last_sheet_timestamp, result)
+
+    # Dispatch on mode
+    if args.mode == "monolith":
+        # Step 1: Update PageSheetRank
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 1: PageSheetRank Update")
+        logger.info(SUBSECTION_LINE)
+
+        if not run_pagesheetrank_update(result):
+            # PageSheetRank failure is not critical - continue with warning
+            result.add_warning("PageSheetRank update failed, continuing anyway")
+
+        # Step 2: Full index rebuild
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 2: Full Index Rebuild")
+        logger.info(SUBSECTION_LINE)
+
+        if not run_index_all(result):
+            # This is critical - but we still try the sheets API
+            result.add_warning("Full index rebuild failed")
+
+        # Step 3: Catch-up sheets by timestamp
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 3: Sheets Catch-up by Timestamp")
+        logger.info(SUBSECTION_LINE)
+
+        run_sheets_by_timestamp(last_sheet_timestamp, result)
+
+    elif args.mode == "init":
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 1: PageSheetRank Update")
+        logger.info(SUBSECTION_LINE)
+
+        if not run_pagesheetrank_update(result):
+            result.add_warning("PageSheetRank update failed, continuing anyway")
+
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 2: Initialize new indexes")
+        logger.info(SUBSECTION_LINE)
+
+        reindex_init("text")
+        reindex_init("sheet")
+
+    elif args.mode == "shard":
+        logger.info(SUBSECTION_LINE)
+        logger.info(f"SHARD: Indexing shard {shard_index}/{shard_count} of type '{args.type}'")
+        logger.info(SUBSECTION_LINE)
+
+        reindex_index_shard("text", shard_index=shard_index, shard_count=shard_count)
+
+    elif args.mode == "finalize":
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 1: Finalize text index")
+        logger.info(SUBSECTION_LINE)
+
+        reindex_finalize("text")
+
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 2: Index sheets (serial)")
+        logger.info(SUBSECTION_LINE)
+
+        reindex_index_shard("sheet")
+
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 3: Finalize sheet index")
+        logger.info(SUBSECTION_LINE)
+
+        reindex_finalize("sheet")
+
+        logger.info(SUBSECTION_LINE)
+        logger.info("STEP 4: Sheets Catch-up by Timestamp")
+        logger.info(SUBSECTION_LINE)
+
+        run_sheets_by_timestamp(last_sheet_timestamp, result)
     
     # Only log summary and detailed report if there are failures or skips
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
