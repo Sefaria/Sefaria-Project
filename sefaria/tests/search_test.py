@@ -176,3 +176,64 @@ def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):
     search.set_index_bulk_load_settings("text-a")
     assert calls["settings"]["index"]["refresh_interval"] == "-1"
     assert calls["settings"]["index"]["number_of_replicas"] == 0
+
+
+def test_shard_selection_is_deterministic_partition():
+    from sefaria.search import TextIndexer
+    # 20 fake groups with varied sizes; keys are (title, lang)
+    vbi = {(f"Book{i}", "en"): list(range(i % 5 + 1)) for i in range(20)}
+    N = 4
+    shards = [TextIndexer._select_shard_groups(vbi, i, N) for i in range(N)]
+    # 1. Partition: every group appears in exactly one shard, no loss, no dup
+    seen = {}
+    for s in shards:
+        for k in s:
+            assert k not in seen
+            seen[k] = True
+    assert set(seen) == set(vbi)
+    # 2. Determinism: same call -> same result
+    assert TextIndexer._select_shard_groups(vbi, 1, N) == shards[1]
+    # 3. Balance: shard group-counts differ by at most 1
+    counts = [len(s) for s in shards]
+    assert max(counts) - min(counts) <= 1
+
+
+def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
+    """When shard_index/shard_count are passed, _select_shard_groups must be called."""
+    from sefaria.search import TextIndexer
+
+    book_a = _FakeVersion("BookA", "v1", "en")
+    all_versions = [book_a]
+
+    TextIndexer._failed_versions = []
+    TextIndexer._skipped_versions = []
+    TextIndexer._bulk_actions = []
+
+    monkeypatch.setattr(TextIndexer, "create_version_priority_map", classmethod(lambda cls: None))
+    monkeypatch.setattr(TextIndexer, "create_terms_dict", classmethod(lambda cls: None))
+    monkeypatch.setattr(TextIndexer, "get_all_versions", classmethod(lambda cls: list(all_versions)))
+    TextIndexer.version_priority_map = {
+        (v.title, v.versionTitle, v.language): (i, None)
+        for i, v in enumerate(all_versions)
+    }
+    monkeypatch.setattr(TextIndexer, "excluded_from_search", classmethod(lambda cls, v: False))
+    monkeypatch.setattr("sefaria.search.Ref.clear_cache", lambda: None)
+
+    # Stub _index_size_map so it doesn't call Mongo
+    monkeypatch.setattr(TextIndexer, "_index_size_map", classmethod(lambda cls: {}))
+
+    # Capture calls to _select_shard_groups and return empty so the loop is a no-op
+    shard_calls = []
+
+    def fake_select(cls, versions_by_index, shard_index, shard_count, size_map=None):
+        shard_calls.append({"shard_index": shard_index, "shard_count": shard_count})
+        return {}
+
+    monkeypatch.setattr(TextIndexer, "_select_shard_groups", classmethod(fake_select))
+    monkeypatch.setattr("sefaria.search.bulk", lambda *a, **kw: (0, []))
+
+    TextIndexer.index_all(index_name="text-b", debug=False, for_es=True, shard_index=0, shard_count=4)
+
+    assert len(shard_calls) == 1
+    assert shard_calls[0]["shard_index"] == 0
+    assert shard_calls[0]["shard_count"] == 4

@@ -669,7 +669,51 @@ class TextIndexer(object):
         ]
 
     @classmethod
-    def index_all(cls, index_name, debug=False, for_es=True, action=None):
+    def _index_size_map(cls):
+        """Cheap per-title size proxy from VersionState (one set load, no per-index Mongo).
+        Returns {title: weight}; missing/unparseable -> weight 1."""
+        sizes = {}
+        try:
+            for vs in VersionStateSet():
+                title = getattr(vs, "title", None)
+                if not title:
+                    continue
+                weight = 1
+                try:
+                    # top-level availableCounts is a small list per language; sum as proxy
+                    for lang in ("he", "en"):
+                        counts = vs.content_node.get_available_counts(lang) if hasattr(vs, "content_node") else None
+                        if counts:
+                            weight += sum(c for c in counts if isinstance(c, int))
+                except Exception:
+                    pass
+                sizes[title] = max(weight, 1)
+        except Exception as e:
+            logger.warning(f"Could not build index size map, falling back to uniform weights: {e}")
+        return sizes
+
+    @classmethod
+    def _select_shard_groups(cls, versions_by_index, shard_index, shard_count, size_map=None):
+        """Deterministically pick this shard's (title, lang) groups.
+        Snake-distribute groups sorted by descending size so the heavy head spreads evenly."""
+        size_map = size_map or {}
+        def weight(key):
+            title = key[0]
+            return size_map.get(title, len(versions_by_index[key]))
+        # stable, deterministic ordering: by descending weight, then by key
+        ordered = sorted(versions_by_index.keys(), key=lambda k: (-weight(k), k))
+        selected = {}
+        for pos, key in enumerate(ordered):
+            # snake: 0..N-1, then N-1..0, repeating -> balances big items across shards
+            cycle = pos // shard_count
+            offset = pos % shard_count
+            assigned = offset if cycle % 2 == 0 else (shard_count - 1 - offset)
+            if assigned == shard_index:
+                selected[key] = versions_by_index[key]
+        return selected
+
+    @classmethod
+    def index_all(cls, index_name, debug=False, for_es=True, action=None, shard_index=None, shard_count=None):
         start_time = datetime.now()
         cls.index_name = index_name
         
@@ -696,6 +740,11 @@ class TextIndexer(object):
             else:
                 versions_by_index[key] = [v]
         
+        if shard_index is not None and shard_count is not None:
+            size_map = cls._index_size_map()
+            versions_by_index = cls._select_shard_groups(versions_by_index, shard_index, shard_count, size_map)
+            logger.info(f"Shard {shard_index}/{shard_count}: indexing {len(versions_by_index)} of the title groups")
+
         total_versions = len(versions)
         total_indexes = len(versions_by_index)
         logger.debug(f"Beginning text indexing - total_versions: {total_versions}, total_indexes: {total_indexes}")
