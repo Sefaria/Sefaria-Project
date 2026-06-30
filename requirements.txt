@@ -243,6 +243,7 @@ protobuf==5.29.3
     # via
     #   google-api-core
     #   googleapis-common-protos
+pgvector==0.4.2
 psycopg2-binary==2.9.9 #for dev: psycopg2-binary==2.9.9
 ptyprocess==0.7.0
     # via pexpect
