@@ -50,20 +50,31 @@ def get_test_db():
     return client[TEST_DB]
 
 
+# Resilience for long-running batch jobs (the weekly ES reindex) AND the
+# online path: bound dead-socket hangs. Without socketTimeoutMS, pymongo
+# defaults to None (infinite) and a dead Mongo TCP connection blocks reads
+# until OS TCP keepalive (~2h) notices. 5 min is 2-3x the slowest legitimate
+# query and lets AutoReconnect retry / retryReads recover quickly.
+MONGO_CLIENT_TIMEOUT_KWARGS = {
+    "socketTimeoutMS": 300_000,         # 5 min ceiling on any single socket read
+    "connectTimeoutMS": 20_000,         # pymongo default, set explicitly
+    "serverSelectionTimeoutMS": 60_000, # wait through a full replica election
+}
+
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
     # TEST_DB = SEFARIA_DB + "_test"
     TEST_DB = SEFARIA_DB
-    
+
     #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
     _event_listeners = [QueryCounter()] if hasattr(sys, '_called_from_test') else []
 
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, event_listeners=_event_listeners)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
         else:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, event_listeners=_event_listeners)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
     #Else if we are using a replica set mongo, we need to connect with a URI that containts a comma separated list of 'host:port' strings
     else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
@@ -74,7 +85,7 @@ else:
         else:
             connection_uri = 'mongodb://{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
         # Now connect to the mongo server
-        client = pymongo.MongoClient(connection_uri, event_listeners=_event_listeners)
+        client = pymongo.MongoClient(connection_uri, event_listeners=_event_listeners, **MONGO_CLIENT_TIMEOUT_KWARGS)
 
 
 
