@@ -260,6 +260,32 @@ def test_reindex_finalize_sanity_gate(monkeypatch):
     assert put_alias_calls == [], "put_alias must NOT be called when the sanity gate fails"
 
 
+def test_reindex_finalize_fails_closed_on_unreadable_current(monkeypatch):
+    """reindex_finalize must raise ValueError with 'sanity' when current index count cannot be read (None)."""
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+
+    # current index returns None (transient read error); new index is healthy
+    def fake_doc_count(name):
+        if name == "text-current":
+            return None  # unreadable
+        return 900  # new index has plenty of docs
+
+    monkeypatch.setattr(search, "_index_doc_count", fake_doc_count)
+
+    put_alias_calls = []
+    monkeypatch.setattr(search.index_client, "put_alias",
+                        lambda index, name: put_alias_calls.append((index, name)))
+
+    with pytest.raises(ValueError, match="sanity"):
+        search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert put_alias_calls == [], "put_alias must NOT be called when current count is unreadable"
+
+
 def test_restore_index_settings_refreshes_after_put(monkeypatch):
     """restore_index_settings must call put_settings with replicas key then refresh."""
     from sefaria import search

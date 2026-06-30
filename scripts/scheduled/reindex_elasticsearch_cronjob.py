@@ -396,7 +396,7 @@ def main():
     shard_index = args.shard_index
     if shard_index is None and os.environ.get("JOB_COMPLETION_INDEX") is not None:
         shard_index = int(os.environ["JOB_COMPLETION_INDEX"])
-    shard_count = args.shard_count or (int(os.environ["SHARD_COUNT"]) if os.environ.get("SHARD_COUNT") else None)
+    shard_count = args.shard_count if args.shard_count is not None else (int(os.environ["SHARD_COUNT"]) if os.environ.get("SHARD_COUNT") else None)
 
     # Apply centralized logging configuration with the specified debug level
     setup_logging(args.debug)
@@ -478,10 +478,14 @@ def main():
 
     elif args.mode == "shard":
         logger.info(SUBSECTION_LINE)
-        logger.info(f"SHARD: Indexing shard {shard_index}/{shard_count} of type '{args.type}'")
+        logger.info(f"SHARD: Indexing shard {shard_index}/{shard_count} of type 'text'")
         logger.info(SUBSECTION_LINE)
 
         reindex_index_shard("text", shard_index=shard_index, shard_count=shard_count)
+        result.failed_text_versions = TextIndexer._failed_versions.copy()
+        result.skipped_text_versions = TextIndexer._skipped_versions.copy()
+        logger.info(f"SHARD {shard_index}/{shard_count} complete - indexed groups for this shard; "
+                    f"failed_versions: {len(result.failed_text_versions)}, skipped_versions: {len(result.skipped_text_versions)}")
 
     elif args.mode == "finalize":
         logger.info(SUBSECTION_LINE)

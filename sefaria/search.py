@@ -1214,14 +1214,20 @@ def index_all(skip=0, debug=False):
 
 
 def _index_doc_count(index_name):
-    """Return the primary doc count for index_name, or 0 on any error."""
+    """Doc count for an index. Returns 0 if the index is absent (legit, e.g. first run),
+    or None if the count could not be read (transient error) so callers can fail closed."""
     try:
         if not index_client.exists(index=index_name):
             return 0
+    except Exception as e:
+        logger.warning(f"Could not check index existence - index: {index_name}, error: {e}")
+        return None
+    try:
         stats = index_client.stats(index=index_name)
         return stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-    except Exception:
-        return 0
+    except Exception as e:
+        logger.warning(f"Could not read index doc count - index: {index_name}, error: {e}")
+        return None
 
 
 def reindex_init(type, debug=False):
@@ -1262,6 +1268,10 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
     restore_index_settings(names['new'])
     new_count = _index_doc_count(names['new'])
     current_count = _index_doc_count(names['current'])
+    if new_count is None:
+        raise ValueError(f"Reindex sanity gate failed for {type}: could not read new index {names['new']} doc count; refusing alias swap")
+    if current_count is None:
+        raise ValueError(f"Reindex sanity gate failed for {type}: could not read current index {names['current']} doc count; refusing alias swap")
     if current_count > 0 and new_count < current_count * min_doc_ratio:
         raise ValueError(
             f"Reindex sanity gate failed for {type}: new index {names['new']} has {new_count} docs "
@@ -1296,6 +1306,8 @@ def index_all_of_type(type, skip=0, debug=False):
     """
     Index all documents of a given type (text or sheet).
     Composes the three phase functions: init -> index_shard -> finalize.
+    Note: the ``skip`` parameter is accepted for backward compatibility but is no longer
+    forwarded; resume-from-skip is a no-op now that indexing is sharded/phase-split.
     """
     reindex_init(type, debug=debug)
     reindex_index_shard(type, debug=debug)
