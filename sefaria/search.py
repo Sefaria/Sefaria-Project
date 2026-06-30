@@ -338,6 +338,23 @@ def create_index(index_name, type, force=False):
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
 
+def set_index_bulk_load_settings(index_name):
+    """Disable refresh + replicas for fast bulk ingest. Restore via restore_index_settings()."""
+    index_client.put_settings(index=index_name, body={
+        "index": {"refresh_interval": "-1", "number_of_replicas": 0}
+    })
+    logger.info(f"Set bulk-load settings (refresh=-1, replicas=0) - index: {index_name}")
+
+
+def restore_index_settings(index_name, refresh_interval="1s", number_of_replicas=1):
+    """Restore production settings after bulk ingest and force a refresh so docs are searchable."""
+    index_client.put_settings(index=index_name, body={
+        "index": {"refresh_interval": refresh_interval, "number_of_replicas": number_of_replicas}
+    })
+    index_client.refresh(index=index_name)
+    logger.info(f"Restored settings (refresh={refresh_interval}, replicas={number_of_replicas}) + refreshed - index: {index_name}")
+
+
 def put_text_mapping(index_name):
     """
     Settings mapping for the text document type.

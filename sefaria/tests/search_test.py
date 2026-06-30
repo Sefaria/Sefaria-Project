@@ -166,3 +166,13 @@ def test_index_sheet_returns_false_without_owner(monkeypatch):
 
     result = search.index_sheet("sheet-a", 99)
     assert result is False
+
+
+def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):
+    from sefaria import search
+    calls = {}
+    monkeypatch.setattr(search.index_client, "put_settings",
+                        lambda index, body: calls.update({"settings": body, "index": index}))
+    search.set_index_bulk_load_settings("text-a")
+    assert calls["settings"]["index"]["refresh_interval"] == "-1"
+    assert calls["settings"]["index"]["number_of_replicas"] == 0
