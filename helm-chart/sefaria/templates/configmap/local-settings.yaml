@@ -48,3 +48,7 @@ data:
   SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
+  PGVECTOR_HOST: {{ .Values.localSettings.PGVECTOR_HOST | quote }}
+  PGVECTOR_DB_PORT: {{ .Values.localSettings.PGVECTOR_DB_PORT | quote }}
+  PGVECTOR_DB: {{ .Values.localSettings.PGVECTOR_DB | quote }}
+  POSTGRES_USER: {{ .Values.localSettings.POSTGRES_USER | quote }}

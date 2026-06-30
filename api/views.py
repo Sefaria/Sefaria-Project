@@ -1,8 +1,14 @@
+import json
+
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
+from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
-from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
-from django.views import View
 from .api_warnings import *
 
 
@@ -155,3 +161,61 @@ class RefView(View):
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
 
         return jsonResponse(return_object)
+
+
+_SEARCH_RESULT_FIELDS = (
+    'ref', 'text', 'url', 'index_title', 'language', 'version_title',
+    'primary_category', 'all_categories',
+)
+
+
+class KnnSearch(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        auth = request.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+        token = auth[len("Bearer "):]
+        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+        if not expected or token != expected:
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        if not isinstance(body, dict):
+            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
+
+        filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
+        raw_limit = body.get("limit", 10)
+        if not isinstance(raw_limit, int) or isinstance(raw_limit, bool):
+            return jsonResponse({"error": "'limit' must be an integer"}, status=400)
+        limit = max(1, min(raw_limit, 100))
+
+        from semantic_search.search import semantic_search
+        from semantic_search.embedder import EmbeddingError
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            results = semantic_search(query, filters=filters, limit=limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
+        return jsonResponse({
+            "results": [
+                {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
+                for r in results
+            ]
+        })
