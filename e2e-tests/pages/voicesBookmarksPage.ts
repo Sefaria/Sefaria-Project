@@ -1,7 +1,8 @@
 import { expect, Page, Locator } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
-import { t } from '../globals';
+import { LANGUAGES, t } from '../globals';
+import { MODULE_URLS } from '../constants';
 
 /**
  * Voices Bookmarks / Saved-list POM.
@@ -42,24 +43,36 @@ export class VoicesBookmarksPage extends HelperBase {
   // ----------------------------------------------------------------------------
   // Navigation (the page is already authenticated via goToPageWithUser; these
   // are in-session navigations that keep the Django session cookie).
+  //
+  // These surfaces are Voices-only, so navigations use the ABSOLUTE Voices base
+  // URL rather than a relative path. A relative `page.goto('/saved')` resolves
+  // against the running project's `baseURL`, which is the Voices module for the
+  // `*-voices-bookmarks` projects but the LIBRARY module for the tag-scoped
+  // `*-sanity` projects (playwright.config.ts) — under sanity a relative goto
+  // would land on www.* and the Voices /saved entries would be absent.
   // ----------------------------------------------------------------------------
+
+  /** Absolute base URL of the Voices module for this POM's language. */
+  private get voicesBase(): string {
+    return this.language === LANGUAGES.HE ? MODULE_URLS.HE.VOICES : MODULE_URLS.EN.VOICES;
+  }
 
   /** Navigate to a sheet page and dismiss any overlays. */
   async gotoSheet(sheetId: number): Promise<void> {
-    await this.page.goto(`/sheets/${sheetId}`);
+    await this.page.goto(`${this.voicesBase}/sheets/${sheetId}`);
     await hideAllModalsAndPopups(this.page);
   }
 
   /** Navigate to the /saved page and wait for it to render. */
   async gotoSaved(): Promise<void> {
-    await this.page.goto(`/saved`);
+    await this.page.goto(`${this.voicesBase}/saved`);
     await hideAllModalsAndPopups(this.page);
     await this.waitForSavedRendered();
   }
 
   /** Navigate to the /history page and wait for it to render. */
   async gotoHistory(): Promise<void> {
-    await this.page.goto(`/history`);
+    await this.page.goto(`${this.voicesBase}/history`);
     await hideAllModalsAndPopups(this.page);
     await this.waitForSavedRendered();
   }
@@ -360,44 +373,38 @@ export class VoicesBookmarksPage extends HelperBase {
   }
 
   /**
-   * Clear the account's (non-saved) reading history, preserving /saved.
+   * Drop un-renderable rows from the `/api/profile/user_history` responses that
+   * back /saved and /history, so the list renders deterministically.
    *
    * The shared QA account's history accumulates rows for sheets that later get
-   * deleted; an un-annotatable sheet row (no `ownerName`) makes `ProfilePic`
-   * throw on `name.trim()` and blanks the whole /history page (no error
-   * boundary), so the list never renders. We reset to a clean slate by toggling
-   * the `reading_history` setting off then on via the same `/api/profile/sync`
-   * the settings UI uses: setting it `false` while it is currently `true` makes
-   * the server run `delete_user_history(exclude_saved=True)` — wiping reading
-   * history but leaving /saved intact (UserProfile._set_flags_on_update →
-   * delete_user_history). We then flip it back on so subsequent seeds record.
+   * deleted. The server annotates such a row with no `ownerName`, and the row's
+   * `SheetBlock` → `ProfilePic` then throws on `name.trim()` (no guard) — with no
+   * error boundary that blanks the whole /history page, so `.savedHistoryList`
+   * never appears. There is no reliable server-side cleanup we can drive from a
+   * test: the only history-wipe path (toggling the `reading_history` setting) is
+   * undone moments later when the client re-syncs its in-memory history back.
    *
-   * A settings change is only applied when its `time_stamp` strictly exceeds the
-   * one stored on the profile (reader/views.py profile_sync_api), and that stored
-   * value persists across runs on this shared account — so we must read the
-   * current stamp and send strictly-greater values, not a fresh `Date.now()`
-   * (which a prior run can already have surpassed). `last_sync` is set huge so
-   * the sync responses carry no history payload.
+   * So we sanitize at the network layer (per CLAUDE.md rule 18): fetch the real
+   * response and filter out only the crash-inducing rows (a sheet item with no
+   * `ownerName`). All other real data — including the seeded target row, which
+   * has a valid owner — passes through untouched, and the bookmark toggle +
+   * /saved verification still hit the real save backend. Install before the
+   * first navigation that loads the list.
    */
-  async clearReadingHistory(): Promise<void> {
-    await this.page.evaluate(async () => {
-      const S = (window as any).Sefaria;
-      const $ = (window as any).$;
-      const HUGE_LAST_SYNC = '99999999999';
-      const sync = (extra: Record<string, string>): Promise<any> =>
-        new Promise((resolve) => {
-          $.post(
-            S.apiHost + '/api/profile/sync',
-            { client: 'web', last_sync: HUGE_LAST_SYNC, ...extra },
-          ).always((r: any) => resolve(r));
-        });
-      const setReadingHistory = (reading_history: boolean, ts: number) =>
-        sync({ settings: JSON.stringify({ reading_history, time_stamp: ts }) });
-
-      const current = await sync({});
-      const baseTs: number = current?.settings?.time_stamp ?? Math.floor(Date.now() / 1000);
-      await setReadingHistory(false, baseTs + 1); // current `true` → delete_user_history(exclude_saved=True)
-      await setReadingHistory(true, baseTs + 2);  // re-enable so later seeds record
+  async sanitizeHistoryResponses(): Promise<void> {
+    await this.page.route('**/api/profile/user_history**', async (route) => {
+      const response = await route.fetch();
+      let body: unknown;
+      try {
+        body = await response.json();
+      } catch {
+        await route.fulfill({ response });
+        return;
+      }
+      const sanitized = Array.isArray(body)
+        ? body.filter((item: any) => !(item?.is_sheet && !item?.ownerName))
+        : body;
+      await route.fulfill({ response, json: sanitized });
     });
   }
 
