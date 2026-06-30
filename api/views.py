@@ -235,6 +235,15 @@ class KnnSearchLinkedRefs(View):
             raise ValueError(f"'{name}' must be greater than 0")
         return value
 
+    @staticmethod
+    def _positive_number_param(body, name, default):
+        value = body.get(name, default)
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise ValueError(f"'{name}' must be a number")
+        if value <= 0:
+            raise ValueError(f"'{name}' must be greater than 0")
+        return value
+
     def post(self, request):
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
@@ -259,20 +268,21 @@ class KnnSearchLinkedRefs(View):
         if filters is not None and not isinstance(filters, dict):
             return jsonResponse({"error": "'filters' must be an object"}, status=400)
 
-        raw_limit = body.get("limit", 10)
+        raw_limit = body.get("limit", 50)
         if not isinstance(raw_limit, int) or isinstance(raw_limit, bool):
             return jsonResponse({"error": "'limit' must be an integer"}, status=400)
         limit = max(1, min(raw_limit, 100))
 
         try:
             linked_refs_depth = self._positive_int_param(body, "linked_refs_depth", 1)
-            min_link_count = self._positive_int_param(body, "min_link_count", 2)
+            linked_refs_std_threshold = self._positive_number_param(body, "linked_refs_std_threshold", 2)
+            linked_refs_min_count = self._positive_int_param(body, "linked_refs_min_count", 3)
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
         from semantic_search.search import semantic_search
         from semantic_search.embedder import EmbeddingError
-        from semantic_search.linked_refs import get_linked_ref_enhancements
+        from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
 
         if not getattr(settings, "GEMINI_API_KEY", ""):
             return jsonResponse({"error": "Semantic search is not configured"}, status=503)
@@ -282,10 +292,11 @@ class KnnSearchLinkedRefs(View):
         except EmbeddingError as e:
             return jsonResponse({"error": str(e)}, status=502)
 
-        enhancement = get_linked_ref_enhancements(
+        enhancement = get_mean_std_linked_ref_enhancements(
             results,
             link_depth=linked_refs_depth,
-            min_link_count=min_link_count,
+            std_threshold=linked_refs_std_threshold,
+            min_count=linked_refs_min_count,
         )
         return jsonResponse({
             "results": [
@@ -295,5 +306,10 @@ class KnnSearchLinkedRefs(View):
             "appended_refs": enhancement.appended_refs,
             "appended_ref_counts": enhancement.ref_counts,
             "linked_refs_depth": linked_refs_depth,
-            "min_link_count": min_link_count,
+            "linked_refs_std_threshold": linked_refs_std_threshold,
+            "linked_refs_min_count": linked_refs_min_count,
+            "linked_ref_threshold_method": enhancement.threshold_method,
+            "linked_ref_count_mean": enhancement.mean_count,
+            "linked_ref_count_std": enhancement.std_count,
+            "linked_ref_count_threshold": enhancement.count_threshold,
         })
