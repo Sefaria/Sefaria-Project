@@ -4,10 +4,37 @@ The system attribute _called_from_test is set in the py.test conftest.py file
 """
 import sys
 import pymongo
+from pymongo import monitoring
 import urllib.parse
 from pymongo.errors import OperationFailure
 
 from sefaria.settings import *
+
+
+class QueryCounter(monitoring.CommandListener):
+    count = 0
+    queries = []
+    tracked_commands = None
+
+    def started(self, event):
+        if self.tracked_commands is not None and event.command_name not in self.tracked_commands:
+            return
+        import traceback
+        QueryCounter.count += 1
+        QueryCounter.queries.append({
+            'command': event.command_name,
+            'collection': event.command.get(event.command_name),
+            'traceback': ''.join(traceback.format_stack()[-6:-1])
+        })
+
+    def succeeded(self, event): pass
+    def failed(self, event): pass
+
+    @classmethod
+    def reset(cls, tracked_commands=None):
+        cls.count = 0
+        cls.queries = []
+        cls.tracked_commands = tracked_commands
 
 def check_db_exists(db_name):
     dbnames = client.list_database_names()
@@ -30,11 +57,13 @@ else:
     TEST_DB = SEFARIA_DB
     
     #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
+    _event_listeners = [QueryCounter()] if hasattr(sys, '_called_from_test') else []
+
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, username=SEFARIA_DB_USER, password=SEFARIA_DB_PASSWORD, event_listeners=_event_listeners)
         else:
-            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+            client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT, event_listeners=_event_listeners)
     #Else if we are using a replica set mongo, we need to connect with a URI that containts a comma separated list of 'host:port' strings
     else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
@@ -45,7 +74,7 @@ else:
         else:
             connection_uri = 'mongodb://{}/?ssl=false&readPreference=primaryPreferred&replicaSet={}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
         # Now connect to the mongo server
-        client = pymongo.MongoClient(connection_uri)
+        client = pymongo.MongoClient(connection_uri, event_listeners=_event_listeners)
 
 
 

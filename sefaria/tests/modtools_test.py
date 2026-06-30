@@ -198,6 +198,9 @@ class TestVersionBulkEditAPI:
         # Verify field was removed (not just set to null or empty string)
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
         assert not hasattr(v, 'purchaseInformationURL'), "Field should be completely removed after clearing"
+
+        # Cleanup
+        v.delete()
         v2 = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Exodus'})
         assert not hasattr(v2, 'purchaseInformationURL'), "Field should be completely removed after clearing"
         # Cleanup
@@ -258,6 +261,10 @@ class TestVersionBulkEditAPI:
         assert v.license == 'CC-BY', "License should be updated"
         assert v.versionNotes == 'New notes', "Notes should be updated"
         assert not hasattr(v, 'purchaseInformationURL'), "purchaseInformationURL should be removed"
+
+        # Cleanup
+        v.delete()
+
         v2 = Version().load({'versionTitle': 'TestVersionMixed', 'language': 'en', 'title': 'Exodus'})
         assert v2.license == 'CC-BY', "License should be updated"
         assert v2.versionNotes == 'New notes', "Notes should be updated"
@@ -281,6 +288,7 @@ class TestVersionBulkEditAPI:
             'versionSource': 'https://test.com'
         })
         test_version.save()
+
         test_version2 = Version({
             'versionTitle': 'TestVersionNoField',
             'language': 'en',
@@ -310,6 +318,10 @@ class TestVersionBulkEditAPI:
         v = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Genesis'})
         assert v is not None
         assert not hasattr(v, 'purchaseInformationURL')
+
+        # Cleanup
+        v.delete()
+
         v2 = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Exodus'})
         assert v2 is not None
         assert not hasattr(v2, 'purchaseInformationURL')
@@ -563,6 +575,389 @@ class TestVersionBulkDeleteAPI:
             'version': 'TestVersionForPartialDelete',
             'rev_type': 'delete text',
         })
+
+
+class TestVersionRenameAPI:
+    """Tests for /api/version-rename endpoint (single-index rename)."""
+
+    @pytest.mark.django_db
+    def test_rename_requires_staff(self, regular_client):
+        """Non-staff users should be denied access."""
+        response = regular_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'Test',
+                'newVersionTitle': 'Test2',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code in [302, 403]
+
+    @pytest.mark.django_db
+    def test_rename_requires_post(self, staff_client):
+        """GET requests should be rejected."""
+        response = staff_client.get('/api/version-rename')
+        assert response.status_code == 400
+
+    @pytest.mark.django_db
+    def test_rename_missing_fields(self, staff_client):
+        """Missing required fields should return 400."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({'index': 'Genesis'}),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_rename_empty_new_title(self, staff_client):
+        """Empty newVersionTitle should return 400."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'Test',
+                'newVersionTitle': '   ',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'empty' in data['error'].lower()
+
+    @pytest.mark.django_db
+    def test_rename_same_title_rejected(self, staff_client):
+        """newVersionTitle equal to versionTitle should return 400."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'SameTitle',
+                'newVersionTitle': 'SameTitle',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_rename_missing_version_returns_404(self, staff_client):
+        """If the version doesn't exist for the given index, return 404."""
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'NonexistentVersionForRename',
+                'newVersionTitle': 'NonexistentVersionForRename_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+        assert response.status_code == 404
+        data = json.loads(response.content)
+        assert 'error' in data
+
+    @pytest.mark.django_db
+    def test_rename_enqueues_task_when_celery_enabled(self, staff_client, monkeypatch):
+        """When Celery is enabled, endpoint should return task_id for async polling."""
+
+        class DummyAsyncResult:
+            id = "fake-task-id-123"
+
+        class DummyTask:
+            def __init__(self):
+                self.called = False
+                self.queue = None
+                self.args = None
+
+            def apply_async(self, args, queue):
+                self.called = True
+                self.queue = queue
+                self.args = args
+                return DummyAsyncResult()
+
+        dummy_task = DummyTask()
+        monkeypatch.setattr("sefaria.views.CELERY_ENABLED", True)
+        monkeypatch.setattr("sefaria.views.rename_version_title", dummy_task)
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'AnyTitle',
+                'newVersionTitle': 'AnyTitle_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 202
+        data = json.loads(response.content)
+        assert data["task_id"] == "fake-task-id-123"
+        assert dummy_task.called is True
+
+    @pytest.mark.django_db
+    def test_rename_success(self, staff_client):
+        """Successful rename should change Version.versionTitle."""
+        from sefaria.model import Version
+
+        test_version = Version({
+            'versionTitle': 'TestVersionForRename',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        test_version.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionForRename',
+                'newVersionTitle': 'TestVersionForRename_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        v_old = Version().load({'versionTitle': 'TestVersionForRename', 'title': 'Genesis'})
+        assert v_old is None
+        v_new = Version().load({'versionTitle': 'TestVersionForRename_New', 'title': 'Genesis'})
+        assert v_new is not None
+
+        # Cleanup
+        v_new.delete()
+
+    @pytest.mark.django_db
+    def test_rename_collision_fails(self, staff_client):
+        """If a version with the new title already exists, the request should fail."""
+        from sefaria.model import Version
+
+        v1 = Version({
+            'versionTitle': 'TestVersionForRenameCollision_Old',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v1.save()
+        v2 = Version({
+            'versionTitle': 'TestVersionForRenameCollision_New',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v2.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionForRenameCollision_Old',
+                'newVersionTitle': 'TestVersionForRenameCollision_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 409
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'already exists' in data['error']
+
+        # Ensure both versions still exist
+        assert Version().load({'versionTitle': 'TestVersionForRenameCollision_Old', 'title': 'Genesis'}) is not None
+        assert Version().load({'versionTitle': 'TestVersionForRenameCollision_New', 'title': 'Genesis'}) is not None
+
+        # Cleanup
+        v1.delete()
+        v2.delete()
+
+    @pytest.mark.django_db
+    def test_rename_with_language_parameter(self, staff_client):
+        """Language parameter should be accepted and used to load the version when provided."""
+        from sefaria.model import Version
+
+        test_version = Version({
+            'versionTitle': 'TestVersionRenameLang',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        test_version.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameLang',
+                'newVersionTitle': 'TestVersionRenameLang_New',
+                'language': 'he',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        v_new = Version().load({'versionTitle': 'TestVersionRenameLang_New', 'title': 'Genesis'})
+        assert v_new is not None
+
+        # Cleanup
+        v_new.delete()
+
+    @pytest.mark.django_db
+    def test_rename_multiple_matches_requires_language(self, staff_client):
+        """When several versions share a versionTitle across language families and no
+        language is given, the rename must refuse rather than pick one arbitrarily."""
+        from sefaria.model import Version, VersionSet
+
+        v_en = Version({
+            'versionTitle': 'TestVersionRenameAmbiguous',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_en.save()
+        v_he = Version({
+            'versionTitle': 'TestVersionRenameAmbiguous',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_he.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameAmbiguous',
+                'newVersionTitle': 'TestVersionRenameAmbiguous_New',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 409
+        data = json.loads(response.content)
+        assert 'error' in data
+        assert 'language' in data['error'].lower()
+
+        # Neither version should have been renamed.
+        assert len(VersionSet({'versionTitle': 'TestVersionRenameAmbiguous', 'title': 'Genesis'})) == 2
+        assert Version().load({'versionTitle': 'TestVersionRenameAmbiguous_New', 'title': 'Genesis'}) is None
+
+        # Cleanup
+        v_en.delete()
+        v_he.delete()
+
+    @pytest.mark.django_db
+    def test_rename_multiple_matches_resolved_by_language(self, staff_client):
+        """Passing language disambiguates among same-titled versions and renames only that one."""
+        from sefaria.model import Version
+
+        v_en = Version({
+            'versionTitle': 'TestVersionRenameDisambig',
+            'language': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_en.save()
+        v_he = Version({
+            'versionTitle': 'TestVersionRenameDisambig',
+            'language': 'he',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_he.save()
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameDisambig',
+                'newVersionTitle': 'TestVersionRenameDisambig_New',
+                'language': 'en',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # Only the English version was renamed; the Hebrew one keeps its title.
+        renamed = Version().load({'versionTitle': 'TestVersionRenameDisambig_New', 'title': 'Genesis'})
+        assert renamed is not None
+        assert renamed.language == 'en'
+        assert Version().load({'versionTitle': 'TestVersionRenameDisambig', 'title': 'Genesis', 'language': 'he'}) is not None
+
+        # Cleanup
+        renamed.delete()
+        v_he.delete()
+
+    @pytest.mark.django_db
+    def test_rename_collision_different_language_family_allowed(self, staff_client):
+        """A title clash in a *different* language family is not a collision, even when the
+        coarse language field (LTR/RTL) is identical."""
+        from sefaria.model import Version, VersionSet
+
+        # Both versions are LTR (language='en'), but different actual language families.
+        v_english = Version({
+            'versionTitle': 'TestVersionRenameFamily_Old',
+            'language': 'en',
+            'actualLanguage': 'en',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_english.save()
+        v_german = Version({
+            'versionTitle': 'TestVersionRenameFamily_New',
+            'language': 'en',
+            'actualLanguage': 'de',
+            'title': 'Genesis',
+            'chapter': [],
+            'versionSource': 'https://test.com',
+        })
+        v_german.save()
+        # Sanity check: same coarse language, distinct family — the case the old check got wrong.
+        assert v_english.languageFamilyName != v_german.languageFamilyName
+
+        response = staff_client.post(
+            '/api/version-rename',
+            data=json.dumps({
+                'versionTitle': 'TestVersionRenameFamily_Old',
+                'newVersionTitle': 'TestVersionRenameFamily_New',
+                'language': 'en',
+                'index': 'Genesis',
+            }),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200, response.content
+        data = json.loads(response.content)
+        assert data['status'] == 'ok'
+
+        # The English version took the new title; the German version is untouched. Both coexist.
+        assert len(VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'})) == 2
+        assert Version().load({'versionTitle': 'TestVersionRenameFamily_Old', 'title': 'Genesis'}) is None
+
+        # Cleanup
+        for v in VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'}):
+            v.delete()
 
 
 class TestCheckIndexDependenciesAPI:

@@ -73,11 +73,12 @@ spec:
               value: {{ .Values.backup.postgres.bucket }}
             - name: ARCHIVE_BUCKET
               value: {{ .Values.backup.postgres.archiveBucket }}
+            # SLACK_URL is used by upload-dumps.sh (this container has no envFrom).
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "sefaria.secrets.slackWebhook" . }}
-                  key: slack-webhook
+                  name: {{ .Values.secrets.localSettings.ref }}
+                  key: SLACK_URL
             command: ["bash"]
             args: ["-c", "/scripts/upload-dumps.sh"]
             resources:
