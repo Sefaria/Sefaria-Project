@@ -30,6 +30,14 @@ def make_chunk(**overrides):
     return SimpleNamespace(**defaults)
 
 
+class MappingRefNormalizer:
+    def __init__(self, mapping):
+        self.mapping = mapping
+
+    def normalize_ref(self, ref):
+        return self.mapping.get(ref, ref)
+
+
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
@@ -238,6 +246,50 @@ class TestLinkedRefEnhancement:
         )
         assert result.appended_refs == ["Ref B"]
         assert result.ref_counts == {"Ref B": 2}
+
+    def test_normalizes_and_dedupes_source_refs_before_retrieving_links(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.return_value = ["Ref A"]
+        normalizer = MappingRefNormalizer({
+            "Rashi on Deut. 28:6:1": "Rashi on Deuteronomy 28:6:1",
+            "Rashi on Deuteronomy 28:6:1": "Rashi on Deuteronomy 28:6:1",
+        })
+        chunks = [
+            make_chunk(ref="Rashi on Deut. 28:6:1"),
+            make_chunk(ref="Rashi on Deuteronomy 28:6:1"),
+        ]
+
+        result = get_linked_ref_counts(
+            chunks,
+            link_source=link_source,
+            ref_normalizer=normalizer,
+        )
+
+        link_source.linked_refs_for.assert_called_once_with("Rashi on Deuteronomy 28:6:1")
+        assert result == {"Ref A": 1}
+
+    def test_normalizes_linked_refs_before_counting(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Deut. 28:6"],
+            "Genesis 1:2": ["Deuteronomy 28:6"],
+        }.get
+        normalizer = MappingRefNormalizer({
+            "Deut. 28:6": "Deuteronomy 28:6",
+            "Deuteronomy 28:6": "Deuteronomy 28:6",
+        })
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+
+        result = get_linked_ref_counts(
+            chunks,
+            link_source=link_source,
+            ref_normalizer=normalizer,
+        )
+
+        assert result == {"Deuteronomy 28:6": 2}
 
     def test_mean_2std_threshold_returns_statistical_outliers(self):
         link_source = MagicMock()

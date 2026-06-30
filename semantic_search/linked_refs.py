@@ -22,6 +22,26 @@ class LinkSource(Protocol):
         ...
 
 
+class RefNormalizer(Protocol):
+    def normalize_ref(self, ref: str) -> str:
+        ...
+
+
+class IdentityRefNormalizer:
+    def normalize_ref(self, ref: str) -> str:
+        return ref
+
+
+class MongoRefNormalizer:
+    def normalize_ref(self, ref: str) -> str:
+        from sefaria.model import Ref
+
+        try:
+            return Ref(ref).normal()
+        except Exception:
+            return ref
+
+
 def _is_dictionary_oref(oref) -> bool:
     index_node = getattr(oref, "index_node", None)
     if type(index_node).__name__ in {"DictionaryNode", "DictionaryEntryNode"}:
@@ -56,6 +76,7 @@ def get_linked_ref_enhancements(
     link_depth: int = 1,
     min_link_count: int = 2,
     link_source: LinkSource | None = None,
+    ref_normalizer: RefNormalizer | None = None,
 ) -> LinkedRefEnhancement:
     """
     Count refs linked from the semantic search result chunks via Mongo links,
@@ -68,6 +89,7 @@ def get_linked_ref_enhancements(
         chunks,
         link_depth=link_depth,
         link_source=link_source,
+        ref_normalizer=ref_normalizer,
     )
     appended_refs = [
         ref
@@ -86,6 +108,7 @@ def get_mean_std_linked_ref_enhancements(
     std_threshold: float = 2,
     min_count: int = 3,
     link_source: LinkSource | None = None,
+    ref_normalizer: RefNormalizer | None = None,
 ) -> LinkedRefEnhancement:
     if std_threshold <= 0 or min_count < 1:
         return LinkedRefEnhancement(
@@ -98,6 +121,7 @@ def get_mean_std_linked_ref_enhancements(
         chunks,
         link_depth=link_depth,
         link_source=link_source,
+        ref_normalizer=ref_normalizer,
     )
     values = list(counts.values())
     if not values:
@@ -132,25 +156,49 @@ def get_linked_ref_counts(
     chunks: list[SemanticTextChunk],
     link_depth: int = 1,
     link_source: LinkSource | None = None,
+    ref_normalizer: RefNormalizer | None = None,
 ) -> Counter:
     if link_depth < 1:
         return Counter()
 
-    link_source = link_source or MongoLinkSource()
-    original_refs = {c.ref for c in chunks} | {
-        getattr(c, "chunked_from_ref", "")
+    if link_source is None:
+        link_source = MongoLinkSource()
+        ref_normalizer = ref_normalizer or MongoRefNormalizer()
+    else:
+        ref_normalizer = ref_normalizer or IdentityRefNormalizer()
+
+    def normalize_ref(ref: str) -> str:
+        return ref_normalizer.normalize_ref(ref) if ref else ""
+
+    original_refs = {
+        normalized_ref
         for c in chunks
+        for normalized_ref in (
+            normalize_ref(c.ref),
+            normalize_ref(getattr(c, "chunked_from_ref", "")),
+        )
+        if normalized_ref
     }
     counts = Counter()
     seen_frontier_refs = set()
-    current_refs = [c.ref for c in chunks]
+    current_refs = []
+    seen_current_refs = set()
+    for chunk in chunks:
+        normalized_ref = normalize_ref(chunk.ref)
+        if normalized_ref and normalized_ref not in seen_current_refs:
+            seen_current_refs.add(normalized_ref)
+            current_refs.append(normalized_ref)
 
     for depth_index in range(link_depth):
         next_frontier = []
         for ref in current_refs:
             if not ref:
                 continue
-            for linked_ref in link_source.linked_refs_for(ref):
+            source_linked_refs = {
+                normalize_ref(linked_ref)
+                for linked_ref in link_source.linked_refs_for(ref)
+            }
+            for linked_ref in source_linked_refs:
                 if not linked_ref or linked_ref in original_refs:
                     continue
                 counts[linked_ref] += 1
