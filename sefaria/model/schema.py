@@ -975,7 +975,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return self._addressTypes[depth]
 
     def full_regex(self, title, lang, anchored=True, compiled=True, capture_title=False, escape_titles=True, **kwargs):
-        """
+        r"""
         :return: Regex object. If kwargs[for_js] == True, returns the Regex string
         :param for_js: Defaults to False
         :param match_range: Defaults to False
@@ -2097,10 +2097,10 @@ class AddressType(object):
 
     @staticmethod
     def hebrew_number_regex():
-        """
+        r"""
         Regular expression component to capture a number expressed in Hebrew letters
         :return string:
-        \p{Hebrew} ~= [\\u05d0–\\u05ea]
+        \p{Hebrew} ~= [א–ת]
         """
         return r"""                                    # 1 of 3 styles:
         ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201c|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
