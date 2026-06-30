@@ -65,6 +65,7 @@ export class VoicesBookmarksPage extends HelperBase {
 
   /** Navigate to the /saved page and wait for it to render. */
   async gotoSaved(): Promise<void> {
+    await this.sanitizeHistoryResponses();
     await this.page.goto(`${this.voicesBase}/saved`);
     await hideAllModalsAndPopups(this.page);
     await this.waitForSavedRendered();
@@ -72,6 +73,7 @@ export class VoicesBookmarksPage extends HelperBase {
 
   /** Navigate to the /history page and wait for it to render. */
   async gotoHistory(): Promise<void> {
+    await this.sanitizeHistoryResponses();
     await this.page.goto(`${this.voicesBase}/history`);
     await hideAllModalsAndPopups(this.page);
     await this.waitForSavedRendered();
@@ -372,26 +374,32 @@ export class VoicesBookmarksPage extends HelperBase {
     }, sheetId);
   }
 
+  private historySanitized = false;
+
   /**
    * Drop un-renderable rows from the `/api/profile/user_history` responses that
-   * back /saved and /history, so the list renders deterministically.
+   * back BOTH /saved and /history, so the lists render deterministically.
+   * Idempotent — `gotoSaved`/`gotoHistory` both call it, but the route is
+   * registered only once per page.
    *
-   * The shared QA account's history accumulates rows for sheets that later get
-   * deleted. The server annotates such a row with no `ownerName`, and the row's
-   * `SheetBlock` → `ProfilePic` then throws on `name.trim()` (no guard) — with no
-   * error boundary that blanks the whole /history page, so `.savedHistoryList`
-   * never appears. There is no reliable server-side cleanup we can drive from a
-   * test: the only history-wipe path (toggling the `reading_history` setting) is
-   * undone moments later when the client re-syncs its in-memory history back.
+   * The shared QA account's history (and, if a saved sheet's author is later
+   * deleted, its /saved list too) can hold rows the server annotates with no
+   * `ownerName`. Such a row's `SheetBlock` → `ProfilePic` throws on `name.trim()`
+   * (no guard), and with no error boundary that blanks the whole page, so
+   * `.savedHistoryList` never appears. There is no reliable server-side cleanup a
+   * test can drive: the only history-wipe path (toggling the `reading_history`
+   * setting) is undone moments later when the client re-syncs its in-memory
+   * history back.
    *
    * So we sanitize at the network layer (per CLAUDE.md rule 18): fetch the real
    * response and filter out only the crash-inducing rows (a sheet item with no
-   * `ownerName`). All other real data — including the seeded target row, which
-   * has a valid owner — passes through untouched, and the bookmark toggle +
-   * /saved verification still hit the real save backend. Install before the
-   * first navigation that loads the list.
+   * `ownerName`). All other real data — including the curated target sheets,
+   * which have valid owners — passes through untouched, and the bookmark toggle +
+   * list verification still hit the real save backend.
    */
   async sanitizeHistoryResponses(): Promise<void> {
+    if (this.historySanitized) return;
+    this.historySanitized = true;
     await this.page.route('**/api/profile/user_history**', async (route) => {
       const response = await route.fetch();
       let body: unknown;
