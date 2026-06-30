@@ -1,7 +1,7 @@
 from collections import Counter
 from dataclasses import dataclass
 
-from semantic_search.semantic_text_chunk import SemanticTextChunk, SemanticTextChunkData
+from semantic_search.models import SemanticTextChunk
 
 
 @dataclass(frozen=True)
@@ -11,7 +11,7 @@ class LinkedRefEnhancement:
 
 
 def get_linked_ref_enhancements(
-    chunks: list[SemanticTextChunkData],
+    chunks: list[SemanticTextChunk],
     link_depth: int = 1,
     min_link_count: int = 2,
     chunk_store: SemanticTextChunk | None = None,

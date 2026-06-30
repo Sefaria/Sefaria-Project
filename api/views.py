@@ -182,9 +182,12 @@ def _require_semantic_search_auth(request):
 
 def _parse_json_body(request):
     try:
-        return json.loads(request.body), None
+        body = json.loads(request.body)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return None, jsonResponse({"error": "Invalid JSON body"}, status=400)
+    if not isinstance(body, dict):
+        return None, jsonResponse({"error": "JSON body must be an object"}, status=400)
+    return body, None
 
 
 def _serialize_search_results(results):
@@ -195,9 +198,8 @@ def _serialize_search_results(results):
 
 
 def _positive_int_param(body, name, default):
-    try:
-        value = int(body.get(name, default))
-    except (TypeError, ValueError):
+    value = body.get(name, default)
+    if not isinstance(value, int) or isinstance(value, bool):
         raise ValueError(f"'{name}' must be an integer")
     if value < 1:
         raise ValueError(f"'{name}' must be greater than 0")
@@ -223,13 +225,24 @@ class KnnSearch(View):
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
 
         filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
         try:
-            limit = _positive_int_param(body, "limit", 10)
+            limit = min(_positive_int_param(body, "limit", 10), 100)
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
         from semantic_search.search import semantic_search
-        results = semantic_search(query, filters=filters, limit=limit)
+        from semantic_search.embedder import EmbeddingError
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            results = semantic_search(query, filters=filters, limit=limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
         return jsonResponse({
             "results": _serialize_search_results(results)
         })
@@ -254,17 +267,27 @@ class KnnSearchLinkedRefs(View):
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
 
         filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
         try:
-            limit = _positive_int_param(body, "limit", 10)
+            limit = min(_positive_int_param(body, "limit", 10), 100)
             linked_refs_depth = _positive_int_param(body, "linked_refs_depth", 1)
             min_link_count = _positive_int_param(body, "min_link_count", 2)
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
+        from semantic_search.embedder import EmbeddingError
         from semantic_search.linked_refs import get_linked_ref_enhancements
         from semantic_search.search import semantic_search
 
-        results = semantic_search(query, filters=filters, limit=limit)
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            results = semantic_search(query, filters=filters, limit=limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
         enhancement = get_linked_ref_enhancements(
             results,
             link_depth=linked_refs_depth,

@@ -16,8 +16,8 @@ DATABASES = {
     'vector_db': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('PGVECTOR_DB', 'pgvector'),
-        'USER': os.environ.get('POSTGRES_USER', 'sefaria'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'USER': os.environ.get('PGVECTOR_USER', os.environ.get('POSTGRES_USER', 'sefaria')),
+        'PASSWORD': os.environ.get('PGVECTOR_PASSWORD', os.environ.get('POSTGRES_PASSWORD', '')),
         'HOST': os.environ.get('PGVECTOR_HOST', 'localhost'),
         'PORT': os.environ.get('PGVECTOR_DB_PORT', '5432'),
     },

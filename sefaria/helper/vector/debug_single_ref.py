@@ -14,7 +14,6 @@ import argparse
 import json
 import os
 import sys
-from dataclasses import asdict
 from datetime import datetime
 
 import django
@@ -26,6 +25,7 @@ from sefaria.search import setup_logging
 from patot import ChunkerConfig, PatotChunker
 from patot.analytics import ChunkingRuntimeAnalytics
 
+from semantic_search.embedder import GeminiEmbedder
 from sefaria.helper.vector.embed_library_to_pgvector import (
     collect_segment_records_by_section,
     get_index_context,
@@ -35,12 +35,36 @@ from sefaria.helper.vector.embed_library_to_pgvector import (
 
 
 def chunk_to_dict(chunk) -> dict:
-    d = asdict(chunk)
-    vector = d["embedding"]
-    d["embedding"] = {
-        "preview_dims_0_7": list(vector[:8]),
-        "norm": sum(x * x for x in vector) ** 0.5,
-        "total_dims": len(vector),
+    embedding = list(chunk.embedding) if chunk.embedding is not None else []
+    d = {
+        "doc_id": chunk.doc_id,
+        "index_title": chunk.index_title,
+        "ref": chunk.ref,
+        "url": chunk.url,
+        "chunked_from_ref": chunk.chunked_from_ref,
+        "language": chunk.language,
+        "version_title": chunk.version_title,
+        "direction": chunk.direction,
+        "text": chunk.text,
+        "embedding": {
+            "preview_dims_0_7": embedding[:8],
+            "norm": sum(x * x for x in embedding) ** 0.5,
+            "total_dims": len(embedding),
+        },
+        "primary_category": chunk.primary_category,
+        "all_categories": chunk.all_categories,
+        "is_primary": chunk.is_primary,
+        "is_source": chunk.is_source,
+        "composition_date": chunk.composition_date,
+        "composition_place": chunk.composition_place,
+        "era_name": chunk.era_name,
+        "pagerank": chunk.pagerank,
+        "author_names": chunk.author_names,
+        "author_slugs": chunk.author_slugs,
+        "associated_topic_names": chunk.associated_topic_names,
+        "associated_topic_slugs": chunk.associated_topic_slugs,
+        "linked_refs": chunk.linked_refs,
+        "chunker_metadata": chunk.chunker_metadata,
     }
     return d
 
@@ -83,6 +107,7 @@ def main():
         extract_html_footnotes_to_segments=False,
     )
     chunker = PatotChunker(api_key=api_key, config=config)
+    embedder = GeminiEmbedder(api_key=api_key)
     index_context = get_index_context(index)
 
     output = {
@@ -107,7 +132,7 @@ def main():
 
         chunks = build_chunk_data(
             section_ref, version_context["language"], version.versionTitle, index.title,
-            chunker, chunk_result, index_context, version_context,
+            embedder, chunk_result, index_context, version_context,
         )
         output["rows"].extend(chunk_to_dict(c) for c in chunks)
 

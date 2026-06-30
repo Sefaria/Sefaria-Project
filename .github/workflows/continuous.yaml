@@ -37,7 +37,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
@@ -107,7 +107,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
@@ -217,7 +217,7 @@ jobs:
         uses: actions/checkout@v4
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
@@ -226,7 +226,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -246,12 +245,11 @@ jobs:
           #      - name: setup helm
           #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v2
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
@@ -295,23 +293,21 @@ jobs:
         uses: actions/checkout@v4
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v2
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -333,11 +329,12 @@ jobs:
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 60
+        timeout-minutes: 30
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
       - name: Get Logs From Cluster and propogate test result
+        if: always()
         run: "kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest; LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
       - name: Cleanup pyTest Pod
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
@@ -376,23 +373,21 @@ jobs:
         uses: actions/checkout@v4
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v2
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
