@@ -116,16 +116,13 @@ def signal_and_reset_skip_counts(pathway):
         # Groups, worst-offender first then alphabetical, for stable & scannable output.
         groups = sorted(_skip_group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
-        # Header (C): one-line breakdown so the worst sites are visible without scrolling.
-        breakdown = ", ".join("{} ×{}".format(what, count) for (_pw, what), count in groups)
-        header = "*[{}]* cache build skipped *{}* bad record(s): {}".format(pathway, total, breakdown)
+        header = "*[{}]* cache build skipped *{}* bad record(s)".format(pathway, total)
 
         # Detail (B): a bold group header, bulleted records, with the site's own pathway
         # noted only when it differs from the build pathway in the header.
         lines = [header]
         for (pw, what), count in groups:
-            suffix = "" if pw == pathway else "  _(via {})_".format(pw)
-            lines.append("\n*{}* — {}{}".format(what, count, suffix))
+            lines.append("\n*{}* — {}".format(what, count))
             stored = grouped.get((pw, what), [])
             for rec in stored:
                 lines.append("  • {}".format(_format_skip_record(rec)))
