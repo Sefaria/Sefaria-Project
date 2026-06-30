@@ -11,6 +11,7 @@ import pytest
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
 from semantic_search.linked_refs import (
+    _is_dictionary_oref,
     get_linked_ref_counts,
     get_linked_ref_enhancements,
     get_mean_std_linked_ref_enhancements,
@@ -182,6 +183,27 @@ class TestBulkDelete:
 # ---------------------------------------------------------------------------
 
 class TestLinkedRefEnhancement:
+    def test_dictionary_ref_detection_matches_dictionary_node_types(self):
+        DictionaryNode = type("DictionaryNode", (), {})
+        DictionaryEntryNode = type("DictionaryEntryNode", (), {})
+
+        assert _is_dictionary_oref(SimpleNamespace(index_node=DictionaryNode()))
+        assert _is_dictionary_oref(SimpleNamespace(index_node=DictionaryEntryNode()))
+
+    def test_dictionary_ref_detection_matches_dictionary_categories(self):
+        assert _is_dictionary_oref(
+            SimpleNamespace(
+                index_node=object(),
+                index=SimpleNamespace(categories=["Reference", "Dictionary"]),
+            )
+        )
+        assert not _is_dictionary_oref(
+            SimpleNamespace(
+                index_node=object(),
+                index=SimpleNamespace(categories=["Tanakh"]),
+            )
+        )
+
     def test_collects_full_count_distribution(self):
         link_source = MagicMock()
         link_source.linked_refs_for.side_effect = {
