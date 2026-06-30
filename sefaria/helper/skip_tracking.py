@@ -15,10 +15,13 @@ single Slack summary of everything it skipped, then clears the log.
 Slack is the only outbound dependency (notify_engineering_signal); this module knows nothing
 about how the message is delivered.
 """
+import structlog
 from contextlib import contextmanager
 from collections import defaultdict, namedtuple
 from sefaria.system.exceptions import BAD_RECORD_EXCEPTIONS
 from sefaria.helper.slack.send_message import notify_engineering_signal
+
+logger = structlog.get_logger(__name__)
 
 
 # One skipped record, with as much context as was available at the skip site:
@@ -110,18 +113,37 @@ def signal_and_reset_skip_counts(pathway):
         for rec in skip_records:
             grouped[(rec.pathway, rec.what)].append(rec)
 
-        lines = []
-        for (pw, what), count in _skip_group_counts.items():
-            lines.append("  [{}] {}: {}".format(pw, what, count))
+        # Groups, worst-offender first then alphabetical, for stable & scannable output.
+        groups = sorted(_skip_group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+        # Header (C): one-line breakdown so the worst sites are visible without scrolling.
+        breakdown = ", ".join("{} ×{}".format(what, count) for (_pw, what), count in groups)
+        header = "*[{}]* cache build skipped *{}* bad record(s): {}".format(pathway, total, breakdown)
+
+        # Detail (B): a bold group header, bulleted records, with the site's own pathway
+        # noted only when it differs from the build pathway in the header.
+        lines = [header]
+        for (pw, what), count in groups:
+            suffix = "" if pw == pathway else "  _(via {})_".format(pw)
+            lines.append("\n*{}* — {}{}".format(what, count, suffix))
             stored = grouped.get((pw, what), [])
             for rec in stored:
-                lines.append("    - {}".format(_format_skip_record(rec)))
+                lines.append("  • {}".format(_format_skip_record(rec)))
             if count > len(stored):
-                lines.append("    … {} more".format(count - len(stored)))
+                lines.append("  _… {} more_".format(count - len(stored)))
 
-        message = "[pathway:{}] cache build skipped {} bad record(s):\n{}".format(
-            pathway, total, "\n".join(lines))
-        notify_engineering_signal(message, level="error" if _skip_saw_error else "warning")
+        message = "\n".join(lines)
+        level = "error" if _skip_saw_error else "warning"
+        # Durable, queryable record of the aggregate (per-record lines were already logged at
+        # their skip sites). Structured fields, not the Slack-mrkdwn blob — logs shouldn't carry
+        # presentation. Logged unconditionally; Slack delivery below is best-effort.
+        getattr(logger, level)(
+            "cache_build_skipped",
+            pathway=pathway,
+            total=total,
+            groups={"{}/{}".format(pw, what): count for (pw, what), count in groups},
+        )
+        notify_engineering_signal(message, level=level)
     reset_skip_counts()
 
 
