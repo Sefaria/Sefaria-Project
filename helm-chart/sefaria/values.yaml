@@ -480,7 +480,7 @@ localSettings:
   PGVECTOR_HOST: pgvector.default.svc.cluster.local
   PGVECTOR_DB_PORT: "5432"
   PGVECTOR_DB: pgvector
-  POSTGRES_USER: postgres
+  PGVECTOR_USER: pgvector
 
 instrumentation:
   enabled: false
