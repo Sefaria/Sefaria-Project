@@ -28,7 +28,7 @@ test.describe('Voices Bookmarks — sheet page (logged in)', () => {
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
-  test('VBM-001: Bookmarking a sheet from its page adds it to /saved', async () => {
+  test('VBM-001: Bookmarking a sheet from its page adds it to /saved', { tag: '@sanity' }, async () => {
     const { id, titleWord } = SHEETS.create;
     const vb = pm.onVoicesBookmarks();
 
@@ -54,7 +54,7 @@ test.describe('Voices Bookmarks — sheet page (logged in)', () => {
     ]).catch(() => { /* page may be closed; ignore */ });
   });
 
-  test('VBM-003: Bookmark icon reflects saved vs unsaved state on page load', async () => {
+  test('VBM-003: Bookmark icon reflects saved vs unsaved state on page load', { tag: '@sanity' }, async () => {
     const vb = pm.onVoicesBookmarks();
 
     // Seed one sheet saved and one unsaved.

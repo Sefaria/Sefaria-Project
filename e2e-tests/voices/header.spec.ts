@@ -26,7 +26,7 @@ test.describe('Voices Module Header Tests - English', () => {
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
-  test('MOD-H003: Voices header navigation and elements', async () => {
+  test('MOD-H003: Voices header navigation and elements', { tag: '@sanity' }, async () => {
     const config = SITE_CONFIGS.VOICES;
 
     await expect(page.locator(config.logo)).toBeVisible();
@@ -117,7 +117,7 @@ test.describe('Voices Module Header Tests - Logged In', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('MOD-H017: Voices user menu contains all expected items including Saved and History', async () => {
+  test('MOD-H017: Voices user menu contains all expected items including Saved and History', { tag: '@sanity' }, async () => {
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
     // Presence-only: every expected item — notably Saved and History — exists in the
     // logged-in Voices user-menu dropdown.

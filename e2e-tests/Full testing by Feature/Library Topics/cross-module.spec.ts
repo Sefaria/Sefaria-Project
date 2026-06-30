@@ -58,7 +58,7 @@ test.describe('Library Topics — cross-module behavior', () => {
     await expect(page).toHaveURL(new RegExp(`/topics/${SLUG}`));
   });
 
-  test('LIB-019: Hebrew language preference persists when navigating Library → Voices', async ({ context }) => {
+  test('LIB-019: Hebrew language preference persists when navigating Library → Voices', { tag: '@sanity' }, async ({ context }) => {
     test.setTimeout(t(120000));
     const hePage = await goToPageWithLang(context, MODULE_URLS.HE.LIBRARY, LANGUAGES.HE);
     const hePm = new PageManager(hePage, LANGUAGES.HE);

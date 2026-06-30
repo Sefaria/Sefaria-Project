@@ -56,7 +56,7 @@ test.describe('Library Topics — performance & analytics', () => {
     expect(criticalConsoleErrors, `no critical console errors:\n${criticalConsoleErrors.join('\n')}`).toHaveLength(0);
   });
 
-  test('LIB-029: Interactive elements carry analytics (data-anl) hooks', async ({ context }) => {
+  test('LIB-029: Interactive elements carry analytics (data-anl) hooks', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, LIB, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
     await hideAllModalsAndPopups(page);

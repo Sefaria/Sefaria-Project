@@ -55,7 +55,7 @@ test.describe('Mobile Hamburger — Library structure (English)', () => {
     await pm.onMobileHamburger().expectMobileHeaderArtifactsVisible();
   });
 
-  test('HAM-S002: Open hamburger drawer renders all expected English menu items', async () => {
+  test('HAM-S002: Open hamburger drawer renders all expected English menu items', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().expectLibraryMenuArtifactsVisible();
   });
 });
@@ -77,7 +77,7 @@ test.describe('Mobile Hamburger — search dropdown (English)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-Q001: Typing "mid" in mobile search shows only authors / topics / categories / books', async () => {
+  test('HAM-Q001: Typing "mid" in mobile search shows only authors / topics / categories / books', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().expectLibrarySearchGroupsOnly();
   });
 
@@ -107,11 +107,11 @@ test.describe('Mobile Hamburger — in-module navigation (English)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-N001: Tapping Texts navigates to /texts', async () => {
+  test('HAM-N001: Tapping Texts navigates to /texts', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickTextsAndExpectTextsPage();
   });
 
-  test('HAM-N002: Tapping Topics navigates to /topics', async () => {
+  test('HAM-N002: Tapping Topics navigates to /topics', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickTopicsAndExpectTopicsPage();
   });
 
@@ -183,7 +183,7 @@ test.describe('Mobile Hamburger — cross-module navigation (English)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-M001: Voices on Sefaria opens voices.* in a new tab; its hamburger shows Sefaria Library', async () => {
+  test('HAM-M001: Voices on Sefaria opens voices.* in a new tab; its hamburger shows Sefaria Library', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
 
     const voicesPage = await pm

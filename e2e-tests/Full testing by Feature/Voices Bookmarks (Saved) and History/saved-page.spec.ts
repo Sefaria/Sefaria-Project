@@ -33,7 +33,7 @@ test.describe('Voices Bookmarks — /saved page', () => {
     ]).catch(() => { /* page may be closed; ignore */ });
   });
 
-  test('VBM-005: Unbookmarking via the inline icon removes the entry from /saved', async () => {
+  test('VBM-005: Unbookmarking via the inline icon removes the entry from /saved', { tag: '@sanity' }, async () => {
     const { id } = SHEETS.removeFromSaved;
     const vb = pm.onVoicesBookmarks();
 
@@ -51,7 +51,7 @@ test.describe('Voices Bookmarks — /saved page', () => {
     await vb.expectSavedEntryAbsent(id);
   });
 
-  test('VBM-006: Newest bookmark appears above older ones on /saved', async () => {
+  test('VBM-006: Newest bookmark appears above older ones on /saved', { tag: '@sanity' }, async () => {
     const { orderA, orderB, orderC } = SHEETS;
     const vb = pm.onVoicesBookmarks();
 

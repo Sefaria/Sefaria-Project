@@ -126,6 +126,10 @@ export default defineConfig({
       name: 'chrome-sanity',
       testDir: './e2e-tests',
       grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -235,6 +239,10 @@ export default defineConfig({
       name: 'firefox-sanity',
       testDir: './e2e-tests',
       grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -336,6 +344,10 @@ export default defineConfig({
       name: 'safari-sanity',
       testDir: './e2e-tests',
       grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
