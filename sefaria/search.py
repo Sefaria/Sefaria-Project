@@ -144,28 +144,27 @@ def index_sheet(index_name, id):
     if not sheet:
         return False  # Sheet not found - tracked as failed
     
-    # Validate all critical fields upfront
+    # Only `owner` is truly required. summary/dates are optional schema fields
+    # (absent on legacy sheets) — ES indexes them as null. Treating them as
+    # required silently dropped ~71% of public sheets.
     owner_id = sheet.get("owner")
-    sheet_title = sheet.get("title")
+    if not owner_id:
+        return False  # genuinely cannot build a sheet doc without an owner
+
+    sheet_title = sheet.get("title") or ""
     summary = sheet.get("summary")
     datePublished = sheet.get("datePublished")
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
-    
-    if any(x is None for x in [summary, datePublished, dateCreated, dateModified]) or not (owner_id and sheet_title):
-        return False  # Missing critical sheet fields - tracked as failed
-    
+
     pud = public_user_data(owner_id)
     if not pud:
-        return False  # Could not get user data - tracked as failed
-    
-    owner_name = pud.get("name")
-    owner_image = pud.get("imageUrl")
-    profile_url = pud.get("profileUrl")
-    owner_link = user_link(owner_id)
-    
-    if not all([owner_name, owner_image, profile_url, owner_link]):
-        return False  # Missing critical user fields - tracked as failed
+        pud = {"name": "", "imageUrl": "", "profileUrl": ""}
+
+    owner_name = pud.get("name", "")
+    owner_image = pud.get("imageUrl", "")
+    profile_url = pud.get("profileUrl", "")
+    owner_link = user_link(owner_id) or ""
     
     topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
@@ -194,7 +193,7 @@ def index_sheet(index_name, id):
         es_client.create(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
-        # Error indexing - skip silently, will be tracked as failed
+        logger.warning(f"Failed to index sheet {id}: {type(e).__name__}: {e}")
         return False
 
 def make_sheet_text(sheet, pud):
@@ -203,14 +202,9 @@ def make_sheet_text(sheet, pud):
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    # Validate critical fields - title and summary are required
-    title = sheet.get("title")
-    summary = sheet.get("summary")
-    if not title or not summary:
-        # Critical fields missing - raise exception to be caught and tracked as failed
-        raise ValueError(f"Missing critical fields: title={title is not None}, summary={summary is not None}")
-    
-    text = f"{title}\n{summary}"
+    title = sheet.get("title") or ""
+    summary = sheet.get("summary") or ""
+    text = " ".join([t for t in [title, summary] if t])
     
     # Null-safety for author name
     author_name = pud.get("name") if pud else None

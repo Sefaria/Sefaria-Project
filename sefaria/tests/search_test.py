@@ -123,3 +123,46 @@ def test_flush_passes_retry_kwargs(monkeypatch):
     assert captured["max_retries"] == 3
     assert captured["initial_backoff"] == 2
     assert captured["max_backoff"] == 60
+
+
+def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
+    """Legacy sheets missing summary/dates must still index; only owner is required."""
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    legacy_sheet = {"id": 7, "owner": 42, "title": "Old Sheet", "sources": []}
+
+    # db.sheets returns a new Collection object on every access, so we must
+    # replace search.db entirely with a mock rather than patching db.sheets.find_one.
+    mock_db = MagicMock()
+    mock_db.sheets.find_one.return_value = legacy_sheet
+    monkeypatch.setattr(search, "db", mock_db)
+
+    monkeypatch.setattr(search, "public_user_data",
+                        lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
+    monkeypatch.setattr(search, "user_link", lambda uid: "<a>A</a>")
+    monkeypatch.setattr(search, "make_sheet_topics", lambda s: [])
+    monkeypatch.setattr(search, "CollectionSet", lambda q: [])
+
+    created = {}
+    monkeypatch.setattr(search.es_client, "create",
+                        lambda index, id, body: created.update({"id": id, "body": body}))
+
+    result = search.index_sheet("sheet-a", 7)
+    assert result is True
+    assert created["id"] == 7
+    assert created["body"]["summary"] is None  # legacy null is fine for ES
+
+
+def test_index_sheet_returns_false_without_owner(monkeypatch):
+    """A sheet with no owner must return False — owner is the only hard requirement."""
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    ownerless_sheet = {"id": 99, "title": "No Owner Sheet", "sources": []}
+    mock_db = MagicMock()
+    mock_db.sheets.find_one.return_value = ownerless_sheet
+    monkeypatch.setattr(search, "db", mock_db)
+
+    result = search.index_sheet("sheet-a", 99)
+    assert result is False
