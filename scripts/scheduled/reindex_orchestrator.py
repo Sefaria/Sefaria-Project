@@ -23,10 +23,35 @@ def job_terminal_state(status, completions, backoff_exhausted=False):
     return None
 
 
-def build_shard_job_manifest(name, namespace, image, shard_count, command, env=None, resources=None):
+def build_shard_job_manifest(
+    name, namespace, image, shard_count, command,
+    env=None, env_from=None, volumes=None, volume_mounts=None, resources=None
+):
     """Build a batch/v1 Indexed Job manifest as a plain dict.
     Pure function — no I/O, no imports beyond builtins.
     """
+    container = {
+        "name": "reindex-shard",
+        "image": image,
+        "command": command,
+        "env": (env or []) + [{"name": "SHARD_COUNT", "value": str(shard_count)}],
+        "resources": resources or {
+            "requests": {"memory": "8Gi"},
+            "limits": {"memory": "12Gi"},
+        },
+    }
+    if env_from:
+        container["envFrom"] = env_from
+    if volume_mounts:
+        container["volumeMounts"] = volume_mounts
+
+    pod_spec = {
+        "restartPolicy": "Never",
+        "containers": [container],
+    }
+    if volumes:
+        pod_spec["volumes"] = volumes
+
     return {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -39,21 +64,7 @@ def build_shard_job_manifest(name, namespace, image, shard_count, command, env=N
             "maxFailedIndexes": 0,
             "ttlSecondsAfterFinished": 86400,
             "template": {
-                "spec": {
-                    "restartPolicy": "Never",
-                    "containers": [
-                        {
-                            "name": "reindex-shard",
-                            "image": image,
-                            "command": command,
-                            "env": (env or []) + [{"name": "SHARD_COUNT", "value": str(shard_count)}],
-                            "resources": resources or {
-                                "requests": {"memory": "8Gi"},
-                                "limits": {"memory": "12Gi"},
-                            },
-                        }
-                    ],
-                }
+                "spec": pod_spec,
             },
         },
     }
@@ -76,8 +87,53 @@ def main():
     job_name = os.environ.get("SHARD_JOB_NAME", "reindex-shard")
     command = [
         "bash", "-c",
-        "python /app/scripts/scheduled/reindex_elasticsearch_cronjob.py --mode shard --type text",
+        "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py --mode shard --type text",
     ]
+
+    # Build env list: pass SEARCH_* and REDIS_HOST to shard pods
+    shard_env = []
+    for key in ("SEARCH_HOST", "SEARCH_PORT", "SEARCH_PATH", "SEARCH_SSL_ENABLE", "REDIS_HOST"):
+        val = os.environ.get(key)
+        if val is not None:
+            shard_env.append({"name": key, "value": val})
+
+    # Build envFrom: elastic admin secret + local settings refs
+    shard_env_from = []
+    elastic_admin_secret = os.environ.get("ELASTIC_ADMIN_SECRET")
+    if elastic_admin_secret:
+        shard_env_from.append({"secretRef": {"name": elastic_admin_secret}})
+    local_settings_ref_secret = os.environ.get("LOCAL_SETTINGS_REF_SECRET")
+    if local_settings_ref_secret:
+        shard_env_from.append({"secretRef": {"name": local_settings_ref_secret, "optional": True}})
+    local_settings_configmap = os.environ.get("LOCAL_SETTINGS_CONFIGMAP")
+    if local_settings_configmap:
+        shard_env_from.append({"configMapRef": {"name": local_settings_configmap}})
+    local_settings_secret = os.environ.get("LOCAL_SETTINGS_SECRET")
+    if local_settings_secret:
+        shard_env_from.append({"secretRef": {"name": local_settings_secret, "optional": True}})
+
+    # Build volumes + volumeMounts: local_settings.py configmap
+    local_settings_file_configmap = os.environ.get("LOCAL_SETTINGS_FILE_CONFIGMAP")
+    shard_volumes = []
+    shard_volume_mounts = []
+    if local_settings_file_configmap:
+        shard_volumes = [
+            {
+                "name": "local-settings",
+                "configMap": {
+                    "name": local_settings_file_configmap,
+                    "items": [{"key": "local_settings.py", "path": "local_settings.py"}],
+                },
+            }
+        ]
+        shard_volume_mounts = [
+            {
+                "name": "local-settings",
+                "mountPath": "/app/sefaria/local_settings.py",
+                "subPath": "local_settings.py",
+                "readOnly": True,
+            }
+        ]
 
     batch = client.BatchV1Api()
 
@@ -94,7 +150,13 @@ def main():
     except client.exceptions.ApiException:
         pass
 
-    manifest = build_shard_job_manifest(job_name, namespace, image, shard_count, command)
+    manifest = build_shard_job_manifest(
+        job_name, namespace, image, shard_count, command,
+        env=shard_env,
+        env_from=shard_env_from,
+        volumes=shard_volumes,
+        volume_mounts=shard_volume_mounts,
+    )
     batch.create_namespaced_job(namespace, manifest)
     logger.info(f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards")
 

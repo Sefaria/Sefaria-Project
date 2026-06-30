@@ -10,9 +10,10 @@ spec:
   schedule: "0 21 * * 5"
   jobTemplate:
     spec:
-      backoffLimit: 1
+      backoffLimit: 0
       template:
         spec:
+          serviceAccountName: {{ .Values.deployEnv }}-reindex-orchestrator
           affinity:
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -27,11 +28,28 @@ spec:
           - name: reindex-elastic-search
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
-              limits:
-                memory: 20Gi
-              requests:
-                memory: 15Gi
+              {{- toYaml .Values.cronJobs.reindexElasticSearch.orchestratorResources | nindent 14 }}
             env:
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SHARD_COUNT
+              value: "{{ .Values.cronJobs.reindexElasticSearch.shardCount }}"
+            - name: SHARD_JOB_IMAGE
+              value: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            - name: SHARD_JOB_NAME
+              value: "{{ .Values.deployEnv }}-reindex-shard"
+            - name: ELASTIC_ADMIN_SECRET
+              value: '{{ template "sefaria.secrets.elasticAdmin" . }}'
+            - name: LOCAL_SETTINGS_REF_SECRET
+              value: "{{ .Values.secrets.localSettings.ref }}"
+            - name: LOCAL_SETTINGS_CONFIGMAP
+              value: "local-settings-{{ .Values.deployEnv }}"
+            - name: LOCAL_SETTINGS_SECRET
+              value: "local-settings-secrets-{{ .Values.deployEnv }}"
+            - name: LOCAL_SETTINGS_FILE_CONFIGMAP
+              value: "local-settings-file-{{ .Values.deployEnv }}"
             - name: SEARCH_HOST
               value: "elasticsearch-1b-es-http.elasticsearch.svc"
             - name: SEARCH_PORT
@@ -48,7 +66,7 @@ spec:
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             envFrom:
             - secretRef:
-                name: {{ template "sefaria.secrets.elasticAdmin" . }}  
+                name: {{ template "sefaria.secrets.elasticAdmin" . }}
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
@@ -65,7 +83,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py"
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy kubernetes && /app/run /app/scripts/scheduled/reindex_orchestrator.py"
             ]
           restartPolicy: Never
           volumes:

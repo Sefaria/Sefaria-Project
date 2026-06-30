@@ -428,6 +428,17 @@ cronJobs:
     enabled: false
     SEARCH_HOST_ES6: ""
     SEARCH_HOST_ES8: ""
+    shardCount: 8
+    orchestratorResources:
+      requests:
+        memory: "4Gi"
+      limits:
+        memory: "6Gi"
+    shardResources:
+      requests:
+        memory: "8Gi"
+      limits:
+        memory: "12Gi"
   topicsIndexing:
     enabled: false
   trello:
