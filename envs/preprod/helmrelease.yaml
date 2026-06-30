@@ -160,7 +160,7 @@ spec:
             - collections
             - profile
     ingress:
-      enabled: true
+      enabled: false
     gateway:
       enabled: true
     nginx:
