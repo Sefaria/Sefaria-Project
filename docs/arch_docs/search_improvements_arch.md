@@ -230,6 +230,20 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 ```
 
+## Showing Result Counts While Results Load
+
+Product wants the result count to appear before the results finish rendering. A count is cheap for Elasticsearch to compute — it skips the three things that dominate a full search response: **aggregations** (facets visit *every* matching doc and build `size: 10000` bucket tables — ~half the latency), **top-N fetch** (scoring + reading/serializing `_source` for the page of hits), and **highlighting** (re-analyzing each returned doc to build snippets). A bench against a 200k-doc local index put a count-only query ~90%+ faster than the full request. Two ways to exploit this:
+
+**Option 1 — Fire a separate, parallel count-only query** (`size: 0`, no `aggs`/`highlight`/`_source`) alongside the main search; paint the count the moment it returns.
+- *Good because:* count appears **earliest** (gated only by network round-trip); **smallest blast radius** — the existing search path is untouched; isolates exact-count cost (`track_total_hits: true`) onto the cheap query.
+- *Cost:* re-runs the query-match scan (≈2× that portion of cluster work per search); two responses to coordinate on the frontend, including the Sefaria + Dicta total merge.
+
+**Option 2 — Keep one query, but defer the facets** (drop `aggs` from the primary request, fetch them in a follow-up). The count already ships in `hits.total`, so the first response returns count + first page in roughly half the time.
+- *Good because:* **no redundant scan**; makes the **whole results panel** faster, not just the count; removes the dominant cost (facet aggs) from the critical path; less frontend orchestration around the number.
+- *Cost:* count is **not** earlier than the first page (they arrive together) — if product needs the number *before* any results, this doesn't deliver that; touches the existing query path and changes when filters populate.
+
+The two are combinable (defer facets *and* fire a count-only query) for both the earliest number and a lighter critical path. Decision pending engineering input.
+
 ## Limitations
 
 
