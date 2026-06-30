@@ -143,11 +143,14 @@ jobs:
   # the follow-up preprod → master PR so the hotfix propagates all the way back.
   # Fires on ANY merged prod → preprod PR (action-created or hand-made), which is
   # the correct invariant: commits on prod that preprod lacked must reach master.
+  # The same-repo guard prevents a fork PR opened from a branch coincidentally
+  # named `prod` from triggering the privileged (PAT-backed) chain leg.
   chain-backmerge-to-master:
     name: "Chain back-merge: preprod → master"
     if: >
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'prod' &&
       github.event.pull_request.base.ref == 'preprod'
     runs-on: ubuntu-latest
@@ -163,6 +166,9 @@ jobs:
       # so there is no injection surface from the triggering PR.
       # BYPASS_BRANCH_PROTECTION_TOKEN (a PAT) is used so the created PR triggers
       # master's required checks — GITHUB_TOKEN-created PRs do not.
+      # Required scope: a fine-grained PAT limited to THIS repo with
+      # Contents: Read + Pull requests: Write (it only reads git history and
+      # opens a PR — it does not need, and should not have, push/admin scope).
       - name: Open preprod → master back-merge PR
         env:
           GH_TOKEN: ${{ secrets.BYPASS_BRANCH_PROTECTION_TOKEN }}
