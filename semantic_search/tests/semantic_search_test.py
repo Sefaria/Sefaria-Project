@@ -10,9 +10,19 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
+from semantic_search.linked_refs import get_linked_ref_enhancements
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search
 from semantic_search.models import SemanticTextChunk
+
+
+def make_chunk(**overrides):
+    defaults = dict(
+        ref="Genesis 1:1",
+        chunked_from_ref="Genesis 1",
+    )
+    defaults.update(overrides)
+    return SimpleNamespace(**defaults)
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +171,77 @@ class TestBulkDelete:
         with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
             SemanticTextChunk().bulk_delete([])
         mock_objects.filter.assert_called_once_with(doc_id__in=[])
+
+
+# ---------------------------------------------------------------------------
+# linked ref enhancement
+# ---------------------------------------------------------------------------
+
+class TestLinkedRefEnhancement:
+    def test_counts_direct_linked_refs_and_applies_threshold(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref A", "Ref B"],
+            "Genesis 1:2": ["Ref B", "Ref C"],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+        result = get_linked_ref_enhancements(
+            chunks,
+            link_depth=1,
+            min_link_count=2,
+            link_source=link_source,
+        )
+        assert result.appended_refs == ["Ref B"]
+        assert result.ref_counts == {"Ref B": 2}
+
+    def test_excludes_original_result_refs(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Genesis 1:1", "Genesis 1", "Ref B"],
+            "Genesis 1:2": ["Ref B"],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1", chunked_from_ref="Genesis 1"),
+            make_chunk(ref="Genesis 1:2"),
+        ]
+        result = get_linked_ref_enhancements(
+            chunks,
+            link_depth=1,
+            min_link_count=1,
+            link_source=link_source,
+        )
+        assert result.appended_refs == ["Ref B"]
+
+    def test_depth_two_fetches_and_counts_next_hop_links_from_source(self):
+        link_source = MagicMock()
+        link_source.linked_refs_for.side_effect = {
+            "Genesis 1:1": ["Ref B", "Ref D"],
+            "Ref B": ["Ref D", "Ref E"],
+            "Ref D": [],
+        }.get
+        chunks = [
+            make_chunk(ref="Genesis 1:1"),
+        ]
+
+        result = get_linked_ref_enhancements(
+            chunks,
+            link_depth=2,
+            min_link_count=2,
+            link_source=link_source,
+        )
+
+        link_source.linked_refs_for.assert_any_call("Ref B")
+        link_source.linked_refs_for.assert_any_call("Ref D")
+        assert result.appended_refs == ["Ref D"]
+        assert result.ref_counts == {"Ref D": 2}
+
+    def test_invalid_params_return_no_appended_refs(self):
+        chunk = make_chunk()
+        assert get_linked_ref_enhancements([chunk], link_depth=0, min_link_count=1).appended_refs == []
+        assert get_linked_ref_enhancements([chunk], link_depth=1, min_link_count=0).appended_refs == []
 
 
 # ---------------------------------------------------------------------------
