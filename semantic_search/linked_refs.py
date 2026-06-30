@@ -22,6 +22,16 @@ class LinkSource(Protocol):
         ...
 
 
+def _is_dictionary_oref(oref) -> bool:
+    index_node = getattr(oref, "index_node", None)
+    if type(index_node).__name__ in {"DictionaryNode", "DictionaryEntryNode"}:
+        return True
+
+    index = getattr(oref, "index", None)
+    categories = set(getattr(index, "categories", []) or [])
+    return bool(categories & {"Dictionary", "Dictionaries", "Lexicon"})
+
+
 class MongoLinkSource:
     def linked_refs_for(self, ref: str) -> list[str]:
         from sefaria.model import LinkSet, Ref
@@ -30,7 +40,15 @@ class MongoLinkSource:
             oref = Ref(ref)
         except Exception:
             return []
-        return [linked_ref.normal() for linked_ref in LinkSet(oref).refs_from(oref)]
+
+        if _is_dictionary_oref(oref):
+            return []
+
+        return [
+            linked_ref.normal()
+            for linked_ref in LinkSet(oref).refs_from(oref)
+            if not _is_dictionary_oref(linked_ref)
+        ]
 
 
 def get_linked_ref_enhancements(
