@@ -545,7 +545,8 @@ class TextIndexer(object):
             return 0
         try:
             bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
-                 raise_on_error=False, request_timeout=120)
+                 raise_on_error=False, request_timeout=120,
+                 max_retries=3, initial_backoff=2, max_backoff=60)
             cls._bulk_actions = []
             return 0
         except (ESConnectionError, ConnectionTimeout) as e:

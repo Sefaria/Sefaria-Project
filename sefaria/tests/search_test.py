@@ -109,3 +109,17 @@ def test_flush_propagates_non_connection_errors(monkeypatch, bad_exc):
         TextIndexer._flush_bulk_actions(versions)
 
     assert TextIndexer._failed_versions == []
+
+
+def test_flush_passes_retry_kwargs(monkeypatch):
+    from sefaria import search
+    captured = {}
+    def fake_bulk(client, actions, **kwargs):
+        captured.update(kwargs)
+        return (len(actions), [])
+    monkeypatch.setattr(search, "bulk", fake_bulk)
+    search.TextIndexer._bulk_actions = [{"_id": "x"}]
+    search.TextIndexer._flush_bulk_actions([])
+    assert captured["max_retries"] == 3
+    assert captured["initial_backoff"] == 2
+    assert captured["max_backoff"] == 60
