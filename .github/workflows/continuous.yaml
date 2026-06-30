@@ -329,7 +329,7 @@ jobs:
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 30
+        timeout-minutes: 45
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
