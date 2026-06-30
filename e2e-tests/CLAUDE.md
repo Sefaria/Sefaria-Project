@@ -14,6 +14,12 @@ Playwright end-to-end test suite for Sefaria. Two web modules and one embedded p
 - **Resource Panel** — `ConnectionsPanel` reader sidebar, RP-001 → RP-212. See [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md).
 - **Voices Topics** — `/topics/<slug>` and `/topics` landing on the Voices module, TOV-001 → TOV-019 (non-skipped). See [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md).
 - **Library Topics** — `/topics/<slug>` and `/topics` landing on the Library module, LIB-001 → LIB-029 (31 active). Same `TopicPage.jsx` component as Voices, but renders text sources + a source-language toggle. See [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md).
+- **Voices Bookmarks & History** — sheet-page bookmarking + the `/saved` and `/history` lists on the Voices module, VBM-001 → VBM-010 (10 active). See [Full testing by Feature/Voices Bookmarks (Saved) and History/README.md](Full%20testing%20by%20Feature/Voices%20Bookmarks%20History/README.md).
+- **Search** — header search across both modules (autocomplete, results, dropdown sections/icons), SRCH-001 → SRCH-006. See [Full testing by Feature/Search/README.md](Full%20testing%20by%20Feature/Search/README.md).
+- **User Menu** — login, profile view/edit, account settings, language switch, module switcher, logout, UMN-001 → UMN-007. See [Full testing by Feature/User Menu/README.md](Full%20testing%20by%20Feature/User%20Menu/README.md).
+- **Cross-Module** — Library↔Voices integration: auth persistence (XMOD-L01 → L09) + Library→Voices redirects (XMOD-R01 → R17). See [Full testing by Feature/Cross-Module/README.md](Full%20testing%20by%20Feature/Cross-Module/README.md).
+- **Sheet Lifecycle** — full create→publish→delete sheet journey on Voices, SHT-001 → SHT-010 (serial). Lives in [voices/sheet-lifecycle.spec.ts](voices/README.md).
+- **Sanity** — the release-gate smoke set, defined by the `@sanity` **tag** (not a folder). See [Sanity/README.md](Sanity/README.md).
 
 Tests run against the sandbox URL pointed at by `SANDBOX_URL` / `SANDBOX_URL_IL` env vars. Each Playwright "project" in [playwright.config.ts](../playwright.config.ts) pairs a browser (Chromium/Firefox/WebKit) with a folder under `e2e-tests/`. **Mobile tests live under a separate config** ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`; the desktop projects never exercise it. See [mobile web/README.md](mobile%20web/README.md) and §20 below.
 
@@ -41,7 +47,7 @@ Tests run against the sandbox URL pointed at by `SANDBOX_URL` / `SANDBOX_URL_IL`
 18. **For destructive APIs, intercept the network call — don't pollute production state.** Sefaria endpoints like `/api/notes`, `/api/sheets/<id>/add`, `/api/send_feedback`, `/api/links` mutate real user state. In tests, do `await page.route('**/api/<endpoint>', route => { posted = true; body = route.request().postData(); route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) }); });` and assert on the captured request body. The user-visible state never changes; the test still proves the click triggered the correct payload.
 19. **jQuery `$.post` urlencodes bodies with `+` for space, not `%20`.** `decodeURIComponent("Genesis+1%3A1")` returns `Genesis+1:1`, not `Genesis 1:1`. Always normalize with `.replace(/\+/g, ' ')` before substring-matching API request bodies. Also: `decodeURIComponent` throws on stray unescaped characters mixed with `%XX` sequences — when the payload may contain user-typed content with special chars, skip the decode and substring-match the raw urlencoded body instead.
 20. **Tests should pass at full parallelism — fix flakes, don't cap workers.** If a test fails only when other tests run alongside it, the root cause is almost always one of (a) too-short timeouts on async data fetches (production rate-limiting queues requests under load — bump to `t(40000)+` for endpoints like manuscripts/translations/notes, or use `test.slow()` to triple the test budget); (b) multiple sequential `isVisible({ timeout })` calls that each have their own race window — use one atomic `page.evaluate()` instead; (c) URL assertions that match a single hostname without considering auth-required redirects (Twitter → x.com login, Facebook → m.facebook.com mobile, …) — match on the encoded payload, not the post-redirect URL. Capping workers hides flakes instead of fixing them.
-21. **Destructive-auth tests must use a profile no other concurrent test reads.** UI logout, UI re-login as a globalSetup-managed account, password change, or anything else that destroys or rotates the server-side Django session row will invalidate the shared `auth_*.json` for every other concurrent worker reading it. The session-on-disk model in [global-setup.ts](global-setup.ts) is read-only and shared; mutating one worker's view mutates them all. Today the only such test is Sanity 7 ("User can logout successfully" in [Sanity/user-flow-sanity.spec.ts](Sanity/user-flow-sanity.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` because no other Sanity test depends on the admin session staying alive. If you add a new test that performs a UI logout, a UI login of the same email as a globalSetup profile, or a password change, you MUST EITHER: (a) use a profile no other concurrent test depends on — currently `enAdmin` is the de-facto throwaway since Sanity 7 already destroys it every run; if your test needs admin-specific behavior to persist, flag the need for a dedicated 4th throwaway account before merging — OR (b) intercept the destructive request with `page.route('**/logout', …)` so the server-side session row is never touched. The UI redirect behavior is testable without the real server round-trip; see rule 18 for the analogous pattern with destructive APIs. `cross-module-login.spec.ts` Scenarios 4-7 are an existing tripwire: they perform parallel UI logins as `testUser` and currently pass only because Django doesn't regenerate sibling sessions on fresh login — if that policy tightens upstream, that file becomes the next flake.
+21. **Destructive-auth tests must use a profile no other concurrent test reads.** UI logout, UI re-login as a globalSetup-managed account, password change, or anything else that destroys or rotates the server-side Django session row will invalidate the shared `auth_*.json` for every other concurrent worker reading it. The session-on-disk model in [global-setup.ts](global-setup.ts) is read-only and shared; mutating one worker's view mutates them all. Today the only such test is UMN-007 ("User can logout successfully" in [Full testing by Feature/User Menu/user-menu.spec.ts](Full%20testing%20by%20Feature/User%20Menu/user-menu.spec.ts)), which uses `BROWSER_SETTINGS.enAdmin` rather than `enUser` because no other concurrent test depends on the admin session staying alive. If you add a new test that performs a UI logout, a UI login of the same email as a globalSetup profile, or a password change, you MUST EITHER: (a) use a profile no other concurrent test depends on — currently `enAdmin` is the de-facto throwaway since UMN-007 already destroys it every run; if your test needs admin-specific behavior to persist, flag the need for a dedicated 4th throwaway account before merging — OR (b) intercept the destructive request with `page.route('**/logout', …)` so the server-side session row is never touched. The UI redirect behavior is testable without the real server round-trip; see rule 18 for the analogous pattern with destructive APIs. The Cross-Module login spec's `XMOD-L04`–`XMOD-L07` ([Full testing by Feature/Cross-Module/login.spec.ts](Full%20testing%20by%20Feature/Cross-Module/login.spec.ts)) are an existing tripwire: they perform parallel UI logins as `testUser` and currently pass only because Django doesn't regenerate sibling sessions on fresh login — if that policy tightens upstream, that file becomes the next flake.
 
 ---
 
@@ -75,7 +81,7 @@ Sefaria's public APIs are the fastest oracle for "does this data exist on produc
 global-setup.ts  ← runs ONCE before any worker; logs in each account, writes auth_*.json
    │
    ▼
-spec.ts (in library/ | voices/ | assistant/ | Sanity/ | Misc/)
+spec.ts (in library/ | voices/ | assistant/ | Misc/ | Full testing by Feature/<area>/)
    │
    ├── new PageManager(page, language)  ← mounts 20 page objects (incl. libraryAssistantPage)
    │        │
@@ -205,14 +211,20 @@ Conventions:
 | Feature under test | Folder | Project names | baseURL |
 | --- | --- | --- | --- |
 | Library-module UI (header, sidebar, reader) | `library/` | `chrome-library`, `firefox-library`, `safari-library` | `www.<sandbox>` |
-| Voices-module UI (chiburim sheets, trending, ...) | `voices/` | `chrome-voices`, `firefox-voices`, `safari-voices` | `voices.<sandbox>` |
+| Voices-module UI (header, sidebar, **sheet lifecycle SHT-NNN**) | `voices/` | `chrome-voices`, `firefox-voices`, `safari-voices` | `voices.<sandbox>` |
 | Library Assistant chatbot (`<lc-chatbot>`) | `assistant/` | `chrome-assistant` | `www.<sandbox>` |
 | Resource Panel (`ConnectionsPanel`, RP-NNN) | `Full testing by Feature/Resource Panel/` | `chrome/firefox/safari-resource-panel` | `www.<sandbox>` |
 | Voices Topics (`/topics/<slug>` + `/topics` landing, TOV-NNN) | `Full testing by Feature/Voices Topics/` | `chrome/firefox/safari-voices-topics` | `voices.<sandbox>` |
 | Library Topics (`/topics/<slug>` + `/topics` landing, LIB-NNN) | `Full testing by Feature/Library Topics/` | `chrome/firefox/safari-library-topics` | `www.<sandbox>` |
+| Voices Bookmarks & History (sheet-page bookmark + `/saved`, VBM-NNN) | `Full testing by Feature/Voices Bookmarks (Saved) and History/` | `chrome/firefox/safari-voices-bookmarks` | `voices.<sandbox>` |
+| Search (autocomplete / results / dropdown, SRCH-NNN) | `Full testing by Feature/Search/` | `chrome/firefox/safari-search` | `www.<sandbox>` |
+| User Menu (profile / account / language / switcher / logout, UMN-NNN) | `Full testing by Feature/User Menu/` | `chrome/firefox/safari-user-menu` | `www.<sandbox>` |
+| Cross-Module integration (auth persistence XMOD-L, redirects XMOD-R) | `Full testing by Feature/Cross-Module/` | `chrome/firefox/safari-cross-module` | `www.<sandbox>` |
 | Mobile-viewport / responsive UI (hamburger drawer, mobile auth flow) | `mobile web/` *(separate config — `playwright.mobileweb.config.ts`)* | `chrome-mobile-library` (Pixel 5), `safari-mobile-library` (iPhone 13) | `www.<sandbox>` |
-| End-to-end smoke / release gate | `Sanity/` | `chrome-sanity`, `firefox-sanity`, `safari-sanity` | `www.<sandbox>` |
+| End-to-end smoke / release gate (**TAG-scoped** — every `@sanity` test, any folder) | by tag; `Sanity/` is **docs only** | `chrome-sanity`, `firefox-sanity`, `safari-sanity` | `www.<sandbox>` |
 | Cross-cutting or unplaceable (help redirects, etc.) | `Misc/` | `chrome-misc`, `firefox-misc`, `safari-misc` | `www.<sandbox>` |
+
+> The `*-sanity` projects are **tag-scoped**, not folder-scoped (`testDir: './e2e-tests'` + `grep: /@sanity/`): they run every test tagged `{ tag: '@sanity' }` regardless of folder. To add a release-gate test that lives elsewhere to the sanity run, tag it in place — don't copy it into `Sanity/`. See [Sanity/README.md](Sanity/README.md) §3.
 
 Rule of thumb:
 
@@ -220,7 +232,8 @@ Rule of thumb:
 - Is it the embedded LA chatbot (including negative-visibility tests anywhere in the app)? → `assistant/`.
 - Is it a deep CSV-driven feature suite (Resource Panel RP-NNN, Voices Topics TOV-NNN)? → its own `Full testing by Feature/<feature>/` folder with its own Playwright project.
 - Does it only exist below the 843 px mobile breakpoint (hamburger drawer, mobile-only menus, mobile auth flow)? → `mobile web/` (and runs under `--config=playwright.mobileweb.config.ts`).
-- Does it traverse both modules (login on A, verify on B)? → `Sanity/`.
+- Does it traverse both modules (login on A, verify on B; cross-module redirects)? → `Full testing by Feature/Cross-Module/`.
+- Is it release-gate smoke? → keep it in its feature folder and tag it `{ tag: '@sanity' }` (membership is by tag, not folder — see [Sanity/README.md](Sanity/README.md)).
 - Does it validate platform-level invariants (redirects, static routes)? → `Misc/`.
 
 ---
@@ -419,7 +432,7 @@ When reviewing an existing spec or page object, flag each of:
 - [ ] **FA-icon clicks?** Any click on an `<i class="fa-*">` must use `click({ force: true })` after `scrollIntoViewIfNeeded`.
 - [ ] **Dialog handlers registered before the triggering click?** `page.once('dialog', d => d.accept())` must run *before* the action that opens a `confirm()` / `alert()` / `prompt()`.
 - [ ] **Destructive APIs intercepted?** Any test that creates / edits / deletes user-visible state via `/api/...` should route-intercept the endpoint so production stays clean.
-- [ ] **Destructive auth?** If the test calls UI logout, UI re-login of a globalSetup profile, or password-change endpoints, does it use a profile no other concurrent test reads (currently `enAdmin` is the only safe choice — Sanity 7 already destroys it every run), OR intercept the destructive endpoint via `page.route`? See rule §2.21.
+- [ ] **Destructive auth?** If the test calls UI logout, UI re-login of a globalSetup profile, or password-change endpoints, does it use a profile no other concurrent test reads (currently `enAdmin` is the only safe choice — `UMN-007` already destroys it every run), OR intercept the destructive endpoint via `page.route`? See rule §2.21.
 - [ ] **`+`-decoding for jQuery payloads?** When asserting on intercepted request bodies, normalize with `.replace(/\+/g, ' ')` before substring matching, or assert on the raw urlencoded form.
 - [ ] **Resilient to full parallelism?** Auth-related flakes are now structurally impossible: [global-setup.ts](global-setup.ts) writes each `auth_*.json` exactly once before any worker starts, and `goToPageWithUser` reads (never writes) those files. If a test flakes only at full parallelism, the cause is in the test itself — longer timeouts on async fetches, atomic `page.evaluate` instead of sequential `isVisible`s, redirect-tolerant URL matching, or `test.slow()` on a known-heavy describe. Not capping workers globally. (The mobile config is the one exception — see §20 note about staging throttling.)
 
@@ -437,6 +450,18 @@ npx playwright test --project=chrome-assistant         # Library Assistant suite
 npx playwright test --project=chrome-resource-panel    # Resource Panel suite
 npx playwright test --project=chrome-voices-topics     # Voices Topics suite
 npx playwright test --project=chrome-library-topics    # Library Topics suite
+npx playwright test --project=chrome-bookmarks-(saved)-and-history  # Voices Bookmarks & History suite
+
+# Sanity = TAG-scoped: runs every test tagged `{ tag: '@sanity' }` anywhere in
+# the tree, not just the Sanity/ folder (testDir './e2e-tests' + grep /@sanity/).
+# Add a release-gate test to this run by tagging it in place — never copy it
+# into Sanity/. See Sanity/README.md.
+# ⚠️ Run via the PROJECT, not `npx playwright test --grep "@sanity"` (a bare grep
+# fans the tagged tests out across EVERY project — all browsers × every folder —
+# not the one curated chrome-sanity project). A full pass is TWO commands:
+npx playwright test --project=chrome-sanity            # desktop @sanity release-gate suite (mobile excluded)
+npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity  # mobile @sanity slice (Pixel 5)
+npx playwright test --project=chrome-sanity --list     # list which tests are tagged @sanity (no run)
 
 # Mobile suite (separate config — runs under width < 843 px viewport)
 npx playwright test --config=playwright.mobileweb.config.ts
@@ -514,7 +539,7 @@ Per user instruction, these are captured for future cleanup but must **not** be 
 
 ### C5. Stale README.md section — *handled by current fix*
 
-- [Sanity/README.md](Sanity/README.md) previously referenced a `Sanity/Go Live Temp/` subdirectory that does not exist; the files (`cross-module-redirects.spec.ts`, `help-sheet-redirects.spec.ts`) live directly in `Sanity/` and `Misc/`.
+- [Sanity/README.md](Sanity/README.md) previously referenced a `Sanity/Go Live Temp/` subdirectory that does not exist. (The redirect specs have since moved: cross-module redirects → `Full testing by Feature/Cross-Module/redirects.spec.ts`, help-sheet redirects remain in `Misc/`.)
 - **Status:** Fixed in the 2026-04-14 edit.
 
 ---
@@ -587,11 +612,12 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly. Also recomm
 | Need | File |
 | --- | --- |
 | Run commands, env setup, prereqs | [README.md](README.md) |
-| Sanity suite test inventory | [Sanity/README.md](Sanity/README.md) |
+| What a Sanity test is + the `@sanity` tag convention | [Sanity/README.md](Sanity/README.md) |
 | Library Assistant deep-dive guide (incl. coverage + backlog) | [assistant/README.md](assistant/README.md) |
 | Resource Panel deep-dive guide | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Voices Topics deep-dive guide | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
 | Library Topics deep-dive guide | [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md) |
+| Voices Bookmarks & History deep-dive guide | [Full testing by Feature/Voices Bookmarks (Saved) and History/README.md](Full%20testing%20by%20Feature/Voices%20Bookmarks%20History/README.md) |
 | Canonical POM example | [pages/resourcePanelPage.ts](pages/resourcePanelPage.ts), [pages/voicesTopicPage.ts](pages/voicesTopicPage.ts) |
 | Canonical spec example | [library/header.spec.ts](library/header.spec.ts) (minimal), [Full testing by Feature/Resource Panel/opening-and-general.spec.ts](Full%20testing%20by%20Feature/Resource%20Panel/opening-and-general.spec.ts) (POM-pure) |
 | Shadow-DOM / web-component POM example | [pages/libraryAssistantPage.ts](pages/libraryAssistantPage.ts) |

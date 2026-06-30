@@ -30,7 +30,7 @@ test.describe('Voices Topics — display & content (English)', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('TOV-001: Topic page loads with core content', async () => {
+  test('TOV-001: Topic page loads with core content', { tag: '@sanity' }, async () => {
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
     await pm.onVoicesTopic().expectTitleText(TOPIC_TITLE_EN);
     await pm.onVoicesTopic().expectDescriptionPresent(100);
@@ -38,7 +38,7 @@ test.describe('Voices Topics — display & content (English)', () => {
     await expect(page).toHaveURL(new RegExp(`/topics/${TOPIC_SLUG}`));
   });
 
-  test('TOV-003: Topic image displays and scales across desktop / tablet / mobile viewports', async () => {
+  test('TOV-003: Topic image displays and scales across desktop / tablet / mobile viewports', { tag: '@sanity' }, async () => {
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
     await pm.onVoicesTopic().expectImageVisibleWithAlt();
 
@@ -57,7 +57,7 @@ test.describe('Voices Topics — display & content (English)', () => {
     });
   });
 
-  test('TOV-004: Sheets list shows on the topic page (per-sheet metadata)', async () => {
+  test('TOV-004: Sheets list shows on the topic page (per-sheet metadata)', { tag: '@sanity' }, async () => {
     // The CSV item is "topic metadata" (creation date, view count, contributor).
     // Voices does NOT expose creation date / view count at the topic-page
     // level — that data lives inside each sheet. So this test asserts the
@@ -121,7 +121,7 @@ test.describe('Voices Topics — sheet listing & interaction', () => {
     await pm.onVoicesTopic().expectSheetsHaveMetadata();
   });
 
-  test('TOV-007: Click a sheet → navigates to /sheets/<id>', async () => {
+  test('TOV-007: Click a sheet → navigates to /sheets/<id>', { tag: '@sanity' }, async () => {
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
     await pm.onVoicesTopic().clickFirstSheetAndExpectNavigation();
     await expect(page).toHaveURL(/\/sheets\/\d+/);
@@ -138,7 +138,7 @@ test.describe('Voices Topics — sheet listing & interaction', () => {
     await pm.onVoicesTopic().expectNoDraftMarkers();
   });
 
-  test('TOV-010a: Sort param (Relevance vs Newest vs Views) changes the first sheet', async () => {
+  test('TOV-010a: Sort param (Relevance vs Newest vs Views) changes the first sheet', { tag: '@sanity' }, async () => {
     test.setTimeout(t(150000));
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG, { sort: 'Relevance' });
     const relevance = await pm.onVoicesTopic().firstSheetTitle();
@@ -156,7 +156,7 @@ test.describe('Voices Topics — sheet listing & interaction', () => {
     expect(distinct.size, `sort orders should not all yield the same first sheet`).toBeGreaterThanOrEqual(2);
   });
 
-  test('TOV-010b: Sort UI — click filter tab → click "Newest" → list reorders + URL + active class', async () => {
+  test('TOV-010b: Sort UI — click filter tab → click "Newest" → list reorders + URL + active class', { tag: '@sanity' }, async () => {
     test.setTimeout(t(120000));
     // Start in default (Relevance) order; capture the first sheet for the baseline.
     await pm.onVoicesTopic().open(MODULE_URLS.EN.VOICES, TOPIC_SLUG);
@@ -178,7 +178,7 @@ test.describe('Voices Topics — sheet listing & interaction', () => {
 });
 
 test.describe('Voices Topics — sheet language preference (TOV-011)', () => {
-  test('TOV-011a: Hebrew interface surfaces Hebrew-titled sheets first', async ({ context }) => {
+  test('TOV-011a: Hebrew interface surfaces Hebrew-titled sheets first', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.HE.VOICES, LANGUAGES.HE);
     const pm = new PageManager(page, LANGUAGES.HE);
     await hideAllModalsAndPopups(page);
@@ -238,7 +238,7 @@ test.describe('Voices Topics — discovery & navigation', () => {
   // (`TopicSideColumn`) only renders Related Topics. Keeping TOV-015 in the
   // landing-page spec preserves the original CSV intent.
 
-  test('TOV-016: A–Z browse — letter pages load and alphabet links work', async () => {
+  test('TOV-016: A–Z browse — letter pages load and alphabet links work', { tag: '@sanity' }, async () => {
     await pm.onVoicesTopic().openAllTopicsForLetter(MODULE_URLS.EN.VOICES, 'a');
     await pm.onVoicesTopic().expectAllTopicsLetterPagePopulated(1);
     await pm.onVoicesTopic().clickAlphabetLetterAndExpectUrl(MODULE_URLS.EN.VOICES, 'b');

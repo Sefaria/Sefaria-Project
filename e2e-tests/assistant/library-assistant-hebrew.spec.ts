@@ -30,33 +30,33 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().expectInterfaceLang(); // asserts interface-lang="he"
   });
 
-  test('UX-001 (HE): Floating trigger button is visible when the panel is closed', async () => {
+  test('UX-001 (HE): Floating trigger button is visible when the panel is closed', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().expectTriggerVisible();
   });
 
-  test('UX-003 (HE): Clicking the floating trigger opens the chat panel and focuses input', async () => {
+  test('UX-003 (HE): Clicking the floating trigger opens the chat panel and focuses input', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().clickTriggerAndExpectOpen();
   });
 
-  test('UX-004 (HE): Close button closes the chat panel', async () => {
+  test('UX-004 (HE): Close button closes the chat panel', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().clickCloseAndExpectClosed();
   });
 
-  test('UX-013 (HE): Toggle panel to docked (side-rail) mode', async () => {
+  test('UX-013 (HE): Toggle panel to docked (side-rail) mode', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().toggleToDocked();
   });
 
-  test('UX-014 (HE): Toggle panel from docked back to floating mode', async () => {
+  test('UX-014 (HE): Toggle panel from docked back to floating mode', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().toggleToDocked();
     await pm.onLibraryAssistant().toggleToFloating();
   });
 
-  test('UX-022 (HE): Send button is disabled when the input is empty', async () => {
+  test('UX-022 (HE): Send button is disabled when the input is empty', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().clearInput();
     await pm.onLibraryAssistant().expectSendDisabled();
@@ -110,7 +110,7 @@ test.describe('Library Assistant — Hebrew', () => {
   });
 
   // Header More-options menu (UX-057 → UX-060)
-  test('UX-057 (HE): More-options menu opens with the expected items', async () => {
+  test('UX-057 (HE): More-options menu opens with the expected items', { tag: '@sanity' }, async () => {
     // The "Settings" item only renders for Django-staff accounts. The expected
     // Hebrew texts (4, or 5 with Settings) come from the POM label set, keyed on
     // BROWSER_SETTINGS.heLAUser.isModerator — keep that flag in sync with the account.
@@ -154,7 +154,7 @@ test.describe('Library Assistant — Hebrew', () => {
   });
 
   // Responsive — UX-085
-  test('UX-085 (HE): Library Assistant is hidden on a 375 px mobile viewport', async () => {
+  test('UX-085 (HE): Library Assistant is hidden on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
   });
@@ -166,13 +166,13 @@ test.describe('Library Assistant — Hebrew', () => {
  * run independently of the flip hooks above.
  */
 test.describe('Library Assistant — Hebrew visibility boundaries', () => {
-  test('LA-NEG-HE-001: Does not appear on the Hebrew Voices home', async ({ context }) => {
+  test('LA-NEG-HE-001: Does not appear on the Hebrew Voices home', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithUser(context, MODULE_URLS.HE.VOICES, BROWSER_SETTINGS.heLAUser);
     const pm = new PageManager(page, LANGUAGES.HE);
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-HE-003: Does not appear for a logged-out user on the Hebrew library home', async ({ context }) => {
+  test('LA-NEG-HE-003: Does not appear for a logged-out user on the Hebrew library home', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.HE.LIBRARY, LANGUAGES.HE);
     const pm = new PageManager(page, LANGUAGES.HE);
     await pm.onLibraryAssistant().expectNotPresent();

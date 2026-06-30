@@ -61,7 +61,7 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', async () => {
+  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
     // Form is rendered with both fields and the Login submit button.
     await expect(page.getByPlaceholder('Email Address')).toBeVisible({
@@ -75,7 +75,7 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     });
   });
 
-  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', async () => {
+  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
     const forgotLink = page.getByRole('link', { name: /Forgot your password\?/i });
@@ -102,11 +102,9 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
   test('HAM-A003: From login, "Sign Up" navigates to register; back button returns to login', async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
-    // Cross-flow nav under the login title: "Don't have an account? Sign Up".
-    // Scope to #login so the header's own Sign Up button can't match.
-    const signUpLink = page.locator('#login').getByRole('link', { name: /^Sign Up$/i });
-    await expect(signUpLink).toBeVisible({ timeout: t(5000) });
-    await signUpLink.tap();
+    const createLink = page.getByRole('link', { name: /Sign Up/i });
+    await expect(createLink).toBeVisible({ timeout: t(5000) });
+    await createLink.tap();
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/\/register/, { timeout: t(15000) });
