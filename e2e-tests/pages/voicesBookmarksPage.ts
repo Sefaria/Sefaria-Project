@@ -359,6 +359,48 @@ export class VoicesBookmarksPage extends HelperBase {
     }, sheetId);
   }
 
+  /**
+   * Clear the account's (non-saved) reading history, preserving /saved.
+   *
+   * The shared QA account's history accumulates rows for sheets that later get
+   * deleted; an un-annotatable sheet row (no `ownerName`) makes `ProfilePic`
+   * throw on `name.trim()` and blanks the whole /history page (no error
+   * boundary), so the list never renders. We reset to a clean slate by toggling
+   * the `reading_history` setting off then on via the same `/api/profile/sync`
+   * the settings UI uses: setting it `false` while it is currently `true` makes
+   * the server run `delete_user_history(exclude_saved=True)` — wiping reading
+   * history but leaving /saved intact (UserProfile._set_flags_on_update →
+   * delete_user_history). We then flip it back on so subsequent seeds record.
+   *
+   * A settings change is only applied when its `time_stamp` strictly exceeds the
+   * one stored on the profile (reader/views.py profile_sync_api), and that stored
+   * value persists across runs on this shared account — so we must read the
+   * current stamp and send strictly-greater values, not a fresh `Date.now()`
+   * (which a prior run can already have surpassed). `last_sync` is set huge so
+   * the sync responses carry no history payload.
+   */
+  async clearReadingHistory(): Promise<void> {
+    await this.page.evaluate(async () => {
+      const S = (window as any).Sefaria;
+      const $ = (window as any).$;
+      const HUGE_LAST_SYNC = '99999999999';
+      const sync = (extra: Record<string, string>): Promise<any> =>
+        new Promise((resolve) => {
+          $.post(
+            S.apiHost + '/api/profile/sync',
+            { client: 'web', last_sync: HUGE_LAST_SYNC, ...extra },
+          ).always((r: any) => resolve(r));
+        });
+      const setReadingHistory = (reading_history: boolean, ts: number) =>
+        sync({ settings: JSON.stringify({ reading_history, time_stamp: ts }) });
+
+      const current = await sync({});
+      const baseTs: number = current?.settings?.time_stamp ?? Math.floor(Date.now() / 1000);
+      await setReadingHistory(false, baseTs + 1); // current `true` → delete_user_history(exclude_saved=True)
+      await setReadingHistory(true, baseTs + 2);  // re-enable so later seeds record
+    });
+  }
+
   /** Whether the given sheet is currently saved (reads the client-side store). */
   async isSheetSaved(sheetId: number): Promise<boolean> {
     return await this.page.evaluate(

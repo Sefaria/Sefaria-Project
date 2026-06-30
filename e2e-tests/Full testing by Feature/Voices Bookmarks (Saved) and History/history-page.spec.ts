@@ -36,8 +36,12 @@ test.describe('Voices Bookmarks — /history page', () => {
     const { id } = SHEETS.history;
     const vb = pm.onVoicesBookmarks();
 
-    // Clean precondition: not saved, but present in /history.
+    // Clean precondition: not saved, but present in /history. First wipe the
+    // account's accumulated reading history (preserving /saved) — it can contain
+    // rows for since-deleted sheets whose missing `ownerName` crashes the
+    // /history page's ProfilePic render; see clearReadingHistory().
     await vb.setSheetSaved(id, false);
+    await vb.clearReadingHistory();
     await vb.seedSheetHistory(id);
 
     await vb.gotoHistory();
