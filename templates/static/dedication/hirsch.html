@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% load sefaria_tags %}
 
 {% block meta_title %}{% meta_title %}{% if request.interfaceLang == "hebrew" %}רש"ר הירש על התורה | מוקדש לזכרו של יואל ל. פליישמן{% else %}Rav Hirsch on Torah | Dedicated in memory of Joel L. Fleishman{% endif %}{% endmeta_title %}{% endblock %}
@@ -9,7 +9,7 @@
         padding-top: 60px;
     }
 
-    /* Headings: serif, start-aligned, sentence case (overrides default centered/uppercase static styles) */
+    /* Serif, start-aligned, sentence-case headings (override default centered/uppercase static styles) */
     #hirschDedication h1 {
         text-align: start;
         letter-spacing: normal;
@@ -36,7 +36,7 @@
         font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
     }
 
-    /* Body: sans-serif */
+    /* Sans-serif body */
     #hirschDedication p {
         font-size: 16px;
         line-height: 1.6;
@@ -50,7 +50,7 @@
         font-family: var(--hebrew-sans-serif-font-family);
     }
 
-    /* Portrait */
+    /* Portrait with title above and credit below */
     #hirschDedication .dedicationImage {
         text-align: start;
         margin: 24px 0 30px 0;
@@ -91,13 +91,10 @@
         margin-bottom: 16px;
         font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
     }
-    #hirschDedication .dedicationQuote .int-en {
-        font-family: "adobe-garamond-pro", Georgia, serif;
-        font-size: 18px;
-    }
+    #hirschDedication .dedicationQuote .int-en,
     #hirschDedication .dedicationQuote .int-he {
-        font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
         font-size: 18px;
+        font-family: "adobe-garamond-pro", Georgia, serif;
     }
 {% endblock %}
 
@@ -108,57 +105,47 @@
         <div class="int-en">
             <h1>Rav Hirsch on Torah in English</h1>
 
-            <section class="dedicationSection">
-                <h2>About Rav Hirsch on Torah</h2>
-                <p>A German scholar, rabbi, and activist, Samson Raphael Hirsch (1808&ndash;1888) pioneered the Torah im Derekh Eretz school of contemporary Orthodox Judaism, a philosophy fusing Torah learning with secular study. Rav Hirsch&rsquo;s commentary on the Torah, originally written in German, is renowned for its emphasis on the contemporary relevance of Judaism&rsquo;s ancient narratives and its creative philological study of the roots of Hebrew words. The 1989 English translation of <a href="/Rav_Hirsch_on_Torah">Rav Hirsch on Torah</a> is made available on Sefaria by the Fleishman Foundation, dedicated in memory of Joel L. Fleishman.</p>
-            </section>
+            <h2>About Rav Hirsch on Torah</h2>
+            <p>A German scholar, rabbi, and activist, Samson Raphael Hirsch (1808&ndash;1888) pioneered the Torah im Derekh Eretz school of contemporary Orthodox Judaism, a philosophy fusing Torah learning with secular study. Rav Hirsch&rsquo;s commentary on the Torah, originally written in German, is renowned for its emphasis on the contemporary relevance of Judaism&rsquo;s ancient narratives and its creative philological study of the roots of Hebrew words. The 1989 English translation of <a href="/Rav_Hirsch_on_Torah">Rav Hirsch on Torah</a> is made available on Sefaria by the Fleishman Foundation, dedicated in memory of Joel L. Fleishman.</p>
 
-            <section class="dedicationSection">
-                <h2>About Joel L. Fleishman</h2>
-                <p>Joel L. Fleishman (1934&ndash;2024) was a scholar, lawyer, teacher, philanthropic trailblazer, and Jewish communal leader who devoted his life to two intertwined callings: strengthening American civic society and opening Jewish life, in all its breadth, to deeper participation. He drew generations of students, colleagues, and friends into Jewish texts, traditions, and community through his love for and belief in them. For more than five decades, Joel taught at Duke University, founding what became the Sanford School of Public Policy. His books, including <i>The Foundation: A Great American Secret</i>, remain defining works on the practice and ethics of private philanthropy.</p>
+            <h2>About Joel L. Fleishman</h2>
+            <p>Joel L. Fleishman (1934&ndash;2024) was a scholar, lawyer, teacher, philanthropic trailblazer, and Jewish communal leader who devoted his life to two intertwined callings: strengthening American civic society and opening Jewish life, in all its breadth, to deeper participation. He drew generations of students, colleagues, and friends into Jewish texts, traditions, and community through his love for and belief in them. For more than five decades, Joel taught at Duke University, founding what became the Sanford School of Public Policy. His books, including <i>The Foundation: A Great American Secret</i>, remain defining works on the practice and ethics of private philanthropy.</p>
 
-                <figure class="dedicationImage">
-                    <figcaption class="imageTitle">Joel L. Fleishman</figcaption>
-                    <img src="/static/img/joel-fleishman.png" alt="Joel L. Fleishman"/>
-                    <figcaption class="imageCredit">The A.M and Ruth Z. Fleishman Foundation</figcaption>
-                </figure>
+            <figure class="dedicationImage">
+                <figcaption class="imageTitle">Joel L. Fleishman</figcaption>
+                <img src="{% static 'img/joel-fleishman.png' %}" alt="Joel L. Fleishman"/>
+                <figcaption class="imageCredit">The A.M and Ruth Z. Fleishman Foundation</figcaption>
+            </figure>
 
-                <p>Joel believed that a rich Jewish life is rooted in texts and traditions &mdash; that the treasury of Torah, Talmud, and commentary is not an artifact of the past but a living guide to ethics, spirituality, and action in the present. He was a devoted student of Rabbi Samson Raphael Hirsch, returning to this commentary on the Torah weekly for over four decades. He went through multiple copies of the commentary, each time carefully noting on his copies his own thoughts.</p>
+            <p>Joel believed that a rich Jewish life is rooted in texts and traditions &mdash; that the treasury of Torah, Talmud, and commentary is not an artifact of the past but a living guide to ethics, spirituality, and action in the present. He was a devoted student of Rabbi Samson Raphael Hirsch, returning to this commentary on the Torah weekly for over four decades. He went through multiple copies of the commentary, each time carefully noting on his copies his own thoughts.</p>
 
-                <p>The foundation he established in his parents&rsquo; names was built on a single animating purpose: to significantly increase the percentage of Jews leading lives grounded in Jewish traditions and texts, broadly construed. Sefaria is honored to further that legacy.</p>
-            </section>
+            <p>The foundation he established in his parents&rsquo; names was built on a single animating purpose: to significantly increase the percentage of Jews leading lives grounded in Jewish traditions and texts, broadly construed. Sefaria is honored to further that legacy.</p>
         </div>
 
         <div class="int-he">
             <h1>תרגום פירוש הרש"ר הירש על התורה לאנגלית</h1>
 
-            <section class="dedicationSection">
-                <h2>אודות פירוש הרש"ר הירש על התורה</h2>
-                <p>הרב שמשון רפאל הירש (1808&ndash;1888) היה רב ומלומד גרמני, פעיל פוליטי, וחלוץ הרעיון "תורה עם דרך ארץ" של האורתודוקסיה המודרנית, פילוסופיה המשלבת לימוד תורה עם לימודים כלליים. פירוש הרש"ר הירש על התורה, שנכתב במקור בגרמנית, ידוע בדגש שלו על הרלוונטיות העכשווית של הנרטיבים העתיקים של היהדות ובמחקר הפילולוגי היצירתי שלו על שורשי המילים העבריות. תרגום 1989 לאנגלית של <a href="/Rav_Hirsch_on_Torah">"רש"ר הירש על התורה"</a> זמין בספריא על ידי קרן פליישמן, לזכרו של יואל ל. פליישמן.</p>
-            </section>
+            <h2>אודות פירוש הרש"ר הירש על התורה</h2>
+            <p>הרב שמשון רפאל הירש (1808&ndash;1888) היה רב ומלומד גרמני, פעיל פוליטי, וחלוץ הרעיון "תורה עם דרך ארץ" של האורתודוקסיה המודרנית, פילוסופיה המשלבת לימוד תורה עם לימודים כלליים. פירוש הרש"ר הירש על התורה, שנכתב במקור בגרמנית, ידוע בדגש שלו על הרלוונטיות העכשווית של הנרטיבים העתיקים של היהדות ובמחקר הפילולוגי היצירתי שלו על שורשי המילים העבריות. תרגום 1989 לאנגלית של <a href="/Rav_Hirsch_on_Torah">"רש"ר הירש על התורה"</a> זמין בספריא על ידי קרן פליישמן, לזכרו של יואל ל. פליישמן.</p>
 
-            <section class="dedicationSection">
-                <h2>אודות יואל ל. פליישמן</h2>
-                <p>יואל ל. פליישמן (1934&ndash;2024) היה חוקר, עורך דין, מורה, חלוץ בתחום הפילנתרופיה ומנהיג קהילה יהודי, אשר הקדיש את חייו לשני ייעודים השזורים זה בזה: חיזוק החברה האזרחית האמריקאית ופתיחת החיים היהודיים, על כל רוחבם, לחיבור עמוק יותר. הוא משך דורות של תלמידים, עמיתים וחברים אל תוך המקורות, המסורות וחיי הקהילה היהודיים, מתוך אהבתו אליהם ואמונתו בהם. במשך למעלה מחמישה עשורים, יואל לימד באוניברסיטת דיוק, וייסד את מה שלימים הפך לבית הספר סנפורד למדיניות ציבורית. ספריו, ובהם <i>The Foundation: A Great American Secret</i>, נותרו יצירות מכוננות על אודות העשייה והאתיקה של הפילנתרופיה הפרטית.</p>
+            <h2>יואל ל. פליישמן</h2>
+            <p>יואל ל. פליישמן (1934&ndash;2024) היה חוקר, עורך דין, מורה, חלוץ בתחום הפילנתרופיה ומנהיג קהילה יהודי, אשר הקדיש את חייו לשני ייעודים השזורים זה בזה: חיזוק החברה האזרחית האמריקאית ופתיחת החיים היהודיים, על כל רוחבם, לחיבור עמוק יותר. הוא משך דורות של תלמידים, עמיתים וחברים אל תוך המקורות, המסורות וחיי הקהילה היהודיים, מתוך אהבתו אליהם ואמונתו בהם. במשך למעלה מחמישה עשורים, יואל לימד באוניברסיטת דיוק, וייסד את מה שלימים הפך לבית הספר סנפורד למדיניות ציבורית. ספריו, ובהם <i>The Foundation: A Great American Secret</i>, נותרו יצירות מכוננות על אודות העשייה והאתיקה של הפילנתרופיה הפרטית.</p>
 
-                <figure class="dedicationImage">
-                    <figcaption class="imageTitle">יואל ל. פליישמן</figcaption>
-                    <img src="/static/img/joel-fleishman.png" alt="יואל ל. פליישמן"/>
-                    <figcaption class="imageCredit">קרן א.מ. ורות ז. פליישמן</figcaption>
-                </figure>
+            <figure class="dedicationImage">
+                <figcaption class="imageTitle">יואל ל. פליישמן</figcaption>
+                <img src="{% static 'img/joel-fleishman.png' %}" alt="יואל ל. פליישמן"/>
+                <figcaption class="imageCredit">קרן א.מ. ורות ז. פליישמן</figcaption>
+            </figure>
 
-                <p>יואל האמין שחיים יהודיים עשירים מושרשים במקורות ובמנהגי המסורת. הוא טען כי אוצר התורה, התלמוד והפרשנות אינו שריד של העבר אלא מורה דרך חי לאתיקה, רוחניות ופעולה בהווה. הוא היה תלמיד מסור של הרב שמשון רפאל הירש, ושב אל פירושו על התורה מדי שבוע במשך למעלה מארבעה עשורים. הוא למד וקרא כמה וכמה עותקים של הפירוש, ובכל פעם רשם בקפידה על עותקיו את מחשבותיו שלו.</p>
+            <p>יואל האמין שחיים יהודיים עשירים מושרשים במקורות ובמנהגי המסורת. הוא טען כי אוצר התורה, התלמוד והפרשנות אינו שריד של העבר אלא מורה דרך חי לאתיקה, רוחניות ופעולה בהווה. הוא היה תלמיד מסור של הרב שמשון רפאל הירש, ושב אל פירושו על התורה מדי שבוע במשך למעלה מארבעה עשורים. הוא למד וקרא כמה וכמה עותקים של הפירוש, ובכל פעם רשם בקפידה על עותקיו את מחשבותיו שלו.</p>
 
-                <p>הקרן שהקים על שם הוריו נבנתה סביב מטרה מניעה אחת: להגדיל באופן משמעותי את שיעור היהודים המנהלים חיים מושרשים במסורת ובמקורות היהדות, במובן הרחב. ספריא מתכבדת להמשיך את מורשתו.</p>
-            </section>
+            <p>הקרן שהקים על שם הוריו נבנתה סביב מטרה מניעה אחת: להגדיל באופן משמעותי את שיעור היהודים המנהלים חיים מושרשים במסורת ובמקורות היהדות, במובן הרחב. ספריא מתכבדת להמשיך את מורשתו.</p>
         </div>
 
         <div class="section quotation dedicationQuote">
-            <a class="refLink" href="/Proverbs.3.18">
-                <span class="he">עֵץ-חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר׃</span>
-                <span class="int-en"><br>She is a tree of life to those who grasp her, and whoever holds on to her is happy.<br>Proverbs 3:18</span>
-                <span class="int-he"><br>משלי ג, יח</span>
-            </a>
+            <span class="he">עֵץ-חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר׃</span>
+            <span class="int-en"><br>She is a tree of life to those who grasp her, and whoever holds on to her is happy.<br><a class="refLink" href="/Proverbs.3.18">Proverbs 3:18</a></span>
+            <span class="int-he"><br><a class="refLink" href="/Proverbs.3.18">משלי ג, יח</a></span>
         </div>
 
     </div>
