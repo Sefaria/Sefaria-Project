@@ -116,7 +116,7 @@ def signal_and_reset_skip_counts(pathway):
         # Groups, worst-offender first then alphabetical, for stable & scannable output.
         groups = sorted(_skip_group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
-        header = "*[{}]* cache build skipped *{}* bad record(s)".format(pathway, total)
+        header = "*[{}]* skipped *{}* bad record(s)".format(pathway, total)
 
         # Detail (B): a bold group header, bulleted records, with the site's own pathway
         # noted only when it differs from the build pathway in the header.
