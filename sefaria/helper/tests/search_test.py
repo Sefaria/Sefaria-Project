@@ -30,6 +30,18 @@ def test_query_obj():
     assert ordered(t) == ordered(s.to_dict())
 
 
+def test_default_es_client_is_hardened():
+    from sefaria.helper.search import get_elasticsearch_client
+    es = get_elasticsearch_client()
+    # elasticsearch-py 8.x stores these on the client object
+    assert es._max_retries == 3, f"expected max_retries=3, got {es._max_retries}"
+    assert es._retry_on_timeout is True, f"expected retry_on_timeout=True, got {es._retry_on_timeout}"
+    assert es._request_timeout == 90, f"expected request_timeout=90, got {es._request_timeout}"
+    # http_compress is stored on each node's config
+    node = list(es.transport.node_pool.all())[0]
+    assert node.config.http_compress is True, f"expected http_compress=True, got {node.config.http_compress}"
+
+
 def ordered(obj):
     if isinstance(obj, dict):
         return sorted((str(k), ordered(v)) for k, v in list(obj.items()))

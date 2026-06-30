@@ -151,7 +151,15 @@ def make_filter(type, agg_type, agg_key):
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL
-    return Elasticsearch(SEARCH_URL)
+    # Hardened for index-management (alias swap, create/mapping) and sheet writes.
+    # Previously bare — a transient ES error during alias swap or sheet load would abort the whole reindex.
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=90,
+        retry_on_timeout=True,
+        max_retries=3,
+        http_compress=True,
+    )
 
 
 def get_elasticsearch_client_for_indexer():
