@@ -100,6 +100,10 @@
         font-size: 24px;
         font-family: var(--hebrew-serif-font-family);
     }
+    /* keep the citation link in the quote's serif (overrides the global sans link font) */
+    #hirschDedication .dedicationQuote .refLink {
+        font-family: inherit;
+    }
 {% endblock %}
 
 {% block content %}
