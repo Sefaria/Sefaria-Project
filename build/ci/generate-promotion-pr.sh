@@ -15,9 +15,17 @@ SOURCE="${1:?Usage: $0 <source-branch> <target-branch>}"
 TARGET="${2:?Usage: $0 <source-branch> <target-branch>}"
 TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M UTC')
 
-# Ensure both branches are available as remote refs.
+# Ensure both branches are available as up-to-date remote-tracking refs.
+# Use explicit refspecs (not bare branch names): a bare `git fetch origin <branch>` only
+# updates FETCH_HEAD, leaving refs/remotes/origin/<branch> stale or absent under
+# actions/checkout's narrowed fetch refspec. That makes `git show origin/<branch>:...`
+# read stale/missing content and silently yield an "unknown" rollback reference.
+# Forcing refs/heads/<branch>:refs/remotes/origin/<branch> guarantees origin/<branch>
+# points at the true remote tip for both the changelog and the rollback lookup.
 # Log a warning on failure but continue — git show/log will fail explicitly if refs are missing.
-if ! git fetch --no-tags origin "${TARGET}" "${SOURCE}" >/dev/null 2>&1; then
+if ! git fetch --no-tags --force origin \
+    "refs/heads/${TARGET}:refs/remotes/origin/${TARGET}" \
+    "refs/heads/${SOURCE}:refs/remotes/origin/${SOURCE}" >/dev/null 2>&1; then
   echo "WARNING: git fetch failed for origin/${TARGET} or origin/${SOURCE} — refs may be stale." >&2
 fi
 
@@ -37,19 +45,28 @@ if ! HELMRELEASE_CONTENT=$(git show "origin/${TARGET}:envs/${ENV_DIR}/helmreleas
   HELMRELEASE_CONTENT=""
 fi
 
-PREV_APP=$(echo "$HELMRELEASE_CONTENT" | python3 -c "
-import sys, re
-t = sys.stdin.read()
-m = re.search(r'containerImage:\s*\n\s*imageRegistry:[^\n]+\n\s*tag:\s*[\"\'']?([^\"\''\s]+)[\"\'']?', t)
-print(m.group(1) if m else 'unknown')
-" 2>&1) || PREV_APP="unknown"
-
-PREV_CHART=$(echo "$HELMRELEASE_CONTENT" | python3 -c "
-import sys, re
-t = sys.stdin.read()
-m = re.search(r'chart: sefaria\s*\n\s*version:\s*[\"\'']?([^\"\''\s]+)[\"\'']?', t)
-print(m.group(1) if m else 'unknown')
-" 2>&1) || PREV_CHART="unknown"
+# Extract the app image tag and chart version in one pass.
+# IMPORTANT: the Python source is written via a SINGLE-quoted heredoc ('PYEOF') so
+# bash performs NO substitution on the regex. The prior `python3 -c "..."` form was
+# double-quoted, so bash collapsed [\"\'']  →  ["\'']  inside the program text and
+# Python raised `SyntaxError: closing parenthesis ']' does not match` — caught by
+# `2>&1` and turned into "unknown", which is why every rollback reference showed
+# app=unknown, chart=unknown (e.g. promotion PR #3447). The YAML is passed through an
+# env var rather than escaped on the command line, avoiding a second quoting hazard.
+PARSE_PY=$(mktemp)
+cat > "$PARSE_PY" <<'PYEOF'
+import os, re
+t = os.environ.get("HELMRELEASE_CONTENT", "")
+app = re.search(r'containerImage:\s*\n\s*imageRegistry:[^\n]+\n\s*tag:\s*["\']?([^"\'\s]+)', t)
+chart = re.search(r'chart:\s+sefaria\s*\n\s*version:\s*["\']?([^"\'\s]+)', t)
+print(app.group(1) if app else "unknown", chart.group(1) if chart else "unknown")
+PYEOF
+VERSIONS=$(HELMRELEASE_CONTENT="$HELMRELEASE_CONTENT" python3 "$PARSE_PY" 2>&1) || VERSIONS="unknown unknown"
+rm -f "$PARSE_PY"
+PREV_APP="${VERSIONS%% *}"
+PREV_CHART="${VERSIONS##* }"
+PREV_APP="${PREV_APP:-unknown}"
+PREV_CHART="${PREV_CHART:-unknown}"
 
 if [[ "$PREV_APP" == "unknown" || "$PREV_CHART" == "unknown" ]]; then
   echo "WARNING: Could not determine rollback versions (app=${PREV_APP}, chart=${PREV_CHART}). Rollback reference in PR may be incomplete." >&2
@@ -174,10 +191,15 @@ PR_URL=$(gh pr create \
   --body-file "$PR_BODY" 2>"$GH_STDERR") || {
   stderr_content=$(cat "$GH_STDERR")
   if echo "$stderr_content" | grep -q "already exists"; then
-    PR_URL=$(gh pr view \
-      --repo "$(gh repo view --json nameWithOwner -q .nameWithOwner)" \
-      --json url -q .url \
+    # Resolve the existing PR by its SOURCE→TARGET branch pair — not the runner's
+    # current branch (a bare `gh pr view` would return the wrong PR's URL here).
+    PR_URL=$(gh pr list \
+      --base "${TARGET}" \
+      --head "${SOURCE}" \
+      --state open \
+      --json url --jq '.[0].url // empty' \
       2>/dev/null || echo "already exists")
+    PR_URL="${PR_URL:-already exists}"
     echo "PR already exists: ${PR_URL}"
   else
     echo "ERROR: gh pr create failed: $stderr_content" >&2
@@ -188,16 +210,20 @@ PR_URL=$(gh pr create \
 echo "PR: ${PR_URL}"
 
 # Export outputs for GitHub Actions.
-# Use heredoc delimiter for ai_summary to safely handle any embedded newlines.
+# Use a heredoc delimiter for ai_summary to safely handle embedded newlines.
+# The delimiter is randomized so a model-generated summary containing a bare
+# "EOF" line can't terminate the value early and inject extra output keys
+# (GitHub Actions output injection). Fall back to $RANDOM if openssl is absent.
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  AI_DELIM="ai_summary_$(openssl rand -hex 16 2>/dev/null || echo "${RANDOM}${RANDOM}${RANDOM}")"
   echo "pr_url=${PR_URL}"         >> "$GITHUB_OUTPUT"
   echo "total=${TOTAL}"           >> "$GITHUB_OUTPUT"
   echo "feat_count=${FEAT_COUNT}" >> "$GITHUB_OUTPUT"
   echo "fix_count=${FIX_COUNT}"   >> "$GITHUB_OUTPUT"
   {
-    echo "ai_summary<<EOF"
+    echo "ai_summary<<${AI_DELIM}"
     echo "$AI_SUMMARY"
-    echo "EOF"
+    echo "${AI_DELIM}"
   } >> "$GITHUB_OUTPUT"
   echo "prev_app=${PREV_APP}"     >> "$GITHUB_OUTPUT"
   echo "prev_chart=${PREV_CHART}" >> "$GITHUB_OUTPUT"
