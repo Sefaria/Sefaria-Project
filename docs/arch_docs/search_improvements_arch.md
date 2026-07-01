@@ -223,12 +223,14 @@ We need sample scripts to minimally populate a dev environment, as well as a scr
 
 ### Local development setup
 
-Running any indexing script from a fresh local checkout crashes with `ImportError: cannot import name 'SEARCH_INDEX_NAME_TOPIC' from sefaria.settings` unless those constants exist in `sefaria/local_settings.py`. The production `settings.py` defines them; the local dev override does not by default. Add to `local_settings.py` to unblock local indexing:
+Add these constants to `sefaria/local_settings.py` before running any indexing scripts:
 
 ```python
 SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 ```
+
+`settings.py` defines these for production, but `local_settings.py` does not include them by default. Without them, indexing scripts fail with `ImportError: cannot import name 'SEARCH_INDEX_NAME_TOPIC' from sefaria.settings`.
 
 ## Showing Result Counts While Results Load
 
