@@ -243,8 +243,8 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-          #      - name: setup helm
-          #        uses: azure/setup-helm@v3
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
       - name: Authenticate GHA Runner To Target Cluster
         uses: google-github-actions/get-gke-credentials@v2
         with:
