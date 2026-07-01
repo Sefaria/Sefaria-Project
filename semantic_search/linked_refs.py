@@ -1,7 +1,7 @@
 from collections import Counter
 from dataclasses import dataclass
 import statistics
-from typing import Protocol
+from typing import Callable
 
 from semantic_search.models import SemanticTextChunk
 
@@ -17,29 +17,17 @@ class LinkedRefEnhancement:
     threshold_method: str = "min_link_count"
 
 
-class LinkSource(Protocol):
-    def linked_refs_for(self, ref: str) -> list[str]:
-        ...
+def normalize_ref(ref: str) -> str:
+    from sefaria.model import Ref
 
-
-class RefNormalizer(Protocol):
-    def normalize_ref(self, ref: str) -> str:
-        ...
-
-
-class IdentityRefNormalizer:
-    def normalize_ref(self, ref: str) -> str:
+    try:
+        return Ref(ref).normal()
+    except Exception:
         return ref
 
 
-class MongoRefNormalizer:
-    def normalize_ref(self, ref: str) -> str:
-        from sefaria.model import Ref
-
-        try:
-            return Ref(ref).normal()
-        except Exception:
-            return ref
+def _identity_ref(ref: str) -> str:
+    return ref
 
 
 def _is_dictionary_oref(oref) -> bool:
@@ -52,31 +40,30 @@ def _is_dictionary_oref(oref) -> bool:
     return bool(categories & {"Dictionary", "Dictionaries", "Lexicon"})
 
 
-class MongoLinkSource:
-    def linked_refs_for(self, ref: str) -> list[str]:
-        from sefaria.model import LinkSet, Ref
+def linked_refs_for(ref: str) -> list[str]:
+    from sefaria.model import LinkSet, Ref
 
-        try:
-            oref = Ref(ref)
-        except Exception:
-            return []
+    try:
+        oref = Ref(ref)
+    except Exception:
+        return []
 
-        if _is_dictionary_oref(oref):
-            return []
+    if _is_dictionary_oref(oref):
+        return []
 
-        return [
-            linked_ref.normal()
-            for linked_ref in LinkSet(oref).refs_from(oref)
-            if not _is_dictionary_oref(linked_ref)
-        ]
+    return [
+        linked_ref.normal()
+        for linked_ref in LinkSet(oref).refs_from(oref)
+        if not _is_dictionary_oref(linked_ref)
+    ]
 
 
 def get_linked_ref_enhancements(
     chunks: list[SemanticTextChunk],
     link_depth: int = 1,
     min_link_count: int = 2,
-    link_source: LinkSource | None = None,
-    ref_normalizer: RefNormalizer | None = None,
+    linked_refs_for_func: Callable[[str], list[str]] | None = None,
+    normalize_ref_func: Callable[[str], str] | None = None,
 ) -> LinkedRefEnhancement:
     """
     Count refs linked from the semantic search result chunks via Mongo links,
@@ -88,8 +75,8 @@ def get_linked_ref_enhancements(
     counts = get_linked_ref_counts(
         chunks,
         link_depth=link_depth,
-        link_source=link_source,
-        ref_normalizer=ref_normalizer,
+        linked_refs_for_func=linked_refs_for_func,
+        normalize_ref_func=normalize_ref_func,
     )
     appended_refs = [
         ref
@@ -107,8 +94,8 @@ def get_mean_std_linked_ref_enhancements(
     link_depth: int = 1,
     std_threshold: float = 2,
     min_count: int = 3,
-    link_source: LinkSource | None = None,
-    ref_normalizer: RefNormalizer | None = None,
+    linked_refs_for_func: Callable[[str], list[str]] | None = None,
+    normalize_ref_func: Callable[[str], str] | None = None,
 ) -> LinkedRefEnhancement:
     if std_threshold <= 0 or min_count < 1:
         return LinkedRefEnhancement(
@@ -120,8 +107,8 @@ def get_mean_std_linked_ref_enhancements(
     counts = get_linked_ref_counts(
         chunks,
         link_depth=link_depth,
-        link_source=link_source,
-        ref_normalizer=ref_normalizer,
+        linked_refs_for_func=linked_refs_for_func,
+        normalize_ref_func=normalize_ref_func,
     )
     values = list(counts.values())
     if not values:
@@ -155,27 +142,27 @@ def get_mean_std_linked_ref_enhancements(
 def get_linked_ref_counts(
     chunks: list[SemanticTextChunk],
     link_depth: int = 1,
-    link_source: LinkSource | None = None,
-    ref_normalizer: RefNormalizer | None = None,
+    linked_refs_for_func: Callable[[str], list[str]] | None = None,
+    normalize_ref_func: Callable[[str], str] | None = None,
 ) -> Counter:
     if link_depth < 1:
         return Counter()
 
-    if link_source is None:
-        link_source = MongoLinkSource()
-        ref_normalizer = ref_normalizer or MongoRefNormalizer()
+    if linked_refs_for_func is None:
+        linked_refs_for_func = linked_refs_for
+        normalize_ref_func = normalize_ref_func or normalize_ref
     else:
-        ref_normalizer = ref_normalizer or IdentityRefNormalizer()
+        normalize_ref_func = normalize_ref_func or _identity_ref
 
-    def normalize_ref(ref: str) -> str:
-        return ref_normalizer.normalize_ref(ref) if ref else ""
+    def normalize(ref: str) -> str:
+        return normalize_ref_func(ref) if ref else ""
 
     original_refs = {
         normalized_ref
         for c in chunks
         for normalized_ref in (
-            normalize_ref(c.ref),
-            normalize_ref(getattr(c, "chunked_from_ref", "")),
+            normalize(c.ref),
+            normalize(getattr(c, "chunked_from_ref", "")),
         )
         if normalized_ref
     }
@@ -184,7 +171,7 @@ def get_linked_ref_counts(
     current_refs = []
     seen_current_refs = set()
     for chunk in chunks:
-        normalized_ref = normalize_ref(chunk.ref)
+        normalized_ref = normalize(chunk.ref)
         if normalized_ref and normalized_ref not in seen_current_refs:
             seen_current_refs.add(normalized_ref)
             current_refs.append(normalized_ref)
@@ -195,8 +182,8 @@ def get_linked_ref_counts(
             if not ref:
                 continue
             source_linked_refs = {
-                normalize_ref(linked_ref)
-                for linked_ref in link_source.linked_refs_for(ref)
+                normalize(linked_ref)
+                for linked_ref in linked_refs_for_func(ref)
             }
             for linked_ref in source_linked_refs:
                 if not linked_ref or linked_ref in original_refs:
