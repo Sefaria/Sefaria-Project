@@ -9,7 +9,7 @@ import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./common/ToggleSwitchLine";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
+    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, readingMode, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
     const menuRef = useRef(null);
 
     const onClose = () => {
@@ -88,6 +88,15 @@ const ReaderDisplayOptionsMenu = () => {
         setOption('vowels', newValue)
     };
 
+    const showReadingToggle = () => {
+        // Show reading toggle whenever vowels toggle is available (i.e., Hebrew text with nikud)
+        return showVowelsToggle();
+    };
+    const readingModeIsOn = !!readingMode;
+    const onReadingModeClick = () => {
+        setOption('readingMode', !readingModeIsOn);
+    };
+
     const showPunctuationToggle = () => {
         return  textsData?.primary_category === "Talmud" && showPrimary;
     };
@@ -160,6 +169,12 @@ const ReaderDisplayOptionsMenu = () => {
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
+                />}
+                {showReadingToggle() && <ToggleSwitchLine
+                    name={`readingMode${panelPosition}`}
+                    text="Reading"
+                    onChange={onReadingModeClick}
+                    isChecked={readingModeIsOn}
                 />}
                 {showPunctuationToggle() && <ToggleSwitchLine
                     name={`punctuation${panelPosition}`}
