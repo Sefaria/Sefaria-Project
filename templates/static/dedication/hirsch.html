@@ -9,6 +9,12 @@
     #hirschDedication .inner {
         padding-top: 124px;
     }
+    /* match the design's antialiased rendering (macOS defaults to the heavier
+       subpixel smoothing, which makes the Roboto body look bolder than Figma) */
+    #hirschDedication {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
     /* Serif, start-aligned, sentence-case headings (override default centered/uppercase static styles) */
     #hirschDedication h1 {
@@ -159,7 +165,7 @@
 
         <div class="section quotation dedicationQuote">
             <span class="he">עֵץ־חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר׃</span>
-            <span class="int-en">She is a tree of life to those who grasp her,<br>And whoever holds on to her is happy.<br><a class="refLink" href="/Proverbs.3.18">Proverbs 3:18</a></span>
+            <span class="int-en">She is a tree of life to those who grasp her,<br>and whoever holds on to her is happy.<br><a class="refLink" href="/Proverbs.3.18">Proverbs 3:18</a></span>
             <span class="int-he"><a class="refLink" href="/Proverbs.3.18">משלי ג, יח</a></span>
         </div>
 
