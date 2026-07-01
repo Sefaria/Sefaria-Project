@@ -110,3 +110,23 @@ class ComplexBookLevelRefError(InputError):
                         f"structure of a text on Sefaria, "
                         f"see: https://developers.sefaria.org/docs/the-structure-of-a-simple-text")
         super().__init__(self.message)
+
+
+# Exceptions that indicate a single corrupt/malformed DB record — as opposed to a
+# systemic failure (Mongo connectivity, import/programming errors). Per-record loops
+# at startup should catch THIS so one bad record is logged-and-skipped, while systemic
+# failures still abort the boot loudly instead of producing a silently half-built
+# library. `InputError` is the parent of the model-layer "bad data" family
+# (IndexSchemaError, BookNameError, SheetNotFoundError, DictionaryEntryNotFoundError,
+# etc.); the builtins cover poking at malformed Mongo docs (missing fields, None values,
+# bad indices).
+#
+# TypeError and AttributeError are deliberately EXCLUDED. Both are builtins whose dominant
+# cause is an ordinary code bug, not bad data: AttributeError fires on a renamed/removed
+# method, an attribute typo, or a None-that-should-be-an-object; TypeError fires on a
+# wrong-arity call or a non-callable. Catching them here would degrade a refactoring bug
+# from a loud boot crash into a per-record warning that fires on EVERY record, silently
+# building an incomplete library — a worse, invisible failure mode. The genuine bad-data
+# None cases they might catch should instead be handled at the source with explicit `or ""` /
+# `.get()` guards.
+BAD_RECORD_EXCEPTIONS = (InputError, KeyError, ValueError, IndexError)

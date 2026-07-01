@@ -31,6 +31,8 @@ import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
+from sefaria.helper.skip_tracking import log_skip, bad_record_guard
+skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -5027,19 +5029,25 @@ class Library(object):
 
         # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
         # simple texts
-        self._index_map = {i.title: i for i in IndexSet() if i.nodes}
+        # Build the map record-by-record so one corrupt Index (e.g. accessing .title/.nodes
+        # raises) logs and is skipped rather than aborting the whole rebuild.
+        self._index_map = {}
+        for i in IndexSet():
+            with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
+                if i.nodes:
+                    self._index_map[i.title] = i
         forest = [i.nodes for i in list(self._index_map.values())]
         self._title_node_maps = {lang: {} for lang in self.langs}
         self._index_title_maps = {lang:{} for lang in self.langs}
 
         for tree in forest:
-            try:
+            # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
+            # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
+            with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
                 for lang in self.langs:
                     tree_titles = tree.title_dict(lang)
                     self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                     self._title_node_maps[lang].update(tree_titles)
-            except IndexSchemaError as e:
-                logger.error("Error in generating title node dictionary: {}".format(e))
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5226,7 +5234,13 @@ class Library(object):
                                         # this variable will allow us to force all top level categories to have children
         if topic is None:
             ts = TopicSet({"isTopLevelDisplay": True})
-            children = [t.slug for t in ts]
+            # This top-level call is outside the per-child guard below, so build the
+            # top-level slug list record-by-record: one malformed top-level topic must
+            # not abort the whole topic-ToC build.
+            children = []
+            for t in ts:
+                with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic"):
+                    children.append(t.slug)
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
@@ -5242,9 +5256,12 @@ class Library(object):
             if child_topic is None:
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
-            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
+            # One corrupt child topic (e.g. missing title_group) must not abort the whole TOC build.
+            with skip_bad_record("reset_toc,startup", "topic TOC child", record=child):
+                topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
-            topic_json['children'].sort(key=lambda x: x['displayOrder'])
+            # A child topic missing 'displayOrder' must not abort startup; treat it as 0.
+            topic_json['children'].sort(key=lambda x: x.get('displayOrder', 0))
         if topic is None:
             return topic_json['children']
         return topic_json
@@ -5260,11 +5277,20 @@ class Library(object):
         topic_stack = [t for t in topic_toc]
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
-            if curr_topic['slug'] in discovered_slugs: continue
-            discovered_slugs.add(curr_topic['slug'])
+            # A topic-toc node missing 'slug' must not abort the mapping build.
+            curr_slug = curr_topic.get('slug')
+            if curr_slug is None:
+                log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "skipping topic-toc node with no slug.")
+                continue
+            if curr_slug in discovered_slugs: continue
+            discovered_slugs.add(curr_slug)
             for child_topic in curr_topic.get('children', []):
                 topic_stack += [child_topic]
-                topic_toc_category_mapping[child_topic['slug']] = curr_topic['slug']
+                child_slug = child_topic.get('slug')
+                if child_slug is None:
+                    log_skip(logger, "reset_toc,startup", "build_topic_toc_category_mapping", "child of '{}' has no slug; skipping mapping entry.".format(curr_slug))
+                    continue
+                topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
 
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
@@ -5673,13 +5699,15 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
-            self._full_term_mapping[term.name] = term
-            self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
-                                                    "he": term.get_primary_title("he")}
-            if hasattr(term, "ref"):
-                for lang in self.langs:
-                    for title in term.get_titles(lang):
-                        self._term_ref_maps[lang][title] = term.ref
+            # One term with a missing/corrupt title_group must not abort startup.
+            with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
+                self._full_term_mapping[term.name] = term
+                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                        "he": term.get_primary_title("he")}
+                if hasattr(term, "ref"):
+                    for lang in self.langs:
+                        for title in term.get_titles(lang):
+                            self._term_ref_maps[lang][title] = term.ref
 
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
@@ -5746,7 +5774,11 @@ class Library(object):
         :returns: topic map for the given slug Dictionary
         """
         from .topic import Topic, TopicSet
-        self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
+        # One topic with a missing/corrupt title_group must not abort startup.
+        self._topic_mapping = {}
+        for t in TopicSet():
+            with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
+                self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
 
     def get_linker(self, lang: str, rebuild=False):
@@ -5811,18 +5843,19 @@ class Library(object):
 
     def all_index_records(self):
         """
-        Returns an array of all index records
+        Returns an array of all index records.
+
+        `_index_title_maps` is keyed by each index's root node key (`nodes.key`), while
+        `_index_map` is keyed by index title. These normally coincide, but a single bad
+        record where `title != nodes.key` would otherwise raise KeyError here and abort
+        server startup. Skip-and-log instead so one corrupt index can't take down the boot.
         """
         records = []
         for k in list(self._index_title_maps["en"].keys()):
-            record = self._index_map.get(k)
-            if record is None:
-                # The title is present in the title-map but missing from the index-map,
-                # i.e. the two caches have drifted out of sync. Skip it rather than
-                # crashing callers (e.g. TOC build at startup), and log for investigation.
-                logger.warning("all_index_records: title '{}' found in title-map but missing from index-map; skipping".format(k))
-                continue
-            records.append(record)
+            # Deliberately narrow to KeyError (the title/nodes.key mismatch), not the full
+            # bad-record family — per the BAD_RECORD_EXCEPTIONS decision for this site.
+            with skip_bad_record("reset_toc,startup", "all_index_records key (title/nodes.key mismatch)", record=k, level="error", exceptions=KeyError):
+                records.append(self._index_map[k])
         return records
 
     def get_title_node_dict(self, lang="en"):
@@ -5991,7 +6024,12 @@ class Library(object):
         return self._virtual_books
 
     def build_virtual_books(self):
-        self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+        # Build record-by-record so one malformed dictionary index (e.g. accessing
+        # .title raises) is logged-and-skipped rather than aborting startup.
+        self._virtual_books = []
+        for index in IndexSet({'lexiconName': {'$exists': True}}):
+            with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
+                self._virtual_books.append(index.title)
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
