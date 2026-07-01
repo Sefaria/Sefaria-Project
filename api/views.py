@@ -167,6 +167,10 @@ _SEARCH_RESULT_FIELDS = (
     'ref', 'text', 'url', 'index_title', 'language', 'version_title',
     'primary_category', 'all_categories',
 )
+_LINKED_REF_ENHANCEMENT_LIMIT = 50
+_LINKED_REF_ENHANCEMENT_DEPTH = 1
+_LINKED_REF_ENHANCEMENT_STD_THRESHOLD = 2
+_LINKED_REF_ENHANCEMENT_MIN_COUNT = 3
 
 
 class KnnSearch(View):
@@ -179,24 +183,6 @@ class KnnSearch(View):
         value = body.get(name, default)
         if not isinstance(value, bool):
             raise ValueError(f"'{name}' must be a boolean")
-        return value
-
-    @staticmethod
-    def _positive_int_param(body, name, default):
-        value = body.get(name, default)
-        if not isinstance(value, int) or isinstance(value, bool):
-            raise ValueError(f"'{name}' must be an integer")
-        if value < 1:
-            raise ValueError(f"'{name}' must be greater than 0")
-        return value
-
-    @staticmethod
-    def _positive_number_param(body, name, default):
-        value = body.get(name, default)
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise ValueError(f"'{name}' must be a number")
-        if value <= 0:
-            raise ValueError(f"'{name}' must be greater than 0")
         return value
 
     def post(self, request):
@@ -232,13 +218,6 @@ class KnnSearch(View):
             include_linked_refs = self._bool_param(body, "include_linked_refs", False)
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
-        if include_linked_refs:
-            try:
-                linked_refs_depth = self._positive_int_param(body, "linked_refs_depth", 1)
-                linked_refs_std_threshold = self._positive_number_param(body, "linked_refs_std_threshold", 2)
-                linked_refs_min_count = self._positive_int_param(body, "linked_refs_min_count", 3)
-            except ValueError as e:
-                return jsonResponse({"error": str(e)}, status=400)
 
         from semantic_search.search import semantic_search
         from semantic_search.embedder import EmbeddingError
@@ -247,9 +226,11 @@ class KnnSearch(View):
             return jsonResponse({"error": "Semantic search is not configured"}, status=503)
 
         try:
-            results = semantic_search(query, filters=filters, limit=limit)
+            search_limit = max(limit, _LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else limit
+            search_results = semantic_search(query, filters=filters, limit=search_limit)
         except EmbeddingError as e:
             return jsonResponse({"error": str(e)}, status=502)
+        results = search_results[:limit]
 
         response = {
             "results": [
@@ -262,21 +243,13 @@ class KnnSearch(View):
             from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
 
             enhancement = get_mean_std_linked_ref_enhancements(
-                results,
-                link_depth=linked_refs_depth,
-                std_threshold=linked_refs_std_threshold,
-                min_count=linked_refs_min_count,
+                search_results[:_LINKED_REF_ENHANCEMENT_LIMIT],
+                link_depth=_LINKED_REF_ENHANCEMENT_DEPTH,
+                std_threshold=_LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
+                min_count=_LINKED_REF_ENHANCEMENT_MIN_COUNT,
             )
             response.update({
-                "appended_refs": enhancement.appended_refs,
-                "appended_ref_counts": enhancement.ref_counts,
-                "linked_refs_depth": linked_refs_depth,
-                "linked_refs_std_threshold": linked_refs_std_threshold,
-                "linked_refs_min_count": linked_refs_min_count,
-                "linked_ref_threshold_method": enhancement.threshold_method,
-                "linked_ref_count_mean": enhancement.mean_count,
-                "linked_ref_count_std": enhancement.std_count,
-                "linked_ref_count_threshold": enhancement.count_threshold,
+                "linked_refs": enhancement.appended_refs,
             })
 
         return jsonResponse(response)
