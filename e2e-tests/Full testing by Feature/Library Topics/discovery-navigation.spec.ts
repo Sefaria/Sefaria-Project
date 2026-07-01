@@ -26,14 +26,14 @@ test.describe('Library Topics — discovery & navigation', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('LIB-012: Related topics sidebar — links display and navigate', async () => {
+  test('LIB-012: Related topics sidebar — links display and navigate', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().open(LIB, SLUG);
     await pm.onLibraryTopic().expectSidebarHasRelatedSection(3);
     const { href } = await pm.onLibraryTopic().clickFirstRelatedTopic();
     await expect(page).toHaveURL(new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   });
 
-  test('LIB-013: Category line links to the topic-category page', async () => {
+  test('LIB-013: Category line links to the topic-category page', { tag: '@sanity' }, async () => {
     // The CSV row asks for a "Library > Topics > {Topic}" breadcrumb trail. The
     // Library topic page does not render that literal trail; instead the topic's
     // place in the hierarchy is the CATEGORY line (e.g. "Values" → /topics/category/values).
@@ -55,7 +55,7 @@ test.describe('Library Topics — discovery & navigation', () => {
     await expect(page).toHaveURL(new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   });
 
-  test('LIB-016: A–Z browse — letter pages load and alphabet links work', async () => {
+  test('LIB-016: A–Z browse — letter pages load and alphabet links work', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().openAllTopicsForLetter(LIB, 'a');
     await pm.onLibraryTopic().expectAllTopicsLetterPagePopulated(1);
     await pm.onLibraryTopic().clickAlphabetLetterAndExpectUrl('b');

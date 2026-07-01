@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { goToPageWithUser, hideAllModalsAndPopups, normalizeUrl, urlMatches, assertUrlMatches, assertStatusNotError } from "../utils";
-import { BROWSER_SETTINGS, t } from '../globals';
-import { MODULE_URLS } from '../constants';
+import { goToPageWithUser, hideAllModalsAndPopups, normalizeUrl, urlMatches, assertUrlMatches, assertStatusNotError } from "../../utils";
+import { BROWSER_SETTINGS, t } from '../../globals';
+import { MODULE_URLS } from '../../constants';
 
 test.describe('Cross-Module Redirects - Library to Voices', () => {
 
@@ -10,7 +10,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
   });
 
-  test('Settings Profile Redirect', async ({ page }) => {
+  test('XMOD-R01: Settings Profile Redirect', async ({ page }) => {
     // Navigate to settings/profile on library module
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -22,7 +22,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     expect(finalUrl).toContain('/settings/profile');
   });
 
-  test('Community Page Redirect', async ({ page }) => {
+  test('XMOD-R02: Community Page Redirect', async ({ page }) => {
     // Navigate to community on library module
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/community`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -33,7 +33,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/`, false);
   });
 
-  test('Collections Redirect', async ({ page }) => {
+  test('XMOD-R03: Collections Redirect', async ({ page }) => {
     // Navigate to collections on library module and capture response
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections`, { waitUntil: 'domcontentloaded' });
 
@@ -44,7 +44,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/collections`, true);
   });
 
-  test('Collections Redirect - Specific collection - Ignore Query Params', async ({ page }) => {
+  test('XMOD-R04: Collections Redirect - Specific collection - Ignore Query Params', async ({ page }) => {
     // Navigate to specific collection on library module
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections/-midrash-calendar`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -54,7 +54,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/collections/-midrash-calendar`, true);
   });
   // Probably Redundant with the below test
-  test('Profile Redirect ', async ({ page }) => {
+  test('XMOD-R05: Profile Redirect', async ({ page }) => {
     // Navigate to profile without user (logged in, so should redirect to user's profile)
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -67,7 +67,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     expect(finalUrl).toContain('/profile/');
   });
 
-  test('Profile Redirect - With User', async ({ page }) => {
+  test('XMOD-R06: Profile Redirect - With User', async ({ page }) => {
     // Navigate to specific user profile on library module
     const respone = await page.goto(`${MODULE_URLS.EN.LIBRARY}/profile/qa-automation`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -80,7 +80,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/profile/qa-automation`, true);
   });
 
-  test('Sheets Redirect - Get Started Page', async ({ page }) => {
+  test('XMOD-R07: Sheets Redirect - Get Started Page', async ({ page }) => {
     // Navigate to sheets base URL on library module
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -90,7 +90,7 @@ test.describe('Cross-Module Redirects - Library to Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/getstarted/`, false);
   });
 
-  test('Sheets Redirect - Specific Sheet ID', async ({ page }) => {
+  test('XMOD-R08: Sheets Redirect - Specific Sheet ID', async ({ page }) => {
     // Navigate to specific sheet on library module
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/sheets/510219`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -108,7 +108,7 @@ test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Pres
     await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
   });
 
-  test('Query Parameters Preserved', async ({ page }) => {
+  test('XMOD-R09: Query Parameters Preserved', async ({ page }) => {
     // Navigate with query parameters
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/settings/profile?tab=notifications&test=123`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -125,7 +125,7 @@ test.describe('Cross-Module Redirects (Library to voices) - Query Parameter Pres
     expect(finalUrlObj.searchParams.get('test')).toBe('123');
   });
 
-  test('Collections Query Parameters Preserved', async ({ page }) => {
+  test('XMOD-R10: Collections Query Parameters Preserved', async ({ page }) => {
     // Navigate with query parameters
     const response = await page.goto(`${MODULE_URLS.EN.LIBRARY}/collections?sort=recent`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -143,7 +143,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
     await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
   });
 
-  test('Settings Profile Returns 301 Permanent Redirect', async ({ page }) => {
+  test('XMOD-R11: Settings Profile Returns 301 Permanent Redirect', async ({ page }) => {
     // Listen for response to check status code
     let redirectStatusCode: number | null = null;
     page.on('response', response => {
@@ -159,7 +159,7 @@ test.describe('Cross-Module Redirects (Library to vouces) - 301 Status Codes', (
     expect(redirectStatusCode).toBe(301);
   });
 
-  test('Community Returns 301 Permanent Redirect', async ({ page }) => {
+  test('XMOD-R12: Community Returns 301 Permanent Redirect', async ({ page }) => {
     // Listen for response to check status code
     let redirectStatusCode: number | null = null;
     page.on('response', response => {
@@ -185,7 +185,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     await goToPageWithUser(context, `${MODULE_URLS.EN.VOICES}`, BROWSER_SETTINGS.enUser);
   });
 
-  test('No Redirect When Already on Voices - Settings Profile', async ({ page }) => {
+  test('XMOD-R13: No Redirect When Already on Voices - Settings Profile', async ({ page }) => {
     // Navigate to settings/profile already on voices module
     const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/profile`, { waitUntil: 'domcontentloaded' });
     // Verify we didn't get a 404 (or similar)
@@ -196,7 +196,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     expect(finalUrl).toContain('/settings/profile');
   });
 
-  test('No Redirect When Already on Voices - Home', async ({ page }) => {
+  test('XMOD-R14: No Redirect When Already on Voices - Home', async ({ page }) => {
     // Navigate to voices home
     await page.goto(`${MODULE_URLS.EN.VOICES}`, { waitUntil: 'domcontentloaded' });
     await hideAllModalsAndPopups(page);
@@ -206,7 +206,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/`, false);
   });
 
-  test('No Redirect When Already on Voices - Get Started Page', async ({ page }) => {
+  test('XMOD-R15: No Redirect When Already on Voices - Get Started Page', async ({ page }) => {
     // Navigate to sheets on voices module
     await page.goto(`${MODULE_URLS.EN.VOICES}/sheets`, { waitUntil: 'domcontentloaded' });
 
@@ -215,7 +215,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/getstarted/`, false);
   });
 
-  test('No Redirect When Already on Voices - Specific Sheet', async ({ page }) => {
+  test('XMOD-R16: No Redirect When Already on Voices - Specific Sheet', async ({ page }) => {
     // Navigate to specific sheet on voices module
     await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/510219`, { waitUntil: 'domcontentloaded' });
 
@@ -224,7 +224,7 @@ test.describe('Voices-Module Redirects - No Redirect Loops on Voices', () => {
     assertUrlMatches(finalUrl, `${MODULE_URLS.EN.VOICES}/sheets/510219`, true);
   });
 
-  test('Settings Account Returns 404 on Voices', async ({ page }) => {
+  test('XMOD-R17: Settings Account Returns 404 on Voices', async ({ page }) => {
     // Navigate to settings/account (should 404 per CSV line 12)
     const response = await page.goto(`${MODULE_URLS.EN.VOICES}/settings/account`, { waitUntil: 'domcontentloaded' });
 

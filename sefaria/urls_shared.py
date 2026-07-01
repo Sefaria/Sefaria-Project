@@ -9,6 +9,7 @@ import api.views as api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
+import powered_by.views as powered_by_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -243,6 +244,7 @@ shared_patterns = [
     re_path(r'^api/text-upload$', sefaria_views.text_upload_api),
     re_path(r'^api/linker-track$', sefaria_views.linker_tracking_api),
     re_path(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
+    re_path(r'^api/powered-by/?$', powered_by_views.powered_by_api),
     re_path(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     re_path(r'^admin/reset/cache$', sefaria_views.reset_cache),
     re_path(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),

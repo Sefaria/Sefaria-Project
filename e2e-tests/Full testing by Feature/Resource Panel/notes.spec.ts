@@ -59,7 +59,7 @@ test.describe('Resource Panel — Notes — Logged in', () => {
     await pm.onResourcePanel().openNotes();
   });
 
-  test('RP-121: A new note is saved and appears in My Notes for the segment', async () => {
+  test('RP-121: A new note is saved and appears in My Notes for the segment', { tag: '@sanity' }, async () => {
     const text = `${noteMarker()} RP-121 add`;
     await pm.onResourcePanel().addNote(text);
     await pm.onResourcePanel().expectNoteInMyNotes(text);
