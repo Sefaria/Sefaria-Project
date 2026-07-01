@@ -1,0 +1,103 @@
+{
+  "ModuleSwitcherPopover": {
+    "Looking for something?": "חיפשתם משהו?",
+    "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
+    "Learn More": "למידע נוסף",
+    "Got it!": "הבנתי, תודה!"
+  },
+  "AddConnectionBox": {
+    "Select Type": "בחר סוג קישור",
+    "None": "ללא",
+    "Commentary": "פירוש",
+    "Quotation": "ציטוט",
+    "Midrash": "מדרש",
+    "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
+    "Mesorat HaShas": "מסורת הש\"ס",
+    "Reference": "עיון",
+    "Related Passage": "קשר אחר"
+  },
+  "SheetAuthorStatement": {
+    "by ": ""
+  },
+  "EditorSaveIndicator": {
+    "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
+    "Saving…": "שומר...",
+    "Saved": "נשמר",
+    "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+    "Trying to connect…": "ניסיון התחברות...",
+    "No internet connection detected": "לא זוהה חיבור לאינטרנט",
+    "User Logged out": "בוצעה התנתקות מהמערכת",
+    "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
+    "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
+    "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
+  },
+  "AboutParashah": {
+    "Torah Reading": "פרשת השבוע"
+  },
+  "ConnectionPanelSection": {
+    "Related Texts": "מקורות לעיון",
+    "Resources": "עזרים",
+    "Tools": "כלים",
+    "Share Link": "שיתוף קישור",
+    "More Options": "אפשרויות נוספות"
+  },
+  "FollowButton": {
+    "Follow": "עקבו",
+    "Unfollow": "הסרת עוקב",
+    "Following": "עוקב",
+    "Follow Back": "עקבו בחזרה"
+  },
+  "DownloadVersions": {
+    "Select Format": "בחירת פורמט הורדה",
+    "Text (with Tags)": "טקסט (עם תיוגים)",
+    "Text (without Tags)": "טקסט (ללא תיוגים)",
+    "Select Version": "בחירת מהדורה/תרגום",
+    "Merged Version": "גרסה משולבת"
+  },
+  "FilterableList": {
+    "Alphabetical": "אלפביתי",
+    "Recent": "הכי חדש",
+    "Views": "הכי נצפה"
+  },
+  "Header": {
+    "Texts": "מקורות"
+  },
+  "RecentlyPublished": {
+    "Load More": "דפי מקורות נוספים"
+  },
+  "ResourcesModule": {
+    "Resources": "כלי עזר"
+  },
+  "SearchFilters": {
+    "Collections": "באסופות",
+    "See More": "עוד"
+  },
+  "CalendarListing": {
+    "Tanakh": "",
+    "Talmud": ""
+  },
+  "Sheet Share": {
+    "View": "לצפות",
+    "Add": "להוסיף",
+    "Edit": "לערוך"
+  },
+  "WebPageList": {},
+  "Guide": {
+    "Show guide": "הצג מדריך",
+    "Previous card": "הכרטיס הקודם",
+    "Next card": "הכרטיס הבא",
+    "Previous": "הקודם",
+    "Next": "הבא",
+    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+    "of": "מתוך",
+    "Loading guide...": "טוען מדריך..."
+  },
+  "GuideBox": {
+    "Guided Learning": "מדריך למידה"
+  },
+  "AiInfoTooltip": {
+    "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
+    "Some of the text on this page has been AI generated.": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
+    "Learn More": "לפרטים נוספים"
+  }
+}

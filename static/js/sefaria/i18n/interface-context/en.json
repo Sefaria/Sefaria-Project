@@ -1,0 +1,103 @@
+{
+  "ModuleSwitcherPopover": {
+    "Looking for something?": "Looking for something?",
+    "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.",
+    "Learn More": "Learn More",
+    "Got it!": "Got it!"
+  },
+  "AddConnectionBox": {
+    "Select Type": "Select Type",
+    "None": "None",
+    "Commentary": "Commentary",
+    "Quotation": "Quotation",
+    "Midrash": "Midrash",
+    "Ein Mishpat / Ner Mitsvah": "Ein Mishpat / Ner Mitsvah",
+    "Mesorat HaShas": "Mesorat HaShas",
+    "Reference": "Reference",
+    "Related Passage": "Related Passage"
+  },
+  "SheetAuthorStatement": {
+    "by ": "by "
+  },
+  "EditorSaveIndicator": {
+    "Your sheet is saved to Sefaria": "Your sheet is saved to Sefaria",
+    "Saving…": "Saving…",
+    "Saved": "Saved",
+    "We are saving your changes to Sefaria": "We are saving your changes to Sefaria",
+    "Trying to connect…": "Trying to connect…",
+    "No internet connection detected": "No internet connection detected",
+    "User Logged out": "User Logged out",
+    "You are not logged in to Sefaria": "You are not logged in to Sefaria",
+    "Something went wrong. Try refreshing the page.": "Something went wrong. Try refreshing the page.",
+    "If this problem persists, please try again later and contact us at hello@sefaria.org": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+  },
+  "AboutParashah": {
+    "Torah Reading": "Torah Reading"
+  },
+  "ConnectionPanelSection": {
+    "Related Texts": "Related Texts",
+    "Resources": "Resources",
+    "Tools": "Tools",
+    "Share Link": "Share Link",
+    "More Options": "More Options"
+  },
+  "FollowButton": {
+    "Follow": "Follow",
+    "Unfollow": "Unfollow",
+    "Following": "Following",
+    "Follow Back": "Follow Back"
+  },
+  "DownloadVersions": {
+    "Select Format": "Select Format",
+    "Text (with Tags)": "Text (with Tags)",
+    "Text (without Tags)": "Text (without Tags)",
+    "Select Version": "Select Version",
+    "Merged Version": "Merged Version"
+  },
+  "FilterableList": {
+    "Alphabetical": "Alphabetical",
+    "Recent": "Recent",
+    "Views": "Views"
+  },
+  "Header": {
+    "Texts": "Texts"
+  },
+  "RecentlyPublished": {
+    "Load More": "Load More"
+  },
+  "ResourcesModule": {
+    "Resources": "Resources"
+  },
+  "SearchFilters": {
+    "Collections": "Collections",
+    "See More": "See More"
+  },
+  "CalendarListing": {
+    "Tanakh": "Tanakh",
+    "Talmud": "Talmud"
+  },
+  "Sheet Share": {
+    "View": "View",
+    "Add": "Add",
+    "Edit": "Edit"
+  },
+  "WebPageList": {},
+  "Guide": {
+    "Show guide": "Show guide",
+    "Previous card": "Previous card",
+    "Next card": "Next card",
+    "Previous": "Previous",
+    "Next": "Next",
+    "Your browser does not support the video tag.": "Your browser does not support the video tag.",
+    "of": "of",
+    "Loading guide...": "Loading guide..."
+  },
+  "GuideBox": {
+    "Guided Learning": "Guided Learning"
+  },
+  "AiInfoTooltip": {
+    "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.",
+    "Some of the text on this page has been AI generated.": "Some of the text on this page has been AI generated.",
+    "Learn More": "Learn More"
+  }
+}
