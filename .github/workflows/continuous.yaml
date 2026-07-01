@@ -255,6 +255,7 @@ jobs:
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
           BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
