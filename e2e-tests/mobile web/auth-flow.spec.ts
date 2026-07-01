@@ -61,7 +61,7 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', async () => {
+  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
     // Form is rendered with both fields and the Login submit button.
     await expect(page.getByPlaceholder('Email Address')).toBeVisible({
@@ -75,7 +75,7 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     });
   });
 
-  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', async () => {
+  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
     const forgotLink = page.getByRole('link', { name: /Forgot your password\?/i });
@@ -99,10 +99,10 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     ).toBeVisible({ timeout: t(10000) });
   });
 
-  test('HAM-A003: From login, "Create a new account" navigates to register; back button returns to login', async () => {
+  test('HAM-A003: From login, "Sign Up" navigates to register; back button returns to login', async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
-    const createLink = page.getByRole('link', { name: /Create a new account/i });
+    const createLink = page.getByRole('link', { name: /Sign Up/i });
     await expect(createLink).toBeVisible({ timeout: t(5000) });
     await createLink.tap();
     await page.waitForLoadState('domcontentloaded');

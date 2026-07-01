@@ -27,6 +27,7 @@
 *.log
 *.sql
 *.sqlite
+*.db
 
 # OS generated files #
 ######################
@@ -65,6 +66,7 @@ node_modules
 .cursor/
 .claude/
 CLAUDE.md
+!e2e-tests/CLAUDE.md
 
 # pystest cache #
 #####################
@@ -157,3 +159,4 @@ env/*
 dump/*
 .env
 static_collected/*
+scripts/debug_cache/

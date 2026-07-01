@@ -1199,7 +1199,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const path = decodeURI(url.pathname);
     const ref = path.slice(1).replace(/%3F/g, '?');
-    return {path, ref};
+    return {path, ref, search: url.search};
   }
   bootstrapUrl(href, options) {
     if (this.shouldAlertBeforeCloseEditor()) {
@@ -1208,13 +1208,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       }
     }
     const opts = options || {};
-    const {path, ref} = this._getPathAndRefFromUrl(href);
+    const result = this._getPathAndRefFromUrl(href);
+    if (!result) { return false; }
+    const {path, ref, search} = result;
     if (Sefaria.isRef(ref)) {
       // Route bot refs through the same path as Header search ref navigation.
       this.handleNavigationClick(Sefaria.humanRef(ref), null, {replaceHistory: opts.replaceHistory});
       return true;
     }
-    return this.openURL(path + url.search, true);
+    return this.openURL(path + search, true);
   }
 
   updateModuleLinkHref(link) {
@@ -1762,9 +1764,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
-  }
-  setDivineNameReplacement(mode) {
-    this.setState({divineNameReplacement: mode})
   }
   setConnectionsFilter(n, filter, updateRecent) {
     // Set the filter for connections panel at `n`, carry data onto the panel's basetext as well.
@@ -2409,8 +2408,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
-                      divineNameReplacement={this.state.divineNameReplacement}
-                      setDivineNameReplacement={this.setDivineNameReplacement}
                       topicTestVersion={this.props.topicTestVersion}
                       openTopic={this.openTopic}
                       editorSaveState={this.state.editorSaveState}
@@ -2440,8 +2437,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && this.props.interfaceLang === "english" && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && Sefaria.interfaceLang === "english" && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2455,7 +2452,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && <ChatbotExperimentBanner promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls} />}
+              {showChatbotBanner && (
+                <ChatbotExperimentBanner
+                  promoLearnMoreUrls={this.props.chatbot_promo_learn_more_urls}
+                  promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
+                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
+                />
+              )}
               <main id="main" role="main">
                 <div className="panelContainer">
                   {panels}

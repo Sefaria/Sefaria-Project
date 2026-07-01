@@ -6,8 +6,18 @@ name: "Promotion Gate"
 # settings for preprod and prod — PRs cannot merge without this passing.
 #
 # Allowed paths:
-#   preprod ← master, hotfix/*
-#   prod    ← preprod, hotfix/*
+#   preprod ← master, hotfix/* (preferred hotfix path), prod (reverse back-merge)
+#   prod    ← preprod, hotfix/* (BREAK-GLASS — emergencies only)
+#
+# Hotfix policy: ship hotfixes via hotfix/* → preprod → prod, the same gate as
+# everything else. hotfix/* → prod stays allowed as a break-glass path for true
+# emergencies (and is the case the reverse back-merge below cleans up), but it
+# is not the default — the gate warns when it is used.
+#
+# The reverse back-merge prod → preprod propagates a hotfix that landed
+# directly on prod back down the chain. preprod → master is not gated here
+# (master is not in the branch list below, and gating it would block every
+# feature → master PR), so the second back-merge hop needs no gate change.
 #
 # Who can approve merges is controlled by GitHub environment reviewers
 # on the "promote-preprod" and "promote-prod" environments, not here.
@@ -37,20 +47,28 @@ jobs:
             exit 1
           fi
 
-          # hotfix/* branches are allowed into both preprod and prod
+          # hotfix/* branches: preprod is the preferred path; prod is break-glass.
           if [[ "$SOURCE" == hotfix/* ]]; then
-            echo "✅ $TARGET ← $SOURCE: hotfix branch allowed"
+            if [[ "$TARGET" == "prod" ]]; then
+              echo "⚠️ $TARGET ← $SOURCE: hotfix → prod is a BREAK-GLASS path (emergencies only)."
+              echo "   Prefer hotfix/* → preprod → prod. After a direct prod hotfix, run the"
+              echo "   reverse back-merge (prod → preprod → master) so environments don't diverge."
+            else
+              echo "✅ $TARGET ← $SOURCE: hotfix → preprod (preferred hotfix path)"
+            fi
             exit 0
           fi
 
           if [[ "$TARGET" == "preprod" ]]; then
             if [[ "$SOURCE" == "master" ]]; then
               echo "✅ preprod ← master: allowed"
+            elif [[ "$SOURCE" == "prod" ]]; then
+              echo "✅ preprod ← prod: reverse back-merge allowed"
             else
-              echo "❌ BLOCKED: preprod only accepts PRs from master or hotfix/*"
+              echo "❌ BLOCKED: preprod only accepts PRs from master, prod, or hotfix/*"
               echo ""
               echo "  Got: $SOURCE → preprod"
-              echo "  Expected: master → preprod (or hotfix/* → preprod)"
+              echo "  Expected: master → preprod, prod → preprod (back-merge), or hotfix/* → preprod"
               exit 1
             fi
 

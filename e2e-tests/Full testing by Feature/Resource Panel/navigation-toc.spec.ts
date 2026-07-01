@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -18,12 +18,11 @@ test.describe('Resource Panel — Navigation (TOC) — English', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-020: TOC opens with the full book hierarchy', async () => {
+  test('RP-020: TOC opens with the full book hierarchy', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().openTOC();
     // At least one section link must be rendered.
     const links = page.locator('.connectionsPanel .textTableOfContents a, .connectionsPanel .tocContent a');
@@ -64,11 +63,10 @@ test.describe('Resource Panel — Navigation (TOC) — Hebrew', () => {
     // reliable as an entry point.
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.HE);
     pm = new PageManager(page, LANGUAGES.HE);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
   });
 
-  test('RP-023: Hebrew TOC renders the book hierarchy with the Hebrew interface', async () => {
+  test('RP-023: Hebrew TOC renders the book hierarchy with the Hebrew interface', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().openTOC();
     const tocLinks = page.locator('.connectionsPanel .textTableOfContents a, .connectionsPanel .tocContent a');

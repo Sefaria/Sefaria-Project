@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -29,7 +29,6 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     // The lexicon auto-trigger condition requires `srefs.length === 1`, i.e.
     // the panel must be open against a single segment before the selection
@@ -37,7 +36,7 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-050: Selecting 1 Hebrew word auto-opens the Lexicon with definitions', async () => {
+  test('RP-050: Selecting 1 Hebrew word auto-opens the Lexicon with definitions', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().selectHebrewWordInMainReader();
     await pm.onResourcePanel().expectLexiconOpen();
     await pm.onResourcePanel().expectLexiconHasResults();
@@ -77,11 +76,15 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
 
   test('RP-056: Manual lexicon search rejects non-Hebrew input with an invalid-entry message', async () => {
     await pm.onResourcePanel().openLexiconManual();
-    await pm.onResourcePanel().typeInLexiconSearch('xqzqz1234');
-    const invalidMessage = page.locator(
-      '.connectionsPanel :text-matches("Invalid entry", "i")'
-    ).first();
-    await expect(invalidMessage).toBeVisible({ timeout: t(10000) });
+    // The "Invalid entry" rejection lives in the jQuery UI autocomplete
+    // dropdown (DictionarySearch.jsx:106), surfaced by the 330ms polling loop
+    // as the user types. Do NOT submit: Enter would close that dropdown
+    // (line 132) and the message could vanish before assertion. The matcher
+    // (expectInvalidLexiconEntry) scopes to the widget's own class rather than
+    // `.connectionsPanel`, so it holds even on builds where jQuery mounts the
+    // dropdown on <body>.
+    await pm.onResourcePanel().typeInLexiconSearch('xqzqz1234', false);
+    await pm.onResourcePanel().expectInvalidLexiconEntry();
   });
 
   test('RP-057: Clearing the selection returns the panel to Resources mode', async () => {
@@ -116,7 +119,6 @@ test.describe('Resource Panel — Lexicon — named entity', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Berakhot.2a`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
   });
 

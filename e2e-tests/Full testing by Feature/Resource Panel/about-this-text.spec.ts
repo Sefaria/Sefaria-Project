@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -36,13 +36,12 @@ test.describe('Resource Panel — About This Text — English', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().openAbout();
   });
 
-  test('RP-030: About shows text metadata — title and description', async () => {
+  test('RP-030: About shows text metadata — title and description', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().expectAboutTitle();
     await pm.onResourcePanel().expectAboutDescription();
   });
@@ -75,7 +74,6 @@ test.describe('Resource Panel — About This Text — Author link', () => {
     // against production on 2026-05-12.
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Rashi_on_Genesis.1.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
     await pm.onResourcePanel().clickFirstSegmentToOpen();
     await pm.onResourcePanel().openAbout();

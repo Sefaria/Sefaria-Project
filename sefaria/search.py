@@ -756,11 +756,13 @@ class TextIndexer(object):
                 if rolled_back:
                     vcount -= rolled_back
                     failed += rolled_back
-        
+
+            if idx_count % 100 == 0:
+                elapsed_so_far = datetime.now() - start_time
+                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+
         elapsed = datetime.now() - start_time
-        # Only log if there are failures or skips
-        if failed > 0 or skipped > 0:
-            logger.debug(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
