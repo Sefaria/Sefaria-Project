@@ -213,7 +213,7 @@ class KnnSearch(View):
         return serialized
 
     @staticmethod
-    def _linked_ref_text(ref):
+    def _ref_text(ref):
         try:
             text = Ref(ref).text(lang="en").as_string()
             if text:
@@ -226,7 +226,7 @@ class KnnSearch(View):
     def _serialize_linked_ref(cls, ref, include_text):
         serialized = {"ref": ref}
         if include_text:
-            serialized["text"] = cls._linked_ref_text(ref)
+            serialized["text"] = cls._ref_text(ref)
         return serialized
 
     def post(self, request):
