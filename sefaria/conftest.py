@@ -26,7 +26,10 @@ def pytest_configure(config):
     from django.conf import settings as _dj_settings
     from django.db import connections as _dj_connections
     _dj_settings.DATABASES.pop("vector_db", None)
-    # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
+    _dj_settings.DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
     _dj_connections.__dict__.pop("settings", None)
 
 
