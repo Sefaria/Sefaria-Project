@@ -229,6 +229,16 @@ class KnnSearch(View):
             serialized["text"] = cls._ref_text(ref)
         return serialized
 
+    @staticmethod
+    def _top_linked_refs(enhancement, limit):
+        return [
+            ref
+            for ref, _ in sorted(
+                enhancement.ref_counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )[:limit]
+        ]
+
     def post(self, request):
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
@@ -300,10 +310,11 @@ class KnnSearch(View):
                 std_threshold=_LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
                 min_count=_LINKED_REF_ENHANCEMENT_MIN_COUNT,
             )
+            top_linked_refs = self._top_linked_refs(enhancement, linked_ref_limit)
             response.update({
                 "linked_refs": [
                     self._serialize_linked_ref(ref, include_text)
-                    for ref in enhancement.appended_refs[:linked_ref_limit]
+                    for ref in top_linked_refs
                 ],
             })
 
