@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 set -x
 
 echo "Waiting for the test job to finish"
@@ -8,7 +7,11 @@ echo "GitHub Run ID $GITHUB_RUN_ID"
 LABEL="ci-run=$GITHUB_RUN_ID,test-name=${TEST_NAME:-pytest}"
 
 while true; do
-    STATUS=$(kubectl get job -l "$LABEL" -o json)
+    STATUS=$(kubectl get job -l "$LABEL" -o json 2>/dev/null) || {
+        echo "kubectl unreachable, retrying in 30s..."
+        sleep 30
+        continue
+    }
     SUCCEEDED=$(echo "$STATUS" | jq -r '.items[0].status.succeeded // 0')
     FAILED=$(echo "$STATUS" | jq -r '.items[0].status.failed // 0')
 
