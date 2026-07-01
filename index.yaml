@@ -932,6 +932,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.13-featurereverse-promotion-backmerge.1.tgz
     version: 0.85.13-featurereverse-promotion-backmerge.1
   - apiVersion: v2
+    appVersion: v6.102.9
+    created: "2026-07-01T09:41:11.116815234Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 81e1fd75a6a7270dc75de1f392247a5aa1e9dd28eb6676c39f496517e887bbde
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.85.13-arch-docs.1.tgz
+    version: 0.85.13-arch-docs.1
+  - apiVersion: v2
     appVersion: v6.101.20
     created: "2026-06-22T06:51:02.71664502Z"
     description: Chart to deploy complete Sefaria environment
@@ -18630,4 +18645,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-06-30T10:37:43.73682134Z"
+generated: "2026-07-01T09:41:11.113954498Z"
