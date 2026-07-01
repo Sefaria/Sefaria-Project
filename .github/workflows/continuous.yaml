@@ -243,8 +243,8 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
+          #      - name: setup helm
+          #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
         uses: google-github-actions/get-gke-credentials@v2
         with:
@@ -255,7 +255,6 @@ jobs:
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
-          USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
           BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
