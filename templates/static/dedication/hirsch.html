@@ -5,9 +5,9 @@
 {% block meta_title %}{% meta_title %}{% if request.interfaceLang == "hebrew" %}רש"ר הירש על התורה | מוקדש לזכרו של יואל ל. פליישמן{% else %}Rav Hirsch on Torah | Dedicated in memory of Joel L. Fleishman{% endif %}{% endmeta_title %}{% endblock %}
 
 {% block css %}
-    /* clear the 60px fixed site header, then Figma's 64px header-to-title gap */
+    /* clear the 60px fixed site header, then the 48px header-to-title gap */
     #hirschDedication .inner {
-        padding-top: 124px;
+        padding-top: 108px;
     }
     /* match the design's antialiased rendering (macOS defaults to the heavier
        subpixel smoothing, which makes the Roboto body look bolder than Figma) */
@@ -114,8 +114,10 @@
         font-size: 24px;
         font-family: var(--hebrew-serif-font-family);
     }
-    /* keep the citation link in the quote's serif (overrides the global sans link font) */
+    /* citation source on its own line, 16px below the quote, in the quote's serif */
     #hirschDedication .dedicationQuote .refLink {
+        display: block;
+        margin-top: 16px;
         font-family: inherit;
     }
 {% endblock %}
@@ -166,7 +168,7 @@
 
         <div class="section quotation dedicationQuote">
             <span class="he">עֵץ־חַיִּים הִיא לַמַּחֲזִיקִים בָּהּ וְתֹמְכֶיהָ מְאֻשָּׁר׃</span>
-            <span class="int-en">She is a tree of life to those who grasp her,<br>and whoever holds on to her is happy.<br><a class="refLink" href="/Proverbs.3.18">Proverbs 3:18</a></span>
+            <span class="int-en">She is a tree of life to those who grasp her,<br>and whoever holds on to her is happy.<a class="refLink" href="/Proverbs.3.18">Proverbs 3:18</a></span>
             <span class="int-he"><a class="refLink" href="/Proverbs.3.18">משלי ג, יח</a></span>
         </div>
 
