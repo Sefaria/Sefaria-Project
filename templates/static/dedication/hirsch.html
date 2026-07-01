@@ -5,8 +5,9 @@
 {% block meta_title %}{% meta_title %}{% if request.interfaceLang == "hebrew" %}רש"ר הירש על התורה | מוקדש לזכרו של יואל ל. פליישמן{% else %}Rav Hirsch on Torah | Dedicated in memory of Joel L. Fleishman{% endif %}{% endmeta_title %}{% endblock %}
 
 {% block css %}
+    /* clear the 60px fixed site header, then Figma's 64px header-to-title gap */
     #hirschDedication .inner {
-        padding-top: 60px;
+        padding-top: 124px;
     }
 
     /* Serif, start-aligned, sentence-case headings (override default centered/uppercase static styles) */
