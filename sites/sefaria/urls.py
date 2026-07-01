@@ -72,7 +72,7 @@ site_urlpatterns = [
     re_path(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),
     re_path(r'^llms\.txt/?$', reader_views.serve_llms_txt),
     re_path(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
-    re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
+    re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static, {"by_lang": True}),
     re_path(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),

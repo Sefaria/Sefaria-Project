@@ -3505,7 +3505,7 @@ form.globalUpdateForm + div.notificationsList {
 .interface-hebrew #aboutPage h1, .interface-hebrew #teamPage h2, .interface-hebrew #testimonialsPage h1 {
   text-align: right;
 }
-#aboutSidebar.annualreport h1 {
+#aboutSidebar.link-to-annual-report h1 {
   margin-left: 50px;
 }
 
@@ -3579,8 +3579,8 @@ form.globalUpdateForm + div.notificationsList {
   display: none;
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
-#supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, 
-#privacy.selected, #products.selected, #ai.selected {
+#supporters.selected, #metrics.selected, #link-to-annual-report.selected, #terms.selected,
+#privacy-policy.selected, #products.selected, #ai.selected {
   background-color: var(--lighter-grey);
   color: var(--selected-option);
   border-radius: 6px;
