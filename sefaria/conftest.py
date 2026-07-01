@@ -12,25 +12,23 @@ def mock_get_pools(self):
 patch("sefaria.model.topic.Topic.get_pools", mock_get_pools).start()
 
 def pytest_configure(config):
+    import os
     import sys
     import django
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
     sys._called_from_test = True
     django.setup()
 
-    # The `vector_db` (pgvector) database is an external Postgres that is not
-    # provisioned for the test run. Leaving it in DATABASES makes pytest-django's
-    # setup_databases() attempt to create a test database for it, which fails auth
-    # and errors every DB-backed test at setup. Drop it here (before any test DB is
-    # set up) so the suite runs against `default` only. The pgvector-specific tests
-    # are skipped separately. Remove this once pgvector is reachable in CI.
     from django.conf import settings as _dj_settings
     from django.db import connections as _dj_connections
     _dj_settings.DATABASES.pop("vector_db", None)
-    _dj_settings.DATABASES["default"] = {
+    _dj_settings.DATABASES["default"].clear()
+    _dj_settings.DATABASES["default"].update({
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
-    }
+    })
     _dj_connections.__dict__.pop("settings", None)
+    _dj_connections.close_all()
 
 
 def pytest_unconfigure(config):
