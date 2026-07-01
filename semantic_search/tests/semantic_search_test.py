@@ -30,12 +30,8 @@ def make_chunk(**overrides):
     return SimpleNamespace(**defaults)
 
 
-class MappingRefNormalizer:
-    def __init__(self, mapping):
-        self.mapping = mapping
-
-    def normalize_ref(self, ref):
-        return self.mapping.get(ref, ref)
+def mapping_normalizer(mapping):
+    return lambda ref: mapping.get(ref, ref)
 
 
 # ---------------------------------------------------------------------------
@@ -213,27 +209,25 @@ class TestLinkedRefEnhancement:
         )
 
     def test_collects_full_count_distribution(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A", "Ref B"],
             "Genesis 1:2": ["Ref B", "Ref C"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
         ]
-        assert dict(get_linked_ref_counts(chunks, link_source=link_source)) == {
+        assert dict(get_linked_ref_counts(chunks, linked_refs_for_func=linked_refs_for)) == {
             "Ref A": 1,
             "Ref B": 2,
             "Ref C": 1,
         }
 
     def test_counts_direct_linked_refs_and_applies_threshold(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A", "Ref B"],
             "Genesis 1:2": ["Ref B", "Ref C"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -242,15 +236,14 @@ class TestLinkedRefEnhancement:
             chunks,
             link_depth=1,
             min_link_count=2,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
         assert result.appended_refs == ["Ref B"]
         assert result.ref_counts == {"Ref B": 2}
 
     def test_normalizes_and_dedupes_source_refs_before_retrieving_links(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.return_value = ["Ref A"]
-        normalizer = MappingRefNormalizer({
+        linked_refs_for = MagicMock(return_value=["Ref A"])
+        normalizer = mapping_normalizer({
             "Rashi on Deut. 28:6:1": "Rashi on Deuteronomy 28:6:1",
             "Rashi on Deuteronomy 28:6:1": "Rashi on Deuteronomy 28:6:1",
         })
@@ -261,20 +254,19 @@ class TestLinkedRefEnhancement:
 
         result = get_linked_ref_counts(
             chunks,
-            link_source=link_source,
-            ref_normalizer=normalizer,
+            linked_refs_for_func=linked_refs_for,
+            normalize_ref_func=normalizer,
         )
 
-        link_source.linked_refs_for.assert_called_once_with("Rashi on Deuteronomy 28:6:1")
+        linked_refs_for.assert_called_once_with("Rashi on Deuteronomy 28:6:1")
         assert result == {"Ref A": 1}
 
     def test_normalizes_linked_refs_before_counting(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Deut. 28:6"],
             "Genesis 1:2": ["Deuteronomy 28:6"],
-        }.get
-        normalizer = MappingRefNormalizer({
+        }.get)
+        normalizer = mapping_normalizer({
             "Deut. 28:6": "Deuteronomy 28:6",
             "Deuteronomy 28:6": "Deuteronomy 28:6",
         })
@@ -285,15 +277,14 @@ class TestLinkedRefEnhancement:
 
         result = get_linked_ref_counts(
             chunks,
-            link_source=link_source,
-            ref_normalizer=normalizer,
+            linked_refs_for_func=linked_refs_for,
+            normalize_ref_func=normalizer,
         )
 
         assert result == {"Deuteronomy 28:6": 2}
 
     def test_mean_2std_threshold_returns_statistical_outliers(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A", "Ref Outlier"],
             "Genesis 1:2": ["Ref B", "Ref Outlier"],
             "Genesis 1:3": ["Ref C", "Ref Outlier"],
@@ -304,13 +295,13 @@ class TestLinkedRefEnhancement:
             "Genesis 1:8": ["Ref H", "Ref Outlier"],
             "Genesis 1:9": ["Ref I", "Ref Outlier"],
             "Genesis 1:10": ["Ref J", "Ref Outlier"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
             for i in range(1, 11)
         ]
 
-        result = get_mean_std_linked_ref_enhancements(chunks, link_source=link_source)
+        result = get_mean_std_linked_ref_enhancements(chunks, linked_refs_for_func=linked_refs_for)
 
         assert result.threshold_method == "mean_plus_std_multiplier"
         assert result.appended_refs == ["Ref Outlier"]
@@ -318,17 +309,16 @@ class TestLinkedRefEnhancement:
         assert result.count_threshold > result.mean_count
 
     def test_mean_std_threshold_uses_min_count_floor_when_counts_have_no_variance(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A"],
             "Genesis 1:2": ["Ref B"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
         ]
 
-        result = get_mean_std_linked_ref_enhancements(chunks, link_source=link_source)
+        result = get_mean_std_linked_ref_enhancements(chunks, linked_refs_for_func=linked_refs_for)
 
         assert result.appended_refs == []
         assert result.ref_counts == {}
@@ -337,12 +327,11 @@ class TestLinkedRefEnhancement:
         assert result.min_count == 3
 
     def test_mean_std_threshold_accepts_std_multiplier(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A", "Ref SemiOutlier"],
             "Genesis 1:2": ["Ref B", "Ref SemiOutlier"],
             "Genesis 1:3": ["Ref C", "Ref SemiOutlier"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref=f"Genesis 1:{i}", chunked_from_ref="Genesis 1")
             for i in range(1, 4)
@@ -351,23 +340,22 @@ class TestLinkedRefEnhancement:
         stricter = get_mean_std_linked_ref_enhancements(
             chunks,
             std_threshold=2,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
         looser = get_mean_std_linked_ref_enhancements(
             chunks,
             std_threshold=1,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
 
         assert stricter.appended_refs == []
         assert looser.appended_refs == ["Ref SemiOutlier"]
 
     def test_mean_std_threshold_allows_min_count_override(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref A"],
             "Genesis 1:2": ["Ref B"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1"),
             make_chunk(ref="Genesis 1:2"),
@@ -376,18 +364,17 @@ class TestLinkedRefEnhancement:
         result = get_mean_std_linked_ref_enhancements(
             chunks,
             min_count=1,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
 
         assert result.appended_refs == ["Ref A", "Ref B"]
         assert result.count_threshold == 1
 
     def test_excludes_original_result_refs(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Genesis 1:1", "Genesis 1", "Ref B"],
             "Genesis 1:2": ["Ref B"],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1", chunked_from_ref="Genesis 1"),
             make_chunk(ref="Genesis 1:2"),
@@ -396,17 +383,16 @@ class TestLinkedRefEnhancement:
             chunks,
             link_depth=1,
             min_link_count=1,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
         assert result.appended_refs == ["Ref B"]
 
     def test_depth_two_fetches_and_counts_next_hop_links_from_source(self):
-        link_source = MagicMock()
-        link_source.linked_refs_for.side_effect = {
+        linked_refs_for = MagicMock(side_effect= {
             "Genesis 1:1": ["Ref B", "Ref D"],
             "Ref B": ["Ref D", "Ref E"],
             "Ref D": [],
-        }.get
+        }.get)
         chunks = [
             make_chunk(ref="Genesis 1:1"),
         ]
@@ -415,11 +401,11 @@ class TestLinkedRefEnhancement:
             chunks,
             link_depth=2,
             min_link_count=2,
-            link_source=link_source,
+            linked_refs_for_func=linked_refs_for,
         )
 
-        link_source.linked_refs_for.assert_any_call("Ref B")
-        link_source.linked_refs_for.assert_any_call("Ref D")
+        linked_refs_for.assert_any_call("Ref B")
+        linked_refs_for.assert_any_call("Ref D")
         assert result.appended_refs == ["Ref D"]
         assert result.ref_counts == {"Ref D": 2}
 
