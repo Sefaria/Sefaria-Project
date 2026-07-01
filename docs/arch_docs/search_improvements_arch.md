@@ -285,6 +285,46 @@ This same `size: 0` count query also resolves the open **"eager vs. lazy entity 
 - **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). The `numSources` field is already indexed; the question is where to apply the filter — as a hard `must` filter in the query, a minimum `numSources` threshold, or at render time.
 - **When to Call the Entity Search** - either on every search (what was implemented on the POC) or only on tab switch. POC queries all three in parallel so results are ready before the user switches tabs. 
 
+## Localization (Weblate)
+
+Separate from search, we want to bring `Sefaria-Project` onto the same translation workflow we already run for the `ai-chatbot` repo: a self-hosted [Weblate](https://weblate.sefaria.org) instance where translators edit strings in a web UI and Weblate opens PRs back to the repo. This section captures what that setup looks like for `Sefaria-Project` and how it differs from the existing `ai-chatbot` deployment.
+
+### Why this is now possible
+
+Weblate translates **translation files**, not source code — it cannot parse `.js`. Historically Sefaria's interface strings lived inline in `static/js/sefaria/strings.js`, which put them out of Weblate's reach. Commit [`314e55b7cf`](https://github.com/Sefaria/Sefaria-Project/commit/314e55b7cf) ("chore: split up into json files") extracts them into JSON, which is what makes a Weblate hookup possible. After that commit:
+
+- `static/js/sefaria/i18n/interface/*.json` — a **flat** map (English key → value).
+- `static/js/sefaria/i18n/interface-context/*.json` — a **nested** map, one namespace per component (context-scoped strings).
+- In each directory, `en.json` is the **Weblate source template** (the source of truth for keys; not imported at runtime), and `he.json` holds the Hebrew translations consumed at runtime. `strings.js` now just imports the two `he.json` files.
+
+### How ai-chatbot does it (the model to copy)
+
+The `ai-chatbot` deployment is the reference implementation; the full runbook lives in the infrastructure repo at `docs/weblate.md`. In brief:
+
+- Self-hosted Weblate on Coolify at `weblate.sefaria.org`, Google SSO restricted to `@sefaria.org`.
+- A GitHub machine user (`sefaria-weblate`) with a fine-grained PAT opens PRs — **Weblate never pushes directly to `main`**; engineers review and merge translation PRs.
+- One Weblate component pointed at a **monolingual** JSON file mask (`src/i18n/locales/*.json`) with `en.json` as the monolingual base file, file format `JSON file`, `Edit base file: No`.
+- A GitHub webhook (`/hooks/github/`) syncs the component when the repo changes.
+- Add-ons: cleanup translation files, squash git commits, JSON indent `2`, key sorting disabled (so translation-PR diffs stay minimal and don't reorder keys).
+
+### What's different for Sefaria-Project
+
+The infrastructure (Coolify instance, Google SSO, machine user) is **already stood up** for `ai-chatbot`, so onboarding this repo is mostly adding a new project/components rather than deploying Weblate again. The differences to account for:
+
+- **Two file sets, so two components (not one).** `ai-chatbot` has a single `locales/*.json` mask. `Sefaria-Project` has two shapes that need distinct Weblate components:
+  - `interface/` → file mask `static/js/sefaria/i18n/interface/*.json`, base `interface/en.json`, file format **`JSON file`** (flat).
+  - `interface-context/` → file mask `static/js/sefaria/i18n/interface-context/*.json`, base `interface-context/en.json`, file format **`JSON nested structure file`** (nested).
+- **`en.json` is a template, `he.json` is runtime.** Same monolingual pattern as `ai-chatbot` (`Edit base file: No`), but worth flagging that `en.json` is deliberately *not* imported by `strings.js` — it exists only to give Weblate the canonical key list.
+- **New GitHub machine-user permissions and a webhook** scoped to `Sefaria/ai-chatbot` today; both need to be extended/added for `Sefaria/Sefaria-Project`.
+- **Branch policy.** `Sefaria-Project` PRs land on `master` (vs. `main` in `ai-chatbot`), so the component branch and PR target must be set accordingly.
+- **Scale.** This repo carries ~640+ interface strings plus the context-scoped set (vs. a small string set in `ai-chatbot`), so the initial import and the first translation sync are larger; budget for that in the smoke test.
+
+### Open items to resolve before hooking it up
+
+- **Key stability / no-concat rule.** Weblate keys must be stable and each key should carry a full, standalone sentence — never concatenate translated fragments (use placeholders instead). Existing Sefaria strings should be audited for concatenation patterns that won't survive translation cleanly.
+- **`en.json` drift.** Because `en.json` is generated/maintained separately from runtime, we need a convention (and ideally CI) ensuring new strings are added to `en.json` so Weblate surfaces them, and that stale keys get cleaned up.
+- **Two-component UX.** Confirm the flat vs. nested split is the right long-term shape for translators, or whether it should be consolidated before onboarding.
+
 ## Future Enrichments
 
 - **AI metadata enrichment** — use AI to enrich entity documents (topics, books, authors) at index time.
