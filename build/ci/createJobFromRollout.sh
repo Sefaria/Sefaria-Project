@@ -12,7 +12,7 @@ metadata:
     test-name: pytest
   name: $DEPLOY_ENV-pytest-sandbox-$GITHUB_RUN_ID
 spec:
-  backoffLimit: 0
+  backoffLimit: 1
   template:
     metadata:
       labels:
