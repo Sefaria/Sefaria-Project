@@ -167,10 +167,19 @@ _SEARCH_RESULT_FIELDS = (
     'ref', 'url', 'index_title', 'language', 'version_title',
     'primary_category', 'all_categories',
 )
+
+# Public response controls. Clients may request fewer or more items, but values
+# are clamped by the max constants to keep response size and query cost bounded.
 _DEFAULT_RESULT_LIMIT = 10
 _DEFAULT_LINKED_REF_LIMIT = 10
 _MAX_RESULT_LIMIT = 100
 _MAX_LINKED_REF_LIMIT = 100
+
+# Hidden linked-ref enhancement tuning. We intentionally do not expose these as
+# API params while the ranking rule is still experimental:
+# - LIMIT: number of semantic hits used internally to build the link graph.
+# - DEPTH: graph hops to traverse from each semantic hit.
+# - STD_THRESHOLD/MIN_COUNT: outlier rule count >= max(min_count, mean + k*std).
 _LINKED_REF_ENHANCEMENT_LIMIT = 50
 _LINKED_REF_ENHANCEMENT_DEPTH = 1
 _LINKED_REF_ENHANCEMENT_STD_THRESHOLD = 2
