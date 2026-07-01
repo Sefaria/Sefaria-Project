@@ -295,7 +295,7 @@ def make_leaderboard(condition):
     This function queries and calculates for all currently matching history.
     """
 
-    reducer = Code("""
+    reducer = Code(r"""
                     function(obj, prev) {
 
                         // Total Points

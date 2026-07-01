@@ -1212,7 +1212,7 @@ def process_topic_description_change(topic, **kwargs):
 
     markdown_links = set()
     for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
-        for m in re.findall('\[.*?\]\((.*?)\)', val):
+        for m in re.findall(r'\[.*?\]\((.*?)\)', val):
             markdown_links.add(m)
 
     for markdown_link in markdown_links:
