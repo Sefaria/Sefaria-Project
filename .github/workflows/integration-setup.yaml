@@ -40,7 +40,7 @@ jobs:
         sudo mv yq_linux_amd64 /usr/bin/yq
         chmod +x /usr/bin/yq
     - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v3'
+      uses: 'google-github-actions/setup-gcloud@v1'
       with:
         version: '>= 363.0.0'
     - name: Setup kubectl

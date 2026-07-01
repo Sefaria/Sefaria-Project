@@ -58,6 +58,7 @@
     "test:misc:webkit": "playwright test --project=safari-misc",
     "test:misc:all": "playwright test --project=chrome-misc --project=firefox-misc --project=safari-misc",
     "test:sanity": "playwright test --project=chrome-sanity",
+    "test:sanity:mobile": "playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity",
     "test:assistant": "playwright test --project=chrome-assistant",
     "test:resource-panel": "playwright test --project=chrome-resource-panel",
     "test:voices-topics": "playwright test --project=chrome-voices-topics",

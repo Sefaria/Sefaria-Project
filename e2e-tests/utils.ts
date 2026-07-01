@@ -565,7 +565,7 @@ export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
     const isLoggedIn = await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
     if (isLoggedIn) {
-      console.log('User is logged in (profile pic visible)');
+      // console.log('User is logged in (profile pic visible)');
     }
     return isLoggedIn;
   } catch {

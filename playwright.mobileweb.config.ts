@@ -89,5 +89,18 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Mobile slice of the @sanity release-gate suite. The desktop *-sanity
+    // projects exclude `mobile web/` (those tests need the mobile viewport), so
+    // the mobile @sanity-tagged tests run here instead, at the Pixel 5 viewport.
+    // Run with: npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity
+    {
+      name: 'mobile-sanity',
+      testDir: './e2e-tests/mobile web',
+      grep: /@sanity/,
+      use: {
+        ...devices['Pixel 5'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
   ],
 });
