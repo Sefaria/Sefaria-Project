@@ -46,6 +46,7 @@ shared_patterns = [
     path('api/profile/<str:slug>', reader_views.profile_api),
     re_path(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     path('api/user_history/saved', reader_views.saved_history_for_ref),
+    path('api/book_completion', reader_views.book_completion_api),
 
     re_path(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
     re_path(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),

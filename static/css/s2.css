@@ -15760,3 +15760,118 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
+
+/* ========== HAZAK CELEBRATION - START ========== */
+
+@keyframes hazakFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hazakShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes hazakSparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
+.hazakCelebration {
+  text-align: center;
+  padding: 40px 20px;
+  margin: 20px auto;
+  max-width: 500px;
+  animation: hazakFadeIn 0.8s ease-out forwards;
+}
+
+.hazakContent {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--tanakh-teal);
+}
+
+.hazakContent .readerNavMenuCloseButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.hazakText {
+  font-family: "Taamey Frank", "Frank Ruehl", serif;
+  font-size: 2.4em;
+  font-weight: bold;
+  margin-bottom: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--tanakh-teal),
+    var(--talmud-gold),
+    var(--tanakh-teal)
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: hazakShimmer 3s ease-in-out infinite;
+}
+
+.hazakTranslation {
+  font-size: 1.1em;
+  color: #666;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.hazakBookName {
+  font-size: 1em;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.hazakSourceLink {
+  display: inline-block;
+  font-size: 0.9em;
+  color: var(--tanakh-teal);
+  text-decoration: underline;
+}
+
+.hazakSourceLink:hover {
+  opacity: 0.8;
+}
+
+.hazakDecorationTop,
+.hazakDecorationBottom {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.hazakDecorationTop::before,
+.hazakDecorationTop::after,
+.hazakDecorationBottom::before,
+.hazakDecorationBottom::after {
+  content: "\2726";
+  font-size: 16px;
+  color: var(--talmud-gold);
+  animation: hazakSparkle 1.5s ease-in-out infinite;
+}
+
+.hazakDecorationTop::after {
+  animation-delay: 0.3s;
+}
+
+.hazakDecorationBottom::before {
+  animation-delay: 0.6s;
+}
+
+.hazakDecorationBottom::after {
+  animation-delay: 0.9s;
+}
+
+/* ========== HAZAK CELEBRATION - END ========== */
