@@ -12,6 +12,7 @@ import $ from './sefariaJquery';
 import { getCsrfToken } from './csrf';
 import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
+import persistentApiStore from './persistentCache';
 
 
 let Sefaria = Sefaria || {
@@ -291,6 +292,9 @@ Sefaria = extend(Sefaria, {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
     if (deriveIfNotFound && !oref) { //couldn't find `ref` in cache so try to derive it
+        if (typeof ref === "string" && ref.indexOf(":") !== -1) {
+            return ref.replace(/_/g, " ").split(":").slice(0, -1).join(":");
+        }
         const humanRefForm = Sefaria.humanRef(ref);
         if (!!humanRefForm && humanRefForm.length > 0) {
             return humanRefForm.split(":")[0]; // "Genesis 3:3" yields "Genesis 3"
@@ -605,6 +609,7 @@ Sefaria = extend(Sefaria, {
     return url;
   },
   _textsStore: {},
+  _persistentTextsStore: persistentApiStore,
   _textsStoreSet: function(key, value) {
     this._textsStore[key] = value;
   },
@@ -612,9 +617,85 @@ Sefaria = extend(Sefaria, {
     // ref is segment ref or bottom level section ref
     // requiredVersions is an array of objects that can have languageFamilyName and versionTitle
     const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
-    const apiObject = await Sefaria._cachedApiPromise({url: url, key: url, store: Sefaria._textsStore});
+    if (url in Sefaria._textsStore) {
+        return Sefaria._textsStore[url];
+    }
+    const persistentObject = await Sefaria._persistentTextsStore.get(url).catch(() => undefined);
+    if (typeof persistentObject !== 'undefined') {
+        Sefaria._textsStore[url] = persistentObject;
+        Sefaria._buildLinkerOutputMap(persistentObject?.linker_output);
+        return persistentObject;
+    }
+    const sectionObject = await Sefaria._getAPIV3SegmentFromSectionCache(ref, requiredVersions, mergeText, return_format);
+    if (typeof sectionObject !== 'undefined') {
+        Sefaria._textsStore[url] = sectionObject;
+        Promise.resolve()
+            .then(() => Sefaria._persistentTextsStore.put(url, sectionObject))
+            .catch(() => undefined);
+        Sefaria._buildLinkerOutputMap(sectionObject?.linker_output);
+        return sectionObject;
+    }
+    const apiObject = await Sefaria._cachedApiPromise({
+        url: url,
+        key: url,
+        store: Sefaria._textsStore,
+        persistentStore: Sefaria._persistentTextsStore,
+    });
     Sefaria._buildLinkerOutputMap(apiObject?.linker_output);
     return apiObject;
+  },
+  _getAPIV3SegmentFromSectionCache: async function(ref, requiredVersions, mergeText, return_format) {
+      const sectionRef = Sefaria.sectionRef(ref, true);
+      if (!sectionRef || sectionRef === ref) { return undefined; }
+      const sectionUrl = Sefaria.makeUrlForAPIV3Text(sectionRef, requiredVersions, mergeText, return_format);
+      let sectionData = Sefaria._textsStore[sectionUrl];
+      if (typeof sectionData === 'undefined') {
+          sectionData = await Sefaria._persistentTextsStore.get(sectionUrl).catch(() => undefined);
+      }
+      if (typeof sectionData === 'undefined' && Sefaria._persistentTextsStore.getByUrlPrefix) {
+          const sectionUrlPrefix = `${Sefaria.apiHost}/api/v3/texts/${Sefaria.normRef(sectionRef)}?`;
+          sectionData = await Sefaria._persistentTextsStore.getByUrlPrefix(sectionUrlPrefix).catch(() => undefined);
+      }
+      if (typeof sectionData === 'undefined') { return undefined; }
+      const segmentData = Sefaria._extractAPIV3SegmentFromSection(ref, sectionData);
+      if (typeof segmentData !== 'undefined') {
+          Sefaria._textsStore[sectionUrl] = sectionData;
+      }
+      return segmentData;
+  },
+  _segmentNumberFromRef: function(ref) {
+      const parsedRef = Sefaria.parseRef(ref);
+      if (!("error" in parsedRef) && parsedRef.sections && parsedRef.sections.length) {
+          return parsedRef.sections[parsedRef.sections.length - 1];
+      }
+      const match = Sefaria.humanRef(ref).match(/[:.](\d+)$/);
+      return match ? parseInt(match[1]) : null;
+  },
+  _extractAPIV3SegmentFromSection: function(ref, sectionData) {
+      if (!sectionData || sectionData.textDepth === sectionData.sections?.length) { return undefined; }
+      const segmentNumber = Sefaria._segmentNumberFromRef(ref);
+      if (!segmentNumber) { return undefined; }
+      const offset = Sefaria._get_offsets(sectionData)[0] || 0;
+      const segmentIndex = segmentNumber - 1 - offset;
+      if (segmentIndex < 0) { return undefined; }
+      const segmentData = Sefaria.util.clone(sectionData);
+      segmentData.ref = Sefaria.humanRef(ref).replace(/_/g, " ");
+      segmentData.sections = (sectionData.sections || []).concat(segmentNumber);
+      segmentData.toSections = (sectionData.sections || []).concat(segmentNumber);
+      segmentData.sectionRef = sectionData.ref;
+      if (Array.isArray(segmentData.versions)) {
+          segmentData.versions = segmentData.versions.map(version => {
+              const segmentVersion = Sefaria.util.clone(version);
+              if (Array.isArray(version.text)) {
+                  segmentVersion.text = version.text[segmentIndex] || "";
+              }
+              if (Array.isArray(version.sources)) {
+                  segmentVersion.sources = version.sources[segmentIndex] || "";
+              }
+              return segmentVersion;
+          });
+      }
+      return segmentData;
   },
   _makeV3VersionsUrlCacheKey: function(ref, versions) {
     versions.map(version => version.isPrimary ? { languageFamilyName: 'primary' } : version);
@@ -727,10 +808,10 @@ Sefaria = extend(Sefaria, {
     const [primary, translation] = Sefaria.getPrimaryAndTranslationFromVersions(versions);
     ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle, direction: versionsResponse.translationDirection, languageFamilyName: versionsResponse.translationLang, status: versionsResponse.versionStatus } = translation);
     ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle, direction: versionsResponse.primaryDirection, languageFamilyName: versionsResponse.primaryLang, status: versionsResponse.heVersionStatus } = primary);
-    if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
+    if (Array.isArray(translation.sources) && !translation.sources.every(source => source === translation.sources[0])) {
         versionsResponse.sources = translation.sources;
     }
-    if (primary.sources && primary.sources.every(source => source === primary.sources[0])) {
+    if (Array.isArray(primary.sources) && primary.sources.every(source => source === primary.sources[0])) {
         versionsResponse.heSources = primary.sources;
     }
   },
@@ -875,9 +956,23 @@ Sefaria = extend(Sefaria, {
   },
   _versions: {},
   _translateVersions: {},
+  _persistentVersionsStore: persistentApiStore,
   getVersionFromCache: function(ref,  byLang, filter, excludeFilter){
      let versions = this._cachedApi(ref, this._versions, []);
      return this._makeVersions(versions, byLang)
+  },
+  _cacheVersionsResponse: function(ref, versions) {
+      if (Array.isArray(versions)) {
+          return this._saveVersions(ref, versions);
+      }
+      for (let v of Object.values(versions).flat()) {
+          Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
+              en: v.versionTitle,
+              he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
+          };
+      }
+      this._versions[ref] = versions;
+      return this._versions[ref];
   },
   getVersions: async function(ref) {
     /**
@@ -888,11 +983,250 @@ Sefaria = extend(Sefaria, {
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
-        await this._ApiPromise(url).then(d => {
-            this._saveVersions(ref, d);
+        const persistentVersions = await this._persistentVersionsStore.get(url).catch(() => undefined);
+        if (typeof persistentVersions !== 'undefined') {
+            this._cacheVersionsResponse(ref, persistentVersions);
+            return Promise.resolve(this._versions[ref]);
+        }
+        const sectionRef = Sefaria.sectionRef(ref, true);
+        if (sectionRef && sectionRef !== ref) {
+            const sectionUrl = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(sectionRef);
+            const sectionVersions = sectionRef in this._versions ?
+                this._versions[sectionRef] :
+                await this._persistentVersionsStore.get(sectionUrl).catch(() => undefined);
+            if (typeof sectionVersions !== 'undefined') {
+                this._cacheVersionsResponse(ref, sectionVersions);
+                Promise.resolve()
+                    .then(() => this._persistentVersionsStore.put(url, this._versions[ref]))
+                    .catch(() => undefined);
+                return Promise.resolve(this._versions[ref]);
+            }
+        }
+        await this._cachedApiPromise({
+            url,
+            key: ref,
+            store: this._versions,
+            persistentStore: this._persistentVersionsStore,
+            persistentKey: url,
+            processor: d => this._cacheVersionsResponse(ref, d),
         });
     }
     return Promise.resolve(this._versions[ref]);
+  },
+  downloadVersionsForOffline: async function(ref) {
+      const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
+      const versions = await Sefaria.getVersions(ref);
+      await Sefaria._persistentVersionsStore.put(url, versions);
+      return versions;
+  },
+  downloadIndexDetailsForOffline: async function(bookTitle) {
+      const url = Sefaria._indexDetailsUrl(bookTitle);
+      const indexDetails = await Sefaria.getIndexDetails(bookTitle);
+      await Sefaria._persistentIndexDetailsStore.put(url, indexDetails);
+      return indexDetails;
+  },
+  _offlineDownloadConcurrency: 4,
+  _contentCountIsEmpty: function(count) {
+      if (Array.isArray(count)) {
+          return count.every(childCount => Sefaria._contentCountIsEmpty(childCount));
+      }
+      return !count;
+  },
+  _refPathTerminalFromContentCount: function(count) {
+      if (typeof count === "number") { return ""; }
+      let terminal = ":";
+      for (let i = 0; i < count.length; i++) {
+          if (!Sefaria._contentCountIsEmpty(count[i])) {
+              terminal += (i + 1) + Sefaria._refPathTerminalFromContentCount(count[i]);
+              break;
+          }
+      }
+      return terminal;
+  },
+  _sectionRefsFromContentCounts: function({contentCounts, depth, addressTypes, refPath, offset=0}) {
+      if (!contentCounts) { return []; }
+      if (depth > 2) {
+          return contentCounts.reduce((refs, count, i) => {
+              if (Sefaria._contentCountIsEmpty(count)) { return refs; }
+              const [section] = Sefaria.getSectionStringByAddressType(addressTypes[0], i, offset);
+              return refs.concat(Sefaria._sectionRefsFromContentCounts({
+                  contentCounts: count,
+                  depth: depth - 1,
+                  addressTypes: addressTypes.slice(1),
+                  refPath: refPath + ":" + section,
+              }));
+          }, []);
+      }
+
+      const counts = depth === 1 ? new Array(contentCounts).fill(1) : contentCounts;
+      return counts.reduce((refs, count, i) => {
+          if (Sefaria._contentCountIsEmpty(count)) { return refs; }
+          const [section] = Sefaria.getSectionStringByAddressType(addressTypes[0], i, offset);
+          refs.push((refPath + ":" + section).replace(":", " ") + Sefaria._refPathTerminalFromContentCount(count));
+          return refs;
+      }, []);
+  },
+  _sectionRefsFromSchema: function(schema, refPath) {
+      if (!schema) { return []; }
+      if (Array.isArray(schema.refs)) {
+          return schema.refs.filter(ref => !!ref).map(ref => Sefaria.sectionRef(ref, true) || ref);
+      }
+      if (schema.nodeType === "JaggedArrayNode" && schema.content_counts) {
+          const offset = schema?.index_offsets_by_depth?.['1'] || schema.offset || 0;
+          return Sefaria._sectionRefsFromContentCounts({
+              contentCounts: schema.content_counts,
+              depth: schema.depth,
+              addressTypes: schema.addressTypes,
+              refPath,
+              offset,
+          });
+      }
+      if (Array.isArray(schema.nodes)) {
+          return schema.nodes.reduce((refs, node) => {
+              const nodeRefPath = node.wholeRef ?
+                  Sefaria.splitSpanningRefNaive(node.wholeRef)[0] :
+                  node.title ? `${refPath}, ${node.title}` : refPath;
+              return refs.concat(Sefaria._sectionRefsFromSchema(node, nodeRefPath));
+          }, []);
+      }
+      return schema.wholeRef ? [Sefaria.splitSpanningRefNaive(schema.wholeRef)[0]] : [];
+  },
+  getBookSectionRefsForDownload: async function(bookTitle) {
+      const indexDetails = await Sefaria.downloadIndexDetailsForOffline(bookTitle);
+      const refs = Sefaria._sectionRefsFromSchema(indexDetails.schema, indexDetails.title || bookTitle);
+      return refs.unique();
+  },
+  _offlineNavigationUrlsForBook: function(bookTitle, indexDetails=null) {
+      const urls = ['/texts'];
+      const index = indexDetails || Sefaria.index(bookTitle) || {};
+      const categories = index.categories || [];
+      for (let i = 0; i < categories.length; i++) {
+          urls.push(`/texts/${categories.slice(0, i + 1).map(encodeURIComponent).join('/')}`);
+      }
+      urls.push(`/${Sefaria.normRef(bookTitle)}?tab=contents`);
+      return urls.unique();
+  },
+  _offlineShellAssetUrls: function() {
+      if (typeof document === 'undefined') { return []; }
+      const urls = [];
+      document.querySelectorAll('script[src], link[rel="stylesheet"][href], link[rel="icon"][href], link[rel="apple-touch-icon"][href], link[rel="manifest"][href]').forEach(node => {
+          const attr = node.src ? 'src' : 'href';
+          try {
+              const url = new URL(node[attr], window.location.origin);
+              if (url.origin === window.location.origin) {
+                  urls.push(url.pathname + url.search);
+              }
+          } catch (e) {
+              return;
+          }
+      });
+      return urls.unique();
+  },
+  cacheOfflineUrls: async function(urls) {
+      if (typeof caches === 'undefined') { return; }
+      const cache = await caches.open('sefaria-offline-v1');
+      const uniqueUrls = urls.filter(url => !!url).unique();
+      await Promise.all(uniqueUrls.map(url =>
+          fetch(url, {credentials: 'same-origin'})
+              .then(response => {
+                  if (response.ok) {
+                      return cache.put(url, response.clone());
+                  }
+              })
+              .catch(() => undefined)
+      ));
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({type: 'CACHE_URLS', urls: uniqueUrls});
+      }
+  },
+  _downloadRefForOffline: async function(ref, {currVersions={}, translationLanguagePreference=null}={}) {
+      await Sefaria.downloadVersionsForOffline(ref);
+      await Sefaria.getTextFromCurrVersions(ref, currVersions, translationLanguagePreference, false);
+      await Sefaria.relatedApi(ref);
+      return ref;
+  },
+  _commentaryTitleForOption: function(commentary) {
+      return commentary.collectiveTitle?.en || commentary.collectiveTitle || commentary.title;
+  },
+  _commentaryLinkMatchesSelection: function(link, selectedCommentaries) {
+      if (!selectedCommentaries || !selectedCommentaries.length) { return false; }
+      if (link.category !== "Commentary") { return false; }
+      const selected = new Set(selectedCommentaries);
+      return selected.has(link.index_title) || selected.has(link?.collectiveTitle?.en);
+  },
+  _commentaryOptionFromLink: function(link) {
+      if (link.category !== "Commentary") { return null; }
+      const title = link?.collectiveTitle?.en || link.index_title;
+      if (!title) { return null; }
+      return {
+          title,
+          heTitle: link?.collectiveTitle?.he || link.index_title,
+          fullTitle: link.index_title,
+      };
+  },
+  _relatedLinksAndCommentariesForDownload: async function(sectionRefs) {
+      let links = [];
+      const commentariesByTitle = {};
+      for (let sectionRef of sectionRefs) {
+          const relatedData = await Sefaria.relatedApi(sectionRef);
+          const sectionLinks = relatedData?.links || Sefaria.getLinksFromCache(sectionRef) || [];
+          links = links.concat(sectionLinks);
+          sectionLinks.forEach(link => {
+              const commentary = Sefaria._commentaryOptionFromLink(link);
+              if (!commentary) { return; }
+              if (!commentariesByTitle[commentary.title]) {
+                  commentariesByTitle[commentary.title] = commentary;
+              }
+          });
+      }
+      return {
+          links,
+          availableCommentaries: Object.values(commentariesByTitle).sort((a, b) => a.title.localeCompare(b.title)),
+      };
+  },
+  _commentarySectionRefsForDownload: async function(sectionRefs, selectedCommentaries=[]) {
+      if (!selectedCommentaries.length) { return []; }
+      const {links} = await Sefaria._relatedLinksAndCommentariesForDownload(sectionRefs);
+      const commentaryRefs = links
+          .filter(link => Sefaria._commentaryLinkMatchesSelection(link, selectedCommentaries))
+          .map(link => Sefaria.sectionRef(link.sourceRef, true) || Sefaria.zoomOutRef(link.sourceRef))
+          .filter(ref => !!ref);
+      return commentaryRefs.unique();
+  },
+  downloadBookForOffline: async function(bookTitle, {onProgress, concurrency=Sefaria._offlineDownloadConcurrency, currVersions={}, translationLanguagePreference=null, commentaries=[]}={}) {
+      const indexDetails = await Sefaria.downloadIndexDetailsForOffline(bookTitle);
+      await Sefaria.cacheOfflineUrls(Sefaria._offlineShellAssetUrls().concat(Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails)));
+      const refs = Sefaria._sectionRefsFromSchema(indexDetails.schema, indexDetails.title || bookTitle).unique();
+      const {availableCommentaries} = await Sefaria._relatedLinksAndCommentariesForDownload(refs);
+      const commentaryRefs = await Sefaria._commentarySectionRefsForDownload(refs, commentaries);
+      const refsToDownload = refs.concat(commentaryRefs).unique();
+      let completed = 0;
+      onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: null});
+      const downloadRefs = async function(downloadRefs, downloadOptions) {
+          for (let i = 0; i < downloadRefs.length; i += concurrency) {
+              const batch = downloadRefs.slice(i, i + concurrency);
+              await Promise.all(batch.map(ref => Sefaria._downloadRefForOffline(ref, downloadOptions).then(() => {
+              completed++;
+              onProgress && onProgress({bookTitle, total: refsToDownload.length, completed, currentRef: ref});
+              })));
+          }
+      };
+      await downloadRefs(refs, {currVersions, translationLanguagePreference});
+      await downloadRefs(commentaryRefs, {currVersions: {}, translationLanguagePreference});
+      await Sefaria._persistentTextsStore.putDownloadedBook({
+          title: bookTitle,
+          sectionRefs: refs,
+          commentaryRefs,
+          commentaries,
+          availableCommentaries,
+          commentaryListCollected: true,
+          urls: Sefaria._offlineNavigationUrlsForBook(bookTitle, indexDetails),
+      });
+      return {bookTitle, total: refsToDownload.length, completed, availableCommentaries};
+  },
+  getOfflineBookDownloadInfo: async function(bookTitle) {
+      if (!Sefaria._persistentTextsStore.getDownloadedBook) { return undefined; }
+      return await Sefaria._persistentTextsStore.getDownloadedBook(bookTitle);
   },
   _portals: {},
   getPortal: async function(portalSlug) {
@@ -1372,14 +1706,20 @@ Sefaria = extend(Sefaria, {
   },
 
   _indexDetails: {},
+  _persistentIndexDetailsStore: persistentApiStore,
   getIndexDetailsFromCache: function(title){
     return this._cachedApi(title, this._indexDetails, null);
   },
+  _indexDetailsUrl: function(title) {
+    return Sefaria.apiHost + "/api/v2/index/" + encodeURIComponent(title) + "?with_content_counts=1&with_related_topics=1";
+  },
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
-        url:   Sefaria.apiHost + "/api/v2/index/" + encodeURIComponent(title) + "?with_content_counts=1&with_related_topics=1",
+        url:   Sefaria._indexDetailsUrl(title),
         key:   title,
-        store: this._indexDetails
+        store: this._indexDetails,
+        persistentStore: this._persistentIndexDetailsStore,
+        persistentKey: Sefaria._indexDetailsUrl(title),
     });
   },
   titleIsTorah: function(title){
@@ -2231,8 +2571,9 @@ _media: {},
     getLangSpecificTopicPoolName: function(poolName){
       const lang = this.interfaceLang == 'hebrew' ? 'he' : 'en';
       return `${poolName}_${lang}`
-    },
+  },
   _related: {},
+  _persistentRelatedStore: persistentApiStore,
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
     // `ref` may be either a string or an array of consecutive ref strings.
@@ -2245,6 +2586,36 @@ _media: {},
     } else {
        this.relatedApi(ref, callback);
     }
+  },
+  _saveRelatedData: function(inputRef, data) {
+      var originalData = Sefaria.util.clone(data);
+
+      // Save link, note, and sheet data, and retain the split data from each of these saves
+      var split_data = {
+          links: this._saveLinkData(inputRef, data.links),
+          notes: this._saveNoteData(inputRef, data.notes),
+          sheets: this.sheets._saveSheetsByRefData(inputRef, data.sheets),
+          topics: this._saveTopicByRef(inputRef, data.topics || []),
+          media: this._saveItemsByRef(data.media || [], this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts || [], this._manuscripts),
+          guides: this._saveItemsByRef(data.guides || [], this._guides)
+      };
+
+       // Build split related data from individual split data arrays
+      ["links", "notes", "sheets", "media", "guides"].forEach(obj_type => {
+        for (var splitRef in split_data[obj_type]) {
+          if (split_data[obj_type].hasOwnProperty(splitRef)) {
+            if (!(splitRef in this._related)) {
+                this._related[splitRef] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
+            }
+            this._related[splitRef][obj_type] = split_data[obj_type][splitRef];
+          }
+        }
+      }, this);
+
+      // Save the original data after the split data - lest a split version overwrite it.
+      this._related[inputRef] = originalData;
+      return originalData;
   },
   _manuscripts: {},
   manuscriptsByRef: function(refs) {
@@ -2268,42 +2639,42 @@ _media: {},
     })
     return guides
   },
-  relatedApi: function(ref, callback) {
-    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
-    return this._api(url, data => {
-      if ("error" in data) {
-        return;
-      }
-      var originalData = Sefaria.util.clone(data);
-
-      // Save link, note, and sheet data, and retain the split data from each of these saves
-      var split_data = {
-          links: this._saveLinkData(ref, data.links),
-          notes: this._saveNoteData(ref, data.notes),
-          sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
-          topics: this._saveTopicByRef(ref, data.topics || []),
-          media: this._saveItemsByRef(data.media, this._media),
-          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts),
-          guides: this._saveItemsByRef(data.guides, this._guides)
-      };
-
-       // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "media", "guides"].forEach(obj_type => {
-        for (var ref in split_data[obj_type]) {
-          if (split_data[obj_type].hasOwnProperty(ref)) {
-            if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
-            }
-            this._related[ref][obj_type] = split_data[obj_type][ref];
+  relatedApi: async function(ref, callback) {
+    // For segment refs, try loading section-level IDB data first so offline sidepanel
+    // reads can resolve without a network call. _saveRelatedData splits links by anchorRef
+    // and populates this._related for each verse, making the _cachedApiPromise key check
+    // resolve in memory on the subsequent call below.
+    if (!(ref in this._related)) {
+      const sectionRef = Sefaria.sectionRef(ref, true);
+      if (sectionRef && sectionRef !== ref && !(sectionRef in this._related)) {
+        const sectionUrl = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(sectionRef) + "?with_sheet_links=1";
+        const sectionData = await this._persistentRelatedStore.get(sectionUrl).catch(() => undefined);
+        if (typeof sectionData !== 'undefined') {
+          this._saveRelatedData(sectionRef, sectionData);
+          // If this segment still has no entry after the split, mark it as empty so
+          // _cachedApiPromise short-circuits without an offline-failing network call.
+          if (!(ref in this._related)) {
+            this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
           }
         }
-      }, this);
-
-
-      // Save the original data after the split data - lest a split version overwrite it.
-      this._related[ref] = originalData;
-
-      callback(data);
+      }
+    }
+    var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
+    return this._cachedApiPromise({
+      url,
+      key: ref,
+      store: this._related,
+      persistentStore: this._persistentRelatedStore,
+      persistentKey: url,
+      processor: data => {
+        if ("error" in data) {
+          return undefined;
+        }
+        return this._saveRelatedData(ref, data);
+      },
+    }).then(data => {
+      if (data && callback) { callback(data); }
+      return data;
     });
   },
   _relatedPrivate: {},
@@ -2638,13 +3009,14 @@ _media: {},
     }
     var results = [];
     for (var i=0; i < toc.length; i++) {
-        var curTocElem = toc[i];
-        if (curTocElem.title) { //this is a book
-            if(curTocElem.dependence == 'Commentary'){
-                if((title && curTocElem.base_text_titles && (title in curTocElem.refs_to_base_texts)) || (title == null)){
-                    results.push(curTocElem);
-                }
-            }
+	        var curTocElem = toc[i];
+	        if (curTocElem.title) { //this is a book
+	            if(curTocElem.dependence == 'Commentary'){
+	                const refsToBaseTexts = curTocElem.refs_to_base_texts || {};
+	                if((title && curTocElem.base_text_titles && (title in refsToBaseTexts)) || (title == null)){
+	                    results.push(curTocElem);
+	                }
+	            }
         } else if (curTocElem.contents) { //this is still a category and might have books under it
           results = results.concat(Sefaria.commentaryList(title, curTocElem.contents));
         }
@@ -3698,17 +4070,65 @@ _media: {},
   _cachedApi: function(key, store, defaultVal){
       return (key in store) ? store[key] : defaultVal;
   },
-  _cachedApiPromise: function({url, key, store, processor}) {
+  _cachedApiPromise: function({url, key, store, processor, persistentStore, persistentKey}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches in store[key], and returns
-      return (key in store) ?
-          Promise.resolve(store[key]) :
-          Sefaria._ApiPromise(url)
+      if (key in store) {
+          return Promise.resolve(store[key]);
+      }
+
+      if (!persistentStore) {
+          return Sefaria._ApiPromise(url)
               .then(data => {
                   if (processor) { data = processor(data); }
                   store[key] = data;
                   return data;
-              })
+              });
+      }
+
+      const persistentCacheKey = persistentKey || key;
+      // `persistentCacheKey` should be the full canonical API URL for persisted calls.
+      // Keep in-flight promises separate so synchronous cache readers only see resolved data.
+      if (persistentStore._inflight[persistentCacheKey]) {
+          return persistentStore._inflight[persistentCacheKey];
+      }
+
+      const clearInflight = () => {
+          delete persistentStore._inflight[persistentCacheKey];
+      };
+      persistentStore._inflight[persistentCacheKey] = Promise.resolve()
+          .then(() => persistentStore.get(persistentCacheKey))
+          .catch(() => undefined)
+          .then(data => {
+              if (typeof data !== 'undefined') {
+                  if (processor) { data = processor(data); }
+                  if (typeof data === 'undefined') {
+                      return data;
+                  }
+                  store[key] = data;
+                  return data;
+              }
+
+              return Sefaria._ApiPromise(url)
+                  .then(async data => {
+                      if (processor) { data = processor(data); }
+                      if (typeof data === 'undefined') {
+                          return data;
+                      }
+                      store[key] = data;
+                      await persistentStore.put(persistentCacheKey, data);
+                      return data;
+                  });
+          })
+          .then(data => {
+              clearInflight();
+              return data;
+          }, error => {
+              clearInflight();
+              throw error;
+          });
+
+      return persistentStore._inflight[persistentCacheKey];
   },
   //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {

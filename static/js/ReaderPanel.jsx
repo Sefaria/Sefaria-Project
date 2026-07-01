@@ -33,6 +33,7 @@ import {
   MenuButton,
   DisplaySettingsButton,
   SaveButton,
+  DownloadButton,
   GuideButton,
   CategoryColorLine,
   CategoryAttribution,
@@ -1437,6 +1438,12 @@ class ReaderControls extends Component {
               tooltip={true}
             />
           }
+          <DownloadButton
+            bookTitle={this.props.currentBook()}
+            currVersions={this.props.currVersions}
+            translationLanguagePreference={this.props.translationLanguagePreference}
+            tooltip={true}
+          />
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}

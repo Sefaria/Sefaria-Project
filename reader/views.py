@@ -5305,7 +5305,7 @@ def dynamic_manifest(request, filename):
 
     # Always use "/" for scope to allow PWA control over all paths
     scope = "/"
-    start_url = "/"
+    start_url = "/texts"
 
     context = {
         'active_module': active_module,
@@ -5322,4 +5322,14 @@ def dynamic_manifest(request, filename):
     response["Vary"] = "Accept-Language, Host"
     response["Cache-Control"] = "max-age=2592000"  # 30 days - manifests are static metadata
     
+    return response
+
+
+def service_worker(request):
+    """
+    Serve the PWA service worker from the origin root so its scope can cover reader URLs.
+    """
+    path = os.path.join(settings.BASE_DIR, "static", "js", "service-worker.js")
+    response = FileResponse(open(path, "rb"), content_type="application/javascript")
+    response["Cache-Control"] = "no-cache"
     return response
