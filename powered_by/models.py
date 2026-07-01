@@ -28,6 +28,24 @@ class Project(models.Model):
     are discovered in the wild by staff, or are added manually.
     """
 
+    PUBLIC_FIELDS = (
+        "id", "submission_date", "created_at", "updated_at",
+        "submission_source", "sefaria_tools_used", "tech_used_raw",
+        "technical_experience", "vibe_coded", "project_why",
+        "project_name", "project_link", "project_source_code",
+        "project_reach", "project_desc", "project_category",
+        "image_url", "has_pbs_logo", "tags", "status",
+        "is_buggy", "last_checked", "consent_to_display",
+        "is_published", "featured",
+    )
+
+    # PII / internal staff metadata. Only serialized for authenticated staff;
+    # see contents() and powered_by.views.powered_by_api.
+    PRIVATE_FIELDS = (
+        "creator", "creator_email", "is_developer", "job_title", "found_sefaria",
+        "submitter", "salesforce_id", "notes",
+    )
+
     # --- Submission metadata ------------------------------------------------
 
     submission_date = models.DateTimeField(
@@ -144,13 +162,6 @@ class Project(models.Model):
     def __str__(self):
         return self.project_name
 
-    # PII / internal staff metadata. Only serialized for authenticated staff;
-    # see contents() and powered_by.views.powered_by_api.
-    PRIVATE_FIELDS = (
-        "creator", "creator_email", "is_developer", "job_title", "found_sefaria",
-        "submitter", "salesforce_id", "notes",
-    )
-
     def contents(self, authenticated=False):
         """
         Return a JSON-safe dict of fields (datetimes as ISO strings).
@@ -163,33 +174,9 @@ class Project(models.Model):
         def iso(dt):
             return dt.isoformat() if dt else None
 
-        contents = {
-            "id": self.id,
-            "submission_date": iso(self.submission_date),
-            "created_at": iso(self.created_at),
-            "updated_at": iso(self.updated_at),
-            "submission_source": self.submission_source,
-            "sefaria_tools_used": self.sefaria_tools_used,
-            "tech_used_raw": self.tech_used_raw,
-            "technical_experience": self.technical_experience,
-            "vibe_coded": self.vibe_coded,
-            "project_why": self.project_why,
-            "project_name": self.project_name,
-            "project_link": self.project_link,
-            "project_source_code": self.project_source_code,
-            "project_reach": self.project_reach,
-            "project_desc": self.project_desc,
-            "project_category": self.project_category,
-            "image_url": self.image_url,
-            "has_pbs_logo": self.has_pbs_logo,
-            "tags": self.tags,
-            "status": self.status,
-            "is_buggy": self.is_buggy,
-            "last_checked": iso(self.last_checked),
-            "consent_to_display": self.consent_to_display,
-            "is_published": self.is_published,
-            "featured": self.featured,
-        }
+        contents = {field: getattr(self, field) for field in self.PUBLIC_FIELDS}
+        for field in ("submission_date", "created_at", "updated_at", "last_checked"):
+            contents[field] = iso(contents[field])
 
         if authenticated:
             for field in self.PRIVATE_FIELDS:
