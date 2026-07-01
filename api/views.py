@@ -164,9 +164,13 @@ class RefView(View):
 
 
 _SEARCH_RESULT_FIELDS = (
-    'ref', 'text', 'url', 'index_title', 'language', 'version_title',
+    'ref', 'url', 'index_title', 'language', 'version_title',
     'primary_category', 'all_categories',
 )
+_DEFAULT_RESULT_LIMIT = 10
+_DEFAULT_LINKED_REF_LIMIT = 10
+_MAX_RESULT_LIMIT = 100
+_MAX_LINKED_REF_LIMIT = 100
 _LINKED_REF_ENHANCEMENT_LIMIT = 50
 _LINKED_REF_ENHANCEMENT_DEPTH = 1
 _LINKED_REF_ENHANCEMENT_STD_THRESHOLD = 2
@@ -184,6 +188,37 @@ class KnnSearch(View):
         if not isinstance(value, bool):
             raise ValueError(f"'{name}' must be a boolean")
         return value
+
+    @staticmethod
+    def _limit_param(body, name, default, max_value):
+        value = body.get(name, default)
+        if not isinstance(value, int) or isinstance(value, bool):
+            raise ValueError(f"'{name}' must be an integer")
+        return max(1, min(value, max_value))
+
+    @staticmethod
+    def _serialize_search_result(result, include_text):
+        serialized = {f: getattr(result, f) for f in _SEARCH_RESULT_FIELDS}
+        if include_text:
+            serialized["text"] = result.text
+        return serialized
+
+    @staticmethod
+    def _linked_ref_text(ref):
+        try:
+            text = Ref(ref).text(lang="en").as_string()
+            if text:
+                return text
+            return Ref(ref).text(lang="he").as_string()
+        except Exception:
+            return ""
+
+    @classmethod
+    def _serialize_linked_ref(cls, ref, include_text):
+        serialized = {"ref": ref}
+        if include_text:
+            serialized["text"] = cls._linked_ref_text(ref)
+        return serialized
 
     def post(self, request):
         auth = request.headers.get("Authorization", "")
@@ -209,13 +244,21 @@ class KnnSearch(View):
         if filters is not None and not isinstance(filters, dict):
             return jsonResponse({"error": "'filters' must be an object"}, status=400)
 
-        raw_limit = body.get("limit", 10)
-        if not isinstance(raw_limit, int) or isinstance(raw_limit, bool):
-            return jsonResponse({"error": "'limit' must be an integer"}, status=400)
-        limit = max(1, min(raw_limit, 100))
-
         try:
+            result_limit = self._limit_param(
+                body,
+                "result_limit",
+                body.get("limit", _DEFAULT_RESULT_LIMIT),
+                _MAX_RESULT_LIMIT,
+            )
+            linked_ref_limit = self._limit_param(
+                body,
+                "linked_ref_limit",
+                _DEFAULT_LINKED_REF_LIMIT,
+                _MAX_LINKED_REF_LIMIT,
+            )
             include_linked_refs = self._bool_param(body, "include_linked_refs", False)
+            include_text = self._bool_param(body, "include_text", True)
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
@@ -226,15 +269,15 @@ class KnnSearch(View):
             return jsonResponse({"error": "Semantic search is not configured"}, status=503)
 
         try:
-            search_limit = max(limit, _LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else limit
+            search_limit = max(result_limit, _LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
             search_results = semantic_search(query, filters=filters, limit=search_limit)
         except EmbeddingError as e:
             return jsonResponse({"error": str(e)}, status=502)
-        results = search_results[:limit]
+        results = search_results[:result_limit]
 
         response = {
             "results": [
-                {f: getattr(r, f) for f in _SEARCH_RESULT_FIELDS}
+                self._serialize_search_result(r, include_text)
                 for r in results
             ]
         }
@@ -249,7 +292,10 @@ class KnnSearch(View):
                 min_count=_LINKED_REF_ENHANCEMENT_MIN_COUNT,
             )
             response.update({
-                "linked_refs": enhancement.appended_refs,
+                "linked_refs": [
+                    self._serialize_linked_ref(ref, include_text)
+                    for ref in enhancement.appended_refs[:linked_ref_limit]
+                ],
             })
 
         return jsonResponse(response)
