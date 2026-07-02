@@ -17,6 +17,18 @@ def pytest_configure(config):
     sys._called_from_test = True
     django.setup()
 
+    # The `vector_db` (pgvector) database is an external Postgres that is not
+    # provisioned for the test run. Leaving it in DATABASES makes pytest-django's
+    # setup_databases() attempt to create a test database for it, which fails auth
+    # and errors every DB-backed test at setup. Drop it here (before any test DB is
+    # set up) so the suite runs against `default` only. The pgvector-specific tests
+    # are skipped separately. Remove this once pgvector is reachable in CI.
+    from django.conf import settings as _dj_settings
+    from django.db import connections as _dj_connections
+    _dj_settings.DATABASES.pop("vector_db", None)
+    # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
+    _dj_connections.__dict__.pop("settings", None)
+
 
 def pytest_unconfigure(config):
     import sys
