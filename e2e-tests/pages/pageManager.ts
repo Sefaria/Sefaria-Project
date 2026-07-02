@@ -4,6 +4,7 @@ import { LANGUAGES } from '../globals'
 import { Banner } from "./banner"
 import { TextsPage } from "./textsPage"
 import { TopicsPage } from "./topicsPage"
+import { CommunityPage } from "./communityPage"
 import { DonatePage } from "./donatePage"
 import { LoginPage } from "./loginPage"
 import { SignUpPage } from "./signupPage"
@@ -19,6 +20,9 @@ import { AccountSettingsPage } from "./accountSettingsPage"
 import { LibraryAssistantPage } from "./libraryAssistantPage"
 import { ResourcePanelPage } from "./resourcePanelPage"
 import { MobileHamburgerPage } from "./mobileHamburgerPage"
+import { VoicesTopicPage } from "./voicesTopicPage"
+import { LibraryTopicPage } from "./libraryTopicPage"
+import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 
 
 export class PageManager {
@@ -26,6 +30,7 @@ export class PageManager {
     private readonly banner: Banner
     private readonly textsPage: TextsPage
     private readonly topicsPage: TopicsPage
+    private readonly communityPage: CommunityPage
     private readonly donatePage: DonatePage
     private readonly loginPage: LoginPage
     private readonly signupPage: SignUpPage
@@ -41,6 +46,9 @@ export class PageManager {
     private readonly libraryAssistantPage: LibraryAssistantPage
     private readonly resourcePanelPage: ResourcePanelPage
     private readonly mobileHamburgerPage: MobileHamburgerPage
+    private readonly voicesTopicPage: VoicesTopicPage
+    private readonly libraryTopicPage: LibraryTopicPage
+    private readonly voicesBookmarksPage: VoicesBookmarksPage
 
 
 
@@ -49,6 +57,7 @@ export class PageManager {
         this.banner = new Banner(page, language)
         this.textsPage = new TextsPage(page, language)
         this.topicsPage = new TopicsPage(page, language)
+        this.communityPage = new CommunityPage(page, language)
         this.donatePage = new DonatePage(page, language)
         this.loginPage = new LoginPage(page, language)
         this.signupPage = new SignUpPage(page, language)
@@ -64,6 +73,9 @@ export class PageManager {
         this.libraryAssistantPage = new LibraryAssistantPage(page, language)
         this.resourcePanelPage = new ResourcePanelPage(page, language)
         this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
+        this.voicesTopicPage = new VoicesTopicPage(page, language)
+        this.libraryTopicPage = new LibraryTopicPage(page, language)
+        this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
 
     }
 
@@ -78,6 +90,10 @@ export class PageManager {
 
     onTopicsPage() {
         return this.topicsPage
+    }
+
+    onCommunityPage() {
+        return this.communityPage
     }
 
     onDonatePage() {
@@ -138,6 +154,18 @@ export class PageManager {
 
     onMobileHamburger() {
         return this.mobileHamburgerPage
+    }
+
+    onVoicesTopic() {
+        return this.voicesTopicPage
+    }
+
+    onLibraryTopic() {
+        return this.libraryTopicPage
+    }
+
+    onVoicesBookmarks() {
+        return this.voicesBookmarksPage
     }
 
 

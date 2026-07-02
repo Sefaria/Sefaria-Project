@@ -9,7 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from './csrf';
 import FilterNode from "./FilterNode";
 import { VOICES_MODULE, LIBRARY_MODULE } from '../constants';
 
@@ -956,7 +956,7 @@ Sefaria = extend(Sefaria, {
         method,
         mode: 'same-origin',
         headers: {
-            'X-CSRFToken': Cookies.get('csrftoken'),
+            'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
         credentials: 'same-origin',
@@ -2860,6 +2860,7 @@ _media: {},
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
     isNewVisitor: () => {
+        if (!Sefaria._inBrowser) { return true; }
         return (
             ("isNewVisitor" in sessionStorage &&
                 JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
@@ -2867,6 +2868,7 @@ _media: {},
         );
     },
     isReturningVisitor: () => {
+        if (!Sefaria._inBrowser) { return false; }
         return (
             !Sefaria.isNewVisitor() &&
             "isReturningVisitor" in localStorage &&
@@ -2874,13 +2876,15 @@ _media: {},
         );
     },
     markUserAsNewVisitor: () => {
+        if (!Sefaria._inBrowser) { return; }
         sessionStorage.setItem("isNewVisitor", "true");
         // Setting this at this time will make the current new visitor a returning one once their session is cleared
         localStorage.setItem("isReturningVisitor", "true");
     },
     markUserAsReturningVisitor: () => {
-      sessionStorage.setItem("isNewVisitor", "false");
-      localStorage.setItem("isReturningVisitor", "true");
+        if (!Sefaria._inBrowser) { return; }
+        sessionStorage.setItem("isNewVisitor", "false");
+        localStorage.setItem("isReturningVisitor", "true");
     },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {

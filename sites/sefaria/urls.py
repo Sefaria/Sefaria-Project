@@ -52,7 +52,8 @@ static_pages = [
     "updates",
     "pioneers",
     "ai",
-    "metrics"
+    "metrics",
+    "dedication/hirsch"
 ]
 
 static_pages_by_lang = [

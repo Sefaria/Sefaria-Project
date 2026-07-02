@@ -17,4 +17,5 @@ def send_message(channel, username, pretext, text, fallback=None, icon_emoji=':r
             ]
         }
 
-    requests.post(SLACK_URL, json=post_object)
+    response = requests.post(SLACK_URL, json=post_object)
+    return response

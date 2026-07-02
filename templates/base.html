@@ -9,6 +9,7 @@
 <head>
     {% block meta_title %}{% meta_title %}{{ title|striptags }}{% endmeta_title %}{% endblock %}
     <meta charset="utf-8"/>
+    <meta name="csrf-token" content="{{ csrf_token }}"/>
     {% block meta_description %}{% meta_desc %}{{ desc|striptags }}{% endmeta_desc %}{% endblock %}
 
     {% if noindex or DEBUG %}

@@ -8,7 +8,6 @@ import {
   SheetListing,
   Note,
   FeedbackBox,
-  DivineNameReplacer,
   ToolTipped, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
 import {ContentText} from "./ContentText";
@@ -567,11 +566,6 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         contentLang={this.props.contentLang}
       />);
-    } else if (this.props.mode === "DivineName") {
-      content = <DivineNameReplacer
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
-      />
     } else if (this.props.mode === "SidebarSearch") {
     content = <SidebarSearch
                 title={this.props.title}
