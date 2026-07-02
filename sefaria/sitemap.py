@@ -51,7 +51,7 @@ class SefariaSiteMapGenerator(object):
         "/updates",
         "/people",
         "/people/Talmud",
-        "/william-davidson-talmud",
+        "/dedication/william-davidson-talmud",
         "/nash-bravmann-collection",
     ]
     sitemaps = []

@@ -2683,7 +2683,7 @@ _media: {},
         hebrew: "תלמוד מהדורת ויליאם דוידסון",
         englishAsEdition: "The William Davidson Edition",
         hebrewAsEdition: "מהדורת ויליאם דוידסון",
-        link: "/william-davidson-talmud"
+        link: "/dedication/william-davidson-talmud"
       }
     ];
     var attribution = null;

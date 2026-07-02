@@ -4,17 +4,202 @@
 
 {% block meta_title %}{% meta_title %}{% if request.interfaceLang == "hebrew" %}{{ dedication.he_title|striptags }}{% else %}{{ dedication.en_title|striptags }}{% endif %}{% endmeta_title %}{% endblock %}
 
+{% block css %}
+    /* ------------------------------------------------------------------ *
+     * Dedication pages (DB-backed, editable in the Django admin).
+     * Page bodies live in Dedication.en_content / he_content; per-page
+     * styling is kept here (engineer-managed) and scoped by the wrapper id
+     * #dedication-<slug> that the template emits below.
+     * ------------------------------------------------------------------ */
+
+    /* --- slug: hirsch --- */
+    /* clear the 60px fixed site header, then Figma's 64px header-to-title gap */
+    #dedication-hirsch .inner {
+        padding-top: 124px;
+    }
+    /* match the design's antialiased rendering (macOS defaults to the heavier
+       subpixel smoothing, which makes the Roboto body look bolder than Figma) */
+    #dedication-hirsch {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    /* Serif, start-aligned, sentence-case headings (override default centered/uppercase static styles) */
+    #dedication-hirsch h1 {
+        text-align: start;
+        letter-spacing: normal;
+        font-weight: normal;
+        font-size: 30px;
+        line-height: 1;
+        color: #121212;
+        margin: 0 0 32px 0;
+    }
+    #dedication-hirsch h2 {
+        text-transform: none;
+        border-bottom: none;
+        letter-spacing: normal;
+        font-weight: normal;
+        color: #121212;
+        font-size: 24px;
+        line-height: 1;
+        padding: 0;
+        margin: 32px 0 16px 0;
+    }
+    /* Figma uses Adobe Garamond Pro (loaded site-wide via Typekit) for the
+       English serif; the shared stack puts Cardo first, so scope Garamond here */
+    .interface-english #dedication-hirsch h1,
+    .interface-english #dedication-hirsch h2 {
+        font-family: "adobe-garamond-pro", var(--english-serif-font-family);
+    }
+    .interface-hebrew #dedication-hirsch h1,
+    .interface-hebrew #dedication-hirsch h2 {
+        font-family: var(--hebrew-serif-font-family);
+    }
+    /* Sans-serif body (font-size/line-height inherited from the shared .static p rule) */
+    #dedication-hirsch p {
+        color: #121212;
+        margin-bottom: 16px;
+        text-align: justify;
+    }
+    .interface-english #dedication-hirsch p {
+        font-family: var(--english-sans-serif-font-family);
+    }
+    .interface-hebrew #dedication-hirsch p {
+        font-family: var(--hebrew-sans-serif-font-family);
+    }
+    /* Portrait with title above and credit below */
+    #dedication-hirsch .dedicationImage {
+        text-align: start;
+        margin: 32px 0;
+    }
+    #dedication-hirsch .dedicationImage img {
+        display: block;
+        width: 240px;
+        height: auto;
+    }
+    #dedication-hirsch .dedicationImage .imageTitle {
+        font-size: 22px;
+        font-weight: 500;
+        color: #575757;
+        margin-bottom: 12px;
+    }
+    #dedication-hirsch .dedicationImage .imageCredit {
+        font-size: 14px;
+        color: #707070;
+        margin-top: 12px;
+    }
+    .interface-english #dedication-hirsch .dedicationImage .imageTitle,
+    .interface-english #dedication-hirsch .dedicationImage .imageCredit {
+        font-family: var(--english-sans-serif-font-family);
+    }
+    .interface-hebrew #dedication-hirsch .dedicationImage .imageTitle,
+    .interface-hebrew #dedication-hirsch .dedicationImage .imageCredit {
+        font-family: var(--hebrew-sans-serif-font-family);
+    }
+    /* Scripture pull-quote */
+    #dedication-hirsch .dedicationQuote {
+        text-align: center;
+        font-weight: normal;
+        color: #121212;
+        margin-top: 32px;
+    }
+    #dedication-hirsch .dedicationQuote .he {
+        display: block;
+        font-size: 29px;
+        font-weight: 500;
+        margin-bottom: 16px;
+        font-family: var(--hebrew-serif-font-family);
+    }
+    #dedication-hirsch .dedicationQuote .int-en {
+        font-size: 24px;
+        line-height: 1.2;
+        font-family: "adobe-garamond-pro", var(--english-serif-font-family);
+    }
+    #dedication-hirsch .dedicationQuote .int-he {
+        font-size: 24px;
+        font-family: var(--hebrew-serif-font-family);
+    }
+    /* keep the citation link in the quote's serif (overrides the global sans link font) */
+    #dedication-hirsch .dedicationQuote .refLink {
+        font-family: inherit;
+    }
+
+    /* --- slug: william-davidson-talmud --- */
+    #dedication-william-davidson-talmud {
+        text-align: justify;
+    }
+    #dedication-william-davidson-talmud p {
+        margin-bottom: 20px;
+    }
+    #dedication-william-davidson-talmud .cardBlock {
+        background: white;
+        border: 1px solid #F2F2F2;
+        border-top: 6px solid #ccb479;
+        padding: 50px 60px;
+        margin-bottom: 60px;
+    }
+    @media screen and (max-width: 500px) {
+      #dedication-william-davidson-talmud .cardBlock {
+        padding: 40px 20px;
+      }
+    }
+    #dedication-william-davidson-talmud h1 {
+        border-bottom: 1px solid #CCC;
+        color: black;
+        text-transform: uppercase;
+        padding-bottom: 10px;
+        margin-bottom: 50px;
+        font-family: inherit;
+        text-align: center;
+        width: 80%;
+        margin-inline-end: auto;
+        margin-inline-start: auto;
+    }
+    #dedication-william-davidson-talmud .cardBlock p {
+        color: #666;
+    }
+    #dedication-william-davidson-talmud h2 {
+        font-family: inherit;
+        color: black;
+        border: none;
+        text-transform: none;
+        font-size: 24px;
+        font-style: italic;
+        margin-bottom: 4px;
+        padding: 0;
+    }
+    #dedication-william-davidson-talmud .davidsonDates {
+        margin-bottom: 20px;
+    }
+    #dedication-william-davidson-talmud .davidsonPhoto {
+        float: left;
+        margin: 0 22px 22px 0;
+    }
+    #dedication-william-davidson-talmud .davidsonQuote .int-en {
+        font-style: italic;
+        margin-top: 10px;
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    .interface-hebrew #dedication-william-davidson-talmud .davidsonQuote .int-he {
+        font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+    }
+    #dedication-william-davidson-talmud .davidsonLicense {
+        margin-top: 60px;
+        font-size: 14px;
+    }
+    #dedication-william-davidson-talmud .davidsonLicense a {
+        text-decoration: underline;
+    }
+{% endblock %}
+
 {% block content %}
-<div id="dedicationPage" class="container static biReady">
+<div id="dedication-{{ dedication.slug }}" class="dedicationPage container static biReady">
     <div class="inner">
 
         <div class="int-en">
-            <h1>{{ dedication.en_title }}</h1>
             {{ dedication.en_content|safe }}
         </div>
 
         <div class="int-he">
-            <h1>{{ dedication.he_title }}</h1>
             {{ dedication.he_content|safe }}
         </div>
 

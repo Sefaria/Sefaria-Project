@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.urls import re_path
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 import reader.views as reader_views
 import dedications.views as dedication_views
 from sefaria.settings import STATIC_URL
@@ -19,7 +19,6 @@ static_pages = [
     "shraga-silverstein",
     "henry-and-julia-koschitzky-apps",
     "adin-even-israel-steinsaltz",
-    "william-davidson-talmud",
     "nash-bravmann-collection",
     "linker",
     "ios",
@@ -54,7 +53,6 @@ static_pages = [
     "pioneers",
     "ai",
     "metrics",
-    "dedication/hirsch"
 ]
 
 static_pages_by_lang = [
@@ -103,6 +101,9 @@ site_urlpatterns += [
     re_path(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
     re_path(r'^rabbis/?$', lambda x: HttpResponseRedirect('/educators')),
     re_path(r'^connect/?$', lambda x: HttpResponseRedirect('/newsletter')),
+    # The William Davidson Talmud dedication page moved into the Dedication model
+    # (now at /dedication/william-davidson-talmud). 301 the old URL to preserve links.
+    re_path(r'^william-davidson-talmud/?$', lambda x: HttpResponsePermanentRedirect('/dedication/william-davidson-talmud')),
 ]
 
 
