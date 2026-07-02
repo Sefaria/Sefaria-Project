@@ -43,7 +43,7 @@ test.describe('Resource Panel — Connections List — English', () => {
     await pm.onResourcePanel().expectBackButtonVisible();
   });
 
-  test('RP-061: Clicking a book enters TextList for that book', async () => {
+  test('RP-061: Clicking a book enters TextList for that book', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().openCategoryConnections('Commentary');
     // Pick the first available book (whatever Sefaria has — stable enough).
     const books = await pm.onResourcePanel().getBookFilterNames();

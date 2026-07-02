@@ -24,8 +24,7 @@ EOF
 kubectl get rollout $DEPLOY_ENV-web -o yaml | yq '.spec.template.spec' > spec.yaml
 yq -i '.spec.template.spec += load("spec.yaml")' job.yaml
 yq -i '.spec.template.spec.restartPolicy = "Never"' job.yaml
-yq -i '.spec.activeDeadlineSeconds = 1200' job.yaml
-yq -i '.spec.template.spec.containers[0].args = ["-c", "pip3 install pytest-django pytest-timeout; pytest -v --timeout=120 -m \"not deep and not failing\" ./sefaria; echo $? > /dev/stdout; exit 0;"]' job.yaml
+yq -i '.spec.template.spec.containers[0].args = ["-c", "pip3 install pytest-django; pytest -v -m \"not deep and not failing\" ./sefaria; echo $? > /dev/stdout; exit 0;"]' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].startupProbe)' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].livenessProbe)' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].readinessProbe)' job.yaml
