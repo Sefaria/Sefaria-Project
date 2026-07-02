@@ -95,7 +95,7 @@
     #hirschDedication .dedicationQuote {
         text-align: center;
         font-weight: normal;
-        color: #121212;
+        color: #000;
         margin-top: 32px;
     }
     #hirschDedication .dedicationQuote .he {
@@ -114,11 +114,13 @@
         font-size: 24px;
         font-family: var(--hebrew-serif-font-family);
     }
-    /* citation source on its own line, 16px below the quote, in the quote's serif */
+    /* citation source on its own line, 16px below the quote, in the quote's serif.
+       color:#000 overrides the shared `.static .quotation a` dark-grey link rule */
     #hirschDedication .dedicationQuote .refLink {
         display: block;
         margin-top: 16px;
         font-family: inherit;
+        color: #000;
     }
 {% endblock %}
 
