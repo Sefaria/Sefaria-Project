@@ -158,7 +158,6 @@ INSTALLED_APPS = (
     'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'django.contrib.postgres',
     'emailusernames',
     'guides',
     'sefaria.gauth',
