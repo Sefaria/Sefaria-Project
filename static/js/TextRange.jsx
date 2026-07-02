@@ -230,15 +230,23 @@ class TextRange extends Component {
     this.conditionalPlaceSegmentNumbers();
   }
   parashahHeader(data, segment, includeAliyout=false) {
-    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
-    // returns null otherwise.
-    //let data = this.getText();
+    // Returns the English/Hebrew title to show above `segment`, if it begins a new parasha
+    // (or, when aliyot are shown, a new aliyah). Returns null otherwise.
+    // With aliyot on, every aliyah header also names its parasha, e.g. "Parashat Noach: Second".
     if (!data) { return null; }
     if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
-      const curRef = segment.ref;
-      if ("alt" in segment && segment.alt != null){
-        if(includeAliyout || "whole" in segment.alt){
-          return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
+      const alt = segment.alt;
+      if (alt != null) {
+        if (includeAliyout && alt.aliyah_en) {
+          return {
+            "en": `Parashat ${alt.parasha_en}: ${alt.aliyah_en}`,
+            "he": `פרשת ${alt.parasha_he}: ${alt.aliyah_he}`,
+            "parashaTitle": false, // styled as an aliyah header (see .parashahHeader.aliyah)
+          };
+        }
+        if ("whole" in alt) {
+          // Aliyot off: show just the parasha name at its start.
+          return {"en": alt["en"][0], "he": alt["he"][0], "parashaTitle": true};
         }
       }
     }

@@ -457,8 +457,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 if getattr(n, "refs", None):
                     for i, r in enumerate(n.refs):
-                        # hack to skip Rishon, skip empty refs
-                        if i == 0 or not r:
+                        # skip empty refs
+                        if not r:
                             continue
                         subRef = Ref(r)
                         subRefStart = subRef.starting_ref()
@@ -469,8 +469,20 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                                 val = alts_ja.get_element(indxs) or val
                             except IndexError:
                                 pass
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            # i == 0 is Rishon, the first aliyah, which coincides with the
+                            # parasha start. Keep it out of the en/he title lists (that slot
+                            # already shows the parasha name), but still record its aliyah
+                            # metadata below so the reader can render "Parashat X: First".
+                            if i != 0:
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            # Attach the aliyah and its containing parasha to every aliyah
+                            # entry, so the reader can show the parasha on each aliyah even in
+                            # chapters that begin mid-parasha (where no "whole" marker exists).
+                            val["aliyah_en"] = n.sectionString([i + 1], "en", title=False)
+                            val["aliyah_he"] = n.sectionString([i + 1], "he", title=False)
+                            val["parasha_en"] = n.primary_title("en")
+                            val["parasha_he"] = n.primary_title("he")
                             alts_ja.set_element(indxs, val)
                         elif subRefStart.follows(oref):
                             break
