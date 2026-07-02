@@ -73,7 +73,8 @@ class LocationSettingsMiddleware(MiddlewareMixin):
                 loc = PINNED_IPCOUNTRY
             except:
                 loc = "us"
-        request.diaspora = False if loc in ("il", "IL", "Il") else True
+        request.country_code = loc.lower()
+        request.diaspora = request.country_code != "il"
 
 
 class LanguageSettingsMiddleware(MiddlewareMixin):

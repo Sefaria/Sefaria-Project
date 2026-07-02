@@ -2107,6 +2107,15 @@ export const replaceNewLinesWithLinebreaks = (content, options = {}) => {
   return transformValues(content, (s) => s.replace(/\n(?!\n)/g, " \n"));
 };
 
+// A countryMode of "all" matches every country. "include" matches only the listed countries.
+// "exclude" matches every country except the listed ones.
+const matchesCountryTarget = (countriesToTarget) => {
+  if (!countriesToTarget || countriesToTarget.countryMode === "all") return true;
+  const countryCodes = (countriesToTarget.countries || []).map((country) => country.code?.toLowerCase());
+  const isIncluded = countryCodes.includes(Sefaria.countryCode);
+  return countriesToTarget.countryMode === "include" ? isIncluded : !isIncluded;
+};
+
 const InterruptingMessage = ({
                                onClose,
                              }) => {
@@ -2148,6 +2157,7 @@ const InterruptingMessage = ({
       )
     )
       return false;
+    if (!matchesCountryTarget(strapi.modal.countriesToTarget)) return false;
 
     let shouldShowModal = false;
 
@@ -2330,6 +2340,7 @@ const Banner = ({ onClose }) => {
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
+    if (!matchesCountryTarget(strapi.banner.countriesToTarget)) return false;
 
     let shouldShowBanner = false;
 
