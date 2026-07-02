@@ -10,6 +10,7 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
+import {matchesCountryTarget} from './sefaria/strapiTargeting';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -2084,15 +2085,6 @@ export const replaceNewLinesWithLinebreaks = (content, options = {}) => {
 
   // Replace single newlines only, preserving double newlines (paragraph breaks)
   return transformValues(content, (s) => s.replace(/\n(?!\n)/g, " \n"));
-};
-
-// A countryMode of "all" matches every country. "include" matches only the listed countries.
-// "exclude" matches every country except the listed ones.
-const matchesCountryTarget = (countriesToTarget) => {
-  if (!countriesToTarget || countriesToTarget.countryMode === "all") return true;
-  const countryCodes = (countriesToTarget.countries || []).map((country) => country.code?.toLowerCase());
-  const isIncluded = countryCodes.includes(Sefaria.countryCode);
-  return countriesToTarget.countryMode === "include" ? isIncluded : !isIncluded;
 };
 
 const InterruptingMessage = ({
