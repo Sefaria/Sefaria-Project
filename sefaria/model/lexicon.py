@@ -438,6 +438,43 @@ class EncyclopediaTalmuditEntry(DictionaryEntry):
         return segments or [head or ""]
 
 
+class BenYehudaDictionaryEntry(DictionaryEntry):
+    """Eliezer Ben-Yehuda's מילון הלשון העברית.
+
+    Each entry is a single vocalized headword with an HTML definition (already
+    carrying inlined footnotes, styled source citations, and internal
+    cross-reference links, produced by the import pipeline). ``content`` is
+    ``{"definition": [<p>…</p>, …]}`` — one HTML paragraph per list element.
+    """
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ["page_num"]
+
+    def headword_string(self):
+        return f'<big><strong dir="rtl">{self.headword}</strong></big>'
+
+    def as_strings(self, with_headword=True):
+        """One string per definition paragraph so each becomes its own segment.
+
+        Segment 1 is the bold headword spliced into the first paragraph;
+        any further paragraphs become their own segments. Cross-reference
+        links therefore resolve to segment 1 of their target entry.
+        """
+        paras = self.content.get("definition", []) or []
+        head = self.headword_string() if with_headword else ""
+
+        if not paras:
+            return [head] if head else [""]
+
+        segments = list(paras)
+        if head:
+            first = segments[0]
+            if first.startswith("<p>"):
+                segments[0] = "<p>" + head + " " + first[3:]
+            else:
+                segments[0] = head + " " + first
+        return segments
+
+
 class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
@@ -589,6 +626,7 @@ class LexiconEntrySubClassMapping(object):
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
         'Krupnik Dictionary': KrupnikEntry,
         'Encyclopedia Talmudit': EncyclopediaTalmuditEntry,
+        'Ben Yehuda Dictionary': BenYehudaDictionaryEntry,
     }
 
     @classmethod
