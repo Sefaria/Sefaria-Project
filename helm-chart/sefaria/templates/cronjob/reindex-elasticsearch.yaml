@@ -8,6 +8,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "0 21 * * 5"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       backoffLimit: 0
@@ -64,6 +65,8 @@ spec:
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: SHARD_RESOURCES
+              value: {{ .Values.cronJobs.reindexElasticSearch.shardResources | toJson | quote }}
             envFrom:
             - secretRef:
                 name: {{ template "sefaria.secrets.elasticAdmin" . }}
@@ -83,7 +86,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy kubernetes && /app/run /app/scripts/scheduled/reindex_orchestrator.py"
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_orchestrator.py"
             ]
           restartPolicy: Never
           volumes:

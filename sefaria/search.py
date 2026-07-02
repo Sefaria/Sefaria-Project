@@ -995,13 +995,14 @@ class TextIndexer(object):
         }
 
 
-def index_sheets_by_timestamp(timestamp):
+def index_sheets_by_timestamp(timestamp, debug=False):
     """
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
+    :param debug: use debug index names when True
     """
-    logger.debug(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}")
+    logger.debug(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}, debug: {debug}")
     
-    name_dict = get_new_and_current_index_names('sheet', debug=False)
+    name_dict = get_new_and_current_index_names('sheet', debug=debug)
     curr_index_name = name_dict.get('current')
     logger.debug(f"Using sheet index - index_name: {curr_index_name}")
     
@@ -1202,15 +1203,21 @@ def index_all(skip=0, debug=False):
         raise
     
     # Clear index queue
-    logger.debug("Clearing stale index queue")
-    deleted = db.index_queue.delete_many({})
-    logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
+    clear_index_queue()
     
     end = datetime.now()
     total_elapsed = end - start
     logger.info("=" * 60)
     logger.info(f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}")
     logger.info("=" * 60)
+
+
+def clear_index_queue():
+    """Remove all entries from the index queue after a full reindex."""
+    logger.debug("Clearing stale index queue")
+    deleted = db.index_queue.delete_many({})
+    logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
+    return deleted.deleted_count
 
 
 def _index_doc_count(index_name):
@@ -1233,13 +1240,29 @@ def _index_doc_count(index_name):
 def reindex_init(type, debug=False):
     """
     Phase 1: Create the new index with bulk-load settings.
-    Safe to call multiple times (force=True recreates the index).
+    Safe to call multiple times: reuses a partially-filled new index instead of wiping it.
     Returns the names dict from get_new_and_current_index_names.
     """
     names = get_new_and_current_index_names(type=type, debug=debug)
-    create_index(names['new'], type, force=True)
-    set_index_bulk_load_settings(names['new'])
-    logger.info(f"reindex_init complete - type: {type}, new_index: {names['new']}")
+    new_index = names['new']
+    if index_client.exists(index=new_index):
+        doc_count = _index_doc_count(new_index)
+        if doc_count is None:
+            raise ValueError(
+                f"reindex_init failed for {type}: could not read doc count for in-progress index {new_index}"
+            )
+        if doc_count > 0:
+            logger.info(
+                f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
+            )
+            set_index_bulk_load_settings(new_index)
+            return names
+        logger.info(f"reindex_init recreating empty index - type: {type}, new_index: {new_index}")
+        create_index(new_index, type, force=True)
+    else:
+        create_index(new_index, type, force=False)
+    set_index_bulk_load_settings(new_index)
+    logger.info(f"reindex_init complete - type: {type}, new_index: {new_index}")
     return names
 
 
@@ -1257,6 +1280,22 @@ def reindex_index_shard(type, shard_index=None, shard_count=None, debug=False):
     else:
         raise ValueError(f"Unknown index type: {type}")
     logger.info(f"reindex_index_shard complete - type: {type}, shard: {shard_index}/{shard_count}")
+
+
+def _swap_alias_atomically(names):
+    """
+    Atomically repoint the stable alias at the new index.
+    Removes the alias from every index in one request, then adds it to the new index.
+    """
+    actions = [
+        {"remove": {"index": "*", "alias": names['alias']}},
+        {"add": {"index": names['new'], "alias": names['alias']}},
+    ]
+    index_client.update_aliases(body={"actions": actions})
+    logger.debug(
+        f"Atomically swapped alias - alias: {names['alias']}, new_index: {names['new']}, "
+        f"previous_index: {names['current']}"
+    )
 
 
 def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
@@ -1279,22 +1318,17 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
             f"(ratio {new_count/current_count:.2%} < required {min_doc_ratio:.0%}). Refusing alias swap."
         )
 
-    # Switch aliases (moved verbatim from index_all_of_type tail)
+    # Legacy cleanup before swap: drop alias from current index and any erroneous physical index named like the alias
     logger.debug("Switching aliases after indexing")
     try:
         index_client.delete_alias(index=names['current'], name=names['alias'])
-        logger.debug(f"Successfully deleted alias from old index - alias: {names['alias']}, old_index: {names['current']}")
     except NotFoundError:
         logger.debug(f"Alias not found on old index (may be first run) - alias: {names['alias']}, old_index: {names['current']}")
+    if index_client.exists(index=names['alias']):
+        clear_index(names['alias'])
 
-    # Clear any index with the alias name
-    clear_index(names['alias'])
+    _swap_alias_atomically(names)
 
-    # Create new alias
-    index_client.put_alias(index=names['new'], name=names['alias'])
-    logger.debug(f"Successfully created alias for new index - alias: {names['alias']}, new_index: {names['new']}")
-
-    # Cleanup old index
     if names['new'] != names['current']:
         logger.debug(f"Cleaning up old index - old_index: {names['current']}")
         clear_index(names['current'])

@@ -4,6 +4,8 @@ Uses importlib to exec_module so heavy imports (kubernetes, django) are never tr
 import importlib.util
 import pathlib
 
+import pytest
+
 
 spec = importlib.util.spec_from_file_location(
     "reindex_orchestrator",
@@ -127,3 +129,56 @@ def test_build_shard_job_manifest_minimal():
     # No envFrom/volumes when not passed
     assert "envFrom" not in container
     assert "volumes" not in manifest["spec"]["template"]["spec"]
+
+
+def test_build_shard_env_from_deduplicates_identical_secret_refs():
+    spec.loader.exec_module(orch)
+    env_from = orch.build_shard_env_from(
+        elastic_admin_secret="elastic-admin",
+        local_settings_ref_secret="local-settings-secrets-production",
+        local_settings_configmap="local-settings-production",
+        local_settings_secret="local-settings-secrets-production",
+    )
+    secret_names = [e["secretRef"]["name"] for e in env_from if "secretRef" in e]
+    assert secret_names.count("local-settings-secrets-production") == 1
+
+
+def test_build_shard_job_manifest_includes_affinity():
+    spec.loader.exec_module(orch)
+    manifest = orch.build_shard_job_manifest(
+        name="test-job",
+        namespace="default",
+        image="my-image:latest",
+        shard_count=2,
+        command=["python", "run.py"],
+        affinity=orch.MONGO_POD_ANTI_AFFINITY,
+    )
+    pod_spec = manifest["spec"]["template"]["spec"]
+    assert pod_spec["affinity"] == orch.MONGO_POD_ANTI_AFFINITY
+
+
+def test_verify_indexed_job_support_requires_128():
+    spec.loader.exec_module(orch)
+
+    class FakeCode:
+        git_version = "v1.27.0"
+
+    class FakeVersionApi:
+        def get_code(self):
+            return FakeCode()
+
+    with pytest.raises(RuntimeError, match="1.28"):
+        orch.verify_indexed_job_support(FakeVersionApi())
+
+
+def test_verify_indexed_job_support_allows_128():
+    spec.loader.exec_module(orch)
+
+    class FakeCode:
+        git_version = "v1.28.3"
+
+    class FakeVersionApi:
+        def get_code(self):
+            return FakeCode()
+
+    orch.verify_indexed_job_support(FakeVersionApi())

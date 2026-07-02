@@ -251,13 +251,17 @@ def test_reindex_finalize_sanity_gate(monkeypatch):
     monkeypatch.setattr(search, "_index_doc_count", lambda name: counts.get(name, 0))
 
     put_alias_calls = []
+    update_alias_calls = []
     monkeypatch.setattr(search.index_client, "put_alias",
                         lambda index, name: put_alias_calls.append((index, name)))
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="sanity"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
 
     assert put_alias_calls == [], "put_alias must NOT be called when the sanity gate fails"
+    assert update_alias_calls == [], "update_aliases must NOT be called when the sanity gate fails"
 
 
 def test_reindex_finalize_fails_closed_on_unreadable_current(monkeypatch):
@@ -277,13 +281,17 @@ def test_reindex_finalize_fails_closed_on_unreadable_current(monkeypatch):
     monkeypatch.setattr(search, "_index_doc_count", fake_doc_count)
 
     put_alias_calls = []
+    update_alias_calls = []
     monkeypatch.setattr(search.index_client, "put_alias",
                         lambda index, name: put_alias_calls.append((index, name)))
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
 
     with pytest.raises(ValueError, match="sanity"):
         search.reindex_finalize("text", min_doc_ratio=0.9)
 
     assert put_alias_calls == [], "put_alias must NOT be called when current count is unreadable"
+    assert update_alias_calls == [], "update_aliases must NOT be called when current count is unreadable"
 
 
 def test_restore_index_settings_refreshes_after_put(monkeypatch):
@@ -304,3 +312,66 @@ def test_restore_index_settings_refreshes_after_put(monkeypatch):
     assert "number_of_replicas" in put_settings_calls[0]["body"]["index"]
     assert len(refresh_calls) == 1
     assert refresh_calls[0] == "text-a"
+
+
+def test_reindex_finalize_success_calls_update_aliases_atomically(monkeypatch):
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search.index_client, "delete_alias", lambda index, name: None)
+    monkeypatch.setattr(search, "clear_index", lambda name: None)
+
+    update_alias_calls = []
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
+
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert len(update_alias_calls) == 1
+    actions = update_alias_calls[0]["actions"]
+    assert {"remove": {"index": "*", "alias": "text"}} in actions
+    assert {"add": {"index": "text-new", "alias": "text"}} in actions
+
+
+def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-new")
+
+    create_calls = []
+    bulk_setting_calls = []
+
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 500)
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings",
+                        lambda index_name: bulk_setting_calls.append(index_name))
+
+    search.reindex_init("text", debug=False)
+
+    assert create_calls == []
+    assert bulk_setting_calls == ["text-new"]
+
+
+def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
+
+    search.reindex_init("text", debug=False)
+
+    assert create_calls == [("text-new", False)]
