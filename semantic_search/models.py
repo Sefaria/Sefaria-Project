@@ -66,10 +66,11 @@ class SemanticTextChunk(models.Model):
 
     def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None) -> list['SemanticTextChunk']:
         safe_filters = {k: v for k, v in (filters or {}).items() if k in self._ALLOWED_FILTER_FIELDS}
+        distance = CosineDistance('embedding', embedding)
         return list(
-            SemanticTextChunk.objects.filter(**safe_filters).order_by(
-                CosineDistance('embedding', embedding)
-            )[:limit]
+            SemanticTextChunk.objects.filter(**safe_filters).annotate(
+                distance=distance
+            ).order_by(distance)[:limit]
         )
 
     def filter(self, **kwargs) -> list['SemanticTextChunk']:
