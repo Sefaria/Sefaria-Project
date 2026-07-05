@@ -48,9 +48,14 @@ def job_terminal_state(status, completions, backoff_exhausted=False):
 
 def parse_kubernetes_version(version_str):
     """Return (major, minor) ints from a gitVersion or semver string."""
-    cleaned = version_str.lstrip("v")
-    parts = cleaned.split(".")
-    return int(parts[0]), int(parts[1])
+    try:
+        cleaned = version_str.lstrip("v")
+        parts = cleaned.split(".")
+        return int(parts[0]), int(parts[1])
+    except (ValueError, IndexError) as exc:
+        raise RuntimeError(
+            f"Could not parse Kubernetes version {version_str!r}; cannot verify Indexed Job support"
+        ) from exc
 
 
 def verify_indexed_job_support(version_api):
@@ -99,15 +104,16 @@ def build_shard_job_manifest(
     """Build a batch/v1 Indexed Job manifest as a plain dict.
     Pure function — no I/O, no imports beyond builtins.
     """
+    if resources is None:
+        raise ValueError(
+            "shard resources are required; set SHARD_RESOURCES / Helm shardResources"
+        )
     container = {
         "name": "reindex-shard",
         "image": image,
         "command": command,
         "env": (env or []) + [{"name": "SHARD_COUNT", "value": str(shard_count)}],
-        "resources": resources or {
-            "requests": {"memory": "8Gi"},
-            "limits": {"memory": "12Gi"},
-        },
+        "resources": resources,
     }
     if env_from:
         container["envFrom"] = env_from
@@ -146,7 +152,10 @@ def parse_shard_resources():
     raw = os.environ.get("SHARD_RESOURCES")
     if not raw:
         return None
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Could not parse SHARD_RESOURCES: {e}") from e
 
 
 def main():
@@ -224,13 +233,19 @@ def main():
         logger.error(str(e))
         sys.exit(1)
 
+    resources = parse_shard_resources()
+    if resources is None:
+        raise RuntimeError(
+            "SHARD_RESOURCES env var is not set; cannot launch shard jobs (set via Helm shardResources)"
+        )
+
     manifest = build_shard_job_manifest(
         job_name, namespace, image, shard_count, command,
         env=shard_env,
         env_from=shard_env_from or None,
         volumes=shard_volumes or None,
         volume_mounts=shard_volume_mounts or None,
-        resources=parse_shard_resources(),
+        resources=resources,
         affinity=MONGO_POD_ANTI_AFFINITY,
     )
 

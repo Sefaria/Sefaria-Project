@@ -11,7 +11,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      backoffLimit: 0
+      backoffLimit: 1  # one retry: an orchestrator crash mid-run gets a second attempt; init is idempotent
       template:
         spec:
           serviceAccountName: {{ .Values.deployEnv }}-reindex-orchestrator

@@ -62,6 +62,7 @@ def test_build_shard_job_manifest():
         env_from=env_from_list,
         volumes=volumes,
         volume_mounts=volume_mounts,
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
     )
 
     assert manifest["apiVersion"] == "batch/v1"
@@ -113,7 +114,7 @@ def test_build_shard_job_manifest():
 
 
 def test_build_shard_job_manifest_minimal():
-    """Ensure the function still works without optional params (backward compat)."""
+    """Ensure the function still works with only required params."""
     spec.loader.exec_module(orch)
     manifest = orch.build_shard_job_manifest(
         name="test-job",
@@ -121,6 +122,7 @@ def test_build_shard_job_manifest_minimal():
         image="my-image:latest",
         shard_count=4,
         command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
     )
     assert manifest["apiVersion"] == "batch/v1"
     container = manifest["spec"]["template"]["spec"]["containers"][0]
@@ -129,6 +131,19 @@ def test_build_shard_job_manifest_minimal():
     # No envFrom/volumes when not passed
     assert "envFrom" not in container
     assert "volumes" not in manifest["spec"]["template"]["spec"]
+
+
+def test_build_shard_job_manifest_fails_without_resources():
+    spec.loader.exec_module(orch)
+    with pytest.raises(ValueError):
+        orch.build_shard_job_manifest(
+            name="test-job",
+            namespace="default",
+            image="my-image:latest",
+            shard_count=4,
+            command=["python", "run.py"],
+            resources=None,
+        )
 
 
 def test_build_shard_env_from_deduplicates_identical_secret_refs():
@@ -151,6 +166,7 @@ def test_build_shard_job_manifest_includes_affinity():
         image="my-image:latest",
         shard_count=2,
         command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
         affinity=orch.MONGO_POD_ANTI_AFFINITY,
     )
     pod_spec = manifest["spec"]["template"]["spec"]
@@ -182,3 +198,14 @@ def test_verify_indexed_job_support_allows_128():
             return FakeCode()
 
     orch.verify_indexed_job_support(FakeVersionApi())
+
+
+def test_parse_kubernetes_version_empty_string():
+    spec.loader.exec_module(orch)
+    with pytest.raises(RuntimeError):
+        orch.parse_kubernetes_version("")
+
+
+def test_parse_kubernetes_version_gke():
+    spec.loader.exec_module(orch)
+    assert orch.parse_kubernetes_version("v1.35.5-gke.1057002") == (1, 35)
