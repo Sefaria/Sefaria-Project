@@ -8405,16 +8405,6 @@ But not to use a display block directive that might break continuous mode for ot
   left: 50%;
   transform: translate(-50%, -50%);
 }
-#appLoading img.int-en {
-  width: 150px;
-  height: 42px;
-  margin-bottom: 6px;
-}
-#appLoading img.int-he {
-  width: 150px;
-  height: 49px;
-  margin-bottom: 6px;
-}
 .emptyDesktop {
   margin-top: 200px;
   text-align: center;
