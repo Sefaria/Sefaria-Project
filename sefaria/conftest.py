@@ -29,6 +29,16 @@ def pytest_configure(config):
     # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
     _dj_connections.__dict__.pop("settings", None)
 
+    # Disable Varnish cache invalidation for the entire test session. With
+    # USE_VARNISH on (as in the CI sandbox), invalidate_linked() on a large
+    # index iterates every linked ref and spawns varnishadm subprocesses,
+    # hanging mutation tests for hours. Tests must not purge shared caches.
+    from sefaria import settings as sefaria_settings
+    sefaria_settings.USE_VARNISH = False
+    for module in list(sys.modules.values()):
+        if getattr(module, "USE_VARNISH", False):
+            module.USE_VARNISH = False
+
 
 def pytest_unconfigure(config):
     import sys
