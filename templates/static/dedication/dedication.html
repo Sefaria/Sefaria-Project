@@ -12,19 +12,25 @@
      * #dedication-<slug> that the template emits below.
      * ------------------------------------------------------------------ */
 
-    /* --- slug: hirsch --- */
+    /* --- slugs: hirsch, fleishman-hirsch-on-torah-in-english --- */
+    /* Both pages share the same Figma design, so every rule below targets both
+       wrapper ids. The wrapper id is #dedication-<slug> (see template body), so
+       a new slug that should reuse this styling must be added to each selector. */
     /* clear the 60px fixed site header, then Figma's 64px header-to-title gap */
-    #dedication-hirsch .inner {
+    #dedication-hirsch .inner,
+    #dedication-fleishman-hirsch-on-torah-in-english .inner {
         padding-top: 124px;
     }
     /* match the design's antialiased rendering (macOS defaults to the heavier
        subpixel smoothing, which makes the Roboto body look bolder than Figma) */
-    #dedication-hirsch {
+    #dedication-hirsch,
+    #dedication-fleishman-hirsch-on-torah-in-english {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
     /* Serif, start-aligned, sentence-case headings (override default centered/uppercase static styles) */
-    #dedication-hirsch h1 {
+    #dedication-hirsch h1,
+    #dedication-fleishman-hirsch-on-torah-in-english h1 {
         text-align: start;
         letter-spacing: normal;
         font-weight: normal;
@@ -33,7 +39,8 @@
         color: #121212;
         margin: 0 0 32px 0;
     }
-    #dedication-hirsch h2 {
+    #dedication-hirsch h2,
+    #dedication-fleishman-hirsch-on-torah-in-english h2 {
         text-transform: none;
         border-bottom: none;
         letter-spacing: normal;
@@ -47,79 +54,99 @@
     /* Figma uses Adobe Garamond Pro (loaded site-wide via Typekit) for the
        English serif; the shared stack puts Cardo first, so scope Garamond here */
     .interface-english #dedication-hirsch h1,
-    .interface-english #dedication-hirsch h2 {
+    .interface-english #dedication-hirsch h2,
+    .interface-english #dedication-fleishman-hirsch-on-torah-in-english h1,
+    .interface-english #dedication-fleishman-hirsch-on-torah-in-english h2 {
         font-family: "adobe-garamond-pro", var(--english-serif-font-family);
     }
     .interface-hebrew #dedication-hirsch h1,
-    .interface-hebrew #dedication-hirsch h2 {
+    .interface-hebrew #dedication-hirsch h2,
+    .interface-hebrew #dedication-fleishman-hirsch-on-torah-in-english h1,
+    .interface-hebrew #dedication-fleishman-hirsch-on-torah-in-english h2 {
         font-family: var(--hebrew-serif-font-family);
     }
     /* Sans-serif body (font-size/line-height inherited from the shared .static p rule) */
-    #dedication-hirsch p {
+    #dedication-hirsch p,
+    #dedication-fleishman-hirsch-on-torah-in-english p {
         color: #121212;
         margin-bottom: 16px;
         text-align: justify;
     }
-    .interface-english #dedication-hirsch p {
+    .interface-english #dedication-hirsch p,
+    .interface-english #dedication-fleishman-hirsch-on-torah-in-english p {
         font-family: var(--english-sans-serif-font-family);
     }
-    .interface-hebrew #dedication-hirsch p {
+    .interface-hebrew #dedication-hirsch p,
+    .interface-hebrew #dedication-fleishman-hirsch-on-torah-in-english p {
         font-family: var(--hebrew-sans-serif-font-family);
     }
     /* Portrait with title above and credit below */
-    #dedication-hirsch .dedicationImage {
+    #dedication-hirsch .dedicationImage,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage {
         text-align: start;
         margin: 32px 0;
     }
-    #dedication-hirsch .dedicationImage img {
+    #dedication-hirsch .dedicationImage img,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage img {
         display: block;
         width: 240px;
         height: auto;
     }
-    #dedication-hirsch .dedicationImage .imageTitle {
+    #dedication-hirsch .dedicationImage .imageTitle,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageTitle {
         font-size: 22px;
         font-weight: 500;
         color: #575757;
         margin-bottom: 12px;
     }
-    #dedication-hirsch .dedicationImage .imageCredit {
+    #dedication-hirsch .dedicationImage .imageCredit,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageCredit {
         font-size: 14px;
         color: #707070;
         margin-top: 12px;
     }
     .interface-english #dedication-hirsch .dedicationImage .imageTitle,
-    .interface-english #dedication-hirsch .dedicationImage .imageCredit {
+    .interface-english #dedication-hirsch .dedicationImage .imageCredit,
+    .interface-english #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageTitle,
+    .interface-english #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageCredit {
         font-family: var(--english-sans-serif-font-family);
     }
     .interface-hebrew #dedication-hirsch .dedicationImage .imageTitle,
-    .interface-hebrew #dedication-hirsch .dedicationImage .imageCredit {
+    .interface-hebrew #dedication-hirsch .dedicationImage .imageCredit,
+    .interface-hebrew #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageTitle,
+    .interface-hebrew #dedication-fleishman-hirsch-on-torah-in-english .dedicationImage .imageCredit {
         font-family: var(--hebrew-sans-serif-font-family);
     }
     /* Scripture pull-quote */
-    #dedication-hirsch .dedicationQuote {
+    #dedication-hirsch .dedicationQuote,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationQuote {
         text-align: center;
         font-weight: normal;
         color: #121212;
         margin-top: 32px;
     }
-    #dedication-hirsch .dedicationQuote .he {
+    #dedication-hirsch .dedicationQuote .he,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationQuote .he {
         display: block;
         font-size: 29px;
         font-weight: 500;
         margin-bottom: 16px;
         font-family: var(--hebrew-serif-font-family);
     }
-    #dedication-hirsch .dedicationQuote .int-en {
+    #dedication-hirsch .dedicationQuote .int-en,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationQuote .int-en {
         font-size: 24px;
         line-height: 1.2;
         font-family: "adobe-garamond-pro", var(--english-serif-font-family);
     }
-    #dedication-hirsch .dedicationQuote .int-he {
+    #dedication-hirsch .dedicationQuote .int-he,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationQuote .int-he {
         font-size: 24px;
         font-family: var(--hebrew-serif-font-family);
     }
     /* keep the citation link in the quote's serif (overrides the global sans link font) */
-    #dedication-hirsch .dedicationQuote .refLink {
+    #dedication-hirsch .dedicationQuote .refLink,
+    #dedication-fleishman-hirsch-on-torah-in-english .dedicationQuote .refLink {
         font-family: inherit;
     }
 
