@@ -7,8 +7,10 @@ class Dedication(models.Model):
     A dedication / sponsored-content page, editable from the Django admin so
     non-engineers can create and update them without a code change or deploy.
 
-    Each record renders at ``/dedication/<slug>`` (e.g. slug ``hirsch`` ->
-    ``/dedication/hirsch``) via ``dedications.views.dedication``. The ``*_title``
+    Each record renders at ``/dedication/<slug>`` (e.g. slug
+    ``fleishman-hirsch-on-torah-in-english`` ->
+    ``/dedication/fleishman-hirsch-on-torah-in-english``) via
+    ``dedications.views.dedication``. The ``*_title``
     fields are the page headings; the ``*_content`` fields hold the page body as
     HTML (rendered with ``|safe`` in the template).
     """
@@ -21,7 +23,8 @@ class Dedication(models.Model):
             "Slug may only contain letters, numbers, underscores, and hyphens.",
         )],
         help_text="URL identifier. The page is served at /dedication/<slug> "
-                  "(e.g. 'hirsch' -> /dedication/hirsch).",
+                  "(e.g. 'fleishman-hirsch-on-torah-in-english' -> "
+                  "/dedication/fleishman-hirsch-on-torah-in-english).",
     )
     en_title = models.CharField(max_length=255, help_text="Page title (English).")
     he_title = models.CharField(max_length=255, help_text="Page title (Hebrew).")

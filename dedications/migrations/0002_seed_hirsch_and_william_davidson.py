@@ -2,7 +2,7 @@
 """
 Seed the two existing dedication pages (Hirsch, William Davidson Talmud) into
 the Dedication model. Content is ported verbatim from the retired templates
-templates/static/dedication/hirsch.html and
+templates/static/dedication/fleishman-hirsch-on-torah-in-english.html and
 templates/static/william-davidson-talmud.html, with two mechanical changes:
 
   * ``{% static 'img/x' %}`` tags -> absolute ``/static/img/x`` paths (DB content
@@ -130,7 +130,7 @@ DAVIDSON_HE = """
 
 DEDICATIONS = [
     {
-        "slug": "hirsch",
+        "slug": "fleishman-hirsch-on-torah-in-english",
         "en_title": "Rav Hirsch on Torah in English",
         "he_title": "תרגום פירוש הרש\"ר הירש על התורה לאנגלית",
         "en_content": HIRSCH_EN,
