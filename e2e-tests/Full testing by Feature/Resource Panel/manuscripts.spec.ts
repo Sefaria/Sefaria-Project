@@ -44,7 +44,7 @@ test.describe('Resource Panel — Manuscripts — English', () => {
     await pm.onResourcePanel().expectMode('manuscripts');
   });
 
-  test('RP-110: Manuscript thumbnails render with title, location, and source', async () => {
+  test('RP-110: Manuscript thumbnails render with title, location, and source', { tag: '@sanity' }, async () => {
     // Verified production state for Ezra.2.29: 1 manuscript (Leningrad Codex
     // 1008 CE) with caption / location / source link / image anchor — but
     // **no** `license` field. The license slot in ManuscriptImage

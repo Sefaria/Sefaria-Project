@@ -3,6 +3,7 @@
 from django.urls import re_path
 from django.http import HttpResponseRedirect
 import reader.views as reader_views
+import dedications.views as dedication_views
 from sefaria.settings import STATIC_URL
 from sites.sefaria.site_settings import SITE_SETTINGS
 
@@ -52,7 +53,8 @@ static_pages = [
     "updates",
     "pioneers",
     "ai",
-    "metrics"
+    "metrics",
+    "dedication/hirsch"
 ]
 
 static_pages_by_lang = [
@@ -73,6 +75,7 @@ site_urlpatterns = [
     re_path(r'^llms\.txt/?$', reader_views.serve_llms_txt),
     re_path(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
     re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
+    re_path(r'^dedication/(?P<slug>[\w-]+)/?$', dedication_views.dedication),
     re_path(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),
