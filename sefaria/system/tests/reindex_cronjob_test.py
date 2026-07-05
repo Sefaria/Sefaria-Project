@@ -15,7 +15,7 @@ def load_cronjob():
     return cronjob
 
 
-def test_shard_mode_exits_nonzero_when_failed_versions_present(monkeypatch):
+def test_shard_mode_exits_zero_but_warns_when_failed_versions_present(monkeypatch):
     mod = load_cronjob()
     monkeypatch.setattr(mod, "check_elasticsearch_connection", lambda: True)
     monkeypatch.setattr(mod, "setup_logging", lambda debug: None)
@@ -26,9 +26,19 @@ def test_shard_mode_exits_nonzero_when_failed_versions_present(monkeypatch):
     monkeypatch.setattr(mod.TextIndexer, "_failed_versions", [{"title": "X"}])
     monkeypatch.setattr(mod.TextIndexer, "_skipped_versions", [])
 
+    warnings_issued = []
+    original_add_warning = mod.ReindexingResult.add_warning
+
+    def capture_warning(self, message, details=None):
+        warnings_issued.append(message)
+        original_add_warning(self, message, details)
+
+    monkeypatch.setattr(mod.ReindexingResult, "add_warning", capture_warning)
+
     with pytest.raises(SystemExit) as exc:
         mod.main(["--mode", "shard", "--shard-index", "0", "--shard-count", "4"])
-    assert exc.value.code == 1
+    assert exc.value.code == 0
+    assert any("failed" in w.lower() for w in warnings_issued)
 
 
 def test_shard_mode_exits_zero_when_no_failures(monkeypatch):
@@ -82,10 +92,7 @@ def test_monolith_passes_debug_to_index_all(monkeypatch):
     monkeypatch.setattr(mod, "log_index_state", lambda *a, **k: None)
     monkeypatch.setattr(mod, "run_pagesheetrank_update", lambda result: True)
     monkeypatch.setattr(mod, "run_sheets_by_timestamp", lambda ts, result, debug=False: True)
-    monkeypatch.setattr(
-        "sefaria.search.index_all",
-        lambda debug=False, skip=0: calls.append(debug),
-    )
+    monkeypatch.setattr(mod, "index_all", lambda debug=False, skip=0: calls.append(debug))
     monkeypatch.setattr(mod.TextIndexer, "_failed_versions", [])
     monkeypatch.setattr(mod.TextIndexer, "_skipped_versions", [])
 

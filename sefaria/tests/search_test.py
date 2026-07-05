@@ -322,7 +322,6 @@ def test_reindex_finalize_success_calls_update_aliases_atomically(monkeypatch):
     monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
     monkeypatch.setattr(search.index_client, "exists", lambda index: False)
-    monkeypatch.setattr(search.index_client, "delete_alias", lambda index, name: None)
     monkeypatch.setattr(search, "clear_index", lambda name: None)
 
     update_alias_calls = []
@@ -333,8 +332,48 @@ def test_reindex_finalize_success_calls_update_aliases_atomically(monkeypatch):
 
     assert len(update_alias_calls) == 1
     actions = update_alias_calls[0]["actions"]
-    assert {"remove": {"index": "*", "alias": "text"}} in actions
+    assert {"remove": {"index": "*", "alias": "text", "must_exist": False}} in actions
     assert {"add": {"index": "text-new", "alias": "text"}} in actions
+
+
+def test_reindex_finalize_does_not_call_delete_alias(monkeypatch):
+    """reindex_finalize must NOT call index_client.delete_alias (Finding 1: atomic swap removes outage window)."""
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search, "clear_index", lambda name: None)
+    monkeypatch.setattr(search.index_client, "update_aliases", lambda body: None)
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("index_client.delete_alias must not be called by reindex_finalize")
+
+    monkeypatch.setattr(search.index_client, "delete_alias", fail_if_called)
+
+    # Must not raise AssertionError
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+
+def test_reindex_finalize_empty_first_run_raises_value_error(monkeypatch):
+    """When both new and current doc counts are 0 (first run with empty new index), refuse alias swap."""
+    from sefaria import search
+
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
+
+    update_alias_calls = []
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
+
+    with pytest.raises(ValueError, match="empty"):
+        search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert update_alias_calls == [], "update_aliases must NOT be called when both counts are zero"
 
 
 def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):

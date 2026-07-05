@@ -1288,7 +1288,7 @@ def _swap_alias_atomically(names):
     Removes the alias from every index in one request, then adds it to the new index.
     """
     actions = [
-        {"remove": {"index": "*", "alias": names['alias']}},
+        {"remove": {"index": "*", "alias": names['alias'], "must_exist": False}},
         {"add": {"index": names['new'], "alias": names['alias']}},
     ]
     index_client.update_aliases(body={"actions": actions})
@@ -1311,6 +1311,10 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
         raise ValueError(f"Reindex sanity gate failed for {type}: could not read new index {names['new']} doc count; refusing alias swap")
     if current_count is None:
         raise ValueError(f"Reindex sanity gate failed for {type}: could not read current index {names['current']} doc count; refusing alias swap")
+    if current_count == 0 and new_count == 0:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: new index {names['new']} is empty and there is no current index; refusing alias swap"
+        )
     if current_count > 0 and new_count < current_count * min_doc_ratio:
         raise ValueError(
             f"Reindex sanity gate failed for {type}: new index {names['new']} has {new_count} docs "
@@ -1318,12 +1322,8 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
             f"(ratio {new_count/current_count:.2%} < required {min_doc_ratio:.0%}). Refusing alias swap."
         )
 
-    # Legacy cleanup before swap: drop alias from current index and any erroneous physical index named like the alias
+    # Drop any erroneous physical index named like the alias before swapping
     logger.debug("Switching aliases after indexing")
-    try:
-        index_client.delete_alias(index=names['current'], name=names['alias'])
-    except NotFoundError:
-        logger.debug(f"Alias not found on old index (may be first run) - alias: {names['alias']}, old_index: {names['current']}")
     if index_client.exists(index=names['alias']):
         clear_index(names['alias'])
 

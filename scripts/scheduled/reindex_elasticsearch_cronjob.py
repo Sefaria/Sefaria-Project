@@ -313,7 +313,7 @@ def validate_shard_params(shard_index, shard_count, result: ReindexingResult) ->
     return True
 
 
-def main():
+def main(argv=None):
     """Main entry point for the reindexing cronjob."""
     import os
     parser = argparse.ArgumentParser(description="Elasticsearch Reindexing Cronjob")
@@ -326,7 +326,7 @@ def main():
                         help="Zero-based shard index (overrides JOB_COMPLETION_INDEX env var)")
     parser.add_argument("--shard-count", type=int, default=None,
                         help="Total number of shards (overrides SHARD_COUNT env var)")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     shard_index = args.shard_index
     if shard_index is None and os.environ.get("JOB_COMPLETION_INDEX") is not None:
@@ -411,9 +411,8 @@ def main():
             f"skipped_versions: {len(result.skipped_text_versions)}"
         )
         if result.failed_text_versions:
-            result.record_step_failure(
-                "shard_index",
-                f"{len(result.failed_text_versions)} text versions failed to index",
+            result.add_warning(
+                f"{len(result.failed_text_versions)} text versions failed to index in shard {shard_index}"
             )
     
     if result.failed_text_versions or result.skipped_text_versions or result.steps_failed:
