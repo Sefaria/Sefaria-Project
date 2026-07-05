@@ -1408,14 +1408,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         # add actualLanguage -- TODO: migration to get rid of bracket notation completely
         actualLanguage = getattr(self, "actualLanguage", None)
         versionTitle = getattr(self, "versionTitle", None)
-        if not actualLanguage and versionTitle:
+        if versionTitle:
             languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
             if languageCode and languageCode.group(1):
                 actualLanguage = languageCode.group(1)
         self.actualLanguage = actualLanguage or self.language
 
-        if not hasattr(self, 'languageFamilyName'):
-            self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
+        self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
         self.isSource = getattr(self, "isSource", self.actualLanguage == 'he')
         if not hasattr(self, "isPrimary"):
             self.isPrimary = self.isSource or not VersionSet({'title': self.title}) #first version is primary
