@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 
@@ -77,10 +76,9 @@ class Project(models.Model):
     )
     job_title = models.CharField(max_length=255, blank=True, help_text="Current role / job title.")
     found_sefaria = models.TextField(blank=True, help_text="How they heard about Sefaria's data and tools.")
-    sefaria_tools_used = ArrayField(
-        models.CharField(max_length=255),
+    sefaria_tools_used = models.JSONField(
         default=list, blank=True,
-        help_text="Sefaria data, endpoints, or tools used (self-reported, includes free-text 'other').",
+        help_text="Sefaria data, endpoints, or tools used (self-reported, includes free-text 'other'). List of strings.",
     )
     tech_used_raw = models.TextField(blank=True, help_text="Their self-description of the tech used.")
     technical_experience = models.CharField(
@@ -109,10 +107,9 @@ class Project(models.Model):
 
     # --- Staff / editorial --------------------------------------------------
 
-    tags = ArrayField(
-        models.CharField(max_length=255),
+    tags = models.JSONField(
         default=list, blank=True,
-        help_text="Staff-assigned tags (e.g. MCP, AI, Chatbot, Kabbalah).",
+        help_text="Staff-assigned tags (e.g. MCP, AI, Chatbot, Kabbalah). List of strings.",
     )
     status = models.CharField(
         max_length=10,
