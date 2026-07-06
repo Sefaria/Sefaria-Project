@@ -67,11 +67,15 @@ class SemanticTextChunk(models.Model):
     def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None) -> list['SemanticTextChunk']:
         safe_filters = {k: v for k, v in (filters or {}).items() if k in self._ALLOWED_FILTER_FIELDS}
         distance = CosineDistance('embedding', embedding)
-        return list(
-            SemanticTextChunk.objects.filter(**safe_filters).annotate(
-                distance=distance
-            ).order_by(distance)[:limit]
-        )
+        from django.db import connections, transaction
+        with transaction.atomic(using='vector_db'):
+            with connections['vector_db'].cursor() as cursor:
+                cursor.execute("SET LOCAL hnsw.ef_search = %s", [max(limit, 40)])
+            return list(
+                SemanticTextChunk.objects.filter(**safe_filters).annotate(
+                    distance=distance
+                ).order_by(distance)[:limit]
+            )
 
     def filter(self, **kwargs) -> list['SemanticTextChunk']:
         return list(SemanticTextChunk.objects.filter(**kwargs))
