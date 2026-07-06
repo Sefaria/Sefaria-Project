@@ -5,10 +5,6 @@ CLIENT_REMOTE_CONFIG_JSON = "feature.client.remote_config_json"
 EXPIRE_LEGACY_COOKIES = "feature.cookies.expire_legacy"
 SENTRY_CONFIG_JSON = "feature.sentry.config"
 
-# Entity search (/api/entity-search) per-field match boosts. Each is a JSON object
-# mapping a field name ("title_en", "titleVariants", ...) to a numeric boost, e.g.
-# {"title_en": 3, "title_he": 3, "titleVariants": 2}. Only known field names are
-# applied (see sefaria/helper/search.py); unknown/misspelled keys are ignored.
 SEARCH_ENTITY_FIELD_BOOSTS_TOPIC = "feature.search.entity_field_boosts.topic"
 SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR = "feature.search.entity_field_boosts.author"
 SEARCH_ENTITY_FIELD_BOOSTS_BOOK = "feature.search.entity_field_boosts.book"
