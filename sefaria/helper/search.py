@@ -3,7 +3,16 @@ from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
+from remote_config import remoteConfigCache
+from remote_config.keys import (
+    SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
+    SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
+    SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
+)
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def default_list(param):
@@ -223,17 +232,71 @@ except ImportError:
 
 ENTITY_TYPES = ("topic", "author", "book")
 
-# Per-field match boosts, in priority order: title -> title variants -> the
-# name/works fields (author names on books, authored titles on authors) -> description.
-# (These are the "match boosts" that a future RemoteConfig knob would expose.)
-_ENTITY_FIELDS = {
-    "topic": ["title_en^3", "title_he^3", "titleVariants^2", "description_en", "description_he"],
-    "author": ["title_en^3", "title_he^3", "titleVariants^2",
-               "authored_titles_en^1.5", "authored_titles_he^1.5",
-               "description_en", "description_he"],
-    "book": ["title_en^3", "title_he^3", "titleVariants^2", "author_names^1.5",
-             "description_en", "description_he"],
+# Default per-field match boosts for the tier-3 best_fields multi_match, in priority
+# order: title -> title variants -> the name/works fields (author names on books,
+# authored titles on authors) -> description.
+#
+# These defaults double as the *allow-list* of valid field names. A RemoteConfig
+# override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
+# any of these boosts at runtime without a deploy, but a key that isn't listed here —
+# e.g. a misspelled "titel_en" — is ignored, never added to the query.
+_DEFAULT_ENTITY_FIELD_BOOSTS = {
+    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2,
+              "description_en": 1, "description_he": 1},
+    "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
+               "authored_titles_en": 1.5, "authored_titles_he": 1.5,
+               "description_en": 1, "description_he": 1},
+    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5,
+             "description_en": 1, "description_he": 1},
 }
+
+# RemoteConfig key holding the per-field boost overrides for each entity type. Each key
+# stores a JSON object like {"title_en": 3, "titleVariants": 2}; see remote_config/keys.py.
+_ENTITY_FIELD_BOOSTS_RC_KEYS = {
+    "topic": SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
+    "author": SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
+    "book": SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
+}
+
+
+def _resolve_entity_field_boosts(type):
+    """
+    Return the tier-3 multi_match field list (["title_en^3", "titleVariants^2", ...]) for
+    `type`, applying any RemoteConfig per-field boost overrides on top of the hardcoded
+    defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
+
+    The defaults are the source of truth for *which* fields are searchable; the RemoteConfig
+    JSON only tunes their boosts. So an override is honored only when:
+      - its key names a known default field for this type (a misspelled/unknown field is
+        ignored — this is the "only apply valid keys" guard the caller asked for), and
+      - its value is a positive number (bool / string / non-positive values are ignored).
+    Fields not mentioned in the override keep their default boost. A missing, inactive, or
+    non-object RemoteConfig value leaves every field at its default, i.e. behaves exactly as
+    if RemoteConfig were not set.
+    """
+    defaults = _DEFAULT_ENTITY_FIELD_BOOSTS.get(type, _DEFAULT_ENTITY_FIELD_BOOSTS["topic"])
+    boosts = dict(defaults)  # copy preserves default order and fills unspecified fields
+
+    rc_key = _ENTITY_FIELD_BOOSTS_RC_KEYS.get(type)
+    overrides = remoteConfigCache.get(rc_key) if rc_key else None
+    if isinstance(overrides, dict):
+        for field, boost in overrides.items():
+            if field not in defaults:
+                logger.warning("entity search: ignoring unknown boost field %r for type %r", field, type)
+                continue
+            # bool is a subclass of int in Python; a True/False boost is a config error.
+            if isinstance(boost, bool) or not isinstance(boost, (int, float)) or boost <= 0:
+                logger.warning("entity search: ignoring invalid boost %r for field %r (type %r)", boost, field, type)
+                continue
+            boosts[field] = boost
+    elif overrides is not None:
+        # note: `type` is the entity-type param here, so use __class__ for the value's type name
+        logger.warning("entity search: ignoring non-object boost config for type %r (got %s)", type, overrides.__class__.__name__)
+
+    # A boost of 1 is the ES default, so render the bare field name (matches the hardcoded defaults).
+    return [field if boost == 1 else f"{field}^{boost}" for field, boost in boosts.items()]
+
+
 # Phrase/prefix tiers run over these "title" fields only, to avoid description noise.
 # For authors we also include authored_titles so a book title matches its author.
 _ENTITY_TITLE_FIELDS = {
@@ -277,7 +340,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
     if search_obj is None:
         search_obj = Search()
     is_book = type == "book"
-    fields = _ENTITY_FIELDS.get(type, _ENTITY_FIELDS["topic"])
+    fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
     keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
 
