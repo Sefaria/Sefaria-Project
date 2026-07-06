@@ -1179,15 +1179,29 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
     objs = RefTopicLinkSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        # Rewrite each matching link independently. A single malformed link (e.g. one
+        # whose topic no longer exists) must not abort the rename cascade and strand the
+        # remaining links, so swallow any per-link failure and keep going.
         try:
             o.save()
-        except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+        except Exception as e:
+            logger.warning("Failed to convert ref topic link '{}' on topic '{}' from '{}' to '{}': {}".format(
+                getattr(o, 'ref', '?'), getattr(o, 'toTopic', '?'), kwargs['old'], kwargs['new'], e))
 
 def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
-    RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+    # Delete each matching link independently rather than via the set's bulk loop:
+    # RefTopicLink.delete() recomputes the topic's pools/numSources, and if one link's
+    # topic is itself malformed and fails to save, the set loop would abort and leave the
+    # remaining orphaned links behind. Isolate each deletion so one bad record can't strand
+    # the rest.
+    for link in RefTopicLinkSet({"ref": {"$regex": pattern}}):
+        try:
+            link.delete()
+        except Exception as e:
+            logger.warning("Failed to delete ref topic link '{}' on topic '{}' while deleting index '{}': {}".format(
+                getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), indx.title, e))
 
 def process_topic_delete(topic):
     RefTopicLinkSet({"toTopic": topic.slug}).delete()
