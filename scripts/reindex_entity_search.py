@@ -16,7 +16,13 @@ Usage:
     python scripts/reindex_entity_search.py --type book     # books only
 """
 import argparse
+import os
 import sys
+
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, path)
+sys.path.insert(0, path + "/sefaria")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sefaria.settings")
 
 import django
 django.setup()
