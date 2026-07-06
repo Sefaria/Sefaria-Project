@@ -166,7 +166,7 @@ class RefView(View):
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
         'ref', 'url', 'index_title', 'language', 'version_title',
-        'primary_category', 'all_categories', 'distance',
+        'primary_category', 'all_categories', 'distance', 'pagerank', 'author_names'
     )
 
     # Public response controls. Clients may request fewer or more items, but values
