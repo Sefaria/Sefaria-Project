@@ -213,3 +213,30 @@ def test_update_topic(some_topic):
 								 {"c": "תמר", "lang": "d", "disambiguation": "יהודה"}])
 	with pytest.raises(Exception):
 		topic.update_topic(some_topic, slug='abc')
+
+
+def test_get_topic_omits_orphaned_ref_links():
+	"""sc-38063: a RefTopicLink whose text was deleted from the library (its ref no longer
+	resolves) must be omitted from the get_topic response. Otherwise the orphaned source
+	reaches the client and blanks out the topic page. A valid ref link is still returned."""
+	from sefaria.system.database import db
+	t = Topic({'slug': '', 'data_source': 'sefaria', 'numSources': 0})
+	t.add_primary_titles('SC38063 Orphan Filter Test', 'SC38063 Orphan Filter Test'[::-1])
+	t.set_slug_to_primary_title()
+	t.save()
+	slug = t.slug
+	# Insert directly (bypassing RefTopicLink.save/_normalize, which would reject the dead ref).
+	base = {'class': 'refTopic', 'toTopic': slug, 'linkType': 'about', 'is_sheet': False, 'dataSource': 'sefaria'}
+	db.topic_links.insert_many([
+		{**base, 'ref': 'Genesis 1:1', 'expandedRefs': ['Genesis 1:1']},
+		{**base, 'ref': 'ThisBookWasDeleted 1:1', 'expandedRefs': ['ThisBookWasDeleted 1:1']},
+	])
+	try:
+		response = topic.get_topic(True, slug, 'english', with_links=False, with_refs=True,
+								   ref_link_type_filters={'about'})
+		returned_refs = [r['ref'] for grp in response['refs'].values() for r in grp['refs']]
+		assert 'Genesis 1:1' in returned_refs
+		assert 'ThisBookWasDeleted 1:1' not in returned_refs
+	finally:
+		db.topic_links.delete_many({'toTopic': slug})
+		t.delete()
