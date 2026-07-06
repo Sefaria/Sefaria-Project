@@ -224,11 +224,7 @@ def make_filter(type, agg_type, agg_key):
 #  category instead of a flat list.                                           #
 # --------------------------------------------------------------------------- #
 
-try:
-    from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
-except ImportError:
-    SEARCH_INDEX_NAME_TOPIC = 'topic'
-    SEARCH_INDEX_NAME_BOOK = 'book'
+from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 
 ENTITY_TYPES = ("topic", "author", "book")
 
