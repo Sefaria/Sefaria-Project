@@ -541,8 +541,22 @@ def put_topic_mapping(index_name):
             'deathYear': {
                 'type': 'integer',
             },
-            'authored_slugs': {
-                'type': 'keyword',
+            # Denormalized titles of the books this author wrote (analyzed text, split
+            # by language) so an author is findable by a work they authored — the
+            # mirror image of `author_names` on the book index. `norms: false` so a
+            # prolific author (a large title list) isn't penalized by field-length
+            # normalization; the `keyword` sub-field powers exact-match (tier 1), which
+            # is what ranks the true author of an exactly-titled work above its commentators.
+            'authored_titles_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'norms': False,
+                'fields': {'keyword': {'type': 'keyword'}},
+            },
+            'authored_titles_he': {
+                'type': 'text',
+                'norms': False,
+                'fields': {'keyword': {'type': 'keyword'}},
             },
         }
     }
@@ -1219,7 +1233,21 @@ def make_topic_index_document(topic):
         doc['era'] = topic.get_property('era')
         doc['birthYear'] = topic.get_property('birthYear')
         doc['deathYear'] = topic.get_property('deathYear')
-        doc['authored_slugs'] = IndexSet({"authors": slug}).distinct("title")
+        # Denormalize the titles of this author's works (EN + HE) so the author is
+        # searchable by a book they wrote (e.g. "Mishneh Torah" -> Maimonides).
+        authored_en, authored_he = [], []
+        for authored_index in IndexSet({"authors": slug}):
+            en = authored_index.get_title('en')
+            if en:
+                authored_en.append(en)
+            try:
+                he = authored_index.get_title('he')
+            except Exception:
+                he = None
+            if he:
+                authored_he.append(he)
+        doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
+        doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
 
     return _without_none(doc)
 

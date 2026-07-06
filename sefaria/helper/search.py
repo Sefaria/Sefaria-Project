@@ -223,26 +223,51 @@ except ImportError:
 
 ENTITY_TYPES = ("topic", "author", "book")
 
-# Per-field match boosts. Titles weighted highest, then variants, then descriptions.
+# Per-field match boosts, in priority order: title -> title variants -> the
+# name/works fields (author names on books, authored titles on authors) -> description.
 # (These are the "match boosts" that a future RemoteConfig knob would expose.)
 _ENTITY_FIELDS = {
     "topic": ["title_en^3", "title_he^3", "titleVariants^2", "description_en", "description_he"],
-    "book": ["title_en^3", "title_he^3", "titleVariants^2", "description_en", "description_he", "author_names^2"],
+    "author": ["title_en^3", "title_he^3", "titleVariants^2",
+               "authored_titles_en^1.5", "authored_titles_he^1.5",
+               "description_en", "description_he"],
+    "book": ["title_en^3", "title_he^3", "titleVariants^2", "author_names^1.5",
+             "description_en", "description_he"],
 }
-# Prefix matching is applied to title fields only, to avoid description noise.
-_ENTITY_TITLE_FIELDS = ["title_en", "title_he", "titleVariants"]
+# Phrase/prefix tiers run over these "title" fields only, to avoid description noise.
+# For authors we also include authored_titles so a book title matches its author.
+_ENTITY_TITLE_FIELDS = {
+    "topic": ["title_en", "title_he", "titleVariants"],
+    "author": ["title_en", "title_he", "titleVariants", "authored_titles_en", "authored_titles_he"],
+    "book": ["title_en", "title_he", "titleVariants"],
+}
+# Keyword sub-fields for tier-1 exact-match. Authors add authored_titles.keyword so the
+# author of an exactly-titled work (e.g. "Guide for the Perplexed") outranks its commentators.
+_ENTITY_KEYWORD_FIELDS = {
+    "topic": ["title_en.keyword", "title_he.keyword"],
+    "author": ["title_en.keyword", "title_he.keyword",
+               "authored_titles_en.keyword", "authored_titles_he.keyword"],
+    "book": ["title_en.keyword", "title_he.keyword"],
+}
 
 
 def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
-    index. Combines three scorers (see sefaria/search.py mappings):
+    index. Layers five match-type tiers as `should` clauses with descending boosts
+    (a `bool should` sums matching clauses, so a higher tier — which also satisfies the
+    lower tiers — accumulates a higher score and ranks above a partial match):
 
-      1. Exact-word match (`best_fields`, x2 boost) — the primary scorer.
-      2. Prefix match (`phrase_prefix`, titles only) — treats the last query word
-         as a prefix so "Mos" matches "Moses".
-      3. Popularity boost (`function_score` on `numSources`, log-scaled multiplier) —
-         topic/author only; breaks ties toward well-sourced entities.
+      1. Exact match   — `term` on the `.keyword` title sub-fields (highest boost).
+      2. Exact phrase  — `match_phrase` on title fields.
+      3. All words     — `multi_match best_fields` over the per-type field list (with
+                         per-field ^N boosts: title > variants > name/works > description).
+      4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
+      5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
+
+    Topic/author results are then multiplied by a gentle log-scaled `numSources`
+    popularity factor (>= 1, so it breaks ties toward well-sourced entities without
+    zeroing or dominating a strong text match). Books carry no `numSources`.
 
     :param query: the user query string
     :param type: one of "topic", "author", "book"
@@ -252,11 +277,19 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
     if search_obj is None:
         search_obj = Search()
     is_book = type == "book"
-    fields = _ENTITY_FIELDS["book" if is_book else "topic"]
+    fields = _ENTITY_FIELDS.get(type, _ENTITY_FIELDS["topic"])
+    title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
+    keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
 
-    exact = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
-    prefix = Q("multi_match", query=query, fields=_ENTITY_TITLE_FIELDS, type="phrase_prefix")
-    text_query = Q("bool", should=[exact, prefix], minimum_should_match=1)
+    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive).
+    tier1_exact = [Q("term", **{kf: {"value": query, "boost": 8}}) for kf in keyword_fields]
+    # Tier 2 — exact phrase over the (analyzed) title fields.
+    tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
+    # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
+    tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
+    # Tier 4 — prefix / begins-with on titles only.
+    tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
+    text_query = Q("bool", should=[*tier1_exact, tier2_phrase, tier3_words, tier4_prefix], minimum_should_match=1)
 
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
@@ -267,16 +300,18 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
     if is_book:
         search_obj.query = base_query
     else:
-        # Multiply the text score by a log-scaled numSources factor so a well-sourced
-        # entity outranks a sparse one with a comparable text match.
+        # Multiply the text score by a gentle popularity factor: 1 + log10(1 + numSources)*w.
+        # A zero-source entity keeps its text score unchanged (factor 1.0); a heavily-sourced
+        # one is nudged up (~1.7x at ~7000 sources). It breaks ties without dominating and,
+        # unlike field_value_factor(log1p), never zeroes a sourceless-but-relevant match.
         search_obj.query = {
             "function_score": {
                 "query": base_query.to_dict(),
-                "field_value_factor": {
-                    "field": "numSources",
-                    "modifier": "log1p",
-                    "factor": 1,
-                    "missing": 0,
+                "script_score": {
+                    "script": {
+                        "source": "1 + Math.log10(1 + (doc['numSources'].size() == 0 ? 0 : doc['numSources'].value)) * params.weight",
+                        "params": {"weight": 0.2},
+                    }
                 },
                 "boost_mode": "multiply",
             }
