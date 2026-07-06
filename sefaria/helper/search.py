@@ -205,6 +205,180 @@ def make_filter(type, agg_type, agg_key):
         return Term(**{agg_type: agg_key})
 
 
+# --------------------------------------------------------------------------- #
+#  Entity search (/api/entity-search) query building + orchestration          #
+#                                                                             #
+#  Queries the dedicated `topic` and `book` indices (see sefaria/search.py).  #
+#  `topic` and `author` types both hit the topic index, filtered by subtype;  #
+#  `book` hits the book index, but first tries to resolve the query to an     #
+#  author and — if it does — returns that author's works aggregated by        #
+#  category instead of a flat list.                                           #
+# --------------------------------------------------------------------------- #
+
+try:
+    from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+except ImportError:
+    SEARCH_INDEX_NAME_TOPIC = 'topic'
+    SEARCH_INDEX_NAME_BOOK = 'book'
+
+ENTITY_TYPES = ("topic", "author", "book")
+
+# Per-field match boosts. Titles weighted highest, then variants, then descriptions.
+# (These are the "match boosts" that a future RemoteConfig knob would expose.)
+_ENTITY_FIELDS = {
+    "topic": ["title_en^3", "title_he^3", "titleVariants^2", "description_en", "description_he"],
+    "book": ["title_en^3", "title_he^3", "titleVariants^2", "description_en", "description_he", "author_names^2"],
+}
+# Prefix matching is applied to title fields only, to avoid description noise.
+_ENTITY_TITLE_FIELDS = ["title_en", "title_he", "titleVariants"]
+
+
+def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20):
+    """
+    Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
+    index. Combines three scorers (see sefaria/search.py mappings):
+
+      1. Exact-word match (`best_fields`, x2 boost) — the primary scorer.
+      2. Prefix match (`phrase_prefix`, titles only) — treats the last query word
+         as a prefix so "Mos" matches "Moses".
+      3. Popularity boost (`function_score` on `numSources`, log-scaled multiplier) —
+         topic/author only; breaks ties toward well-sourced entities.
+
+    :param query: the user query string
+    :param type: one of "topic", "author", "book"
+    :param search_obj: an optional elasticsearch_dsl Search to attach the query to
+    :return: Search object ready to .execute()
+    """
+    if search_obj is None:
+        search_obj = Search()
+    is_book = type == "book"
+    fields = _ENTITY_FIELDS["book" if is_book else "topic"]
+
+    exact = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
+    prefix = Q("multi_match", query=query, fields=_ENTITY_TITLE_FIELDS, type="phrase_prefix")
+    text_query = Q("bool", should=[exact, prefix], minimum_should_match=1)
+
+    # topic and author both live in the topic index; filter by subtype.
+    if type in ("topic", "author"):
+        base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
+    else:
+        base_query = text_query
+
+    if is_book:
+        search_obj.query = base_query
+    else:
+        # Multiply the text score by a log-scaled numSources factor so a well-sourced
+        # entity outranks a sparse one with a comparable text match.
+        search_obj.query = {
+            "function_score": {
+                "query": base_query.to_dict(),
+                "field_value_factor": {
+                    "field": "numSources",
+                    "modifier": "log1p",
+                    "factor": 1,
+                    "missing": 0,
+                },
+                "boost_mode": "multiply",
+            }
+        }
+
+    return search_obj[start:start + size]
+
+
+def _total_from_response(response):
+    total = response.hits.total
+    return total.value if hasattr(total, "value") else total
+
+
+def _query_matches_entity_title(query, hit):
+    """
+    True if `query` directly matches the entity's title or a title variant (not merely
+    a description mention). Guards the author-works view from triggering when an author
+    name only appears in some book's description.
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return False
+    candidates = [hit.get("title_en", ""), hit.get("title_he", "")] + (hit.get("titleVariants") or [])
+    for c in candidates:
+        c = (c or "").strip().lower()
+        if c and (q == c or c.startswith(q) or q.startswith(c)):
+            return True
+    return False
+
+
+def _resolve_author(query, es_client):
+    """
+    Resolve `query` to an AuthorTopic if it directly matches an author entity in the
+    topic index; otherwise return None.
+    """
+    from sefaria.model.topic import AuthorTopic
+
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_TOPIC).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="author", search_obj=search_obj, size=1)
+    response = search_obj.execute()
+    if not response.success() or len(response.hits) == 0:
+        return None
+    top = response.hits[0].to_dict()
+    slug = top.get("slug")
+    if not slug or not _query_matches_entity_title(query, top):
+        return None
+    return AuthorTopic.init(slug)
+
+
+def _author_works_response(author):
+    """
+    Build the aggregated author-works response: the author's works collapsed by
+    category (reusing AuthorTopic aggregation), category entries sorted to the top.
+    """
+    hits = []
+    for agg in author.get_aggregated_urls_for_authors_indexes():
+        hits.append({
+            "title_en": agg["title"]["en"],
+            "title_he": agg["title"]["he"],
+            "isCategory": agg["isCategory"],
+            "categoryLabel_en": agg["categoryLabel"]["en"],
+            "categoryLabel_he": agg["categoryLabel"]["he"],
+            "url": agg["url"],
+            "description_en": agg["description"]["en"],
+            "description_he": agg["description"]["he"],
+        })
+    hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
+    return {"hits": hits, "total": len(hits), "author_slug": author.slug}
+
+
+def entity_search(query, type, start=0, size=20):
+    """
+    Run an entity search and return a plain dict {"hits": [...], "total": N}.
+
+    - type="topic"/"author": flat full-text search over the topic index (filtered by subtype).
+    - type="book": if the query resolves to an author entity, return that author's works
+      aggregated by category; otherwise a flat full-text search over the book index.
+
+    :raises ValueError: if `type` is not one of ENTITY_TYPES
+    """
+    if type not in ENTITY_TYPES:
+        raise ValueError(f"Invalid entity search type '{type}'. Must be one of {ENTITY_TYPES}.")
+
+    es_client = get_elasticsearch_client()
+
+    if type == "book":
+        author = _resolve_author(query, es_client)
+        if author is not None:
+            return _author_works_response(author)
+        index_name = SEARCH_INDEX_NAME_BOOK
+    else:
+        index_name = SEARCH_INDEX_NAME_TOPIC
+
+    search_obj = Search(using=es_client, index=index_name).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size)
+    response = search_obj.execute()
+    if not response.success():
+        raise IOError("Elasticsearch entity search failed.")
+    hits = [hit.to_dict() for hit in response.hits]
+    return {"hits": hits, "total": _total_from_response(response)}
+
+
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL

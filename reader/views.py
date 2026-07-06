@@ -4794,6 +4794,45 @@ def search_wrapper_api(request, es6_compat=False):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 @csrf_exempt
+def entity_search_api(request):
+    """
+    Entity search endpoint powering the Topics / Authors / Books tabs.
+
+    GET /api/entity-search?q=<query>&type=<topic|author|book>
+
+    `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
+    `book` searches the `book` index, or — when the query resolves to an author — returns
+    that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+    """
+    from sefaria.helper.search import entity_search, ENTITY_TYPES
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic").strip()
+    callback = request.GET.get("callback", None)
+
+    if not query:
+        return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
+    if entity_type not in ENTITY_TYPES:
+        return jsonResponse(
+            {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
+            callback=callback,
+        )
+
+    try:
+        size = min(int(request.GET.get("size", 20)), 100)
+    except (TypeError, ValueError):
+        size = 20
+
+    try:
+        results = entity_search(query, entity_type, size=size)
+    except Exception as e:
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    return jsonResponse(results, callback=callback)
+
+
+@csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
 
