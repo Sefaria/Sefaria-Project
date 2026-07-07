@@ -194,9 +194,9 @@ const AuthPage = ({
   useEffect(() => {
     setGoogleReady(false);
     if (!googleClientId || view !== 'choose') return undefined;
-    const useRedirect = !!(window.SefariaAuth && window.SefariaAuth.useRedirect());
-    if (useRedirect && window.SefariaAuth) {
-      window.SefariaAuth.setRedirectState(ssoRedirectState);
+    const useRedirect = Sefaria.ssoUseRedirect();
+    if (useRedirect) {
+      Sefaria.ssoSetRedirectState(ssoRedirectState);
     }
     const stopWaiting = whenReady(
       () => window.google && window.google.accounts && window.google.accounts.id && googleBtnRef.current,
@@ -232,7 +232,7 @@ const AuthPage = ({
   useEffect(() => {
     setAppleReady(false);
     if (!appleClientId || view !== 'choose') return undefined;
-    const useRedirect = !!(window.SefariaAuth && window.SefariaAuth.useRedirect());
+    const useRedirect = Sefaria.ssoUseRedirect();
     const onOk = (ev) => {
       if (useRedirect) return;
       const a = (ev.detail && ev.detail.authorization) || {};

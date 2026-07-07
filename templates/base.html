@@ -188,17 +188,6 @@
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
 
-    <script>
-      window.SefariaAuth = window.SefariaAuth || {
-        useRedirect: function() {
-          return window.matchMedia('(max-width: 767px)').matches ||
-            /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-        },
-        setRedirectState: function(state) {
-          document.cookie = 'sso_redirect_state=' + encodeURIComponent(state) + '; Max-Age=900; Path=/; SameSite=Lax';
-        }
-      };
-    </script>
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
