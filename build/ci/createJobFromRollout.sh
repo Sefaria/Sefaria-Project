@@ -12,7 +12,7 @@ metadata:
     test-name: pytest
   name: $DEPLOY_ENV-pytest-sandbox-$GITHUB_RUN_ID
 spec:
-  backoffLimit: 1
+  backoffLimit: 1   # one retry for infra-level pod loss (e.g. preemptible node eviction); waitForCIJob.bash treats any real test failure as terminal on the first attempt, so this isn't a test-retry budget
   template:
     metadata:
       labels:
