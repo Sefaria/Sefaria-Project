@@ -1,24 +1,37 @@
+import threading
+
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from emailusernames.forms import EmailAdminAuthenticationForm
 from emailusernames.utils import _email_to_username
 
 
-# Horrible monkey patching.
+# Thread-safe monkey patching with input validation.
 # User.username always presents as the email, but saves as a hash of the email.
 # It would be possible to avoid such a deep level of monkey-patching,
 # but Django's admin displays the "Welcome, username" using user.username,
 # and there's really no other way to get around it.
+_lock = threading.Lock()
+
+
+def _is_valid_email(email):
+    if not isinstance(email, str):
+        return False
+    return '@' in email and len(email) <= 254
+
+
 def user_init_patch(self, *args, **kwargs):
     super(User, self).__init__(*args, **kwargs)
     self._username = self.username
-    if self.username == _email_to_username(self.email):
+    if _is_valid_email(self.email) and self.username == _email_to_username(self.email):
         # Username should be replaced by email, since the hashes match
         self.username = self.email
 
 
 def user_save_patch(self, *args, **kwargs):
-    email_as_username = (self.username.lower() == self.email.lower())
+    email_as_username = False
+    if _is_valid_email(self.email) and _is_valid_email(self.username):
+        email_as_username = (self.username.lower() == self.email.lower())
     if self.pk is not None:
         try:
             old_user = self.__class__.objects.get(pk=self.pk)
@@ -46,21 +59,25 @@ _patched = False
 
 def monkeypatch_user():
     global _patched
-    if _patched:
-        # Django's test database creation can overwrite User.__dict__['__init__']
-        # with Model.__init__, removing our patch. Check and re-apply if needed.
-        if User.__dict__.get('__init__') is not user_init_patch:
-            User.__init__ = user_init_patch
-            User.save_base = user_save_patch
-        return
-    User.__init__ = user_init_patch
-    User.save_base = user_save_patch
-    _patched = True
+    with _lock:
+        if _patched:
+            # Django's test database creation can overwrite User.__dict__['__init__']
+            # with Model.__init__, removing our patch. Check and re-apply if needed.
+            if User.__dict__.get('__init__') is not user_init_patch:
+                User.__init__ = user_init_patch
+                User.save_base = user_save_patch
+            return
+        User.__init__ = user_init_patch
+        User.save_base = user_save_patch
+        _patched = True
 
 
 def unmonkeypatch_user():
-    User.__init__ = original_init
-    User.save_base = original_save_base
+    global _patched
+    with _lock:
+        User.__init__ = original_init
+        User.save_base = original_save_base
+        _patched = False
 
 
 # Note: monkeypatch_user() is now called from EmailUsernamesConfig.ready()
