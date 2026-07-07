@@ -232,7 +232,9 @@ def test_get_topic_omits_orphaned_ref_links():
 		{**base, 'ref': 'ThisBookWasDeleted 1:1', 'expandedRefs': ['ThisBookWasDeleted 1:1']},
 	])
 	try:
-		response = topic.get_topic(True, slug, 'english', with_links=False, with_refs=True,
+		# with_links=True + with_refs=True exercises the combined all_links branch of
+		# get_topic — the same path the topic-page API uses (the crash scenario).
+		response = topic.get_topic(True, slug, 'english', with_links=True, with_refs=True,
 								   ref_link_type_filters={'about'})
 		returned_refs = [r['ref'] for grp in response['refs'].values() for r in grp['refs']]
 		assert 'Genesis 1:1' in returned_refs
