@@ -11,6 +11,7 @@ import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
 import {matchesCountryTarget} from './sefaria/strapiTargeting';
+import {getViewerCountryCandidates} from './sefaria/countryCandidates';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -2128,7 +2129,7 @@ const InterruptingMessage = ({
       )
     )
       return false;
-    if (!matchesCountryTarget(strapi.modal.countriesToTarget)) return false;
+    if (!matchesCountryTarget(strapi.modal.countriesToTarget, getViewerCountryCandidates())) return false;
 
     let shouldShowModal = false;
 
@@ -2311,7 +2312,7 @@ const Banner = ({ onClose }) => {
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
-    if (!matchesCountryTarget(strapi.banner.countriesToTarget)) return false;
+    if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;
 
     let shouldShowBanner = false;
 
