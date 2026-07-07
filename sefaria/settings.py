@@ -163,6 +163,7 @@ INSTALLED_APPS = (
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'powered_by.apps.PoweredByAppConfig',
+    'dedications.apps.DedicationsAppConfig',
     'django_recaptcha',
     'django.contrib.admin',
     'anymail',
