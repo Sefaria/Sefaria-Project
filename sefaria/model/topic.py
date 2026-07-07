@@ -1181,10 +1181,10 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
         # Rewrite each matching link independently. A single malformed link (e.g. one
         # whose topic no longer exists) must not abort the rename cascade and strand the
-        # remaining links, so swallow any per-link failure and keep going.
+        # remaining links. Only bad-record errors are swallowed; systemic failures still abort loudly.
         try:
             o.save()
-        except Exception as e:
+        except (InputError, DuplicateRecordError) as e:
             logger.warning("Failed to convert ref topic link '{}' on topic '{}' from '{}' to '{}': {}".format(
                 getattr(o, 'ref', '?'), getattr(o, 'toTopic', '?'), kwargs['old'], kwargs['new'], e))
 
@@ -1195,13 +1195,19 @@ def process_index_delete_in_topic_links(indx, **kwargs):
     # RefTopicLink.delete() recomputes the topic's pools/numSources, and if one link's
     # topic is itself malformed and fails to save, the set loop would abort and leave the
     # remaining orphaned links behind. Isolate each deletion so one bad record can't strand
-    # the rest.
+    # the rest. Only bad-record errors are swallowed; systemic failures still abort loudly.
+    total, failed = 0, 0
     for link in RefTopicLinkSet({"ref": {"$regex": pattern}}):
+        total += 1
         try:
             link.delete()
-        except Exception as e:
+        except (InputError, DuplicateRecordError) as e:
+            failed += 1
             logger.warning("Failed to delete ref topic link '{}' on topic '{}' while deleting index '{}': {}".format(
                 getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), indx.title, e))
+    if failed:
+        logger.error("Deleting index '{}' left {} of {} ref topic links undeleted; orphaned links remain.".format(
+            indx.title, failed, total))
 
 def process_topic_delete(topic):
     RefTopicLinkSet({"toTopic": topic.slug}).delete()

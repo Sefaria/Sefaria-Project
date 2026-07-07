@@ -31,7 +31,7 @@ def ref_topic_link_is_displayable(link):
     try:
         Ref(link.ref)
         return True
-    except Exception as e:
+    except InputError as e:
         logger.warning("Omitting orphaned ref topic link '{}' on topic '{}': {}".format(
             getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), e))
         return False
