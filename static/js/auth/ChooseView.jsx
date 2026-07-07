@@ -4,9 +4,10 @@ import AuthCard from '../common/AuthCard.jsx';
 import Divider from '../common/Divider.jsx';
 import Button from '../common/Button.jsx';
 import ProviderButton from '../common/ProviderButton.jsx';
+import LegalText from '../common/LegalText.jsx';
 
 const ChooseView = ({
-  flow, switchFlow, errorBanner, legal,
+  flow, switchFlow, errorBanner,
   googleClientId, appleClientId, googleReady, appleReady,
   googleBtnRef, startAppleSignIn, onEmailClick,
 }) => (
@@ -45,7 +46,7 @@ const ChooseView = ({
       <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={onEmailClick}>
         <span>{Sefaria._('Continue with Email')}</span>
       </Button>
-      {legal}
+      <LegalText />
     </div>
   </AuthCard>
 );
@@ -54,7 +55,6 @@ ChooseView.propTypes = {
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
   errorBanner: PropTypes.node,
-  legal: PropTypes.node.isRequired,
   googleClientId: PropTypes.string,
   appleClientId: PropTypes.string,
   googleReady: PropTypes.bool.isRequired,

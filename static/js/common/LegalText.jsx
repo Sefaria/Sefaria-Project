@@ -1,15 +1,31 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-/**
- * LegalText — the Terms of Use / Privacy Policy consent line at the bottom of the
- * auth card. Presentational: pass the already-localized sentence (with <a> links)
- * as children so the wording/links can be composed by the consumer. Figma `Legal Text`.
- */
-const LegalText = ({ children }) => (
-  <p className="sefaria-legal-text">{children}</p>
-);
-
-LegalText.propTypes = { children: PropTypes.node };
+const LegalText = () => {
+  if (Sefaria.interfaceLang === 'hebrew') {
+    return (
+      <p className="sefaria-legal-text">
+        {Sefaria._('Auth legal prefix')}
+        <a href="/terms">{Sefaria._('Auth Terms of Use')}</a>
+        {Sefaria._('Auth legal conjunction')}
+        <a href="/privacy-policy">{Sefaria._('Auth Privacy Policy')}</a>
+        {Sefaria._('Auth legal suffix')}
+      </p>
+    );
+  }
+  const sentence = Sefaria._("By continuing, you are agreeing to Sefaria's Terms of Use and Privacy Policy.");
+  const links = [[Sefaria._('Terms of Use'), '/terms'], [Sefaria._('Privacy Policy'), '/privacy-policy']];
+  const parts = [];
+  let rest = sentence;
+  links.forEach(([label, href], i) => {
+    const idx = rest.indexOf(label);
+    if (idx >= 0) {
+      parts.push(rest.slice(0, idx));
+      parts.push(<a key={i} href={href}>{label}</a>);
+      rest = rest.slice(idx + label.length);
+    }
+  });
+  parts.push(rest);
+  return <p className="sefaria-legal-text">{parts}</p>;
+};
 
 export default LegalText;

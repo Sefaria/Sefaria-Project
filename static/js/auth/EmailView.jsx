@@ -4,9 +4,10 @@ import AuthCard from '../common/AuthCard.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
+import LegalText from '../common/LegalText.jsx';
 
 const EmailView = ({
-  flow, switchFlow, errorBanner, legal,
+  flow, switchFlow, errorBanner,
   fields, submitting, captchaError, setField,
   goChoose, submitEmail, startRegistration,
   recaptchaSiteKey, onForgotClick,
@@ -50,7 +51,7 @@ const EmailView = ({
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
           <span>{isRegister ? Sefaria._('Create Account') : Sefaria._('Sign In')}</span>
         </Button>
-        {legal}
+        <LegalText />
       </form>
     </AuthCard>
   );
@@ -60,7 +61,6 @@ EmailView.propTypes = {
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
   errorBanner: PropTypes.node,
-  legal: PropTypes.node.isRequired,
   fields: PropTypes.shape({
     email: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired,

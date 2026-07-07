@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
-import LegalText from '../common/LegalText.jsx';
 import ChooseView from './ChooseView.jsx';
 import EmailView from './EmailView.jsx';
 import ForgotView from './ForgotView.jsx';
@@ -401,35 +400,6 @@ const AuthPage = ({
   };
 
   // ---- shared pieces ------------------------------------------------------
-  // Render the full localized compliance sentence, substituting the (localized) link
-  // labels with anchors — keeps correct word order in both English and Hebrew.
-  const legal = (() => {
-    if (Sefaria.interfaceLang === 'hebrew') {
-      return (
-        <LegalText>
-          {Sefaria._('Auth legal prefix')}
-          <a href="/terms">{Sefaria._('Auth Terms of Use')}</a>
-          {Sefaria._('Auth legal conjunction')}
-          <a href="/privacy-policy">{Sefaria._('Auth Privacy Policy')}</a>
-          {Sefaria._('Auth legal suffix')}
-        </LegalText>
-      );
-    }
-    const sentence = Sefaria._("By continuing, you are agreeing to Sefaria's Terms of Use and Privacy Policy.");
-    const links = [[Sefaria._('Terms of Use'), '/terms'], [Sefaria._('Privacy Policy'), '/privacy-policy']];
-    const parts = [];
-    let rest = sentence;
-    links.forEach(([label, href], i) => {
-      const idx = rest.indexOf(label);
-      if (idx >= 0) {
-        parts.push(rest.slice(0, idx));
-        parts.push(<a key={i} href={href}>{label}</a>);
-        rest = rest.slice(idx + label.length);
-      }
-    });
-    parts.push(rest);
-    return <LegalText>{parts}</LegalText>;
-  })();
   const showProvider = (provider) => {
     const normalized = provider.toLowerCase();
     const target = normalized === 'google' ? 'google-signin-button' : 'apple-signin-button';
@@ -472,7 +442,7 @@ const AuthPage = ({
   if (view === 'email') {
     content = (
       <EmailView
-        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
+        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner}
         fields={fields} submitting={submitting} captchaError={captchaError} setField={setField}
         goChoose={goChoose} submitEmail={submitEmail} startRegistration={startRegistration}
         recaptchaSiteKey={recaptchaSiteKey} onForgotClick={onForgotClick}
@@ -490,7 +460,7 @@ const AuthPage = ({
   } else {
     content = (
       <ChooseView
-        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
+        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner}
         googleClientId={googleClientId} appleClientId={appleClientId}
         googleReady={googleReady} appleReady={appleReady}
         googleBtnRef={googleBtnRef} startAppleSignIn={startAppleSignIn}
