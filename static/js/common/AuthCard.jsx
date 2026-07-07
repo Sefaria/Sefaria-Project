@@ -13,10 +13,9 @@ import PropTypes from 'prop-types';
  * @param sub      sub-line node (e.g. "Don't have an account? <a>Sign Up</a>")
  * @param onBack   if provided, renders the back arrow (content-swap step)
  * @param backLabel aria-label for the back button (localized)
- * @param dir      "ltr" | "rtl"
  */
-const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', dir, className = '', children }) => (
-  <div className={`sefaria-auth-card ${className}`.trim()} dir={dir}>
+const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', className = '', children }) => (
+  <div className={`sefaria-auth-card ${className}`.trim()}>
     {onBack && (
       <button type="button" className="sefaria-auth-card-back" onClick={onBack} aria-label={backLabel}>
         <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
@@ -37,7 +36,6 @@ AuthCard.propTypes = {
   sub: PropTypes.node,
   onBack: PropTypes.func,
   backLabel: PropTypes.string,
-  dir: PropTypes.oneOf(['ltr', 'rtl']),
   className: PropTypes.string,
   children: PropTypes.node,
 };

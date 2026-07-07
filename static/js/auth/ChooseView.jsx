@@ -6,13 +6,12 @@ import Button from '../common/Button.jsx';
 import ProviderButton from '../common/ProviderButton.jsx';
 
 const ChooseView = ({
-  dir, flow, switchFlow, errorBanner, legal,
+  flow, switchFlow, errorBanner, legal,
   googleClientId, appleClientId, googleReady, appleReady,
   googleBtnRef, startAppleSignIn, onEmailClick,
 }) => (
   <AuthCard
     className="sefaria-auth-card--choose"
-    dir={dir}
     heading={flow === 'login' ? Sefaria._('Sign In') : Sefaria._('Create an Account')}
     sub={flow === 'login'
       ? <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>
@@ -52,7 +51,6 @@ const ChooseView = ({
 );
 
 ChooseView.propTypes = {
-  dir: PropTypes.oneOf(['ltr', 'rtl']),
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
   errorBanner: PropTypes.node,

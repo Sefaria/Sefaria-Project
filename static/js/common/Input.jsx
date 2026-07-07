@@ -25,8 +25,7 @@ import PropTypes from 'prop-types';
  * @param error          error message string, or null/empty for no error
  * @param disabled       disables the field
  * @param required       marks the field required
- * @param dir            "ltr" | "rtl" — direction for labels, links, and errors
- * @param inputDir       "ltr" | "rtl" — direction for the control value only
+ * @param inputDir       "ltr" | "rtl" — direction for the control value only (e.g. "ltr" for email/password in RTL layouts)
  * @param autoComplete   autocomplete hint
  * @param trailingLink   { text, href?, onClick? } — the Figma "with link" variant (e.g. "Forgot password?")
  * @param revealLabel    aria-label for the show-password control (localized)
@@ -43,7 +42,6 @@ const Input = ({
   error = null,
   disabled = false,
   required = false,
-  dir,
   inputDir,
   autoComplete,
   trailingLink = null,
@@ -69,7 +67,7 @@ const Input = ({
   ].filter(Boolean).join(' ');
 
   return (
-    <div className={wrapperClasses} dir={dir}>
+    <div className={wrapperClasses}>
       {(label || trailingLink) && (
         <div className="sefaria-input-labelRow">
           {label ? <label className="sefaria-input-label" htmlFor={inputId}>{label}</label> : <span />}
@@ -96,7 +94,7 @@ const Input = ({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
-          dir={inputDir || dir}
+          dir={inputDir}
           autoComplete={autoComplete}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={errorId}
@@ -136,7 +134,6 @@ Input.propTypes = {
   error: PropTypes.string,
   disabled: PropTypes.bool,
   required: PropTypes.bool,
-  dir: PropTypes.oneOf(['ltr', 'rtl']),
   inputDir: PropTypes.oneOf(['ltr', 'rtl']),
   autoComplete: PropTypes.string,
   trailingLink: PropTypes.shape({

@@ -79,7 +79,6 @@ const AuthPage = ({
   ssoRedirectState = '',
   next = '/',
   csrfToken = '',
-  dir = 'ltr',
 }) => {
   const [flow, setFlow] = useState(initialFlow === 'register' ? 'register' : 'login');
   const [view, setView] = useState('choose'); // choose | email | forgot
@@ -219,14 +218,14 @@ const AuthPage = ({
           window.google.accounts.id.renderButton(el, {
             type: 'standard', theme: 'outline', size: 'large',
             text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width,
-            locale: dir === 'rtl' ? 'iw' : 'en',
+            locale: Sefaria.interfaceLang === 'hebrew' ? 'iw' : 'en',
           });
           setGoogleReady(true);
         } catch (e) { /* ignore */ }
       },
     );
     return stopWaiting;
-  }, [googleClientId, view, onSSOResult, ssoRedirectState, dir]);
+  }, [googleClientId, view, onSSOResult, ssoRedirectState]);
 
   // Initialize Apple JS after its async script loads. The custom button starts sign-in
   // through AppleID.auth.signIn(); the SDK dispatches the success/failure events below.
@@ -405,7 +404,7 @@ const AuthPage = ({
   // Render the full localized compliance sentence, substituting the (localized) link
   // labels with anchors — keeps correct word order in both English and Hebrew.
   const legal = (() => {
-    if (dir === 'rtl') {
+    if (Sefaria.interfaceLang === 'hebrew') {
       return (
         <LegalText>
           {Sefaria._('Auth legal prefix')}
@@ -473,7 +472,7 @@ const AuthPage = ({
   if (view === 'email') {
     content = (
       <EmailView
-        dir={dir} flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
+        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
         fields={fields} submitting={submitting} captchaError={captchaError} setField={setField}
         goChoose={goChoose} submitEmail={submitEmail} startRegistration={startRegistration}
         recaptchaSiteKey={recaptchaSiteKey} onForgotClick={onForgotClick}
@@ -482,16 +481,16 @@ const AuthPage = ({
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        dir={dir} errorBanner={errorBanner} emailValue={fields.email}
+        errorBanner={errorBanner} emailValue={fields.email}
         submitting={submitting} setField={setField} submitForgot={submitForgot} onBack={onForgotBack}
       />
     );
   } else if (view === 'forgot-sent') {
-    content = <ForgotSentView dir={dir} onSignIn={onSignIn} />;
+    content = <ForgotSentView onSignIn={onSignIn} />;
   } else {
     content = (
       <ChooseView
-        dir={dir} flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
+        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner} legal={legal}
         googleClientId={googleClientId} appleClientId={appleClientId}
         googleReady={googleReady} appleReady={appleReady}
         googleBtnRef={googleBtnRef} startAppleSignIn={startAppleSignIn}
@@ -500,7 +499,7 @@ const AuthPage = ({
     );
   }
 
-  return <div className="sefaria-auth-page" dir={dir}>{content}</div>;
+  return <div className="sefaria-auth-page">{content}</div>;
 };
 
 AuthPage.propTypes = {
@@ -511,7 +510,6 @@ AuthPage.propTypes = {
   ssoRedirectState: PropTypes.string,
   next: PropTypes.string,
   csrfToken: PropTypes.string,
-  dir: PropTypes.oneOf(['ltr', 'rtl']),
 };
 
 export default AuthPage;

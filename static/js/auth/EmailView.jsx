@@ -6,7 +6,7 @@ import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 
 const EmailView = ({
-  dir, flow, switchFlow, errorBanner, legal,
+  flow, switchFlow, errorBanner, legal,
   fields, submitting, captchaError, setField,
   goChoose, submitEmail, startRegistration,
   recaptchaSiteKey, onForgotClick,
@@ -18,7 +18,6 @@ const EmailView = ({
         isRegister ? 'sefaria-auth-card--register-email' : 'sefaria-auth-card--login-email',
         errorBanner || captchaError ? 'sefaria-auth-card--email-error' : '',
       ].filter(Boolean).join(' ')}
-      dir={dir}
       onBack={goChoose}
       backLabel={Sefaria._('Back')}
       heading={isRegister ? Sefaria._('Create an Account') : Sefaria._('Sign In')}
@@ -29,19 +28,19 @@ const EmailView = ({
       <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
         {errorBanner}
         <div className="sefaria-auth-fields">
-          <Input label={dir === 'rtl' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
-                 dir={dir} inputDir="ltr" autoComplete="email"
+          <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
+                 inputDir="ltr" autoComplete="email"
                  placeholder="you@example.com" value={fields.email} onChange={setField('email')}
                  onFocus={isRegister ? startRegistration : undefined} />
-          <Input label={dir === 'rtl' ? Sefaria._('Auth Password') : Sefaria._('Password')} type="password" name="password"
-                 dir={dir} inputDir="ltr"
+          <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Password') : Sefaria._('Password')} type="password" name="password"
+                 inputDir="ltr"
                  autoComplete={isRegister ? 'new-password' : 'current-password'}
                  value={fields.password} onChange={setField('password')}
                  onFocus={isRegister ? startRegistration : undefined}
-                 trailingLink={isRegister ? null : { text: dir === 'rtl' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: onForgotClick }}
+                 trailingLink={isRegister ? null : { text: Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: onForgotClick }}
                  revealLabel={Sefaria._('Show password')} hideLabel={Sefaria._('Hide password')} />
-          {isRegister && <Input dir={dir} label={Sefaria._('First Name')} name="first_name" placeholder={Sefaria._('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
-          {isRegister && <Input dir={dir} label={Sefaria._('Last Name')} name="last_name" placeholder={Sefaria._('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+          {isRegister && <Input label={Sefaria._('First Name')} name="first_name" placeholder={Sefaria._('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
+          {isRegister && <Input label={Sefaria._('Last Name')} name="last_name" placeholder={Sefaria._('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
         </div>
         {isRegister && recaptchaSiteKey && (
           <Captcha error={captchaError}>
@@ -58,7 +57,6 @@ const EmailView = ({
 };
 
 EmailView.propTypes = {
-  dir: PropTypes.oneOf(['ltr', 'rtl']),
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
   errorBanner: PropTypes.node,
