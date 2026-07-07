@@ -13,6 +13,12 @@ class Dedication(models.Model):
     ``dedications.views.dedication``. The ``*_title``
     fields are the page headings; the ``*_content`` fields hold the page body as
     HTML (rendered with ``|safe`` in the template).
+
+    Content is stored as raw HTML (rather than markdown, as guides.InfoCard
+    does) because dedication pages are migrated from existing static HTML
+    templates -- their markup can be pasted into the admin verbatim. Only
+    staff can edit these records, so the ``|safe`` rendering is not exposed
+    to untrusted input.
     """
 
     slug = models.SlugField(
