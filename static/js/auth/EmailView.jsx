@@ -14,32 +14,47 @@ const EmailView = ({
   recaptchaSiteKey, onForgotClick,
 }) => {
   const isRegister = flow === 'register';
+  const cfg = isRegister ? {
+    cardClass: 'sefaria-auth-card--register-email',
+    heading: Sefaria._('Create an Account'),
+    sub: <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>,
+    formId: 'register-form',
+    emailOnFocus: startRegistration,
+    passwordAutoComplete: 'new-password',
+    passwordOnFocus: startRegistration,
+    passwordTrailingLink: null,
+    buttonText: Sefaria._('Create Account'),
+  } : {
+    cardClass: 'sefaria-auth-card--login-email',
+    heading: Sefaria._('Sign In'),
+    sub: <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>,
+    formId: 'login-form',
+    emailOnFocus: undefined,
+    passwordAutoComplete: 'current-password',
+    passwordOnFocus: undefined,
+    passwordTrailingLink: { text: Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: onForgotClick },
+    buttonText: Sefaria._('Sign In'),
+  };
+
   return (
     <AuthCard
-      className={[
-        isRegister ? 'sefaria-auth-card--register-email' : 'sefaria-auth-card--login-email',
-        errorBanner || captchaError ? 'sefaria-auth-card--email-error' : '',
-      ].filter(Boolean).join(' ')}
+      className={[cfg.cardClass, error || captchaError ? 'sefaria-auth-card--email-error' : ''].filter(Boolean).join(' ')}
       onBack={goChoose}
       backLabel={Sefaria._('Back')}
-      heading={isRegister ? Sefaria._('Create an Account') : Sefaria._('Sign In')}
-      sub={isRegister
-        ? <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>
-        : <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>}
+      heading={cfg.heading}
+      sub={cfg.sub}
     >
-      <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
+      <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
                  inputDir="ltr" autoComplete="email"
                  placeholder="you@example.com" value={fields.email} onChange={setField('email')}
-                 onFocus={isRegister ? startRegistration : undefined} />
+                 onFocus={cfg.emailOnFocus} />
           <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Password') : Sefaria._('Password')} type="password" name="password"
-                 inputDir="ltr"
-                 autoComplete={isRegister ? 'new-password' : 'current-password'}
+                 inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  value={fields.password} onChange={setField('password')}
-                 onFocus={isRegister ? startRegistration : undefined}
-                 trailingLink={isRegister ? null : { text: Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: onForgotClick }}
+                 onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
                  revealLabel={Sefaria._('Show password')} hideLabel={Sefaria._('Hide password')} />
           {isRegister && <Input label={Sefaria._('First Name')} name="first_name" placeholder={Sefaria._('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
           {isRegister && <Input label={Sefaria._('Last Name')} name="last_name" placeholder={Sefaria._('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
@@ -50,7 +65,7 @@ const EmailView = ({
           </Captcha>
         )}
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
-          <span>{isRegister ? Sefaria._('Create Account') : Sefaria._('Sign In')}</span>
+          <span>{cfg.buttonText}</span>
         </Button>
         <LegalText />
       </form>
