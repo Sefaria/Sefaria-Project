@@ -13,7 +13,7 @@ import {
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from './sefaria/csrf';
 import ReactMarkdown from 'react-markdown';
 import Sefaria from './sefaria/sefaria';
 import { OnInView, handleAnalyticsOnMarkdown } from './Misc';
@@ -2020,7 +2020,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
 
           const request = new Request(
               "/api/subscribe/" + email,
-              {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+              {headers: {'X-CSRFToken': getCsrfToken()}}
           );
           fetch(request, {
               method: 'POST',

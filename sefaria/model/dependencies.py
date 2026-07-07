@@ -6,6 +6,9 @@ from . import abstract, link, note, history, schema, text, layer, version_state,
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 # Index Save / Create
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
@@ -57,16 +60,60 @@ def process_version_title_change_in_search(ver, **kwargs):
         # search_index_name_merged = get_new_and_current_index_names("merged")['current']
         text_index = library.get_index(ver.title)
         delete_version(text_index, kwargs.get("old"), ver.language)
+        new_version_title = kwargs.get("new")
+        failed_refs = []
         for ref in text_index.all_segment_refs():
-            TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, ver.languageFamilyName, ver.isPrimary)
+            # Best-effort reindex: a single segment failing in ES (e.g. a malformed
+            # document raising a 500) must not abort the whole version rename, which
+            # has already been committed to Mongo by the time this runs. Collect the
+            # failures, keep going, and surface them so search can be re-synced.
+            try:
+                TextIndexer.index_ref(search_index_name, ref, new_version_title, ver.language, ver.languageFamilyName, ver.isPrimary)
+            except Exception as e:
+                failed_refs.append(ref.normal())
+                logger.warning(
+                    "process_version_title_change_in_search: failed to index segment",
+                    index=ver.title,
+                    versionTitle=new_version_title,
+                    language=ver.language,
+                    ref=ref.normal(),
+                    error=str(e),
+                )
+        if failed_refs:
+            logger.error(
+                "process_version_title_change_in_search: some segments failed to reindex",
+                index=ver.title,
+                versionTitle=new_version_title,
+                language=ver.language,
+                failed_count=len(failed_refs),
+                failed_refs=failed_refs,
+            )
+
+
+# A versionTitle is only unique within a book (Version.pkeys == ["title", "versionTitle"]),
+# so cascading GlobalNotification changes on content.version alone would clobber notifications
+# for any other book that happens to share the versionTitle. These callbacks scope the query
+# by content.index (the book title), which is available on the Version instance passed by notify().
+def process_version_title_change_in_global_notifications(ver, **kwargs):
+    notification.GlobalNotificationSet({
+        "content.index":   ver.title,
+        "content.version": kwargs["old"],
+    }).update({"content.version": kwargs["new"]})
+
+
+def process_version_delete_in_global_notifications(ver, **kwargs):
+    notification.GlobalNotificationSet({
+        "content.index":   ver.title,
+        "content.version": ver.versionTitle,
+    }).delete()
 
 
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
-subscribe(cascade(notification.GlobalNotificationSet, "content.version"), text.Version, "attributeChange", "versionTitle")
+subscribe(process_version_title_change_in_global_notifications,        text.Version, "attributeChange", "versionTitle")
 
-subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", "versionTitle"),   text.Version, "delete")
+subscribe(process_version_delete_in_global_notifications,              text.Version, "delete")
 
 
 # Note Delete

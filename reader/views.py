@@ -22,7 +22,7 @@ from dataclasses import asdict
 from functools import lru_cache
 
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
@@ -34,6 +34,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.urls import Resolver404, resolve
 from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
@@ -222,21 +223,21 @@ def render_template(request, template_name='base.html', app_props=None, template
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
-        html = render_react_component("ReaderApp", propsJSON)
+        html = render_react_component("ReaderApp", propsJSON, request=request)
         template_context["html"] = html
     else:
         template_context["renderStatic"] = True
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props):
+def render_react_component(component, props, request):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+        return render_to_string("elements/loading.html", request=request)
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -274,11 +275,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
             ))
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.warning("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
 
 
 def base_props(request):
@@ -374,7 +375,9 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        'chatbot_promo_maybe_later_json': remoteConfigCache.get(CHATBOT_PROMO_MAYBE_LATER_JSON, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
     if user_has_experiments(request.user):
@@ -907,7 +910,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
-def texts_category_list(request, cats):
+def texts_category_list(request, cats=None):
     """
     List of texts in a category.
     """
@@ -943,7 +946,7 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_category_page(request, topicCategory):
+def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
     """
@@ -998,7 +1001,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
@@ -1166,7 +1169,7 @@ def edit_collection_page(request, slug=None):
         "noindex": True
     })
     
-def groups_redirect(request, group):
+def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
     """
@@ -4054,6 +4057,42 @@ def experiments_opt_in_api(request):
     return jsonResponse({"status": "ok"})
 
 
+def enable_library_assistant(request):
+    """
+    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
+    The promo points login/register's ?next= here, so once authentication
+    completes the user lands here; we enroll them in the experiments whitelist and
+    bounce them back to where they were. On that reload the Library Assistant appears
+    with no extra "Join" click. Normal logins (which don't route through here) are
+    unaffected.
+    """
+    next_url = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
+
+    # Prevent cross-site enrollment via GET.
+    if request.headers.get("Sec-Fetch-Site") != "cross-site":
+        _set_user_experiments(request.user, True)
+
+    # The register flow appends ?welcome=to-sefaria to its redirect target; forward
+    # it onto the final destination so the new-user welcome still shows after the hop.
+    welcome = request.GET.get("welcome")
+    if welcome:
+        parsed = urllib.parse.urlparse(next_url)
+        next_url = urllib.parse.urlunparse(parsed._replace(
+            query=urllib.parse.urlencode(urllib.parse.parse_qsl(parsed.query) + [("welcome", welcome)])
+        ))
+
+    return redirect(next_url)
+
+
 @login_required
 @csrf_protect
 def account_user_update(request):
@@ -4800,7 +4839,7 @@ def annual_report(request, report_year=None):
 
 
 @ensure_csrf_cookie
-def explore(request, topCat, bottomCat, book1, book2, lang=None):
+def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """

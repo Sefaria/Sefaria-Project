@@ -1,5 +1,8 @@
 name: Continuous
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types:
       - opened
@@ -220,7 +223,7 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
@@ -243,11 +246,12 @@ jobs:
           #      - name: setup helm
           #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
@@ -297,16 +301,17 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v1
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -377,16 +382,17 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT

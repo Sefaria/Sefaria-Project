@@ -24,7 +24,7 @@ $not-selector: "";
   position: absolute;
   width: 100%;
   height: 60px;
-  z-index: 1001;
+  z-index: var(--z-header);
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
@@ -32,6 +32,16 @@ $not-selector: "";
   @include breakpoint(mobile) {
     padding: 0 15px;
   }
+}
+
+// When a header dropdown menu is open, lift the header's stacking context above the
+// floating overlay layer (chatbot/popovers, --z-overlay) so the open menu isn't obscured.
+// The menu is nested inside .headerInner's stacking context, so a z-index on the menu
+// itself can't escape the header's --z-header ceiling — we have to raise the context.
+// Scoped via :has() so it only applies while a menu is open (keeping the focused
+// skip-link reachable the rest of the time).
+.headerInner:has(.dropdownLinks-menu.open) {
+  z-index: var(--z-header-menu-open);
 }
 
 .headerInner.boxShadow {

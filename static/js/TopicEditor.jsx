@@ -4,7 +4,7 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
 import {ImageCropper} from "./ImageCropper";
-import Cookies from "js-cookie";
+import { getCsrfToken } from "./sefaria/csrf";
 import React, {useState, useRef} from "react";
 import Button from "./common/Button";
 
@@ -17,7 +17,7 @@ const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
     }
     const request = new Request(
         `${Sefaria.apiHost}/${topic_image_api}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+        {headers: {'X-CSRFToken': getCsrfToken()}}
     );
     return fetch(request, {
         method: 'POST',
