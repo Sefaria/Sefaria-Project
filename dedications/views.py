@@ -18,5 +18,5 @@ def dedication(request, slug):
         request,
         "static/dedication/dedication.html",
         {"headerMode": True},
-        {"dedication": dedication},
+        {"dedication": dedication, "renderStatic": True},
     )
