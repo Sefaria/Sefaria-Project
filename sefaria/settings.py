@@ -164,6 +164,7 @@ INSTALLED_APPS = (
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'powered_by.apps.PoweredByAppConfig',
+    'dedications.apps.DedicationsAppConfig',
     'django_recaptcha',
     'django.contrib.admin',
     'anymail',
@@ -177,6 +178,7 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
+    'django.contrib.postgres'
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
