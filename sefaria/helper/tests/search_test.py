@@ -87,6 +87,31 @@ def test_text_filter_default_agg_type():
     assert ordered(empty_agg.to_dict()) == ordered(expected.to_dict())
 
 
+def test_count_query_obj():
+    # bare query: just the match_phrase, no sort/aggs/highlight/pagination/source
+    s = get_count_query_obj("moshe", "text", "exact")
+    t = json.loads("""{"query":{"match_phrase":{"exact":{"query":"moshe","slop":0}}}}""")
+    assert ordered(t) == ordered(s.to_dict())
+
+    # with filters, the count query must match the same documents as the full query
+    # (same bool/filter structure), minus the function_score/highlight/pagination layers
+    filters = ["Tanakh/Targum/Targum Jonathan", "Mishnah/Seder Zeraim/Mishnah Peah"]
+    full = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10, filters,
+                         ["path", "path"], [], "score", ['pagesheetrank'], sort_score_missing=0.04)
+    count = get_count_query_obj("moshe", "text", "naive_lemmatizer", 10, filters, ["path", "path"])
+    assert ordered(full.to_dict()["query"]["function_score"]["query"]) == ordered(count.to_dict()["query"])
+
+    # accepts the full search-wrapper wire body; the result-shaping keys are ignored
+    wire_body = {
+        "query": "moshe", "type": "text", "field": "naive_lemmatizer", "slop": 10,
+        "source_proj": True, "start": 0, "size": 50,
+        "filters": filters, "filter_fields": ["path", "path"], "aggs": ["path"],
+        "sort_method": "score", "sort_fields": ["pagesheetrank"], "sort_score_missing": 0.04,
+    }
+    from_wire = get_count_query_obj(**wire_body)
+    assert ordered(from_wire.to_dict()) == ordered(count.to_dict())
+
+
 def ordered(obj):
     if isinstance(obj, dict):
         return sorted((str(k), ordered(v)) for k, v in list(obj.items()))

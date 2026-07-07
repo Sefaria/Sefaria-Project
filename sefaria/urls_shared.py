@@ -167,6 +167,7 @@ shared_patterns = [
     path('api/search-wrapper/es6', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-wrapper/es8', reader_views.search_wrapper_api),
     path('api/search-wrapper', reader_views.search_wrapper_api, {'es6_compat': True}),
+    path('api/search-count', reader_views.search_count_api),
     re_path(r'^api/entity-search/?$', reader_views.entity_search_api),
     path('api/search-path-filter/<path:book_title>', reader_views.search_path_filter),
 

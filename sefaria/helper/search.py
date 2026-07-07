@@ -52,6 +52,8 @@ def param_fixer(func):
             "search_obj": default_search
         }
         for param, setter in list(params_with_defaults.items()):
+            if param not in func_params:
+                continue
             i = func_params.index(param)
             if len(args) > i:
                 # in args
@@ -100,8 +102,6 @@ def get_query_obj(
     :return: Search object with all the stuff ready to execute
     """
     search_obj = search_obj.source(source_proj)
-    query = re.sub(r"(\S)\"(\S)", "\\1\u05f4\\2", query)  # Replace internal quotes with gershaim.
-    core_query = Q("match_phrase", **{field: {"query": query, "slop": slop}})
 
     # sort
     if sort_method == "sort":
@@ -112,13 +112,7 @@ def get_query_obj(
         for a in aggs:
             search_obj.aggs.bucket(a, "terms", field=a, size=10000)
 
-    filters, filter_fields = normalize_filters(filters, filter_fields)
-
-    # filters
-    if len(filters) == 0:
-        inner_query = core_query
-    else:
-        inner_query = Bool(must=core_query, filter=get_filter_obj(type, filters, filter_fields))
+    inner_query = make_core_search_query(query, type, field, slop, filters, filter_fields)
 
     # finish up
     if sort_method == "score" and len(sort_fields) == 1:
@@ -135,6 +129,39 @@ def get_query_obj(
         search_obj.query = inner_query
     search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
     return search_obj[start:start + size]
+
+
+def make_core_search_query(query, type="text", field="exact", slop=0, filters=None, filter_fields=None):
+    """
+    Build the query + filter portion of a search — the part that determines *which*
+    documents match. Shared by get_query_obj (full search) and get_count_query_obj
+    (count-only), so a count always reflects the same result set as the search it
+    stands in for. Sorting, aggregations, highlighting, and pagination are layered
+    on separately because they don't affect what matches.
+    """
+    query = re.sub(r"(\S)\"(\S)", "\\1״\\2", query)  # Replace internal quotes with gershaim.
+    core_query = Q("match_phrase", **{field: {"query": query, "slop": slop}})
+    filters, filter_fields = normalize_filters(filters or [], filter_fields or [])
+    if len(filters) == 0:
+        return core_query
+    return Bool(must=core_query, filter=get_filter_obj(type, filters, filter_fields))
+
+
+@param_fixer
+def get_count_query_obj(query, type="text", field="exact", slop=0, filters=None, filter_fields=None, search_obj=None):
+    """
+    Build a count-only Search matching the same documents as the equivalent
+    get_query_obj call — no sort, aggregations, highlighting, pagination, or
+    function_score (none of which change what matches). Execute it with
+    Search.count(), which hits the ES _count API and returns an exact total
+    (not capped at 10,000 like hits.total on a regular search).
+
+    Accepts the same wire JSON as get_query_obj (param_fixer drops the extra
+    keys like size/aggs/sort_method), so a client can POST the exact body it
+    already sends to /api/search-wrapper.
+    """
+    search_obj.query = make_core_search_query(query, type, field, slop, filters, filter_fields)
+    return search_obj
 
 
 def normalize_filters(filters, filter_fields):

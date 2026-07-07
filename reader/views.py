@@ -4794,6 +4794,40 @@ def search_wrapper_api(request, es6_compat=False):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 @csrf_exempt
+def search_count_api(request):
+    """
+    Count-only companion to search_wrapper_api, powering the Sources tab count badge:
+    the client fires this alongside the full search and can paint the count as soon as
+    it returns, independently of when the full results arrive.
+
+    Accepts the same POST JSON body as /api/search-wrapper/es8 and returns
+    {"count": N} — the exact number of documents the equivalent search would match,
+    via the ES _count API (no hits, aggregations, or highlighting are computed, and
+    the count is not capped at 10,000 the way hits.total is on a regular search).
+    """
+    from sefaria.helper.search import get_elasticsearch_client, get_count_query_obj
+
+    callback = request.GET.get("callback", None)
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, callback=callback)
+
+    if "json" in request.POST:
+        j = request.POST.get("json")  # using form-urlencoded
+    else:
+        j = request.body  # using content-type: application/json
+    j = json.loads(j)
+    es_client = get_elasticsearch_client()
+    search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
+    search_obj = get_count_query_obj(search_obj=search_obj, **j)
+    try:
+        count = search_obj.count()
+    except Exception as e:
+        logger.error(f"search_count_api failed - query: {j.get('query')}, type: {j.get('type')}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error with connection to Elasticsearch."}, callback=callback)
+    return jsonResponse({"count": count}, callback=callback)
+
+
+@csrf_exempt
 def entity_search_api(request):
     """
     Entity search endpoint powering the Topics / Authors / Books tabs.
