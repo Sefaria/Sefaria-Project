@@ -13,7 +13,6 @@ import {
   CategoryColorLine,
   InterfaceText,
   LoadingMessage,
-  AiInfoTooltip,
 } from './Misc';
 
 class SearchPage extends Component {
@@ -27,8 +26,6 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
-    const {aiBadgeText} = this.props;
-    const showAiBadge = aiBadgeText != null;
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -81,16 +78,11 @@ class SearchPage extends Component {
                 <div className="searchTopLine">
                   <div className="searchTopLineInner">
                     <h1 className="serif">
-                      <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
+                      <InterfaceText>Results for</InterfaceText>&nbsp;
                       <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
                       {this.props.query}
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
                     </h1>
-                    {showAiBadge && <AiInfoTooltip
-                      displayText={aiBadgeText}
-                      variant="solid"
-                      size={24}
-                    />}
                   </div>
                   <div className="searchTopMatter">
                     <div className="searchResultCount">
@@ -145,7 +137,6 @@ SearchPage.propTypes = {
   topics:                   PropTypes.array,
   totalResults:             PropTypes.object,
   sortTypeArray:            PropTypes.array,
-  aiBadgeText:              PropTypes.string,
 };
 
 
