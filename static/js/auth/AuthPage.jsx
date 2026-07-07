@@ -8,9 +8,6 @@ import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import ProviderButton from '../common/ProviderButton.jsx';
 
-/** Translate helper that works in both the app (global Sefaria) and Storybook (stub). */
-const _ = (s) => (typeof window !== 'undefined' && window.Sefaria && window.Sefaria._ ? window.Sefaria._(s) : s);
-
 
 function getCsrf(explicit) {
   if (explicit) return explicit;
@@ -34,7 +31,7 @@ function authError(data, fallback) {
   const metadata = data && data._auth;
   const message = pickFirstError(data) || fallback;
   return {
-    message: _(message),
+    message: Sefaria._(message),
     code: metadata && metadata.code,
     providers: metadata && Array.isArray(metadata.providers) ? metadata.providers : [],
   };
@@ -362,7 +359,7 @@ const AuthPage = ({
         const hasCaptchaError = !!(data && data.captcha);
         const nonCaptchaError = Object.keys(data || {}).some((key) => key !== '_auth' && key !== 'captcha');
         setError(nonCaptchaError ? authError(data, message) : null);
-        if (hasCaptchaError) setCaptchaError(_('Verify that you are not a robot'));
+        if (hasCaptchaError) setCaptchaError(Sefaria._('Verify that you are not a robot'));
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
           captchaToken.current = '';
@@ -413,16 +410,16 @@ const AuthPage = ({
     if (dir === 'rtl') {
       return (
         <LegalText>
-          {_('Auth legal prefix')}
-          <a href="/terms">{_('Auth Terms of Use')}</a>
-          {_('Auth legal conjunction')}
-          <a href="/privacy-policy">{_('Auth Privacy Policy')}</a>
-          {_('Auth legal suffix')}
+          {Sefaria._('Auth legal prefix')}
+          <a href="/terms">{Sefaria._('Auth Terms of Use')}</a>
+          {Sefaria._('Auth legal conjunction')}
+          <a href="/privacy-policy">{Sefaria._('Auth Privacy Policy')}</a>
+          {Sefaria._('Auth legal suffix')}
         </LegalText>
       );
     }
-    const sentence = _("By continuing, you are agreeing to Sefaria's Terms of Use and Privacy Policy.");
-    const links = [[_('Terms of Use'), '/terms'], [_('Privacy Policy'), '/privacy-policy']];
+    const sentence = Sefaria._("By continuing, you are agreeing to Sefaria's Terms of Use and Privacy Policy.");
+    const links = [[Sefaria._('Terms of Use'), '/terms'], [Sefaria._('Privacy Policy'), '/privacy-policy']];
     const parts = [];
     let rest = sentence;
     links.forEach(([label, href], i) => {
@@ -461,7 +458,7 @@ const AuthPage = ({
           className="sefaria-auth-provider-action"
           onClick={(event) => { event.preventDefault(); showProvider(provider); }}
         >
-          {_(`Sign in with ${provider.charAt(0).toUpperCase()}${provider.slice(1).toLowerCase()}`)}
+          {Sefaria._(`Sign in with ${provider.charAt(0).toUpperCase()}${provider.slice(1).toLowerCase()}`)}
         </a>
       ))}
       </div>
@@ -473,10 +470,10 @@ const AuthPage = ({
     <AuthCard
       className="sefaria-auth-card--choose"
       dir={dir}
-      heading={flow === 'login' ? _('Sign In') : _('Create an Account')}
+      heading={flow === 'login' ? Sefaria._('Sign In') : Sefaria._('Create an Account')}
       sub={flow === 'login'
-        ? <>{_("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{_('Sign Up')}</a></>
-        : <>{_('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{_('Sign In')}</a></>}
+        ? <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>
+        : <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>}
     >
       {errorBanner}
       <div className="sefaria-auth-choose">
@@ -486,7 +483,7 @@ const AuthPage = ({
               <ProviderButton
                 id="google-signin-button"
                 provider="google"
-                label={_('Continue with Google')}
+                label={Sefaria._('Continue with Google')}
                 disabled={!googleReady}
                 sdkOverlayRef={googleBtnRef}
               />
@@ -495,16 +492,16 @@ const AuthPage = ({
               <ProviderButton
                 id="apple-signin-button"
                 provider="apple"
-                label={_('Continue with Apple')}
+                label={Sefaria._('Continue with Apple')}
                 disabled={!appleReady}
                 onClick={startAppleSignIn}
               />
             )}
           </div>
-          <Divider>{_('or')}</Divider>
+          <Divider>{Sefaria._('or')}</Divider>
         </div>
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={() => { setView('email'); setError(null); }}>
-          <span>{_('Continue with Email')}</span>
+          <span>{Sefaria._('Continue with Email')}</span>
         </Button>
         {legal}
       </div>
@@ -521,28 +518,28 @@ const AuthPage = ({
         ].filter(Boolean).join(' ')}
         dir={dir}
         onBack={goChoose}
-        backLabel={_('Back')}
-        heading={isRegister ? _('Create an Account') : _('Sign In')}
+        backLabel={Sefaria._('Back')}
+        heading={isRegister ? Sefaria._('Create an Account') : Sefaria._('Sign In')}
         sub={isRegister
-          ? <>{_('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{_('Sign In')}</a></>
-          : <>{_("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{_('Sign Up')}</a></>}
+          ? <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>
+          : <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>}
       >
         <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
           {errorBanner}
           <div className="sefaria-auth-fields">
-            <Input label={dir === 'rtl' ? _('Auth Email') : _('Email Address')} type="email" name="email"
+            <Input label={dir === 'rtl' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
                    dir={dir} inputDir="ltr" autoComplete="email"
                    placeholder="you@example.com" value={fields.email} onChange={setField('email')}
                    onFocus={isRegister ? startRegistration : undefined} />
-            <Input label={dir === 'rtl' ? _('Auth Password') : _('Password')} type="password" name="password"
+            <Input label={dir === 'rtl' ? Sefaria._('Auth Password') : Sefaria._('Password')} type="password" name="password"
                    dir={dir} inputDir="ltr"
                    autoComplete={isRegister ? 'new-password' : 'current-password'}
                    value={fields.password} onChange={setField('password')}
                    onFocus={isRegister ? startRegistration : undefined}
-                   trailingLink={isRegister ? null : { text: dir === 'rtl' ? _('Auth Forgot password?') : _('Forgot password?'), onClick: (e) => { e.preventDefault(); setView('forgot'); setError(null); } }}
-                   revealLabel={_('Show password')} hideLabel={_('Hide password')} />
-            {isRegister && <Input dir={dir} label={_('First Name')} name="first_name" placeholder={_('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
-            {isRegister && <Input dir={dir} label={_('Last Name')} name="last_name" placeholder={_('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+                   trailingLink={isRegister ? null : { text: dir === 'rtl' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: (e) => { e.preventDefault(); setView('forgot'); setError(null); } }}
+                   revealLabel={Sefaria._('Show password')} hideLabel={Sefaria._('Hide password')} />
+            {isRegister && <Input dir={dir} label={Sefaria._('First Name')} name="first_name" placeholder={Sefaria._('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
+            {isRegister && <Input dir={dir} label={Sefaria._('Last Name')} name="last_name" placeholder={Sefaria._('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
           </div>
           {isRegister && (
             <Captcha error={captchaError}>
@@ -550,7 +547,7 @@ const AuthPage = ({
             </Captcha>
           )}
           <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
-            <span>{isRegister ? _('Create Account') : _('Sign In')}</span>
+            <span>{isRegister ? Sefaria._('Create Account') : Sefaria._('Sign In')}</span>
           </Button>
           {legal}
         </form>
@@ -559,26 +556,26 @@ const AuthPage = ({
   };
 
   const renderForgot = () => (
-    <AuthCard dir={dir} onBack={() => { setView('email'); setError(null); }} backLabel={_('Back')}
-      heading={_('Forgot Password?')}>
+    <AuthCard dir={dir} onBack={() => { setView('email'); setError(null); }} backLabel={Sefaria._('Back')}
+      heading={Sefaria._('Forgot Password?')}>
       {errorBanner}
       <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
-        <Input label={dir === 'rtl' ? _('Auth Email') : _('Email Address')} type="email" name="email"
+        <Input label={dir === 'rtl' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
                dir={dir} inputDir="ltr"
                value={fields.email} onChange={setField('email')} />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
-          <span>{_('Send Reset Link')}</span>
+          <span>{Sefaria._('Send Reset Link')}</span>
         </Button>
       </form>
     </AuthCard>
   );
 
   const renderForgotSent = () => (
-    <AuthCard dir={dir} heading={_('Reset Link Sent')}
-      sub={_('Check your email and follow the instructions to reset your password.')}>
+    <AuthCard dir={dir} heading={Sefaria._('Reset Link Sent')}
+      sub={Sefaria._('Check your email and follow the instructions to reset your password.')}>
       <div className="sefaria-auth-stack">
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={() => { setFlow('login'); setView('choose'); }}>
-          <span>{_('Sign In')}</span>
+          <span>{Sefaria._('Sign In')}</span>
         </Button>
       </div>
     </AuthCard>
