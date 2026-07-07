@@ -178,7 +178,6 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
-    'django.contrib.postgres'
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
