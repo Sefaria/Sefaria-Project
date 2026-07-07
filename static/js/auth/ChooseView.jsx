@@ -5,9 +5,10 @@ import Divider from '../common/Divider.jsx';
 import Button from '../common/Button.jsx';
 import ProviderButton from '../common/ProviderButton.jsx';
 import LegalText from '../common/LegalText.jsx';
+import ErrorBanner from '../common/ErrorBanner.jsx';
 
 const ChooseView = ({
-  flow, switchFlow, errorBanner,
+  flow, switchFlow, error, onProviderClick,
   googleClientId, appleClientId, googleReady, appleReady,
   googleBtnRef, startAppleSignIn, onEmailClick,
 }) => (
@@ -18,7 +19,7 @@ const ChooseView = ({
       ? <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>
       : <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>}
   >
-    {errorBanner}
+    <ErrorBanner error={error} onProviderClick={onProviderClick} />
     <div className="sefaria-auth-choose">
       <div className="sefaria-auth-sso-group">
         <div className="sefaria-auth-provider-options">
@@ -54,7 +55,12 @@ const ChooseView = ({
 ChooseView.propTypes = {
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
-  errorBanner: PropTypes.node,
+  error: PropTypes.shape({
+    message: PropTypes.string.isRequired,
+    code: PropTypes.string,
+    providers: PropTypes.arrayOf(PropTypes.string),
+  }),
+  onProviderClick: PropTypes.func,
   googleClientId: PropTypes.string,
   appleClientId: PropTypes.string,
   googleReady: PropTypes.bool.isRequired,

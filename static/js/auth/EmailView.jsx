@@ -5,9 +5,10 @@ import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 import LegalText from '../common/LegalText.jsx';
+import ErrorBanner from '../common/ErrorBanner.jsx';
 
 const EmailView = ({
-  flow, switchFlow, errorBanner,
+  flow, switchFlow, error, onProviderClick,
   fields, submitting, captchaError, setField,
   goChoose, submitEmail, startRegistration,
   recaptchaSiteKey, onForgotClick,
@@ -27,7 +28,7 @@ const EmailView = ({
         : <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>}
     >
       <form id={isRegister ? 'register-form' : 'login-form'} className="sefaria-auth-email-form" onSubmit={submitEmail}>
-        {errorBanner}
+        <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
                  inputDir="ltr" autoComplete="email"
@@ -60,7 +61,12 @@ const EmailView = ({
 EmailView.propTypes = {
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   switchFlow: PropTypes.func.isRequired,
-  errorBanner: PropTypes.node,
+  error: PropTypes.shape({
+    message: PropTypes.string.isRequired,
+    code: PropTypes.string,
+    providers: PropTypes.arrayOf(PropTypes.string),
+  }),
+  onProviderClick: PropTypes.func,
   fields: PropTypes.shape({
     email: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired,

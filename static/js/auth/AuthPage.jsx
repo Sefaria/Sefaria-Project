@@ -413,24 +413,6 @@ const AuthPage = ({
       }
     }, 0);
   };
-  const errorBanner = error ? (
-    <div className="sefaria-auth-error" role="alert">
-      <img className="sefaria-auth-error-icon" src="/static/icons/info.svg" alt="" aria-hidden="true" />
-      <div className="sefaria-auth-error-content">
-        <span>{error.message}</span>
-      {error.code === 'sso_only_account' && error.providers.map((provider) => (
-        <a
-          key={provider}
-          href={`#${provider.toLowerCase() === 'google' ? 'google-signin-button' : 'apple-signin-button'}`}
-          className="sefaria-auth-provider-action"
-          onClick={(event) => { event.preventDefault(); showProvider(provider); }}
-        >
-          {Sefaria._(`Sign in with ${provider.charAt(0).toUpperCase()}${provider.slice(1).toLowerCase()}`)}
-        </a>
-      ))}
-      </div>
-    </div>
-  ) : null;
 
   // ---- views --------------------------------------------------------------
   const onEmailClick = () => { setView('email'); setError(null); };
@@ -442,7 +424,7 @@ const AuthPage = ({
   if (view === 'email') {
     content = (
       <EmailView
-        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner}
+        flow={flow} switchFlow={switchFlow} error={error} onProviderClick={showProvider}
         fields={fields} submitting={submitting} captchaError={captchaError} setField={setField}
         goChoose={goChoose} submitEmail={submitEmail} startRegistration={startRegistration}
         recaptchaSiteKey={recaptchaSiteKey} onForgotClick={onForgotClick}
@@ -451,7 +433,7 @@ const AuthPage = ({
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        errorBanner={errorBanner} emailValue={fields.email}
+        error={error} emailValue={fields.email}
         submitting={submitting} setField={setField} submitForgot={submitForgot} onBack={onForgotBack}
       />
     );
@@ -460,7 +442,7 @@ const AuthPage = ({
   } else {
     content = (
       <ChooseView
-        flow={flow} switchFlow={switchFlow} errorBanner={errorBanner}
+        flow={flow} switchFlow={switchFlow} error={error} onProviderClick={showProvider}
         googleClientId={googleClientId} appleClientId={appleClientId}
         googleReady={googleReady} appleReady={appleReady}
         googleBtnRef={googleBtnRef} startAppleSignIn={startAppleSignIn}

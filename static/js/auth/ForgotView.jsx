@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import AuthCard from '../common/AuthCard.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
+import ErrorBanner from '../common/ErrorBanner.jsx';
 
-const ForgotView = ({ errorBanner, emailValue, submitting, setField, submitForgot, onBack }) => (
+const ForgotView = ({ error, emailValue, submitting, setField, submitForgot, onBack }) => (
   <AuthCard onBack={onBack} backLabel={Sefaria._('Back')}
     heading={Sefaria._('Forgot Password?')}>
-    {errorBanner}
+    <ErrorBanner error={error} />
     <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
       <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
              inputDir="ltr"
@@ -20,7 +21,11 @@ const ForgotView = ({ errorBanner, emailValue, submitting, setField, submitForgo
 );
 
 ForgotView.propTypes = {
-  errorBanner: PropTypes.node,
+  error: PropTypes.shape({
+    message: PropTypes.string.isRequired,
+    code: PropTypes.string,
+    providers: PropTypes.arrayOf(PropTypes.string),
+  }),
   emailValue: PropTypes.string.isRequired,
   submitting: PropTypes.bool.isRequired,
   setField: PropTypes.func.isRequired,
