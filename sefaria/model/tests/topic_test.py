@@ -209,39 +209,35 @@ class TestTopics(object):
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug
 
-    def test_should_display_default_threshold_matches_legacy_behavior(self):
+    @pytest.mark.parametrize(('num_sources', 'min_sources', 'description', 'data_source', 'should_display_flag', 'expected'), [
+        (1, 1, None, None, None, True),                                   # default threshold matches legacy '> 0' behavior
+        (0, 1, None, None, None, False),                                  # default threshold matches legacy '> 0' behavior
+        (2, 1, None, None, None, True),                                   # below the raised threshold, but default threshold still passes
+        (2, 3, None, None, None, False),                                  # raised threshold hides low-source topics
+        (3, 3, None, None, None, True),                                   # raised threshold: topic clears the bar
+        (1, 3, {"en": "A hand-written description"}, None, None, True),   # curation exemption: published description
+        (0, 3, None, "sefaria", None, True),                              # curation exemption: manually-curated topic
+        (10, 3, None, None, False, False),                                # explicit shouldDisplay=False always wins
+    ], ids=[
+        'default-threshold-shown',
+        'default-threshold-hidden',
+        'below-raised-threshold-shown-at-default',
+        'below-raised-threshold-hidden',
+        'meets-raised-threshold-shown',
+        'description-exemption',
+        'data-source-exemption',
+        'explicit-false-overrides',
+    ])
+    def test_should_display(self, num_sources, min_sources, description, data_source, should_display_flag, expected):
         t = Topic()
-        t.numSources = 1
-        assert t.should_display()
-        t.numSources = 0
-        assert not t.should_display()
-
-    def test_should_display_raised_threshold_hides_low_source_topics(self):
-        t = Topic()
-        t.numSources = 2
-        assert t.should_display()
-        assert not t.should_display(min_sources=3)
-        t.numSources = 3
-        assert t.should_display(min_sources=3)
-
-    def test_should_display_curation_exemption_applies_at_raised_threshold(self):
-        # a published description exempts a low-source topic from the raised threshold
-        t = Topic()
-        t.numSources = 1
-        t.description = {"en": "A hand-written description"}
-        assert t.should_display(min_sources=3)
-
-        # manually-curated topics (data_source == "sefaria") are exempt too, even with 0 sources
-        t2 = Topic()
-        t2.numSources = 0
-        t2.data_source = "sefaria"
-        assert t2.should_display(min_sources=3)
-
-    def test_should_display_explicit_false_wins_regardless_of_threshold(self):
-        t = Topic()
-        t.numSources = 10
-        t.shouldDisplay = False
-        assert not t.should_display(min_sources=3)
+        t.numSources = num_sources
+        if description is not None:
+            t.description = description
+        if data_source is not None:
+            t.data_source = data_source
+        if should_display_flag is not None:
+            t.shouldDisplay = should_display_flag
+        assert t.should_display(min_sources=min_sources) is expected
 
 
 class TestTopicLinkHelper(object):
