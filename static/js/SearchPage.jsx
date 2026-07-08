@@ -65,7 +65,37 @@ class SearchPage extends Component {
       totalResults: null,
       mobileFiltersOpen: false,
       activeTab: "sources",
+      entityCounts: {topic: null, author: null, book: null},
     };
+  }
+
+  componentDidMount() {
+    this.fetchEntityCounts();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.query !== this.props.query) {
+      this.setState({entityCounts: {topic: null, author: null, book: null}});
+      this.fetchEntityCounts();
+    }
+  }
+
+  fetchEntityCounts() {
+    const query = this.props.query;
+    if (!query || this.props.searchInBook) { return; }
+    ["topic", "author", "book"].forEach(type => {
+      Sefaria.search.entitySearchCount(query, type)
+          .then(total => {
+            if (this.props.query !== query) { return; }  // a newer query superseded this one
+            this.setState(prev => ({entityCounts: {...prev.entityCounts, [type]: total}}));
+          })
+          .catch(() => {});  // count badge stays at "0"
+    });
+  }
+
+  formatEntityCount(count) {
+    if (count === null || count === undefined) { return "0"; }
+    return count >= 10000 ? "10,000+" : count.addCommas();
   }
 
   setTab(tab) {
@@ -122,9 +152,9 @@ class SearchPage extends Component {
 
     const tabs = [
       {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || "0"},
-      {id: "books",   title: "Books",   count: "0"},
-      {id: "authors", title: "Authors", count: "0"},
-      {id: "topics",  title: "Topics",  count: "0"},
+      {id: "books",   title: "Books",   count: this.formatEntityCount(this.state.entityCounts.book)},
+      {id: "authors", title: "Authors", count: this.formatEntityCount(this.state.entityCounts.author)},
+      {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityCounts.topic)},
     ];
 
     return (

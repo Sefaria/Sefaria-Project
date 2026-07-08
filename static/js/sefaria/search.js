@@ -572,6 +572,23 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
+    entitySearchCount(query, type) {
+        // Count-only entity search (size=0) powering the Books / Authors / Topics tab count badges.
+        const cacheKey = `entitySearchCount|${type}|${query}`;
+        const cacheResult = this.cache(cacheKey);
+        if (cacheResult !== undefined) {
+            return Promise.resolve(cacheResult);
+        }
+        const url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&size=0`;
+        // Wrapped in a real Promise because jQuery 2's Deferred has no .catch()
+        return new Promise((resolve, reject) => {
+            $.getJSON(url).then(data => {
+                if (data.error) { reject(new Error(data.error)); return; }
+                this.cache(cacheKey, data.total);
+                resolve(data.total);
+            }, reject);
+        });
+    }
 }
 
 
