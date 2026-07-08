@@ -364,8 +364,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
+    def should_display(self, min_sources: int = 1) -> bool:
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) >= min_sources or self.has_description() or getattr(self, "data_source", "") == "sefaria")
 
     def has_description(self) -> bool:
         """
@@ -516,9 +516,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             d.update(super(Topic, self).contents(**kwargs))
         else:
             children = kwargs.get("children", [])
+            min_sources = kwargs.get("min_sources_for_display", 1)
             d.update({
                 'slug': self.slug,
-                "shouldDisplay": True if len(children) > 0 else self.should_display(),
+                "shouldDisplay": True if len(children) > 0 else self.should_display(min_sources=min_sources),
                 "displayOrder": getattr(self, "displayOrder", 10000),
                 "pools": self.get_pools()})
             if getattr(self, "categoryDescription", False):

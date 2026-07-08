@@ -3,6 +3,7 @@ from sefaria.model.topic import Topic, IntraTopicLink
 from sefaria.model.text import library
 from sefaria.model.place import Place
 from sefaria.helper import topic
+from sefaria.conftest import mock_topics_pool
 
 
 @pytest.fixture(autouse=True, scope='module') 
@@ -213,3 +214,47 @@ def test_update_topic(some_topic):
 								 {"c": "תמר", "lang": "d", "disambiguation": "יהודה"}])
 	with pytest.raises(Exception):
 		topic.update_topic(some_topic, slug='abc')
+
+
+@pytest.fixture(scope='module')
+def topics_with_varying_source_counts(django_db_setup, django_db_blocker):
+	# Topic.get_pools() is globally mocked in sefaria/conftest.py to read from mock_topics_pool
+	# rather than the real DjangoTopic pool tables, so pool membership for test topics is granted
+	# the same way: by adding their slugs to that dict.
+	with django_db_blocker.unblock():
+		specs = [
+			('zero', 0, {}),
+			('two', 2, {}),
+			('three', 3, {}),
+			('curated', 1, {"description": {"en": "A hand-written description"}}),
+		]
+		by_suffix = {}
+		for suffix, num_sources, extra_attrs in specs:
+			t = Topic({'slug': "", "numSources": num_sources, **extra_attrs})
+			title = f"get_all_topics test {suffix}"
+			t.add_primary_titles(title, title[::-1])
+			t.set_slug_to_primary_title()
+			t.save()
+			mock_topics_pool[t.slug] = ['library']
+			by_suffix[suffix] = t
+		yield by_suffix
+		for t in by_suffix.values():
+			mock_topics_pool.pop(t.slug, None)
+			t.delete()
+
+
+def test_get_all_topics_min_sources(topics_with_varying_source_counts):
+	from django.core.cache import caches
+	caches['default'].clear()  # get_all_topics is cached for 24h; bust it so fixture topics are picked up
+
+	by_suffix = topics_with_varying_source_counts
+	relevant_slugs = {t.slug for t in by_suffix.values()}
+
+	default_result = {t.slug for t in topic.get_all_topics(limit=0) if t.slug in relevant_slugs}
+	# unchanged legacy behavior: raw query only requires numSources > 0, no min_sources filtering applied
+	assert default_result == {by_suffix['two'].slug, by_suffix['three'].slug, by_suffix['curated'].slug}
+
+	strict_result = {t.slug for t in topic.get_all_topics(limit=0, min_sources=3) if t.slug in relevant_slugs}
+	# 'two' has only 2 sources and no exemption, so it's hidden; 'curated' has 1 source but a
+	# published description, so the curation exemption keeps it visible; 'three' clears the bar outright
+	assert strict_result == {by_suffix['three'].slug, by_suffix['curated'].slug}
