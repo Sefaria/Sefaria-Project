@@ -4516,7 +4516,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   align-items: stretch;
   background: #fff;
-  border-bottom: 1px solid var(--light-grey, #ededec);
+  border-bottom: 1px solid var(--lighter-grey, #ededec);
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
               0 1px 2px 0  rgba(31,31,31,0.04),
               0 8px 16px 0 rgba(31,31,31,0.05);
