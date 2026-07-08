@@ -3,7 +3,16 @@ from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
 from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
+from remote_config import remoteConfigCache
+from remote_config.keys import (
+    SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
+    SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
+    SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
+)
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def default_list(param):
@@ -203,6 +212,265 @@ def make_filter(type, agg_type, agg_key):
         return Regexp(path=reg)
     else:
         return Term(**{agg_type: agg_key})
+
+
+# --------------------------------------------------------------------------- #
+#  Entity search (/api/entity-search) query building + orchestration          #
+#                                                                             #
+#  Queries the dedicated `topic` and `book` indices (see sefaria/search.py).  #
+#  `topic` and `author` types both hit the topic index, filtered by subtype;  #
+#  `book` hits the book index, but first tries to resolve the query to an     #
+#  author and — if it does — returns that author's works aggregated by        #
+#  category instead of a flat list.                                           #
+# --------------------------------------------------------------------------- #
+
+from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+
+ENTITY_TYPES = ("topic", "author", "book")
+
+# Default per-field match boosts for the tier-3 best_fields multi_match, in priority
+# order: title -> title variants -> the name/works fields (author names on books,
+# authored titles on authors) -> description.
+#
+# These defaults double as the *allow-list* of valid field names. A RemoteConfig
+# override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
+# any of these boosts at runtime without a deploy, but a key that isn't listed here —
+# e.g. a misspelled "titel_en" — is ignored, never added to the query.
+_DEFAULT_ENTITY_FIELD_BOOSTS = {
+    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2,
+              "description_en": 1, "description_he": 1},
+    "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
+               "authored_titles_en": 1.5, "authored_titles_he": 1.5,
+               "description_en": 1, "description_he": 1},
+    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5,
+             "description_en": 1, "description_he": 1},
+}
+
+# RemoteConfig key holding the per-field boost overrides for each entity type. Each key
+# stores a JSON object like {"title_en": 3, "titleVariants": 2}; see remote_config/keys.py.
+_ENTITY_FIELD_BOOSTS_RC_KEYS = {
+    "topic": SEARCH_ENTITY_FIELD_BOOSTS_TOPIC,
+    "author": SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
+    "book": SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
+}
+
+
+def _resolve_entity_field_boosts(type):
+    """
+    Return the tier-3 multi_match field list (["title_en^3", "titleVariants^2", ...]) for
+    `type`, applying any RemoteConfig per-field boost overrides on top of the hardcoded
+    defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
+
+    The defaults are the source of truth for *which* fields are searchable; the RemoteConfig
+    JSON only tunes their boosts. So an override is honored only when:
+      - its key names a known default field for this type (a misspelled/unknown field is
+        ignored — this is the "only apply valid keys" guard the caller asked for), and
+      - its value is a positive number (bool / string / non-positive values are ignored).
+    Fields not mentioned in the override keep their default boost. A missing, inactive, or
+    non-object RemoteConfig value leaves every field at its default, i.e. behaves exactly as
+    if RemoteConfig were not set.
+    """
+    defaults = _DEFAULT_ENTITY_FIELD_BOOSTS.get(type, _DEFAULT_ENTITY_FIELD_BOOSTS["topic"])
+    boosts = dict(defaults)  # copy preserves default order and fills unspecified fields
+
+    rc_key = _ENTITY_FIELD_BOOSTS_RC_KEYS.get(type)
+    overrides = remoteConfigCache.get(rc_key) if rc_key else None
+    if isinstance(overrides, dict):
+        for field, boost in overrides.items():
+            if field not in defaults:
+                logger.warning("entity search: ignoring unknown boost field %r for type %r", field, type)
+                continue
+            # bool is a subclass of int in Python; a True/False boost is a config error.
+            if isinstance(boost, bool) or not isinstance(boost, (int, float)) or boost <= 0:
+                logger.warning("entity search: ignoring invalid boost %r for field %r (type %r)", boost, field, type)
+                continue
+            boosts[field] = boost
+    elif overrides is not None:
+        # note: `type` is the entity-type param here, so use __class__ for the value's type name
+        logger.warning("entity search: ignoring non-object boost config for type %r (got %s)", type, overrides.__class__.__name__)
+
+    # A boost of 1 is the ES default, so render the bare field name (matches the hardcoded defaults).
+    return [field if boost == 1 else f"{field}^{boost}" for field, boost in boosts.items()]
+
+
+# Phrase/prefix tiers run over these "title" fields only, to avoid description noise.
+# For authors we also include authored_titles so a book title matches its author.
+_ENTITY_TITLE_FIELDS = {
+    "topic": ["title_en", "title_he", "titleVariants"],
+    "author": ["title_en", "title_he", "titleVariants", "authored_titles_en", "authored_titles_he"],
+    "book": ["title_en", "title_he", "titleVariants"],
+}
+# Keyword sub-fields for tier-1 exact-match. Authors add authored_titles.keyword so the
+# author of an exactly-titled work (e.g. "Guide for the Perplexed") outranks its commentators.
+_ENTITY_KEYWORD_FIELDS = {
+    "topic": ["title_en.keyword", "title_he.keyword"],
+    "author": ["title_en.keyword", "title_he.keyword",
+               "authored_titles_en.keyword", "authored_titles_he.keyword"],
+    "book": ["title_en.keyword", "title_he.keyword"],
+}
+
+
+def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20):
+    """
+    Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
+    index. Layers five match-type tiers as `should` clauses with descending boosts
+    (a `bool should` sums matching clauses, so a higher tier — which also satisfies the
+    lower tiers — accumulates a higher score and ranks above a partial match):
+
+      1. Exact match   — `term` on the `.keyword` title sub-fields (highest boost).
+      2. Exact phrase  — `match_phrase` on title fields.
+      3. All words     — `multi_match best_fields` over the per-type field list (with
+                         per-field ^N boosts: title > variants > name/works > description).
+      4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
+      5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
+
+    Topic/author results are then multiplied by a gentle log-scaled `numSources`
+    popularity factor (>= 1, so it breaks ties toward well-sourced entities without
+    zeroing or dominating a strong text match). Books carry no `numSources`.
+
+    :param query: the user query string
+    :param type: one of "topic", "author", "book"
+    :param search_obj: an optional elasticsearch_dsl Search to attach the query to
+    :return: Search object ready to .execute()
+    """
+    if search_obj is None:
+        search_obj = Search()
+    is_book = type == "book"
+    fields = _resolve_entity_field_boosts(type)
+    title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
+    keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
+
+    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive).
+    tier1_exact = [Q("term", **{kf: {"value": query, "boost": 8}}) for kf in keyword_fields]
+    # Tier 2 — exact phrase over the (analyzed) title fields.
+    tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
+    # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
+    tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
+    # Tier 4 — prefix / begins-with on titles only.
+    tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
+    text_query = Q("bool", should=[*tier1_exact, tier2_phrase, tier3_words, tier4_prefix], minimum_should_match=1)
+
+    # topic and author both live in the topic index; filter by subtype.
+    if type in ("topic", "author"):
+        base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
+    else:
+        base_query = text_query
+
+    if is_book:
+        search_obj.query = base_query
+    else:
+        # Multiply the text score by a gentle popularity factor: 1 + log10(1 + numSources)*w.
+        # A zero-source entity keeps its text score unchanged (factor 1.0); a heavily-sourced
+        # one is nudged up (~1.7x at ~7000 sources). It breaks ties without dominating and,
+        # unlike field_value_factor(log1p), never zeroes a sourceless-but-relevant match.
+        search_obj.query = {
+            "function_score": {
+                "query": base_query.to_dict(),
+                "script_score": {
+                    "script": {
+                        "source": "1 + Math.log10(1 + (doc['numSources'].size() == 0 ? 0 : doc['numSources'].value)) * params.weight",
+                        "params": {"weight": 0.2},
+                    }
+                },
+                "boost_mode": "multiply",
+            }
+        }
+
+    return search_obj[start:start + size]
+
+
+def _total_from_response(response):
+    total = response.hits.total
+    return total.value if hasattr(total, "value") else total
+
+
+def _query_matches_entity_title(query, hit):
+    """
+    True if `query` directly matches the entity's title or a title variant (not merely
+    a description mention). Guards the author-works view from triggering when an author
+    name only appears in some book's description.
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return False
+    candidates = [hit.get("title_en", ""), hit.get("title_he", "")] + (hit.get("titleVariants") or [])
+    for c in candidates:
+        c = (c or "").strip().lower()
+        if c and (q == c or c.startswith(q) or q.startswith(c)):
+            return True
+    return False
+
+
+def _resolve_author(query, es_client):
+    """
+    Resolve `query` to an AuthorTopic if it directly matches an author entity in the
+    topic index; otherwise return None.
+    """
+    from sefaria.model.topic import AuthorTopic
+
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_TOPIC).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="author", search_obj=search_obj, size=1)
+    response = search_obj.execute()
+    if not response.success() or len(response.hits) == 0:
+        return None
+    top = response.hits[0].to_dict()
+    slug = top.get("slug")
+    if not slug or not _query_matches_entity_title(query, top):
+        return None
+    return AuthorTopic.init(slug)
+
+
+def _author_works_response(author):
+    """
+    Build the aggregated author-works response: the author's works collapsed by
+    category (reusing AuthorTopic aggregation), category entries sorted to the top.
+    """
+    hits = []
+    for agg in author.get_aggregated_urls_for_authors_indexes():
+        hits.append({
+            "title_en": agg["title"]["en"],
+            "title_he": agg["title"]["he"],
+            "isCategory": agg["isCategory"],
+            "categoryLabel_en": agg["categoryLabel"]["en"],
+            "categoryLabel_he": agg["categoryLabel"]["he"],
+            "url": agg["url"],
+            "description_en": agg["description"]["en"],
+            "description_he": agg["description"]["he"],
+        })
+    hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
+    return {"hits": hits, "total": len(hits), "author_slug": author.slug}
+
+
+def entity_search(query, type, start=0, size=20):
+    """
+    Run an entity search and return a plain dict {"hits": [...], "total": N}.
+
+    - type="topic"/"author": flat full-text search over the topic index (filtered by subtype).
+    - type="book": if the query resolves to an author entity, return that author's works
+      aggregated by category; otherwise a flat full-text search over the book index.
+
+    :raises ValueError: if `type` is not one of ENTITY_TYPES
+    """
+    if type not in ENTITY_TYPES:
+        raise ValueError(f"Invalid entity search type '{type}'. Must be one of {ENTITY_TYPES}.")
+
+    es_client = get_elasticsearch_client()
+
+    if type == "book":
+        author = _resolve_author(query, es_client)
+        if author is not None:
+            return _author_works_response(author)
+        index_name = SEARCH_INDEX_NAME_BOOK
+    else:
+        index_name = SEARCH_INDEX_NAME_TOPIC
+
+    search_obj = Search(using=es_client, index=index_name).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size)
+    response = search_obj.execute()
+    if not response.success():
+        raise IOError("Elasticsearch entity search failed.")
+    hits = [hit.to_dict() for hit in response.hits]
+    return {"hits": hits, "total": _total_from_response(response)}
 
 
 def get_elasticsearch_client():

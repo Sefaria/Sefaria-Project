@@ -26,6 +26,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
+from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
@@ -340,6 +341,14 @@ def create_index(index_name, type, force=False):
         logger.debug(f"Applying sheet mapping to index - index_name: {index_name}")
         put_sheet_mapping(index_name)
         logger.debug(f"Sheet mapping applied successfully - index_name: {index_name}")
+    elif type == 'topic':
+        logger.debug(f"Applying topic mapping to index - index_name: {index_name}")
+        put_topic_mapping(index_name)
+        logger.debug(f"Topic mapping applied successfully - index_name: {index_name}")
+    elif type == 'book':
+        logger.debug(f"Applying book mapping to index - index_name: {index_name}")
+        put_book_mapping(index_name)
+        logger.debug(f"Book mapping applied successfully - index_name: {index_name}")
     else:
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
@@ -476,6 +485,145 @@ def put_sheet_mapping(index_name):
         }
     }
     index_client.put_mapping(body=sheet_mapping, index=index_name)
+
+
+def put_topic_mapping(index_name):
+    """
+    Sets mapping for the `topic` document type (topics and authors).
+
+    Authors are not a separate index: `AuthorTopic` is a subtype of `Topic`, so
+    authors live here and are distinguished by the `subtype` field ("topic" or
+    "author"). English title/variant/description fields use `stemmed_english`;
+    Hebrew fields are plain `text`. Title fields expose a `keyword` sub-field for
+    exact-match and sort.
+    """
+    topic_mapping = {
+        'properties': {
+            'slug': {
+                'type': 'keyword',
+            },
+            'subtype': {
+                'type': 'keyword',
+            },
+            'title_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
+            },
+            'title_he': {
+                'type': 'text',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
+            },
+            'titleVariants': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'description_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'description_he': {
+                'type': 'text',
+            },
+            'numSources': {
+                'type': 'integer',
+            },
+            'era': {
+                'type': 'keyword',
+            },
+            'birthYear': {
+                'type': 'integer',
+            },
+            'deathYear': {
+                'type': 'integer',
+            },
+            # Denormalized titles of the books this author wrote (analyzed text, split
+            # by language) so an author is findable by a work they authored — the
+            # mirror image of `author_names` on the book index. `norms: false` so a
+            # prolific author (a large title list) isn't penalized by field-length
+            # normalization; the `keyword` sub-field powers exact-match (tier 1), which
+            # is what ranks the true author of an exactly-titled work above its commentators.
+            'authored_titles_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'norms': False,
+                'fields': {'keyword': {'type': 'keyword'}},
+            },
+            'authored_titles_he': {
+                'type': 'text',
+                'norms': False,
+                'fields': {'keyword': {'type': 'keyword'}},
+            },
+        }
+    }
+    index_client.put_mapping(body=topic_mapping, index=index_name)
+
+
+def put_book_mapping(index_name):
+    """
+    Sets mapping for the `book` document type (Index records).
+
+    `path` mirrors the text index's "Category/Subcategory/Title" shape so existing
+    category-path filter logic can be reused. `author_names` is denormalized (the
+    author's display titles copied in at index time) so a query for "Rambam" or
+    "Maimonides" matches his works even when his name isn't in the title.
+    """
+    book_mapping = {
+        'properties': {
+            'title_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
+            },
+            'title_he': {
+                'type': 'text',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
+            },
+            'titleVariants': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'categories': {
+                'type': 'keyword',
+            },
+            'path': {
+                'type': 'keyword',
+            },
+            'description_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'description_he': {
+                'type': 'text',
+            },
+            'compDate': {
+                'type': 'integer',
+            },
+            'era': {
+                'type': 'keyword',
+            },
+            'authors': {
+                'type': 'keyword',
+            },
+            'author_names': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'order': {
+                'type': 'keyword',
+            },
+        }
+    }
+    index_client.put_mapping(body=book_mapping, index=index_name)
+
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -1012,6 +1160,249 @@ def index_public_notes():
     pass
 
 
+# --------------------------------------------------------------------------- #
+#  Entity search: topic & book document builders + bulk indexers              #
+#                                                                             #
+#  These power the `topic` and `book` Elasticsearch indices behind            #
+#  /api/entity-search. The builders are pure functions (model object -> ES    #
+#  document dict) so they're easy to test in isolation; the bulk indexers     #
+#  iterate the corpus, call a builder per record, and collect skips into a    #
+#  summary report rather than aborting the whole run.                         #
+# --------------------------------------------------------------------------- #
+
+def _without_none(doc):
+    """
+    Drop keys whose value is None so sparse fields (e.g. an author's `birthYear`, or a
+    book's `era`/`compDate`) are omitted from the document rather than stored as null.
+    Empty strings and empty lists are legitimate values and are kept as-is.
+    """
+    return {k: v for k, v in doc.items() if v is not None}
+
+
+def make_topic_index_document(topic):
+    """
+    Build an Elasticsearch document for a Topic (or AuthorTopic) for the `topic` index.
+
+    Authors are not a separate index: `AuthorTopic` is a subtype of `Topic` and is
+    distinguished here by the `subtype` field. The document id is the topic slug, so
+    reindexing is idempotent.
+
+    :param topic: a `Topic` model instance (base class; the `subclass` attribute
+        carried from Mongo is what distinguishes authors)
+    :return: dict document, or None if the topic lacks a slug or has no title in any
+        language (many auto-generated topics are Hebrew-only or empty and add only noise)
+    """
+    slug = getattr(topic, 'slug', None)
+    if not slug:
+        return None
+
+    # The slug is used verbatim as the ES document _id, which is capped at 512 bytes.
+    # A handful of auto-generated topics have pathological slugs (a slugified blob of
+    # every title variant) that blow past this. They're noise anyway (typically no
+    # English title and zero sources), so drop them rather than fail the bulk request.
+    if len(slug.encode('utf-8')) > 512:
+        logger.warning(f"make_topic_index_document: skipping topic with slug > 512 bytes - slug: {slug[:80]}...")
+        return None
+
+    title_en = topic.get_primary_title('en')
+    title_he = topic.get_primary_title('he')
+    if not title_en and not title_he:
+        return None
+
+    is_author = getattr(topic, 'subclass', None) == 'author'
+    # titleVariants is the main recall driver; exclude the primary to avoid double-weighting it.
+    variants = [t for t in topic.get_titles('en', with_disambiguation=False) if t != title_en]
+    description = getattr(topic, 'description', None) or {}
+
+    doc = {
+        'slug': slug,
+        'subtype': 'author' if is_author else 'topic',
+        'title_en': title_en,
+        'title_he': title_he,
+        'titleVariants': variants,
+        'description_en': description.get('en', ''),
+        'description_he': description.get('he', ''),
+        'numSources': getattr(topic, 'numSources', 0) or 0,
+    }
+
+    if is_author:
+        # `get_property` reads `self.properties` and works on a base Topic instance,
+        # so we don't need to re-load the record as an AuthorTopic subclass. These
+        # fields are sparse; _without_none() omits any that are absent (rather than
+        # writing null into _source).
+        doc['era'] = topic.get_property('era')
+        doc['birthYear'] = topic.get_property('birthYear')
+        doc['deathYear'] = topic.get_property('deathYear')
+        # Denormalize the titles of this author's works (EN + HE) so the author is
+        # searchable by a book they wrote (e.g. "Mishneh Torah" -> Maimonides).
+        authored_en, authored_he = [], []
+        for authored_index in IndexSet({"authors": slug}):
+            en = authored_index.get_title('en')
+            if en:
+                authored_en.append(en)
+            try:
+                he = authored_index.get_title('he')
+            except Exception:
+                he = None
+            if he:
+                authored_he.append(he)
+        doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
+        doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
+
+    return _without_none(doc)
+
+
+def _resolve_author_names(author_slugs, cache):
+    """
+    Resolve author slugs to their display titles (EN + HE, incl. variants) for the
+    denormalized `author_names` field. `cache` memoizes slug -> names across the run
+    since one author appears on many books.
+    """
+    names = []
+    for slug in author_slugs:
+        if slug not in cache:
+            author = Topic.init(slug)
+            resolved = []
+            if author is not None:
+                for lang in ('en', 'he'):
+                    resolved += author.get_titles(lang, with_disambiguation=False)
+            cache[slug] = list(dict.fromkeys(resolved))  # de-dup, preserve order
+        names += cache[slug]
+    return list(dict.fromkeys(names))
+
+
+def make_book_index_document(index, author_name_cache=None):
+    """
+    Build an Elasticsearch document for an Index (book) record for the `book` index.
+
+    The document id is the English title, so reindexing is idempotent.
+
+    :param index: an `Index` model instance
+    :param author_name_cache: optional dict memoizing author slug -> display names
+        across calls (author-name resolution is expensive and highly repetitive)
+    :return: dict document, or None if the record has no English title
+    """
+    if author_name_cache is None:
+        author_name_cache = {}
+
+    title_en = index.get_title('en')
+    if not title_en:
+        return None
+    try:
+        title_he = index.get_title('he')
+    except Exception:
+        title_he = None
+
+    categories = getattr(index, 'categories', None) or []
+    variants = [t for t in (index.all_titles('en') or []) if t != title_en]
+
+    # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
+    # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
+    tp = index.best_time_period()
+    comp_date = int(getattr(tp, 'end', None) or getattr(tp, 'start', 3000)) if tp else None
+
+    author_slugs = getattr(index, 'authors', None) or []
+    author_names = _resolve_author_names(author_slugs, author_name_cache)
+
+    # Sparse fields (compDate, era, order, title_he) are omitted by _without_none()
+    # when absent rather than stored as null.
+    return _without_none({
+        'title_en': title_en,
+        'title_he': title_he,
+        'titleVariants': variants,
+        'categories': categories,
+        'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
+        'description_en': getattr(index, 'enShortDesc', '') or '',
+        'description_he': getattr(index, 'heShortDesc', '') or '',
+        'compDate': comp_date,
+        'era': getattr(index, 'era', None),
+        'authors': author_slugs,
+        'author_names': author_names,
+        'order': getattr(index, 'order', None),
+    })
+
+
+def _bulk_index_entities(index_name, actions, entity_label):
+    """
+    Run a bulk index of already-built actions, absorbing per-doc errors so one bad
+    record can't abort the run. Returns a summary dict.
+    """
+    start_time = datetime.now()
+    try:
+        succeeded, errors = bulk(
+            _indexer_es_client, actions, raise_on_error=False, request_timeout=120
+        )
+    except (ESConnectionError, ConnectionTimeout) as e:
+        logger.error(f"Bulk {entity_label} indexing connection failure - index_name: {index_name}, error: {e}")
+        raise
+    elapsed = datetime.now() - start_time
+    if errors:
+        logger.warning(f"index_{entity_label} bulk errors - count: {len(errors)}, sample: {errors[:5]}")
+    logger.info(
+        f"Completed index_{entity_label} - index_name: {index_name}, "
+        f"succeeded: {succeeded}, errors: {len(errors)}, elapsed: {elapsed}"
+    )
+    return {"succeeded": succeeded, "errors": errors}
+
+
+def index_topics(index_name):
+    """
+    Index every Topic (and AuthorTopic) into `index_name`, keyed by slug (idempotent).
+    Skipped slugs (no title / no slug) are collected into the returned summary.
+    """
+    logger.info(f"Starting index_topics - index_name: {index_name}")
+    skipped = []
+    total = 0
+
+    def actions():
+        nonlocal total
+        for topic in TopicSet():
+            total += 1
+            doc = make_topic_index_document(topic)
+            if doc is None:
+                skipped.append(getattr(topic, 'slug', '<no-slug>'))
+                continue
+            yield {"_index": index_name, "_id": doc['slug'], "_source": doc}
+
+    result = _bulk_index_entities(index_name, actions(), "topics")
+    result.update({"total": total, "skipped": skipped})
+    if skipped:
+        logger.info(f"index_topics skipped {len(skipped)} topics (sample): {skipped[:20]}")
+    return result
+
+
+def index_books(index_name):
+    """
+    Index every Index (book) record into `index_name`, keyed by English title
+    (idempotent). Skipped/failed titles are collected into the returned summary.
+    """
+    logger.info(f"Starting index_books - index_name: {index_name}")
+    skipped = []
+    total = 0
+    author_name_cache = {}
+
+    def actions():
+        nonlocal total
+        for index in IndexSet():
+            total += 1
+            try:
+                doc = make_book_index_document(index, author_name_cache)
+            except Exception as e:
+                logger.warning(f"index_books: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}")
+                skipped.append(getattr(index, 'title', '<unknown>'))
+                continue
+            if doc is None:
+                skipped.append(getattr(index, 'title', '<no-title>'))
+                continue
+            yield {"_index": index_name, "_id": doc['title_en'], "_source": doc}
+
+    result = _bulk_index_entities(index_name, actions(), "books")
+    result.update({"total": total, "skipped": skipped})
+    if skipped:
+        logger.info(f"index_books skipped {len(skipped)} books (sample): {skipped[:20]}")
+    return result
+
+
 def clear_index(index_name):
     """
     Delete the search index.
@@ -1082,6 +1473,8 @@ def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
         'text': SEARCH_INDEX_NAME_TEXT,
         'sheet': SEARCH_INDEX_NAME_SHEET,
+        'topic': SEARCH_INDEX_NAME_TOPIC,
+        'book': SEARCH_INDEX_NAME_BOOK,
     }
     debug_suffix = '-debug' if debug else ''
     index_name_a = f"{base_index_name_dict[type]}-a{debug_suffix}"
@@ -1140,16 +1533,45 @@ def index_all(skip=0, debug=False):
         logger.error(f"Sheet indexing phase failed after {sheet_elapsed} - error: {str(e)}", exc_info=True)
         raise
     
+    # Index entities (topics/authors and books). Unlike text/sheet, a failure here
+    # is recorded but does NOT abort the run — the entity indices are independent of
+    # each other and of the text/sheet indices.
+    topic_elapsed = index_entities(skip=skip, debug=debug)
+
     # Clear index queue
     logger.debug("Clearing stale index queue")
     deleted = db.index_queue.delete_many({})
     logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
-    
+
     end = datetime.now()
     total_elapsed = end - start
     logger.info("=" * 60)
-    logger.info(f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}")
+    logger.info(f"COMPLETED FULL ELASTICSEARCH REINDEX - total_elapsed: {total_elapsed}, text_elapsed: {text_elapsed}, sheet_elapsed: {sheet_elapsed}, entity_elapsed: {topic_elapsed}")
     logger.info("=" * 60)
+
+
+def index_entities(skip=0, debug=False, types=('topic', 'book')):
+    """
+    (Re)build the entity indices that power /api/entity-search.
+
+    Each index type is rebuilt independently: a failure on one is logged and
+    recorded but does not prevent the others from completing. Callable on its own
+    for an on-demand entity reindex, or from `index_all` as part of the full run.
+
+    :param types: which entity index types to rebuild (subset of 'topic', 'book')
+    :return: timedelta elapsed across all entity indexing
+    """
+    entity_start = datetime.now()
+    for entity_type in types:
+        type_start = datetime.now()
+        logger.info(f"Starting {entity_type} indexing phase")
+        try:
+            index_all_of_type(entity_type, skip=skip, debug=debug)
+            logger.info(f"Completed {entity_type} indexing phase - elapsed: {datetime.now() - type_start}")
+        except Exception as e:
+            logger.error(f"{entity_type} indexing phase failed after {datetime.now() - type_start} - error: {str(e)}", exc_info=True)
+            # Intentionally not re-raised: entity index failures are independent.
+    return datetime.now() - entity_start
 
 
 def index_all_of_type(type, skip=0, debug=False):
@@ -1248,6 +1670,14 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         logger.debug("Starting sheet indexing")
         index_public_sheets(index_name)
         logger.debug("Completed sheet indexing")
+    elif type == 'topic':
+        logger.debug("Starting topic indexing")
+        index_topics(index_name)
+        logger.debug("Completed topic indexing")
+    elif type == 'book':
+        logger.debug("Starting book indexing")
+        index_books(index_name)
+        logger.debug("Completed book indexing")
     else:
         logger.error(f"Unknown index type - type: {type}")
         raise ValueError(f"Unknown index type: {type}")
