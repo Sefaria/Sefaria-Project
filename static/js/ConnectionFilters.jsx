@@ -138,7 +138,7 @@ class TextFilter extends Component {
         </div>
     );
     return renderAsTitle ?
-      <span className="textFilterTitle">{inner}</span> :
+      <div className="textFilterTitle">{inner}</div> :
       <a href={url} onClick={this.handleClick}>{inner}</a>;
   }
 }
