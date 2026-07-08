@@ -36,7 +36,7 @@ test.describe('Resource Panel — Resources Hub — English', () => {
     expect(await cats.count()).toBeGreaterThan(0);
   });
 
-  test('RP-012: More / Less toggle expands and collapses category list', async () => {
+  test('RP-012: More / Less toggle expands and collapses category list', { tag: '@sanity' }, async () => {
     // Genesis 1:1 has substantially more than 4 connection categories — this is
     // the canonical text the React code (`collapsedTopLevelLimit = 4`) is built
     // around — so the toggle should be visible.
@@ -66,7 +66,7 @@ test.describe('Resource Panel — Resources Hub — English', () => {
     expect([true, false]).toContain(visible);
   });
 
-  test('RP-015: Resources section shows Sheets, Web Pages, Topics, Manuscripts buttons', async () => {
+  test('RP-015: Resources section shows Sheets, Web Pages, Topics, Manuscripts buttons', { tag: '@sanity' }, async () => {
     // These are gated on counts > 0 (or moderator). Genesis 1:1 reliably has
     // sheets, web pages, topics, and manuscripts. We assert each is visible.
     await pm.onResourcePanel().expectResourcesSectionButton('Sheets');
@@ -75,7 +75,7 @@ test.describe('Resource Panel — Resources Hub — English', () => {
     await pm.onResourcePanel().expectResourcesSectionButton('Manuscripts');
   });
 
-  test('RP-016: Tools section shows Add to Sheet, Dictionaries, Notes, Share, Feedback, Advanced', async () => {
+  test('RP-016: Tools section shows Add to Sheet, Dictionaries, Notes, Share, Feedback, Advanced', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().expectToolsSectionButtons();
   });
 });

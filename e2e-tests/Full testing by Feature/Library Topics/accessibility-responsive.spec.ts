@@ -64,7 +64,7 @@ test.describe('Library Topics — accessibility & responsive', () => {
     ]);
   });
 
-  test('LIB-025: Topic page exposes accessible heading + image structure (a11y substructure)', async () => {
+  test('LIB-025: Topic page exposes accessible heading + image structure (a11y substructure)', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().open(LIB, SLUG);
     await pm.onLibraryTopic().expectAccessibleHeadingStructure();
     // Topic image carries alt text for screen readers.
@@ -81,7 +81,7 @@ test.describe('Library Topics — accessibility & responsive', () => {
     });
   });
 
-  test('LIB-027: Topic page reflows cleanly at a 768px tablet viewport', async () => {
+  test('LIB-027: Topic page reflows cleanly at a 768px tablet viewport', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().open(LIB, SLUG);
     await pm.onLibraryTopic().withViewport(768, 1024, async () => {
       await pm.onLibraryTopic().expectTitleStillInDom();

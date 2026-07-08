@@ -10,7 +10,7 @@ const clickFirstAvailableVersion = async (page: Page) => {
     await selectVersionButton.click();
 };
 
-test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
+test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' }, () => {
 
     // Test: Tanach > Genesis > Clicking a chapter in Contents tab
     test('Tanach - Genesis Contents Tab', async ({ context }) => {
