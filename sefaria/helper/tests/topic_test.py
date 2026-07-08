@@ -216,7 +216,7 @@ def test_update_topic(some_topic):
 
 
 def test_get_topic_omits_orphaned_ref_links():
-	"""sc-38063: a RefTopicLink whose text was deleted from the library (its ref no longer
+	"""A RefTopicLink whose text was deleted from the library (its ref no longer
 	resolves) must be omitted from the get_topic response. Otherwise the orphaned source
 	reaches the client and blanks out the topic page. A valid ref link is still returned."""
 	from sefaria.system.database import db
