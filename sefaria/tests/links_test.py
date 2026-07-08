@@ -77,7 +77,7 @@ class Test_get_links():
             f"Parasha ref {parasha_ref_with_links} should be excluded from link anchor refs"
         )
 
-    @pytest.mark.skip(reason="flaky in shared CI sandbox after a job retry reruns the suite against state left by a prior pod's interrupted run — see build/ci/createJobFromRollout.sh backoffLimit note")
+    @pytest.mark.skip(reason="flaky after CI job retry corruption")
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_without_exclusion_would_include_perek_refs(self, mock_collections):
         """Verify that without the filtering, perek refs would appear — confirming the filter is necessary."""

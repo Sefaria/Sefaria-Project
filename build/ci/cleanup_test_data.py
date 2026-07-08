@@ -1,9 +1,4 @@
-"""Remove stale test fixtures from prior pytest runs in the shared sandbox Mongo.
-
-STALE_TITLES covers every dummy index created by sefaria/helper/tests/auto_linking_test.py
-(the only test module that persists named indexes into the shared sandbox Mongo); confirmed
-by grepping the test suite for Index().save()/root.add_title() calls.
-"""
+"""Remove stale test fixtures from prior pytest runs in the shared sandbox Mongo."""
 import re
 
 from sefaria.system.database import db
