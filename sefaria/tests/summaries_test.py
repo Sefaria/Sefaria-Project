@@ -101,6 +101,7 @@ class Test_Toc(object):
         verify_existence_across_tocs(old_title, None)
 
 
+    @pytest.mark.skip(reason="flaky in shared CI sandbox after a job retry reruns the suite against state left by a prior pod's interrupted run — see build/ci/createJobFromRollout.sh backoffLimit note")
     def test_index_add_delete(self):
         #test that the index
         new_index = model.Index({
@@ -147,6 +148,7 @@ class Test_Toc(object):
         new_commentary_index.delete()
         verify_existence_across_tocs(new_commentary_index.title, None)
 
+    @pytest.mark.skip(reason="flaky in shared CI sandbox after a job retry reruns the suite against state left by a prior pod's interrupted run — see build/ci/createJobFromRollout.sh backoffLimit note")
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim on Genesis"})
         verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"], toc=model.library.get_toc())

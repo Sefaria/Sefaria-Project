@@ -12,7 +12,12 @@ metadata:
     test-name: pytest
   name: $DEPLOY_ENV-pytest-sandbox-$GITHUB_RUN_ID
 spec:
-  backoffLimit: 1   # one retry for infra-level pod loss (e.g. preemptible node eviction); waitForCIJob.bash treats any real test failure as terminal on the first attempt, so this isn't a test-retry budget
+  backoffLimit: 0   # waitForCIJob.bash selects logs/status by label (ci-run=...,test-name=pytest), not pod name; a retry pod
+                    # under the same label makes `kubectl logs -l` return combined/duplicate output from both pods (corrupting
+                    # the "print only new lines" tailing) and can hit a still-ContainerCreating pod mid-poll. The wait script
+                    # also isn't retry-aware — it reports the job failed on the first pod's status.failed, before any retry
+                    # would even finish. A retry here buys nothing but corrupted logs and misleading duplicate test results
+                    # (see run 28873987240 on PR #3470), so don't retry at the Job level at all.
   template:
     metadata:
       labels:
