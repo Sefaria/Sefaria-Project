@@ -5,7 +5,8 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchFilters from './SearchFilters';
+import SearchFilters, {BookSearchFilters} from './SearchFilters';
+import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
 import {SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
@@ -66,7 +67,22 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
       activeTab: "sources",
       entityCounts: {topic: null, author: null, book: null},
+      bookCategoryFilters: this.makeBookCategoryFilters(),
     };
+  }
+
+  makeBookCategoryFilters() {
+    return Sefaria.toc.map(cat => new FilterNode({
+      title: cat.category,
+      heTitle: cat.heCategory,
+      aggKey: cat.category,
+      aggType: "categories",
+    }));
+  }
+
+  toggleBookCategoryFilter(filter) {
+    filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
+    this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]});
   }
 
   componentDidMount() {
@@ -99,7 +115,7 @@ class SearchPage extends Component {
   }
 
   setTab(tab) {
-    this.setState({activeTab: tab});
+    this.setState({activeTab: tab, mobileFiltersOpen: false});
   }
 
   renderTab(tab) {
@@ -148,6 +164,25 @@ class SearchPage extends Component {
 
     if (this.props.searchInBook) {
       return searchResultList;
+    }
+
+    // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
+    // category list, Topics and Authors get no sidebar.
+    let sidebar = null;
+    if (this.state.activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+      sidebar = <SearchFilters
+          query={this.props.query}
+          searchState={this.props.searchState}
+          updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+          updateAppliedOptionField={this.props.updateAppliedOptionField}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
+          compare={this.props.compare}
+          type={this.props.type}/>;
+    } else if (this.state.activeTab === "books") {
+      sidebar = <BookSearchFilters
+          filters={this.state.bookCategoryFilters}
+          updateSelected={this.toggleBookCategoryFilter}/>;
     }
 
     const tabs = [
@@ -202,22 +237,15 @@ class SearchPage extends Component {
                 </TabView>
               </div>
 
-              {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
-                  <div
-                      className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-                    {this.props.totalResults?.getValue() > 0 ?
-                        <SearchFilters
-                            query={this.props.query}
-                            searchState={this.props.searchState}
-                            updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
-                            updateAppliedOptionField={this.props.updateAppliedOptionField}
-                            updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                            closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
-                            compare={this.props.compare}
-                            type={this.props.type}/>
-                        : null}
+              {Sefaria.multiPanel && !this.props.compare ?
+                  <div className="navSidebar">
+                    {sidebar}
                   </div>
-                  : null}
+                  : this.state.mobileFiltersOpen && sidebar ?
+                      <div className="mobileSearchFilters">
+                        {sidebar}
+                      </div>
+                      : null}
             </div>
           </div>
         </div>
