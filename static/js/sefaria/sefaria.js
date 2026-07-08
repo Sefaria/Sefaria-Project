@@ -3909,6 +3909,7 @@ Sefaria.unpackBaseProps = function(props){
       "userHistory",
       "last_place",
       "interfaceLang",
+      "countryCode",
       "multiPanel",
       "community",
       "followRecommendations",
