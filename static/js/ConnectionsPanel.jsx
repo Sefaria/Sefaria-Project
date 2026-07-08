@@ -1591,10 +1591,16 @@ function ManuscriptImage(props) {
           </div>
           : ''
       }
-      <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-      <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
-        { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
-      </a>
+      {
+        manuscript.manuscript['source']
+          ? <span>
+            <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
+            <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+              { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+            </a>
+          </span>
+          : ''
+      }
     </div>
 
 
