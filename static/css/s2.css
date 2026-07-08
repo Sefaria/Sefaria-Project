@@ -4566,6 +4566,246 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
 }
+
+/* SearchResultCard — multi-entity search result card */
+.searchResultCard {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border-bottom: 1px solid var(--light-grey, #ededec);
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+  margin-bottom: 20px;
+  position: relative;
+  transition: box-shadow 0.15s ease;
+}
+.searchResultCard:hover {
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+}
+.searchResultCard:hover .searchResultCard-name,
+.searchResultCard:hover .searchResultCard-altName {
+  text-decoration: underline;
+}
+.searchResultCard-bar {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+  background-color: #000;
+}
+.searchResultCard-content {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  min-width: 0;
+}
+.searchResultCard-iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  background: var(--background-grey, #fafafa);
+}
+.searchResultCard-iconImg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  object-fit: contain;
+}
+.searchResultCard-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.searchResultCard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.searchResultCard-titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+.searchResultCard-titleLink:hover .searchResultCard-name {
+  text-decoration: underline;
+}
+.searchResultCard-titleRow {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  overflow: hidden;
+  min-width: 0;
+  /* no flex-wrap: altName must shrink to nothing before title truncates */
+}
+.searchResultCard-name {
+  font-size: 24px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: var(--near-black, #121212);
+  flex-shrink: 0;    /* title never yields space to altName */
+  max-width: 100%;   /* but can't overflow the row when alone */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchResultCard-altName {
+  font-size: 24px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: var(--near-black, #121212);
+  flex-shrink: 1;    /* altName is first to give up space */
+  min-width: 0;      /* allows shrinking all the way to 0 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchResultCard-secondary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 15px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--medium-grey, #575757);
+}
+.searchResultCard-secondary-date,
+.searchResultCard-secondary-dot {
+  flex-shrink: 0;
+}
+.searchResultCard-secondary-author {
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.searchResultCard-secondary-authorAlt {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchResultCard-description {
+  font-size: 14px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--dark-grey, #707070);
+  max-height: 72px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+/* Breadcrumbs */
+.searchResultCard-breadcrumbs {
+  position: relative;
+  width: 100%;
+  height: 20px;           /* single line — 12px caption line-height 20px */
+  flex-shrink: 0;
+}
+/* Hidden measurement layer — renders the full path off-screen */
+.searchResultCard-breadcrumbs-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Visible breadcrumb row — no overflow:hidden so the tooltip ::before
+   pseudo-element is not clipped. The JS truncation already ensures only
+   fitting nodes are rendered, so clipping is not needed. */
+.searchResultCard-breadcrumbs-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  height: 100%;
+}
+.searchResultCard-crumbChevron {
+  width: 12px;
+  height: 12px;
+  display: block;
+  flex-shrink: 0;
+}
+.interface-hebrew .searchResultCard-crumbChevron {
+  transform: scaleX(-1);
+}
+.searchResultCard-crumb {
+  font-size: 12px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--dark-grey, #707070);
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+/* Breadcrumb links — underline only the crumb being hovered */
+.searchResultCard-crumb--link:hover {
+  text-decoration: underline;
+  color: var(--sefaria-blue, #18345d);
+}
+/* Ellipsis breadcrumb — same hover style as a linked crumb */
+.searchResultCard-crumb--ellipsis {
+  cursor: default;
+}
+.searchResultCard-crumb--ellipsis:hover {
+  text-decoration: underline;
+  color: var(--sefaria-blue, #18345d);
+}
+/* Tooltip for the ellipsis — uses the existing .tooltip-toggle pattern.
+   Positioned above the ellipsis node; wider than the default 140 px to
+   accommodate multiple crumb labels joined by " > ". */
+.searchResultCard-crumb--ellipsis.tooltip-toggle::before {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-width: 100px;
+  max-width: 320px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+@media (max-width: 600px) {
+  .searchResultCard--books .searchResultCard-description {
+    display: none;
+  }
+  /* Title gets two lines on mobile; altName is hidden to avoid layout conflict */
+  .searchResultCard-titleRow {
+    display: block;
+  }
+  .searchResultCard-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    max-width: 100%;
+  }
+  .searchResultCard-altName {
+    display: none;
+  }
+}
+
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
