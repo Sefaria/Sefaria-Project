@@ -899,7 +899,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		$("#title").html(Sefaria._("New Source Sheet"));
+		$("#title").html(Sefaria._("sheets.new_source_sheet"));
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -3379,14 +3379,14 @@ function copyToSheet(source) {
 
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
-		$("#sheetList").html(Sefaria._("Loading..."));
+		$("#sheetList").html(Sefaria._("common.loading"));
 		$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
-			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
+			sheets += '<li class="sheet new"><i>'+Sefaria._("sheets.start_a_new_source_sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					(data.sheets[i].title === null ? Sefaria._("Untitled"): data.sheets[i].title.stripHtml()) +
+					(data.sheets[i].title === null ? Sefaria._("common.untitled"): data.sheets[i].title.stripHtml()) +
 					"</li>";
 			}
 			$("#sheetList").html(sheets);
@@ -3399,7 +3399,7 @@ function copyToSheet(source) {
 		})
 	}
 	var name = source.ref ? source.ref :
-				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
+				(source.comment ? Sefaria._("sheets.this_comment") : Sefaria._("sheets.this_source"));
 
 	$("#addToSheetModal .sourceName").text(name);
 
@@ -3420,12 +3420,12 @@ $("#addToSheetModal .ok").click(function(){
 	if (sjs.flags.saving === true) { return false; }
 	var selected = $(".sheet.selected");
 	if (!selected.length) {
-		sjs.alert.message(Sefaria._("Please select a source sheet."));
+		sjs.alert.message(Sefaria._("sheets.please_select_a_source_sheet"));
 		return false;
 	}
 
 	if (selected.hasClass("new")) {
-		var title = prompt(Sefaria._("New Source Sheet Name:"), "");
+		var title = prompt(Sefaria._("sheets.new_source_sheet_name"), "");
 		var sheet = {
 			title: title,
 			options: {numbered: 0},
@@ -3457,9 +3457,9 @@ $("#addToSheetModal .ok").click(function(){
 			sjs.alert.message(data.error)
 		} else {
 			var name = data.ref ? data.ref :
-				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
+				(data.comment ? Sefaria._("sheets.this_comment_2") : Sefaria._("sheets.this_source_2"));
 			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
-			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
+			sjs.alert.message(name + " " + Sefaria._("sheets.was_added_to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("sheets.view_sheet") + "</a>");
 			Sefaria.track.sheets("Source Copied");
 		}
 	}

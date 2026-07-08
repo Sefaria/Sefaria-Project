@@ -934,7 +934,7 @@ Sefaria = extend(Sefaria, {
       try {
           result = await Sefaria.apiRequestWithBody(url, urlParams, payload, method);
       } catch (e) {
-          alert(Sefaria._("Something went wrong. Sorry!"));
+          alert(Sefaria._("sefaria.something_went_wrong_sorry"));
           throw e;
       }
       if (result.error) {
@@ -3026,22 +3026,22 @@ _media: {},
     let tabKey, title;
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE && refObj.is_sheet) {
       tabKey = 'sheets';
-      title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
+      title = {en: "Sheets", he: Sefaria.translation('hebrew', "common.sheets")};
     } 
     else if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !refObj?.is_sheet) {
       if (linkType === 'popular-writing-of') {
         tabKey = linkType;
-        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', "sefaria.top_citations")};
       } else if (linkType === 'about') {
         const lang = Sefaria._getShortInterfaceLang();
         const desc = refObj.descriptions?.[lang];
         const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
         if (isNotableSource) {
           tabKey = 'notable-sources';
-          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', "sefaria.notable_sources")};
         } else {
           tabKey = 'sources';
-          title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+          title = {en: 'Sources', he: Sefaria.translation('hebrew', "common.sources")};
         }
       }
     }
@@ -3092,7 +3092,7 @@ _media: {},
           tabs.sources = {
             shouldDisplay: true,
             refs: [],
-            title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}
+            title: {en: 'All Sources', he: Sefaria.translation('hebrew', "sefaria.all_sources")}
           };
         }
         tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
@@ -3101,7 +3101,7 @@ _media: {},
       // set up admin tab which contains all 'sources'
       if (Sefaria.is_moderator && !!tabs.sources) {
         tabs["admin"] = {...tabs["sources"]};
-        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "sefaria.admin")};
       }
     }
     topicData.tabs = tabs;
@@ -3455,7 +3455,7 @@ _media: {},
     },
     getSheetTitle: function(title) {
       // Useful for displaying sheet titles in the UI without HTML tags and handling null or empty values by falling back to "Untitled"
-      return title?.stripHtml() || Sefaria._("Untitled");
+      return title?.stripHtml() || Sefaria._("common.untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
@@ -3590,14 +3590,42 @@ _media: {},
         return name;
     }
   },
+  _keyedStringIdRegex: /^[a-z0-9_]+(\.[a-z0-9_]+)+$/,
+  _isKeyedStringId: function(inputStr) {
+    // Keyed interface string IDs look like "header.log_in"; no legacy English
+    // interface string matches this shape.
+    return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
+  },
+  _keyedString: function(id, lang) {
+    // Resolve a keyed string ID from i18n/keyed/*.json; falls back to English,
+    // then to the ID itself.
+    const maps = Sefaria._i18nKeyedStrings;
+    if (lang === "he" && id in maps.he) {
+      return maps.he[id];
+    }
+    if (id in maps.en) {
+      return maps.en[id];
+    }
+    console.warn("Missing keyed interface string: " + id);
+    return id;
+  },
   hebrewTranslation: function(inputStr, context = null){
     let translatedString;
+    if (Sefaria._isKeyedStringId(inputStr)) {
+      return Sefaria._keyedString(inputStr, "he");
+    }
     if (context && context in Sefaria._i18nInterfaceStringsWithContext){
       translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
       if (translatedString !== null) return translatedString;
     }
     if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
       return translatedString;
+    }
+    // Strings migrated to keyed IDs are no longer in _i18nInterfaceStrings; resolve
+    // dynamic lookups of their English text through the generated english->id index.
+    const keyedId = Sefaria._getStringCaseInsensitive(Sefaria._i18nEnglishToKeyedId, inputStr);
+    if (keyedId !== null) {
+      return Sefaria._keyedString(keyedId, "he");
     }
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
       return translatedString;
@@ -3611,6 +3639,9 @@ _media: {},
     }
   },
   translation: function(language, inputStr, context=null){
+      if (Sefaria._isKeyedStringId(inputStr)) {
+          return Sefaria._keyedString(inputStr, language.slice(0,2));
+      }
       const translationMatrix = {
           "he": Sefaria.hebrewTranslation
       };
@@ -3622,11 +3653,16 @@ _media: {},
       }
   },
   /**
-   * Translates English strings to current interface language.
-   * Add translations to strings.js.
+   * Translates interface strings to the current interface language.
+   * Takes either a keyed string ID (e.g. "header.log_in", resolved via
+   * i18n/keyed/*.json) or a legacy English string (resolved via the legacy maps).
+   * Add new strings to i18n/keyed/en.json + he.json.
    * For displaying interface text you should use <InterfaceText> which calls this function automatically.
    */
   _: function(inputStr, context=null){
+    if (Sefaria._isKeyedStringId(inputStr)) {
+      return Sefaria._keyedString(inputStr, Sefaria._getShortInterfaceLang());
+    }
     if(Sefaria.interfaceLang != "english"){
       return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
     } else {

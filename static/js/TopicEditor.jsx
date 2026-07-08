@@ -194,7 +194,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
       //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
-      const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
+      const newIsCategory = origWasCat || e.target.value === Sefaria._("topic_editor.main_menu");
       setIsCategory(newIsCategory);
       setIsChanged(true);
       setIsAuthor(data.catSlug === 'authors');
@@ -204,7 +204,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {
         "": {"en": "Choose a Parent Topic", "he": Sefaria.translation('he', "Choose a Parent Topic")},
-        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
+        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "topic_editor.main_menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const catMenu =   <div className="section">
@@ -229,7 +229,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             return false;
         }
         if (data.catSlug === "") {
-          alert(Sefaria._("Please choose a category."));
+          alert(Sefaria._("topic_editor.please_choose_a_category"));
           return false;
         }
         if (data.enTitle.length === 0) {

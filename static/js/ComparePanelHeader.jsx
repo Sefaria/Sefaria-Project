@@ -29,8 +29,8 @@ const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, ca
             <SearchButton onClick={handleSearchButtonClick} />
             <input
               id="searchInput" className="readerSearch"
-              title={Sefaria._("Search for Texts or Keywords Here")}
-              placeholder={Sefaria._("Search")}
+              title={Sefaria._("common.search_for_texts_or_keywords_here")}
+              placeholder={Sefaria._("common.search")}
               onChange={e => setQuery(e.target.value)} value={query}
               onKeyUp={handleSearchKeyUp}
             />

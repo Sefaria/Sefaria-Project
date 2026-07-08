@@ -180,7 +180,7 @@ class GuideBox extends Component {
       <section className="guideBox">
         <h2 className="guideHeader">
           <div>
-            <InterfaceText context="GuideBox">Guided Learning</InterfaceText>
+            <InterfaceText>guide_box.guided_learning</InterfaceText>
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
@@ -191,7 +191,7 @@ class GuideBox extends Component {
         {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
         {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
       </section>
-    )
+    );
   }
 }
 

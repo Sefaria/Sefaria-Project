@@ -12,15 +12,17 @@ import Button from "./common/Button";
 
 
 const NavSidebar = ({sidebarModules, includeFooter = true}) => {
-  return <aside className="navSidebar sans-serif" role="complementary" aria-label={Sefaria._("Sidebar navigation")}>
-    {sidebarModules.map((m, i) =>
-      <SidebarModules
-        type={m.type}
-        props={m.props || {}}
-        key={i} />
-    )}
-    {!!includeFooter && <SidebarFooter />} 
-  </aside>
+  return (
+    <aside className="navSidebar sans-serif" role="complementary" aria-label={Sefaria._("nav_sidebar.sidebar_navigation")}>
+      {sidebarModules.map((m, i) =>
+        <SidebarModules
+          type={m.type}
+          props={m.props || {}}
+          key={i} />
+      )}
+      {!!includeFooter && <SidebarFooter />} 
+    </aside>
+  );
 };
 
 NavSidebar.propTypes = {
@@ -181,7 +183,7 @@ const StudyCompanion = () => (
            data-anl-promotion_name="Parashah Email Signup - Topic TOC"
            href="https://learn.sefaria.org/weekly-parashah/">
             <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
-            <InterfaceText>Sign Up</InterfaceText>
+            <InterfaceText>common.sign_up</InterfaceText>
         </a>
     </SidebarModule>
 )
@@ -211,7 +213,7 @@ const AboutSefaria = ({hideTitle}) => (
       {!hideTitle && <InterfaceText>
           <EnglishText>
             <a className="button get-start" href={Sefaria._siteSettings.HELP_CENTER_URLS.GETTING_STARTED} data-target-module={Sefaria.VOICES_MODULE}>
-                <img src="/static/icons/vector.svg" alt={Sefaria._("Play video")}/>
+                <img src="/static/icons/vector.svg" alt={Sefaria._("nav_sidebar.play_video")}/>
                 <div className="get-start">
                   Getting Started (2 min)
                 </div>
@@ -219,7 +221,7 @@ const AboutSefaria = ({hideTitle}) => (
           </EnglishText>
           <HebrewText>
             <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
-                <img src="/static/icons/vector.svg" alt={Sefaria._("Play video")}/>
+                <img src="/static/icons/vector.svg" alt={Sefaria._("nav_sidebar.play_video")}/>
                 <div className="get-start">
                   הכירו את ספריא (2 דק')
                 </div>
@@ -272,7 +274,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
 
 const Resources = () => (
   <SidebarModule>
-    <h3><InterfaceText context="ResourcesModule">Resources</InterfaceText></h3>
+    <h3><InterfaceText>resources_module.resources</InterfaceText></h3>
     <div className="linkList">
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
@@ -333,11 +335,11 @@ const TheJewishLibrary = ({hideTitle}) => (
 const SupportSefaria = ({blue}) => (
   <SidebarModule blue={blue}>
     <SidebarModuleTitle>Support Sefaria</SidebarModuleTitle>
-    <InterfaceText>Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.</InterfaceText>
+    <InterfaceText>nav_sidebar.sefaria_is_an_open_source_nonprofit_project_support</InterfaceText>
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
-      <img src="/static/img/heart.png" alt={Sefaria._("donation icon")} />
-      <InterfaceText>Make a Donation</InterfaceText>
+      <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      <InterfaceText>nav_sidebar.make_a_donation</InterfaceText>
     </DonateLink>
   </SidebarModule>
 );
@@ -346,11 +348,11 @@ const SupportSefaria = ({blue}) => (
 const SponsorADay = () => (
   <SidebarModule>
     <SidebarModuleTitle>Sponsor A Day of Learning</SidebarModuleTitle>
-    <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
+    <InterfaceText>nav_sidebar.with_your_help_we_can_add_more_texts</InterfaceText>
     <br />
     <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
-      <img src="/static/img/heart.png" alt={Sefaria._("donation icon")} />
-      <InterfaceText>Sponsor A Day</InterfaceText>
+      <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      <InterfaceText>nav_sidebar.sponsor_a_day</InterfaceText>
     </DonateLink>
   </SidebarModule>
 );
@@ -405,8 +407,8 @@ const AboutText = ({index, hideTitle}) => {
         {authors.length ?
         <div className="aboutTextAuthor">
           {authors.length == 1 ?
-              <span><InterfaceText>Author</InterfaceText>:</span>
-          : <span><InterfaceText>Authors</InterfaceText>:</span>}
+              <span><InterfaceText>nav_sidebar.author</InterfaceText>:</span>
+          : <span><InterfaceText>common.authors</InterfaceText>:</span>}
           <span className="aboutTextAuthorText">
             &nbsp;{authors}
           </span>
@@ -414,7 +416,7 @@ const AboutText = ({index, hideTitle}) => {
 
         {composed ?
         <div className="aboutTextComposed">
-          <InterfaceText>Composed</InterfaceText>:
+          <InterfaceText>nav_sidebar.composed</InterfaceText>:
           <span className="aboutTextComposedText">
             &nbsp;<InterfaceText>{composed}</InterfaceText>
           </span>
@@ -423,7 +425,6 @@ const AboutText = ({index, hideTitle}) => {
       </div> : null}
       {description ?
       <InterfaceText markdown={{en: enDesc, he: heDesc}} disallowedMarkdownElements={[]}/> : null}
-
     </SidebarModule>
   );
 };
@@ -444,7 +445,7 @@ const ParashahLink = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
   return (
     <div className="navSidebarLink ref serif">
-      <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+      <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
       <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
@@ -463,7 +464,7 @@ const HaftarotLinks = () => {
     <>
       {haftarot.map(h =>
       <div className="navSidebarLink ref serif" key={h.url}>
-        <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+        <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
         <a href={"/" + h.url}><InterfaceText text={h.displayValue} /></a>
       </div>)}
     </>
@@ -475,7 +476,7 @@ const DafLink = () => {
   const daf = Sefaria.calendars.filter(c => c.title.en === "Daf Yomi")[0];
   return (
     <div className="navSidebarLink ref serif">
-      <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+      <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
       <a href={"/" + daf.url}>
         <InterfaceText text={daf.displayValue} />
       </a>
@@ -505,7 +506,7 @@ const LearningSchedules = () => {
       <SidebarModuleTitle>Learning Schedules</SidebarModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
-          <InterfaceText>Weekly Torah Portion</InterfaceText>: <ParashahName />
+          <InterfaceText>common.weekly_torah_portion</InterfaceText>: <ParashahName />
         </span>
         <ParashahLink />
       </div>
@@ -606,11 +607,11 @@ const Visualizations = ({categories}) => {
   return (
     <SidebarModule>
       <SidebarModuleTitle>Visualizations</SidebarModuleTitle>
-      <InterfaceText>Explore interconnections among texts with our interactive visualizations.</InterfaceText>
+      <InterfaceText>nav_sidebar.explore_interconnections_among_texts_with_our_interactive</InterfaceText>
       <div className="linkList">
         {links.map((link, i) =>
           <div className="navSidebarLink gray" key={i}>
-            <img src="/static/icons/visualization.svg" className="navSidebarIcon" alt={Sefaria._("visualization icon")} />
+            <img src="/static/icons/visualization.svg" className="navSidebarIcon" alt={Sefaria._("nav_sidebar.visualization_icon")} />
             <a href={link.url}><InterfaceText text={{en: link.en, he: link.he}} /></a>
           </div>
         )}
@@ -723,20 +724,18 @@ const RelatedTopics = ({title}) => {
   useEffect(() => {
         Sefaria.getIndexDetails(title).then(data => setTopics(data.relatedTopics));
   },[title]);
-  return (topics.length ?
-    <SidebarModule>
-      <SidebarModuleTitle>Related Topics</SidebarModuleTitle>
-      {shownTopics.map((topic, i) =>
-        <div className="navSidebarLink ref serif" key={i}>
-          <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
-        </div>
-      )}
-      {showMoreLink ?
-      <a className="moreLink" onClick={()=>{setShowMore(true);}}>
-        <InterfaceText>More</InterfaceText>
-      </a> : null}
-    </SidebarModule> : null
-  );
+  return (topics.length ? <SidebarModule>
+    <SidebarModuleTitle>Related Topics</SidebarModuleTitle>
+    {shownTopics.map((topic, i) =>
+      <div className="navSidebarLink ref serif" key={i}>
+        <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
+      </div>
+    )}
+    {showMoreLink ?
+    <a className="moreLink" onClick={()=>{setShowMore(true);}}>
+      <InterfaceText>nav_sidebar.more</InterfaceText>
+    </a> : null}
+  </SidebarModule> : null);
 };
 
 const JoinTheCommunity = ({wide}) => {
@@ -744,12 +743,12 @@ const JoinTheCommunity = ({wide}) => {
     <SidebarModule wide={wide}>
       <div>
         <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
-        <InterfaceText>People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.</InterfaceText>
+        <InterfaceText>nav_sidebar.people_around_the_world_use_sefaria_to_create</InterfaceText>
       </div>
       <div>
         <a className="button small" href={`${Sefaria.getModuleURL(Sefaria.VOICES_MODULE).origin}/`}>
           <img src="/static/icons/community-black.svg" alt={Sefaria._("community")} />
-          <InterfaceText>Explore the Community</InterfaceText>
+          <InterfaceText>nav_sidebar.explore_the_community</InterfaceText>
         </a>
       </div>
     </SidebarModule>
@@ -761,7 +760,7 @@ const JoinTheConversation = ({wide}) => {
     <SidebarModule wide={wide}>
       <div className="joinTheConversation">
         <SidebarModuleTitle>Join the Conversation</SidebarModuleTitle>
-        <InterfaceText>Mix and match sources from the Sefaria Library, along with outside sources, images, videos, and your own commentary, to share digitally.</InterfaceText>
+        <InterfaceText>nav_sidebar.mix_and_match_sources_from_the_sefaria_library</InterfaceText>
       </div>
       <CreateSheetsButton/>
     </SidebarModule>
@@ -772,17 +771,17 @@ const JoinTheConversation = ({wide}) => {
 const GetTheApp = () => (
   <SidebarModule>
     <SidebarModuleTitle>Get the Mobile App</SidebarModuleTitle>
-    <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
+    <InterfaceText>nav_sidebar.access_the_jewish_library_anywhere_and_anytime_with</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>nav_sidebar.sefaria_mobile_app</InterfaceText></a>
     <br />
     <AppStoreButton
         href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
         platform='ios'
-        altText={Sefaria._("Sefaria app on IOS")}
+        altText={Sefaria._("nav_sidebar.sefaria_app_on_ios")}
     />
     <AppStoreButton
         href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
         platform='android'
-        altText={Sefaria._("Sefaria app on Android")}
+        altText={Sefaria._("nav_sidebar.sefaria_app_on_android")}
     />
   </SidebarModule>
 );
@@ -794,7 +793,7 @@ const StayConnected = () => {
   return (
     <SidebarModule>
       <SidebarModuleTitle>Stay Connected</SidebarModuleTitle>
-      <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
+      <InterfaceText>nav_sidebar.get_updates_on_new_texts_learning_resources_features</InterfaceText>
       <br />
       <NewsletterSignUpForm context="sidebar" />
       <div className="social-links">
@@ -802,25 +801,24 @@ const StayConnected = () => {
           icon={"facebook"}
           variant="secondary"
           className="appButton white button iconOnly"
-          ariaLabel={Sefaria._("Sefaria on Facebook")}
+          ariaLabel={Sefaria._("nav_sidebar.sefaria_on_facebook")}
           href={fbURL}
         />
         <Button
           icon={"instagram"}
           variant="secondary"
           className="appButton white button iconOnly"
-          ariaLabel={Sefaria._("Sefaria on Instagram")}
+          ariaLabel={Sefaria._("nav_sidebar.sefaria_on_instagram")}
           href="https://www.instagram.com/sefariaproject"
         />
         <Button
           icon={"youtube"}
           variant="secondary"
           className="appButton white button iconOnly"
-          ariaLabel={Sefaria._("Sefaria on YouTube")}
+          ariaLabel={Sefaria._("nav_sidebar.sefaria_on_youtube")}
           href="https://www.youtube.com/user/SefariaProject"
         />
       </div>
-
     </SidebarModule>
   );
 };
@@ -904,7 +902,7 @@ const AboutCollections = ({hideTitle}) => (
       {!hideTitle &&
       <Button icon={"collection-black"}>
         <a href="/collections/new" data-target-module={Sefaria.VOICES_MODULE}>
-          <InterfaceText>Create a Collection</InterfaceText>
+          <InterfaceText>nav_sidebar.create_a_collection</InterfaceText>
         </a>
       </Button>
 }
@@ -915,11 +913,11 @@ const AboutCollections = ({hideTitle}) => (
 const ExploreCollections = () => (
   <SidebarModule>
     <SidebarModuleTitle>Collections</SidebarModuleTitle>
-    <InterfaceText>Organizations, communities and individuals around the world curate and share collections of sheets for you to explore.</InterfaceText>
+    <InterfaceText>nav_sidebar.organizations_communities_and_individuals_around_the_world_curate</InterfaceText>
     <div>
       <a className="button small white" href="/collections" data-target-module={Sefaria.VOICES_MODULE}>
-        <img src="/static/icons/collection.svg" alt={Sefaria._("collection icon")} />
-        <InterfaceText>Explore Collections</InterfaceText>
+        <img src="/static/icons/collection.svg" alt={Sefaria._("nav_sidebar.collection_icon")} />
+        <InterfaceText>nav_sidebar.explore_collections</InterfaceText>
       </a>
     </div>
   </SidebarModule>
@@ -937,7 +935,7 @@ const WhoToFollow = ({toggleSignUpModal}) => (
 
 const Image = ({url}) => (
   <SidebarModule>
-    <img className="imageModuleImage" src={url} alt={Sefaria._("Module image")} />
+    <img className="imageModuleImage" src={url} alt={Sefaria._("nav_sidebar.module_image")} />
   </SidebarModule>
 );
 
@@ -952,7 +950,7 @@ const Wrapper = ({title, content}) => (
 
 const IconLink = ({text, url, icon, openInNewTab}) => (
   <div className="navSidebarLink gray">
-    <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
+    <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("nav_sidebar.icon")}`} />
     <a href={url} target={openInNewTab ? "_blank" : "_self"}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
@@ -1013,48 +1011,48 @@ const DownloadVersions = ({sref}) => {
         });
     }, [sref]);
 
-    return(
-        <SidebarModule>
-          <SidebarModuleTitle>Download Text</SidebarModuleTitle>
-          <div className="downloadTextModule sans-serif">
-          <Dropdown
-              name="dlVersionName"
-              options={
-                versions.map(v => ({
-                    value: `${v.versionTitle}/${v.language}`,
-                    label: `${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})} (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})`
-                })).concat( // add merged versions for both primary langs "en" and "he" where applicable. (not yet possible for individual actual languages)
-                    versions.map(v => v.language).unique().map(lang => ({
-                        value: `merged/${lang}`,
-                        label: `${Sefaria._("Merged Version", "DownloadVersions")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
-                    }))
-                )
-              }
-              placeholder={Sefaria._( "Select Version", "DownloadVersions")}
-              onChange={handleInputChange}
-          />
-          <Dropdown
-              name="dlVersionFormat"
-              options={[
-                {value: "txt",       label: Sefaria._( "Text (with Tags)", "DownloadVersions")},
-                {value: "plain.txt", label: Sefaria._( "Text (without Tags)", "DownloadVersions")},
-                {value: "csv",       label: "CSV"},
-                {value: "json",      label: "JSON"},
-              ]}
-              placeholder={Sefaria._("Select Format", "DownloadVersions")}
-              onChange={handleInputChange}
-          />
-          <a
-            className={`button fillWidth${isReady ? "" : " disabled"}`}
-            onClick={handleClick}
-            href={versionDlLink()}
-            download
-            role="button"
-          >
-            {Sefaria._("Download")}
-          </a>
-        </div>
-        </SidebarModule>
+    return (
+      <SidebarModule>
+        <SidebarModuleTitle>Download Text</SidebarModuleTitle>
+        <div className="downloadTextModule sans-serif">
+        <Dropdown
+            name="dlVersionName"
+            options={
+              versions.map(v => ({
+                  value: `${v.versionTitle}/${v.language}`,
+                  label: `${Sefaria._v({he: v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle, en: v.versionTitle})} (${Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage))})`
+              })).concat( // add merged versions for both primary langs "en" and "he" where applicable. (not yet possible for individual actual languages)
+                  versions.map(v => v.language).unique().map(lang => ({
+                      value: `merged/${lang}`,
+                      label: `${Sefaria._("download_versions.merged_version")} (${Sefaria._(Sefaria.translateISOLanguageCode(lang))})`,
+                  }))
+              )
+            }
+            placeholder={Sefaria._("download_versions.select_version")}
+            onChange={handleInputChange}
+        />
+        <Dropdown
+            name="dlVersionFormat"
+            options={[
+              {value: "txt",       label: Sefaria._("download_versions.text_with_tags")},
+              {value: "plain.txt", label: Sefaria._("download_versions.text_without_tags")},
+              {value: "csv",       label: "CSV"},
+              {value: "json",      label: "JSON"},
+            ]}
+            placeholder={Sefaria._("download_versions.select_format")}
+            onChange={handleInputChange}
+        />
+        <a
+          className={`button fillWidth${isReady ? "" : " disabled"}`}
+          onClick={handleClick}
+          href={versionDlLink()}
+          download
+          role="button"
+        >
+          {Sefaria._("nav_sidebar.download")}
+        </a>
+      </div>
+      </SidebarModule>
     );
 };
 

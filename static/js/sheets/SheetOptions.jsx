@@ -59,7 +59,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   }
 
   const handleDelete = () => {
-      if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+      if (confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this_sheet_there"))) {
         setDeletingMode(true);
       }
     }
@@ -101,44 +101,44 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
+  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>sheet_options.publish</InterfaceText></Button>;
   return (
-        <>
-        {editable && status === 'unlisted' && publishModalButton}
-          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("Options")}/>}>
-            <div className="dropdownLinks-options">
-              <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
-                <SaveButtonWithText historyObject={historyObjectForSheet}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
-                <CopyButton/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
-                <CollectionsButton editable={editable}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
-                <GoogleDocExportButton sheetID={sheetID}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
-                <ShareButton/>
-              </DropdownMenuItemWithCallback>
-              {editable && status === 'public' && <>
-                <DropdownMenuSeparator/>
-                <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
-                  <UnpublishButton/>
-                </DropdownMenuItemWithCallback>
-              </>
-              }
-              {editable && <>
-                <DropdownMenuSeparator/>
-                <DropdownMenuItemWithCallback onClick={handleDelete}>
-                  <DeleteButton/>
-                </DropdownMenuItemWithCallback>
-              </>
-              }
-            </div>
-          </DropdownMenu>
-        </>
+    <>
+      {editable && status === 'unlisted' && publishModalButton}
+      <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("common.options")}/>}>
+        <div className="dropdownLinks-options">
+          <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
+            <SaveButtonWithText historyObject={historyObjectForSheet}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
+            <CopyButton/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
+            <CollectionsButton editable={editable}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
+            <GoogleDocExportButton sheetID={sheetID}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
+            <ShareButton/>
+          </DropdownMenuItemWithCallback>
+          {editable && status === 'public' && <>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
+              <UnpublishButton/>
+            </DropdownMenuItemWithCallback>
+          </>
+          }
+          {editable && <>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItemWithCallback onClick={handleDelete}>
+              <DeleteButton/>
+            </DropdownMenuItemWithCallback>
+          </>
+          }
+        </div>
+      </DropdownMenu>
+    </>
   );
 }
 

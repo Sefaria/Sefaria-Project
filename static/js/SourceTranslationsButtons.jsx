@@ -20,11 +20,11 @@ function SourceTranslationsButtons({ showPrimary, showTranslation, setShowTexts 
     };
 
     return (
-      <div className="show-source-translation-buttons" role="radiogroup" aria-label={Sefaria._("Source-translation toggle")}>
-          {createButton(true, false, 'Source')}
-          {createButton(false, true, 'Translation')}
-          {!isSidePanel && createButton(true, true, 'Source with Translation')}
-      </div>
+        <div className="show-source-translation-buttons" role="radiogroup" aria-label={Sefaria._("source_translations_buttons.source_translation_toggle")}>
+            {createButton(true, false, 'Source')}
+            {createButton(false, true, 'Translation')}
+            {!isSidePanel && createButton(true, true, 'Source with Translation')}
+        </div>
     );
 }
 SourceTranslationsButtons.propTypes = {

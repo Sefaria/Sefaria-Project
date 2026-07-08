@@ -280,7 +280,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("font-size", 16)
             .attr("fill", "#999")
             .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
-            .text(Sefaria._("Average Sefaria User"));
+            .text(Sefaria._("user_stats.average_sefaria_user"));
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);

@@ -34,11 +34,11 @@ const SourcesSheetsDiv = (props) => {
     }
 
     if (props?.numSources > 0) {
-        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
+        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>common.sources</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sourcesDiv);
     }
     if (props?.numSheets > 0) {
-        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
+        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>common.sheets</InterfaceText></a></span>;
         sourcesSheetsCounts.push(sheetsDiv);
     }
 
@@ -211,7 +211,7 @@ const SearchFilterButton = ({openMobileFilters, nFilters}) => (
        role="button" 
        tabIndex="0" 
        aria-label={`Open filters${nFilters ? ` (${nFilters} active)` : ''}`}>
-    <InterfaceText>Filter</InterfaceText>
+    <InterfaceText>common.filter</InterfaceText>
     {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
 );

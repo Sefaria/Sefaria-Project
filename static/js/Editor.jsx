@@ -982,7 +982,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder={Sefaria._("Paste a link to an image, video, or audio")}
+                    placeholder={Sefaria._("editor.paste_a_link_to_an_image_video_or")}
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
@@ -993,7 +993,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                     addMedia()
                 }}>Add Media</button> : null}
             </div>
-        )
+        );
     }
 
     else if (inputType === "source") {
@@ -1003,11 +1003,12 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
+                inputPlaceholder={Sefaria._("common.search_for_a_text_or_commentator")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}
-            />)
+            />
+        );
     }
 
     else {return(null)}
@@ -1104,25 +1105,25 @@ const AddInterface = ({ attributes, children, element }) => {
     }
 
     return (
-      <div role="button" title={active ? Sefaria._("Close menu") : Sefaria._("Add a source, image, or other media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
-          {itemToAdd == null ? <>
-              <div role="button" title={Sefaria._("Add source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title={Sefaria._("Add image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
-                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
-              </div>
-              <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-              <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
-          </> :
+        <div role="button" title={active ? Sefaria._("editor.close_menu") : Sefaria._("editor.add_a_source_image_or_other_media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+            {itemToAdd == null ? <>
+                <div role="button" title={Sefaria._("editor.add_source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+                <div role="button" title={Sefaria._("editor.add_image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+                    <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+                </div>
+                <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
+                <div role="button" title={Sefaria._("editor.add_media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+            </> :
 
-              <AddInterfaceInput
-                inputType={itemToAdd}
-                resetInterface={resetInterface}
-              />
+                <AddInterfaceInput
+                  inputType={itemToAdd}
+                  resetInterface={resetInterface}
+                />
 
-          }
-          <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
-      </div>
-    )
+            }
+            <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+        </div>
+    );
 }
 
 const Element = (props) => {
@@ -1185,7 +1186,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("editor.user_uploaded_media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -1618,7 +1619,7 @@ const withSefariaSheet = editor => {
             }
             catch (e) {
                 console.log(`Error at ${normalizer["name"]}`, e )
-                console.log(editor.children[0,0])
+                console.log(editor.children[(0, 0)])
             }
         }
         // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -2166,40 +2167,36 @@ const Link = ({ attributes, children, element }) => {
     const linkPopoverOpen = linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element)))
 
   return (
-    <div
-        {...attributes}
-        className="element-link"
-        onMouseEnter={(e) => onHover(e, element.url)}
-        onMouseLeave={(e) => onBlur(e, element.url)}
-    >
-        <a
-            href={element.url}
-            onMouseEnter={(e)=> {if (!linkPopoverOpen) {
-                setShowLinkRemoveButton(true)
-            }
-            }}
-        >
-            {children}
-        </a>
-
-      {/* Show popup on hover and also force it open when a new link is created  */}
-      {linkPopoverOpen ? (
-        <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
-          <input
-              type="text"
-              value={urlValue}
-              placeholder={Sefaria._("Enter link URL")}
-              className="sans-serif"
-              onChange={(e) => urlChange(e)}
-          />
-            {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
-        </div>
-      ) : null }
-
-
-    </div>
-
-  )
+      <div
+          {...attributes}
+          className="element-link"
+          onMouseEnter={(e) => onHover(e, element.url)}
+          onMouseLeave={(e) => onBlur(e, element.url)}
+      >
+          <a
+              href={element.url}
+              onMouseEnter={(e)=> {if (!linkPopoverOpen) {
+                  setShowLinkRemoveButton(true)
+              }
+              }}
+          >
+              {children}
+          </a>
+          {/* Show popup on hover and also force it open when a new link is created  */}
+          {linkPopoverOpen ? (
+            <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
+              <input
+                  type="text"
+                  value={urlValue}
+                  placeholder={Sefaria._("editor.enter_link_url")}
+                  className="sans-serif"
+                  onChange={(e) => urlChange(e)}
+              />
+                {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
+            </div>
+          ) : null }
+      </div>
+  );
 
  }
 
@@ -2905,7 +2902,7 @@ const SefariaEditor = (props) => {
                             "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
                             "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
                         },
-                        ...sheetItem.options && { options: sheetItem.options },
+                        ...(sheetItem.options && { options: sheetItem.options }),
                         "node": sheetItem.node,
                     };
                     return (source);
@@ -2924,7 +2921,7 @@ const SefariaEditor = (props) => {
                             "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
                             "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
                         },
-                        ...sheetItem.options && { options: sheetItem.options },
+                        ...(sheetItem.options && { options: sheetItem.options }),
                         "node": sheetItem.node,
 
                     };
@@ -2933,32 +2930,32 @@ const SefariaEditor = (props) => {
                 case 'SheetComment':
                     return ({
                         "comment": serialize(sheetItem),
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
                 case 'SheetOutsideText':
                    const outsideTextText = serialize(sheetItem)
                    //Add space to empty outside texts to preseve line breaks from old sheets.
                    return ({
-                        "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
-                    });
+                       "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                       ...(sheetItem.options && { options: sheetItem.options }),
+                       "node": sheetItem.node
+                   });
 
                 case 'SheetMedia':
-                    return({
+                    return ({
                         "media": sheetItem.mediaUrl,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
                 case 'header':
                     const headerContent = serialize(sheetItem)
-                    return({
+                    return ({
                         "outsideText": `<h1>${headerContent}</h1>`,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
 

@@ -130,7 +130,7 @@ const getQueryObj = (query) => {
 };
 
 const TextualSearchSuggestion = ({label, onClick, ...props}) => {
-    const searchOverridePre = Sefaria._('Search for') +':';
+    const searchOverridePre = Sefaria._("header_autocomplete.search_for") +':';
     const displayedLabel = (
         <>
             <span className={"search-override-text"}>
@@ -270,24 +270,24 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
      
     return (
-      <div id="searchBox"
-           className={searchBoxClasses}
-           role="search"
-           aria-label={Sefaria._("Site search")}>
-        <SearchButton onClick={handleSearchButtonClick} />
-        <input
-          className={inputClasses}
-          id="searchInput"
-          placeholder={Sefaria._("Search")}
-          aria-label={Sefaria._("Search for Texts or Keywords Here")}
-          onKeyDown={handleSearchKeyDown}
-          onFocus={focusSearch}
-          onBlur={blurSearch}
-          maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")}
-          {...otherDownShiftProps}
-        />
-      </div>
+        <div id="searchBox"
+             className={searchBoxClasses}
+             role="search"
+             aria-label={Sefaria._("header_autocomplete.site_search")}>
+            <SearchButton onClick={handleSearchButtonClick} />
+            <input
+              className={inputClasses}
+              id="searchInput"
+              placeholder={Sefaria._("common.search")}
+              aria-label={Sefaria._("common.search_for_texts_or_keywords_here")}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={focusSearch}
+              onBlur={blurSearch}
+              maxLength={75}
+              title={Sefaria._("common.search_for_texts_or_keywords_here")}
+              {...otherDownShiftProps}
+            />
+        </div>
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,

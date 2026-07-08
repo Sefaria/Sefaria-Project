@@ -184,7 +184,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
   let dataSourceText = '';
 
   if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
-    dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
+    dataSourceText = `${Sefaria._("topic_page.this_source_is_connected_to")}"${topicTitle && topicTitle[langKey]}" ${Sefaria._("common.by")} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
 
   const afterSave = (
@@ -395,53 +395,53 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const disallowedMarkdownElements = Sefaria.getDisallowedMarkdownElements();
 
 return (
-    <div>
-        <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
-                <h1>
-                    <InterfaceText text={{en:en, he:he}}/>
-                </h1>
-                </CategoryHeader>
-            {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE &&
-                <AiInfoTooltip displayText="Some of the text on this page has been AI generated." variant="outline" size={24}/>
-            }
-        </div>
-       {!topicData && !isCat ?<LoadingMessage/> : null}
-       {!isCat && category ?
-           <div className="topicCategory sectionTitleText">
-             <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
-               <InterfaceText text={{en: category.en, he: category.he}}/>
-             </a>
-           </div>
-       : null}
-       {topicData && topicData.ref ?
-           <TopicSponsorship topic_slug={topicData.slug} />
-       : null }
-       {topicData && topicData.description ?
-           <div className="topicDescription systemText">
-              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={disallowedMarkdownElements}/>
-            </div>
-       : null}
-       {tpTopImg}
-       {topicData && topicData.ref &&
-           <div>
-               <a href={Sefaria.util.fullURL(`/${topicData.ref.url}`, Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE} className="resourcesLink button blue">
-                   <img src="/static/icons/book-icon-black.svg" alt={Sefaria._("book icon")}/>
-                   <span className="int-en">{topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en}</span>
-                   <span className="int-he">{topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he)}</span>
-               </a>
-               {Sefaria.interfaceLang === "english" &&
-               <a className="resourcesLink button blue studyCompanion"
-                  href="https://learn.sefaria.org/weekly-parashah/"
-                  target="_blank"
-                  data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
-                  data-anl-promotion_name="Parashah Email Signup - Parashah Page"
-               >
-                  <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
-                  <InterfaceText>Get the Free Study Companion</InterfaceText>
-               </a>}
-           </div>}
+  <div>
+    <div className="navTitle tight">
+            <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
+            <h1>
+                <InterfaceText text={{en:en, he:he}}/>
+            </h1>
+            </CategoryHeader>
+        {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE &&
+            <AiInfoTooltip displayText="Some of the text on this page has been AI generated." variant="outline" size={24}/>
+        }
     </div>
+    {!topicData && !isCat ?<LoadingMessage/> : null}
+    {!isCat && category ?
+        <div className="topicCategory sectionTitleText">
+          <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
+            <InterfaceText text={{en: category.en, he: category.he}}/>
+          </a>
+        </div>
+    : null}
+    {topicData && topicData.ref ?
+        <TopicSponsorship topic_slug={topicData.slug} />
+    : null }
+    {topicData && topicData.description ?
+        <div className="topicDescription systemText">
+           <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}} disallowedMarkdownElements={disallowedMarkdownElements}/>
+         </div>
+    : null}
+    {tpTopImg}
+    {topicData && topicData.ref &&
+        <div>
+            <a href={Sefaria.util.fullURL(`/${topicData.ref.url}`, Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE} className="resourcesLink button blue">
+                <img src="/static/icons/book-icon-black.svg" alt={Sefaria._("common.book_icon")}/>
+                <span className="int-en">{topicData.parasha ? Sefaria._("common.read_the_portion") : topicData.ref.en}</span>
+                <span className="int-he">{topicData.parasha ? Sefaria._("common.read_the_portion") : norm_hebrew_ref(topicData.ref.he)}</span>
+            </a>
+            {Sefaria.interfaceLang === "english" &&
+            <a className="resourcesLink button blue studyCompanion"
+               href="https://learn.sefaria.org/weekly-parashah/"
+               target="_blank"
+               data-anl-event="select_promotion:click|view_promotion:scrollIntoView"
+               data-anl-promotion_name="Parashah Email Signup - Parashah Page"
+            >
+               <img src="/static/icons/email-newsletter.svg" alt={Sefaria._("Sign up for our weekly parashah study companion")}/>
+               <InterfaceText>Get the Free Study Companion</InterfaceText>
+            </a>}
+        </div>}
+  </div>
 );
 }
 
@@ -753,7 +753,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
       // Only add author works tab if in library module and has indexes
       if (indexes?.length && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
         tabs.unshift({
-          title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
+          title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "topic_page.works_on_sefaria")},
           id: 'author-works-on-sefaria',
         });
       }
@@ -774,7 +774,7 @@ const TopicPageTabView = ({topic, topicData, tab, setTab, translationLanguagePre
         tabs.push({
           title: {
             en: "A",
-            he: Sefaria._("A")
+            he: Sefaria._("topic_page.a")
           },
           id: 'langToggle',
           popover: true,
@@ -1067,7 +1067,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="parasha">
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
             <a href={Sefaria.util.fullURL('/' + tref.url, Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
         <div className="aliyot">
@@ -1092,7 +1092,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
             {
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
-                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
                     <a href={Sefaria.util.fullURL('/' + h.url, Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE} className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
@@ -1140,7 +1140,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
             }
             if (!url) { return null; }
             const en_text = propObj.title + (urlExists ? "" : " (Hebrew)");
-            const he_text = Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`);
+            const he_text = Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("topic_page.english")})`);
             return (
                 <div
                     key={url}

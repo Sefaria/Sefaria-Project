@@ -532,7 +532,7 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              const allTopicsTitle = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter;
+              const allTopicsTitle = Sefaria._("reader_app.explore_jewish_texts_by_topic") + " - " + state.navigationTopicLetter;
               hist.title = Sefaria.getPageTitle(allTopicsTitle);
               hist.mode  = "topics";
             break;
@@ -590,7 +590,7 @@ class ReaderApp extends Component {
             hist.mode = "updates";
             break;
           case "modtools":
-            hist.title = Sefaria._("Moderator Tools");
+            hist.title = Sefaria._("reader_app.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
@@ -663,7 +663,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSource = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const connectionsTitle = shouldShowSource ?
-          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(ref) + Sefaria._("reader_app.with") + Sefaria._(hist.sources) :
           Sefaria._r(ref);
         hist.title    = Sefaria.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
@@ -686,7 +686,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSourceInTitle = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const textAndConnectionsTitle = shouldShowSourceInTitle ?
-          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(htitle) + Sefaria._("reader_app.with") + Sefaria._(hist.sources) :
           Sefaria._r(htitle);
         hist.title    = Sefaria.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
@@ -811,14 +811,14 @@ class ReaderApp extends Component {
             hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
-          hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
+          hist.title += Sefaria._("reader_app.and") + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
-        hist.title += Sefaria._(" & ") + histories[i].title;
+        hist.title += Sefaria._("reader_app.and") + histories[i].title;
       }
       if (!isMobileConnectionsOpen) {
         if (histories[i].lang) {
@@ -2447,7 +2447,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
-            <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
+            <Button href="#main" className="skip-link">{Sefaria._("reader_app.skip_to_main_content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>

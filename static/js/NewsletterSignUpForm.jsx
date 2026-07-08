@@ -51,17 +51,17 @@ export function NewsletterSignUpForm({
 
     return (
         <div className="newsletterSignUpBox">
-      <span className="int-en">
-        <input
-            className="newsletterInput"
-            placeholder={emailPlaceholder.en}
-            aria-label={Sefaria._("Email address")}
-            type="email"
-            value={email}
-            disabled={isFormDisabled}
-            onChange={e => setEmail(e.target.value)}
-            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
-      </span>
+            <span className="int-en">
+              <input
+                  className="newsletterInput"
+                  placeholder={emailPlaceholder.en}
+                  aria-label={Sefaria._("newsletter_sign_up_form.email_address")}
+                  type="email"
+                  value={email}
+                  disabled={isFormDisabled}
+                  onChange={e => setEmail(e.target.value)}
+                  onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
+            </span>
             <span className="int-he">
         <input
             className="newsletterInput"
@@ -73,13 +73,13 @@ export function NewsletterSignUpForm({
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
-            {!showNameInputs && !isFormDisabled ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
+            {!showNameInputs && !isFormDisabled ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("newsletter_sign_up_form.submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
                 <><span className="int-en">
         <input
             className="newsletterInput firstNameInput"
             placeholder="First Name"
-            aria-label={Sefaria._("First Name")}
+            aria-label={Sefaria._("common.first_name")}
             type="text"
             value={firstName}
             autoFocus
@@ -102,7 +102,7 @@ export function NewsletterSignUpForm({
         <input
             className="newsletterInput"
             placeholder="Last Name"
-            aria-label={Sefaria._("Last Name")}
+            aria-label={Sefaria._("common.last_name")}
             type="text"
             value={lastName}
             disabled={isFormDisabled}
@@ -122,7 +122,7 @@ export function NewsletterSignUpForm({
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isFormDisabled}/> : null}
-                    {!isFormDisabled && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
+                    {!isFormDisabled && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("newsletter_sign_up_form.submit")} onClick={handleSubscribe}/>}
                 </>
                 : null}
             {subscribeMessage ?

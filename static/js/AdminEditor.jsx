@@ -197,40 +197,42 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, secondaryPic
         }
     }
     
-    return <div className="editTextInfo">
-        <div className="static">
-            <div className="inner">
-                {(savingStatus || validatingLinks) &&
-                <div className="collectionsWidget">{Sefaria._("Saving...")}</div>}
-                <div id="newIndex">
-                    <AdminToolHeader title={title} close={close} validate={preprocess}/>
-                    {items.map((x) => {
-                        if (!x) {
-                            return null;
-                        } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
-                            return null;
-                        } else if (x === "Category Menu") {
-                            return catMenu;
-                        } else if (x === "Picture Uploader") {
-                            return pictureUploader;
-                        } else if (x === "Secondary Picture Cropper") {
-                            return secondaryPictureCropper;
-                        }
-                        else {
-                            return item({...options_for_form[x]});
-                        }
-                    })}
-                    {extras}
-                    {!isNew &&
-                    <div onClick={confirmDelete} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
-                         role="button">
-                        <InterfaceText>Delete</InterfaceText>
-                    </div>}
+    return (
+        <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {(savingStatus || validatingLinks) &&
+                    <div className="collectionsWidget">{Sefaria._("common.saving")}</div>}
+                    <div id="newIndex">
+                        <AdminToolHeader title={title} close={close} validate={preprocess}/>
+                        {items.map((x) => {
+                            if (!x) {
+                                return null;
+                            } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                                return null;
+                            } else if (x === "Category Menu") {
+                                return catMenu;
+                            } else if (x === "Picture Uploader") {
+                                return pictureUploader;
+                            } else if (x === "Secondary Picture Cropper") {
+                                return secondaryPictureCropper;
+                            }
+                            else {
+                                return item({...options_for_form[x]});
+                            }
+                        })}
+                        {extras}
+                        {!isNew &&
+                        <div onClick={confirmDelete} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
+                             role="button">
+                            <InterfaceText>common.delete</InterfaceText>
+                        </div>}
 
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    );
 }
 
 export {AdminEditor, AdminEditorButton, useEditToggle, validateMarkdownLinks};

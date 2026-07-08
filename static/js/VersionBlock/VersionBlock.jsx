@@ -15,7 +15,7 @@ import VersionBlockWithPreview from "./VersionBlockWithPreview";
 class VersionBlockUtils {
     static makeVersionTitle(version){
       if (version.merged) {
-        return {"className" : "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(version.sources)).join(", ")};
+        return {"className" : "", "text": Sefaria._("version_block.merged_from") + " " + Array.from(new Set(version.sources)).join(", ")};
       } else if (Sefaria.interfaceLang === "english" || !version.versionTitleInHebrew) {
         return {"className" : "", "text" : version.versionTitle};
       } else {
@@ -293,37 +293,37 @@ class VersionBlock extends Component {
       );
     } else {
       return (
-          <div className="versionBlock">
-            <div className="versionBlockHeading">
-              <div className="versionTitle" role="heading" aria-level="2">
-              <VersionBlockHeader
-                    text={vtitle["text"]}
-                    onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
-                  renderMode='versionTitle'
-                  link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
-                      this.props.currObjectVersions, this.props.rendermode === 'book-page')}
-                 />
-              </div>
-              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
-              <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
+        <div className="versionBlock">
+          <div className="versionBlockHeading">
+            <div className="versionTitle" role="heading" aria-level="2">
+            <VersionBlockHeader
+                  text={vtitle["text"]}
+                  onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
+                renderMode='versionTitle'
+                link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
+                    this.props.currObjectVersions, this.props.rendermode === 'book-page')}
+               />
             </div>
-            <div className="versionSelect sans-serif">
-              <VersionBlockSelectButton
-                   isSelected={this.props.isCurrent}
-                   openVersionInMainPanel={openVersionInMainPanel}
-                   text={this.makeSelectVersionLanguage()}
-                   link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
-                      this.props.currObjectVersions, true)}
-             />
-            </div>
-            <div className={classNames(VersionBlockUtils.makeAttrClassNames(v, {"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
-              <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
-              <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
-                <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-                  {Sefaria._("Read More")}
-                </a>
-              </span>
-            </div>
+            <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+            <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
+          </div>
+          <div className="versionSelect sans-serif">
+            <VersionBlockSelectButton
+                 isSelected={this.props.isCurrent}
+                 openVersionInMainPanel={openVersionInMainPanel}
+                 text={this.makeSelectVersionLanguage()}
+                 link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
+                    this.props.currObjectVersions, true)}
+           />
+          </div>
+          <div className={classNames(VersionBlockUtils.makeAttrClassNames(v, {"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
+            <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
+            <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
+              <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                {Sefaria._("version_block.read_more")}
+              </a>
+            </span>
+          </div>
           { !v.merged ?
             <div className="versionDetails sans-serif">
               <VersionInformation currentRef={this.props.currentRef} version={v}/>

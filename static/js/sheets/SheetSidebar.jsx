@@ -34,7 +34,7 @@ const SheetSidebar = ({authorImage, authorStatement, authorUrl, toggleSignUpModa
 const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
     const profileFollowers = <div className="profileFollowers">
                                              <InterfaceText>{String(profile.followers.length)}</InterfaceText>&nbsp;
-                                             <InterfaceText>followers</InterfaceText>
+                                             <InterfaceText>common.followers</InterfaceText>
                                          </div>;
     return <span className="profile-summary">
              {profileFollowers}

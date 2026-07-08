@@ -2849,21 +2849,16 @@ const productsAnalytics = (rank, product, cta, label, link_type, event) => {
 // TODO - uncomment <OnInView /> once analytics is confirmed
 const ProductCTA = ({product, cta}) => {
     return (
-
         // <OnInView onVisible={() => productsAnalytics(product?.rank, product?.titles.en, cta.text.en, product?.type.en, "viewed")}>
+        // </OnInView> 
         <a href={cta.url} onClick={(e) => productsAnalytics(product.rank, product.titles.en, cta.text.en, product.type.en, "cta", "clicked")}>
             {cta.icon.url && <img className="productsCTAIcon" 
                                     src={cta.icon.url}
-                                    alt={Sefaria._("Click icon")} />}
-                                
+                                    alt={Sefaria._("static_pages.click_icon")} />}
             <span className="productsCTA">
                 <InterfaceText text={{en: cta.text.en , he: cta.text.he }} />
             </span>
         </a>
-
-        // </OnInView> 
-
-
     );
 };
 
