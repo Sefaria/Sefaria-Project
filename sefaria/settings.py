@@ -158,7 +158,6 @@ INSTALLED_APPS = (
     'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'django.contrib.postgres',
     'emailusernames',
     'guides',
     'sefaria.gauth',
@@ -178,6 +177,7 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
+    'django.contrib.postgres'
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
