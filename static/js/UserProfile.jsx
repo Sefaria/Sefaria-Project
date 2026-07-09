@@ -428,7 +428,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
    </div>
  )
  const enableOverlayContent = (
-   <div class="sans-serif-in-hebrew">
+    <div className="sans-serif-in-hebrew">
       <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
       <p><InterfaceText>user_profile.go_to_your_profile_to_create_a_new</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
       <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>user_profile.back_to_profile</InterfaceText></a></div>
