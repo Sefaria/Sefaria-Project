@@ -3,6 +3,10 @@
   --bp-desktop-min: 1087px;
 }
 
+:root {
+  --header-height: 60px;
+}
+
 .headerInner,
 .headerInner *:not(.dropdownLinks-menu):not(.dropdownLinks-menu *):not(.autocomplete-dropdown):not(.autocomplete-dropdown *):not(.languageToggle):not(.languageToggle *):not(.floating-ui-popover):not(.floating-ui-popover *):not(.keyboardInputInitiator):not(.keyboardInputInitiator *):not(.readerNavMenuSearchButton):not(.readerNavMenuSearchButton *) {
   display: flex;
@@ -168,5 +172,3 @@
   font-size: 24px;
   cursor: pointer;
 }
-
-/*# sourceMappingURL=header.css.map */

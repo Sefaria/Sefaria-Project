@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 import AuthCard from '../common/AuthCard.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
@@ -16,24 +17,40 @@ const EmailView = ({
   const isRegister = flow === 'register';
   const cfg = isRegister ? {
     cardClass: 'sefaria-auth-card--register-email',
-    heading: Sefaria._('Create an Account'),
-    sub: <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>,
+    heading: <InterfaceText context="Auth">Sign Up</InterfaceText>,
+    sub: (
+      <>
+        <InterfaceText>Already have an account?</InterfaceText>
+        {' '}
+        <a href="/login" onClick={switchFlow('login')}>
+          <InterfaceText context="Auth">Log In</InterfaceText>
+        </a>
+      </>
+    ),
     formId: 'register-form',
     emailOnFocus: startRegistration,
     passwordAutoComplete: 'new-password',
     passwordOnFocus: startRegistration,
     passwordTrailingLink: null,
-    buttonText: Sefaria._('Create Account'),
+    buttonText: <InterfaceText>Create Account</InterfaceText>,
   } : {
     cardClass: 'sefaria-auth-card--login-email',
-    heading: Sefaria._('Sign In'),
-    sub: <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>,
+    heading: <InterfaceText>Log In</InterfaceText>,
+    sub: (
+      <>
+        <InterfaceText>{"Don't have an account?"}</InterfaceText>
+        {' '}
+        <a href="/register" onClick={switchFlow('register')}>
+          <InterfaceText>Sign Up</InterfaceText>
+        </a>
+      </>
+    ),
     formId: 'login-form',
     emailOnFocus: undefined,
     passwordAutoComplete: 'current-password',
     passwordOnFocus: undefined,
-    passwordTrailingLink: { text: Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Forgot password?') : Sefaria._('Forgot password?'), onClick: onForgotClick },
-    buttonText: Sefaria._('Sign In'),
+    passwordTrailingLink: { text: Sefaria._('Forgot password?'), onClick: onForgotClick },
+    buttonText: <InterfaceText>Log In</InterfaceText>,
   };
 
   return (
@@ -47,11 +64,11 @@ const EmailView = ({
       <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
-          <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Email') : Sefaria._('Email Address')} type="email" name="email"
+          <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
                  inputDir="ltr" autoComplete="email"
                  placeholder="you@example.com" value={fields.email} onChange={setField('email')}
                  onFocus={cfg.emailOnFocus} />
-          <Input label={Sefaria.interfaceLang === 'hebrew' ? Sefaria._('Auth Password') : Sefaria._('Password')} type="password" name="password"
+          <Input label={Sefaria._('Password')} type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  value={fields.password} onChange={setField('password')}
                  onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
@@ -65,7 +82,7 @@ const EmailView = ({
           </Captcha>
         )}
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
-          <span>{cfg.buttonText}</span>
+          {cfg.buttonText}
         </Button>
         <LegalText />
       </form>

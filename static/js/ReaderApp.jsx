@@ -39,6 +39,7 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
+import AuthPage from './auth/AuthPage';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -119,11 +120,17 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
+      showAuth:  ['/login', '/register'].includes(window.location.pathname),
+      authFlow:  window.location.pathname === '/register' ? 'register' : 'login',
+      authNext:  new URLSearchParams(window.location.search).get('next') || '/',
     };
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
+  showAuthPage(flow, next = '/') {
+    this.setState({ showAuth: true, authFlow: flow, authNext: next });
+  }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -382,6 +389,9 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+    if (!!history.state?.showAuth !== !!this.state.showAuth) { return true; }
+    if (this.state.showAuth && (history.state?.authFlow !== this.state.authFlow || history.state?.authNext !== this.state.authNext)) { return true; }
+
     if (!history.state
         || (!history.state.panels && !!this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
@@ -450,6 +460,13 @@ class ReaderApp extends Component {
 
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
+    if (this.state.showAuth) {
+      const flow = this.state.authFlow === 'register' ? 'register' : 'login';
+      const next = this.state.authNext || '/';
+      const url  = next && next !== '/' ? `/${flow}?next=${encodeURIComponent(next)}` : `/${flow}`;
+      return { state: { showAuth: true, authFlow: flow, authNext: next, panels: [] }, url, title: document.title };
+    }
+
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
     const shortLang = Sefaria._getShortInterfaceLang();
@@ -745,7 +762,7 @@ class ReaderApp extends Component {
     if (Sefaria._debug_mode === "linker") {
         url += "&debug_mode=linker";
     }
-    hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
+    hist = {state: {panels: states, showAuth: false}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
       let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
@@ -849,7 +866,7 @@ class ReaderApp extends Component {
     //    "sticking" and affecting ALL future history updates
     // 4. We use the shouldReplace parameter for this specific update
     this.replaceHistory = false;
-    
+
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -1274,6 +1291,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setDefaultOption("language", lang)
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
+
+    if (path === '/login') {
+      this.showAuthPage('login', params.get('next') || '/');
+      return true;
+    } else if (path === '/register') {
+      this.showAuthPage('register', params.get('next') || '/');
+      return true;
+    }
+
+    if (this.state.showAuth) { this.setState({ showAuth: false }); }
+
     if (path === "/") {
       this.showRoot();
 
@@ -2460,9 +2488,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 />
               )}
               <main id="main" role="main">
+                {this.state.showAuth ? (
+                  <AuthPage
+                    initialFlow={this.state.authFlow}
+                    next={this.state.authNext}
+                  />
+                ) : (
                 <div className="panelContainer">
                   {panels}
                 </div>
+                )}
                 {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}

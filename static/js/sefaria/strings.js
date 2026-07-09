@@ -746,9 +746,48 @@ const Strings = {
     "Click icon": "סמל לחיצה",
     "Collection Header Image": "תמונת כותרת אסופה",
     "image of maginfying glass": "תמונה של זכוכית מגדלת",
+
+    // Authentication
+    "Log In": "התחברות",
+    "Continue with Google": "המשך עם גוגל",
+    "Continue with Apple": "המשך עם אפל",
+    "Continue with Email": 'המשך עם דוא״ל',
+    "Create Account": "יצירת חשבון",
+    "Send Reset Link": "שליחת קישור לאיפוס",
+    "Reset Link Sent": "קישור לעדכון סיסמה נשלח",
+    "Reset Password": "עדכון סיסמה",
+    "Forgot Password?": 'שכחת סיסמה?',
+    "Forgot password?": 'שכחת סיסמה?',
+    "Password": "סיסמה",
+    "First Name": "שם פרטי",
+    "Last Name": "שם משפחה",
+    "Don't have an account?": 'אין לך חשבון?',
+    "Already have an account?": 'יש לך חשבון?',
+    "Check your email and follow the instructions to reset your password.": 'שלחנו לך הוראות לעדכון הסיסמה לתיבת הדוא״ל שלך.',
+    "or": "או",
+    "Back": "חזרה",
+    "Show password": "הצגת סיסמה",
+    "Hide password": "הסתרת סיסמה",
+    // Auth errors
+    "Something went wrong. Try again.": "יש תקלה. נסו שוב.",
+    "Email and/or password are incorrect": 'דוא״ל ו/או הסיסמה אינם נכונים',
+    "Verify that you are not a robot": "נא לאשר שאינך רובוט",
+    "Invalid email address": 'דוא״ל שגוי',
+    "Required field": "שדה חובה",
+    "A user with that email already exists.": 'קיים חשבון עם הדוא״ל הזה. להתחברות',
   },
 
   _i18nInterfaceStringsWithContext: {
+    "Auth": {
+      "Sign Up": "יצירת חשבון",    // heading/title — default "Sign Up" maps to "להרשמה" (cross-flow link)
+      "Email Address": 'דוא״ל',    // auth input label — default maps to 'כתובת דוא"ל'
+      "Log In": "להתחברות",         // cross-flow link — default "Log In" maps to "התחברות" (button/heading)
+      "By continuing, you are agreeing to Sefaria's ": "המשך מהווה הסכמה ל",
+      "Terms of Use": "תנאי השימוש",
+      " and ": " ו",
+      "Privacy Policy": "מדיניות הפרטיות",
+      ".": " של ספריא.",
+    },
     "ModuleSwitcherPopover": {
       "Looking for something?": "חיפשתם משהו?",
       "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",

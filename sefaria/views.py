@@ -91,8 +91,15 @@ class StaticViewMixin:
         context['renderStatic'] = True
         return context
 
-class CustomLoginView(StaticViewMixin, LoginView):
+class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
+    template_name = 'base.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Log in to Sefaria')
+        context['desc'] = _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.')
+        return context
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
@@ -220,7 +227,7 @@ def register(request):
     next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
-        errors, _, form = process_register_form(request)
+        errors, __, form = process_register_form(request)
         if len(errors) == 0:
             if "new?assignment=" in request.POST.get("next", ""):
                 next_url = request.POST.get("next", "")
@@ -239,7 +246,12 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
+    return render_template(request, "base.html", {"headerMode": False}, {
+        'form': form,
+        'next': next_url,
+        'title': _('Create an Account'),
+        'desc': _('Create an account on Sefaria to make source sheets, take notes and follow other people.'),
+    })
 
 
 def maintenance_message(request):

@@ -1,0 +1,169 @@
+:root {
+  --bp-tablet-min: 843px;
+  --bp-desktop-min: 1087px;
+}
+
+.sefaria-auth-fields, .sefaria-auth-provider-options, .sefaria-auth-choose,
+.sefaria-auth-sso-group,
+.sefaria-auth-email-form, .sefaria-auth-stack, .sefaria-auth-card-header, .sefaria-auth-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.sefaria-auth-page {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 24px;
+  background-color: var(--sefaria-blue);
+  background-image: url("/static/img/auth/auth-bg-desktop.png");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-page {
+    padding: 0;
+    background-image: url("/static/img/auth/auth-bg-mobile.png");
+    background-position: center top;
+  }
+}
+
+.sefaria-auth-card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 56px 48px;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+}
+.sefaria-auth-card--choose {
+  min-height: 535px;
+}
+.sefaria-auth-card--login-email {
+  min-height: 538px;
+}
+.sefaria-auth-card--register-email {
+  min-height: 823px;
+}
+.sefaria-auth-card--register-email.sefaria-auth-card--email-error {
+  min-height: 892px;
+}
+.sefaria-auth-card--login-email.sefaria-auth-card--email-error {
+  min-height: 567px;
+}
+.sefaria-auth-card-back {
+  position: absolute;
+  inset-inline-start: 32px;
+  top: 32px;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #121212;
+}
+.sefaria-auth-card-back img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.sefaria-auth-card-header {
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 348px;
+}
+.sefaria-auth-card-heading {
+  margin: 0;
+  font-family: var(--english-serif-font-family, Georgia, "Times New Roman", serif);
+  font-size: 40px;
+  font-weight: 400;
+  text-align: center;
+  color: #121212;
+}
+.sefaria-auth-card-sub {
+  text-align: center;
+  font-size: 16px;
+  color: #121212;
+}
+.sefaria-auth-card-sub a {
+  color: var(--inline-link-blue);
+  text-decoration: underline;
+}
+.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
+  width: 100%;
+  max-width: 348px;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-card {
+    max-width: 100%;
+    min-height: 0;
+    border-radius: 0;
+    padding: 24px;
+  }
+}
+
+.sefaria-auth-stack {
+  gap: 12px;
+}
+
+.sefaria-auth-choose,
+.sefaria-auth-sso-group,
+.sefaria-auth-email-form {
+  gap: 24px;
+}
+
+.sefaria-auth-provider-options {
+  gap: 16px;
+}
+
+.sefaria-auth-fields {
+  gap: 20px;
+}
+
+.sefaria-auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c03522;
+  font-size: 16px;
+  line-height: 1.25;
+  text-align: start;
+}
+.sefaria-auth-error a {
+  color: #c03522;
+  text-decoration: underline;
+}
+.sefaria-auth-error-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+.sefaria-auth-error-content {
+  min-width: 0;
+}
+
+.sefaria-auth-email-form > .sefaria-auth-error {
+  margin-bottom: -8px;
+}
+
+.sefaria-auth-provider-action {
+  display: inline;
+  margin-inline-start: 4px;
+  font-weight: 400;
+}

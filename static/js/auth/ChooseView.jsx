@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 import AuthCard from '../common/AuthCard.jsx';
 import Divider from '../common/Divider.jsx';
 import Button from '../common/Button.jsx';
@@ -14,10 +15,27 @@ const ChooseView = ({
 }) => (
   <AuthCard
     className="sefaria-auth-card--choose"
-    heading={flow === 'login' ? Sefaria._('Sign In') : Sefaria._('Create an Account')}
+    heading={flow === 'login'
+      ? <InterfaceText>Log In</InterfaceText>
+      : <InterfaceText context="Auth">Sign Up</InterfaceText>}
     sub={flow === 'login'
-      ? <>{Sefaria._("Don't have an account?")} <a href="/register" onClick={switchFlow('register')}>{Sefaria._('Sign Up')}</a></>
-      : <>{Sefaria._('Already have an account?')} <a href="/login" onClick={switchFlow('login')}>{Sefaria._('Sign In')}</a></>}
+      ? (
+        <>
+          <InterfaceText>{"Don't have an account?"}</InterfaceText>
+          {' '}
+          <a href="/register" onClick={switchFlow('register')}>
+            <InterfaceText>Sign Up</InterfaceText>
+          </a>
+        </>
+      ) : (
+        <>
+          <InterfaceText>Already have an account?</InterfaceText>
+          {' '}
+          <a href="/login" onClick={switchFlow('login')}>
+            <InterfaceText context="Auth">Log In</InterfaceText>
+          </a>
+        </>
+      )}
   >
     <ErrorBanner error={error} onProviderClick={onProviderClick} />
     <div className="sefaria-auth-choose">
@@ -42,10 +60,10 @@ const ChooseView = ({
             />
           )}
         </div>
-        <Divider>{Sefaria._('or')}</Divider>
+        <Divider><InterfaceText>or</InterfaceText></Divider>
       </div>
       <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={onEmailClick}>
-        <span>{Sefaria._('Continue with Email')}</span>
+        <InterfaceText>Continue with Email</InterfaceText>
       </Button>
       <LegalText />
     </div>
