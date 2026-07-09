@@ -20,7 +20,7 @@ import {
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
   const [value, setValue] = React.useState(query || "");
-
+  React.useEffect(() => { setValue(query || ""); }, [query]);
   const submit = () => {
     const newQuery = value.trim();
     if (newQuery.length && newQuery !== query) {
@@ -34,7 +34,15 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           className="searchIcon"
           src="/static/icons/search_mdl.svg"
           alt={Sefaria._("Search")}
+          role="button"
+          tabIndex="0"
           onClick={submit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              submit();
+            }
+          }}
       />
       <input
           type="text"
@@ -52,8 +60,15 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
               src="/static/icons/heavy-x.svg"
               alt={Sefaria._("Clear")}
               role="button"
+              tabIndex="0"
               onClick={() => setValue("")}
-          /> : null}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setValue("");
+                }
+              }}
+          />
     </div>
   );
 };
@@ -110,7 +125,7 @@ class SearchPage extends Component {
   }
 
   formatEntityCount(count) {
-    if (count === null || count === undefined) { return "0"; }
+    if (count === null || count === undefined) { return ""; }
     return count >= 10000 ? "10,000+" : count.addCommas();
   }
 
@@ -122,7 +137,7 @@ class SearchPage extends Component {
     return (
       <div className="tab">
         <InterfaceText>{tab.title}</InterfaceText>
-        <span className="searchTabCount">{tab.count}</span>
+        {tab.count != null && <span className="searchTabCount">{tab.count}</span>}
       </div>
     );
   }
@@ -186,7 +201,7 @@ class SearchPage extends Component {
     }
 
     const tabs = [
-      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || "0"},
+      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || ""},
       {id: "books",   title: "Books",   count: this.formatEntityCount(this.state.entityCounts.book)},
       {id: "authors", title: "Authors", count: this.formatEntityCount(this.state.entityCounts.author)},
       {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityCounts.topic)},
