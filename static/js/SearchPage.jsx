@@ -13,9 +13,67 @@ import {
   CategoryColorLine,
   InterfaceText,
   LoadingMessage,
-  AiInfoTooltip,
+  TabView,
 } from './Misc';
 import SearchLoadSkeleton from './SearchLoadSkeleton';
+
+
+const SearchPageSearchBar = ({query, onQueryChange}) => {
+  const [value, setValue] = React.useState(query || "");
+  React.useEffect(() => { setValue(query || ""); }, [query]);
+  const submit = () => {
+    const newQuery = value.trim();
+    if (newQuery.length && newQuery !== query) {
+      onQueryChange(newQuery);
+    }
+  };
+
+  return (
+    <div className="searchPageSearchBar" role="search">
+      <img
+          className="searchIcon"
+          src="/static/icons/search_mdl.svg"
+          alt={Sefaria._("Search")}
+          role="button"
+          tabIndex="0"
+          onClick={submit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              submit();
+            }
+          }}
+      />
+      <input
+          type="text"
+          className="serif"
+          value={value}
+          placeholder={Sefaria._("Search")}
+          aria-label={Sefaria._("Search for Texts or Keywords Here")}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
+          maxLength={75}
+      />
+      {value.length &&
+          <img
+              className="searchBarClearButton"
+              src="/static/icons/heavy-x.svg"
+              alt={Sefaria._("Clear")}
+              role="button"
+              tabIndex="0"
+              onClick={() => setValue("")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setValue("");
+                }
+              }}
+          />
+        }
+    </div>
+  );
+};
+
 
 class SearchPage extends Component {
   constructor(props) {
@@ -23,13 +81,25 @@ class SearchPage extends Component {
     this.state = {
       totalResults: null,
       mobileFiltersOpen: false,
+      activeTab: "sources",
     };
+  }
+
+  setTab(tab) {
+    this.setState({activeTab: tab});
+  }
+
+  renderTab(tab) {
+    return (
+      <div className="tab">
+        <InterfaceText>{tab.title}</InterfaceText>
+        {tab.count != null && <span className="searchTabCount">{tab.count}</span>}
+      </div>
+    );
   }
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
-    const {aiBadgeText} = this.props;
-    const showAiBadge = aiBadgeText != null;
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -45,13 +115,6 @@ class SearchPage extends Component {
         topics={this.props.topics}
     />;
 
-    const resultCount = this.props.totalResults?.getValue() > 0 && (
-      <>
-        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>Results</InterfaceText>
-      </>
-    );
-
     const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
       <SearchSortBox
           type={this.props.type}
@@ -66,6 +129,14 @@ class SearchPage extends Component {
     if (this.props.searchInBook) {
       return searchResultList;
     }
+
+    const tabs = [
+      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() ?? null},
+      {id: "books",   title: "Books",   count: null},
+      {id: "authors", title: "Authors", count: null},
+      {id: "topics",  title: "Topics",  count: null},
+    ];
+
     return (
         <div className={classes} key={this.props.query}>
           {this.props.compare ?
@@ -80,30 +151,35 @@ class SearchPage extends Component {
               <div className="contentInner">
 
                 <div className="searchTopLine">
-                  <div className="searchTopLineInner">
-                    <h1 className="serif">
-                      <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
-                      <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
-                      {this.props.query}
-                      <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
-                    </h1>
-                    {showAiBadge && <AiInfoTooltip
-                      displayText={aiBadgeText}
-                      variant="solid"
-                      size={24}
-                    />}
-                  </div>
-                  <div className="searchTopMatter">
-                    <div className="searchResultCount">
-                      {resultCount}
-                    </div>
-                    <div>
-                      {sortFilterControls}
-                    </div>
-                  </div>
+                  <SearchPageSearchBar
+                      query={this.props.query}
+                      onQueryChange={this.props.onQueryChange}/>
                 </div>
-               <SearchLoadSkeleton />
 
+                {this.props.isQueryRunning
+                  ? <SearchLoadSkeleton />
+                  : <TabView
+                        tabs={tabs}
+                        currTabName={this.state.activeTab}
+                        setTab={this.setTab}
+                        renderTab={this.renderTab}
+                        containerClasses={"largeTabs"}>
+                      <div className="searchTabPanel" key="sources">
+                        <div className="searchTopMatter">
+                          <div>
+                            {sortFilterControls}
+                          </div>
+                        </div>
+                        {/* Search results temporarily removed while the page is rebuilt
+                            to match the multi-entity search designs (sc-45480).
+                        {searchResultList}
+                        */}
+                      </div>
+                      <div className="searchTabPanel" key="books"></div>
+                      <div className="searchTabPanel" key="authors"></div>
+                      <div className="searchTabPanel" key="topics"></div>
+                    </TabView>
+                }
               </div>
 
               {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
@@ -147,7 +223,6 @@ SearchPage.propTypes = {
   topics:                   PropTypes.array,
   totalResults:             PropTypes.object,
   sortTypeArray:            PropTypes.array,
-  aiBadgeText:              PropTypes.string,
 };
 
 

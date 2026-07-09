@@ -1,8 +1,101 @@
-import SearchPage from "../SearchPage";
 import Sefaria from "../sefaria/sefaria";
 import {useEffect, useState} from "react";
 import {SearchTotal} from "../sefaria/searchTotal";
 import SearchState from "../sefaria/searchState";
+import SearchFilters from "../SearchFilters";
+import {SearchResultList, SearchSortBox, SearchFilterButton} from "../SearchResultList";
+import {InterfaceText, AiInfoTooltip} from "../Misc";
+
+const SheetsWithRefLayout = ({query, hits, searchState, sortTypeArray, totalResults, isQueryRunning,
+                              onResultClick, updateAppliedFilter, updateAppliedOptionField,
+                              updateAppliedOptionSort, registerAvailableFilters, aiBadgeText}) => {
+    // A copy of the search results layout (see SearchPage.jsx) frozen for this page,
+    // so search UX changes don't unintentionally restyle "Sheets With" pages.
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const showAiBadge = aiBadgeText != null;
+
+    const searchResultList = <SearchResultList
+        query={query}
+        hits={hits}
+        type={'sheet'}
+        compare={false}
+        searchState={searchState}
+        onResultClick={onResultClick}
+        updateAppliedOptionSort={updateAppliedOptionSort}
+        registerAvailableFilters={registerAvailableFilters}
+        isQueryRunning={isQueryRunning}
+    />;
+
+    const resultCount = totalResults?.getValue() > 0 && (
+      <>
+        <InterfaceText>{totalResults.asString()}</InterfaceText>&nbsp;
+        <InterfaceText>Results</InterfaceText>
+      </>
+    );
+
+    const sortFilterControls = Sefaria.multiPanel ?
+      <SearchSortBox
+          type={'sheet'}
+          sortTypeArray={sortTypeArray}
+          updateAppliedOptionSort={updateAppliedOptionSort}
+          sortType={searchState.sortType}/>
+      :
+      <SearchFilterButton
+          openMobileFilters={() => setMobileFiltersOpen(true)}
+          nFilters={searchState.appliedFilters.length}/>;
+
+    return (
+        <div className="readerNavMenu" key={query}>
+          <div className="content searchContent">
+            <div className="sidebarLayout">
+              <div className="contentInner">
+
+                <div className="searchTopLine">
+                  <div className="searchTopLineInner">
+                    <h1 className="serif">
+                      <InterfaceText>Sheets With</InterfaceText>&nbsp;
+                      <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
+                      {query}
+                      <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
+                    </h1>
+                    {showAiBadge && <AiInfoTooltip
+                      displayText={aiBadgeText}
+                      variant="solid"
+                      size={24}
+                    />}
+                  </div>
+                  <div className="searchTopMatter">
+                    <div className="searchResultCount">
+                      {resultCount}
+                    </div>
+                    <div>
+                      {sortFilterControls}
+                    </div>
+                  </div>
+                </div>
+                {searchResultList}
+              </div>
+
+              {Sefaria.multiPanel || mobileFiltersOpen ?
+                  <div className={Sefaria.multiPanel ? "navSidebar" : "mobileSearchFilters"}>
+                    {totalResults?.getValue() > 0 ?
+                        <SearchFilters
+                            query={query}
+                            searchState={searchState}
+                            updateAppliedFilter={updateAppliedFilter.bind(null, searchState)}
+                            updateAppliedOptionField={updateAppliedOptionField}
+                            updateAppliedOptionSort={updateAppliedOptionSort}
+                            closeMobileFilters={() => setMobileFiltersOpen(false)}
+                            compare={false}
+                            type={'sheet'}/>
+                        : null}
+                  </div>
+                  : null}
+            </div>
+          </div>
+        </div>
+    );
+};
 const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateAppliedFilter,
                            updateAppliedOptionField, updateAppliedOptionSort, onResultClick,
                            registerAvailableFilters, resetSearchFilters}) => {
@@ -190,18 +283,14 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     };
     const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance'
         ? 'These sheet results are ranked by AI relevance.' : undefined;
-    return <SearchPage
+    return <SheetsWithRefLayout
           key={"sheetsPage"}
           isQueryRunning={loading}
           sortTypeArray={sortTypeArray}
-          searchTopMsg="Sheets With"
           hits={sortedSheets}
           query={displayRef}
-          type={'sheet'}
           totalResults={new SearchTotal({value: sortedSheets.length})}
-          compare={false}
           searchState={searchState}
-          panelsOpen={1}
           onResultClick={handleSheetResultClick}
           updateAppliedFilter={updateAppliedFilter}
           updateAppliedOptionField={updateAppliedOptionField}
