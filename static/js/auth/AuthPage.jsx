@@ -4,26 +4,7 @@ import ChooseView from './ChooseView.jsx';
 import EmailView from './EmailView.jsx';
 import ForgotView from './ForgotView.jsx';
 import ForgotSentView from './ForgotSentView.jsx';
-import { getCsrf, pickFirstError, authError } from './utils.js';
-
-/** Poll until check() is truthy (or give up after ~8s), then run cb. Used to wait for
- *  the async-loaded Google / Apple SDK scripts before rendering their buttons. */
-function whenReady(check, cb) {
-  let tries = 80;
-  let cancelled = false;
-  let timer = null;
-  const tick = () => {
-    if (cancelled) return;
-    if (check()) { cb(); return; }
-    if (--tries <= 0) return;
-    timer = setTimeout(tick, 100);
-  };
-  tick();
-  return () => {
-    cancelled = true;
-    if (timer) clearTimeout(timer);
-  };
-}
+import { getCsrf, authError, whenReady } from './utils.js';
 
 function makeFlowId() {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
@@ -55,13 +36,9 @@ const AuthPage = ({
   const [view, setView] = useState('choose'); // choose | email | forgot
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const [error, setError] = useState(null);
-  const [captchaError, setCaptchaError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
   const csrf = getCsrf(csrfToken);
-  const captchaToken = useRef('');
-  const captchaWidgetId = useRef(null);
   const googleBtnRef = useRef(null);
   const fieldsRef = useRef(fields);
   const registrationAnalytics = useRef({
@@ -76,13 +53,12 @@ const AuthPage = ({
     const value = e.target.value; // capture before the async setState updater (React event pooling)
     setFields((f) => ({ ...f, [k]: value }));
   };
-  const goChoose = () => { setView('choose'); setError(null); setCaptchaError(null); };
+  const clearError = () => setError(null);
   const switchFlow = (f) => (e) => {
     e && e.preventDefault();
     setFlow(f);
     setView('choose');
-    setError(null);
-    setCaptchaError(null);
+    clearError();
   };
 
   const trackRegistration = useCallback((name, extra = {}) => {
@@ -111,10 +87,11 @@ const AuthPage = ({
     trackRegistration('form_start');
   }, [trackRegistration]);
 
-  const endRegistration = useCallback(() => {
+  const endRegistration = useCallback((status) => {
     const analytics = registrationAnalytics.current;
     if (!analytics.started || analytics.ended) return;
     analytics.ended = true;
+    if (status) analytics.status = status;
     trackRegistration('form_end', { status: analytics.status });
   }, [trackRegistration]);
 
@@ -145,7 +122,7 @@ const AuthPage = ({
 
   // ---- SSO ----------------------------------------------------------------
   const onSSOResult = useCallback(async (url, body) => {
-    setError(null);
+    clearError();
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -258,106 +235,12 @@ const AuthPage = ({
     }
   };
 
-  // ---- reCAPTCHA (register only) -----------------------------------------
-  useEffect(() => {
-    const active = view === 'email' && flow === 'register' && !!recaptchaSiteKey;
-    if (!active) {
-      captchaWidgetId.current = null;
-      captchaToken.current = '';
-      return undefined;
-    }
-    const renderWidget = () => {
-      const slot = document.getElementById('auth-captcha-slot');
-      if (!slot || captchaWidgetId.current !== null || !window.grecaptcha.render) return;
-      try {
-        captchaWidgetId.current = window.grecaptcha.render(slot, {
-          sitekey: recaptchaSiteKey,
-          callback: (t) => { captchaToken.current = t; },
-          'expired-callback': () => { captchaToken.current = ''; },
-        });
-      } catch (e) { /* not ready / already rendered */ }
-    };
-    return whenReady(
-      () => window.grecaptcha && window.grecaptcha.render,
-      () => {
-        if (window.grecaptcha.ready) window.grecaptcha.ready(renderWidget);
-        else renderWidget();
-      },
-    );
-  }, [view, flow, recaptchaSiteKey]);
-
-  // ---- email submit -------------------------------------------------------
-  const submitEmail = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    setCaptchaError(null);
-    try {
-      if (flow === 'register') {
-        startRegistration();
-        trackRegistration('form_submit');
-        // Reuse the existing /register view's JSON ("noredirect") mode — keeps the
-        // server-side captcha validation and full onboarding side effects.
-        const body = new URLSearchParams();
-        body.set('email', fields.email);
-        body.set('password1', fields.password);
-        body.set('first_name', fields.first);
-        body.set('last_name', fields.last);
-        body.set('g-recaptcha-response', captchaToken.current || '');
-        body.set('next', next || '/');
-        body.set('noredirect', '1');
-        const res = await fetch('/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrf },
-          body: body.toString(),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (data && data.redirect) {
-          registrationAnalytics.current.status = 'success';
-          trackRegistration('form_submit_result', { status: 'success' });
-          endRegistration();
-          window.location.href = data.redirect;
-          return;
-        }
-        const message = pickFirstError(data) || 'Something went wrong. Try again.';
-        trackRegistration('form_submit_result', {
-          status: 'failure',
-          error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
-        });
-        const hasCaptchaError = !!(data && data.captcha);
-        const nonCaptchaError = Object.keys(data || {}).some((key) => key !== '_auth' && key !== 'captcha');
-        setError(nonCaptchaError ? authError(data, message) : null);
-        if (hasCaptchaError) setCaptchaError(Sefaria._('Verify that you are not a robot'));
-        if (window.grecaptcha && captchaWidgetId.current !== null) {
-          try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
-          captchaToken.current = '';
-        }
-      } else {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-          body: JSON.stringify({ email: fields.email, password: fields.password }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok) { window.location.href = next || '/'; return; }
-        setError(authError(data, 'Email and/or password are incorrect'));
-      }
-    } catch (err) {
-      if (flow === 'register') {
-        trackRegistration('form_submit_result', { status: 'failure', error: 'network_error' });
-      }
-      setError(authError(null, 'Something went wrong. Try again.'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   // ---- shared pieces ------------------------------------------------------
   const showProvider = (provider) => {
     const normalized = provider.toLowerCase();
     const target = normalized === 'google' ? 'google-signin-button' : 'apple-signin-button';
     setView('choose');
-    setError(null);
+    clearError();
     window.setTimeout(() => {
       const element = document.getElementById(target);
       if (element) {
@@ -368,29 +251,29 @@ const AuthPage = ({
   };
 
   // ---- views --------------------------------------------------------------
-  const onEmailClick = () => { setView('email'); setError(null); };
-  const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); setError(null); };
-  const onSignIn = () => { setFlow('login'); setView('choose'); };
+  const onEmailClick = () => { setView('email'); clearError(); };
+  const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); clearError(); };
 
   let content;
   if (view === 'email') {
     content = (
       <EmailView
-        flow={flow} switchFlow={switchFlow} error={error} fields={fields}
-        submitting={submitting} captchaError={captchaError} setField={setField}
-        goChoose={goChoose} submitEmail={submitEmail} startRegistration={startRegistration}
+        flow={flow} switchFlow={switchFlow} fields={fields} setField={setField}
+        onBack={() => setView('choose')} startRegistration={startRegistration}
+        trackRegistration={trackRegistration} endRegistration={endRegistration}
         recaptchaSiteKey={recaptchaSiteKey} onForgotClick={onForgotClick}
+        next={next} csrf={csrf}
       />
     );
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        emailValue={fields.email} setField={setField}
-        csrf={csrf} onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
+        emailValue={fields.email} setField={setField} csrf={csrf}
+        onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
       />
     );
   } else if (view === 'forgot-sent') {
-    content = <ForgotSentView onSignIn={onSignIn} />;
+    content = <ForgotSentView onSignIn={switchFlow('login')} />;
   } else {
     content = (
       <ChooseView

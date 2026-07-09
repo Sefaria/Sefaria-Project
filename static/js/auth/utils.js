@@ -1,3 +1,20 @@
+export function whenReady(check, cb) {
+  let tries = 80;
+  let cancelled = false;
+  let timer = null;
+  const tick = () => {
+    if (cancelled) return;
+    if (check()) { cb(); return; }
+    if (--tries <= 0) return;
+    timer = setTimeout(tick, 100);
+  };
+  tick();
+  return () => {
+    cancelled = true;
+    if (timer) clearTimeout(timer);
+  };
+}
+
 export function getCsrf(explicit) {
   if (explicit) return explicit;
   if (typeof document === 'undefined') return '';
@@ -16,11 +33,11 @@ export function pickFirstError(data) {
 }
 
 export function authError(data, fallback) {
-  const metadata = data && data._auth;
+  const metadata = data?._auth;
   const message = pickFirstError(data) || fallback;
   return {
     message: Sefaria._(message),
-    code: metadata && metadata.code,
-    providers: metadata && Array.isArray(metadata.providers) ? metadata.providers : [],
+    code: metadata?.code,
+    providers: Array.isArray(metadata?.providers) ? metadata.providers : [],
   };
 }
