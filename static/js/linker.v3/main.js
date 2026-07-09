@@ -162,13 +162,11 @@ import pRetry, {AbortError} from 'p-retry';
         atag.target = "_blank";
         atag.textContent = text;
         atag.className = "sefaria-ref";
-        // force the wrapped text to render exactly as it did before wrapping, regardless of the
-        // host page's own CSS for `a` elements (e.g. a generic `a { font-size: ... }` rule would
-        // otherwise override the inherited size/family/color of the surrounding text)
-        atag.style.font = "inherit";
-        atag.style.color = "inherit";
-        atag.style.textDecoration = "inherit";
-        atag.style.letterSpacing = "inherit";
+        // reset every property to inherit/initial so the host page's own CSS for `a` elements
+        // (e.g. a generic `a { font-size: ... }` rule) can't override how the wrapped text
+        // renders; debug-mode border styling counteracts this via `!important` (see popup.js)
+        atag.style.all = "unset";
+        atag.style.cursor = "pointer";
         if (ns.debug) {
             atag.className += " sefaria-ref-debug";
             if (linkFailed) { atag.className += " sefaria-link-failed"; }
