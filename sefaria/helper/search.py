@@ -228,6 +228,19 @@ from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 
 ENTITY_TYPES = ("topic", "author", "book")
 
+# Sort options per entity type. "relevance" is the scored default; the others impose an
+# explicit field order: "alpha" A-Z on the lowercased English title, "year_asc"/"year_desc"
+# chronological on the per-type year field (books: composition date; authors: birth year).
+# Topics have no year, so they only offer relevance and A-Z. Sources (the `text` index) are
+# a separate query path and are deliberately untouched.
+ENTITY_SORTS = {
+    "topic": ("relevance", "alpha"),
+    "author": ("relevance", "alpha", "year_asc", "year_desc"),
+    "book": ("relevance", "alpha", "year_asc", "year_desc"),
+}
+_ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see put_*_mapping)
+_ENTITY_YEAR_SORT_FIELDS = {"author": "birthYear", "book": "compDate"}
+
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,
 # authored titles on authors) -> description.
@@ -310,7 +323,30 @@ _ENTITY_KEYWORD_FIELDS = {
 }
 
 
-def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20):
+def _entity_sort_clauses(type, sort):
+    """
+    Return the ES `sort` clauses for a non-relevance entity sort, or None for "relevance"
+    (which uses score order, i.e. no sort clause at all).
+
+    Every field sort uses `missing: "_last"` so entities lacking the sort key — undated
+    books/authors, Hebrew-only topics with no English title — always trail, in either
+    direction. `_score` is the tie-breaker so equally-keyed docs still order by relevance.
+
+    :raises ValueError: if `sort` is not valid for this entity type (e.g. year sorts on topics)
+    """
+    valid = ENTITY_SORTS.get(type, ENTITY_SORTS["topic"])
+    if sort not in valid:
+        raise ValueError(f"Invalid entity search sort '{sort}' for type '{type}'. Must be one of {valid}.")
+    if sort == "relevance":
+        return None
+    if sort == "alpha":
+        field, order = _ENTITY_ALPHA_SORT_FIELD, "asc"
+    else:  # year_asc / year_desc
+        field, order = _ENTITY_YEAR_SORT_FIELDS[type], sort.rsplit("_", 1)[1]
+    return [{field: {"order": order, "missing": "_last"}}, {"_score": {"order": "desc"}}]
+
+
+def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20, sort="relevance"):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
     index. Layers five match-type tiers as `should` clauses with descending boosts
@@ -328,11 +364,19 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
     popularity factor (>= 1, so it breaks ties toward well-sourced entities without
     zeroing or dominating a strong text match). Books carry no `numSources`.
 
+    A non-relevance `sort` ("alpha" / "year_asc" / "year_desc") keeps the same match set
+    but orders it by the sort field instead of score (see _entity_sort_clauses). The
+    popularity function_score is skipped in that case — score is then only a tie-breaker,
+    and the tier boosts already provide that without the script cost.
+
     :param query: the user query string
     :param type: one of "topic", "author", "book"
     :param search_obj: an optional elasticsearch_dsl Search to attach the query to
+    :param sort: one of ENTITY_SORTS[type]; default "relevance"
     :return: Search object ready to .execute()
+    :raises ValueError: if `sort` is not valid for this entity type
     """
+    sort_clauses = _entity_sort_clauses(type, sort)
     if search_obj is None:
         search_obj = Search()
     is_book = type == "book"
@@ -356,7 +400,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
     else:
         base_query = text_query
 
-    if is_book:
+    if is_book or sort_clauses is not None:
         search_obj.query = base_query
     else:
         # Multiply the text score by a gentle popularity factor: 1 + log10(1 + numSources)*w.
@@ -376,6 +420,8 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20)
             }
         }
 
+    if sort_clauses is not None:
+        search_obj = search_obj.sort(*sort_clauses)
     return search_obj[start:start + size]
 
 
@@ -441,7 +487,7 @@ def _author_works_response(author):
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
-def entity_search(query, type, start=0, size=20):
+def entity_search(query, type, start=0, size=20, sort="relevance"):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
@@ -449,23 +495,32 @@ def entity_search(query, type, start=0, size=20):
     - type="book": if the query resolves to an author entity, return that author's works
       aggregated by category; otherwise a flat full-text search over the book index.
 
-    :raises ValueError: if `type` is not one of ENTITY_TYPES
+    A non-relevance `sort` always runs the flat, field-sorted search — the author-works
+    aggregation is skipped even when the query resolves to an author, because its category
+    entries collapse many works (with many dates) into one row, so no per-row sort key
+    exists. Sorting is a total order over individual documents by design.
+
+    :raises ValueError: if `type` is not one of ENTITY_TYPES, or `sort` is not one of
+        ENTITY_SORTS[type]
     """
     if type not in ENTITY_TYPES:
         raise ValueError(f"Invalid entity search type '{type}'. Must be one of {ENTITY_TYPES}.")
+    if sort not in ENTITY_SORTS[type]:
+        raise ValueError(f"Invalid entity search sort '{sort}' for type '{type}'. Must be one of {ENTITY_SORTS[type]}.")
 
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        author = _resolve_author(query, es_client)
-        if author is not None:
-            return _author_works_response(author)
+        if sort == "relevance":
+            author = _resolve_author(query, es_client)
+            if author is not None:
+                return _author_works_response(author)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
 
     search_obj = Search(using=es_client, index=index_name).params(request_timeout=5)
-    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size)
+    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size, sort=sort)
     response = search_obj.execute()
     if not response.success():
         raise IOError("Elasticsearch entity search failed.")

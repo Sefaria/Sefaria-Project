@@ -4798,16 +4798,23 @@ def entity_search_api(request):
     """
     Entity search endpoint powering the Topics / Authors / Books tabs.
 
-    GET /api/entity-search?q=<query>&type=<topic|author|book>
+    GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
 
     `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
     `book` searches the `book` index, or — when the query resolves to an author — returns
     that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+
+    `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
+    "year_desc" sort books by composition date and authors by birth year (topics have no
+    year, so they only accept relevance/alpha). Any explicit sort returns the flat,
+    field-sorted list — including on the books tab, where it bypasses the author-works
+    aggregation (category rows collapse many dates, so they carry no sort key).
     """
-    from sefaria.helper.search import entity_search, ENTITY_TYPES
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS
 
     query = request.GET.get("q", "").strip()
     entity_type = request.GET.get("type", "topic").strip()
+    sort = request.GET.get("sort", "relevance").strip()
     callback = request.GET.get("callback", None)
 
     if not query:
@@ -4817,6 +4824,11 @@ def entity_search_api(request):
             {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
             callback=callback,
         )
+    if sort not in ENTITY_SORTS[entity_type]:
+        return jsonResponse(
+            {"error": f"Invalid 'sort' parameter '{sort}' for type '{entity_type}'. Must be one of {list(ENTITY_SORTS[entity_type])}."},
+            callback=callback,
+        )
 
     try:
         size = min(int(request.GET.get("size", 20)), 100)
@@ -4824,9 +4836,9 @@ def entity_search_api(request):
         size = 20
 
     try:
-        results = entity_search(query, entity_type, size=size)
+        results = entity_search(query, entity_type, size=size, sort=sort)
     except Exception as e:
-        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, error: {e}", exc_info=True)
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, error: {e}", exc_info=True)
         return jsonResponse({"error": "Error running entity search."}, callback=callback)
 
     return jsonResponse(results, callback=callback)

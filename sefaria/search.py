@@ -314,6 +314,14 @@ def create_index(index_name, type, force=False):
                     "stemmed_english": get_stemmed_english_analyzer(),
                     "exact_english": get_exact_english_analyzer(),
                 },
+                "normalizer": {
+                    # Case-insensitive keyword variant, used by the `.sort` sub-fields on
+                    # entity titles for A-Z sorting (a raw keyword sort puts "iggeret" after "Zohar").
+                    "keyword_lowercase": {
+                        "type": "custom",
+                        "filter": ["lowercase"]
+                    }
+                },
                 "filter": {
                     "my_snow": {
                         "type": "snowball",
@@ -495,7 +503,7 @@ def put_topic_mapping(index_name):
     authors live here and are distinguished by the `subtype` field ("topic" or
     "author"). English title/variant/description fields use `stemmed_english`;
     Hebrew fields are plain `text`. Title fields expose a `keyword` sub-field for
-    exact-match and sort.
+    exact-match and a lowercased `sort` sub-field for A-Z sorting.
     """
     topic_mapping = {
         'properties': {
@@ -510,12 +518,14 @@ def put_topic_mapping(index_name):
                 'analyzer': 'stemmed_english',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'title_he': {
                 'type': 'text',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'titleVariants': {
@@ -579,12 +589,14 @@ def put_book_mapping(index_name):
                 'analyzer': 'stemmed_english',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'title_he': {
                 'type': 'text',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'titleVariants': {
@@ -1247,8 +1259,11 @@ def make_topic_index_document(topic, authored_titles_map=None):
     doc = {
         'slug': slug,
         'subtype': 'author' if is_author else 'topic',
-        'title_en': title_en,
-        'title_he': title_he,
+        # An absent title (many topics are Hebrew-only) is omitted rather than stored as ""
+        # so the A-Z sort's `missing: _last` pushes untitled docs to the end — an empty
+        # string is a real keyword value and would sort *first*.
+        'title_en': title_en or None,
+        'title_he': title_he or None,
         'titleVariants': variants,
         'description_en': description.get('en', ''),
         'description_he': description.get('he', ''),
@@ -1323,7 +1338,7 @@ def make_book_index_document(index, author_name_cache=None):
     if not title_en:
         return None
     try:
-        title_he = index.get_title('he')
+        title_he = index.get_title('he') or None  # "" would sort before "A" in the A-Z sort
     except Exception:
         title_he = None
 

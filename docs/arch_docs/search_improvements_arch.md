@@ -139,6 +139,24 @@ The catch is that **not every ranking factor reduces to a single per-field weigh
 
 In short, the match-boost weights are a clean, low-risk knob to hand to product via RemoteConfig, but signal- and category-based factors require purpose-built structure in the query builder and can't be collapsed into the same flat field→weight map. A RemoteConfig schema for this should therefore separate these concerns (e.g. a `match_boosts` map distinct from `signal_boosts`) rather than expose one undifferentiated dictionary — and should validate keys against the real index fields, since a typo'd field name would silently boost nothing.
 
+#### Sorting (entity tabs only)
+
+Each entity tab offers explicit sort orders in addition to the default relevance ranking; the Sources tab is unchanged (it is a separate query path with its own existing sort options).
+
+| Tab | Sort options | Year field |
+|---|---|---|
+| Sources | *no change* | — |
+| Books | Relevance · Publication Year (Oldest/Newest First) · A-Z | `compDate` |
+| Authors | Relevance · Year (Oldest/Newest First) · A-Z | `birthYear` |
+| Topics | Relevance · A-Z | — |
+
+The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a sort invalid for the type (e.g. a year sort on topics) is rejected. Mechanics:
+
+- **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. The `numSources` popularity `function_score` is skipped when a field sort is active (score is then only a tie-breaker; the tier boosts provide that without the script cost).
+- **A-Z is case-insensitive.** Sorting uses a `title_en.sort` keyword sub-field with a `lowercase` normalizer (a raw `keyword` sort would put "iggeret" after "Zohar"). Both title fields on both indices carry the sub-field, so a Hebrew-interface א-ת sort on `title_he.sort` needs no reindex later.
+- **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
+- **Explicit sorts bypass the author-works aggregation.** On the Books tab, a query that resolves to an author normally returns category-aggregated works (see below). Those category rows collapse many works — and many dates — into one entry, so they carry no per-row sort key. Any non-relevance sort therefore runs the flat book search, where every row has a real `compDate`/title. This is a deliberate, uniform rule (sorting is a total order over individual documents); if product prefers A-Z to preserve the aggregation, that one case could sort the aggregated rows client- or server-side by title instead.
+
 #### Author-aware book results
 
 When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
