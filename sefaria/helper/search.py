@@ -200,16 +200,24 @@ def get_filter_obj(type, filters, filter_fields):
     return Bool(must=outer_bools)
 
 
+def make_path_filter(path):
+    """
+    Regexp filter matching a category path itself or anything nested under it
+    ("Tanakh/Torah" matches "Tanakh/Torah" and "Tanakh/Torah/Genesis"). Shared by the
+    text search path filters and the entity (book) category filter — the book index's
+    `path` field deliberately mirrors the text index's "Category/Subcategory/Title" shape.
+    """
+    path = re.escape(path.rstrip('/'))
+    return Regexp(path=f"{path}|{path}/.*")
+
+
 def make_filter(type, agg_type, agg_key):
     if type == "text" and agg_type in (None, "path"):
         # "path" is the standard text filter field (regexp over category path).
         # None is accepted as a defensive fallback for callers that pass an empty filter_fields list,
         # which get_filter_obj normalises to [None] (see line 129).
         # filters with '/' might be leading to books. also, very unlikely they'll match any false positives
-        agg_key = agg_key.rstrip('/')
-        agg_key = re.escape(agg_key)
-        reg = f"{agg_key}|{agg_key}/.*"
-        return Regexp(path=reg)
+        return make_path_filter(agg_key)
     else:
         return Term(**{agg_type: agg_key})
 
@@ -346,7 +354,8 @@ def _entity_sort_clauses(type, sort):
     return [{field: {"order": order, "missing": "_last"}}, {"_score": {"order": "desc"}}]
 
 
-def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20, sort="relevance"):
+def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20, sort="relevance",
+                         category_paths=None):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
     index. Layers five match-type tiers as `should` clauses with descending boosts
@@ -369,17 +378,25 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     popularity function_score is skipped in that case — score is then only a tie-breaker,
     and the tier boosts already provide that without the script cost.
 
+    `category_paths` (books only) restricts hits to books whose `path` sits at or under
+    any of the given category paths — the same path-regexp semantics as text search
+    filters (see make_path_filter). Multiple paths OR together; the clause is a
+    non-scoring `filter`, so it never perturbs relevance ranking.
+
     :param query: the user query string
     :param type: one of "topic", "author", "book"
     :param search_obj: an optional elasticsearch_dsl Search to attach the query to
     :param sort: one of ENTITY_SORTS[type]; default "relevance"
+    :param category_paths: optional list of category path strings; only valid for type="book"
     :return: Search object ready to .execute()
-    :raises ValueError: if `sort` is not valid for this entity type
+    :raises ValueError: if `sort` or `category_paths` is not valid for this entity type
     """
     sort_clauses = _entity_sort_clauses(type, sort)
     if search_obj is None:
         search_obj = Search()
     is_book = type == "book"
+    if category_paths and not is_book:
+        raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
     keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
@@ -397,6 +414,10 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
         base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
+    elif category_paths:
+        # Category filter: match set restricted to books at/under any given path (OR).
+        path_filter = Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1)
+        base_query = Q("bool", must=[text_query], filter=[path_filter])
     else:
         base_query = text_query
 
@@ -487,31 +508,36 @@ def _author_works_response(author):
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
-def entity_search(query, type, start=0, size=20, sort="relevance"):
+def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
     - type="topic"/"author": flat full-text search over the topic index (filtered by subtype).
     - type="book": if the query resolves to an author entity, return that author's works
       aggregated by category; otherwise a flat full-text search over the book index.
+      `category_paths` (books only) restricts hits to books at/under any of the given
+      category paths.
 
-    A non-relevance `sort` always runs the flat, field-sorted search — the author-works
-    aggregation is skipped even when the query resolves to an author, because its category
-    entries collapse many works (with many dates) into one row, so no per-row sort key
-    exists. Sorting is a total order over individual documents by design.
+    A non-relevance `sort` or a category filter always runs the flat search — the
+    author-works aggregation is skipped even when the query resolves to an author,
+    because its category entries collapse many works into one row, so they carry no
+    per-row sort key or per-book path. Sorting and filtering operate on individual
+    documents by design.
 
-    :raises ValueError: if `type` is not one of ENTITY_TYPES, or `sort` is not one of
-        ENTITY_SORTS[type]
+    :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
+        ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
     """
     if type not in ENTITY_TYPES:
         raise ValueError(f"Invalid entity search type '{type}'. Must be one of {ENTITY_TYPES}.")
     if sort not in ENTITY_SORTS[type]:
         raise ValueError(f"Invalid entity search sort '{sort}' for type '{type}'. Must be one of {ENTITY_SORTS[type]}.")
+    if category_paths and type != "book":
+        raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
 
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if sort == "relevance":
+        if sort == "relevance" and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
                 return _author_works_response(author)
@@ -520,7 +546,8 @@ def entity_search(query, type, start=0, size=20, sort="relevance"):
         index_name = SEARCH_INDEX_NAME_TOPIC
 
     search_obj = Search(using=es_client, index=index_name).params(request_timeout=5)
-    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size, sort=sort)
+    search_obj = get_entity_query_obj(query, type=type, search_obj=search_obj, start=start, size=size, sort=sort,
+                                      category_paths=category_paths)
     response = search_obj.execute()
     if not response.success():
         raise IOError("Elasticsearch entity search failed.")

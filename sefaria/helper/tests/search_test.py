@@ -126,6 +126,39 @@ def test_entity_query_obj_sort_keeps_match_set():
     assert ordered(alpha["query"]) == ordered(relevance["query"])
 
 
+def test_entity_query_obj_category_filter():
+    s = get_entity_query_obj("torah", "book", category_paths=["Tanakh/Torah"]).to_dict()
+    filters = s["query"]["bool"]["filter"]
+    assert filters == [{
+        "bool": {
+            "should": [{"regexp": {"path": "Tanakh/Torah|Tanakh/Torah/.*"}}],
+            "minimum_should_match": 1,
+        }
+    }]
+    # the text query itself is unchanged — the filter clause is non-scoring
+    unfiltered = get_entity_query_obj("torah", "book").to_dict()
+    assert ordered(s["query"]["bool"]["must"]) == ordered([unfiltered["query"]])
+
+
+def test_entity_query_obj_category_filter_multiple_paths_or():
+    s = get_entity_query_obj("torah", "book", category_paths=["Tanakh", "Halakhah"]).to_dict()
+    shoulds = s["query"]["bool"]["filter"][0]["bool"]["should"]
+    assert {"regexp": {"path": "Tanakh|Tanakh/.*"}} in shoulds
+    assert {"regexp": {"path": "Halakhah|Halakhah/.*"}} in shoulds
+
+
+def test_entity_query_obj_category_filter_composes_with_sort():
+    s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"]).to_dict()
+    assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
+    assert s["query"]["bool"]["filter"][0]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+
+
+def test_entity_query_obj_category_filter_books_only():
+    for entity_type in ("topic", "author"):
+        with pytest.raises(ValueError):
+            get_entity_query_obj("torah", entity_type, category_paths=["Tanakh"])
+
+
 def test_entity_query_obj_invalid_sort():
     with pytest.raises(ValueError):
         get_entity_query_obj("moshe", "topic", sort="year_asc")  # topics have no year

@@ -157,6 +157,14 @@ The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a
 - **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
 - **Explicit sorts bypass the author-works aggregation.** On the Books tab, a query that resolves to an author normally returns category-aggregated works (see below). Those category rows collapse many works — and many dates — into one entry, so they carry no per-row sort key. Any non-relevance sort therefore runs the flat book search, where every row has a real `compDate`/title. This is a deliberate, uniform rule (sorting is a total order over individual documents); if product prefers A-Z to preserve the aggregation, that one case could sort the aggregated rows client- or server-side by title instead.
 
+#### Category filter (books only)
+
+The Books tab also supports a category filter: `filter=<category path>` on the API (repeatable — multiple filters OR together). This is where the `path` field's design choice pays off: because book `path` mirrors the text index's `"Category/Subcategory/Title"` shape, the filter reuses the exact regexp semantics of text search path filters (`path` or `path/.*`, via a shared `make_path_filter` helper) — e.g. `filter=Tanakh/Torah` matches every book at or under that category. Properties:
+
+- **Non-scoring.** The paths go into the bool query's `filter` context, so filtering never perturbs relevance ranking — the same match scores, just a restricted set. It composes freely with any `sort`.
+- **Books only.** Topics and authors carry no category path; a `filter` on those types is rejected (topics may want a different faceting concept later, but it isn't this field).
+- **Bypasses the author-works aggregation**, same rule as explicit sorts: category-aggregated rows collapse many books into one entry with no single per-row path, so a filtered query always returns the flat book list.
+
 #### Author-aware book results
 
 When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
