@@ -244,11 +244,12 @@ jobs:
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
@@ -303,11 +304,12 @@ jobs:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -384,11 +386,12 @@ jobs:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
+          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
