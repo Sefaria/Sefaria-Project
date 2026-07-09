@@ -15,6 +15,7 @@ import {
   LoadingMessage,
   AiInfoTooltip,
 } from './Misc';
+import SearchLoadSkeleton from './SearchLoadSkeleton';
 
 class SearchPage extends Component {
   constructor(props) {
@@ -101,7 +102,8 @@ class SearchPage extends Component {
                     </div>
                   </div>
                 </div>
-                {searchResultList}
+               <SearchLoadSkeleton />
+
               </div>
 
               {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
