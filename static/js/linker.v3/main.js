@@ -162,6 +162,13 @@ import pRetry, {AbortError} from 'p-retry';
         atag.target = "_blank";
         atag.textContent = text;
         atag.className = "sefaria-ref";
+        // force the wrapped text to render exactly as it did before wrapping, regardless of the
+        // host page's own CSS for `a` elements (e.g. a generic `a { font-size: ... }` rule would
+        // otherwise override the inherited size/family/color of the surrounding text)
+        atag.style.font = "inherit";
+        atag.style.color = "inherit";
+        atag.style.textDecoration = "inherit";
+        atag.style.letterSpacing = "inherit";
         if (ns.debug) {
             atag.className += " sefaria-ref-debug";
             if (linkFailed) { atag.className += " sefaria-link-failed"; }
