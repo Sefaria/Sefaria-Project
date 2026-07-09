@@ -89,6 +89,10 @@ class Track {
     static setSidebars(val) {
         ga(SET, 'dimension6', val);
     }
+    static setAppVersion(val) {
+        // Deployed web app version (semantic-release tag), empty in local dev.
+        if (val) ga(SET, 'dimension8', val);
+    }
     static setUserLoggedIn(bool) {
         ga(SET, 'dimension7', bool? "Logged In": "Logged Out");
     }
