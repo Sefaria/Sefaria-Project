@@ -4750,6 +4750,88 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   }
 }
 
+/* ── No search results ──────────────────────────────────────────── */
+.noSearchResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.noSearchResults-image {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.noSearchResults-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.noSearchResults-textGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.noSearchResults-heading {
+  font-size: 30px;
+  color: #121212;
+  font-weight: 400;
+  margin: 0;
+}
+
+.noSearchResults-body {
+  font-size: 16px;
+  color: var(--darker-grey);
+  margin: 0;
+}
+
+.noSearchResults-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  padding: 0 16px;
+  background: var(--sefaria-blue);
+  border: 1.5px solid var(--sefaria-blue);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.noSearchResults-cta:hover {
+  color: #fff;
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.noSearchResults-caption {
+  font-size: 14px;
+  line-height: 18px;
+  color: #707070;
+  text-align: center;
+  margin: 0;
+}
+
+.noSearchResults-captionLink {
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+}
+
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
