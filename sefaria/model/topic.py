@@ -39,6 +39,24 @@ class SubCatBookSet:
         return hash(self.sub_cat_path)
 
 
+def _index_comp_date(index):
+    """
+    Collapse an Index's composition period to a single sortable year (prefer end year,
+    else start), or None when the index has no usable date. Mirrors the collapse used
+    for the `compDate` field of the ES book index (see make_book_index_document).
+    """
+    try:
+        tp = index.best_time_period()
+    except Exception:
+        return None
+    if not tp:
+        return None
+    year = getattr(tp, 'end', None)
+    if year is None:
+        year = getattr(tp, 'start', None)
+    return int(year) if year is not None else None
+
+
 class AuthorWorksAggregation(ABC):
     """
     Common interface for an entry in an author's list of works, which is either a single
@@ -68,6 +86,11 @@ class AuthorWorksAggregation(ABC):
         """Localized label of the category these works are grouped under, or None for a single book."""
         pass
 
+    @abstractmethod
+    def get_comp_date(self):
+        """Single sortable composition year for this entry, or None when undatable."""
+        pass
+
 
 class AuthorIndexAggregation(AuthorWorksAggregation):
     def __init__(self, index):
@@ -89,12 +112,16 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
     def get_category_label(self, lang):
         return None
 
+    def get_comp_date(self):
+        return _index_comp_date(self._index)
+
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
-    def __init__(self, index_category, collective_term, base_category):
+    def __init__(self, index_category, collective_term, base_category, indexes=None):
         self._index_category: Category = index_category
         self._collective_title_term: Term = collective_term
         self._base_category: Category = base_category
+        self._indexes: List[Index] = indexes or []
 
     def get_description(self, lang):
         desc = getattr(self._index_category, f'{lang}ShortDesc', None)
@@ -118,17 +145,26 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
         # Localized name of the category the works are grouped under (e.g. "Mishneh Torah").
         return self._index_category.get_primary_title(lang)
 
+    def get_comp_date(self):
+        # A category row collapses many works (and dates) into one entry; represent it by
+        # the average composition year of its dated works so year sorts can order it.
+        dates = [d for d in (_index_comp_date(i) for i in self._indexes) if d is not None]
+        if not dates:
+            return None
+        return round(sum(dates) / len(dates))
+
 
 class AuthorAggregationFactory:
     @staticmethod
-    def create(index=None, index_category=None, collective_term=None, base_category=None):
+    def create(index=None, index_category=None, collective_term=None, base_category=None, indexes=None):
         if index:
             return AuthorIndexAggregation(index)
         elif index_category:
             return AuthorCategoryAggregation(
                 index_category,
                 collective_term,
-                base_category
+                base_category,
+                indexes
             )
         else:
             raise ValueError("Invalid parameters for aggregation creation")
@@ -801,7 +837,7 @@ class AuthorTopic(PersonTopic):
                 for temp_index in temp_indexes:
                     final_aggregations += [AuthorAggregationFactory.create(index=temp_index)]
                 continue
-            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category, indexes=temp_indexes)]
         return final_aggregations
 
 
@@ -818,7 +854,8 @@ class AuthorTopic(PersonTopic):
                                 "title": {"en": agg.get_title('en'), "he": agg.get_title('he')},
                                 "description": {"en": agg.get_description('en'), "he": agg.get_description('he')},
                                 "isCategory": agg.is_category(),
-                                "categoryLabel": {"en": agg.get_category_label('en'), "he": agg.get_category_label('he')}})
+                                "categoryLabel": {"en": agg.get_category_label('en'), "he": agg.get_category_label('he')},
+                                "compDate": agg.get_comp_date()})
         return unique_urls
 
     @staticmethod

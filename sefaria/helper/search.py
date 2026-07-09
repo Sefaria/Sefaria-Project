@@ -487,10 +487,18 @@ def _resolve_author(query, es_client):
     return AuthorTopic.init(slug)
 
 
-def _author_works_response(author):
+def _author_works_response(author, sort="relevance"):
     """
     Build the aggregated author-works response: the author's works collapsed by
-    category (reusing AuthorTopic aggregation), category entries sorted to the top.
+    category (reusing AuthorTopic aggregation).
+
+    Every row carries a `compDate`: an individual work's own composition year, or — for a
+    category row, which collapses many works and dates into one entry — the average year
+    of its dated works (see AuthorCategoryAggregation.get_comp_date). That key lets the
+    explicit sorts order the aggregated rows in code, mirroring the ES sort semantics of
+    the flat search ("alpha" A-Z on lowercased English title, "year_asc"/"year_desc" on
+    compDate, missing values last in either direction). The default "relevance" sort
+    keeps the original presentation order with category entries sorted to the top.
     """
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
@@ -503,8 +511,22 @@ def _author_works_response(author):
             "url": agg["url"],
             "description_en": agg["description"]["en"],
             "description_he": agg["description"]["he"],
+            "compDate": agg["compDate"],
         })
-    hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
+    if sort == "alpha":
+        hits.sort(key=lambda h: (h.get("title_en") or "").lower())
+    elif sort in ("year_asc", "year_desc"):
+        descending = sort == "year_desc"
+
+        def year_key(h):
+            date = h.get("compDate")
+            missing = date is None
+            return (missing, 0 if missing else (-date if descending else date),
+                    (h.get("title_en") or "").lower())
+
+        hits.sort(key=year_key)
+    else:
+        hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
@@ -518,11 +540,11 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
       `category_paths` (books only) restricts hits to books at/under any of the given
       category paths.
 
-    A non-relevance `sort` or a category filter always runs the flat search — the
-    author-works aggregation is skipped even when the query resolves to an author,
-    because its category entries collapse many works into one row, so they carry no
-    per-row sort key or per-book path. Sorting and filtering operate on individual
-    documents by design.
+    Explicit sorts keep the aggregation: each aggregated row carries a `compDate` (a
+    category row averages the dates of its collapsed works), and the rows are sorted in
+    code with the same semantics as the flat ES sorts (see _author_works_response). A
+    category filter still runs the flat search — a category row spans many per-book
+    paths, so it can't be filtered as a unit.
 
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
@@ -537,10 +559,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if sort == "relevance" and not category_paths:
+        if not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author)
+                return _author_works_response(author, sort=sort)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
