@@ -33,7 +33,15 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           className="searchIcon"
           src="/static/icons/search_mdl.svg"
           alt={Sefaria._("Search")}
+          role="button"
+          tabIndex="0"
           onClick={submit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              submit();
+            }
+          }}
       />
       <input
           type="text"
