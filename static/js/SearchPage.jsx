@@ -17,6 +17,7 @@ import {
   LoadingMessage,
   TabView,
 } from './Misc';
+import SearchLoadSkeleton from './SearchLoadSkeleton';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -275,13 +276,6 @@ class SearchPage extends Component {
         topics={this.props.topics}
     />;
 
-    const resultCount = this.props.totalResults?.getValue() > 0 && (
-      <>
-        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>Results</InterfaceText>
-      </>
-    );
-
     const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
       <SearchSortBox
           type={this.props.type}
@@ -342,36 +336,36 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
-                <TabView
-                    tabs={tabs}
-                    currTabName={this.state.activeTab}
-                    setTab={this.setTab}
-                    renderTab={this.renderTab}
-                    containerClasses={"largeTabs"}>
-                  <div className="searchTabPanel" key="sources">
-                    <div className="searchTopMatter">
-                      <div className="searchResultCount">
-                        {resultCount}
+                {this.props.isQueryRunning
+                  ? <SearchLoadSkeleton />
+                  : <TabView
+                        tabs={tabs}
+                        currTabName={this.state.activeTab}
+                        setTab={this.setTab}
+                        renderTab={this.renderTab}
+                        containerClasses={"largeTabs"}>
+                      <div className="searchTabPanel" key="sources">
+                        <div className="searchTopMatter">
+                          <div>
+                            {sortFilterControls}
+                          </div>
+                        </div>
+                        {/* Search results temporarily removed while the page is rebuilt
+                            to match the multi-entity search designs (sc-45480).
+                        {searchResultList}
+                        */}
                       </div>
-                      <div>
-                        {sortFilterControls}
+                      <div className="searchTabPanel" key="books">
+                        <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
                       </div>
-                    </div>
-                    {/* Search results temporarily removed while the page is rebuilt
-                        to match the multi-entity search designs (sc-45480).
-                    {searchResultList}
-                    */}
-                  </div>
-                  <div className="searchTabPanel" key="books">
-                    <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
-                  </div>
-                  <div className="searchTabPanel" key="authors">
-                    <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
-                  </div>
-                  <div className="searchTabPanel" key="topics">
-                    <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
-                  </div>
-                </TabView>
+                      <div className="searchTabPanel" key="authors">
+                        <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
+                      </div>
+                      <div className="searchTabPanel" key="topics">
+                        <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
+                      </div>
+                    </TabView>
+                }
               </div>
 
               {Sefaria.multiPanel && !this.props.compare ?

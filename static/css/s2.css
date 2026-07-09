@@ -4806,6 +4806,116 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   }
 }
 
+/* ── Search loading skeleton ──────────────────────────────────────────── */
+@keyframes searchSkeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes searchSkeletonShimmerRTL {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.searchLoadSkeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-grey) 25%,
+    #efefef 50%,
+    var(--skeleton-grey) 75%
+  );
+  background-size: 300% 100%;
+  animation: searchSkeletonShimmer 1.6s ease-in-out infinite;
+}
+
+.interface-hebrew .searchLoadSkeleton-shimmer {
+  animation-name: searchSkeletonShimmerRTL;
+}
+
+.searchLoadSkeleton-tabs {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--skeleton-grey);
+  width: 100%;
+}
+
+.searchLoadSkeleton-tab {
+  width: 100px;
+  height: 26px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.searchLoadSkeleton-sortRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 42px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-sort {
+  width: 68px;
+  height: 35px;
+  border-radius: 6px;
+}
+
+.searchLoadSkeleton-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  height: 145px;
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+}
+
+.searchLoadSkeleton-cardAccent {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+  background: var(--skeleton-grey);
+}
+
+.searchLoadSkeleton-cardContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px;
+  min-width: 0;
+}
+
+.searchLoadSkeleton-cardTitle {
+  height: 18px;
+  width: 320px;
+  max-width: 100%;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.searchLoadSkeleton-cardLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-cardLine {
+  height: 10px;
+  width: 100%;
+  border-radius: 4px;
+}
+
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
