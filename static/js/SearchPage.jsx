@@ -19,7 +19,7 @@ import {
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
   const [value, setValue] = React.useState(query || "");
-
+  React.useEffect(() => { setValue(query || ""); }, [query]);
   const submit = () => {
     const newQuery = value.trim();
     if (newQuery.length && newQuery !== query) {
