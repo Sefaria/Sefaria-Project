@@ -40,6 +40,12 @@ class SubCatBookSet:
 
 
 class AuthorWorksAggregation(ABC):
+    """
+    Common interface for an entry in an author's list of works, which is either a single
+    work (AuthorIndexAggregation) or a group of works under one category
+    (AuthorCategoryAggregation). Callers iterating an author's works rely on these methods
+    to treat both cases uniformly, so every subclass must implement all of them.
+    """
     @abstractmethod
     def get_description(self, lang):
         pass
