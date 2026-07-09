@@ -9,6 +9,7 @@ import SearchFilters from './SearchFilters';
 import Component from 'react-class';
 import {SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
+import NoSearchResults from './NoSearchResults';
 import {
   CategoryColorLine,
   InterfaceText,
@@ -53,7 +54,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
       />
-      {value.length ?
+      {value.length &&
           <img
               className="searchBarClearButton"
               src="/static/icons/heavy-x.svg"
@@ -68,6 +69,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
                 }
               }}
           />
+          }
     </div>
   );
 };
@@ -180,10 +182,17 @@ class SearchPage extends Component {
                         to match the multi-entity search designs (sc-45480).
                     {searchResultList}
                     */}
+                    <NoSearchResults mode="sources" query={this.props.query} />
                   </div>
-                  <div className="searchTabPanel" key="books"></div>
-                  <div className="searchTabPanel" key="authors"></div>
-                  <div className="searchTabPanel" key="topics"></div>
+                  <div className="searchTabPanel" key="books">
+                    <NoSearchResults mode="books" query={this.props.query} />
+                  </div>
+                  <div className="searchTabPanel" key="authors">
+                    <NoSearchResults mode="authors" query={this.props.query} />
+                  </div>
+                  <div className="searchTabPanel" key="topics">
+                    <NoSearchResults mode="topics" query={this.props.query} />
+                  </div>
                 </TabView>
               </div>
 

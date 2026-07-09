@@ -4840,6 +4840,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .noSearchResults-body {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   color: var(--darker-grey);
   margin: 0;
@@ -4855,8 +4856,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border: 1.5px solid var(--sefaria-blue);
   border-radius: 4px;
   color: #fff;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
+  font-style: normal;
   font-weight: 600;
+  line-height: normal;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -4868,6 +4872,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .noSearchResults-caption {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   line-height: 18px;
   color: #707070;
@@ -4876,6 +4881,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .noSearchResults-captionLink {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: var(--sefaria-blue);
   text-decoration: underline;
 }
