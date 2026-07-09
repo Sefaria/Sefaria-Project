@@ -1,5 +1,6 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
+import { LOCALE_TO_INTERFACE_LANG } from "./sefaria/strapiLocalization";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
@@ -31,51 +32,28 @@ const Promotions = () => {
               .filter((x) => x[0] === "!")
               .map((x) => x.slice(1));
             keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
-            Sefaria._inAppAds.push({
-              campaignId: sidebarAd.internalCampaignId,
-              title: sidebarAd.title,
-              bodyText: sidebarAd.bodyText,
-              buttonText: sidebarAd.buttonText,
-              buttonURL: sidebarAd.buttonURL,
-              buttonIcon: sidebarAd.buttonIcon,
-              buttonLocation: sidebarAd.buttonAboveOrBelow,
-              hasBlueBackground: sidebarAd.hasBlueBackground,
-              isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-              newsletterMailingLists:
-                sidebarAd.newsletterMailingLists?.map(
-                  (mailingLists) => mailingLists.newsletterName
-                ) ?? [],
-              trigger: {
-                showTo: sidebarAd.showTo,
-                interfaceLang: "english",
-                startTimeDate: Date.parse(sidebarAd.startTime),
-                endTimeDate: Date.parse(sidebarAd.endTime),
-                keywordTargets: keywordTargetsArray,
-                excludeKeywordTargets: excludeKeywordTargets,
-              },
-              debug: sidebarAd.debug,
-            });
-            // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
-            if (sidebarAd.localizations?.length) {
-              const hebrewAttributes = sidebarAd.localizations[0];
-              const [buttonText, bodyText, buttonURL, title] = [
-                hebrewAttributes.buttonText,
-                hebrewAttributes.bodyText,
-                hebrewAttributes.buttonURL,
-                hebrewAttributes.title,
-              ];
+
+            // One ad per locale actually present on this document - a locale with no
+            // counterpart in another locale (e.g. Hebrew-only) is no longer skipped.
+            sidebarAd.locales.forEach((locale) => {
+              const localizedFields = sidebarAd.byLocale[locale];
               Sefaria._inAppAds.push({
                 campaignId: sidebarAd.internalCampaignId,
-                title: title,
-                bodyText: bodyText,
-                buttonText: buttonText,
-                buttonURL: buttonURL,
+                title: localizedFields.title,
+                bodyText: localizedFields.bodyText,
+                buttonText: localizedFields.buttonText,
+                buttonURL: localizedFields.buttonURL,
                 buttonIcon: sidebarAd.buttonIcon,
                 buttonLocation: sidebarAd.buttonAboveOrBelow,
                 hasBlueBackground: sidebarAd.hasBlueBackground,
+                isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
+                newsletterMailingLists:
+                  sidebarAd.newsletterMailingLists?.map(
+                    (mailingLists) => mailingLists.newsletterName
+                  ) ?? [],
                 trigger: {
                   showTo: sidebarAd.showTo,
-                  interfaceLang: "hebrew",
+                  interfaceLang: LOCALE_TO_INTERFACE_LANG[locale],
                   startTimeDate: Date.parse(sidebarAd.startTime),
                   endTimeDate: Date.parse(sidebarAd.endTime),
                   keywordTargets: keywordTargetsArray,
@@ -83,7 +61,7 @@ const Promotions = () => {
                 },
                 debug: sidebarAd.debug,
               });
-            }
+            });
           });
           setInAppAds(Sefaria._inAppAds);
         }
