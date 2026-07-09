@@ -11,14 +11,23 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
-// Flattens Strapi's { data: [{ id, attributes }] } collection shape into
-// flat objects. Unwrapped, `sidebarAds` is a truthy object, not an array,
-// so Promotions.jsx's `sidebarAds.forEach(...)` throws and crashes the tree.
+// Flattens Strapi's { data: [{ id, attributes }] } collection shape into a
+// plain array of plain objects. Unwrapped, e.g. `sidebarAds` is a truthy
+// object, not an array, so Promotions.jsx's `sidebarAds.forEach(...)`
+// throws and crashes the tree (no error boundary above it).
 const unwrapStrapiCollection = (collection) => {
   const entries = collection?.data ?? [];
   return entries.map((entry) =>
     entry?.attributes ? { ...entry.attributes, id: entry.id } : entry
   );
+};
+
+// Flattens Strapi's { data: { id, attributes } | null } single-relation
+// shape (e.g. sidebarAd.buttonIcon) into a plain object, or null if unset.
+const unwrapStrapiRelation = (relation) => {
+  if (!relation || typeof relation !== 'object' || !('data' in relation)) return relation;
+  const entry = relation.data;
+  return entry?.attributes ? { ...entry.attributes, id: entry.id } : entry;
 };
 
 // Gets data from a Strapi CMS instance to be used for displaying static content
@@ -223,8 +232,9 @@ function StrapiDataProvider({ children }) {
                 });
 
                 // Check if there is a Hebrew translation for the modal
-                if (modal.localizations?.length) {
-                  let localization_attributes = modal.localizations[0];
+                let modalLocalizations = unwrapStrapiCollection(modal.localizations);
+                if (modalLocalizations.length) {
+                  let localization_attributes = modalLocalizations[0];
                   // Ignore the locale because only Hebrew is supported currently
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
@@ -271,8 +281,9 @@ function StrapiDataProvider({ children }) {
                 });
 
                 // Check if there is a Hebrew translation
-                if (banner.localizations?.length) {
-                  let localization_attributes = banner.localizations[0];
+                let bannerLocalizations = unwrapStrapiCollection(banner.localizations);
+                if (bannerLocalizations.length) {
+                  let localization_attributes = bannerLocalizations[0];
                   // Get the hebrew attributes
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
@@ -328,4 +339,5 @@ export {
   StrapiDataProvider,
   StrapiDataContext,
   unwrapStrapiCollection,
+  unwrapStrapiRelation,
 };

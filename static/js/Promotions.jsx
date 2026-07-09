@@ -1,5 +1,5 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
-import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
+import { AdContext, StrapiDataProvider, StrapiDataContext, unwrapStrapiCollection, unwrapStrapiRelation } from "./context";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
@@ -28,20 +28,21 @@ const Promotions = () => {
             .filter((x) => x[0] === "!")
             .map((x) => x.slice(1));
           keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
+          const buttonIcon = unwrapStrapiRelation(sidebarAd.buttonIcon);
+          const newsletterMailingLists = unwrapStrapiCollection(sidebarAd.newsletterMailingLists);
           Sefaria._inAppAds.push({
             campaignId: sidebarAd.internalCampaignId,
             title: sidebarAd.title,
             bodyText: sidebarAd.bodyText,
             buttonText: sidebarAd.buttonText,
             buttonURL: sidebarAd.buttonURL,
-            buttonIcon: sidebarAd.buttonIcon,
+            buttonIcon: buttonIcon,
             buttonLocation: sidebarAd.buttonAboveOrBelow,
             hasBlueBackground: sidebarAd.hasBlueBackground,
             isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-            newsletterMailingLists:
-              sidebarAd.newsletterMailingLists?.map(
-                (mailingLists) => mailingLists.newsletterName
-              ) ?? [],
+            newsletterMailingLists: newsletterMailingLists.map(
+              (mailingList) => mailingList.newsletterName
+            ),
             trigger: {
               showTo: sidebarAd.showTo,
               interfaceLang: "english",
@@ -53,8 +54,9 @@ const Promotions = () => {
             debug: sidebarAd.debug,
           });
           // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
-          if (sidebarAd.localizations?.length) {
-            const hebrewAttributes = sidebarAd.localizations[0];
+          const localizations = unwrapStrapiCollection(sidebarAd.localizations);
+          if (localizations.length) {
+            const hebrewAttributes = localizations[0];
             const [buttonText, bodyText, buttonURL, title] = [
               hebrewAttributes.buttonText,
               hebrewAttributes.bodyText,
@@ -67,7 +69,7 @@ const Promotions = () => {
               bodyText: bodyText,
               buttonText: buttonText,
               buttonURL: buttonURL,
-              buttonIcon: sidebarAd.buttonIcon,
+              buttonIcon: buttonIcon,
               buttonLocation: sidebarAd.buttonAboveOrBelow,
               hasBlueBackground: sidebarAd.hasBlueBackground,
               trigger: {
