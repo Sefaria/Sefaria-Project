@@ -57,24 +57,20 @@ def get_sample_graphql_query(start_date, end_date):
           and: [{{ bannerEndDate: {{ lte: "{end_date}" }} }}]
         }}
       ) {{
-        data {{
-          id
-          attributes {{
-            internalBannerName
-            bannerStartDate
-            bannerEndDate
-            bannerText
-            buttonText
-            buttonURL
-            showDelay
-            bannerBackgroundColor
-            showToNewVisitors
-            showToReturningVisitors
-            showToSustainers
-            showToNonSustainers
-            shouldDeployOnMobile
-          }}
-        }}
+        documentId
+        internalBannerName
+        bannerStartDate
+        bannerEndDate
+        bannerText
+        buttonText
+        buttonURL
+        showDelay
+        bannerBackgroundColor
+        showToNewVisitors
+        showToReturningVisitors
+        showToSustainers
+        showToNonSustainers
+        shouldDeployOnMobile
       }}
       modals(
         filters: {{
@@ -82,24 +78,20 @@ def get_sample_graphql_query(start_date, end_date):
           and: [{{ modalEndDate: {{ lte: "{end_date}" }} }}]
         }}
       ) {{
-        data {{
-          id
-          attributes {{
-            internalModalName
-            modalStartDate
-            modalEndDate
-            modalHeader
-            modalText
-            buttonText
-            buttonURL
-            showDelay
-            showToNewVisitors
-            showToReturningVisitors
-            showToSustainers
-            showToNonSustainers
-            shouldDeployOnMobile
-          }}
-        }}
+        documentId
+        internalModalName
+        modalStartDate
+        modalEndDate
+        modalHeader
+        modalText
+        buttonText
+        buttonURL
+        showDelay
+        showToNewVisitors
+        showToReturningVisitors
+        showToSustainers
+        showToNonSustainers
+        shouldDeployOnMobile
       }}
     }}
     """
@@ -204,7 +196,7 @@ def test_strapi_graphql_cache_functionality(client):
     # Use example data when there is nothing available
     # TODO: Use example data returned from Strapi in the future
     mock_response.text = json.dumps(
-        {"data": {"banners": {"data": []}, "modals": {"data": []}}}
+        {"data": {"banners": [], "modals": []}}
     )
 
     # Should this use actual environment variables since they're mocked anyway?
