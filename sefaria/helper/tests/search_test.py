@@ -1,5 +1,6 @@
 # encoding=utf-8
 import json
+import pytest
 from sefaria.helper.search import *
 
 
@@ -85,6 +86,84 @@ def test_text_filter_default_agg_type():
                               ['pagesheetrank'], sort_score_missing=0.04)
     assert ordered(none_agg.to_dict()) == ordered(expected.to_dict())
     assert ordered(empty_agg.to_dict()) == ordered(expected.to_dict())
+
+
+def test_entity_query_obj_relevance_default():
+    # relevance (the default): scored order — no sort clause; topic/author queries are
+    # wrapped in the numSources popularity function_score.
+    s = get_entity_query_obj("moshe", "topic").to_dict()
+    assert "sort" not in s
+    assert "function_score" in s["query"]
+    # books have no numSources, so no function_score even on relevance
+    s = get_entity_query_obj("moshe", "book").to_dict()
+    assert "sort" not in s
+    assert "function_score" not in s["query"]
+
+
+def test_entity_query_obj_alpha_sort():
+    s = get_entity_query_obj("moshe", "topic", sort="alpha").to_dict()
+    assert s["sort"] == [
+        {"title_en.sort": {"order": "asc", "missing": "_last"}},
+        {"_score": {"order": "desc"}},
+    ]
+    # an explicit sort drops the popularity function_score (score is only a tie-breaker)
+    assert "function_score" not in s["query"]
+
+
+def test_entity_query_obj_year_sorts():
+    # books sort by composition date, authors by birth year; missing values always last
+    s = get_entity_query_obj("rambam", "book", sort="year_desc").to_dict()
+    assert s["sort"][0] == {"compDate": {"order": "desc", "missing": "_last"}}
+    s = get_entity_query_obj("rambam", "author", sort="year_asc").to_dict()
+    assert s["sort"][0] == {"birthYear": {"order": "asc", "missing": "_last"}}
+
+
+def test_entity_query_obj_sort_keeps_match_set():
+    # sorting reorders the same match set: the text query is identical to relevance's
+    # unwrapped bool query (for a type with no popularity wrapper)
+    relevance = get_entity_query_obj("moshe", "book").to_dict()
+    alpha = get_entity_query_obj("moshe", "book", sort="alpha").to_dict()
+    assert ordered(alpha["query"]) == ordered(relevance["query"])
+
+
+def test_entity_query_obj_category_filter():
+    s = get_entity_query_obj("torah", "book", category_paths=["Tanakh/Torah"]).to_dict()
+    filters = s["query"]["bool"]["filter"]
+    assert filters == [{
+        "bool": {
+            "should": [{"regexp": {"path": "Tanakh/Torah|Tanakh/Torah/.*"}}],
+            "minimum_should_match": 1,
+        }
+    }]
+    # the text query itself is unchanged — the filter clause is non-scoring
+    unfiltered = get_entity_query_obj("torah", "book").to_dict()
+    assert ordered(s["query"]["bool"]["must"]) == ordered([unfiltered["query"]])
+
+
+def test_entity_query_obj_category_filter_multiple_paths_or():
+    s = get_entity_query_obj("torah", "book", category_paths=["Tanakh", "Halakhah"]).to_dict()
+    shoulds = s["query"]["bool"]["filter"][0]["bool"]["should"]
+    assert {"regexp": {"path": "Tanakh|Tanakh/.*"}} in shoulds
+    assert {"regexp": {"path": "Halakhah|Halakhah/.*"}} in shoulds
+
+
+def test_entity_query_obj_category_filter_composes_with_sort():
+    s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"]).to_dict()
+    assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
+    assert s["query"]["bool"]["filter"][0]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+
+
+def test_entity_query_obj_category_filter_books_only():
+    for entity_type in ("topic", "author"):
+        with pytest.raises(ValueError):
+            get_entity_query_obj("torah", entity_type, category_paths=["Tanakh"])
+
+
+def test_entity_query_obj_invalid_sort():
+    with pytest.raises(ValueError):
+        get_entity_query_obj("moshe", "topic", sort="year_asc")  # topics have no year
+    with pytest.raises(ValueError):
+        get_entity_query_obj("moshe", "book", sort="alphabetical")  # unknown sort value
 
 
 def ordered(obj):

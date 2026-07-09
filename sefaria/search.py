@@ -314,6 +314,14 @@ def create_index(index_name, type, force=False):
                     "stemmed_english": get_stemmed_english_analyzer(),
                     "exact_english": get_exact_english_analyzer(),
                 },
+                "normalizer": {
+                    # Case-insensitive keyword variant, used by the `.sort` sub-fields on
+                    # entity titles for A-Z sorting (a raw keyword sort puts "iggeret" after "Zohar").
+                    "keyword_lowercase": {
+                        "type": "custom",
+                        "filter": ["lowercase"]
+                    }
+                },
                 "filter": {
                     "my_snow": {
                         "type": "snowball",
@@ -495,7 +503,7 @@ def put_topic_mapping(index_name):
     authors live here and are distinguished by the `subtype` field ("topic" or
     "author"). English title/variant/description fields use `stemmed_english`;
     Hebrew fields are plain `text`. Title fields expose a `keyword` sub-field for
-    exact-match and sort.
+    exact-match and a lowercased `sort` sub-field for A-Z sorting.
     """
     topic_mapping = {
         'properties': {
@@ -510,12 +518,14 @@ def put_topic_mapping(index_name):
                 'analyzer': 'stemmed_english',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'title_he': {
                 'type': 'text',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'titleVariants': {
@@ -579,12 +589,14 @@ def put_book_mapping(index_name):
                 'analyzer': 'stemmed_english',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'title_he': {
                 'type': 'text',
                 'fields': {
                     'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
             'titleVariants': {
@@ -1179,7 +1191,34 @@ def _without_none(doc):
     return {k: v for k, v in doc.items() if v is not None}
 
 
-def make_topic_index_document(topic):
+def _build_authored_titles_map():
+    """
+    Map every author slug to the titles of their works in one `IndexSet()` pass:
+    slug -> {'en': [titles...], 'he': [titles...]}.
+
+    `db.index` has no Mongo index on `authors`, so the per-author
+    `IndexSet({"authors": slug})` fallback in `make_topic_index_document` is a full
+    collection scan; during a full reindex one scan here replaces one per author.
+    """
+    titles_by_slug = defaultdict(lambda: {'en': [], 'he': []})
+    for index in IndexSet():
+        author_slugs = getattr(index, 'authors', None) or []
+        if not author_slugs:
+            continue
+        en = index.get_title('en')
+        try:
+            he = index.get_title('he')
+        except Exception:
+            he = None
+        for slug in author_slugs:
+            if en:
+                titles_by_slug[slug]['en'].append(en)
+            if he:
+                titles_by_slug[slug]['he'].append(he)
+    return titles_by_slug
+
+
+def make_topic_index_document(topic, authored_titles_map=None):
     """
     Build an Elasticsearch document for a Topic (or AuthorTopic) for the `topic` index.
 
@@ -1189,6 +1228,9 @@ def make_topic_index_document(topic):
 
     :param topic: a `Topic` model instance (base class; the `subclass` attribute
         carried from Mongo is what distinguishes authors)
+    :param authored_titles_map: optional precomputed map from `_build_authored_titles_map()`.
+        Without it, each author topic falls back to its own `IndexSet({"authors": slug})`
+        query — fine for a single topic, N unindexed scans across a full reindex.
     :return: dict document, or None if the topic lacks a slug or has no title in any
         language (many auto-generated topics are Hebrew-only or empty and add only noise)
     """
@@ -1217,8 +1259,11 @@ def make_topic_index_document(topic):
     doc = {
         'slug': slug,
         'subtype': 'author' if is_author else 'topic',
-        'title_en': title_en,
-        'title_he': title_he,
+        # An absent title (many topics are Hebrew-only) is omitted rather than stored as ""
+        # so the A-Z sort's `missing: _last` pushes untitled docs to the end — an empty
+        # string is a real keyword value and would sort *first*.
+        'title_en': title_en or None,
+        'title_he': title_he or None,
         'titleVariants': variants,
         'description_en': description.get('en', ''),
         'description_he': description.get('he', ''),
@@ -1235,17 +1280,21 @@ def make_topic_index_document(topic):
         doc['deathYear'] = topic.get_property('deathYear')
         # Denormalize the titles of this author's works (EN + HE) so the author is
         # searchable by a book they wrote (e.g. "Mishneh Torah" -> Maimonides).
-        authored_en, authored_he = [], []
-        for authored_index in IndexSet({"authors": slug}):
-            en = authored_index.get_title('en')
-            if en:
-                authored_en.append(en)
-            try:
-                he = authored_index.get_title('he')
-            except Exception:
-                he = None
-            if he:
-                authored_he.append(he)
+        if authored_titles_map is not None:
+            authored = authored_titles_map.get(slug, {'en': [], 'he': []})
+            authored_en, authored_he = authored['en'], authored['he']
+        else:
+            authored_en, authored_he = [], []
+            for authored_index in IndexSet({"authors": slug}):
+                en = authored_index.get_title('en')
+                if en:
+                    authored_en.append(en)
+                try:
+                    he = authored_index.get_title('he')
+                except Exception:
+                    he = None
+                if he:
+                    authored_he.append(he)
         doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
         doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
 
@@ -1289,7 +1338,7 @@ def make_book_index_document(index, author_name_cache=None):
     if not title_en:
         return None
     try:
-        title_he = index.get_title('he')
+        title_he = index.get_title('he') or None  # "" would sort before "A" in the A-Z sort
     except Exception:
         title_he = None
 
@@ -1353,12 +1402,13 @@ def index_topics(index_name):
     logger.info(f"Starting index_topics - index_name: {index_name}")
     skipped = []
     total = 0
+    authored_titles_map = _build_authored_titles_map()
 
     def actions():
         nonlocal total
         for topic in TopicSet():
             total += 1
-            doc = make_topic_index_document(topic)
+            doc = make_topic_index_document(topic, authored_titles_map)
             if doc is None:
                 skipped.append(getattr(topic, 'slug', '<no-slug>'))
                 continue
