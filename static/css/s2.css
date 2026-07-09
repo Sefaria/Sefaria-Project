@@ -3941,6 +3941,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopLine {
   margin-bottom: 20px;
 }
+.searchPageSearchBar {
+  display: flex;
+  align-items: center;
+  height: 45px;
+  background-color: var(--lighter-grey);
+  border-radius: 24px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+}
+.searchPageSearchBar .searchIcon {
+  width: 24px;
+  height: 24px;
+  margin-inline-end: 16px;
+  cursor: pointer;
+}
+.searchPageSearchBar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 24px;
+  color: var(--dark-grey);
+  font-family: var(--english-serif-font-family);
+}
+.interface-hebrew .searchPageSearchBar input {
+  font-family: var(--hebrew-serif-font-family);
+}
+.searchPageSearchBar .searchBarClearButton {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.searchContent .tab-view .tab-list .tab .searchTabCount {
+  display: inline-block;
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  margin-inline-start: 12px;
+  background-color: var(--lighter-grey);
+  border-radius: 4px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dark-grey);
+  text-align: center;
+  vertical-align: middle;
+}
 .searchContent .searchResultCount {
   color: var(--dark-grey);
 }
