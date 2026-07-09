@@ -12,17 +12,32 @@ $(function() {
   const remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
   // Initialize Sentry, sentryDSN is defined in base.html
   if (sentryDSN) {
+    const integrations = [
+      new Sentry.BrowserTracing(),
+      new Sentry.Replay(),
+    ];
+    if (remoteConfig?.sentry?.feedbackEnabled) {
+      // `useSentryUser` keys come from the Sentry user set via Sentry.setUser below.
+      integrations.push(Sentry.feedbackIntegration({
+        colorScheme: "system",
+        useSentryUser: { name: "fullName", email: "email" },
+      }));
+    }
     Sentry.init({
       dsn: sentryDSN,
-      integrations: [
-        new Sentry.BrowserTracing(),
-        new Sentry.Replay(),
-      ],
+      integrations,
       tracesSampleRate: remoteConfig?.sentry?.tracesSampleRate || 0.0,
       sampleRate: remoteConfig?.sentry?.sampleRate || 0.0,
       replaysSessionSampleRate: remoteConfig?.sentry?.replaysSessionSampleRate || 0.0,
       replaysOnErrorSampleRate: remoteConfig?.sentry?.replaysOnErrorSampleRate || 0.0,
     });
+    if (typeof Sefaria !== "undefined" && Sefaria._uid) {
+      Sentry.setUser({
+        id: String(Sefaria._uid),
+        email: Sefaria._email,
+        fullName: Sefaria.full_name,
+      });
+    }
   }
 
   let container = document.getElementById('s2');
