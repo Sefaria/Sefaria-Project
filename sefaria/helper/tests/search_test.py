@@ -2,6 +2,7 @@
 import json
 import pytest
 from sefaria.helper.search import *
+from sefaria.helper.search import _author_works_response
 
 
 def test_extract_filter_values():
@@ -164,6 +165,44 @@ def test_entity_query_obj_invalid_sort():
         get_entity_query_obj("moshe", "topic", sort="year_asc")  # topics have no year
     with pytest.raises(ValueError):
         get_entity_query_obj("moshe", "book", sort="alphabetical")  # unknown sort value
+
+
+def test_author_works_response_row_shape():
+    class _DummyAuthor:
+        slug = "rambam"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {
+                    "url": "/texts/Halakhah/Mishneh Torah",
+                    "title": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                    "description": {"en": "desc", "he": "תיאור"},
+                    "isCategory": True,
+                    "categoryLabel": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                    "categories": None,
+                    "compDate": 1178,
+                },
+                {
+                    "url": "/Guide_for_the_Perplexed",
+                    "title": {"en": "Guide for the Perplexed", "he": "מורה נבוכים"},
+                    "description": {"en": "desc", "he": "תיאור"},
+                    "isCategory": False,
+                    "categoryLabel": {"en": None, "he": None},
+                    "categories": ["Jewish Thought", "Rishonim"],
+                    "compDate": 1190,
+                },
+            ]
+
+    response = _author_works_response(_DummyAuthor())
+
+    assert response["total"] == 2
+    assert response["author_slug"] == "rambam"
+    category_row, work_row = response["hits"]
+    # A category row is represented by its label; an individual work by its category path.
+    assert category_row["isCategory"] and category_row["categoryLabel_en"] == "Mishneh Torah"
+    assert category_row["categories"] is None
+    assert not work_row["isCategory"] and work_row["categoryLabel_en"] is None
+    assert work_row["categories"] == ["Jewish Thought", "Rishonim"]
 
 
 def ordered(obj):
