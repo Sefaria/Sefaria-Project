@@ -83,7 +83,7 @@ class SearchPage extends Component {
     return (
       <div className="tab">
         <InterfaceText>{tab.title}</InterfaceText>
-        <span className="searchTabCount">{tab.count}</span>
+        {tab.count != null && <span className="searchTabCount">{tab.count}</span>}
       </div>
     );
   }
@@ -128,10 +128,10 @@ class SearchPage extends Component {
     }
 
     const tabs = [
-      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || "0"},
-      {id: "books",   title: "Books",   count: "0"},
-      {id: "authors", title: "Authors", count: "0"},
-      {id: "topics",  title: "Topics",  count: "0"},
+      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() ?? null},
+      {id: "books",   title: "Books",   count: null},
+      {id: "authors", title: "Authors", count: null},
+      {id: "topics",  title: "Topics",  count: null},
     ];
 
     return (
