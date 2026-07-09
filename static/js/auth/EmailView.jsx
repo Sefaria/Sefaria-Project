@@ -9,8 +9,8 @@ import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
 
 const EmailView = ({
-  flow, switchFlow, error, onProviderClick,
-  fields, submitting, captchaError, setField,
+  flow, switchFlow, error, fields,
+  submitting, captchaError, setField,
   goChoose, submitEmail, startRegistration,
   recaptchaSiteKey, onForgotClick,
 }) => {
@@ -62,7 +62,7 @@ const EmailView = ({
       sub={cfg.sub}
     >
       <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
-        <ErrorBanner error={error} onProviderClick={onProviderClick} />
+        <ErrorBanner error={error} />
         <div className="sefaria-auth-fields">
           <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
                  inputDir="ltr" autoComplete="email"

@@ -4,35 +4,7 @@ import ChooseView from './ChooseView.jsx';
 import EmailView from './EmailView.jsx';
 import ForgotView from './ForgotView.jsx';
 import ForgotSentView from './ForgotSentView.jsx';
-
-
-function getCsrf(explicit) {
-  if (explicit) return explicit;
-  if (typeof document === 'undefined') return '';
-  const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-  return m ? m[1] : '';
-}
-
-/** Pick the first human-readable error string from the register view's error dict. */
-function pickFirstError(data) {
-  if (!data || typeof data !== 'object') return null;
-  if (typeof data.error === 'string') return data.error;
-  for (const k of Object.keys(data)) {
-    if (k === '_auth') continue;
-    if (typeof data[k] === 'string') return data[k];
-  }
-  return null;
-}
-
-function authError(data, fallback) {
-  const metadata = data && data._auth;
-  const message = pickFirstError(data) || fallback;
-  return {
-    message: Sefaria._(message),
-    code: metadata && metadata.code,
-    providers: metadata && Array.isArray(metadata.providers) ? metadata.providers : [],
-  };
-}
+import { getCsrf, pickFirstError, authError } from './utils.js';
 
 /** Poll until check() is truthy (or give up after ~8s), then run cb. Used to wait for
  *  the async-loaded Google / Apple SDK scripts before rendering their buttons. */
@@ -380,25 +352,6 @@ const AuthPage = ({
     }
   };
 
-  const submitForgot = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/auth/password/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
-        body: JSON.stringify({ email: fields.email }),
-      });
-      if (res.ok) { setView('forgot-sent'); }
-      else {
-        const d = await res.json().catch(() => ({}));
-        setError(authError(d, 'Something went wrong. Try again.'));
-      }
-    } catch (e) { setError(authError(null, 'Something went wrong. Try again.')); }
-    finally { setSubmitting(false); }
-  };
-
   // ---- shared pieces ------------------------------------------------------
   const showProvider = (provider) => {
     const normalized = provider.toLowerCase();
@@ -417,15 +370,14 @@ const AuthPage = ({
   // ---- views --------------------------------------------------------------
   const onEmailClick = () => { setView('email'); setError(null); };
   const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); setError(null); };
-  const onForgotBack = () => { setView('email'); setError(null); };
   const onSignIn = () => { setFlow('login'); setView('choose'); };
 
   let content;
   if (view === 'email') {
     content = (
       <EmailView
-        flow={flow} switchFlow={switchFlow} error={error} onProviderClick={showProvider}
-        fields={fields} submitting={submitting} captchaError={captchaError} setField={setField}
+        flow={flow} switchFlow={switchFlow} error={error} fields={fields}
+        submitting={submitting} captchaError={captchaError} setField={setField}
         goChoose={goChoose} submitEmail={submitEmail} startRegistration={startRegistration}
         recaptchaSiteKey={recaptchaSiteKey} onForgotClick={onForgotClick}
       />
@@ -433,8 +385,8 @@ const AuthPage = ({
   } else if (view === 'forgot') {
     content = (
       <ForgotView
-        error={error} emailValue={fields.email}
-        submitting={submitting} setField={setField} submitForgot={submitForgot} onBack={onForgotBack}
+        emailValue={fields.email} setField={setField}
+        csrf={csrf} onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
       />
     );
   } else if (view === 'forgot-sent') {
