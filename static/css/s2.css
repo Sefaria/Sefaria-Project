@@ -4764,9 +4764,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchLoadSkeleton-shimmer {
   background: linear-gradient(
     90deg,
-    #e6e6e6 25%,
+    var(--skeleton-grey) 25%,
     #efefef 50%,
-    #e6e6e6 75%
+    var(--skeleton-grey) 75%
   );
   background-size: 300% 100%;
   animation: searchSkeletonShimmer 1.6s ease-in-out infinite;
@@ -4781,7 +4781,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   gap: 32px;
   align-items: flex-start;
   padding-bottom: 8px;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid var(--skeleton-grey);
   width: 100%;
 }
 
@@ -4827,7 +4827,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 4px;
   flex-shrink: 0;
   align-self: stretch;
-  background: #e6e6e6;
+  background: var(--skeleton-grey);
 }
 
 .searchLoadSkeleton-cardContent {
