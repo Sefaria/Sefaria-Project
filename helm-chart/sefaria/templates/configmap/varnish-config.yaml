@@ -18,6 +18,14 @@ data:
         .port = "80";
         .first_byte_timeout = 900s;
     }
+    {{- if $.Values.nameService.enabled }}
+
+    backend name_service {
+        .host = "name-{{ $.Values.deployEnv }}-{{ $v }}";
+        .port = "80";
+        .first_byte_timeout = 900s;
+    }
+    {{- end }}
 
     sub vcl_recv {
         # We trust PURGE methods to be coming from within the cluster.
@@ -25,6 +33,17 @@ data:
         if (req.method == "PURGE") {
           return (purge);
         }
+        {{- if $.Values.nameService.enabled }}
+
+        # Completion endpoints are served by the standalone name service.  These
+        # paths were never cached (they fell through to pass below), so routing
+        # plus pass preserves their caching semantics exactly.  Must precede the
+        # staging pass so staging hosts route here too.
+        if (req.url ~ "^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter)") {
+            set req.backend_hint = name_service;
+            return (pass);
+        }
+        {{- end }}
 
         if (req.http.Host ~ "^staging") {
             return (pass);

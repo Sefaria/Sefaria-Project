@@ -1,0 +1,15 @@
+{{- if .Values.nameService.enabled }}
+{{- if .Values.nameService.localsettings }}
+{{- if gt (len .Values.nameService.localsettings) 0 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-settings-name-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+    {{ .Values.nameService.localsettings | toYaml | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

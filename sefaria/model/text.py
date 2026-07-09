@@ -5015,7 +5015,6 @@ class Library(object):
         self._full_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
-        self._topic_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
@@ -5358,10 +5357,15 @@ class Library(object):
         Builds full auto completer across people, topics, categories, parasha, users, and collections
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping full auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5372,8 +5376,12 @@ class Library(object):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
-
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping lexicon auto completer build.")
+            return
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
@@ -5385,7 +5393,12 @@ class Library(object):
         """
         Builds the cross lexicon auto completer excluding titles
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping cross lexicon auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
@@ -5397,6 +5410,8 @@ class Library(object):
         it rebuilds before returning, emitting warnings to the logger.
         """
         if self._cross_lexicon_auto_completer is None:
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
             logger.warning("Built cross lexicon auto completer.")
@@ -5413,6 +5428,13 @@ class Library(object):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
+            if self._lexicon_auto_completer_is_ready:
+                # The tries are built; this key is simply not a lexicon.  Rebuilding
+                # would let any request with a bogus lexicon name trigger a
+                # multi-minute build.
+                raise InputError("There is no lexicon autocompleter for {}.".format(lexicon))
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
             logger.warning("Built {} auto completer.".format(lexicon))
@@ -5422,6 +5444,8 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))
