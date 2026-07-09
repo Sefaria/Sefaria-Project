@@ -50,6 +50,24 @@ describe("candidateCountries", function() {
       expect(candidateCountries({ timezone: "Antarctica/McMurdo" })).toEqual(new Set());
     });
 
+    it("recognizes a legacy IANA alias alongside the canonical zone name", function() {
+      expect(candidateCountries({ timezone: "US/Eastern" })).toEqual(new Set(["us"]));
+    });
+
+    it("recognizes timezones for countries beyond the original three", function() {
+      expect(candidateCountries({ timezone: "Australia/Sydney" })).toEqual(new Set(["au"]));
+    });
+
+    it("rewrites a timezone in a deduction-true territory to its sovereign", function() {
+      // America/Puerto_Rico maps to PR, which toSovereign() rewrites to US -- same as the IP path
+      expect(candidateCountries({ timezone: "America/Puerto_Rico" })).toEqual(new Set(["us"]));
+    });
+
+    it("adds a visitor-hint sovereign for a Crown dependency/Gibraltar timezone, without erasing it", function() {
+      expect(candidateCountries({ timezone: "Europe/Jersey" })).toEqual(new Set(["je", "gb"]));
+      expect(candidateCountries({ timezone: "Europe/Gibraltar" })).toEqual(new Set(["gi", "gb"]));
+    });
+
   });
 
   describe("locale", function() {
