@@ -2425,17 +2425,29 @@ const TeamMembersPage = memo(() => {
         const query = `
             query {
                 teamMembers(pagination: { limit: -1 }) {
-                    documentId
-                    teamName
-                    teamTitle
-                    isTeamBoardMember
-                    teamMemberImage {
-                        url
-                    }
-                    localizations {
-                        locale
-                        teamName
-                        teamTitle
+                    data {
+                        id
+                        attributes {
+                            teamName
+                            teamTitle
+                            isTeamBoardMember
+                            teamMemberImage {
+                                data {
+                                    attributes {
+                                        url
+                                    }
+                                }
+                            }
+                            localizations {
+                                data {
+                                    attributes {
+                                        locale
+                                        teamName
+                                        teamTitle
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -2469,25 +2481,28 @@ const TeamMembersPage = memo(() => {
                 const teamMembersData = await fetchTeamMembersJSON();
 
                 const teamMembersFromStrapi =
-                    teamMembersData.data.teamMembers.map(
+                    teamMembersData.data.teamMembers.data.map(
                         (teamMember) => {
                             const heLocalization =
-                                teamMember.localizations[0];
+                                teamMember.attributes.localizations.data[0];
 
                             return {
-                                id: teamMember.documentId,
+                                id: teamMember.id,
                                 isTeamBoardMember:
-                                    teamMember.isTeamBoardMember,
+                                    teamMember.attributes.isTeamBoardMember,
                                 teamMemberImage:
-                                    teamMember.teamMemberImage?.url,
+                                    teamMember.attributes.teamMemberImage
+                                        ?.data?.attributes?.url,
                                 teamMemberDetails: {
                                     teamName: {
-                                        en: teamMember.teamName,
-                                        he: heLocalization.teamName,
+                                        en: teamMember.attributes.teamName,
+                                        he: heLocalization.attributes
+                                            .teamName,
                                     },
                                     teamTitle: {
-                                        en: teamMember.teamTitle,
-                                        he: heLocalization.teamTitle,
+                                        en: teamMember.attributes.teamTitle,
+                                        he: heLocalization.attributes
+                                            .teamTitle,
                                     },
                                 },
                             };
@@ -2659,7 +2674,7 @@ const JobsPage = memo(() => {
     const fetchJobsJSON = async () => {
         const currentDateTime = new Date().toISOString();
         const query = `
-            query {
+            query { 
                 jobPostings(
                     pagination: { limit: -1 }
                     filters: {
@@ -2667,10 +2682,14 @@ const JobsPage = memo(() => {
                         jobPostingEndDate: { gte: \"${currentDateTime}\" }
                     }
                 ) {
-                    documentId
-                    jobLink
-                    jobDescription
-                    jobDepartmentCategory
+                    data {
+                        id
+                        attributes {
+                            jobLink
+                            jobDescription
+                            jobDepartmentCategory
+                        }
+                    }
                 }
             }
         `;
@@ -2704,12 +2723,12 @@ const JobsPage = memo(() => {
             try {
                 const jobsData = await fetchJobsJSON();
 
-                const jobsFromStrapi = jobsData.data?.jobPostings?.map((jobPosting) => {
+                const jobsFromStrapi = jobsData.data?.jobPostings?.data?.map((jobPosting) => {
                     return {
-                        id: jobPosting.documentId,
-                        jobLink: jobPosting.jobLink,
-                        jobDescription: jobPosting.jobDescription,
-                        jobDepartmentCategory: jobPosting.jobDepartmentCategory
+                        id: jobPosting.id,
+                        jobLink: jobPosting.attributes.jobLink,
+                        jobDescription: jobPosting.attributes.jobDescription,
+                        jobDepartmentCategory: jobPosting.attributes.jobDepartmentCategory
                             .split("_")
                             .join(" "),
                     };
@@ -2892,74 +2911,83 @@ const ProductsPage = memo(() => {
         setLoading(false);
     }, []);
 
-    // GraphQL query to Strapi.
-    // Regular users see only published products.
-    // Moderators see published products plus any products that exist only as drafts (not yet published),
-    // so they can preview upcoming content alongside what is currently live.
-    // When a product is already published, the published version is always shown — even to moderators —
-    // because the published version is the canonical one. Draft edits to live products are not surfaced here.
-    //
-    // WHY TWO QUERIES INSTEAD OF ONE:
-    // In Strapi v4, `publicationState: PREVIEW` returned all entries regardless of publication state in
-    // a single query. Strapi v5 removed this — `status: DRAFT` returns the draft version of every
-    // document (including already-published ones, potentially showing unfinished edits), while
-    // `status: PUBLISHED` excludes content that has never been published. Neither alone replicates
-    // the old behavior. The solution is to fetch both, then keep only the drafts whose documentId
-    // does not appear in the published set — i.e., content that is truly unpublished.
+    // GraphQL query to Strapi
     const fetchProductsJSON = async () => {
-        const productFields = `
-              documentId
-              title
-              rank
-              url
-              type
-              description
-              rectanglion {
-                url
-                alternativeText
-              }
-              createdAt
-              updatedAt
-              locale
-              call_to_actions {
-                documentId
-                text
-                url
-                icon {
+
+        // If the viewer is an admin, edit the query to retrieve the drafts as well
+        var includeDrafts = '';
+        if (Sefaria.is_moderator){
+            includeDrafts = 'publicationState:PREVIEW,';
+        }
+        
+        const query = `query {
+            products (
+                pagination: { limit: -1 },
+                ${includeDrafts}
+                sort: "rank:asc"
+            )
+            {
+              data {
+                id
+                attributes {
+                  title
+                  rank
                   url
-                  alternativeText
-                }
-                locale
-                localizations {
-                  documentId
-                  text
+                  type
+                  description
+                  rectanglion {
+                    data {
+                      attributes {
+                        url
+                        alternativeText
+                      }
+                    }
+                  }
+                  createdAt
+                  updatedAt
+                  locale
+                  call_to_actions {
+                    data {
+                      id
+                      attributes {
+                        text
+                        url
+                        icon {
+                          data {
+                            id
+                            attributes {
+                              url
+                              alternativeText
+                            }
+                          }
+                        }
+                        locale
+                        localizations {
+                          data {
+                            id
+                            attributes {
+                              text
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  localizations {
+                    data {
+                      attributes {
+                        locale
+                        title
+                        type
+                        description
+                      }
+                    }
+                  }
                 }
               }
-              localizations {
-                locale
-                title
-                type
-                description
-              }
-        `;
-
-        // Moderators get two aliased queries in one request: published products and all draft products.
-        // The merge step in loadProducts filters out drafts that are already published.
-        const query = Sefaria.is_moderator
-            ? `query {
-                published: products(pagination: { limit: -1 }, sort: "rank:asc", status: PUBLISHED) {
-                    ${productFields}
-                }
-                drafts: products(pagination: { limit: -1 }, sort: "rank:asc", status: DRAFT) {
-                    ${productFields}
-                }
-            }`
-            : `query {
-                published: products(pagination: { limit: -1 }, sort: "rank:asc", status: PUBLISHED) {
-                    ${productFields}
-                }
-            }`;
-
+            }
+        }`;
+        
         try {
             const response = await fetch(STRAPI_INSTANCE + "/graphql", {
                 method: "POST",
@@ -2982,50 +3010,57 @@ const ProductsPage = memo(() => {
             throw error;
         }
     };
-
-    const normalizeProduct = (p) => {
-        const heLocalization = p.localizations?.[0];
-        const ctaLabelsLocalized = p.call_to_actions.map((cta) => ({
-            text: {
-                en: cta.text,
-                he: cta.localizations?.[0]?.text,
-            },
-            url: cta.url,
-            icon: { url: cta.icon?.url },
-            id: cta.documentId,
-        }));
-        return {
-            id: p.documentId,
-            titles: { en: p.title, he: heLocalization?.title },
-            rank: p.rank,
-            type: { en: p.type, he: heLocalization?.type },
-            url: p.url,
-            desc: { en: p.description, he: heLocalization?.description },
-            rectanglion: { url: p.rectanglion?.url },
-            ctaLabels: ctaLabelsLocalized,
-        };
-    };
-
+    
     // Loading Products data, and setting the state ordering the products by their `rank`
     const loadProducts = async () => {
         if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
             try {
                 const productsData = await fetchProductsJSON();
 
-                const published = (productsData.data?.published ?? []).map(normalizeProduct);
+                const productsFromStrapi = productsData.data?.products?.data?.map((productsData) => {
 
-                // For moderators, append draft-only products (those not yet published)
-                // so upcoming products are visible alongside live ones.
-                let allProducts = published;
-                if (Sefaria.is_moderator) {
-                    const publishedIds = new Set(published.map(p => p.id));
-                    const draftOnly = (productsData.data?.drafts ?? [])
-                        .filter(p => !publishedIds.has(p.documentId))
-                        .map(normalizeProduct);
-                    allProducts = [...published, ...draftOnly];
-                }
+                    const heLocalization = productsData.attributes?.localizations?.data[0]?.attributes;
+                    const ctaLabels = productsData.attributes?.call_to_actions?.data;
 
-                setProducts(allProducts);
+                    const ctaLabelsLocalized = ctaLabels.map((cta) => {
+                        return {
+                            text: {
+                                en: cta.attributes?.text,
+                                he: cta.attributes?.localizations?.data[0]?.attributes.text
+                            },
+                            url: cta.attributes?.url,
+                            icon: {
+                                url: cta.attributes?.icon?.data?.attributes?.url,
+                            },
+                            id: cta.id
+                        };
+                    });
+
+                    return {
+                        id: productsData.id,
+                        titles: {
+                            en: productsData.attributes?.title,
+                            he: heLocalization?.title
+                        },
+                        rank: productsData.attributes?.rank,
+                        type: {
+                            en: productsData.attributes?.type,
+                            he: productsData.attributes?.localizations?.data[0]?.attributes?.type,
+                        },
+                        url: productsData.attributes?.url,
+                        desc:
+                        {
+                            en: productsData.attributes?.description,
+                            he: heLocalization?.description
+                        },
+                        rectanglion: {
+                            url: productsData.attributes?.rectanglion?.data?.attributes?.url,
+                        },
+                        ctaLabels: ctaLabelsLocalized,
+
+                    };
+                }, {});
+                setProducts(productsFromStrapi);   
             } catch (error) {
                 console.error("Fetch error:", error);
                 setError("Error: Sefaria's CMS cannot be reached");

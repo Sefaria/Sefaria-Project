@@ -46,31 +46,39 @@ function StrapiDataProvider({ children }) {
               and: [{ bannerEndDate: { lte: \"${endDate}\" } }]
             }
           ) {
-            documentId
-            internalBannerName
-            bannerEndDate
-            bannerStartDate
-            bannerText
-            buttonText
-            buttonURL
-            showDelay
-            bannerBackgroundColor
-            createdAt
-            locale
-            localizations {
-              locale
-              buttonText
-              buttonURL
-              bannerText
+            data {
+              id
+              attributes {
+                internalBannerName
+                bannerEndDate
+                bannerStartDate
+                bannerText
+                buttonText
+                buttonURL
+                showDelay
+                bannerBackgroundColor
+                createdAt
+                locale
+                localizations {
+                  data {
+                    attributes {
+                      locale
+                      buttonText
+                      buttonURL
+                      bannerText
+                    }
+                  }
+                }
+                publishedAt
+                shouldDeployOnMobile
+                showToNewVisitors
+                showToNonSustainers
+                showToReturningVisitors
+                showToSustainers
+                showTo
+                updatedAt
+              }
             }
-            publishedAt
-            shouldDeployOnMobile
-            showToNewVisitors
-            showToNonSustainers
-            showToReturningVisitors
-            showToSustainers
-            showTo
-            updatedAt
           }
           modals(
             filters: {
@@ -78,32 +86,40 @@ function StrapiDataProvider({ children }) {
               and: [{ modalEndDate: { lte: \"${endDate}\" } }]
             }
           ) {
-            documentId
-            internalModalName
-            buttonText
-            buttonURL
-            showDelay
-            createdAt
-            locale
-            localizations {
-              locale
-              buttonText
-              buttonURL
-              modalHeader
-              modalText
+            data {
+              id
+              attributes {
+                internalModalName
+                buttonText
+                buttonURL
+                showDelay
+                createdAt
+                locale
+                localizations {
+                  data {
+                    attributes {
+                      locale
+                      buttonText
+                      buttonURL
+                      modalHeader
+                      modalText
+                    }
+                  }
+                }
+                modalEndDate
+                modalStartDate
+                modalHeader
+                modalText
+                publishedAt
+                shouldDeployOnMobile
+                showToNewVisitors
+                showToNonSustainers
+                showToReturningVisitors
+                showToSustainers
+                showTo
+                updatedAt
+              }
             }
-            modalEndDate
-            modalStartDate
-            modalHeader
-            modalText
-            publishedAt
-            shouldDeployOnMobile
-            showToNewVisitors
-            showToNonSustainers
-            showToReturningVisitors
-            showToSustainers
-            showTo
-            updatedAt
           }
           sidebarAds(
             filters: {
@@ -111,37 +127,53 @@ function StrapiDataProvider({ children }) {
               and: [{ endTime: { lte: \"${endDate}\" } }]
             }
           ) {
-            documentId
-            buttonAboveOrBelow
-            title
-            bodyText
-            buttonText
-            buttonURL
-            buttonIcon {
-              url
-              alternativeText
-            }
-            createdAt
-            debug
-            endTime
-            hasBlueBackground
-            internalCampaignId
-            keywords
-            locale
-            localizations {
-              locale
-              title
-              bodyText
-              buttonText
-              buttonURL
-            }
-            publishedAt
-            showTo
-            startTime
-            updatedAt
-            isNewsletterSubscriptionInputForm
-            newsletterMailingLists {
-              newsletterName
+            data {
+              id
+              attributes {
+                buttonAboveOrBelow
+                title
+                bodyText
+                buttonText
+                buttonURL
+                buttonIcon {
+                  data {
+                    attributes {
+                      url
+                      alternativeText
+                    }
+                  }
+                }
+                createdAt
+                debug
+                endTime
+                hasBlueBackground
+                internalCampaignId
+                keywords
+                locale
+                localizations {
+                  data {
+                    attributes {
+                      locale
+                      title
+                      bodyText
+                      buttonText
+                      buttonURL
+                    }
+                  }
+                }
+                publishedAt
+                showTo
+                startTime
+                updatedAt
+                isNewsletterSubscriptionInputForm
+                newsletterMailingLists {
+                  data {
+                    attributes {
+                      newsletterName
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -169,8 +201,8 @@ function StrapiDataProvider({ children }) {
             setDataFromStrapiHasBeenReceived(true);
 
             // Decompose the modals and banners from the GraphQL query response for easier handling
-            let modals = result.data?.modals;
-            let banners = result.data?.banners;
+            let modals = result.data?.modals?.data;
+            let banners = result.data?.banners?.data;
 
             let removeContentKeysFromLocalStorage = ({ prefix = "", except = "" } = {}) => {
               let keysToRemove = [];
@@ -194,31 +226,32 @@ function StrapiDataProvider({ children }) {
               // Only one modal can be displayed currently. The first one that matches will be the one shown
               let modal = modals.find(
                 (modal) =>
-                  currentDate >= new Date(modal.modalStartDate) &&
-                  currentDate <= new Date(modal.modalEndDate)
+                  currentDate >= new Date(modal.attributes.modalStartDate) &&
+                  currentDate <= new Date(modal.attributes.modalEndDate)
               );
               if (modal) {
                 // Remove any other previous modals since there is potentially new modal to replace it
                 // However, do not remove the existing modal if the eligible one found is the same as the current one
                 removeContentKeysFromLocalStorage({
                   prefix: "modal_",
-                  except: modal.internalModalName,
+                  except: modal.attributes.internalModalName,
                 });
 
                 // Check if there is a Hebrew translation for the modal
-                if (modal.localizations?.length) {
-                  let localization_attributes = modal.localizations[0];
+                if (modal.attributes.localizations?.data?.length) {
+                  let localization_attributes =
+                    modal.attributes.localizations.data[0].attributes;
                   // Ignore the locale because only Hebrew is supported currently
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
                   // Iterate over the localizable attributes in parallel to create an object compatible for use in an InterfaceText
                   Object.keys(hebrew_attributes).forEach((attribute) => {
-                    modal[attribute] = {
-                      en: modal[attribute],
+                    modal.attributes[attribute] = {
+                      en: modal.attributes[attribute],
                       he: hebrew_attributes[attribute],
                     };
                   });
-                  modal.locales = ["en", "he"];
+                  modal.attributes.locales = ["en", "he"];
                 } else {
                   [
                     "modalHeader",
@@ -226,14 +259,14 @@ function StrapiDataProvider({ children }) {
                     "buttonText",
                     "buttonURL",
                   ].forEach((attribute) => {
-                    modal[attribute] = {
-                      en: modal[attribute],
+                    modal.attributes[attribute] = {
+                      en: modal.attributes[attribute],
                       he: null,
                     };
                   });
-                  modal.locales = ["en"];
+                  modal.attributes.locales = ["en"];
                 }
-                setModal(modal);
+                setModal(modal.attributes);
               }
             }
 
@@ -241,8 +274,8 @@ function StrapiDataProvider({ children }) {
               // Only one banner can be displayed currently. The first one that matches will be the one shown
               let banner = banners.find(
                 (b) =>
-                  currentDate >= new Date(b.bannerStartDate) &&
-                  currentDate <= new Date(b.bannerEndDate)
+                  currentDate >= new Date(b.attributes.bannerStartDate) &&
+                  currentDate <= new Date(b.attributes.bannerEndDate)
               );
 
               if (banner) {
@@ -250,36 +283,37 @@ function StrapiDataProvider({ children }) {
                 // However, do not remove the existing banner if the eligible one found is the same as the current one
                 removeContentKeysFromLocalStorage({
                   prefix: "banner_",
-                  except: banner.internalBannerName,
+                  except: banner.attributes.internalBannerName,
                 });
 
                 // Check if there is a Hebrew translation
-                if (banner.localizations?.length) {
-                  let localization_attributes = banner.localizations[0];
+                if (banner.attributes.localizations?.data?.length) {
+                  let localization_attributes =
+                    banner.attributes.localizations.data[0].attributes;
                   // Get the hebrew attributes
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
                   // Iterate over the localizable attributes in parallel to create an object compatible for use in an InterfaceText
                   Object.keys(hebrew_attributes).forEach((attribute) => {
-                    banner[attribute] = {
-                      en: banner[attribute],
+                    banner.attributes[attribute] = {
+                      en: banner.attributes[attribute],
                       he: hebrew_attributes[attribute],
                     };
                   });
-                  banner.locales = ["en", "he"];
+                  banner.attributes.locales = ["en", "he"];
                 } else {
                   // TODO: Make the GraphQL query return nilable attributes so the attributes (just their keys) can be iterated over within the localization object
                   ["bannerText", "buttonText", "buttonURL"].forEach(
                     (attribute) => {
-                      banner[attribute] = {
-                        en: banner[attribute],
+                      banner.attributes[attribute] = {
+                        en: banner.attributes[attribute],
                         he: null,
                       };
                     }
                   );
-                  banner.locales = ["en"];
+                  banner.attributes.locales = ["en"];
                 }
-                setBanner(banner);
+                setBanner(banner.attributes);
               }
             }
           })
