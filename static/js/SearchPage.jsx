@@ -51,8 +51,15 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
               src="/static/icons/heavy-x.svg"
               alt={Sefaria._("Clear")}
               role="button"
+              tabIndex="0"
               onClick={() => setValue("")}
-          /> : null}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setValue("");
+                }
+              }}
+          />
     </div>
   );
 };
