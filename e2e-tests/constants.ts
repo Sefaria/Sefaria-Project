@@ -53,7 +53,29 @@ export const SaveStates: Record<string, SaveState> = {
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 
-export const MODULE_URLS = {
+// Local dev servers (localhost / 127.0.0.1) have no www./voices. subdomains or
+// TLS — use the URL as-is for the Library module and a voices./chiburim.
+// sub-host for Voices (Chromium resolves *.localhost to 127.0.0.1).
+// Keep this in sync with the same derivation in ../playwright.config.ts.
+const isLocalSandbox = /^(https?:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.SANDBOX_URL ?? '')
+const localBase = (raw: string | undefined, voicesHost?: string) => {
+  const u = new URL((raw ?? '').match(/^https?:\/\//) ? raw! : `http://${raw}`)
+  const host = voicesHost ? `${voicesHost}.${u.host}` : u.host
+  return `${u.protocol}//${host}`
+}
+
+export const MODULE_URLS = isLocalSandbox ? {
+  EN : {
+    LIBRARY: localBase(process.env.SANDBOX_URL),
+    VOICES:  localBase(process.env.SANDBOX_URL, 'voices')
+  },
+  HE : {
+    LIBRARY: localBase(process.env.SANDBOX_URL_IL),
+    // Locally there is no chiburim. host (it isn't in ALLOWED_HOSTS): Hebrew
+    // Voices is the voices. host with the interfaceLang=hebrew cookie.
+    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices')
+  }
+} as const : {
   EN : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
     VOICES:  `https://voices.${SANDBOX_DOMAIN}`
