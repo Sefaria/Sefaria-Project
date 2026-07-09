@@ -11,6 +11,22 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
+// Strapi's GraphQL API wraps every collection-type query result as
+// { data: [ { id, attributes: {...fields} }, ... ] } rather than the flat
+// array of flat objects the rest of this codebase (and Promotions.jsx,
+// which calls sidebarAds.forEach(...) directly) expects. Left un-unwrapped,
+// `sidebarAds` is a truthy plain object (not an array), so
+// `sidebarAds.forEach` throws `TypeError: sidebarAds.forEach is not a
+// function` and crashes the whole React tree (no error boundary above it).
+// Unwrap once, here, so every consumer of strapiData gets flat arrays of
+// flat field objects regardless of Strapi's wire shape.
+const unwrapStrapiCollection = (collection) => {
+  const entries = collection?.data ?? [];
+  return entries.map((entry) =>
+    entry?.attributes ? { id: entry.id, ...entry.attributes } : entry
+  );
+};
+
 // Gets data from a Strapi CMS instance to be used for displaying static content
 function StrapiDataProvider({ children }) {
   const [dataFromStrapiHasBeenReceived, setDataFromStrapiHasBeenReceived] =
@@ -165,12 +181,21 @@ function StrapiDataProvider({ children }) {
             return response.json();
           })
           .then((result) => {
-            setStrapiData(result.data);
+            // Unwrap Strapi's { data: [{ id, attributes }] } collection
+            // shape into flat arrays of flat objects before anything else
+            // touches it — see unwrapStrapiCollection for why.
+            const data = {
+              ...result.data,
+              banners: unwrapStrapiCollection(result.data?.banners),
+              modals: unwrapStrapiCollection(result.data?.modals),
+              sidebarAds: unwrapStrapiCollection(result.data?.sidebarAds),
+            };
+            setStrapiData(data);
             setDataFromStrapiHasBeenReceived(true);
 
             // Decompose the modals and banners from the GraphQL query response for easier handling
-            let modals = result.data?.modals;
-            let banners = result.data?.banners;
+            let modals = data.modals;
+            let banners = data.banners;
 
             let removeContentKeysFromLocalStorage = ({ prefix = "", except = "" } = {}) => {
               let keysToRemove = [];
@@ -310,4 +335,5 @@ export {
   AdContext,
   StrapiDataProvider,
   StrapiDataContext,
+  unwrapStrapiCollection,
 };
