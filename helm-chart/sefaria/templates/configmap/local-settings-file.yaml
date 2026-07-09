@@ -182,6 +182,8 @@ data:
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
+    SEARCH_INDEX_NAME_TOPIC = os.getenv("SEARCH_INDEX_NAME_TOPIC", "topic")
+    SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
 
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
