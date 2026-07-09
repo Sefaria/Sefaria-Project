@@ -215,7 +215,7 @@ GET /api/entity-search?q=Rambam&type=book
       "title_he": "משנה תורה",
       "isCategory": true,
       "categoryLabel_en": "Mishneh Torah",
-      "categories": ["Halakhah", "Mishneh Torah"],
+      "categories": null,
       "path": "Halakhah/Mishneh Torah",
       "description_en": "Maimonides' comprehensive code of Jewish law, organized by topic.",
       "authors": ["maimonides"],
@@ -238,6 +238,10 @@ GET /api/entity-search?q=Rambam&type=book
   "total": 42
 }
 ```
+
+In the aggregated view, an individual work carries its full `categories` path (rendered as the card's
+breadcrumb trail); a category row collapses many per-book paths into one entry, so it carries
+`categories: null` and is represented by its `categoryLabel_*` instead (a single breadcrumb).
 
 ## Elastic Search Indexing Operations
 
@@ -272,7 +276,7 @@ Product wants each tab's result count to appear before that tab's results finish
 - *Isolates exact-count cost* — `track_total_hits: true` (for exact counts above the 10k default cap) rides on the cheap query, not the main results query.
 - *Cost to accept:* it re-runs the query-match scan (≈2× that portion of cluster work per search), and the frontend coordinates two responses — including the Sefaria + Dicta total merge on the Sources tab ([`search.js` total merge](../../static/js/sefaria/search.js)).
 
-This same `size: 0` count query also resolves the open **"eager vs. lazy entity search"** question (see [Open Questions](#open-questions)): to show count badges on all four tabs up front, fire cheap count-only queries per type eagerly to populate the badges, then fetch full per-tab results lazily on tab switch — strictly lighter than firing all full queries in parallel.
+This resolves the open **"eager vs. lazy entity search"** question (see [Open Questions](#open-questions)): to show count badges on all four tabs up front, fire the (cheap, per point above) full entity queries per type eagerly. Each badge reads `total` off its response — not `hits.length`, which is capped at one page (max 100) and would undercount broad queries — and the fetched hits are cached (`Search.entitySearch`) for reuse when the user switches to that tab, so the eager fetch does double duty. The `size: 0` count-only trick stays reserved for the expensive Sources query.
 
 **Two count-semantics wrinkles to decide:**
 - *Author-works collapsing.* Book/Author results collapse many works into category entries (the sample shows `"total": 42` with far fewer displayed rows). A count-only query returns the **raw** match total, which won't equal the collapsed row count — product must pick which number the badge shows.

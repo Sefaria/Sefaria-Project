@@ -10,6 +10,7 @@ import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
 import {SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
+import SearchResultCard from './SearchResultCard';
 import {
   CategoryColorLine,
   InterfaceText,
@@ -68,7 +69,122 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
                   setValue("");
                 }
               }}
-          />
+          /> : null}
+    </div>
+  );
+};
+
+
+const formatEntityYear = (year) => {
+  if (year === null || year === undefined) { return null; }
+  const abs = Math.abs(year);
+  return year < 0
+      ? {en: `${abs} BCE`, he: `${abs} לפנה״ס`}
+      : {en: `${abs} CE`, he: `${abs} לספירה`};
+};
+
+
+const authorLifespan = (hit) => {
+  const {birthYear, deathYear} = hit;
+  if (birthYear == null || deathYear == null) {
+    return formatEntityYear(birthYear ?? deathYear);
+  }
+  const birth = formatEntityYear(birthYear);
+  const death = formatEntityYear(deathYear);
+  if ((birthYear < 0) === (deathYear < 0)) {
+    // Same era — spell it out once: "1135 – 1204 CE", not "1135 CE – 1204 CE".
+    return {en: `${Math.abs(birthYear)} – ${death.en}`, he: `${Math.abs(birthYear)} – ${death.he}`};
+  }
+  return {en: `${birth.en} – ${death.en}`, he: `${birth.he} – ${death.he}`};
+};
+
+
+const topicHitCardProps = (hit, query) => ({
+  mode: 'topics',
+  type: 'topic',
+  name: hit.title_en || hit.title_he,
+  hebrewName: hit.title_he || hit.title_en,
+  description: hit.description_en,
+  hebrewDescription: hit.description_he,
+  href: `/topics/${hit.slug}`,
+  query,
+});
+
+
+const authorHitCardProps = (hit, query) => {
+  const lifespan = authorLifespan(hit);
+  return {
+    ...topicHitCardProps(hit, query),  // authors are topics: same slug-based href and title/description fields
+    mode: 'authors',
+    type: 'author',
+    secondaryDate: lifespan?.en,
+    hebrewSecondaryDate: lifespan?.he,
+  };
+};
+
+
+const categoryPathCrumbs = (categories) => categories.map((cat, i) => ({
+  label: cat,
+  hebrewLabel: Sefaria.hebrewTerm(cat),
+  href: `/texts/${categories.slice(0, i + 1).join("/")}`,
+}));
+
+
+const bookHitCardProps = (hit, query) => {
+  const date = formatEntityYear(hit.compDate);
+  const common = {
+    mode: 'books',
+    name: hit.title_en || hit.title_he,
+    hebrewName: hit.title_he || hit.title_en,
+    secondaryDate: date?.en,
+    hebrewSecondaryDate: date?.he,
+    description: hit.description_en,
+    hebrewDescription: hit.description_he,
+    query,
+  };
+  if (hit.url) {
+    // An author-works aggregation row (see entity_search): it carries its own url.
+    // An individual work carries its category path; a category row collapses many
+    // works (and paths) into one entry, so it's represented by its own label instead.
+    return {
+      ...common,
+      type: hit.isCategory ? 'collection' : 'text',
+      href: hit.url,
+      crumbs: hit.categories?.length
+        ? categoryPathCrumbs(hit.categories)
+        : hit.categoryLabel_en ? [{label: hit.categoryLabel_en, hebrewLabel: hit.categoryLabel_he}] : undefined,
+    };
+  }
+  return {
+    ...common,
+    type: 'text',
+    href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
+    crumbs: categoryPathCrumbs(hit.categories || []),
+    secondaryAuthor: hit.author_names?.[0],
+  };
+};
+
+
+const ENTITY_CARD_PROP_BUILDERS = {
+  topic: topicHitCardProps,
+  author: authorHitCardProps,
+  book: bookHitCardProps,
+};
+
+
+const EntitySearchResults = ({type, data, query}) => {
+  if (!data) {
+    return <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
+  }
+  if (!data.hits.length) {
+    return <LoadingMessage message="0 results." heMessage="0 תוצאות." />;
+  }
+  return (
+    <div className="entitySearchResults">
+      {data.hits.map(hit => {
+        const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
+        return <SearchResultCard key={cardProps.href} {...cardProps} />;
+      })}
     </div>
   );
 };
@@ -81,7 +197,7 @@ class SearchPage extends Component {
       totalResults: null,
       mobileFiltersOpen: false,
       activeTab: "sources",
-      entityCounts: {topic: null, author: null, book: null},
+      entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
       bookCategoryFilters: this.makeBookCategoryFilters(),
     };
   }
@@ -101,26 +217,26 @@ class SearchPage extends Component {
   }
 
   componentDidMount() {
-    this.fetchEntityCounts();
+    this.fetchEntityResults();
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.query !== this.props.query) {
-      this.setState({entityCounts: {topic: null, author: null, book: null}});
-      this.fetchEntityCounts();
+      this.setState({entityData: {topic: null, author: null, book: null}});
+      this.fetchEntityResults();
     }
   }
 
-  fetchEntityCounts() {
+  fetchEntityResults() {
     const query = this.props.query;
     if (!query || this.props.searchInBook) { return; }
     ["topic", "author", "book"].forEach(type => {
-      Sefaria.search.entitySearchCount(query, type)
-          .then(total => {
+      Sefaria.search.entitySearch(query, type)
+          .then(data => {
             if (this.props.query !== query) { return; }  // a newer query superseded this one
-            this.setState(prev => ({entityCounts: {...prev.entityCounts, [type]: total}}));
+            this.setState(prev => ({entityData: {...prev.entityData, [type]: data}}));
           })
-          .catch(() => {});  // count badge stays at "0"
+          .catch(() => {});  // count badge stays at "0", panel stays on the loading message
     });
   }
 
@@ -202,9 +318,9 @@ class SearchPage extends Component {
 
     const tabs = [
       {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || ""},
-      {id: "books",   title: "Books",   count: this.formatEntityCount(this.state.entityCounts.book)},
-      {id: "authors", title: "Authors", count: this.formatEntityCount(this.state.entityCounts.author)},
-      {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityCounts.topic)},
+      {id: "books",   title: "Books",   count: this.formatEntityCount(this.state.entityData.book?.total)},
+      {id: "authors", title: "Authors", count: this.formatEntityCount(this.state.entityData.author?.total)},
+      {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityData.topic?.total)},
     ];
 
     return (
@@ -246,9 +362,15 @@ class SearchPage extends Component {
                     {searchResultList}
                     */}
                   </div>
-                  <div className="searchTabPanel" key="books"></div>
-                  <div className="searchTabPanel" key="authors"></div>
-                  <div className="searchTabPanel" key="topics"></div>
+                  <div className="searchTabPanel" key="books">
+                    <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
+                  </div>
+                  <div className="searchTabPanel" key="authors">
+                    <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
+                  </div>
+                  <div className="searchTabPanel" key="topics">
+                    <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
+                  </div>
                 </TabView>
               </div>
 

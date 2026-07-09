@@ -572,20 +572,23 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
-    entitySearchCount(query, type) {
-        // Count-only entity search (size=0) powering the Books / Authors / Topics tab count badges.
-        const cacheKey = `entitySearchCount|${type}|${query}`;
+    entitySearch(query, type) {
+        // Fetches the entity results themselves, so the hits are cached and reusable by the
+        // tab panels. The Books / Authors / Topics tab count badges read `total` off the
+        // response rather than counting the hits — the API returns at most one page (capped
+        // at 100), so `hits.length` would undercount broad queries.
+        const cacheKey = `entitySearch|${type}|${query}`;
         const cacheResult = this.cache(cacheKey);
         if (cacheResult !== undefined) {
             return Promise.resolve(cacheResult);
         }
-        const url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&size=0`;
+        const url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
         // Wrapped in a real Promise because jQuery 2's Deferred has no .catch()
         return new Promise((resolve, reject) => {
             $.getJSON(url).then(data => {
                 if (data.error) { reject(new Error(data.error)); return; }
-                this.cache(cacheKey, data.total);
-                resolve(data.total);
+                this.cache(cacheKey, data);
+                resolve(data);
             }, reject);
         });
     }

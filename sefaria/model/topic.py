@@ -87,6 +87,12 @@ class AuthorWorksAggregation(ABC):
         pass
 
     @abstractmethod
+    def get_categories(self):
+        """English category path of a single work (e.g. ["Jewish Thought", "Rishonim"]), or None
+        for a category entry, which is represented by its own label (get_category_label) instead."""
+        pass
+
+    @abstractmethod
     def get_comp_date(self):
         """Single sortable composition year for this entry, or None when undatable."""
         pass
@@ -111,6 +117,9 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
 
     def get_category_label(self, lang):
         return None
+
+    def get_categories(self):
+        return getattr(self._index, 'categories', None) or []
 
     def get_comp_date(self):
         return _index_comp_date(self._index)
@@ -144,6 +153,11 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
     def get_category_label(self, lang):
         # Localized name of the category the works are grouped under (e.g. "Mishneh Torah").
         return self._index_category.get_primary_title(lang)
+
+    def get_categories(self):
+        # A category entry is its own breadcrumb (get_category_label); the works it
+        # collapses live at many per-book paths, so no single path represents it.
+        return None
 
     def get_comp_date(self):
         # A category row collapses many works (and dates) into one entry; represent it by
@@ -844,7 +858,9 @@ class AuthorTopic(PersonTopic):
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
         Aggregates author's works by category when possible and
-        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str},
+        "description": {"en": str, "he": str}, "isCategory": bool, "categoryLabel": {"en": str, "he": str},
+        "categories": list or None, "compDate": int or None}
         corresponding to an index or category of indexes of this author's works.
         """
         aggregations = self.aggregate_authors_indexes_by_category()
@@ -855,6 +871,7 @@ class AuthorTopic(PersonTopic):
                                 "description": {"en": agg.get_description('en'), "he": agg.get_description('he')},
                                 "isCategory": agg.is_category(),
                                 "categoryLabel": {"en": agg.get_category_label('en'), "he": agg.get_category_label('he')},
+                                "categories": agg.get_categories(),
                                 "compDate": agg.get_comp_date()})
         return unique_urls
 

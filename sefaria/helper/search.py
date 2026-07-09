@@ -508,6 +508,7 @@ def _author_works_response(author, sort="relevance"):
             "isCategory": agg["isCategory"],
             "categoryLabel_en": agg["categoryLabel"]["en"],
             "categoryLabel_he": agg["categoryLabel"]["he"],
+            "categories": agg["categories"],
             "url": agg["url"],
             "description_en": agg["description"]["en"],
             "description_he": agg["description"]["he"],
