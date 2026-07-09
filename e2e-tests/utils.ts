@@ -113,14 +113,8 @@ export const installOverlaySuppression = async (context: BrowserContext) => {
   });
 
   // Layer 1b: short-circuit the Strapi GraphQL cache endpoint with an empty
-  // payload, shaped to match Strapi's real GraphQL wire format — every
-  // collection comes back as { data: [...] }, not a flat array (verified
-  // live against /api/strapi/graphql-cache). context.js's
-  // unwrapStrapiCollection() flattens this before Promotions.jsx or the
-  // modal/banner logic ever sees it; mocking the ALREADY-unwrapped flat-array
-  // shape here would silently stop exercising that unwrap path and could let
-  // a future regression (like the sidebarAds.forEach crash this shape once
-  // caused) go undetected by the suite.
+  // payload, shaped like Strapi's real { data: [...] } wire format so this
+  // mock still exercises context.js's unwrapStrapiCollection() unwrap path.
   await context.route('**/api/strapi/graphql-cache*', async (route) => {
     await route.fulfill({
       status: 200,

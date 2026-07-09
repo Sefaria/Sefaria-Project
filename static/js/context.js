@@ -11,19 +11,13 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
-// Strapi's GraphQL API wraps every collection-type query result as
-// { data: [ { id, attributes: {...fields} }, ... ] } rather than the flat
-// array of flat objects the rest of this codebase (and Promotions.jsx,
-// which calls sidebarAds.forEach(...) directly) expects. Left un-unwrapped,
-// `sidebarAds` is a truthy plain object (not an array), so
-// `sidebarAds.forEach` throws `TypeError: sidebarAds.forEach is not a
-// function` and crashes the whole React tree (no error boundary above it).
-// Unwrap once, here, so every consumer of strapiData gets flat arrays of
-// flat field objects regardless of Strapi's wire shape.
+// Flattens Strapi's { data: [{ id, attributes }] } collection shape into
+// flat objects. Unwrapped, `sidebarAds` is a truthy object, not an array,
+// so Promotions.jsx's `sidebarAds.forEach(...)` throws and crashes the tree.
 const unwrapStrapiCollection = (collection) => {
   const entries = collection?.data ?? [];
   return entries.map((entry) =>
-    entry?.attributes ? { id: entry.id, ...entry.attributes } : entry
+    entry?.attributes ? { ...entry.attributes, id: entry.id } : entry
   );
 };
 
@@ -181,9 +175,7 @@ function StrapiDataProvider({ children }) {
             return response.json();
           })
           .then((result) => {
-            // Unwrap Strapi's { data: [{ id, attributes }] } collection
-            // shape into flat arrays of flat objects before anything else
-            // touches it — see unwrapStrapiCollection for why.
+            // Unwrap before anything else touches it — see unwrapStrapiCollection.
             const data = {
               ...result.data,
               banners: unwrapStrapiCollection(result.data?.banners),
