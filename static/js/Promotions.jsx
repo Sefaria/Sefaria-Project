@@ -16,10 +16,11 @@ const Promotions = () => {
     if (strapi.dataFromStrapiHasBeenReceived) {
       Sefaria._inAppAds = [];
 
-      const sidebarAds = strapi.strapiData?.sidebarAds;
+      const sidebarAds = strapi.strapiData?.sidebarAds?.data;
 
       if (sidebarAds) {
         sidebarAds.forEach((sidebarAd) => {
+          sidebarAd = sidebarAd.attributes;
           console.log(JSON.stringify(sidebarAd, null, 2));
           let keywordTargetsArray = sidebarAd.keywords
             .split(",")
@@ -39,8 +40,8 @@ const Promotions = () => {
             hasBlueBackground: sidebarAd.hasBlueBackground,
             isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
             newsletterMailingLists:
-              sidebarAd.newsletterMailingLists?.map(
-                (mailingLists) => mailingLists.newsletterName
+              sidebarAd.newsletterMailingLists?.data.map(
+                (mailingLists) => mailingLists.attributes.newsletterName
               ) ?? [],
             trigger: {
               showTo: sidebarAd.showTo,
@@ -53,8 +54,8 @@ const Promotions = () => {
             debug: sidebarAd.debug,
           });
           // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
-          if (sidebarAd.localizations?.length) {
-            const hebrewAttributes = sidebarAd.localizations[0];
+          if (sidebarAd.localizations?.data?.length) {
+            const hebrewAttributes = sidebarAd.localizations.data[0].attributes;
             const [buttonText, bodyText, buttonURL, title] = [
               hebrewAttributes.buttonText,
               hebrewAttributes.bodyText,
@@ -207,13 +208,13 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
         href={matchingAd.buttonURL}
         onClick={() => trackSidebarAdClick(matchingAd)}
       >
-        {matchingAd.buttonIcon ? (
+        {matchingAd.buttonIcon?.data ? (
           <img
             // TODO: Create middleware to handle serving media assets to distinguish between different environments
             // The absolute path is needed for debugging purposes to get the media asset from the local Strapi server
             // The local Strapi instance provides a relative path through the API
-            src={(matchingAd.debug ? STRAPI_INSTANCE : '') + matchingAd.buttonIcon.url}
-            alt={matchingAd.buttonIcon.alternativeText}
+            src={(matchingAd.debug ? STRAPI_INSTANCE : '') + matchingAd.buttonIcon.data.attributes.url}
+            alt={matchingAd.buttonIcon.data.attributes.alternativeText}
             aria-hidden="true"
           />
         ) : null}
