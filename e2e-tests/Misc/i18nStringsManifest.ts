@@ -246,8 +246,10 @@ export const STRING_PAGES: StringsPageSpec[] = [
     ],
   },
   {
+    // The saved/history page is /saved (urls_shared.py:33) — /texts/saved
+    // silently redirects to /texts.
     name: 'Saved & History',
-    path: '/texts/saved',
+    path: '/saved',
     anchor: '.navTitle',
     auth: 'user',
     expectedIds: [
