@@ -329,7 +329,8 @@ class SearchFilter extends Component {
               tabIndex={expandable ? "0" : null}
               aria-label={expandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
-              <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span>
+              {filter.docCount !== undefined ?
+                <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span> : null}
             </span>
           </div>
           {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
@@ -352,6 +353,24 @@ class SearchFilter extends Component {
 SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   expandable:     PropTypes.bool,
+  updateSelected: PropTypes.func.isRequired,
+};
+
+
+const BookSearchFilters = ({filters, updateSelected}) => (
+  // Sidebar for the Books tab: a flat, searchable list of book categories.
+  <div className="searchFilters navSidebarModule">
+    <div className="searchFilterBoxes">
+      <SearchFilterGroup
+        name="Texts"
+        searchable={true}
+        filters={filters}
+        updateSelected={updateSelected} />
+    </div>
+  </div>
+);
+BookSearchFilters.propTypes = {
+  filters:        PropTypes.array.isRequired,
   updateSelected: PropTypes.func.isRequired,
 };
 
@@ -402,3 +421,4 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
 
 
 export default SearchFilters;
+export { BookSearchFilters };

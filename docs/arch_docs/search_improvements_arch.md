@@ -155,7 +155,7 @@ The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a
 - **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. The `numSources` popularity `function_score` is skipped when a field sort is active (score is then only a tie-breaker; the tier boosts provide that without the script cost).
 - **A-Z is case-insensitive.** Sorting uses a `title_en.sort` keyword sub-field with a `lowercase` normalizer (a raw `keyword` sort would put "iggeret" after "Zohar"). Both title fields on both indices carry the sub-field, so a Hebrew-interface א-ת sort on `title_he.sort` needs no reindex later.
 - **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
-- **Explicit sorts bypass the author-works aggregation.** On the Books tab, a query that resolves to an author normally returns category-aggregated works (see below). Those category rows collapse many works — and many dates — into one entry, so they carry no per-row sort key. Any non-relevance sort therefore runs the flat book search, where every row has a real `compDate`/title. This is a deliberate, uniform rule (sorting is a total order over individual documents); if product prefers A-Z to preserve the aggregation, that one case could sort the aggregated rows client- or server-side by title instead.
+- **Explicit sorts keep the author-works aggregation.** On the Books tab, a query that resolves to an author returns category-aggregated works (see below) under every sort, not just relevance. To make that sortable, each aggregated row carries a `compDate`: an individual work's own composition year, or — for a category row, which collapses many works and dates into one entry — the **average year of its dated works** (`AuthorCategoryAggregation.get_comp_date`). The rows are then sorted in code with the same semantics as the flat ES sorts (A-Z on lowercased English title; year sorts on `compDate`; missing keys last in either direction). An earlier iteration bypassed the aggregation on explicit sorts to expose each book's individual date; product preferred preserving the collapsed view, with a representative date per category. (Alternative considered: keying a category by its *first* work's date rather than the average — rejected because "first" follows canonical library order, not chronology.)
 
 #### Category filter (books only)
 
@@ -163,7 +163,7 @@ The Books tab also supports a category filter: `filter=<category path>` on the A
 
 - **Non-scoring.** The paths go into the bool query's `filter` context, so filtering never perturbs relevance ranking — the same match scores, just a restricted set. It composes freely with any `sort`.
 - **Books only.** Topics and authors carry no category path; a `filter` on those types is rejected (topics may want a different faceting concept later, but it isn't this field).
-- **Bypasses the author-works aggregation**, same rule as explicit sorts: category-aggregated rows collapse many books into one entry with no single per-row path, so a filtered query always returns the flat book list.
+- **Bypasses the author-works aggregation** (unlike explicit sorts, which preserve it): category-aggregated rows collapse many books into one entry with no single per-row path, so a filtered query always returns the flat book list.
 
 #### Author-aware book results
 
@@ -215,7 +215,7 @@ GET /api/entity-search?q=Rambam&type=book
       "title_he": "משנה תורה",
       "isCategory": true,
       "categoryLabel_en": "Mishneh Torah",
-      "categories": ["Halakhah", "Mishneh Torah"],
+      "categories": null,
       "path": "Halakhah/Mishneh Torah",
       "description_en": "Maimonides' comprehensive code of Jewish law, organized by topic.",
       "authors": ["maimonides"],
@@ -238,6 +238,10 @@ GET /api/entity-search?q=Rambam&type=book
   "total": 42
 }
 ```
+
+In the aggregated view, an individual work carries its full `categories` path (rendered as the card's
+breadcrumb trail); a category row collapses many per-book paths into one entry, so it carries
+`categories: null` and is represented by its `categoryLabel_*` instead (a single breadcrumb).
 
 ## Elastic Search Indexing Operations
 
@@ -272,7 +276,7 @@ Product wants each tab's result count to appear before that tab's results finish
 - *Isolates exact-count cost* — `track_total_hits: true` (for exact counts above the 10k default cap) rides on the cheap query, not the main results query.
 - *Cost to accept:* it re-runs the query-match scan (≈2× that portion of cluster work per search), and the frontend coordinates two responses — including the Sefaria + Dicta total merge on the Sources tab ([`search.js` total merge](../../static/js/sefaria/search.js)).
 
-This same `size: 0` count query also resolves the open **"eager vs. lazy entity search"** question (see [Open Questions](#open-questions)): to show count badges on all four tabs up front, fire cheap count-only queries per type eagerly to populate the badges, then fetch full per-tab results lazily on tab switch — strictly lighter than firing all full queries in parallel.
+This resolves the open **"eager vs. lazy entity search"** question (see [Open Questions](#open-questions)): to show count badges on all four tabs up front, fire the (cheap, per point above) full entity queries per type eagerly. Each badge reads `total` off its response — not `hits.length`, which is capped at one page (max 100) and would undercount broad queries — and the fetched hits are cached (`Search.entitySearch`) for reuse when the user switches to that tab, so the eager fetch does double duty. The `size: 0` count-only trick stays reserved for the expensive Sources query.
 
 **Two count-semantics wrinkles to decide:**
 - *Author-works collapsing.* Book/Author results collapse many works into category entries (the sample shows `"total": 42` with far fewer displayed rows). A count-only query returns the **raw** match total, which won't equal the collapsed row count — product must pick which number the badge shows.

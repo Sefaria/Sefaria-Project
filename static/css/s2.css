@@ -4216,8 +4216,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   margin-bottom: 20px;
 }
+.searchContent .navSidebar .searchFilters {
+  /* Align the sidebar heading underline with the tab group underline:
+     search bar (45px) + its margin (20px) + tab row height above the shared line */
+  margin-top: 80px;
+}
 .searchContent .searchFilterGroup {
   margin-bottom:  30px;
+}
+.searchContent .searchFilterList {
+  padding-inline-start: 0;
 }
 .searchContent .searchFilterBoxes li {
   display: flex;
