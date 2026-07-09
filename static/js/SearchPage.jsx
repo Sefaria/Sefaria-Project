@@ -15,6 +15,7 @@ import {
   LoadingMessage,
   TabView,
 } from './Misc';
+import SearchLoadSkeleton from './SearchLoadSkeleton';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -53,7 +54,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
       />
-      {value.length ?
+      {value.length &&
           <img
               className="searchBarClearButton"
               src="/static/icons/heavy-x.svg"
@@ -68,6 +69,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
                 }
               }}
           />
+        }
     </div>
   );
 };
@@ -113,13 +115,6 @@ class SearchPage extends Component {
         topics={this.props.topics}
     />;
 
-    const resultCount = this.props.totalResults?.getValue() > 0 && (
-      <>
-        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>Results</InterfaceText>
-      </>
-    );
-
     const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
       <SearchSortBox
           type={this.props.type}
@@ -161,30 +156,30 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
-                <TabView
-                    tabs={tabs}
-                    currTabName={this.state.activeTab}
-                    setTab={this.setTab}
-                    renderTab={this.renderTab}
-                    containerClasses={"largeTabs"}>
-                  <div className="searchTabPanel" key="sources">
-                    <div className="searchTopMatter">
-                      <div className="searchResultCount">
-                        {resultCount}
+                {this.props.isQueryRunning
+                  ? <SearchLoadSkeleton />
+                  : <TabView
+                        tabs={tabs}
+                        currTabName={this.state.activeTab}
+                        setTab={this.setTab}
+                        renderTab={this.renderTab}
+                        containerClasses={"largeTabs"}>
+                      <div className="searchTabPanel" key="sources">
+                        <div className="searchTopMatter">
+                          <div>
+                            {sortFilterControls}
+                          </div>
+                        </div>
+                        {/* Search results temporarily removed while the page is rebuilt
+                            to match the multi-entity search designs (sc-45480).
+                        {searchResultList}
+                        */}
                       </div>
-                      <div>
-                        {sortFilterControls}
-                      </div>
-                    </div>
-                    {/* Search results temporarily removed while the page is rebuilt
-                        to match the multi-entity search designs (sc-45480).
-                    {searchResultList}
-                    */}
-                  </div>
-                  <div className="searchTabPanel" key="books"></div>
-                  <div className="searchTabPanel" key="authors"></div>
-                  <div className="searchTabPanel" key="topics"></div>
-                </TabView>
+                      <div className="searchTabPanel" key="books"></div>
+                      <div className="searchTabPanel" key="authors"></div>
+                      <div className="searchTabPanel" key="topics"></div>
+                    </TabView>
+                }
               </div>
 
               {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
