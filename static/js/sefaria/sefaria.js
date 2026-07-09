@@ -3925,6 +3925,9 @@ Sefaria.unpackBaseProps = function(props){
       "chatbot_api_base_url",
       "chatbot_version",
       "chatbot_use_local_script",
+      "googleClientId",
+      "appleClientId",
+      "recaptchaSiteKey",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

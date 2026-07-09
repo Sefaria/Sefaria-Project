@@ -386,6 +386,11 @@ def base_props(request):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", ""),
+    })
     return user_data
 
 

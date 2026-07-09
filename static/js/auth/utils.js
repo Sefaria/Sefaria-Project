@@ -1,3 +1,10 @@
+export function makeFlowId() {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export function whenReady(check, cb) {
   let tries = 80;
   let cancelled = false;
@@ -15,8 +22,7 @@ export function whenReady(check, cb) {
   };
 }
 
-export function getCsrf(explicit) {
-  if (explicit) return explicit;
+export function getCsrf() {
   if (typeof document === 'undefined') return '';
   const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
   return m ? m[1] : '';

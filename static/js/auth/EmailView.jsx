@@ -12,7 +12,7 @@ import { whenReady, pickFirstError, authError } from './utils.js';
 const EmailView = ({
   flow, switchFlow, fields, setField,
   onBack, startRegistration, trackRegistration, endRegistration,
-  recaptchaSiteKey, onForgotClick, next, csrf,
+  onForgotClick, next, csrf,
 }) => {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +21,7 @@ const EmailView = ({
   const captchaWidgetId = useRef(null);
 
   const isRegister = flow === 'register';
+  const recaptchaSiteKey = Sefaria.recaptchaSiteKey;
 
   useEffect(() => {
     if (!isRegister || !recaptchaSiteKey) {
@@ -201,7 +202,6 @@ EmailView.propTypes = {
   startRegistration: PropTypes.func.isRequired,
   trackRegistration: PropTypes.func.isRequired,
   endRegistration: PropTypes.func.isRequired,
-  recaptchaSiteKey: PropTypes.string,
   onForgotClick: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
