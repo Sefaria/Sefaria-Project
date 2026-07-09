@@ -435,7 +435,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
    </div>
  )
  const thankYouContent = (
-   <div class="sans-serif-in-hebrew">
+    <div className="sans-serif-in-hebrew">
       <h2><InterfaceText>user_profile.thank_you</InterfaceText></h2>
       <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
       <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>user_profile.back_to_profile</InterfaceText></a></div>
