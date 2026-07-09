@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
-import AuthCard from '../common/AuthCard.jsx';
+import AuthCard from './AuthCard.jsx';
 import Button from '../common/Button.jsx';
 
 const ForgotSentView = ({ onSignIn }) => (

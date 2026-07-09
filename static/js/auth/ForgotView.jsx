@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
-import AuthCard from '../common/AuthCard.jsx';
+import AuthCard from './AuthCard.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
-import ErrorBanner from '../common/ErrorBanner.jsx';
+import ErrorBanner from './ErrorBanner.jsx';
 
 const ForgotView = ({ error, emailValue, submitting, setField, submitForgot, onBack }) => (
   <AuthCard onBack={onBack} backLabel={Sefaria._('Back')}

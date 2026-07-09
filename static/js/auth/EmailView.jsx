@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
-import AuthCard from '../common/AuthCard.jsx';
+import AuthCard from './AuthCard.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
-import LegalText from '../common/LegalText.jsx';
-import ErrorBanner from '../common/ErrorBanner.jsx';
+import LegalText from './LegalText.jsx';
+import ErrorBanner from './ErrorBanner.jsx';
 
 const EmailView = ({
   flow, switchFlow, error, onProviderClick,

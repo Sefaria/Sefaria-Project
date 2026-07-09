@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
-import AuthCard from '../common/AuthCard.jsx';
-import Divider from '../common/Divider.jsx';
+import AuthCard from './AuthCard.jsx';
+import Divider from './Divider.jsx';
 import Button from '../common/Button.jsx';
-import ProviderButton from '../common/ProviderButton.jsx';
-import LegalText from '../common/LegalText.jsx';
-import ErrorBanner from '../common/ErrorBanner.jsx';
+import ProviderButton from './ProviderButton.jsx';
+import LegalText from './LegalText.jsx';
+import ErrorBanner from './ErrorBanner.jsx';
 
 const ChooseView = ({
   flow, switchFlow, error, onProviderClick,
