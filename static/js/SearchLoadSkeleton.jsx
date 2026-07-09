@@ -19,7 +19,7 @@ function SkeletonCard() {
 
 function SearchLoadSkeleton() {
   return (
-    <div className="searchLoadSkeleton">
+    <div className="searchLoadSkeleton" aria-hidden="true">
       <div className="searchLoadSkeleton-tabs">
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-tab" />
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-tab" />
