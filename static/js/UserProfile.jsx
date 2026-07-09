@@ -406,7 +406,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
  }
 
  const disableOverlayContent = (
-   <div class="sans-serif-in-hebrew">
+    <div className="sans-serif-in-hebrew">
       <h2><InterfaceText>user_profile.request_for_feedback</InterfaceText></h2>
       <p><InterfaceText>user_profile.thank_you_for_trying_the_new_sefaria_editor</InterfaceText></p>
       <p><InterfaceText>user_profile.did_you_encounter_any_issues_while_using_the</InterfaceText></p>
