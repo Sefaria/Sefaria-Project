@@ -3972,7 +3972,7 @@ Sefaria.ssoUseRedirect = function() {
     /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 };
 Sefaria.ssoSetRedirectState = function(state) {
-  document.cookie = 'sso_redirect_state=' + encodeURIComponent(state) + '; Max-Age=900; Path=/; SameSite=Lax';
+  document.cookie = 'sso_redirect_state=' + encodeURIComponent(state) + '; Max-Age=900; Path=/; SameSite=Lax; Secure';
 };
 
 Sefaria.setup = function(data, props = null, resetCache = false) {
