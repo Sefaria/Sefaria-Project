@@ -36,7 +36,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     await pm.onLibraryTopic().expectNoDraftMarkers();
   });
 
-  test('LIB-007: Click a source → opens reader at /<Ref>; back button returns to topic', async () => {
+  test('LIB-007: Click a source → opens reader at /<Ref>; back button returns to topic', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryTopic().open(LIB, SLUG);
     const { href } = await pm.onLibraryTopic().clickFirstSourceAndExpectReader();
@@ -48,7 +48,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     await pm.onLibraryTopic().expectTitleStillInDom();
   });
 
-  test('LIB-008: Sources paginate via infinite scroll (count grows on scroll)', async () => {
+  test('LIB-008: Sources paginate via infinite scroll (count grows on scroll)', { tag: '@sanity' }, async () => {
     test.setTimeout(t(120000));
     await pm.onLibraryTopic().open(LIB, SLUG);
     // Switch to the full "Sources" tab — Notable Sources is a small curated set;
@@ -59,7 +59,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     expect(after, `scrolling should append more sources (started at ${before})`).toBeGreaterThan(before);
   });
 
-  test('LIB-009: Filter strip text input narrows the source list', async () => {
+  test('LIB-009: Filter strip text input narrows the source list', { tag: '@sanity' }, async () => {
     // The CSV row describes "source filtering by text type or language". The
     // Library Sources tab exposes a text filter in its filter strip (FilterableList
     // filterFunc → refFilter, which matches ref / en / he / category). A term that
@@ -83,7 +83,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     expect(restored, 'clearing the filter should restore the source list').toBeGreaterThan(0);
   });
 
-  test('LIB-010a: Sort param (Relevance vs Chronological) reorders the first source', async () => {
+  test('LIB-010a: Sort param (Relevance vs Chronological) reorders the first source', { tag: '@sanity' }, async () => {
     test.setTimeout(t(120000));
     await pm.onLibraryTopic().open(LIB, SLUG, { sort: 'Relevance' });
     const relevanceFirst = await pm.onLibraryTopic().firstSourceRefHref();
@@ -110,7 +110,7 @@ test.describe('Library Topics — source listing & interaction', () => {
     expect(after, `clicking Chronological should re-order the list (was ${before})`).not.toBe(before);
   });
 
-  test('LIB-011: Source-language toggle changes the displayed source language', async () => {
+  test('LIB-011: Source-language toggle changes the displayed source language', { tag: '@sanity' }, async () => {
     // CSV: "source language preference affects display". Library exposes the "A"
     // popover (LangSelectInterface: Source / Translation / Source-with-Translation).
     // On an English interface the default is "Translation" (English text), so the

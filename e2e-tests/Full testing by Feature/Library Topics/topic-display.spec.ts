@@ -27,7 +27,7 @@ test.describe('Library Topics — display & content (English)', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('LIB-001: Topic page loads with core content (title, description, image, URL, tab title)', async () => {
+  test('LIB-001: Topic page loads with core content (title, description, image, URL, tab title)', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().open(MODULE_URLS.EN.LIBRARY, SLUG);
     await pm.onLibraryTopic().expectTitleText(TITLE_EN);
     await pm.onLibraryTopic().expectDescriptionPresent(100);
@@ -37,7 +37,7 @@ test.describe('Library Topics — display & content (English)', () => {
     await pm.onLibraryTopic().expectDocumentTitleContains(TITLE_EN);
   });
 
-  test('LIB-003: Topic image displays and scales across desktop / tablet / mobile viewports', async () => {
+  test('LIB-003: Topic image displays and scales across desktop / tablet / mobile viewports', { tag: '@sanity' }, async () => {
     await pm.onLibraryTopic().open(MODULE_URLS.EN.LIBRARY, SLUG);
     await pm.onLibraryTopic().expectImageVisibleWithAlt();
 

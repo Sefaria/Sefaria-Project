@@ -48,9 +48,16 @@ if os.environ.get("TQDM_DISABLE"):
     _tqdm_module.tqdm.__init__ = _patched_tqdm_init
     _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
 
-from patot import ChunkerConfig, PatotChunker
-from patot.records import SegmentRecord
-from patot.analytics import ChunkingRuntimeAnalytics
+# patot is an optional dependency, only present in the embedding job image (not the
+# web/test image). Guard the import so this module can be imported (and its pure helpers
+# tested) without patot installed; the `if PatotChunker is None` check in main() handles
+# the runtime case.
+try:
+    from patot import ChunkerConfig, PatotChunker
+    from patot.records import SegmentRecord
+    from patot.analytics import ChunkingRuntimeAnalytics
+except ModuleNotFoundError:
+    ChunkerConfig = PatotChunker = SegmentRecord = ChunkingRuntimeAnalytics = None
 
 _slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
 

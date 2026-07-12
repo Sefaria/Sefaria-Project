@@ -166,7 +166,7 @@ spec:
         - http/1.1
       annotations: {}
     ingress:
-      enabled: true
+      enabled: false
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
