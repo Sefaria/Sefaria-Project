@@ -1,9 +1,20 @@
 @import 'breakpoints';
 
 // ── Auth-specific SCSS vars (no matching site CSS var) ───────────────────────
-$sef-error:        #c03522;
-$sef-text-primary: #121212;
-$sef-surface:      #ffffff;
+$sef-error:          #c03522;
+$sef-text-primary:   #121212;
+$sef-text-muted:     #707070;
+$sef-surface:        #ffffff;
+$sef-border-default: #e6e6e6;
+
+$sp-1:  4px;
+$sp-2:  8px;
+$sp-4:  16px;
+$sp-6:  24px;
+
+$font-size-field: 16px;
+$font-size-label: 14px;
+$stroke-strong:   1.5px;
 
 // ── DRY helper for vertical flex stacks ─────────────────────────────────────
 %v-stack {
@@ -179,4 +190,118 @@ $sef-surface:      #ffffff;
   display: inline;
   margin-inline-start: 4px;
   font-weight: 400;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Provider buttons (Google / Apple)
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-provider-button-shell {
+  position: relative;
+  width: 100%;
+  height: 51px;
+
+  &:hover .sefaria-provider-button {
+    background-color: var(--highlight-blue-light);
+    border-color: #264764;
+  }
+
+  &.is-disabled .sefaria-provider-button {
+    background-color: $sef-border-default;
+    border-color: $sef-border-default;
+    cursor: not-allowed;
+    color: var(--medium-grey-legacy);
+    * { color: var(--medium-grey-legacy); }
+  }
+}
+
+.sefaria-provider-button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 51px;
+  padding: $sp-4 $sp-6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $sp-2;
+  background-color: $sef-surface;
+  border: $stroke-strong solid var(--sefaria-blue);
+  border-radius: 4px;
+  color: $sef-text-primary;
+  cursor: pointer;
+  font-size: $font-size-field;
+  font-weight: 600;
+  line-height: 1;
+
+  * { color: $sef-text-primary; }
+
+  &:hover {
+    background-color: var(--highlight-blue-light);
+    border-color: #264764;
+  }
+
+  &:disabled {
+    background-color: $sef-border-default;
+    border-color: $sef-border-default;
+    cursor: not-allowed;
+    color: var(--medium-grey-legacy);
+    * { color: var(--medium-grey-legacy); }
+  }
+
+  &-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+}
+
+// Google GIS injects an iframe with inline width/height; !important overrides those
+// so the transparent overlay covers the full visual button and captures clicks correctly.
+.sefaria-provider-sdk-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.0001;
+  overflow: hidden;
+  pointer-events: none;
+
+  > div,
+  iframe {
+    width: 100% !important;   // overrides Google SDK inline style
+    height: 100% !important;  // overrides Google SDK inline style
+    margin: 0 !important;     // overrides Google SDK inline style
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Divider ("or" / "או")
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-divider {
+  display: flex;
+  align-items: center;
+  gap: $sp-1;
+  color: $sef-text-muted;
+  font-size: $font-size-label;
+
+  &::before,
+  &::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: $sef-border-default;
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Legal text (ToS / Privacy)
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-legal-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: $sef-text-primary;
+  text-align: center;
+
+  a {
+    color: var(--sefaria-blue);
+    text-decoration: underline;
+  }
 }
