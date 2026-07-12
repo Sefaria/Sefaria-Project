@@ -205,6 +205,7 @@ a.sefaria-common-button.auth-primary.is-disabled * {
   z-index: 1;
   opacity: 0.0001;
   overflow: hidden;
+  pointer-events: none;
 }
 .sefaria-provider-sdk-overlay > div,
 .sefaria-provider-sdk-overlay iframe {
