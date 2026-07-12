@@ -50,7 +50,113 @@ subscribe(ref_data.process_index_delete_in_ref_data,                    text.Ind
 subscribe(marked_up_text_chunk.process_index_delete,                    text.Index, "delete")
 
 # Process in ES
-# todo: handle index name change in ES
+def process_index_title_change_in_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        search_index_name = get_new_and_current_index_names("text")['current']
+        old_title, new_title = kwargs.get("old"), kwargs.get("new")
+        text_index = library.get_index(new_title)
+        # This callback is subscribed after process_index_title_change_in_versions, so
+        # the book's versions already carry the new title in Mongo. The stale ES docs,
+        # however, have ids built from old-title refs — delete_version(old_title=...)
+        # rewrites each ref's title prefix to target them.
+        versions = text.VersionSet({"title": new_title}).array()
+        for ver in versions:
+            delete_version(text_index, ver.versionTitle, ver.language, old_title=old_title)
+        failed = []
+        for ver in versions:
+            for ref in text_index.all_segment_refs():
+                # Best-effort reindex, same rationale as process_version_title_change_in_search
+                # below: the rename is already committed to Mongo, so one bad segment must not
+                # abort the rest. Collect failures and surface them so search can be re-synced.
+                try:
+                    TextIndexer.index_ref(search_index_name, ref, ver.versionTitle, ver.language,
+                                          getattr(ver, 'languageFamilyName', None), getattr(ver, 'isPrimary', False))
+                except Exception as e:
+                    failed.append((ref.normal(), ver.versionTitle))
+                    logger.warning(
+                        "process_index_title_change_in_search: failed to index segment",
+                        index=new_title,
+                        versionTitle=ver.versionTitle,
+                        language=ver.language,
+                        ref=ref.normal(),
+                        error=str(e),
+                    )
+        if failed:
+            logger.error(
+                "process_index_title_change_in_search: some segments failed to reindex",
+                index=new_title,
+                old_title=old_title,
+                failed_count=len(failed),
+                failed_refs=failed,
+            )
+
+
+# Entity search (`topic` and `book` indices behind /api/entity-search).
+# One entity = one ES doc with a deterministic id (book: English title, topic: slug),
+# so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
+# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
+# deliberately NOT chased here — the weekly full rebuild reconciles them.
+
+def process_index_title_change_in_book_search(indx, **kwargs):
+    # A rename changes the book doc's ES id. Only the stale doc is deleted here:
+    # save() emits attributeChange notifications before the "save" notification,
+    # so process_index_save_in_book_search upserts the new-id doc right after.
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(kwargs.get("old"))
+
+
+def process_index_save_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_book_doc
+        index_book_doc(indx)
+
+
+def process_index_delete_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(indx.title)
+
+
+def process_topic_save_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_topic_doc
+        index_topic_doc(topic_obj)
+
+
+def process_topic_delete_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_topic_doc
+        delete_topic_doc(topic_obj.slug)
+
+
+def process_category_path_change_in_book_search(cat, **kwargs):
+    # Book ES docs denormalize `categories` (rendered as breadcrumb links) and `path`
+    # (the category filter), so books under a renamed/moved category serve dead
+    # breadcrumb links until reindexed. Doc ids are the books' (unchanged) English
+    # titles, so a bulk upsert fixes the docs in place — no deletion needed.
+    #
+    # Must be subscribed AFTER category.process_category_path_change: that hook
+    # cascades the new path into the affected Index records in Mongo, which this
+    # hook re-reads. (It saves them with override_dependencies=True, so
+    # process_index_save_in_book_search never fires for those books — this hook is
+    # their only path back into the book index.)
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_book_docs
+        new_path = kwargs.get("new") or []
+        if not new_path:  # an empty path would match every book in the library
+            return
+        index_book_docs(text.IndexSet({f"categories.{i}": p for i, p in enumerate(new_path)}))
+
+
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
@@ -108,6 +214,24 @@ def process_version_delete_in_global_notifications(ver, **kwargs):
     }).delete()
 
 
+# Index Name Change, continued — subscribed down here because the callback is defined above.
+# Listeners fire in subscription order, so this runs after every subscription in the
+# "Index Name Change" block at the top, in particular after
+# process_index_title_change_in_versions has renamed the book's versions in Mongo.
+subscribe(process_index_title_change_in_search,                         text.Index, "attributeChange", "title")
+subscribe(process_index_title_change_in_book_search,                    text.Index, "attributeChange", "title")
+
+# Entity search: keep the `book` index in sync with Index saves/deletes
+subscribe(process_index_save_in_book_search,                            text.Index, "save")
+subscribe(process_index_delete_in_book_search,                          text.Index, "delete")
+
+# Entity search: keep the `topic` index in sync with Topic saves/deletes.
+# notify() dispatches on the exact instance type, and topics load as their subclass
+# (Topic.subclass_map), so each concrete class needs its own subscription.
+for topic_klass in (topic.Topic, topic.PersonTopic, topic.AuthorTopic):
+    subscribe(process_topic_save_in_topic_search,                       topic_klass, "save")
+    subscribe(process_topic_delete_in_topic_search,                     topic_klass, "delete")
+
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
@@ -163,6 +287,9 @@ subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug"
 subscribe(category.process_category_path_change,  category.Category, "attributeChange", "path")
 subscribe(marked_up_text_chunk.process_category_path_change,  category.Category, "attributeChange", "path")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
+# Entity search: must stay subscribed after category.process_category_path_change,
+# which cascades the new path into the Mongo Index records this hook re-reads.
+subscribe(process_category_path_change_in_book_search,  category.Category, "attributeChange", "path")
 
 # Manuscripts
 subscribe(manuscript.process_slug_change_in_manuscript,  manuscript.Manuscript, "attributeChange", "slug")
