@@ -54,7 +54,7 @@ static_pages = [
     "pioneers",
     "ai",
     "metrics",
-    "dedication/hirsch"
+    "fleishman-hirsch-on-torah-in-english"
 ]
 
 static_pages_by_lang = [
