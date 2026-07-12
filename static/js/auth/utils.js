@@ -42,6 +42,17 @@ export function safeNext(next) {
   return /^\/(?!\/)/.test(next) ? next : '/';
 }
 
+export function focusProvider(provider) {
+  const target = provider.toLowerCase() === 'google' ? 'google-signin-button' : 'apple-signin-button';
+  window.setTimeout(() => {
+    const element = document.getElementById(target);
+    if (element) {
+      element.scrollIntoView({ block: 'center' });
+      element.focus();
+    }
+  }, 0);
+}
+
 export function authError(data, fallback) {
   const metadata = data?._auth;
   const message = pickFirstError(data) || fallback;

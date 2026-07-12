@@ -21,7 +21,7 @@ const ErrorBanner = ({ error, onProviderClick }) => {
               key={provider}
               href={`#${key === 'google' ? 'google-signin-button' : 'apple-signin-button'}`}
               className="sefaria-auth-provider-action"
-              onClick={(event) => { event.preventDefault(); onProviderClick(provider); }}
+              onClick={(event) => { event.preventDefault(); onProviderClick?.(provider); }}
             >
               {Sefaria._(labelEn)}
             </a>

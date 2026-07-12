@@ -11,7 +11,7 @@ import { whenReady, pickFirstError, authError, safeNext } from './utils.js';
 
 const EmailView = ({
   flow, switchFlow, fields, setField,
-  onBack, startRegistration, trackRegistration, endRegistration,
+  onBack, onProviderClick, startRegistration, trackRegistration, endRegistration,
   onForgotClick, next, csrf,
 }) => {
   const [error, setError] = useState(null);
@@ -160,7 +160,7 @@ const EmailView = ({
       sub={cfg.sub}
     >
       <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
-        <ErrorBanner error={error} />
+        <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
                  inputDir="ltr" autoComplete="email"
@@ -199,6 +199,7 @@ EmailView.propTypes = {
   }).isRequired,
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
+  onProviderClick: PropTypes.func,
   startRegistration: PropTypes.func.isRequired,
   trackRegistration: PropTypes.func.isRequired,
   endRegistration: PropTypes.func.isRequired,

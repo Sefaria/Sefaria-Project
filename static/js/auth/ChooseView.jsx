@@ -7,7 +7,7 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, authError, makeFlowId, safeNext } from './utils.js';
+import { whenReady, authError, makeFlowId, safeNext, focusProvider } from './utils.js';
 
 const ChooseView = ({
   flow, switchFlow, next, onEmailClick,
@@ -136,14 +136,6 @@ const ChooseView = ({
     }
   };
 
-  const showProvider = (provider) => {
-    const target = provider.toLowerCase() === 'google' ? 'google-signin-button' : 'apple-signin-button';
-    const element = document.getElementById(target);
-    if (element) {
-      element.scrollIntoView({ block: 'center' });
-      element.focus();
-    }
-  };
 
   const isLogin = flow === 'login';
   const heading = isLogin
@@ -174,7 +166,7 @@ const ChooseView = ({
       heading={heading}
       sub={sub}
     >
-      <ErrorBanner error={error} onProviderClick={showProvider} />
+      <ErrorBanner error={error} onProviderClick={focusProvider} />
       <div className="sefaria-auth-choose">
         <div className="sefaria-auth-sso-group">
           <div className="sefaria-auth-provider-options">

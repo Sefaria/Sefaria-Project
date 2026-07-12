@@ -4,7 +4,7 @@ import ChooseView from './ChooseView.jsx';
 import EmailView from './EmailView.jsx';
 import ForgotView from './ForgotView.jsx';
 import ForgotSentView from './ForgotSentView.jsx';
-import { getCsrf, makeFlowId } from './utils.js';
+import { getCsrf, makeFlowId, focusProvider } from './utils.js';
 
 /**
  * AuthPage — the React login / register / reset experience (spec 1602).
@@ -108,7 +108,9 @@ const AuthPage = ({
     content = (
       <EmailView
         flow={flow} switchFlow={switchFlow} fields={fields} setField={setField}
-        onBack={() => setView('choose')} startRegistration={startRegistration}
+        onBack={() => setView('choose')}
+        onProviderClick={(p) => { setView('choose'); focusProvider(p); }}
+        startRegistration={startRegistration}
         trackRegistration={trackRegistration} endRegistration={endRegistration}
         onForgotClick={onForgotClick} next={next} csrf={csrf}
       />
