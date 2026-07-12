@@ -3910,7 +3910,6 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "appVersion",
       "community",
       "followRecommendations",
       "trendingTopics",
@@ -3982,7 +3981,6 @@ Sefaria.setup = function(data, props = null, resetCache = false) {
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
-    Sefaria.track.setAppVersion(Sefaria.appVersion);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
