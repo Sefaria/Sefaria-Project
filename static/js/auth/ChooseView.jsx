@@ -7,7 +7,7 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, authError, makeFlowId } from './utils.js';
+import { whenReady, authError, makeFlowId, safeNext } from './utils.js';
 
 const ChooseView = ({
   flow, switchFlow, next, onEmailClick,
@@ -27,7 +27,7 @@ const ChooseView = ({
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) { window.location.href = next || '/'; }
+      if (res.ok) { window.location.href = safeNext(next); }
       else { setError(authError(data, 'Something went wrong. Try again.')); }
     } catch (e) {
       setError(authError(null, 'Something went wrong. Try again.'));

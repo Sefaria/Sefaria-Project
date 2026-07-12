@@ -7,7 +7,7 @@ import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, pickFirstError, authError } from './utils.js';
+import { whenReady, pickFirstError, authError, safeNext } from './utils.js';
 
 const EmailView = ({
   flow, switchFlow, fields, setField,
@@ -100,7 +100,7 @@ const EmailView = ({
           body: JSON.stringify({ email: fields.email, password: fields.password }),
         });
         const data = await res.json().catch(() => ({}));
-        if (res.ok) { window.location.href = next || '/'; return; }
+        if (res.ok) { window.location.href = safeNext(next); return; }
         setError(authError(data, 'Email and/or password are incorrect'));
       }
     } catch (err) {

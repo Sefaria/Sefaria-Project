@@ -38,6 +38,10 @@ export function pickFirstError(data) {
   return null;
 }
 
+export function safeNext(next) {
+  return /^\/(?!\/)/.test(next) ? next : '/';
+}
+
 export function authError(data, fallback) {
   const metadata = data?._auth;
   const message = pickFirstError(data) || fallback;
