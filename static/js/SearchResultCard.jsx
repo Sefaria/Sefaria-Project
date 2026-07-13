@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
@@ -35,7 +35,15 @@ function SearchResultCard({
   onResultClick,
   query,
   accentColor,
+  // Sources-mode specific props
+  snippet,
+  snippetLang,
+  versionName,
+  hebrewVersionName,
+  versions,
 }) {
+  const [versionsOpen, setVersionsOpen] = useState(false);
+
   const handleClick = (e) => {
     if (onResultClick) {
       e.preventDefault();
@@ -49,7 +57,9 @@ function SearchResultCard({
   const resolvedAccentColor = accentColor
     || (MODES_WITH_CATEGORY_COLOR.has(mode) && name ? Sefaria.palette.refColor(name) : '#000');
 
-  const resolvedIcon = icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text;
+  const isSourcesMode = mode === 'sources';
+  // Sources cards don't show the icon circle — the colored bar and ref title are sufficient.
+  const resolvedIcon = isSourcesMode ? null : (icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text);
 
   return (
     <div className={`searchResultCard searchResultCard--${mode}`}>
@@ -77,7 +87,7 @@ function SearchResultCard({
                 )}
               </div>
             </a>
-            {(secondaryDate || secondaryAuthor) && (
+            {!isSourcesMode && (secondaryDate || secondaryAuthor) && (
               <div className="searchResultCard-secondary">
                 {secondaryDate && (
                   <span className="searchResultCard-secondary-date">
@@ -100,7 +110,56 @@ function SearchResultCard({
               </div>
             )}
           </div>
-          {(descriptionHtml || description) && (
+
+          {isSourcesMode && snippet && (
+            <div
+              className={`searchResultCard-snippet${snippetLang === 'he' ? ' he' : ' en'}`}
+              dangerouslySetInnerHTML={{ __html: snippet }}
+            />
+          )}
+
+          {isSourcesMode && versionName && (
+            <div className="searchResultCard-versionName">
+              <InterfaceText text={{ en: versionName, he: hebrewVersionName || versionName }} />
+            </div>
+          )}
+
+          {isSourcesMode && versions && versions.length > 0 && (
+            <div className="searchResultCard-versionsSection">
+              <button
+                type="button"
+                className="searchResultCard-versionsToggle"
+                onClick={() => setVersionsOpen(o => !o)}
+                aria-expanded={versionsOpen}
+              >
+                <InterfaceText text={{
+                  en: versions.length === 1 ? '1 more version' : `${versions.length} more versions`,
+                  he: versions.length === 1 ? 'גרסה נוספת 1' : `${versions.length} גרסאות נוספות`,
+                }} />
+                <span
+                  className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+              {versionsOpen && (
+                <div className="searchResultCard-versionsList">
+                  {versions.map((v, i) => (
+                    <div key={i} className="searchResultCard-versionItem">
+                      <div
+                        className={`searchResultCard-snippet${v.snippetLang === 'he' ? ' he' : ' en'}`}
+                        dangerouslySetInnerHTML={{ __html: v.snippet }}
+                      />
+                      <div className="searchResultCard-versionName">
+                        <InterfaceText text={{ en: v.versionName, he: v.hebrewVersionName || v.versionName }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isSourcesMode && (descriptionHtml || description) && (
             <div className="searchResultCard-description">
               {descriptionHtml
                 ? <span dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
@@ -139,6 +198,18 @@ SearchResultCard.propTypes = {
   onResultClick:        PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
+  // Sources mode
+  snippet:              PropTypes.string,
+  snippetLang:          PropTypes.oneOf(['en', 'he']),
+  versionName:          PropTypes.string,
+  hebrewVersionName:    PropTypes.string,
+  versions:             PropTypes.arrayOf(PropTypes.shape({
+    snippet:          PropTypes.string.isRequired,
+    snippetLang:      PropTypes.oneOf(['en', 'he']),
+    versionName:      PropTypes.string,
+    hebrewVersionName: PropTypes.string,
+    href:             PropTypes.string,
+  })),
 };
 
 export { BreadcrumbPath };
