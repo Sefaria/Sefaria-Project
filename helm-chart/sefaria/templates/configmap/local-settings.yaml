@@ -38,9 +38,16 @@ data:
   SEARCH_SSL_ENABLE: {{ .Values.nginx.SEARCH_SSL_ENABLE | quote }}
   {{- $searchIndexNameText := tpl .Values.localSettings.SEARCH_INDEX_NAME_TEXT . }}
   {{- $searchIndexNameSheet := tpl .Values.localSettings.SEARCH_INDEX_NAME_SHEET . }}
+  {{- /* Only derive a name when this environment is still on the shared default. An environment
+         that already supplies its own index name (cauldrons get one at deploy time) is left
+         alone, so this stays idempotent and never suffixes an already-isolated name. */}}
   {{- if .Values.localSettings.ISOLATE_SEARCH_INDEXES }}
-  {{- $searchIndexNameText = printf "%s-%s" $searchIndexNameText .Values.deployEnv }}
-  {{- $searchIndexNameSheet = printf "%s-%s" $searchIndexNameSheet .Values.deployEnv }}
+  {{- if eq $searchIndexNameText "text" }}
+  {{- $searchIndexNameText = printf "text-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- if eq $searchIndexNameSheet "sheet" }}
+  {{- $searchIndexNameSheet = printf "sheet-%s" .Values.deployEnv }}
+  {{- end }}
   {{- end }}
   SEARCH_INDEX_NAME_TEXT: {{ $searchIndexNameText | quote }}
   SEARCH_INDEX_NAME_SHEET: {{ $searchIndexNameSheet | quote }}
