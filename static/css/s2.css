@@ -15343,6 +15343,15 @@ span.ref-link-color-3 {color: blue}
   text-decoration: none;
 }
 
+/* Static account name rows are rendered as anchors without hrefs; avoid making them look clickable. */
+.dropdownItem:not([href]) {
+  cursor: default;
+}
+
+.dropdownItem:not([href]):hover {
+  background-color: transparent;
+}
+
 .dropdownLogoItem {
   display: flex;
   justify-content: center;
