@@ -5,6 +5,18 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
+# ES cascade handlers that keep the search indices in sync with model changes.
+# sefaria.helper.search deliberately avoids importing sefaria.model at module level,
+# so importing it here (while sefaria.model's __init__ is still running) is safe.
+from sefaria.helper.search import (
+    process_index_title_change_in_search,
+    process_index_title_change_in_book_search,
+    process_index_save_in_book_search,
+    process_index_delete_in_book_search,
+    process_topic_save_in_topic_search,
+    process_topic_delete_in_topic_search,
+    process_category_path_change_in_book_search,
+)
 import sefaria.system.cache as scache
 import structlog
 
@@ -16,6 +28,8 @@ subscribe(version_state.create_version_state_on_index_creation,         text.Ind
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
 subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'compPlace')
 subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'pubPlace')
+# Entity search: keep the `book` index in sync with Index saves
+subscribe(process_index_save_in_book_search,                            text.Index, "save")
 
 # Index Name Change
 subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")
@@ -32,6 +46,11 @@ subscribe(user_profile.process_index_title_change_in_user_history,      text.Ind
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
 subscribe(marked_up_text_chunk.process_index_title_change,              text.Index, "attributeChange", "title")
+# ES: listeners fire in subscription order, so these must stay last in this block —
+# in particular after process_index_title_change_in_versions has renamed the book's
+# versions in Mongo, which process_index_title_change_in_search re-reads.
+subscribe(process_index_title_change_in_search,                         text.Index, "attributeChange", "title")
+subscribe(process_index_title_change_in_book_search,                    text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -48,115 +67,10 @@ subscribe(text.process_index_delete_in_toc,                             text.Ind
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
 subscribe(marked_up_text_chunk.process_index_delete,                    text.Index, "delete")
+# Entity search: keep the `book` index in sync with Index deletes
+subscribe(process_index_delete_in_book_search,                          text.Index, "delete")
 
 # Process in ES
-def process_index_title_change_in_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
-        search_index_name = get_new_and_current_index_names("text")['current']
-        old_title, new_title = kwargs.get("old"), kwargs.get("new")
-        text_index = library.get_index(new_title)
-        # This callback is subscribed after process_index_title_change_in_versions, so
-        # the book's versions already carry the new title in Mongo. The stale ES docs,
-        # however, have ids built from old-title refs — delete_version(old_title=...)
-        # rewrites each ref's title prefix to target them.
-        versions = text.VersionSet({"title": new_title}).array()
-        for ver in versions:
-            delete_version(text_index, ver.versionTitle, ver.language, old_title=old_title)
-        failed = []
-        for ver in versions:
-            for ref in text_index.all_segment_refs():
-                # Best-effort reindex, same rationale as process_version_title_change_in_search
-                # below: the rename is already committed to Mongo, so one bad segment must not
-                # abort the rest. Collect failures and surface them so search can be re-synced.
-                try:
-                    TextIndexer.index_ref(search_index_name, ref, ver.versionTitle, ver.language,
-                                          getattr(ver, 'languageFamilyName', None), getattr(ver, 'isPrimary', False))
-                except Exception as e:
-                    failed.append((ref.normal(), ver.versionTitle))
-                    logger.warning(
-                        "process_index_title_change_in_search: failed to index segment",
-                        index=new_title,
-                        versionTitle=ver.versionTitle,
-                        language=ver.language,
-                        ref=ref.normal(),
-                        error=str(e),
-                    )
-        if failed:
-            logger.error(
-                "process_index_title_change_in_search: some segments failed to reindex",
-                index=new_title,
-                old_title=old_title,
-                failed_count=len(failed),
-                failed_refs=failed,
-            )
-
-
-# Entity search (`topic` and `book` indices behind /api/entity-search).
-# One entity = one ES doc with a deterministic id (book: English title, topic: slug),
-# so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
-# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
-# deliberately NOT chased here — the weekly full rebuild reconciles them.
-
-def process_index_title_change_in_book_search(indx, **kwargs):
-    # A rename changes the book doc's ES id. Only the stale doc is deleted here:
-    # save() emits attributeChange notifications before the "save" notification,
-    # so process_index_save_in_book_search upserts the new-id doc right after.
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_book_doc
-        delete_book_doc(kwargs.get("old"))
-
-
-def process_index_save_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import index_book_doc
-        index_book_doc(indx)
-
-
-def process_index_delete_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_book_doc
-        delete_book_doc(indx.title)
-
-
-def process_topic_save_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import index_topic_doc
-        index_topic_doc(topic_obj)
-
-
-def process_topic_delete_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import delete_topic_doc
-        delete_topic_doc(topic_obj.slug)
-
-
-def process_category_path_change_in_book_search(cat, **kwargs):
-    # Book ES docs denormalize `categories` (rendered as breadcrumb links) and `path`
-    # (the category filter), so books under a renamed/moved category serve dead
-    # breadcrumb links until reindexed. Doc ids are the books' (unchanged) English
-    # titles, so a bulk upsert fixes the docs in place — no deletion needed.
-    #
-    # Must be subscribed AFTER category.process_category_path_change: that hook
-    # cascades the new path into the affected Index records in Mongo, which this
-    # hook re-reads. (It saves them with override_dependencies=True, so
-    # process_index_save_in_book_search never fires for those books — this hook is
-    # their only path back into the book index.)
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import index_book_docs
-        new_path = kwargs.get("new") or []
-        if not new_path:  # an empty path would match every book in the library
-            return
-        index_book_docs(text.IndexSet({f"categories.{i}": p for i, p in enumerate(new_path)}))
-
-
 def process_version_title_change_in_search(ver, **kwargs):
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
@@ -214,24 +128,6 @@ def process_version_delete_in_global_notifications(ver, **kwargs):
     }).delete()
 
 
-# Index Name Change, continued — subscribed down here because the callback is defined above.
-# Listeners fire in subscription order, so this runs after every subscription in the
-# "Index Name Change" block at the top, in particular after
-# process_index_title_change_in_versions has renamed the book's versions in Mongo.
-subscribe(process_index_title_change_in_search,                         text.Index, "attributeChange", "title")
-subscribe(process_index_title_change_in_book_search,                    text.Index, "attributeChange", "title")
-
-# Entity search: keep the `book` index in sync with Index saves/deletes
-subscribe(process_index_save_in_book_search,                            text.Index, "save")
-subscribe(process_index_delete_in_book_search,                          text.Index, "delete")
-
-# Entity search: keep the `topic` index in sync with Topic saves/deletes.
-# notify() dispatches on the exact instance type, and topics load as their subclass
-# (Topic.subclass_map), so each concrete class needs its own subscription.
-for topic_klass in (topic.Topic, topic.PersonTopic, topic.AuthorTopic):
-    subscribe(process_topic_save_in_topic_search,                       topic_klass, "save")
-    subscribe(process_topic_delete_in_topic_search,                     topic_klass, "delete")
-
 # Version Title Change
 subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
 subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
@@ -244,6 +140,12 @@ subscribe(process_version_delete_in_global_notifications,              text.Vers
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 # Topic
+# Entity search: keep the `topic` index in sync with Topic saves/deletes.
+# notify() dispatches on the exact instance type, and topics load as their subclass
+# (Topic.subclass_map), so each concrete class needs its own subscription.
+for topic_klass in (topic.Topic, topic.PersonTopic, topic.AuthorTopic):
+    subscribe(process_topic_save_in_topic_search,                       topic_klass, "save")
+    subscribe(process_topic_delete_in_topic_search,                     topic_klass, "delete")
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_description_change,                       topic.Topic, "attributeChange", "description")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
