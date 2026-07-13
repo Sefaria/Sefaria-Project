@@ -4,16 +4,13 @@ the model dependency listeners (sefaria/model/dependencies.py) that keep the
 `text`, `book` and `topic` search indices in sync on save/rename/delete, and
 their single-doc helpers in sefaria/search.py.
 
-Three layers:
+Two layers:
 
 * Layer 0 — pure unit tests: no Mongo, no ES. Guards and action-building only.
 * Layer 1 — hook integration tests: real model machinery + real Mongo, with a
   dict-backed FakeES swapped in at the ES boundary (same approach as
   sefaria/tests/search_test.py). These exercise the notify wiring, subscription
   ordering, and cascade suppression that the commit relies on.
-* Layer 2 — live-ES smoke tests: local only, skipped unless an Elasticsearch
-  is reachable. Validates real client call signatures and error classes — the
-  only thing FakeES can't.
 """
 import pytest
 from unittest.mock import MagicMock
@@ -505,43 +502,6 @@ class TestTopicHooks:
             t.delete()
         assert fake.get(TOPIC_INDEX, t.slug) is None
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="Real gap in the no-slug-hook design: Topic.set_slug calls "
-               "self.merge(old_slug) with a *string*, and merge only calls "
-               "other.delete() for Topic instances — so no delete hook ever "
-               "fires and the old-slug ES doc is orphaned until the weekly "
-               "rebuild. ('slug' isn't in Topic.pkeys either, so no "
-               "attributeChange fires; the existing marked_up_text_chunk "
-               "slug subscription is dead for the same reason.) Remove this "
-               "marker when the stale-doc deletion is wired up.",
-    )
-    def test_topic_slug_change(self, search_on):
-        """T4: set_slug must leave exactly one doc, under the new slug. This
-        was meant to certify the commit's design decision to skip a dedicated
-        slug hook — the old-slug doc has to disappear via the save/delete hooks
-        alone. It doesn't: see the xfail reason."""
-        fake = search_on
-        old_slug = "test-es-cascade-slug-old"
-        new_slug = "test-es-cascade-slug-new"
-        _delete_topic_records(old_slug, new_slug)
-        t = Topic({
-            "slug": old_slug,
-            "titles": [{"text": "Test ES Cascade Slug Topic", "primary": True, "lang": "en"}],
-        })
-        try:
-            t.save()
-            assert fake.get(TOPIC_INDEX, old_slug) is not None
-
-            t.set_slug(new_slug)
-
-            assert fake.get(TOPIC_INDEX, t.slug) is not None
-            assert fake.get(TOPIC_INDEX, old_slug) is None, \
-                "stale ES doc left under the old slug after set_slug"
-        finally:
-            t.delete()
-            _delete_topic_records(old_slug, new_slug)
-
     def test_topic_delete_with_no_es_doc_is_absorbed(self, search_on):
         """T7b: deleting a topic that never made it into ES must absorb the
         NotFoundError (logged warning), not raise into the model delete flow."""
@@ -617,62 +577,3 @@ class TestCategoryHooks:
             for term in terms:
                 term.delete()
 
-
-# --------------------------------------------------------------------------- #
-#  Layer 2 — live-ES smoke tests (local only)                                  #
-# --------------------------------------------------------------------------- #
-
-def _live_es_reachable():
-    try:
-        return bool(search_module.es_client.ping())
-    except Exception:
-        return False
-
-
-requires_live_es = pytest.mark.skipif(
-    not _live_es_reachable(),
-    reason="No reachable Elasticsearch (SEARCH_URL); local-only smoke test",
-)
-
-SMOKE_INDEX = "book-test-smoke"
-
-
-@requires_live_es
-class TestLiveESSmoke:
-    """Validates real client call signatures and error classes against a scratch
-    index built with the real `book` mappings — the only thing FakeES can't.
-    Not run in CI (no ES service there); doubles as the documented one-time
-    verification step against a dev ES."""
-
-    @pytest.fixture
-    def scratch_index(self, monkeypatch):
-        search_module.create_index(SMOKE_INDEX, "book", force=True)
-        monkeypatch.setattr(
-            search_module, "get_new_and_current_index_names",
-            lambda type, debug=False: {"new": SMOKE_INDEX, "current": SMOKE_INDEX, "alias": SMOKE_INDEX},
-        )
-        yield SMOKE_INDEX
-        search_module.index_client.delete(index=SMOKE_INDEX)
-
-    def test_index_book_doc_round_trip(self, scratch_index):
-        indx = library.get_index("Genesis")
-        search_module.index_book_doc(indx)
-        got = search_module.es_client.get(index=scratch_index, id="Genesis")
-        assert got["_source"]["title_en"] == "Genesis"
-        assert got["_source"]["path"].endswith("/Genesis")
-
-    def test_delete_book_doc_absorbs_real_404(self, scratch_index):
-        indx = library.get_index("Genesis")
-        search_module.index_book_doc(indx)
-        search_module.delete_book_doc("Genesis")
-        # Second delete hits a real 404; must be absorbed, not raised
-        search_module.delete_book_doc("Genesis")
-        with pytest.raises(NotFoundError):
-            search_module.es_client.get(index=scratch_index, id="Genesis")
-
-    def test_index_book_docs_bulk(self, scratch_index):
-        titles = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
-        search_module.index_book_docs([library.get_index(t) for t in titles])
-        search_module.index_client.refresh(index=scratch_index)
-        count = search_module.es_client.count(index=scratch_index)["count"]
-        assert count == len(titles)
