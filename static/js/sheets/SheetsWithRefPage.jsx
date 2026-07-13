@@ -16,7 +16,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     // we can return the searchState's available filters to the original list.  Once origAvailableFilters are loaded,
     // they are never changed.
 
-    const [refs, setRefs] = useState(srefs);
+    const enRefs = srefs.en;
+    const displayRef = Sefaria._v(srefs) || enRefs;
     const sortTypeArray = SearchState.metadataByType['sheet'].sortTypeArray;
 
     const cloneFilters = (availableFilters, resetDocCounts = true) => {
@@ -171,8 +172,8 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     }
 
     useEffect(() => {
-      Sefaria.sheets.getSheetsByRef(refs, makeSheetsUnique).then(sheets => {handleSheetsLoad(sheets);})
-    }, [refs]);
+      Sefaria.sheets.getSheetsByRef(enRefs, makeSheetsUnique).then(sheets => {handleSheetsLoad(sheets);})
+    }, [enRefs]);
 
     useEffect(() => { // when component unmounts, reset searchState
         return () => resetSearchFilters();
@@ -185,7 +186,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     sortedSheets = normalizeSheetsMetaData(sortedSheets);
     const handleSheetResultClick = (sheetRef) => {
         const sheetId = parseInt(sheetRef.replace("Sheet ", ""), 10);
-        onResultClick(sheetId, null, refs);
+        onResultClick(sheetId, null, enRefs);
     };
     const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance'
         ? 'These sheet results are ranked by AI relevance.' : undefined;
@@ -195,7 +196,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           sortTypeArray={sortTypeArray}
           searchTopMsg="Sheets With"
           hits={sortedSheets}
-          query={refs}
+          query={displayRef}
           type={'sheet'}
           totalResults={new SearchTotal({value: sortedSheets.length})}
           compare={false}

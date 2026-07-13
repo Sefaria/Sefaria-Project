@@ -23,13 +23,13 @@ export class LoginPage extends HelperBase{
         }
 
         if (this.language === LANGUAGES.HE) {
-            _loginHE();
+            await _loginHE();
         } else {
-            _loginEN();
+            await _loginEN();
         }
 
         // await for the page to load after login
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
         await changeLanguage(this.page, this.language);
     }
     

@@ -53,8 +53,6 @@ secrets:
     ref: local-settings-secrets
   backupManager: 
     ref: backup-manager
-  slackWebhook: 
-    ref: slack-webhook-helm
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {}

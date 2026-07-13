@@ -3,6 +3,44 @@ import json
 from sefaria.helper.search import *
 
 
+def test_extract_filter_values():
+    filters = ["Genesis 3:1-3", "Tanakh/Torah/Genesis", "Moses"]
+    filter_fields = ["linked_refs", "path", "tags"]
+
+    remaining_filters, remaining_filter_fields, extracted_values = extract_filter_values(
+        filters,
+        filter_fields,
+        "linked_refs",
+    )
+
+    assert remaining_filters == ["Tanakh/Torah/Genesis", "Moses"]
+    assert remaining_filter_fields == ["path", "tags"]
+    assert extracted_values == ["Genesis 3:1-3"]
+
+
+def test_normalize_linked_ref_filters():
+    assert normalize_linked_ref_filters(["Genesis 3:1-3"]) == [
+        "Genesis 3:1",
+        "Genesis 3:2",
+        "Genesis 3:3",
+    ]
+
+
+def test_normalize_filters_with_linked_refs():
+    filters, filter_fields = normalize_filters(
+        ["Genesis 3:1-3", "Tanakh/Torah/Genesis"],
+        ["linked_refs", "path"],
+    )
+
+    assert filters == [
+        "Tanakh/Torah/Genesis",
+        "Genesis 3:1",
+        "Genesis 3:2",
+        "Genesis 3:3",
+    ]
+    assert filter_fields == ["path", "linked_refs", "linked_refs", "linked_refs"]
+
+
 def test_query_obj():
     # stam query
     s = get_query_obj("moshe", "text", "exact", False, 0, 0, 10, [], [], [], "sort", ['comp_date', 'order'])
@@ -28,6 +66,25 @@ def test_query_obj():
     s = get_query_obj("moshe", "sheet", "content", False, 10, 0, 10, ["", "Moses", "Passover"], ["collections", "tags", "tags"], ['collections'], "score", [])
     t = json.loads("""{"_source": false, "size":10,"from":0,"highlight":{"fields":{"content":{"fragment_size":200,"pre_tags":["<b>"],"post_tags":["</b>"]}}},"aggs":{"collections":{"terms":{"field":"collections","size":10000}}},"query":{"bool":{"must":[{"match_phrase":{"content":{"query":"moshe","slop":10}}}],"filter":[{"bool":{"must":[{"bool":{"must":[{"term":{"tags":"Moses"}},{"term":{"tags":"Passover"}}]}},{"bool":{"must":[{"term":{"collections":""}}]}}]}}]}}}""")
     assert ordered(t) == ordered(s.to_dict())
+
+
+def test_text_filter_default_agg_type():
+    # Regression test for sc-44603: a text path filter applied from a URL (or via the
+    # documented `filter_fields = [None]` "use the default field" contract) must produce a
+    # `path` regexp filter, not crash with `Term(**{None: ...})` -> TypeError -> HTTP 500.
+    expected = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
+                             ["Tanakh/Writings/Psalms"], ["path"], [], "score",
+                             ['pagesheetrank'], sort_score_missing=0.04)
+    # explicit None agg_type (what the search page sends for URL-applied text filters)
+    none_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
+                             ["Tanakh/Writings/Psalms"], [None], [], "score",
+                             ['pagesheetrank'], sort_score_missing=0.04)
+    # empty filter_fields, which get_filter_obj fills with [None] * len(filters)
+    empty_agg = get_query_obj("moshe", "text", "naive_lemmatizer", False, 10, 0, 10,
+                              ["Tanakh/Writings/Psalms"], [], [], "score",
+                              ['pagesheetrank'], sort_score_missing=0.04)
+    assert ordered(none_agg.to_dict()) == ordered(expected.to_dict())
+    assert ordered(empty_agg.to_dict()) == ordered(expected.to_dict())
 
 
 def ordered(obj):

@@ -438,6 +438,11 @@ class ModuleMiddleware(MiddlewareURLMixin):
         self.get_response = get_response
         self.default_module = LIBRARY_MODULE
 
+    def should_process_request(self, request):
+        if request.path.startswith('/api/img-gen/'):
+            return True
+        return super().should_process_request(request)
+
     def _set_active_module(self, request):
         """
         Determine the active module based on the request host using DOMAIN_MODULES.

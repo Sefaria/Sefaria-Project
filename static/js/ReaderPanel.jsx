@@ -790,8 +790,6 @@ class ReaderPanel extends Component {
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           style={style}
           historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -863,8 +861,6 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           setPreviousSettings={this.setPreviousSettings}
           filterRef={this.state.filterRef}
           backButtonSettings={this.state.backButtonSettings}
@@ -892,7 +888,7 @@ class ReaderPanel extends Component {
                     initialWidth={this.state.width}
                     toggleSignUpModal={this.props.toggleSignUpModal} />);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef}
                                  searchState={this.state['searchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
@@ -1273,7 +1269,6 @@ ReaderPanel.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
-  setDivineNameReplacement:    PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
