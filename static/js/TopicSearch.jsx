@@ -111,7 +111,7 @@ class TopicSearch extends Component {
               <Autocompleter selectedCallback={this.validate}
                    getSuggestions={this.getSuggestions}
                    inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
-                   buttonTitle={Sefaria.translation(this.props.contentLang, "topic_search.add_topic")}
+                   buttonTitle={"topic_search.add_topic"}
                    inputValue={this.state.value}
                    changeInputValue={this.changeInputValue}
                    showSuggestionsOnSelect={false}

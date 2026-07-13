@@ -971,6 +971,7 @@ const ADMIN_BUTTON_IDS = {
   "Add sub-category": "misc.add_sub_category",
   "Reorder sources": "misc.reorder_sources",
   "Edit": "collection_page.edit",
+  "Publish": "sheet_options.publish",
 };
 const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
@@ -3481,9 +3482,9 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source", buttonId: "source" },
-  { buttonTitle: "Translation", buttonId: "translation" },
-  { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
+  { buttonTitle: "common.source", buttonId: "source" },
+  { buttonTitle: "source_translations_buttons.translation", buttonId: "translation" },
+  { buttonTitle: "source_translations_buttons.source_with_translation", buttonId: "sourcewtrans" }
 ];
 
   const handleLangChange = (event) => {

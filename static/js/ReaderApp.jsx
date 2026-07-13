@@ -508,7 +508,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "Search";
+            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "common.search";
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +

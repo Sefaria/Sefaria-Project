@@ -21,7 +21,7 @@ function getAuthorsAsString(isHebrew, authors) {
 
 const AuthorString = ({authors, isHebrew}) => {
   const authorsNum = authors?.length;
-  const author = authorsNum > 1 ? 'Authors' : 'Author';
+  const author = authorsNum > 1 ? 'common.authors' : 'nav_sidebar.author';
   const authorsNames = getAuthorsAsString(isHebrew, authors);
   return (
      authorsNames ? <div className="authors">

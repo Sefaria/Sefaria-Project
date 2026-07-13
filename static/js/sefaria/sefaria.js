@@ -3830,25 +3830,25 @@ _media: {},
       // Page title suffix configuration
       const suffixes = {
         home: {
-          voices: "Voices on Sefaria",
-          library: "Sefaria: a Living Library of Jewish Texts Online"
+          voices: "header.voices_on_sefaria",
+          library: "sefaria.sefaria_a_living_library_of_jewish_texts"
         },
         topic: {
-          voices: "Sheets from Voices on Sefaria",
-          library: "Texts from the Sefaria Library"
+          voices: "sefaria.sheets_from_voices_on_sefaria",
+          library: "sefaria.texts_from_the_sefaria_library"
         },
         collection: {
-          voices: "Voices on Sefaria Collection"
+          voices: "sefaria.voices_on_sefaria_collection"
         },
         default: {
-          voices: "Voices on Sefaria",
-          library: "Sefaria Library"
+          voices: "header.voices_on_sefaria",
+          library: "common.library_name"
         }
       };
   
       // Special case: Sheet titles need default if empty
       if (pageType === "sheet" && !baseTitle) {
-        baseTitle = "Untitled";
+        baseTitle = "common.untitled";
       }
 
       // If no page tye, or a page type with a default suffix

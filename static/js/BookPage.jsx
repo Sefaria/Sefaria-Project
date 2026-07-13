@@ -403,7 +403,7 @@ class TextTableOfContents extends Component {
     if(!excludedStructs.includes("schema")){
       structTabOptions.push({
         name: "schema",
-        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
+        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : Sefaria._("common.contents"),
         onPress: this.setTab.bind(null, "schema")
       })
     }

@@ -220,7 +220,7 @@ class CollectionPage extends Component {
         </div>
       );
       sidebarModules.push({type: "Wrapper", props: {
-        title: "Editors",
+        title: "misc.editors",
         content: editorsBlock}});
 
       const hasContentsTab = (collection.pinnedTags && collection.pinnedTags.length);
@@ -389,7 +389,7 @@ const CollectionContentsTab = ({collection, setFilter}) => {
             <a href={`/collections/${collection.slug}?tag=${tag}`} data-target-module={Sefaria.VOICES_MODULE} className="collectionContentsTag" onClick={(e) => {
               e.preventDefault();
               setFilter(tag);}}>
-              <InterfaceText>{tag}</InterfaceText>
+              <InterfaceText>{tag === "English" ? "topic_page.english" : tag}</InterfaceText>
             </a>   
           ))} />
         </div>
@@ -498,7 +498,7 @@ class CollectionMemberListing extends Component {
             {this.props.member.name}
           </a>
           <div className="collectionMemberListingRole">
-            <InterfaceText>{this.props.member.role}</InterfaceText>
+            <InterfaceText>{ {"Owner": "collection_page.owner", "Editor": "collection_page.editor"}[this.props.member.role] || this.props.member.role }</InterfaceText>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}

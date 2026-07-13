@@ -206,7 +206,7 @@ class EditCollectionPage extends Component {
               <FileInput
                 name="collectionHeader"
                 accept="image/*"
-                text="Upload Image"
+                text="edit_collection_page.upload_image"
                 className="button white"
                 onChange={this.handleImageChange} />
               <div className="helperText">

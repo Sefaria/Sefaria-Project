@@ -48,7 +48,7 @@ const SheetProfileInfo = ({profile, toggleSignUpModal}) => {
            </span>;
 }
 const SheetSidebarList = ({items, type}) => {
-    const title = type === "topics" ? "Topics" : "Part of Collections";
+    const title = type === "topics" ? "common.topics" : "Part of Collections";
     const styleClass = type === "topics" ? "sheetTopicsList" : "sheetCollectionsList";
     const renderItems = () => {
       if (type === "topics") {

@@ -245,6 +245,7 @@ const Header = (props) => {
 
 
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
+  const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
   const textLinks = <div className="textLinks">
     {links.map((link) => (
       <a
@@ -254,7 +255,7 @@ const Header = (props) => {
         className="textLink"
         onKeyDown={Util.handleKeyboardClick}
       >
-        <InterfaceText>{link}</InterfaceText>
+        <InterfaceText>{linkIds[link] || link}</InterfaceText>
       </a>
     ))}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>

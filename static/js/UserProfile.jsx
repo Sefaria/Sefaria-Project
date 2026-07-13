@@ -29,8 +29,8 @@ class UserProfile extends Component {
   getPrivateTabState(props) {
     const showBio = !!props.profile.bio;
     const tabs = [
-      { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
-      { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { id: "sheets", text: Sefaria._("common.sheets"), icon: "/static/icons/sheet.svg" },
+      { id: "collections", text: Sefaria._("common.collections"), icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true }
     ];

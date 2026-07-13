@@ -88,6 +88,7 @@ export const STRING_PAGES: StringsPageSpec[] = [
     anchor: '.readerNavMenu',
     expectedIds: [
       'texts_page.browse_the_library',
+      'common.topics',                            // desktop header nav link
       'nav_sidebar.sidebar_navigation',           // aria-label on <NavSidebar>
       'common.weekly_torah_portion',              // LearningSchedules module
       'common.book_icon',                         // alt on calendar links
@@ -123,6 +124,8 @@ export const STRING_PAGES: StringsPageSpec[] = [
     // topic_landing_search.explore_all_topics is deliberately absent: it is in
     // the SSR HTML but removed on client hydration at desktop width (mobile-only).
     expectedIds: [
+      'topics_page.explore_by_topic',             // page title
+      'topic_landing_seasonal.explore_the_jewish_calendar',
       // TopicLandingParasha (always rendered)
       'common.this_week_s_torah_portion',
       'topic_landing_parasha.learn_more_about',
