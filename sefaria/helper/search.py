@@ -615,7 +615,15 @@ def process_index_title_change_in_search(indx, **kwargs):
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.model import library, text
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
-        search_index_name = get_new_and_current_index_names("text")['current']
+        index_names = get_new_and_current_index_names("text")
+        search_index_name = index_names.get("current") if index_names else None
+        if not search_index_name:
+            logger.error(
+                "process_index_title_change_in_search: could not resolve current text index name",
+                old_title=kwargs.get("old"),
+                new_title=kwargs.get("new"),
+            )
+            return
         old_title, new_title = kwargs.get("old"), kwargs.get("new")
         text_index = library.get_index(new_title)
         # This callback is subscribed after process_index_title_change_in_versions, so
