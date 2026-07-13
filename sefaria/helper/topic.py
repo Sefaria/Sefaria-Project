@@ -18,6 +18,25 @@ from sefaria.helper.descriptions import create_era_link
 from sefaria.constants.model import LIBRARY_MODULE
 logger = structlog.get_logger(__name__)
 
+def ref_topic_link_is_displayable(link):
+    """
+    Returns False for a RefTopicLink that points at a ref whose text no longer exists in
+    the library (e.g. the Index was deleted without the topic-link cascade running, or the
+    text was removed through a path that bypasses dependencies). Such orphaned links are
+    what make a topic page blank out for admins, so we omit them from the topic response.
+    Sheet links (is_sheet) reference sheets rather than library texts and are always kept.
+    """
+    if getattr(link, 'is_sheet', False):
+        return True
+    try:
+        Ref(link.ref)
+        return True
+    except InputError as e:
+        logger.warning("Omitting orphaned ref topic link '{}' on topic '{}': {}".format(
+            getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), e))
+        return False
+
+
 def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
     """
     Helper function for api/topics/<slug>
@@ -53,13 +72,13 @@ def get_topic(v2, topic, lang, with_html=True, with_links=True, annotate_links=T
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
-        ref_links = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
+        ref_links = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters) and ref_topic_link_is_displayable(l)]
     else:
         if with_links:
             intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
             query_kwargs = {"linkType": {"$in": list(ref_link_type_filters)}} if len(ref_link_type_filters) > 0 else None
-            ref_links = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
+            ref_links = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs) if ref_topic_link_is_displayable(l)]
     if with_links:
         response['links'] = group_links_by_type('intraTopic', intra_links, annotate_links, group_related)
     if with_refs:
