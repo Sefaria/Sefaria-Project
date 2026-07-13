@@ -29,7 +29,15 @@ export class MobileHamburgerPage extends HelperBase {
   // ---------------------------------------------------------------------------
 
   private get menuButton(): Locator {
-    return this.page.getByRole('button', { name: 'Menu' });
+    // `name: 'Menu'` substring-matches "Account menu" and "Toggle Interface
+    // Language Menu" too — those are desktop-header buttons that briefly
+    // render during post-logout reflow or whenever device emulation drifts
+    // past the 843px mobile breakpoint, producing a strict-mode violation.
+    // The hamburger has aria-label="Menu" exactly AND class `menuButton`;
+    // anchor on both so the locator is unambiguous in any layout state.
+    return this.page.locator('button.menuButton').and(
+      this.page.getByRole('button', { name: 'Menu', exact: true })
+    );
   }
 
   private get libraryLogo(): Locator {

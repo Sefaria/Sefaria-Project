@@ -28,10 +28,10 @@ const MODULE_URLS = {
  * keeps us comfortably below that threshold and exercises the same mobile-only
  * components rendered by `Header.jsx` (`<MobileNavMenu>`, `<MobileInterfaceLanguageToggle>`).
  *
- * Run with: `npx playwright test --config=playwright.mobile.config.ts`
+ * Run with: `npx playwright test --config=playwright.mobileweb.config.ts`
  */
 export default defineConfig({
-  testDir: './e2e-tests/mobile',
+  testDir: './e2e-tests/mobile web',
   outputDir: './e2e-tests/e2e-test-logs/test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -66,14 +66,16 @@ export default defineConfig({
     permissions: ['geolocation'],
     extraHTTPHeaders: { 'Accept-Language': 'en-US,en;q=0.9' },
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'retain-on-failure',
+    // See the desktop config: retain-on-failure records video for every test
+    // then discards it on pass — overhead with little payoff over the trace.
+    video: 'off',
+    trace: 'on-first-retry',
   },
 
   projects: [
     {
       name: 'chrome-mobile-library',
-      testDir: './e2e-tests/mobile',
+      testDir: './e2e-tests/mobile web',
       use: {
         ...devices['Pixel 5'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -81,9 +83,22 @@ export default defineConfig({
     },
     {
       name: 'safari-mobile-library',
-      testDir: './e2e-tests/mobile',
+      testDir: './e2e-tests/mobile web',
       use: {
         ...devices['iPhone 13'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Mobile slice of the @sanity release-gate suite. The desktop *-sanity
+    // projects exclude `mobile web/` (those tests need the mobile viewport), so
+    // the mobile @sanity-tagged tests run here instead, at the Pixel 5 viewport.
+    // Run with: npx playwright test --config=playwright.mobileweb.config.ts --project=mobile-sanity
+    {
+      name: 'mobile-sanity',
+      testDir: './e2e-tests/mobile web',
+      grep: /@sanity/,
+      use: {
+        ...devices['Pixel 5'],
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },

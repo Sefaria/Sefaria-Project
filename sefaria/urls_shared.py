@@ -9,6 +9,7 @@ import api.views as api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
+import powered_by.views as powered_by_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -17,6 +18,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 shared_patterns = [
     re_path(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
+    re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
     re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/',
@@ -59,7 +61,7 @@ shared_patterns = [
     path('sheets/tags/<path:tag>', reader_views.topic_page_redirect),
     re_path(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
     re_path(r'^groups/?(?P<group>[^/]+)?$', reader_views.groups_redirect),
-    re_path(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
+    re_path(r'^contributors/(?P<uid>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
@@ -76,6 +78,7 @@ shared_patterns = [
     path('api/texts/<path:tref>', reader_views.texts_api),
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
+    path('api/knn-search', api_views.KnnSearch.as_view()),
     re_path(r'^api/index/?$', reader_views.table_of_contents_api),
     re_path(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     re_path(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -241,6 +244,7 @@ shared_patterns = [
     re_path(r'^api/text-upload$', sefaria_views.text_upload_api),
     re_path(r'^api/linker-track$', sefaria_views.linker_tracking_api),
     re_path(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
+    re_path(r'^api/powered-by/?$', powered_by_views.powered_by_api),
     re_path(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     re_path(r'^admin/reset/cache$', sefaria_views.reset_cache),
     re_path(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),

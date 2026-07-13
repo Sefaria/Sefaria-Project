@@ -8087,25 +8087,6 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
 }
 
-.connectionsPanel .divineNameReplacer p {
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  line-height: 19px;
-  color: var(--dark-grey);
-}
-
-.divineNameDepricationNotification {
-  padding-top: 10px;
-}
-
-.divineNameDepricationNotification p a {
-  color: var(--inline-link-blue);
-}
-
-.divineNameDepricationNotification p a:hover {
-  text-decoration: underline;
-}
-
 
 .addConnectionBox {
   font-size: 18px;
@@ -8423,16 +8404,6 @@ But not to use a display block directive that might break continuous mode for ot
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-#appLoading img.int-en {
-  width: 150px;
-  height: 42px;
-  margin-bottom: 6px;
-}
-#appLoading img.int-he {
-  width: 150px;
-  height: 49px;
-  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -14964,6 +14935,15 @@ span.ref-link-color-3 {color: blue}
 .dropdownItem:hover {
   background-color: var(--highlight-blue);
   text-decoration: none;
+}
+
+/* Static account name rows are rendered as anchors without hrefs; avoid making them look clickable. */
+.dropdownItem:not([href]) {
+  cursor: default;
+}
+
+.dropdownItem:not([href]):hover {
+  background-color: transparent;
 }
 
 .dropdownLogoItem {

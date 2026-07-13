@@ -1,17 +1,26 @@
 import { test, expect, BrowserContext } from '@playwright/test';
-import { goToPageWithUser, goToPageWithLang, hideAllModalsAndPopups, isUserLoggedIn, openHeaderDropdown, selectDropdownOption } from "../utils";
-import { BROWSER_SETTINGS, LANGUAGES, testUser, t } from '../globals';
-import { MODULE_URLS, MODULE_SELECTORS } from '../constants';
-import { PageManager } from '../pages/pageManager';
+import { goToPageWithUser, goToPageWithLang, hideAllModalsAndPopups, isUserLoggedIn, openHeaderDropdown, selectDropdownOption } from "../../utils";
+import { BROWSER_SETTINGS, LANGUAGES, testUser, t } from '../../globals';
+import { MODULE_URLS, MODULE_SELECTORS } from '../../constants';
+import { PageManager } from '../../pages/pageManager';
 
-test.describe('Cross-Module Login Scenarios', () => {
+// ⚠️ Tripwire: XMOD-L04–L07 perform parallel UI logins as testUser. This works
+// today only because Sefaria's Django config does NOT regenerate sibling
+// sessions on fresh login — the new session is created without invalidating
+// the on-disk sessionid that other concurrent workers are using. If Sefaria
+// ever tightens that policy (e.g. SESSION_SAVE_EVERY_REQUEST=True with session
+// regeneration, or stricter same-email enforcement), this file becomes the
+// next chrome-sanity flake. Mitigation when that happens: switch the UI
+// logins to enAdmin (already the destructive-auth throwaway profile per
+// CLAUDE.md rule §2.21) or page.route-intercept /login. See README §14
+// "Destructive auth tests".
 
-  test('Scenario 1: Login on Library, verify logged in state and remain on Library', async ({ context }) => {
+test.describe('Cross-Module — Login & auth persistence', () => {
+
+  test('XMOD-L01: Login on Library, verify logged in state and remain on Library', { tag: '@sanity' }, async ({ context }) => {
     // Start as not logged in
     let page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-
-    await hideAllModalsAndPopups(page);
 
     // Verify initially not logged in
     expect(await isUserLoggedIn(page)).toBe(false);
@@ -48,10 +57,9 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(logoutOption).toBeVisible();
   });
 
-  test('Scenario 2: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', async ({ context }) => {
+  test('XMOD-L02: Login on Library, switch to Voices via Module Switcher, verify logged in on Voices', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Library (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
     expect(await isUserLoggedIn(page)).toBe(true);
@@ -75,7 +83,6 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(profileImg).toBeVisible();
 
     // Verify user menu has logged in options
-    await hideAllModalsAndPopups(voicesPage!);
     await openHeaderDropdown(voicesPage!, 'user');
     const logoutOption = voicesPage!.locator('.dropdownLinks-menu a', { hasText: 'Log out' });
     await expect(logoutOption).toBeVisible();
@@ -83,10 +90,9 @@ test.describe('Cross-Module Login Scenarios', () => {
     await voicesPage!.close();
   });
 
-  test('Scenario 3: Login on Voices, switch to Library via Module Switcher, verify logged in on Library', async ({ context }) => {
+  test('XMOD-L03: Login on Voices, switch to Library via Module Switcher, verify logged in on Library', async ({ context }) => {
     // Start already logged in on Voices (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices
     expect(await isUserLoggedIn(page)).toBe(true);
@@ -110,7 +116,6 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(profileImg).toBeVisible();
 
     // Verify user menu has logged in options
-    await hideAllModalsAndPopups(libraryPage!);
     await openHeaderDropdown(libraryPage!, 'user');
     const logoutOption = libraryPage!.locator('.dropdownLinks-menu a', { hasText: 'Log out' });
     await expect(logoutOption).toBeVisible();
@@ -118,11 +123,10 @@ test.describe('Cross-Module Login Scenarios', () => {
     await libraryPage!.close();
   });
 
-  test('Scenarios 4: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
-    // Test Scenario 4: Multiple Library tabs
+  test('XMOD-L04: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
+    // XMOD-L04: Multiple Library tabs
     // Open first Library tab (not logged in)
     const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(libraryTab1);
 
     // Open second Library tab (not logged in)
     const libraryTab2 = await context.newPage();
@@ -155,11 +159,10 @@ test.describe('Cross-Module Login Scenarios', () => {
     await libraryTab1.close();
     await libraryTab2.close();
   });
-  test('Scenario 5: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
-    // Test Scenario 5: Multiple Voices tabs
+  test('XMOD-L05: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
+    // XMOD-L05: Multiple Voices tabs
     // Open first Voices tab (not logged in)
     const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
-    await hideAllModalsAndPopups(voicesTab1);
 
     // Open second Voices tab (not logged in)
     const voicesTab2 = await context.newPage();
@@ -193,11 +196,10 @@ test.describe('Cross-Module Login Scenarios', () => {
     await voicesTab2.close();
   });
 
-  test('Scenarios 6: Login on Library, try login on previously opened Voices tab', async ({ context }) => {
-    // Test Scenario 6: Login on Library, try login on previously opened Voices tab
+  test('XMOD-L06: Login on Library, try login on previously opened Voices tab', async ({ context }) => {
+    // XMOD-L06: Login on Library, try login on previously opened Voices tab
     // Open Library tab (not logged in)
     const libraryTab = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
-    await hideAllModalsAndPopups(libraryTab);
 
     // Open Voices tab (not logged in)
     const voicesTab = await context.newPage();
@@ -234,8 +236,8 @@ test.describe('Cross-Module Login Scenarios', () => {
     await libraryTab.close();
     await voicesTab.close();
   });
-  test('Scenarios 7: Login on Voices, try login on previously opened Library tab', async ({ context }) => {
-    // Test Scenario 7: Login on Voices, try login on previously opened Library tab
+  test('XMOD-L07: Login on Voices, try login on previously opened Library tab', async ({ context }) => {
+    // XMOD-L07: Login on Voices, try login on previously opened Library tab
     // Open Library tab (not logged in)
     const libraryTab2 = await context.newPage();
     await libraryTab2.goto(MODULE_URLS.EN.LIBRARY);
@@ -243,7 +245,6 @@ test.describe('Cross-Module Login Scenarios', () => {
 
     // Open Voices tab (not logged in)
     const voicesTab2 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
-    await hideAllModalsAndPopups(voicesTab2);
 
     // Verify both tabs not logged in
     expect(await isUserLoggedIn(libraryTab2)).toBe(false);
@@ -276,10 +277,9 @@ test.describe('Cross-Module Login Scenarios', () => {
     await voicesTab2.close();
   });
 
-  test('Scenario 8: Logged in Library user navigates to sheet link, opens in Voices while logged in', async ({ context }) => {
+  test('XMOD-L08: Logged in Library user navigates to sheet link, opens in Voices while logged in', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Library (using auth state)
     const page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
 
     // Verify logged in on Library
     expect(await isUserLoggedIn(page)).toBe(true);
@@ -306,10 +306,9 @@ test.describe('Cross-Module Login Scenarios', () => {
     await expect(profileImg).toBeVisible();
   });
 
-  test('Scenario 9: Logged in Voices user navigates to text link, opens in Library while logged in', async ({ context }) => {
+  test('XMOD-L09: Logged in Voices user navigates to text link, opens in Library while logged in', { tag: '@sanity' }, async ({ context }) => {
     // Start already logged in on Voices (using auth state)
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
-    await hideAllModalsAndPopups(page);
 
     // Verify logged in on Voices
     expect(await isUserLoggedIn(page)).toBe(true);

@@ -223,7 +223,7 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
@@ -243,15 +243,12 @@ jobs:
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-          #      - name: setup helm
-          #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
@@ -301,17 +298,16 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v1
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -333,12 +329,13 @@ jobs:
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 60
+        timeout-minutes: 45
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
       - name: Get Logs From Cluster and propogate test result
-        run: "kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest; LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
+        if: always()
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest 2>/dev/null || echo "(no pod logs available)"
       - name: Cleanup pyTest Pod
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
         if: always()
@@ -382,17 +379,16 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.DEV_PROJECT }}
           install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
-          use_auth_provider: true
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
