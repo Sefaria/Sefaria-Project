@@ -49,6 +49,9 @@ for (const { label, lang, urls } of CONFIGS) {
         const strings = pm.onInterfaceStrings();
         await strings.waitForAnchor(spec.anchor);
         await strings.expectStringsPresent([...headerIds, ...spec.expectedIds]);
+        if (spec.titleIncludesId) {
+          await strings.expectTitleIncludes(spec.titleIncludesId);
+        }
         await strings.expectNoLeakedIds();
       });
     }

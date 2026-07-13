@@ -48,6 +48,9 @@ export interface StringsPageSpec {
   module?: 'library' | 'voices';
   /** CSS selector proving the page's content has loaded. */
   anchor: string;
+  /** Keyed ID whose localized value must appear in document.title (getPageTitle coverage).
+   *  Use only IDs not runtime-overridden by site settings. */
+  titleIncludesId?: string;
   /** Keyed string IDs (keys of the i18n interface maps) that must be rendered. */
   expectedIds: string[];
   /** Header IDs asserted alongside expectedIds. Defaults to the anonymous
@@ -86,6 +89,7 @@ export const STRING_PAGES: StringsPageSpec[] = [
     name: 'Texts home',
     path: '/texts',
     anchor: '.readerNavMenu',
+    titleIncludesId: 'sefaria.sefaria_a_living_library_of_jewish_texts',
     expectedIds: [
       'texts_page.browse_the_library',
       'common.topics',                            // desktop header nav link
@@ -121,6 +125,7 @@ export const STRING_PAGES: StringsPageSpec[] = [
     name: 'Topics landing',
     path: '/topics',
     anchor: '.topicLandingPanel',
+    titleIncludesId: 'common.topics',
     // topic_landing_search.explore_all_topics is deliberately absent: it is in
     // the SSR HTML but removed on client hydration at desktop width (mobile-only).
     expectedIds: [
@@ -213,6 +218,7 @@ export const STRING_PAGES: StringsPageSpec[] = [
     path: '/',
     module: 'voices',
     anchor: '.sheetsHomepage',
+    titleIncludesId: 'header.voices_on_sefaria',
     // The Voices header differs from the Library header (no SignUpButton etc.)
     // and was not source-verified — assert only page strings here.
     headerIds: [],

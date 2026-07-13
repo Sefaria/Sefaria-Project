@@ -100,6 +100,23 @@ export class InterfaceStringsPage extends HelperBase {
   }
 
   /**
+   * Assert the localized value of a keyed ID appears in document.title.
+   * Covers the Sefaria.getPageTitle path (base titles and the page-type
+   * suffix table), which never reaches the DOM body. Only use IDs whose
+   * values are NOT overridden at runtime by site settings
+   * (common.site_name / common.library_name render the sandbox's own names).
+   */
+  async expectTitleIncludes(id: string, timeout = t(20000)): Promise<void> {
+    const value = normalize(this.localizedValue(id));
+    await expect
+      .poll(async () => normalize(await this.page.title()), {
+        timeout,
+        message: `document.title on ${this.page.url()} (${this.language}) missing "${id}"`,
+      })
+      .toContain(value);
+  }
+
+  /**
    * Assert no raw keyed string ID leaked into the rendered page. A leak means
    * Sefaria._() returned the ID itself instead of a translation (broken
    * router, ID missing from en.json, etc.). Call after expectStringsPresent
