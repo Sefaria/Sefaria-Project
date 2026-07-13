@@ -23,8 +23,9 @@ function SearchLoadSkeleton() {
   useEffect(() => {
     const scrollContainer = ref.current?.closest('.content');
     if (!scrollContainer) return;
+    const prevOverflowY = scrollContainer.style.overflowY;
     scrollContainer.style.overflowY = 'hidden';
-    return () => { scrollContainer.style.overflowY = ''; };
+    return () => { scrollContainer.style.overflowY = prevOverflowY; };
   }, []);
 
   return (
@@ -39,17 +40,7 @@ function SearchLoadSkeleton() {
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-sort" />
       </div>
       <div className="searchLoadSkeleton-results">
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
+        {Array.from({ length: 11 }, (_, i) => <SkeletonCard key={i} />)}
       </div>
     </div>
   );
