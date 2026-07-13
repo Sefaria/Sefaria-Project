@@ -110,7 +110,7 @@ export const TopicLandingSeasonal = () => {
                    data-anl-text={exploreCalendarPrompt}
                    data-anl-event="navto_topic:click"
                 >
-                    <InterfaceText>{exploreCalendarPrompt}</InterfaceText>
+                    <InterfaceText>topic_landing_seasonal.explore_the_jewish_calendar</InterfaceText>
                 </a>
             </div>
         </div>

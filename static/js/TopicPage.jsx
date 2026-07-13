@@ -403,7 +403,7 @@ return (
             </h1>
             </CategoryHeader>
         {hasAiContentLinks && Sefaria.activeModule === Sefaria.LIBRARY_MODULE &&
-            <AiInfoTooltip displayText="Some of the text on this page has been AI generated." variant="outline" size={24}/>
+            <AiInfoTooltip displayText="ai_info_tooltip.some_of_the_text_on_this_page" variant="outline" size={24}/>
         }
     </div>
     {!topicData && !isCat ?<LoadingMessage/> : null}
@@ -1037,7 +1037,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
                   feature_name: "more",
               })}
           >
-            <InterfaceText>{ moreText }</InterfaceText>
+            <InterfaceText>{ showMore ? "topic_page.less" : "nav_sidebar.more" }</InterfaceText>
           </div>
         )
         : null
@@ -1105,9 +1105,9 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 );
 
 const propKeys = [
-  {en: 'enWikiLink', he: 'heWikiLink', title: 'Wikipedia'},
-  {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia'},
-  {en: 'enNliLink', he: 'heNliLink', title: 'National Library of Israel'},
+  {en: 'enWikiLink', he: 'heWikiLink', title: 'Wikipedia', titleId: 'topic_page.wikipedia'},
+  {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia', titleId: 'topic_page.jewish_encyclopedia'},
+  {en: 'enNliLink', he: 'heNliLink', title: 'National Library of Israel', titleId: 'topic_page.national_library_of_israel'},
 ];
 
 
@@ -1140,7 +1140,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
             }
             if (!url) { return null; }
             const en_text = propObj.title + (urlExists ? "" : " (Hebrew)");
-            const he_text = Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("topic_page.english")})`);
+            const he_text = Sefaria._(propObj.titleId) + (urlExists ? "" : ` (${Sefaria._("topic_page.english")})`);
             return (
                 <div
                     key={url}

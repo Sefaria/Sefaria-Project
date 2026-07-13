@@ -378,7 +378,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     items.push("English Caption");
     items.push("Hebrew Caption");
     items.push("Secondary Picture Cropper")
-    return <AdminEditor title="Topic Editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
+    return <AdminEditor title="admin_editor.topic_editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
                                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}

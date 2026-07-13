@@ -5,9 +5,16 @@ import { LANGUAGES, t } from '../globals';
 // The keyed interface-string maps are the runtime source of truth for
 // translator-editable UI text (see static/js/sefaria/strings.js). en.json keys
 // are the stable IDs (e.g. "header.donate"); values are the English display
-// text. he.json holds the Hebrew values for the same IDs.
-const keyedEn: Record<string, string> = require('../../static/js/sefaria/i18n/keyed/en.json');
-const keyedHe: Record<string, string> = require('../../static/js/sefaria/i18n/keyed/he.json');
+// text. he.json holds the Hebrew values for the same IDs. The runtime merges
+// the interface and interface-context directories into one map; mirror that.
+const keyedEn: Record<string, string> = {
+  ...require('../../static/js/sefaria/i18n/interface/en.json'),
+  ...require('../../static/js/sefaria/i18n/interface-context/en.json'),
+};
+const keyedHe: Record<string, string> = {
+  ...require('../../static/js/sefaria/i18n/interface/he.json'),
+  ...require('../../static/js/sefaria/i18n/interface-context/he.json'),
+};
 
 export const KEYED_STRING_IDS = Object.keys(keyedEn);
 

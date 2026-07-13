@@ -155,7 +155,7 @@ class CollectionPage extends Component {
     if (filter) {
       return (
         <div className="emptyMessage sans-serif">
-          <InterfaceText>No sheets matching </InterfaceText>;
+          <InterfaceText>collection_page.no_sheets_matching</InterfaceText>;
           "<InterfaceText text={{en: filter, he: filter}} />".
         </div>
       );

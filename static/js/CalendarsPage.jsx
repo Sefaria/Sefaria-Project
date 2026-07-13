@@ -63,6 +63,10 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
 };
 
 
+const CALENDAR_SUBTITLE_IDS = {
+  "Tanakh": "calendar_listing.tanakh",
+  "Talmud": "calendar_listing.talmud",
+};
 const CalendarListing = ({calendar}) => {
   const style = {"borderColor": Sefaria.palette.categoryColor(calendar.category)};
   return (
@@ -71,7 +75,7 @@ const CalendarListing = ({calendar}) => {
         <InterfaceText text={calendar.displayTitle} />
         {calendar.enSubtitle ?
         <span className="subtitle">
-          <InterfaceText context="CalendarListing">{calendar.enSubtitle}</InterfaceText>
+          <InterfaceText>{CALENDAR_SUBTITLE_IDS[calendar.enSubtitle] || calendar.enSubtitle}</InterfaceText>
         </span> : null }
       </a>
       <div className="calendarRefs">

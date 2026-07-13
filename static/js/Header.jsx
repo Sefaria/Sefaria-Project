@@ -153,7 +153,7 @@ const ModuleSwitcher = () => {
                   onClose={handleClose}>
       <div className='dropdownLinks-options moduleDropdown'>
         <DropdownMenuItem url={"/about"} newTab={false} customCSS="dropdownItem dropdownLogoItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="About Sefaria">
-          <img src={logoPath} alt={Sefaria._('Sefaria')} className='dropdownLogo' />
+          <img src={logoPath} alt={Sefaria._("common.site_name")} className='dropdownLogo' />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownModuleItem
@@ -217,7 +217,7 @@ const Header = (props) => {
   const hasUnreadNotifications = !!(props.notificationCount);
 
   const logo = (
-    <a href='/' className="home" aria-label={Sefaria._(`Sefaria ${Sefaria.activeModule} logo`)}/>
+    <a href='/' className="home" aria-label={Sefaria._(`header.sefaria_${Sefaria.activeModule}_logo`)}/>
   );
 
   const librarySavedIcon = <Button
@@ -254,7 +254,7 @@ const Header = (props) => {
         className="textLink"
         onKeyDown={Util.handleKeyboardClick}
       >
-        <InterfaceText context="Header">{link}</InterfaceText>
+        <InterfaceText>{link}</InterfaceText>
       </a>
     ))}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
@@ -544,7 +544,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         {module === Sefaria.VOICES_MODULE &&
           <a href="/texts" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
             <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
-            <InterfaceText>Sefaria Library</InterfaceText>
+            <InterfaceText>common.library_name</InterfaceText>
           </a>
         }
 

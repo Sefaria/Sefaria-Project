@@ -77,7 +77,7 @@ class UserProfile extends Component {
         <div className="emptyList">
           <div className="emptyListText">
             <InterfaceText>{this.props.profile.full_name}</InterfaceText>
-            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
+            <InterfaceText>user_profile.hasnt_shared_any_collections_yet</InterfaceText>
           </div>
         </div>);
     }
@@ -126,7 +126,7 @@ class UserProfile extends Component {
         <div className="emptyList">
           <div className="emptyListText">
             <InterfaceText>{this.props.profile.full_name}</InterfaceText>
-            <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
+            <InterfaceText>user_profile.hasnt_shared_any_sheets_yet</InterfaceText>
           </div>
         </div>
       );

@@ -1,73 +1,34 @@
 {
-  "ModuleSwitcherPopover": {
-    "Looking for something?": "חיפשתם משהו?",
-    "We've updated the structure of our website! Here you can move between Sefaria's separate spaces for learning in the library, creating Torah content, and building digital Torah tools.": "האתר של ספריא עבר עדכון! מכאן אפשר לעבור בין הפלטפורמות הנפרדות ללמידה בספרייה, יצירת חומרים מקוריים, ובניית פרויקטים דיגיטליים באמצעות הדאטה של ספריא.",
-    "Learn More": "למידע נוסף",
-    "Got it!": "הבנתי, תודה!"
-  },
-  "SheetAuthorStatement": {
-    "by ": ""
-  },
-  "EditorSaveIndicator": {
-    "Your sheet is saved to Sefaria": "דף המקורות שלך שמור בספריא",
-    "Saving…": "שומר...",
-    "Saved": "נשמר",
-    "We are saving your changes to Sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
-    "Trying to connect…": "ניסיון התחברות...",
-    "No internet connection detected": "לא זוהה חיבור לאינטרנט",
-    "User Logged out": "בוצעה התנתקות מהמערכת",
-    "You are not logged in to Sefaria": "כעת אינך מחובר/ת לספריא",
-    "Something went wrong. Try refreshing the page.": "משהו השתבש. יש לנסות לרענן את העמוד",
-    "If this problem persists, please try again later and contact us at hello@sefaria.org": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org"
-  },
-  "AboutParashah": {
-    "Torah Reading": "פרשת השבוע"
-  },
-  "ConnectionPanelSection": {
-    "Related Texts": "מקורות לעיון",
-    "Resources": "עזרים",
-    "Tools": "כלים",
-    "Share Link": "שיתוף קישור",
-    "More Options": "אפשרויות נוספות"
-  },
-  "FollowButton": {
-    "Follow": "עקבו",
-    "Unfollow": "הסרת עוקב",
-    "Following": "עוקב",
-    "Follow Back": "עקבו בחזרה"
-  },
-  "FilterableList": {
-    "Alphabetical": "אלפביתי",
-    "Recent": "הכי חדש",
-    "Views": "הכי נצפה"
-  },
-  "RecentlyPublished": {
-    "Load More": "דפי מקורות נוספים"
-  },
-  "SearchFilters": {
-    "Collections": "באסופות"
-  },
-  "CalendarListing": {
-    "Tanakh": "",
-    "Talmud": ""
-  },
-  "Sheet Share": {
-    "View": "לצפות",
-    "Add": "להוסיף",
-    "Edit": "לערוך"
-  },
-  "Guide": {
-    "Show guide": "הצג מדריך",
-    "Previous card": "הכרטיס הקודם",
-    "Next card": "הכרטיס הבא",
-    "Previous": "הקודם",
-    "Next": "הבא",
-    "Your browser does not support the video tag.": "הדפדפן שלך אינו תומך בתגית הווידאו.",
-    "of": "מתוך",
-    "Loading guide...": "טוען מדריך..."
-  },
-  "AiInfoTooltip": {
-    "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
-    "Some of the text on this page has been AI generated.": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית."
-  }
+  "ai_info_tooltip.some_of_the_text_on_this_page": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
+  "ai_info_tooltip.the_questions_and_answers_in_this_learning_guide": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
+  "calendar_listing.talmud": "",
+  "calendar_listing.tanakh": "",
+  "connection_panel_section.more_options": "אפשרויות נוספות",
+  "connection_panel_section.related_texts": "מקורות לעיון",
+  "connection_panel_section.resources": "עזרים",
+  "connection_panel_section.share_link": "שיתוף קישור",
+  "connection_panel_section.tools": "כלים",
+  "editor_save_indicator.if_this_problem_persists_please_try_again_later": "אם הבעיה נמשכת, אנא נסו לרענן שוב מאוחר יותר וצרו איתנו קשר בכתובת hello@sefaria.org",
+  "editor_save_indicator.no_internet_connection_detected": "לא זוהה חיבור לאינטרנט",
+  "editor_save_indicator.saved": "נשמר",
+  "editor_save_indicator.saving": "שומר...",
+  "editor_save_indicator.something_went_wrong_try_refreshing_the_page": "משהו השתבש. יש לנסות לרענן את העמוד",
+  "editor_save_indicator.trying_to_connect": "ניסיון התחברות...",
+  "editor_save_indicator.user_logged_out": "בוצעה התנתקות מהמערכת",
+  "editor_save_indicator.we_are_saving_your_changes_to_sefaria": "כעת מתבצעת שמירת השינויים שלך בספריא",
+  "editor_save_indicator.you_are_not_logged_in_to_sefaria": "כעת אינך מחובר/ת לספריא",
+  "editor_save_indicator.your_sheet_is_saved_to_sefaria": "דף המקורות שלך שמור בספריא",
+  "filterable_list.alphabetical": "אלפביתי",
+  "filterable_list.recent": "הכי חדש",
+  "filterable_list.views": "הכי נצפה",
+  "follow_button.follow": "עקבו",
+  "follow_button.follow_back": "עקבו בחזרה",
+  "follow_button.following": "עוקב",
+  "follow_button.unfollow": "הסרת עוקב",
+  "guide.next_card": "הכרטיס הבא",
+  "guide.of": "מתוך",
+  "guide.previous_card": "הכרטיס הקודם",
+  "guide.show_guide": "הצג מדריך",
+  "guide.your_browser_does_not_support_the_video_tag": "הדפדפן שלך אינו תומך בתגית הווידאו.",
+  "search_filters.collections": "באסופות"
 }

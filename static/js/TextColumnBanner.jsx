@@ -54,7 +54,7 @@ const TransLangPrefAcceptedBanner = () => {
         <TextColumnBanner>
             <InterfaceText>
                 <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
+                <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span> כאשר אלו יהיו זמינים. </HebrewText>
             </InterfaceText>
         </TextColumnBanner>
     );
@@ -71,13 +71,13 @@ const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference 
         setTranslationLanguagePreference(translation_language_preference_suggestion);
     }
     const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-    const buttons = [{text: "Yes", onClick: accept}, {text: "No", onClick: reject, sideEffect: "close" }];
+    const buttons = [{text: "Yes", textId: "text_column_banner.yes", onClick: accept}, {text: "No", textId: "text_column_banner.no", onClick: reject, sideEffect: "close" }];
 
     return (
         <TextColumnBanner buttons={buttons} onClose={reject}>
             <InterfaceText>
                 <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
+                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria.translateISOLanguageName(translation_language_preference_suggestion)}</span> כאשר הם זמינים?</HebrewText>
             </InterfaceText>
         </TextColumnBanner>
     );
@@ -93,6 +93,7 @@ const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference 
 const OpenTransBanner = ({ openTranslations }) => {
     const buttons = [{
         text: "Go to translations",
+        textId: "text_column_banner.go_to_translations",
         onClick: () => { openTranslations(); },
         sideEffect: "close",
     }];
@@ -146,7 +147,7 @@ const TextColumnBannerButton = ({ button, closeBanner }) => {
     }
     return (
         <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
-            <InterfaceText>{button.text}</InterfaceText>
+            <InterfaceText>{button.textId || button.text}</InterfaceText>
         </button>
     );
 }

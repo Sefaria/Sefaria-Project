@@ -29,7 +29,7 @@ export const FeaturedTopic = () => {
                               data-anl-link_type="link"
                               data-anl-text={topicNavPrompt}
                               data-anl-event="navto_topic:click">
-                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en={topicNavPrompt} he={Sefaria._(topicNavPrompt)} />
+                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en={topicNavPrompt} he={Sefaria._("featured_topic.go_to_topic")} />
                             </span>
                         </div>
                     </div>

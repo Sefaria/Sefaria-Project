@@ -870,6 +870,12 @@ Sefaria = extend(Sefaria, {
     const lookupVar = native ? "nativeName" : "name";
     return Sefaria.ISOMap?.[code.toLowerCase()]?.[lookupVar] || code;
   },
+  translateISOLanguageName(code) {
+    // Interface-language display name for an ISO language code, via the
+    // languages.* interface strings. Unknown codes pass through unchanged.
+    const c = code.toLowerCase();
+    return Sefaria.ISOMap?.[c] ? Sefaria._(`languages.${c}`) : code;
+  },
   getHebrewTitle: function(slug) {
     return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ;
   },
@@ -1070,6 +1076,20 @@ Sefaria = extend(Sefaria, {
 
     Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
     Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {[lang]: vtitle}}})
+  },
+  _licenseStringIds: {
+    "Public Domain": "licenses.public_domain",
+    "CC0": "licenses.cc0",
+    "CC-BY": "licenses.cc_by",
+    "CC-BY-SA": "licenses.cc_by_sa",
+    "CC-BY-NC": "licenses.cc_by_nc",
+    "Copyright: JPS, 1985": "licenses.copyright_jps_1985",
+  },
+  translateLicense: function(license) {
+    // License values come from version records; known licenses translate via
+    // licenses.* interface strings, anything else passes through unchanged.
+    if (!license) { return license; }
+    return Sefaria._(Sefaria._licenseStringIds[license] || license);
   },
   getLicenseMap: function() {
     const licenseMap = {
@@ -3597,9 +3617,9 @@ _media: {},
     return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
   },
   _keyedString: function(id, lang) {
-    // Resolve a keyed string ID from i18n/keyed/*.json; falls back to English,
-    // then to the ID itself.
-    const maps = Sefaria._i18nKeyedStrings;
+    // Resolve a keyed string ID from i18n/interface*/*.json; falls back to
+    // English, then to the ID itself.
+    const maps = Sefaria._i18nInterfaceStrings;
     if (lang === "he" && id in maps.he) {
       return maps.he[id];
     }
@@ -3609,24 +3629,12 @@ _media: {},
     console.warn("Missing keyed interface string: " + id);
     return id;
   },
-  hebrewTranslation: function(inputStr, context = null){
+  hebrewTranslation: function(inputStr){
     let translatedString;
     if (Sefaria._isKeyedStringId(inputStr)) {
       return Sefaria._keyedString(inputStr, "he");
     }
-    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-      if (translatedString !== null) return translatedString;
-    }
-    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
-      return translatedString;
-    }
-    // Strings migrated to keyed IDs are no longer in _i18nInterfaceStrings; resolve
-    // dynamic lookups of their English text through the generated english->id index.
-    const keyedId = Sefaria._getStringCaseInsensitive(Sefaria._i18nEnglishToKeyedId, inputStr);
-    if (keyedId !== null) {
-      return Sefaria._keyedString(keyedId, "he");
-    }
+    // Non-ID strings are data values (categories, titles, etc.) translated as terms.
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
       return translatedString;
     }
@@ -3638,7 +3646,7 @@ _media: {},
       return inputStr;
     }
   },
-  translation: function(language, inputStr, context=null){
+  translation: function(language, inputStr){
       if (Sefaria._isKeyedStringId(inputStr)) {
           return Sefaria._keyedString(inputStr, language.slice(0,2));
       }
@@ -3646,7 +3654,7 @@ _media: {},
           "he": Sefaria.hebrewTranslation
       };
       try {
-          return translationMatrix[language.slice(0,2)](inputStr, context);
+          return translationMatrix[language.slice(0,2)](inputStr);
       }catch (e){
           console.warn("No transaltion available for " + language)
           return inputStr;
@@ -3654,17 +3662,18 @@ _media: {},
   },
   /**
    * Translates interface strings to the current interface language.
-   * Takes either a keyed string ID (e.g. "header.log_in", resolved via
-   * i18n/keyed/*.json) or a legacy English string (resolved via the legacy maps).
-   * Add new strings to i18n/keyed/en.json + he.json.
+   * Takes a keyed string ID (e.g. "header.log_in", resolved via the JSON maps
+   * in i18n/interface and i18n/interface-context). Non-ID strings pass through
+   * unchanged in English and fall back to the terms dictionary in Hebrew.
+   * Add new strings to i18n/interface/en.json + he.json.
    * For displaying interface text you should use <InterfaceText> which calls this function automatically.
    */
-  _: function(inputStr, context=null){
+  _: function(inputStr){
     if (Sefaria._isKeyedStringId(inputStr)) {
       return Sefaria._keyedString(inputStr, Sefaria._getShortInterfaceLang());
     }
     if(Sefaria.interfaceLang != "english"){
-      return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
+      return Sefaria.translation(Sefaria.interfaceLang, inputStr);
     } else {
       return inputStr;
     }
@@ -3686,21 +3695,14 @@ _media: {},
     if (!oref) { return inputRef; }
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
-  _getStringCaseInsensitive: function (store, inputStr){
-    if(inputStr in store){
-        return store[inputStr];
-    }else if(inputStr.toLowerCase() in store){
-        return store[inputStr.toLowerCase()];
-    }else return null;
-
-    //return inputStr in store ? store[inputStr] : (inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()]
-      // : null);
-  },
   _cacheSiteInterfaceStrings: function() {
-    // Ensure that names set in Site Settings are available for translation in JS.
+    // Ensure that names set in Site Settings override the defaults shipped in
+    // the interface string maps, so other deployments see their own names.
     if (!Sefaria._siteSettings) { return; }
-    ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
+    [["SITE_NAME", "common.site_name"], ["LIBRARY_NAME", "common.library_name"]].forEach(([key, id]) => {
+      if (!Sefaria._siteSettings[key]) { return; }
+      Sefaria._i18nInterfaceStrings.en[id] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings.he[id] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
@@ -4059,7 +4061,6 @@ Sefaria.resetCache = function() {
     this._userCollections = {};
     this._userCollectionsForSheet = {};
     this._ajaxObjects = {};
-    this._i18nInterfaceStringsWithContext = {}; // Not sure about this one.  May be retainable.
     this._siteSettings = {}; // Where does this get set?
 
     this.sheets._loadSheetByID = {};
@@ -4084,8 +4085,8 @@ Sefaria.resetCache = function() {
     this._portals = {}; // constant
     this._tableOfContentsDedications  = {};
     
-    // Resetting _i18nInterfaceStrings will break ssr translation
-    // this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+    // Not resetting _i18nInterfaceStrings: it holds the static interface string
+    // maps plus site-settings overrides applied by _cacheSiteInterfaceStrings.
 
   };
 

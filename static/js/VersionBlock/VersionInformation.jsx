@@ -32,7 +32,7 @@ function VersionInformation({currentRef, version}) {
             {`${Sefaria._("common.license")}: `}
           </span>
           <a className="versionDetailsLink" href={makeLicenseLink()} target="_blank">
-            {Sefaria._(version?.license)}
+            {Sefaria.translateLicense(version?.license)}
           </a>
         </div>
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>

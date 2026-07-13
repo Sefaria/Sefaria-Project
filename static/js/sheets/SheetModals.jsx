@@ -36,7 +36,7 @@ const CopyModal = ({close, sheetID}) => {
   const copyState = {
     copying: { en: "Copying Sheet...", he: "מעתיק..."},
     copied: { he: "צפייה בדף המקורות", en: "View Copy"},
-    error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
+    error: { en: "common.sorry_there_was_an_error", he: "סליחה, ארעה שגיאה" }
   }
   const [copyText, setCopyText] = useState(copyState.copying);
   const [copiedSheetId, setCopiedSheetId] = useState(0);
@@ -115,7 +115,7 @@ const GenericSheetModal = ({title, message, close}) => {
 
 const SaveModal = ({historyObject, close}) => {
   const isSaved = !!Sefaria.getSavedItem(historyObject);
-  const savingMessage = "Saving...";
+  const savingMessage = "common.saving";
   const [message, setMessage] = useState(savingMessage);
   const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
 
@@ -141,15 +141,15 @@ const SaveModal = ({historyObject, close}) => {
 
 // Error messages for different Google OAuth failure scenarios
 const GAUTH_ERROR_MESSAGES = {
-  access_denied: "You declined permission to connect with Google. Export requires Google Drive access.",
-  invalid_grant: "The authorization expired or was already used. Please try again.",
+  access_denied: "sheet_modals.you_declined_permission_to_connect_with_google",
+  invalid_grant: "sheet_modals.the_authorization_expired_or_was_already_used",
   scope_mismatch: "There was a permission mismatch. Please try again.",
 };
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    exporting: "Exporting to Google Docs...",
-    exportComplete: "Success!",
+    exporting: "sheet_modals.exporting_to_google_docs",
+    exportComplete: "sheet_modals.success",
   }
   const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);

@@ -143,30 +143,30 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
 }
 
 const ShareButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'Share'}/>
+  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'sheet_options.share'}/>
 }
 
 const DeleteButton = () => {
-    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'Delete Sheet'}/>
+    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'sheet_options.delete_sheet'}/>
 }
 
 const UnpublishButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'Unpublish'}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'sheet_options.unpublish'}/>
 }
 
 const CollectionsButton = ({editable}) => {
-  const label = editable ? "Edit Collections" : "Add to Collection";
+  const label = editable ? "sheet_options.edit_collections" : "misc.add_to_collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"} textEn={label}/>
 }
 
 const CopyButton = () => {
-  return <DropdownMenuItemWithIcon textEn={"Copy"} icon="/static/img/copy.png"/>
+  return <DropdownMenuItemWithIcon textEn={"sheet_modals.copy"} icon="/static/img/copy.png"/>
 }
 
 const GoogleDocExportButton = () => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <DropdownMenuItemWithIcon
-                         textEn={googleDriveText.en}
+                         textEn={"sheet_options.export_to_google_docs"}
                          icon="/static/img/googledrivecolor.png"/>;
 }
 

@@ -297,7 +297,7 @@ class ConnectionsPanel extends Component {
             </div>
         
           {showConnectionSummary ?
-            <ConnectionsPanelSection title="Related Texts">
+            <ConnectionsPanelSection title="connection_panel_section.related_texts">
               <ConnectionsSummary
                 currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
@@ -317,7 +317,7 @@ class ConnectionsPanel extends Component {
             null
           }
           {showResourceButtons ?
-            <ConnectionsPanelSection title={"Resources"}>
+            <ConnectionsPanelSection title={"connection_panel_section.resources"}>
               <ResourcesList
                 srefs={this.props.srefs}
                 setConnectionsMode={this.props.setConnectionsMode}
@@ -327,7 +327,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          <ConnectionsPanelSection title={"Tools"}>
+          <ConnectionsPanelSection title={"connection_panel_section.tools"}>
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelMode={this.props.masterPanelMode}
@@ -1212,13 +1212,13 @@ class ShareBox extends Component {
     const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
-        <ConnectionsPanelSection title="Share Link">
+        <ConnectionsPanelSection title="connection_panel_section.share_link">
           <div className="shareInputBox">
             <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
           </div>
         </ConnectionsPanelSection>
-        <ConnectionsPanelSection title="More Options">
+        <ConnectionsPanelSection title="connection_panel_section.more_options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
           <ToolsButton en="Share on X" he="X" icon="X" onClick={shareTwitter} />
           <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
@@ -1302,7 +1302,7 @@ class AddNoteBox extends Component {
           className="button fillWidth"
           role="button"
           tabIndex="0"
-          aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
+          aria-label={Sefaria._(this.props.noteId ? "common.save" : "Add Note")}
           onClick={this.saveNote}
           onKeyDown={(e) => Util.handleKeyboardClick(e, this.saveNote)}
         >
@@ -1573,7 +1573,7 @@ function ManuscriptImage(props) {
           : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
       }
       <div className="meta">
-        <InterfaceText>Location: </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
+        <InterfaceText>connections_panel.location</InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
         {
           manuscript.manuscript[description]
             ? <span>
@@ -1588,7 +1588,7 @@ function ManuscriptImage(props) {
                 <InterfaceText>common.license</InterfaceText>
                 <InterfaceText>:</InterfaceText>
                 <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
-                  {Sefaria._(manuscript.manuscript['license'])}
+                  {Sefaria.translateLicense(manuscript.manuscript['license'])}
                 </a>
             </div>
             : ''
@@ -1622,7 +1622,7 @@ const ConnectionsPanelSection = ({ title, children }) => {
     <>
       <div className="connectionPanelSectionHeader sans-serif">
         <span className="connectionPanelSectionHeaderInner">
-          <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
+          <InterfaceText>{title}</InterfaceText>
         </span>
       </div>
       {children}

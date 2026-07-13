@@ -15,7 +15,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
   const postingState = {
     notPosting: "",
     posting: "Updating sheet...",
-    posted: "Success!",
+    posted: "sheet_modals.success",
   }
 
   // if it's not yet public, show PublishMenu and don't yet post it; if it's public, start posting it
@@ -48,7 +48,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       toggle();
   }, [postingText])
 
-  const publishStateText = initStatus.current === 'public' ? 'Unpublish' :  'Publish';
+  const publishStateText = initStatus.current === 'public' ? 'sheet_options.unpublish' :  'sheet_options.publish';
 
   let contents;
   if (postingText === postingState.notPosting) {

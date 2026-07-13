@@ -141,7 +141,7 @@ const ReaderDisplayOptionsMenu = () => {
                 {showLayoutsToggle() && <LayoutButtons/>}
                 {showAliyotToggle() && <ToggleSwitchLine
                     name={`aliyot${panelPosition}`}
-                    text="Aliyot"
+                    text="reader_display_options_menu.aliyot"
                     onChange={onAliyotClick}
                     isChecked={aliyotAreShown}
                 />}
@@ -150,20 +150,20 @@ const ReaderDisplayOptionsMenu = () => {
                 {borderLine}
                 {showVowelsToggle() && <ToggleSwitchLine
                     name={`vowels${panelPosition}`}
-                    text="Vowels"
+                    text="reader_display_options_menu.vowels"
                     onChange={onVowelsClick}
                     isChecked={vowelsAreShown}
                 />}
                 {showCantillationToggle() && <ToggleSwitchLine
                     name={`cantillation${panelPosition}`}
-                    text="Cantillation"
+                    text="reader_display_options_menu.cantillation"
                     disabled={cantillationDisabled}
                     onChange={onCantillationClick}
                     isChecked={cantillationsAreShown}
                 />}
                 {showPunctuationToggle() && <ToggleSwitchLine
                     name={`punctuation${panelPosition}`}
-                    text="Punctuation"
+                    text="reader_display_options_menu.punctuation"
                     onChange={onPunctuationClick}
                     isChecked={punctuationsAreShown}
                 />}

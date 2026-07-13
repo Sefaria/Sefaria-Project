@@ -3,7 +3,7 @@ import Sefaria from '../sefaria/sefaria';
 import Util from '../sefaria/util';
 import {InterfaceText} from "../Misc";
 
-const NEWSLETTER_TEASER_TEXT = "Stay curious. Get the Timeless Topics newsletter every Tuesday."
+const NEWSLETTER_TEASER_TEXT = "topic_landing_newsletter.stay_curious_get_the_timeless_topics_newsletter"
 
 const getNewsletterAnalyticsData = () => {
     const lang = Sefaria._getShortInterfaceLang();
@@ -30,7 +30,7 @@ export const TopicLandingNewsletter = () => {
             return false;
         }
         if (!Sefaria.util.isValidEmailAddress(emailRef.current?.value)) {
-            setSubscribeMessage("Please enter a valid email address.");
+            setSubscribeMessage("common.please_enter_a_valid_email_address");
             return false;
         }
         return true;
@@ -38,12 +38,12 @@ export const TopicLandingNewsletter = () => {
 
     function handleSubscribe() {
         if (!validateInputs()) { return; }
-        setSubscribeMessage("Subscribing...");
+        setSubscribeMessage("common.subscribing");
         const mailingLists = Sefaria.getTopicLandingNewsletterMailingLists();
         Sefaria.subscribeSefariaNewsletter(firstNameRef.current?.value, lastNameRef.current?.value, emailRef.current?.value, false, mailingLists).then(res => {
-            setSubscribeMessage("Subscribed! Welcome to our list.");
+            setSubscribeMessage("common.subscribed_welcome_to_our_list");
         }).catch(error => {
-            setSubscribeErrorMessage(error?.message || "Sorry, there was an error.");
+            setSubscribeErrorMessage(error?.message || "common.sorry_there_was_an_error");
             setSubscribeMessage(null);
         });
     }

@@ -4,6 +4,7 @@ import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import {CONNECTION_MODE_STRING_IDS} from './constants';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
@@ -106,7 +107,7 @@ class ConnectionsPanelHeader extends Component {
     } else if ((this.props.previousCategory && this.props.connectionsMode === "TextList") || previousMode) {
       // In a text list, back to Previous Category
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
-      const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
+      const prevHe = Sefaria._(CONNECTION_MODE_STRING_IDS[prev] || prev);
       const url = Sefaria.util.replaceUrlParam("with", prev);
       title = <a
         href={url}

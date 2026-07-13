@@ -9,7 +9,7 @@
  * keyed ID leaked into the page.
  *
  * IDs and their English/Hebrew values live in
- * static/js/sefaria/i18n/keyed/{en,he}.json — the manifest stores only IDs, so
+ * static/js/sefaria/i18n/{interface,interface-context}/{en,he}.json — the manifest stores only IDs, so
  * translator edits in Weblate never break these tests.
  *
  * Every ID listed here was verified in component source to render
@@ -48,7 +48,7 @@ export interface StringsPageSpec {
   module?: 'library' | 'voices';
   /** CSS selector proving the page's content has loaded. */
   anchor: string;
-  /** Keyed string IDs (keys of i18n/keyed/en.json) that must be rendered. */
+  /** Keyed string IDs (keys of the i18n interface maps) that must be rendered. */
   expectedIds: string[];
   /** Header IDs asserted alongside expectedIds. Defaults to the anonymous
    *  Library header set (or the logged-in set when `auth` is set). */

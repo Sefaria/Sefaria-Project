@@ -195,8 +195,8 @@ class VersionBlock extends Component {
     }
   }
   makeSelectVersionLanguage(){
-    let voc = this.props.version.isSource ? 'Version' : "Translation";
-    return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
+    const voc = this.props.version.isSource ? 'version' : 'translation';
+    return this.props.isCurrent ? Sefaria._(`version_block.current_${voc}`) : Sefaria._(`version_block.select_${voc}`);
   }
 
   hasExtendedNotes(){
@@ -305,7 +305,7 @@ class VersionBlock extends Component {
                />
             </div>
             <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
-            <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
+            <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria.translateISOLanguageName(v.actualLanguage) : ""}</div>
           </div>
           <div className="versionSelect sans-serif">
             <VersionBlockSelectButton
@@ -417,7 +417,7 @@ class VersionsBlocksList extends Component{
               <div className="language-block" key={lang}>
                 { this.props.showLanguageHeaders ?
                   <div className="versionLanguage sans-serif">
-                    {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
+                    {Sefaria.translateISOLanguageName(lang)}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
                   </div>
                     :
                     null

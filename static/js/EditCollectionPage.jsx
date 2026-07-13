@@ -132,7 +132,7 @@ class EditCollectionPage extends Component {
     return `${Sefaria.getModuleURL(Sefaria.VOICES_MODULE).origin}/my/profile`;
   }
   render() {
-    const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
+    const title = this.props.initialData ? "edit_collection_page.edit_collection" : "nav_sidebar.create_a_collection";
     return (
       <div className="readerNavMenu" key="0">
         <div className="content">

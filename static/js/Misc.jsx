@@ -96,14 +96,13 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
+const InterfaceText = ({text, html, markdown, children, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
    * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
-   * `context` is passed to Sefaria._ for additional translation context
    * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
    *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
    *   - Pass [] to allow all elements including paragraphs
@@ -121,7 +120,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
-      textResponse = Sefaria._(children, context);
+      textResponse = Sefaria._(children);
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
       textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
@@ -162,7 +161,6 @@ InterfaceText.propTypes = {
   ]),
   content: PropTypes.object,
   html: PropTypes.object,
-  context: PropTypes.string,
   className: PropTypes.string,
   disallowedMarkdownElements: PropTypes.array
 };
@@ -224,6 +222,14 @@ const DonateLink = ({children, classes, source, link}) => {
  * @returns {JSX.Element}
  * @constructor
  */
+const FILTERABLE_SORT_IDS = {
+  "Alphabetical": "filterable_list.alphabetical",
+  "Recent": "filterable_list.recent",
+  "Views": "filterable_list.views",
+  "Relevance": "filterable_list.relevance",
+  "Chronological": "filterable_list.chronological",
+  "Newest": "filterable_list.newest",
+};
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
@@ -317,7 +323,7 @@ const FilterableList = ({
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(FILTERABLE_SORT_IDS[option] || option)}))}
                 currOptionSelected={sortOption}
                 handleClick={setSort}
               />
@@ -355,7 +361,7 @@ const FilterableList = ({
                   text: option, from: sortOption, to: option,
                 })}
               >
-                <InterfaceText context="FilterableList">{option}</InterfaceText>
+                <InterfaceText>{FILTERABLE_SORT_IDS[option] || option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -961,6 +967,11 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
+const ADMIN_BUTTON_IDS = {
+  "Add sub-category": "misc.add_sub_category",
+  "Reorder sources": "misc.reorder_sources",
+  "Edit": "collection_page.edit",
+};
 const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
@@ -971,7 +982,7 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
         return (
           <AdminEditorButton
             key={`${buttonText}|${i}`}
-            text={buttonText}
+            text={ADMIN_BUTTON_IDS[buttonText] || buttonText}
             top={top}
             bottom={bottom}
             toggleAddingTopics={toggleAddingTopics}
@@ -1333,7 +1344,7 @@ const getSaveButtonImage = (selected) => {
 }
 const SaveButtonWithText = ({historyObject}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
+  return <DropdownMenuItemWithIcon textEn={selected ? "collection_page.remove" : "common.save"} icon={getSaveButtonImage(selected)}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1389,7 +1400,7 @@ SaveButton.propTypes = {
  */
 function GuideButton({onShowGuide}) {
   const classes = classNames({guideButton: 1, "tooltip-toggle": true});
-  const altText = Sefaria._("Show guide", "Guide");
+  const altText = Sefaria._("guide.show_guide");
 
   function onClick(event) {
     event.preventDefault();
@@ -1488,7 +1499,7 @@ const AiInfoTooltip = ({ displayText, variant, size }) => {
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
           <div className="ai-info-first-message">
-            <InterfaceText context="AiInfoTooltip">
+            <InterfaceText>
                 {displayText}
             </InterfaceText>
             &nbsp;
@@ -1528,6 +1539,12 @@ AiInfoTooltip.defaultProps = {
   size: 24,
 };
 
+const FOLLOW_BUTTON_IDS = {
+  "Follow": "follow_button.follow",
+  "Unfollow": "follow_button.unfollow",
+  "Following": "follow_button.following",
+  "Follow Back": "follow_button.follow_back",
+};
 class FollowButton extends Component {
   constructor(props) {
     super(props);
@@ -1582,7 +1599,7 @@ class FollowButton extends Component {
     return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
-        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+        <InterfaceText>{FOLLOW_BUTTON_IDS[buttonText] || buttonText}</InterfaceText>
       </div>
     );
   }

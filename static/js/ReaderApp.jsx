@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
+import {CONNECTION_MODE_STRING_IDS} from './constants';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
@@ -526,7 +527,7 @@ class ReaderApp extends Component {
               hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria.getPageTitle("Topics");
+              hist.title = Sefaria.getPageTitle("common.topics");
               hist.mode  = "topics";
             }
             break;
@@ -542,7 +543,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria.getPageTitle("Notifications");
+            hist.title = Sefaria.getPageTitle("common.notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -557,10 +558,10 @@ class ReaderApp extends Component {
           case "editCollection":
             if (state.collectionData && state.collectionData.slug) {
               hist.url   = "collections/" + state.collectionData.slug + "/settings";
-              hist.title = Sefaria.getPageTitle("Edit Collection");
+              hist.title = Sefaria.getPageTitle("edit_collection_page.edit_collection");
             } else {
               hist.url   = "collections/new";
-              hist.title = Sefaria.getPageTitle("Create Collection");
+              hist.title = Sefaria.getPageTitle("user_profile.create_collection");
             }
             hist.mode  = "editCollection";
             break;
@@ -575,7 +576,7 @@ class ReaderApp extends Component {
             hist.mode  = "translations";
             break;
           case "calendars":
-            hist.title = Sefaria.getPageTitle("Learning Schedules");
+            hist.title = Sefaria.getPageTitle("header.learning_schedules");
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
@@ -595,22 +596,22 @@ class ReaderApp extends Component {
             hist.mode = "modtools";
             break;
           case "user_stats":
-            hist.title = Sefaria.getPageTitle("Torah Tracker");
+            hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
           case "saved":
-            hist.title = Sefaria.getPageTitle("My Saved Content");
+            hist.title = Sefaria.getPageTitle("user_history_panel.my_saved_content");
             hist.url = "saved";
             hist.mode = "saved";
             break;
           case "history":
-            hist.title = Sefaria.getPageTitle("My Reading History");
+            hist.title = Sefaria.getPageTitle("user_history_panel.my_reading_history");
             hist.url = "history";
             hist.mode = "history";
             break;
           case "notes":
-            hist.title = Sefaria.getPageTitle("My Notes");
+            hist.title = Sefaria.getPageTitle("my_notes_panel.my_notes");
             hist.url = "texts/notes";
             hist.mode = "notes";
             break;
@@ -663,7 +664,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSource = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const connectionsTitle = shouldShowSource ?
-          Sefaria._r(ref) + Sefaria._("reader_app.with") + Sefaria._(hist.sources) :
+          Sefaria._r(ref) + Sefaria._("reader_app.with") + Sefaria._(CONNECTION_MODE_STRING_IDS[hist.sources] || hist.sources) :
           Sefaria._r(ref);
         hist.title    = Sefaria.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
@@ -686,7 +687,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSourceInTitle = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const textAndConnectionsTitle = shouldShowSourceInTitle ?
-          Sefaria._r(htitle) + Sefaria._("reader_app.with") + Sefaria._(hist.sources) :
+          Sefaria._r(htitle) + Sefaria._("reader_app.with") + Sefaria._(CONNECTION_MODE_STRING_IDS[hist.sources] || hist.sources) :
           Sefaria._r(htitle);
         hist.title    = Sefaria.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;

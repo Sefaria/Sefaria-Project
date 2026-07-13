@@ -26,26 +26,26 @@ export function NewsletterSignUpForm({
         }
         if (showNameInputs === true) { // submit
             if (firstName.length > 0 && lastName.length > 0) {
-                setSubscribeMessage("Subscribing...");
+                setSubscribeMessage("common.subscribing");
                 setIsSubmitting(true);
                 subscribe(firstName, lastName, email, educatorCheck, additionalNewsletterMailingLists).then(res => {
                     setIsSubscribed(true);
                     setIsSubmitting(false);
-                    setSubscribeMessage("Subscribed! Welcome to our list.");
+                    setSubscribeMessage("common.subscribed_welcome_to_our_list");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {
                     setIsSubmitting(false);
-                    setSubscribeMessage(error?.message || "Sorry, there was an error.");
+                    setSubscribeMessage(error?.message || "common.sorry_there_was_an_error");
                     setShowNameInputs(false);
                 });
             } else {
-                setSubscribeMessage("Please enter a valid first and last name");
+                setSubscribeMessage("newsletter_sign_up_form.please_enter_a_valid_first_and_last_name");
             }
         } else if (Sefaria.util.isValidEmailAddress(email)) {
             setShowNameInputs(true);
         } else {
             setShowNameInputs(false);
-            setSubscribeMessage("Please enter a valid email address.");
+            setSubscribeMessage("common.please_enter_a_valid_email_address");
         }
     }
 

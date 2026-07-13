@@ -28,6 +28,17 @@ const type_title_map = {
   "User": "Users"
 };
 
+const type_title_id_map = {
+  "Collection": "common.collections",
+  "AuthorTopic": "common.authors",
+  "TocCategory": "header_autocomplete.categories",
+  "PersonTopic": "common.topics",
+  "Topic": "common.topics",
+  "ref": "header_autocomplete.books",
+  "Term": "header_autocomplete.terms",
+  "User": "header_autocomplete.users"
+};
+
 const MODULE_ALLOWED_SEARCH_TYPES = {
   [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Term'],
   [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
@@ -355,7 +366,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         <div className={"search-group-suggestions"}>
 
          {(type != 'search') &&
-            <div className={'type-title'}><InterfaceText>{title}</InterfaceText></div>
+            <div className={'type-title'}><InterfaceText>{type_title_id_map[type] || title}</InterfaceText></div>
          }
 
             <div className={"search-group-suggestions-items"}>

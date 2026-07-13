@@ -2559,7 +2559,7 @@ const BlockButton = ({format, icon}) => {
 }
 
 const EditorSaveStateIndicator = ({ state }) => {
-    const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
+    const localize = (inputStr) => Sefaria._(inputStr);
     const stateToIcon = {
         "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
         "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
@@ -2568,21 +2568,21 @@ const EditorSaveStateIndicator = ({ state }) => {
         "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
         };
     const stateToTooltip = {
-        "saved": "Your sheet is saved to Sefaria",
-        "saving": "We are saving your changes to Sefaria",
-        "connectionLost": "No internet connection detected",
-        "userUnauthenticated": "You are not logged in to Sefaria",
-        "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+        "saved": "editor_save_indicator.your_sheet_is_saved_to_sefaria",
+        "saving": "editor_save_indicator.we_are_saving_your_changes_to_sefaria",
+        "connectionLost": "editor_save_indicator.no_internet_connection_detected",
+        "userUnauthenticated": "editor_save_indicator.you_are_not_logged_in_to_sefaria",
+        "unknownError": "editor_save_indicator.if_this_problem_persists_please_try_again_later"
         };
 
     // During SSR, window doesn't exist, so use empty string as fallback
     const path = Sefaria._inBrowser ? (window.location.pathname + window.location.search) : "";
     const stateToMessage = {
-        "connectionLost": "Trying to connect…",
-        "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
-        "saving": "Saving...",
-        "saved": "Saved",
-        "unknownError": "Something went wrong. Try refreshing the page."
+        "connectionLost": "editor_save_indicator.trying_to_connect",
+        "userUnauthenticated": <>{localize("editor_save_indicator.user_logged_out")}. <a href={`/login?next=${path}`}>{localize("header.log_in")}</a></>,
+        "saving": "editor_save_indicator.saving",
+        "saved": "editor_save_indicator.saved",
+        "unknownError": "editor_save_indicator.something_went_wrong_try_refreshing_the_page"
         };
     const loadedIcons = new Set();
     useEffect(() => {
@@ -2603,7 +2603,7 @@ const EditorSaveStateIndicator = ({ state }) => {
 
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
-        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        {<img src={stateToIcon[state]} alt={state} />}
         <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
