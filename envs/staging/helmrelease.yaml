@@ -111,6 +111,7 @@ spec:
     cronJobs:
       reindexElasticSearch:
         enabled: true
+        allowSharedIndex: true
       syncPostgresProductionData:
         enabled: true
       syncMongoProductionData:

@@ -67,6 +67,8 @@ spec:
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: SHARD_RESOURCES
               value: {{ .Values.cronJobs.reindexElasticSearch.shardResources | toJson | quote }}
+            - name: REINDEX_ALLOW_SHARED_INDEX
+              value: {{ .Values.cronJobs.reindexElasticSearch.allowSharedIndex | quote }}
             envFrom:
             - secretRef:
                 name: {{ template "sefaria.secrets.elasticAdmin" . }}

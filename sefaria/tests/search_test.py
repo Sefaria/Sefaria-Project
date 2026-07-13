@@ -317,6 +317,7 @@ def test_restore_index_settings_refreshes_after_put(monkeypatch):
 def test_reindex_finalize_success_calls_update_aliases_atomically(monkeypatch):
     from sefaria import search
 
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
     names = {"new": "text-new", "current": "text-current", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
     monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
@@ -340,6 +341,7 @@ def test_reindex_finalize_does_not_call_delete_alias(monkeypatch):
     """reindex_finalize must NOT call index_client.delete_alias (Finding 1: atomic swap removes outage window)."""
     from sefaria import search
 
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
     names = {"new": "text-new", "current": "text-current", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
     monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
@@ -376,9 +378,76 @@ def test_reindex_finalize_empty_first_run_raises_value_error(monkeypatch):
     assert update_alias_calls == [], "update_aliases must NOT be called when both counts are zero"
 
 
+def test_reindex_finalize_refuses_shared_alias_without_opt_in(monkeypatch):
+    """reindex_finalize must raise ValueError when the alias is the shared default "text" and
+    REINDEX_ALLOW_SHARED_INDEX is unset (guards against wildcard-stripping the alias from every
+    index on a shared dev Elasticsearch cluster)."""
+    from sefaria import search
+
+    monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+
+    update_alias_calls = []
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
+
+    with pytest.raises(ValueError, match="shared"):
+        search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert update_alias_calls == [], "update_aliases must NOT be called when the shared alias guard trips"
+
+
+def test_reindex_finalize_proceeds_for_isolated_alias_without_opt_in(monkeypatch):
+    """reindex_finalize must proceed past the shared-alias guard for an isolated (non-default)
+    alias even when REINDEX_ALLOW_SHARED_INDEX is unset."""
+    from sefaria import search
+
+    monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+    names = {"new": "text-somecauldron-new", "current": "text-somecauldron-current", "alias": "text-somecauldron"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search, "clear_index", lambda name: None)
+
+    update_alias_calls = []
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
+
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert len(update_alias_calls) == 1
+
+
+def test_reindex_finalize_proceeds_for_shared_alias_with_opt_in(monkeypatch):
+    """reindex_finalize must proceed past the shared-alias guard when the alias is "text" and
+    REINDEX_ALLOW_SHARED_INDEX=true (prod/preprod intentional opt-in)."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search, "restore_index_settings", lambda *a, **k: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 1000)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+    monkeypatch.setattr(search, "clear_index", lambda name: None)
+
+    update_alias_calls = []
+    monkeypatch.setattr(search.index_client, "update_aliases",
+                        lambda body: update_alias_calls.append(body))
+
+    search.reindex_finalize("text", min_doc_ratio=0.9)
+
+    assert len(update_alias_calls) == 1
+
+
 def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
     from sefaria import search
 
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
     names = {"new": "text-new", "current": "text-current", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
     monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-new")
@@ -401,6 +470,7 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
 def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
     from sefaria import search
 
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
     names = {"new": "text-new", "current": "text-current", "alias": "text"}
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
     monkeypatch.setattr(search.index_client, "exists", lambda index: False)
@@ -414,3 +484,49 @@ def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
     search.reindex_init("text", debug=False)
 
     assert create_calls == [("text-new", False)]
+
+
+def test_reindex_init_refuses_shared_alias_without_opt_in(monkeypatch):
+    """reindex_init must raise ValueError and MUST NOT create/clear any index when the alias is
+    the shared default "text" and REINDEX_ALLOW_SHARED_INDEX is unset. This is the fast-fail path:
+    without it, a misconfigured cauldron would clear a shared prod-named index before the guard in
+    reindex_finalize ever runs (hours later, after data is already destroyed)."""
+    from sefaria import search
+
+    monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+    names = {"new": "text-new", "current": "text-current", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
+
+    with pytest.raises(ValueError, match="shared"):
+        search.reindex_init("text", debug=False)
+
+    assert create_calls == [], "create_index must NOT be called when the shared alias guard trips"
+
+
+def test_reindex_init_proceeds_for_isolated_alias_without_opt_in(monkeypatch):
+    """reindex_init must proceed past the shared-alias guard for an isolated (non-default) alias
+    even when REINDEX_ALLOW_SHARED_INDEX is unset, and for a debug alias (e.g. "text-debug"),
+    which is not a shared default and must still be allowed through."""
+    from sefaria import search
+
+    monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+    names = {"new": "text-debug-new", "current": "text-debug-current", "alias": "text-debug"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: False)
+
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 0)
+
+    search.reindex_init("text", debug=True)
+
+    assert create_calls == [("text-debug-new", False)]

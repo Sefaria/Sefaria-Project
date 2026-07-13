@@ -435,6 +435,9 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    # Set true only for prod/preprod cronjobs that intentionally swap the shared "text"/"sheet"
+    # aliases. Cauldrons must never set this; use localSettings.ISOLATE_SEARCH_INDEXES instead.
+    allowSharedIndex: false
     SEARCH_HOST_ES6: ""
     SEARCH_HOST_ES8: ""
     shardCount: 8
@@ -469,6 +472,11 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
   SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
+  # When true, appends "-<deployEnv>" to the ES index base names above so a cauldron gets its own
+  # isolated indexes/alias on the shared dev Elasticsearch cluster instead of colliding with
+  # prod's "text"/"sheet" names. Cauldrons opt in via build/ci/sandbox-values.yaml.
+  # prod/preprod MUST leave this false.
+  ISOLATE_SEARCH_INDEXES: false
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"

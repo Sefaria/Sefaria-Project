@@ -6,6 +6,7 @@ Writes to MongoDB Collection: index_queue
 """
 from datetime import datetime, timedelta
 import logging
+import os
 import re
 import sys
 import bleach
@@ -1237,6 +1238,25 @@ def _index_doc_count(index_name):
         return None
 
 
+def _assert_not_shared_index(alias, type):
+    """
+    Refuse to operate on a shared/default index alias ("text" / "sheet") unless explicitly
+    allowed. The dev Elasticsearch cluster is shared across cauldrons, and both index creation
+    (reindex_init) and the alias swap (reindex_finalize -> _swap_alias_atomically, which does a
+    wildcard `remove`) are destructive to whatever else lives under that alias on a shared cluster.
+    """
+    shared_index_names = ("text", "sheet")
+    allow_shared_index = os.environ.get("REINDEX_ALLOW_SHARED_INDEX", "").lower() in ("1", "true", "yes")
+    if alias in shared_index_names and not allow_shared_index:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: alias {alias!r} is a shared default index "
+            f"name; operating on it risks destroying or stripping the alias from every index on a "
+            f"shared cluster (wildcard `remove` in _swap_alias_atomically). Refusing to proceed. Set "
+            f"ISOLATE_SEARCH_INDEXES=true (cauldron path) to give this environment its own indexes, "
+            f"or REINDEX_ALLOW_SHARED_INDEX=true (prod/preprod, intentional, informed opt-in) to proceed."
+        )
+
+
 def reindex_init(type, debug=False):
     """
     Phase 1: Create the new index with bulk-load settings.
@@ -1244,6 +1264,7 @@ def reindex_init(type, debug=False):
     Returns the names dict from get_new_and_current_index_names.
     """
     names = get_new_and_current_index_names(type=type, debug=debug)
+    _assert_not_shared_index(names['alias'], type)
     new_index = names['new']
     if index_client.exists(index=new_index):
         doc_count = _index_doc_count(new_index)
@@ -1321,6 +1342,11 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
             f"but current index {names['current']} has {current_count} "
             f"(ratio {new_count/current_count:.2%} < required {min_doc_ratio:.0%}). Refusing alias swap."
         )
+
+    # Defense in depth: reindex_init already checks this before creating/clearing any index,
+    # but finalize can be invoked independently and is the operation that does the wildcard
+    # alias strip, so re-check here too.
+    _assert_not_shared_index(names['alias'], type)
 
     # Drop any erroneous physical index named like the alias before swapping
     logger.debug("Switching aliases after indexing")

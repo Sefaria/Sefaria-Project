@@ -193,6 +193,7 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    allowSharedIndex: true
   topicsIndexing:
     enabled: false
   trends:
