@@ -258,13 +258,10 @@ _ENTITY_YEAR_SORT_FIELDS = {"author": "birthYear", "book": "compDate"}
 # any of these boosts at runtime without a deploy, but a key that isn't listed here —
 # e.g. a misspelled "titel_en" — is ignored, never added to the query.
 _DEFAULT_ENTITY_FIELD_BOOSTS = {
-    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2,
-              "description_en": 1, "description_he": 1},
+    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2},
     "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
-               "authored_titles_en": 1.5, "authored_titles_he": 1.5,
-               "description_en": 1, "description_he": 1},
-    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5,
-             "description_en": 1, "description_he": 1},
+               "authored_titles_en": 1.5, "authored_titles_he": 1.5},
+    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5},
 }
 
 # RemoteConfig key holding the per-field boost overrides for each entity type. Each key
