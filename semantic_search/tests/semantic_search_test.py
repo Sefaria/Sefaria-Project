@@ -69,14 +69,10 @@ class TestSemanticSearchRouter:
 
 class TestSearchByEmbeddingFilters:
     def _run(self, filters):
-        mock_objects = MagicMock()
-        mock_objects.filter.return_value.order_by.return_value.__getitem__.return_value = []
-        with patch(
-            "semantic_search.models.SemanticTextChunk.objects",
-            mock_objects,
-        ):
-            SemanticTextChunk().search_by_embedding([0.0] * 1536, filters=filters)
-        return mock_objects.filter.call_args.kwargs
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            mock_filter.return_value.order_by.return_value.__getitem__.return_value = []
+            SemanticTextChunk.objects.search_by_embedding([0.0] * 1536, filters=filters)
+        return mock_filter.call_args.kwargs
 
     def test_known_field_passes_through(self):
         kwargs = self._run({"language": "en"})
@@ -105,23 +101,23 @@ class TestSearchByEmbeddingFilters:
 
 class TestUpsert:
     def test_empty_list_skips_bulk_create(self):
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([])
-            mock_cls.objects.bulk_create.assert_not_called()
+        with patch.object(SemanticTextChunk.objects, "bulk_create") as mock_bulk_create:
+            SemanticTextChunk.objects.upsert([])
+            mock_bulk_create.assert_not_called()
 
     def test_calls_bulk_create_with_conflict_args(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([chunk])
-            _, kwargs = mock_cls.objects.bulk_create.call_args
+        with patch.object(SemanticTextChunk.objects, "bulk_create") as mock_bulk_create:
+            SemanticTextChunk.objects.upsert([chunk])
+            _, kwargs = mock_bulk_create.call_args
             assert kwargs["update_conflicts"] is True
             assert kwargs["unique_fields"] == ["doc_id"]
 
     def test_update_fields_excludes_doc_id_and_created_at(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([chunk])
-            _, kwargs = mock_cls.objects.bulk_create.call_args
+        with patch.object(SemanticTextChunk.objects, "bulk_create") as mock_bulk_create:
+            SemanticTextChunk.objects.upsert([chunk])
+            _, kwargs = mock_bulk_create.call_args
             update_fields = kwargs["update_fields"]
             assert "doc_id" not in update_fields
             assert "created_at" not in update_fields
@@ -135,31 +131,28 @@ class TestUpsert:
 
 class TestGetIndexedUnitRefs:
     def test_returns_a_set(self):
-        mock_objects = MagicMock()
-        mock_objects.filter.return_value.values_list.return_value.distinct.return_value = [
-            "Genesis 1", "Genesis 1", "Genesis 2"
-        ]
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            mock_filter.return_value.values_list.return_value.distinct.return_value = [
+                "Genesis 1", "Genesis 1", "Genesis 2"
+            ]
+            result = SemanticTextChunk.objects.get_indexed_unit_refs("Genesis", "en", "SCT")
         assert isinstance(result, set)
         assert result == {"Genesis 1", "Genesis 2"}
 
     def test_filters_by_all_three_params(self):
-        mock_objects = MagicMock()
-        mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
-        mock_objects.filter.assert_called_once_with(
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            mock_filter.return_value.values_list.return_value.distinct.return_value = []
+            SemanticTextChunk.objects.get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
+        mock_filter.assert_called_once_with(
             index_title="Mishnah Berakhot",
             language="he",
             version_title="Torat Emet 357",
         )
 
     def test_empty_queryset_returns_empty_set(self):
-        mock_objects = MagicMock()
-        mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            mock_filter.return_value.values_list.return_value.distinct.return_value = []
+            result = SemanticTextChunk.objects.get_indexed_unit_refs("Genesis", "en", "SCT")
         assert result == set()
 
 
@@ -169,17 +162,15 @@ class TestGetIndexedUnitRefs:
 
 class TestBulkDelete:
     def test_filters_by_doc_ids(self):
-        mock_objects = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().bulk_delete(["id1", "id2"])
-        mock_objects.filter.assert_called_once_with(doc_id__in=["id1", "id2"])
-        mock_objects.filter.return_value.delete.assert_called_once()
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.bulk_delete(["id1", "id2"])
+        mock_filter.assert_called_once_with(doc_id__in=["id1", "id2"])
+        mock_filter.return_value.delete.assert_called_once()
 
     def test_empty_list_still_calls_filter(self):
-        mock_objects = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().bulk_delete([])
-        mock_objects.filter.assert_called_once_with(doc_id__in=[])
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.bulk_delete([])
+        mock_filter.assert_called_once_with(doc_id__in=[])
 
 
 # ---------------------------------------------------------------------------
@@ -479,11 +470,11 @@ class TestSemanticSearch:
     @patch("semantic_search.search.embed_query")
     def test_calls_embed_query_then_search_by_embedding(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.5] * 1536
-        mock_chunk_cls.return_value.search_by_embedding.return_value = []
+        mock_chunk_cls.objects.search_by_embedding.return_value = []
         semantic_search("what is shabbat")
         mock_embed.assert_called_once()
         assert mock_embed.call_args[0][0] == "what is shabbat"
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+        mock_chunk_cls.objects.search_by_embedding.assert_called_once_with(
             [0.5] * 1536, limit=10, filters=None
         )
 
@@ -491,9 +482,9 @@ class TestSemanticSearch:
     @patch("semantic_search.search.embed_query")
     def test_forwards_filters_and_limit(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.1] * 1536
-        mock_chunk_cls.return_value.search_by_embedding.return_value = []
+        mock_chunk_cls.objects.search_by_embedding.return_value = []
         semantic_search("query", filters={"language": "en"}, limit=5)
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+        mock_chunk_cls.objects.search_by_embedding.assert_called_once_with(
             [0.1] * 1536, limit=5, filters={"language": "en"}
         )
 
@@ -502,5 +493,5 @@ class TestSemanticSearch:
     def test_returns_search_results(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.0] * 1536
         expected = [MagicMock()]
-        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
+        mock_chunk_cls.objects.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected

@@ -23,8 +23,6 @@ from semantic_search.models import SemanticTextChunk
 
 logger = structlog.get_logger(__name__)
 
-_chunk_store = SemanticTextChunk()
-
 # ---------------------------------------------------------------------------
 # Index-level tasks
 # ---------------------------------------------------------------------------
@@ -36,19 +34,19 @@ def update_index_metadata(index_title: str) -> None:
         logger.warning("pgvector.update_index_metadata: index not found", index_title=index_title)
         return
     fields = get_index_context(index)
-    count = _chunk_store.update_index_metadata(index_title, fields)
+    count = SemanticTextChunk.objects.update_index_metadata(index_title, fields)
     logger.info("pgvector.update_index_metadata: updated", index_title=index_title, rows=count)
 
 
 @app.task(name="pgvector.update_index_title")
 def update_index_title(old_title: str, new_title: str) -> None:
-    count = _chunk_store.update_index_title(old_title, new_title)
+    count = SemanticTextChunk.objects.update_index_title(old_title, new_title)
     logger.info("pgvector.update_index_title: updated", old_title=old_title, new_title=new_title, rows=count)
 
 
 @app.task(name="pgvector.delete_index_chunks")
 def delete_index_chunks(index_title: str) -> None:
-    count = _chunk_store.delete_by_index(index_title)
+    count = SemanticTextChunk.objects.delete_by_index(index_title)
     logger.info("pgvector.delete_index_chunks: deleted", index_title=index_title, rows=count)
 
 
@@ -58,7 +56,7 @@ def delete_index_chunks(index_title: str) -> None:
 
 @app.task(name="pgvector.update_version_title")
 def update_version_title(index_title: str, old_vtitle: str, new_vtitle: str) -> None:
-    count = _chunk_store.update_version_title(index_title, old_vtitle, new_vtitle)
+    count = SemanticTextChunk.objects.update_version_title(index_title, old_vtitle, new_vtitle)
     logger.info(
         "pgvector.update_version_title: updated",
         index_title=index_title, old_vtitle=old_vtitle, new_vtitle=new_vtitle, rows=count,
@@ -79,7 +77,7 @@ def update_version_attributes(index_title: str, vtitle: str) -> None:
         "is_source": bool(ver.isSource),
         "direction": ver.direction,
     }
-    count = _chunk_store.update_version_fields(index_title, vtitle, fields)
+    count = SemanticTextChunk.objects.update_version_fields(index_title, vtitle, fields)
     logger.info(
         "pgvector.update_version_attributes: updated",
         index_title=index_title, vtitle=vtitle, rows=count,
@@ -88,7 +86,7 @@ def update_version_attributes(index_title: str, vtitle: str) -> None:
 
 @app.task(name="pgvector.delete_version_chunks")
 def delete_version_chunks(index_title: str, vtitle: str) -> None:
-    count = _chunk_store.delete_by_version(index_title, vtitle)
+    count = SemanticTextChunk.objects.delete_by_version(index_title, vtitle)
     logger.info(
         "pgvector.delete_version_chunks: deleted",
         index_title=index_title, vtitle=vtitle, rows=count,
@@ -108,16 +106,16 @@ def update_topic_slug(old_slug: str, new_slug: str) -> None:
        and refresh author_names for affected indexes.
     """
     # associated_topic_slugs
-    assoc_count = _chunk_store.replace_associated_topic_slug(old_slug, new_slug)
+    assoc_count = SemanticTextChunk.objects.replace_associated_topic_slug(old_slug, new_slug)
 
     # author_slugs (covers the case where this topic is an author)
-    author_count = _chunk_store.replace_author_slug(old_slug, new_slug)
+    author_count = SemanticTextChunk.objects.replace_author_slug(old_slug, new_slug)
 
     # Refresh author_names for all indexes that now carry new_slug as an author
     affected_indexes = IndexSet({"authors": new_slug})
     for index in affected_indexes:
         context = get_index_context(index)
-        _chunk_store.update_index_metadata(index.title, {
+        SemanticTextChunk.objects.update_index_metadata(index.title, {
             "author_names": context["author_names"],
             "author_slugs": context["author_slugs"],
         })
@@ -139,7 +137,7 @@ def update_author_topic_names(author_slug: str) -> None:
     total = 0
     for index in affected_indexes:
         context = get_index_context(index)
-        total += _chunk_store.update_index_metadata(index.title, {
+        total += SemanticTextChunk.objects.update_index_metadata(index.title, {
             "author_names": context["author_names"],
         })
     logger.info("pgvector.update_author_topic_names: updated", author_slug=author_slug, rows=total)
@@ -157,7 +155,7 @@ def update_category_chunks(old_path: list) -> None:
     for index in affected_indexes:
         if index.categories[:len(old_path)] == old_path:
             context = get_index_context(index)
-            total += _chunk_store.update_index_metadata(index.title, {
+            total += SemanticTextChunk.objects.update_index_metadata(index.title, {
                 "primary_category": context["primary_category"],
                 "all_categories": context["all_categories"],
             })
@@ -195,7 +193,7 @@ def _update_chunk_context_fields(chunks: list[SemanticTextChunk], fields_to_upda
             continue
         for field in fields_to_update:
             setattr(chunk, field, ctx[field])
-    _chunk_store.bulk_update_chunks(chunks, fields_to_update)
+    SemanticTextChunk.objects.bulk_update_chunks(chunks, fields_to_update)
     return len(chunks)
 
 
@@ -206,7 +204,7 @@ def update_ref_topic_links(ref_str: str, index_title: str) -> None:
     if not section:
         return
     # Find chunks that might contain this ref (by section) or via chunker_metadata
-    chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
+    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
         # Fall back to section-level query (covers all languages/versions)
         chunks = list(SemanticTextChunk.objects.filter(
@@ -227,7 +225,7 @@ def update_ref_links(ref_str: str, index_title: str) -> None:
     section = _section_ref_str(ref_str)
     if not section:
         return
-    chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
+    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
         chunks = list(SemanticTextChunk.objects.filter(
             index_title=index_title, chunked_from_ref=section
@@ -248,7 +246,7 @@ def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> 
     section = _section_ref_str(ref_str)
     if not section:
         return
-    chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
+    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
         chunks = list(SemanticTextChunk.objects.filter(
             index_title=index_title, chunked_from_ref=section
@@ -287,7 +285,7 @@ def sync_text_and_embedding(index_title: str, language: str, vtitle: str, change
         return
 
     embedder = GeminiEmbedder(api_key=api_key)
-    already_indexed = _chunk_store.get_indexed_unit_refs(index_title, language, vtitle)
+    already_indexed = SemanticTextChunk.objects.get_indexed_unit_refs(index_title, language, vtitle)
 
     for ref_str in changed_refs:
         try:
@@ -310,7 +308,7 @@ def _reembed_existing_section(
     index_title: str, language: str, vtitle: str, section_normal: str, embedder: GeminiEmbedder
 ) -> None:
     """Re-embed all existing chunks for a section without re-chunking."""
-    chunks = _chunk_store.get_chunks_for_section(index_title, language, vtitle, section_normal)
+    chunks = SemanticTextChunk.objects.get_chunks_for_section(index_title, language, vtitle, section_normal)
     if not chunks:
         return
 
@@ -345,7 +343,7 @@ def _reembed_existing_section(
         updated.append(chunk)
 
     if updated:
-        _chunk_store.bulk_update_chunks(updated, ["text", "embedding"])
+        SemanticTextChunk.objects.bulk_update_chunks(updated, ["text", "embedding"])
     logger.info(
         "pgvector._reembed_existing_section: reembedded",
         index_title=index_title, language=language, vtitle=vtitle,
@@ -407,7 +405,7 @@ def _chunk_new_section(
         section_ref, language, vtitle, index_title, embedder,
         chunk_result, index_context, version_context,
     )
-    _chunk_store.upsert(chunk_data)
+    SemanticTextChunk.objects.upsert(chunk_data)
     logger.info(
         "pgvector._chunk_new_section: chunked and indexed",
         index_title=index_title, section=section_normal, chunks=len(chunk_data),

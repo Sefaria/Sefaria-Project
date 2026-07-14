@@ -33,7 +33,7 @@ from sefaria.model import *
 from sefaria.search import setup_logging
 from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import SemanticTextChunk
+from semantic_search.models import SemanticTextChunk, SemanticTextChunkManager
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -274,7 +274,7 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: SemanticTextChunk, version_pbar=None):
+                   chunk_store: SemanticTextChunkManager, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -317,7 +317,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk,
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunkManager,
                   version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
@@ -375,7 +375,7 @@ def main():
         raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
 
     result = EmbeddingResult()
-    chunk_store = SemanticTextChunk()
+    chunk_store = SemanticTextChunk.objects
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")

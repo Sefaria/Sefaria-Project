@@ -13,4 +13,4 @@ def semantic_search(
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not configured")
     embedding = embed_query(query, api_key=api_key)
-    return SemanticTextChunk().search_by_embedding(embedding, limit=limit, filters=filters)
+    return SemanticTextChunk.objects.search_by_embedding(embedding, limit=limit, filters=filters)
