@@ -251,7 +251,8 @@ _ENTITY_YEAR_SORT_FIELDS = {"author": "birthYear", "book": "compDate"}
 
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,
-# authored titles on authors) -> description.
+# authored titles on authors). Descriptions are deliberately excluded from search
+# entirely — a description mention is not a meaningful entity match.
 #
 # These defaults double as the *allow-list* of valid field names. A RemoteConfig
 # override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
@@ -311,7 +312,7 @@ def _resolve_entity_field_boosts(type):
     return [field if boost == 1 else f"{field}^{boost}" for field, boost in boosts.items()]
 
 
-# Phrase/prefix tiers run over these "title" fields only, to avoid description noise.
+# Phrase/prefix tiers run over these "title" fields only.
 # For authors we also include authored_titles so a book title matches its author.
 _ENTITY_TITLE_FIELDS = {
     "topic": ["title_en", "title_he", "titleVariants"],
@@ -362,7 +363,8 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
       1. Exact match   — `term` on the `.keyword` title sub-fields (highest boost).
       2. Exact phrase  — `match_phrase` on title fields.
       3. All words     — `multi_match best_fields` over the per-type field list (with
-                         per-field ^N boosts: title > variants > name/works > description).
+                         per-field ^N boosts: title > variants > name/works; descriptions
+                         are not searched).
       4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
       5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
 
@@ -450,9 +452,9 @@ def _total_from_response(response):
 
 def _query_matches_entity_title(query, hit):
     """
-    True if `query` directly matches the entity's title or a title variant (not merely
-    a description mention). Guards the author-works view from triggering when an author
-    name only appears in some book's description.
+    True if `query` directly matches the entity's title or a title variant. Guards the
+    author-works view from triggering on a loose match (e.g. a stemmed or partial hit
+    on another field) rather than a direct name match.
     """
     q = (query or "").strip().lower()
     if not q:
