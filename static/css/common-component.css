@@ -89,6 +89,7 @@
   border: none;
   cursor: pointer;
   color: #707070;
+  direction: ltr;
 }
 .sefaria-input-reveal img {
   width: 20px;
