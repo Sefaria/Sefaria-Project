@@ -4043,7 +4043,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   padding: 4px;
   background: #fafafa;
-  border: 1px solid #ededec;
+  border: 1px solid var(--lighter-grey);
   border-radius: 9999px;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -4071,12 +4071,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-style: normal;
   font-weight: 400;
   line-height: 18px;
-  color: #575757;
+  color: var(--darker-grey);
   white-space: nowrap;
   transition: color 150ms ease;
 }
 .searchToggle__option--active {
-  color: var(--Semantic-Text-Primary, #121212);
+  color: #121212;
   font-weight: 600;
 }
 
