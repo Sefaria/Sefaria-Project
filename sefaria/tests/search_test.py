@@ -1,9 +1,18 @@
 """Tests that the ES reindex job survives transient connection failures
 instead of aborting the entire multi-hour run."""
+import types
+
 import pytest
 from elastic_transport import ApiError, ConnectionTimeout
+from elasticsearch.exceptions import ApiError as ESApiError
 
 from sefaria.search import TextIndexer
+
+
+def _make_es_api_error(status, message="es_rejected_execution_exception"):
+    """Build a real elasticsearch.exceptions.ApiError with a given HTTP status,
+    matching what elasticsearch's client actually raises on a whole-request rejection."""
+    return ESApiError(message, meta=types.SimpleNamespace(status=status), body=None)
 
 
 class _FakeIndex:
@@ -123,6 +132,94 @@ def test_flush_passes_retry_kwargs(monkeypatch):
     assert captured["max_retries"] == 3
     assert captured["initial_backoff"] == 2
     assert captured["max_backoff"] == 60
+
+
+def test_flush_passes_bounded_max_chunk_bytes(monkeypatch):
+    """A whole-request 429 happens because N parallel shards can each send up to the
+    default 100MB chunk; the fix is to always cap max_chunk_bytes on the bulk() call."""
+    from sefaria import search
+    captured = {}
+
+    def fake_bulk(client, actions, **kwargs):
+        captured.update(kwargs)
+        return (len(actions), [])
+    monkeypatch.setattr(search, "bulk", fake_bulk)
+    search.TextIndexer._bulk_actions = [{"_id": "x"}]
+    search.TextIndexer._flush_bulk_actions([])
+    assert "max_chunk_bytes" in captured
+    assert captured["max_chunk_bytes"] == search.REINDEX_BULK_MAX_CHUNK_BYTES
+    assert captured["max_chunk_bytes"] < 100 * 1024 * 1024
+
+
+def test_flush_retries_and_succeeds_after_whole_request_429(monkeypatch):
+    """A whole-request 429 (es_rejected_execution_exception) is raised by client.bulk()
+    itself, not returned as a per-item failure inside a 200 response, so elasticsearch.helpers.bulk's
+    own item-level retries never see it. _flush_bulk_actions must retry the same request itself."""
+    from sefaria import search
+
+    TextIndexer._bulk_actions = [{"_op_type": "index", "_id": "x"}]
+    sleep_calls = []
+    monkeypatch.setattr(search.pytime, "sleep", lambda s: sleep_calls.append(s))
+
+    calls = []
+
+    def flaky_bulk(client, actions, **kwargs):
+        calls.append(1)
+        if len(calls) == 1:
+            raise _make_es_api_error(429)
+        return (len(list(actions)), [])
+    monkeypatch.setattr(search, "bulk", flaky_bulk)
+
+    result = TextIndexer._flush_bulk_actions([])
+
+    assert result == 0
+    assert len(calls) == 2
+    assert TextIndexer._bulk_actions == []
+    assert sleep_calls == [search.BULK_429_INITIAL_BACKOFF_SECONDS]
+
+
+def test_flush_gives_up_after_429_retry_budget_exhausted(monkeypatch):
+    """When ES keeps rejecting with 429 past the retry budget, the shard must fail loudly
+    rather than silently dropping the batch or looping forever."""
+    from sefaria import search
+
+    TextIndexer._bulk_actions = [{"_op_type": "index", "_id": "x"}]
+    monkeypatch.setattr(search.pytime, "sleep", lambda s: None)
+
+    calls = []
+
+    def always_429(client, actions, **kwargs):
+        calls.append(1)
+        raise _make_es_api_error(429)
+    monkeypatch.setattr(search, "bulk", always_429)
+
+    with pytest.raises(ESApiError):
+        TextIndexer._flush_bulk_actions([])
+
+    assert len(calls) == search.BULK_429_MAX_RETRIES + 1
+
+
+def test_flush_propagates_non_429_api_error_without_retrying(monkeypatch):
+    """A non-429 ApiError (a real mapping/query bug, say) must propagate on the first
+    attempt - retrying it would just waste time on a request that can never succeed."""
+    from sefaria import search
+
+    TextIndexer._bulk_actions = [{"_op_type": "index", "_id": "x"}]
+    sleep_calls = []
+    monkeypatch.setattr(search.pytime, "sleep", lambda s: sleep_calls.append(s))
+
+    calls = []
+
+    def bad_request(client, actions, **kwargs):
+        calls.append(1)
+        raise _make_es_api_error(400, "mapping_parser_exception")
+    monkeypatch.setattr(search, "bulk", bad_request)
+
+    with pytest.raises(ESApiError):
+        TextIndexer._flush_bulk_actions([])
+
+    assert len(calls) == 1
+    assert sleep_calls == []
 
 
 def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):

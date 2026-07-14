@@ -18,7 +18,7 @@ import time as pytime
 from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
-from elasticsearch.exceptions import NotFoundError
+from elasticsearch.exceptions import NotFoundError, ApiError
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
@@ -57,6 +57,24 @@ _indexer_es_client = get_elasticsearch_client_for_indexer()
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
 PROGRESS_LOG_EVERY_N = 100
+
+# elasticsearch.helpers.bulk defaults to a 100MB max_chunk_bytes per request. With N
+# shards flushing concurrently, that is N*100MB of in-flight coordinating bytes against
+# a cluster whose write buffer is capped far lower (indices.breaker.total.limit-ish, e.g.
+# ~215MB) - the old serial indexer only ever had one writer so it never hit this. Bound
+# the per-request size so aggregate in-flight bytes across all shards stays bounded.
+_MIN_BULK_CHUNK_BYTES = 1024 * 1024  # 1MB floor - never let a bad env value shrink chunks to nothing
+try:
+    REINDEX_BULK_MAX_CHUNK_BYTES = max(
+        _MIN_BULK_CHUNK_BYTES, int(os.environ.get("REINDEX_BULK_MAX_CHUNK_BYTES", 10 * 1024 * 1024))
+    )
+except (TypeError, ValueError):
+    REINDEX_BULK_MAX_CHUNK_BYTES = 10 * 1024 * 1024
+
+# 429 es_rejected_execution_exception backoff for _flush_bulk_actions
+BULK_429_MAX_RETRIES = 6
+BULK_429_INITIAL_BACKOFF_SECONDS = 2
+BULK_429_MAX_BACKOFF_SECONDS = 60
 
 
 def delete_text(oref, version, lang):
@@ -555,24 +573,49 @@ class TextIndexer(object):
         """
         if not cls._bulk_actions:
             return 0
-        try:
-            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
-                 raise_on_error=False, request_timeout=120,
-                 max_retries=3, initial_backoff=2, max_backoff=60)
-            cls._bulk_actions = []
-            return 0
-        except (ESConnectionError, ConnectionTimeout) as e:
-            # Both are siblings under TransportError, not parent/child — list explicitly.
-            logger.warning(
-                f"Bulk indexing failed: {type(e).__name__}: {e}; "
-                f"continuing with next index"
-            )
-            for v in in_flight_versions:
-                cls._add_failed_version(
-                    v, f"Bulk write failed: {e}", type(e).__name__
+        backoff = BULK_429_INITIAL_BACKOFF_SECONDS
+        attempt = 0
+        while True:
+            try:
+                bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
+                     raise_on_error=False, request_timeout=120,
+                     max_retries=3, initial_backoff=2, max_backoff=60,
+                     max_chunk_bytes=REINDEX_BULK_MAX_CHUNK_BYTES)
+                cls._bulk_actions = []
+                return 0
+            except (ESConnectionError, ConnectionTimeout) as e:
+                # Both are siblings under TransportError, not parent/child — list explicitly.
+                logger.warning(
+                    f"Bulk indexing failed: {type(e).__name__}: {e}; "
+                    f"continuing with next index"
                 )
-            cls._bulk_actions = []
-            return len(in_flight_versions)
+                for v in in_flight_versions:
+                    cls._add_failed_version(
+                        v, f"Bulk write failed: {e}", type(e).__name__
+                    )
+                cls._bulk_actions = []
+                return len(in_flight_versions)
+            except ApiError as e:
+                # elasticsearch.helpers.bulk only retries items that come back inside an
+                # HTTP-200 bulk response. A whole-request 429 (es_rejected_execution_exception,
+                # coordinating bytes over the cluster's write buffer) is raised here instead,
+                # and would otherwise kill this shard outright. Absorb it with backoff; any
+                # other ApiError is a real failure and must propagate loudly.
+                if getattr(e, "status_code", None) != 429:
+                    raise
+                attempt += 1
+                if attempt > BULK_429_MAX_RETRIES:
+                    logger.warning(
+                        f"Bulk indexing exhausted 429 retry budget after {attempt - 1} "
+                        f"attempts: {e}; giving up"
+                    )
+                    raise
+                logger.warning(
+                    f"Bulk indexing rejected with 429 (cluster write buffer full); "
+                    f"retrying attempt {attempt}/{BULK_429_MAX_RETRIES} in {backoff}s: {e}"
+                )
+                pytime.sleep(backoff)
+                backoff = min(backoff * 2, BULK_429_MAX_BACKOFF_SECONDS)
 
 
     @classmethod
