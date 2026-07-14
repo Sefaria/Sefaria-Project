@@ -350,10 +350,7 @@ class SearchPage extends Component {
                             {sortFilterControls}
                           </div>
                         </div>
-                        {/* Search results temporarily removed while the page is rebuilt
-                            to match the multi-entity search designs (sc-45480).
                         {searchResultList}
-                        */}
                       </div>
                       <div className="searchTabPanel" key="books">
                         <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
