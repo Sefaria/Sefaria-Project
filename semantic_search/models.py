@@ -24,6 +24,7 @@ class SemanticTextChunkManager(models.Manager):
         )
 
     def get_indexed_unit_refs(self, index_title: str, language: str, version_title: str) -> set:
+        """Return the distinct set of chunked_from_ref values already indexed for this index/language/version."""
         return set(
             self.filter(index_title=index_title, language=language, version_title=version_title)
             .values_list('chunked_from_ref', flat=True)
@@ -49,17 +50,22 @@ class SemanticTextChunkManager(models.Manager):
 
     def update_index_title(self, old_title: str, new_title: str) -> int:
         """UPDATE index_title (and string-prefix in ref/url/chunked_from_ref) when an index is renamed."""
-        def rewritten(field_name: str):
+        def url_prefix(title: str) -> str:
+            # Mirrors Ref.url(): title is encoded (' ' -> '_', ':' -> '.', '?' -> '%3F') and the
+            # space separating title from the first section becomes the '.' seen here as a trailing dot.
+            return title.replace(' ', '_').replace(':', '.').replace('?', '%3F') + '.'
+
+        def rewritten(field_name: str, old_prefix: str, new_prefix: str):
             return Concat(
-                Value(new_title), Substr(field_name, Length(Value(old_title)) + 1),
+                Value(new_prefix), Substr(field_name, Length(Value(old_prefix)) + 1),
                 output_field=models.TextField(),
             )
 
         return self.filter(index_title=old_title).update(
             index_title=new_title,
-            ref=rewritten('ref'),
-            url=rewritten('url'),
-            chunked_from_ref=rewritten('chunked_from_ref'),
+            ref=rewritten('ref', old_title, new_title),
+            url=rewritten('url', url_prefix(old_title), url_prefix(new_title)),
+            chunked_from_ref=rewritten('chunked_from_ref', old_title, new_title),
         )
 
     def update_version_fields(self, index_title: str, version_title: str, fields: dict) -> int:
