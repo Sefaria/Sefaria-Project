@@ -7,7 +7,6 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
-import {ReaderPanelContext} from "./context";
 import {DropdownMenu} from "./common/DropdownMenu";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import Util from "./sefaria/util";
@@ -49,7 +48,7 @@ class ConnectionsPanelHeader extends Component {
     const excludedModes = ["Resources", "ConnectionsList"];
     if (!excludedModes.includes(this.props.connectionsMode)) {
       // Only modes were there's an actual source-text get the dropdown.
-      return <DropdownMenu buttonComponent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
+      return <DropdownMenu buttonComponent={<DisplaySettingsButton/>} positioningClass="readerDropdownMenu"><ReaderDisplayOptionsMenu/></DropdownMenu>;
     }
     if (this.props.interfaceLang !== "english") {
       // if interface is Hebrew and we're not viewing actual source text in the sidebar, language switcher is turned off.
