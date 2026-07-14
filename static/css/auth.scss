@@ -206,12 +206,23 @@ $stroke-strong:   1.5px;
     border-color: #264764;
   }
 
-  &.is-disabled .sefaria-provider-button {
-    background-color: $sef-border-default;
-    border-color: $sef-border-default;
+  &.is-disabled {
     cursor: not-allowed;
-    color: var(--medium-grey-legacy);
-    * { color: var(--medium-grey-legacy); }
+
+    & .sefaria-provider-button {
+      background-color: $sef-border-default;
+      border-color: $sef-border-default;
+      color: var(--medium-grey-legacy);
+      cursor: not-allowed;
+
+      * {
+        color: var(--medium-grey-legacy);
+      }
+    }
+
+    & .sefaria-provider-sdk-overlay {
+      pointer-events: none;
+    }
   }
 }
 
@@ -256,10 +267,8 @@ $stroke-strong:   1.5px;
 .sefaria-provider-sdk-overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
   opacity: 0.0001;
   overflow: hidden;
-  pointer-events: none;
 
   > div,
   iframe {

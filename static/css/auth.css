@@ -177,14 +177,20 @@
   background-color: var(--highlight-blue-light);
   border-color: #264764;
 }
+.sefaria-provider-button-shell.is-disabled {
+  cursor: not-allowed;
+}
 .sefaria-provider-button-shell.is-disabled .sefaria-provider-button {
   background-color: #e6e6e6;
   border-color: #e6e6e6;
-  cursor: not-allowed;
   color: var(--medium-grey-legacy);
+  cursor: not-allowed;
 }
 .sefaria-provider-button-shell.is-disabled .sefaria-provider-button * {
   color: var(--medium-grey-legacy);
+}
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-sdk-overlay {
+  pointer-events: none;
 }
 
 .sefaria-provider-button {
@@ -230,10 +236,8 @@
 .sefaria-provider-sdk-overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
   opacity: 0.0001;
   overflow: hidden;
-  pointer-events: none;
 }
 .sefaria-provider-sdk-overlay > div,
 .sefaria-provider-sdk-overlay iframe {
