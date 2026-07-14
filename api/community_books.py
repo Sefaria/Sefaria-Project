@@ -3,12 +3,14 @@ import json
 import time
 import re
 import math
+import zipfile
 from datetime import datetime, timedelta
 
 from django.http import JsonResponse
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.core import signing
+
+from docx.opc.exceptions import PackageNotFoundError
 
 from sefaria.model import Index, IndexSet, Version, VersionSet, library
 from sefaria.model.notification import Notification
@@ -26,6 +28,7 @@ MAX_DAILY_SUBMISSIONS = 3
 MAX_PENDING_SUBMISSIONS = 10
 TOKEN_MAX_AGE = 3600  # 1 hour
 DOCX_MAGIC = b'PK\x03\x04'
+MALFORMED_ARCHIVE_ERRORS = (PackageNotFoundError, zipfile.BadZipFile, KeyError)
 
 
 class CommunityBookStatus:
@@ -49,6 +52,36 @@ def _require_auth(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Authentication required"}, status=401)
     return None
+
+
+def _is_community_book_admin(user):
+    return user.is_authenticated and user.id in COMMUNITY_BOOK_ADMIN_IDS
+
+
+def _require_community_book_admin(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+    if not _is_community_book_admin(request.user):
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    return None
+
+
+def can_view_community_book(idx, user):
+    """
+    A community book that has not been approved is visible only to its
+    submitter or a community-book admin. Callers on any read path (text API,
+    search, etc.) that may serve a community book should consult this before
+    returning content, and should return a 404 (not 403) on failure so a
+    non-approved book's existence is not disclosed.
+    """
+    if not idx.is_community_book:
+        return True
+    cb = idx.communityBook
+    if cb.get("status") == CommunityBookStatus.APPROVED:
+        return True
+    if user.is_authenticated and cb.get("submittedBy") == user.id:
+        return True
+    return _is_community_book_admin(user)
 
 
 def _check_rate_limits(user_id):
@@ -144,13 +177,14 @@ def _notify_admins(notif_type, content):
         _notify_user(admin_id, notif_type, content)
 
 
-def _build_community_book_dict(user_id):
+def _build_community_book_dict(user_id, topics=None):
     return {
         "status": CommunityBookStatus.SUBMITTED,
         "submittedBy": user_id,
         "submittedAt": datetime.utcnow(),
         "reviewedBy": None,
         "rejectionReason": None,
+        "topics": topics or [],
     }
 
 
@@ -199,7 +233,7 @@ def _create_or_update_index(payload, schema, user):
             existing_index.schema = schema
             existing_index.enDesc = payload["description_en"]
             existing_index.heDesc = payload["description_he"]
-            existing_index.communityBook = _build_community_book_dict(user.id)
+            existing_index.communityBook = _build_community_book_dict(user.id, payload.get("topics"))
             existing_index.hidden = True
             try:
                 existing_index.save(override_dependencies=True)
@@ -217,7 +251,7 @@ def _create_or_update_index(payload, schema, user):
         "title": payload["title_en"],
         "categories": ["Community"],
         "schema": schema,
-        "communityBook": _build_community_book_dict(user.id),
+        "communityBook": _build_community_book_dict(user.id, payload.get("topics")),
         "hidden": True,
         "enDesc": payload["description_en"],
         "heDesc": payload["description_he"],
@@ -242,7 +276,7 @@ def _create_version(idx, payload, jagged_array, user, is_resubmission):
     username = user.first_name or user.username
 
     try:
-        version = Version({
+        version_attrs = {
             "title": idx.title,
             "language": version_lang,
             "versionTitle": f"Author Submission - {username}",
@@ -252,7 +286,10 @@ def _create_version(idx, payload, jagged_array, user, is_resubmission):
             "isSource": True,
             "isPrimary": True,
             "direction": direction,
-        })
+        }
+        if payload.get("license"):
+            version_attrs["license"] = payload["license"]
+        version = Version(version_attrs)
         version.save()
     except (InputError, Exception) as e:
         if not is_resubmission:
@@ -288,6 +325,14 @@ def upload(request):
     language = request.POST.get("language", "en").strip()
     description_en = request.POST.get("description_en", "").strip()
     description_he = request.POST.get("description_he", "").strip()
+    license_ = request.POST.get("license", "").strip()
+
+    try:
+        topics = json.loads(request.POST.get("topics", "[]"))
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid topics"}, status=400)
+    if not isinstance(topics, list):
+        return JsonResponse({"error": "Invalid topics"}, status=400)
 
     depth = _parse_int_param(request.POST.get("depth"), 1, valid_range=(1, 2))
     if depth is None:
@@ -305,6 +350,8 @@ def upload(request):
         result = parse_document(uploaded_file, "docx", depth)
     except ParseError as e:
         return JsonResponse({"error": str(e)}, status=400)
+    except MALFORMED_ARCHIVE_ERRORS:
+        return JsonResponse({"error": "File does not appear to be a valid .docx document"}, status=400)
 
     uploaded_file.seek(0)
     safe_name = _sanitize_filename(uploaded_file.name)
@@ -327,6 +374,8 @@ def upload(request):
         "language": language,
         "description_en": description_en,
         "description_he": description_he,
+        "license": license_,
+        "topics": topics,
     }
     upload_token = signing.dumps(token_payload, salt="community-book-upload")
 
@@ -362,6 +411,10 @@ def confirm(request):
     if payload["user_id"] != request.user.id:
         return JsonResponse({"error": "Token does not belong to this user"}, status=403)
 
+    rate_err = _check_rate_limits(request.user.id)
+    if rate_err:
+        return rate_err
+
     # Re-check title uniqueness (may have changed since upload)
     title_err = _check_title_uniqueness(payload["title_en"], payload["title_he"], request.user.id)
     if title_err:
@@ -379,15 +432,18 @@ def confirm(request):
         result = parse_document(file_obj, "docx", payload["depth"])
     except ParseError as e:
         return JsonResponse({"error": str(e)}, status=400)
+    except MALFORMED_ARCHIVE_ERRORS:
+        return JsonResponse({"error": "File does not appear to be a valid .docx document"}, status=400)
 
     jagged_array = build_jagged_array(result)
     schema = build_schema(payload["depth"], payload["title_en"], payload["title_he"] or payload["title_en"])
+
+    is_resubmission = Index().load({"title": payload["title_en"]}) is not None
 
     idx, err = _create_or_update_index(payload, schema, request.user)
     if err:
         return err
 
-    is_resubmission = Index().load({"title": payload["title_en"]}) is not None
     version_err = _create_version(idx, payload, jagged_array, request.user, is_resubmission)
     if version_err:
         return version_err
@@ -484,21 +540,30 @@ def list_books(request):
     })
 
 
-@staff_member_required
 def approve(request, title):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=405)
+
+    admin_err = _require_community_book_admin(request)
+    if admin_err:
+        return admin_err
 
     idx, err = _load_community_book(title)
     if err:
         return err
     if idx.communityBook.get("status") != CommunityBookStatus.SUBMITTED:
         return JsonResponse({"error": "Can only approve submitted books"}, status=400)
+    if idx.communityBook.get("submittedBy") == request.user.id:
+        return JsonResponse({"error": "You cannot approve your own submission"}, status=403)
 
     idx.communityBook["status"] = CommunityBookStatus.APPROVED
     idx.communityBook["reviewedBy"] = request.user.id
     idx.hidden = False
-    idx.save()
+    try:
+        idx.save()
+    except InputError as e:
+        logger.error("Index approval failed", error=str(e), title=title)
+        return JsonResponse({"error": "Failed to approve book. Please try again."}, status=500)
 
     submitter_id = idx.communityBook.get("submittedBy")
     if submitter_id:
@@ -511,10 +576,13 @@ def approve(request, title):
     return JsonResponse({"status": CommunityBookStatus.APPROVED})
 
 
-@staff_member_required
 def reject(request, title):
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=405)
+
+    admin_err = _require_community_book_admin(request)
+    if admin_err:
+        return admin_err
 
     try:
         body = json.loads(request.body)
@@ -530,11 +598,18 @@ def reject(request, title):
         return err
     if idx.communityBook.get("status") != CommunityBookStatus.SUBMITTED:
         return JsonResponse({"error": "Can only reject submitted books"}, status=400)
+    if idx.communityBook.get("submittedBy") == request.user.id:
+        return JsonResponse({"error": "You cannot reject your own submission"}, status=403)
 
     idx.communityBook["status"] = CommunityBookStatus.REJECTED
     idx.communityBook["rejectionReason"] = reason
     idx.communityBook["reviewedBy"] = request.user.id
-    idx.save()
+    idx.hidden = True
+    try:
+        idx.save()
+    except InputError as e:
+        logger.error("Index rejection failed", error=str(e), title=title)
+        return JsonResponse({"error": "Failed to reject book. Please try again."}, status=500)
 
     submitter_id = idx.communityBook.get("submittedBy")
     if submitter_id:
@@ -567,6 +642,10 @@ def withdraw(request, title):
 
     idx.communityBook["status"] = CommunityBookStatus.WITHDRAWN
     idx.hidden = True
-    idx.save()
+    try:
+        idx.save()
+    except InputError as e:
+        logger.error("Index withdrawal failed", error=str(e), title=title)
+        return JsonResponse({"error": "Failed to withdraw book. Please try again."}, status=500)
 
     return JsonResponse({"status": CommunityBookStatus.WITHDRAWN})

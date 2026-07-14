@@ -10,7 +10,7 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser, getFixturePath } from '../utils';
+import { goToPageWithLang, goToPageWithUser, getFixturePath, gotoOrThrow } from '../utils';
 import { BROWSER_SETTINGS, LANGUAGES } from '../globals';
 import { CommunityBooksPage } from '../pages/communityBooksPage';
 
@@ -232,5 +232,100 @@ test.describe('Navbar', () => {
     // on multi-panel pages where Sefaria.multiPanel = true
     const addBookLink = page.locator('a[href="/community-upload"]');
     await expect(addBookLink).toBeVisible({ timeout: 10000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Real-backend end-to-end test — NOT part of the mocked suite above.
+//
+// Every other test in this file mocks the upload/confirm network calls (see
+// setupUploadMocks) and never touches a real backend, so a bug that made
+// every uploaded book 500 on read went completely undetected. This test
+// exercises the actual /community-upload -> upload -> confirm flow against a
+// real cauldron and asserts the resulting book actually renders.
+//
+// Gated behind RUN_COMMUNITY_BOOK_REAL_BACKEND_E2E=1 because each run:
+//   - creates a REAL Community Book submission (not reverted by this test)
+//   - counts against the backend's per-user rate limits (3 submissions/day,
+//     10 pending) — running this on every CI pass would exhaust them.
+// Run explicitly, e.g.:
+//   RUN_COMMUNITY_BOOK_REAL_BACKEND_E2E=1 npx playwright test \
+//     --project=chrome-community-books community-books.spec.ts -g "real backend"
+// ---------------------------------------------------------------------------
+test.describe('Community Book Upload — real backend', () => {
+  test.skip(
+    !process.env.RUN_COMMUNITY_BOOK_REAL_BACKEND_E2E,
+    'Opt-in only: creates a real submission and consumes rate-limit quota. ' +
+    'Set RUN_COMMUNITY_BOOK_REAL_BACKEND_E2E=1 to run.'
+  );
+
+  test('depth-2 upload renders as a live, readable book (not a 500)', async ({ context }) => {
+    // Unique title per run — the backend rejects duplicate titles and enforces
+    // per-user rate limits, so a fixed title would break on the second run.
+    const uniqueSuffix = Date.now();
+    const titleEn = `E2E Depth2 Book ${uniqueSuffix}`;
+    const titleHe = `ספר בדיקה עומק שתיים ${uniqueSuffix}`;
+
+    // /community-upload requires auth (redirects anonymous users to
+    // /login?next=/community-upload) — use the suite's existing storage-state
+    // login mechanism rather than logging in inline.
+    const page = await goToPageWithUser(context, '/community-upload', BROWSER_SETTINGS.enUser);
+    const communityPage = new CommunityBooksPage(page, LANGUAGES.EN);
+
+    // The cookie-consent banner overlays and intercepts clicks on the submit
+    // button — dismiss it before interacting with the form.
+    await communityPage.dismissCookieBanner();
+
+    await communityPage.fillForm({
+      titleEn,
+      titleHe,
+      structure: 'depth2',
+      language: 'en',
+      descEn: 'Real-backend E2E coverage for the depth-2 upload flow.',
+      descHe: 'כיסוי E2E אמיתי לזרימת העלאה בעומק שתיים.',
+      license: 'CC BY',
+      filePath: getFixturePath('sample-book-depth2.docx'),
+      checkGuide: true,
+      checkTos: true,
+    });
+
+    await communityPage.uploadButton.click();
+
+    // Transition to preview state — structurePreview shows the detected structure.
+    await expect(communityPage.structurePreview).toBeVisible({ timeout: 20000 });
+
+    // Preview screen has TWO `.submitButton` elements ("Confirm Submission"
+    // and "Back to Form") — disambiguated by accessible name on the page object.
+    await communityPage.confirmButton.click();
+
+    // Transition to success state.
+    await expect(communityPage.successMessage).toBeVisible({ timeout: 20000 });
+    await expect(communityPage.successMessage).toContainText(/Book Submitted!/i);
+
+    // THE CRITICAL NEW ASSERTION the old mocked test lacks: follow the "View
+    // your book" link and confirm the book page actually renders — HTTP 200,
+    // not 500 — with its content visible. This is the assertion that would
+    // have caught the original "every uploaded book 500s on read" bug.
+    await expect(communityPage.viewBookLink).toBeVisible({ timeout: 10000 });
+    const bookHref = await communityPage.viewBookLink.getAttribute('href');
+    if (!bookHref) {
+      throw new Error('View your book link has no href — cannot verify the created book renders.');
+    }
+
+    const bookResponse = await gotoOrThrow(page, bookHref, { waitUntil: 'domcontentloaded' });
+    expect(bookResponse?.status()).toBe(200);
+    await expect(page.locator('.readerPanel, .textColumn, .segment').first()).toBeVisible({ timeout: 15000 });
+
+    // Also assert via the API that the section text is a FLAT array of
+    // strings, not an array of arrays — the exact shape bug that caused
+    // Ref.normal() to IndexError on every depth-2 book.
+    const apiTitle = titleEn.replace(/ /g, '_');
+    const apiResponse = await page.request.get(`/api/texts/${apiTitle}.1`);
+    expect(apiResponse.ok()).toBeTruthy();
+    const apiBody = await apiResponse.json();
+    expect(Array.isArray(apiBody.text)).toBeTruthy();
+    for (const entry of apiBody.text) {
+      expect(typeof entry).toBe('string');
+    }
   });
 });

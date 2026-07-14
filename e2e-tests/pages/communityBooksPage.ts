@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { HelperBase } from './helperBase';
+import { t } from '../globals';
 
 export class CommunityBooksPage extends HelperBase {
   readonly titleEnInput: Locator;
@@ -15,10 +16,16 @@ export class CommunityBooksPage extends HelperBase {
   readonly guideCheckbox: Locator;
   readonly tosCheckbox: Locator;
   readonly uploadButton: Locator;
+  // On the preview screen there are TWO `.submitButton` elements ("Confirm
+  // Submission" and "Back to Form") — always disambiguate by accessible
+  // name, never use a bare `.submitButton` locator there.
   readonly confirmButton: Locator;
+  readonly backToFormButton: Locator;
   readonly errorBanner: Locator;
   readonly successMessage: Locator;
   readonly structurePreview: Locator;
+  // Success-state "View your book" link — only present once confirmed.url is set.
+  readonly viewBookLink: Locator;
 
   constructor(page: Page, language: string) {
     super(page, language);
@@ -39,9 +46,23 @@ export class CommunityBooksPage extends HelperBase {
     this.tosCheckbox = page.locator('#tosChecked');
     this.uploadButton = page.locator('.submitButton').first();
     this.confirmButton = page.locator('.submitButton').filter({ hasText: /Confirm Submission|אישור הגשה/ });
+    this.backToFormButton = page.locator('.submitButton').filter({ hasText: /Back to Form|חזרה לטופס/ });
     this.errorBanner = page.locator('.errorBanner');
     this.successMessage = page.locator('.successMessage');
     this.structurePreview = page.locator('.structurePreview');
+    this.viewBookLink = page.locator('.successMessage a').filter({ hasText: /View your book|צפה בספר/ });
+  }
+
+  /**
+   * Dismisses the cookie-consent banner if present. It overlays the form and
+   * intercepts clicks on the submit button; its OK control is a DIV with
+   * role=button, not a real <button>.
+   */
+  async dismissCookieBanner() {
+    const okButton = this.page.locator('.cookiesNotification .int-en div[role=button]');
+    if (await okButton.isVisible({ timeout: t(3000) }).catch(() => false)) {
+      await okButton.click();
+    }
   }
 
   async fillForm(options: {

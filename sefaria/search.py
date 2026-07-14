@@ -30,6 +30,7 @@ from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_cl
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
+from api.community_books import CommunityBookStatus
 
 def setup_logging(debug=False):
     """
@@ -718,7 +719,13 @@ class TextIndexer(object):
                 for v in vlist:
                     cls._add_failed_version(v, 'Index missing title', 'ValidationError')
                 continue
-                
+
+            if cls.curr_index.is_community_book and cls.curr_index.communityBook.get("status") != CommunityBookStatus.APPROVED:
+                skipped += len(vlist)
+                for v in vlist:
+                    cls._add_skipped_version(v, 'community_book_not_approved')
+                continue
+
             if for_es:
                 cls._bulk_actions = []
                 try:

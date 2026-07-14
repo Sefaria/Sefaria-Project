@@ -51,6 +51,7 @@ from remote_config import remoteConfigCache
 
 from sefaria.model import *
 from sefaria.model.text import TocSerializationOptions
+from api.community_books import can_view_community_book
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -438,6 +439,9 @@ def catchall(request, tref, sheet=None):
         try:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
+            raise Http404
+
+        if not can_view_community_book(oref.index, request.user):
             raise Http404
 
         # If on wrong module, redirect to library module
@@ -1642,6 +1646,8 @@ def modify_bulk_text_api(request, title):
 @csrf_exempt
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    if not can_view_community_book(oref.index, request.user):
+        return jsonResponse({"error": "Text not found."}, status=404)
     tref = oref.url()
 
     if request.method == "GET":

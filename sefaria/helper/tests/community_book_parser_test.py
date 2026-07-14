@@ -1,6 +1,7 @@
 import pytest
 from io import BytesIO
 from docx import Document as DocxDocument
+from docx.enum.style import WD_STYLE_TYPE
 from sefaria.helper.community_book_parser import (
     ParseError, ParseResult, Chapter, Section,
     parse_document, build_jagged_array, build_schema,
@@ -47,6 +48,14 @@ class TestBuildSchema:
         assert schema["sectionNames"] == ["Chapter", "Section"]
 
 
+def _array_nesting_depth(arr):
+    if not isinstance(arr, list):
+        return 0
+    if not arr:
+        return 1
+    return 1 + _array_nesting_depth(arr[0])
+
+
 class TestBuildJaggedArray:
     def test_depth_1_array(self):
         result = ParseResult(
@@ -58,7 +67,7 @@ class TestBuildJaggedArray:
             structure_depth=1,
         )
         ja = build_jagged_array(result)
-        assert ja == [["para1", "para2"], ["para3"]]
+        assert ja == ["para1<br>para2", "para3"]
 
     def test_depth_2_array(self):
         result = ParseResult(
@@ -77,7 +86,38 @@ class TestBuildJaggedArray:
             structure_depth=2,
         )
         ja = build_jagged_array(result)
-        assert ja == [[["a", "b"], ["c"]]]
+        assert ja == [["a<br>b", "c"]]
+
+    def test_depth_1_nesting_matches_structure_depth(self):
+        result = ParseResult(
+            chapters=[
+                Chapter(title="Ch1", sections=[], content=["para1", "para2"], word_count=2),
+                Chapter(title="Ch2", sections=[], content=["para3"], word_count=1),
+            ],
+            total_words=3,
+            structure_depth=1,
+        )
+        ja = build_jagged_array(result)
+        assert _array_nesting_depth(ja) == result.structure_depth
+
+    def test_depth_2_nesting_matches_structure_depth(self):
+        result = ParseResult(
+            chapters=[
+                Chapter(
+                    title="Ch1",
+                    sections=[
+                        Section(title="S1", content=["a", "b"], word_count=2),
+                        Section(title="S2", content=["c"], word_count=1),
+                    ],
+                    content=[],
+                    word_count=3,
+                ),
+            ],
+            total_words=3,
+            structure_depth=2,
+        )
+        ja = build_jagged_array(result)
+        assert _array_nesting_depth(ja) == result.structure_depth
 
 
 class TestParseDocxDepth1:
@@ -138,8 +178,8 @@ class TestParseDocxDepth2:
 class TestParseDocxValidationErrors:
     def test_no_headings_raises(self):
         buf = _make_docx([
-            ("Normal", "Just some text."),
-            ("Normal", "More text."),
+            ("Normal", ""),
+            ("Normal", "   "),
         ])
         with pytest.raises(ParseError, match="No headings found"):
             parse_document(buf, "docx", 1)
@@ -155,9 +195,7 @@ class TestParseDocxValidationErrors:
     def test_depth2_no_sections_raises(self):
         buf = _make_docx([
             ("Heading 2", "Chapter One"),
-            ("Normal", "Content without sections."),
             ("Heading 2", "Chapter Two"),
-            ("Normal", "More content without sections."),
         ])
         with pytest.raises(ParseError, match="no section headings"):
             parse_document(buf, "docx", 2)
@@ -193,6 +231,140 @@ class TestParseDocxValidationErrors:
         ])
         result = parse_document(buf, "docx", 1)
         assert result.chapters[0].content == ["Real content."]
+
+
+class TestParseDocxContentLossErrors:
+    def test_body_text_before_first_chapter_raises(self):
+        buf = _make_docx([
+            ("Normal", "Stray intro text."),
+            ("Heading 2", "Chapter One"),
+            ("Normal", "First paragraph."),
+            ("Heading 2", "Chapter Two"),
+            ("Normal", "Second paragraph."),
+        ])
+        with pytest.raises(ParseError, match="before the first chapter heading"):
+            parse_document(buf, "docx", 1)
+
+    def test_body_text_between_h2_and_first_h3_raises(self):
+        buf = _make_docx([
+            ("Heading 2", "Part One"),
+            ("Normal", "Stray text before any section."),
+            ("Heading 3", "Section 1.1"),
+            ("Normal", "Content for 1.1."),
+            ("Heading 2", "Part Two"),
+            ("Heading 3", "Section 2.1"),
+            ("Normal", "Content for 2.1."),
+        ])
+        with pytest.raises(ParseError, match="before its first section heading"):
+            parse_document(buf, "docx", 2)
+
+    def test_h3_sections_present_when_depth_1_declared_raises(self):
+        buf = _make_docx([
+            ("Heading 2", "Chapter One"),
+            ("Heading 3", "Unexpected Section"),
+            ("Normal", "Some content."),
+            ("Heading 2", "Chapter Two"),
+            ("Normal", "More content."),
+        ])
+        with pytest.raises(ParseError, match="single-level structure"):
+            parse_document(buf, "docx", 1)
+
+    def test_orphan_h3_before_any_h2_raises(self):
+        buf = _make_docx([
+            ("Heading 3", "Orphan Section"),
+            ("Normal", "Orphan content."),
+            ("Heading 2", "Chapter One"),
+            ("Heading 3", "Section 1.1"),
+            ("Normal", "Content for 1.1."),
+            ("Heading 2", "Chapter Two"),
+            ("Heading 3", "Section 2.1"),
+            ("Normal", "Content for 2.1."),
+        ])
+        with pytest.raises(ParseError, match="before any chapter heading"):
+            parse_document(buf, "docx", 2)
+
+
+class TestHeadingDetectionExactMatch:
+    def test_custom_style_named_heading_20_is_not_a_chapter(self):
+        doc = DocxDocument()
+        custom_style = doc.styles.add_style("Heading 20", WD_STYLE_TYPE.PARAGRAPH)
+        doc.add_paragraph("Chapter One", style="Heading 2")
+        doc.add_paragraph("Looks like a heading but isn't.", style=custom_style)
+        doc.add_paragraph("Real content.", style="Normal")
+        doc.add_paragraph("Chapter Two", style="Heading 2")
+        doc.add_paragraph("More content.", style="Normal")
+        buf = BytesIO()
+        doc.save(buf)
+        buf.seek(0)
+        result = parse_document(buf, "docx", 1)
+        assert len(result.chapters) == 2
+        assert result.chapters[0].title == "Chapter One"
+        assert "Looks like a heading but isn't." in result.chapters[0].content
+
+    def test_markdown_prefix_in_style_structured_doc_is_not_a_chapter(self):
+        buf = _make_docx([
+            ("Heading 2", "Chapter One"),
+            ("Normal", "## 3 items on the agenda"),
+            ("Heading 2", "Chapter Two"),
+            ("Normal", "More content."),
+        ])
+        result = parse_document(buf, "docx", 1)
+        assert len(result.chapters) == 2
+        assert result.chapters[0].title == "Chapter One"
+        assert result.chapters[0].content == ["## 3 items on the agenda"]
+
+
+class TestValidationGaps:
+    def test_duplicate_section_titles_within_chapter_raises(self):
+        buf = _make_docx([
+            ("Heading 2", "Chapter One"),
+            ("Heading 3", "Same Section"),
+            ("Normal", "First."),
+            ("Heading 3", "Same Section"),
+            ("Normal", "Second."),
+            ("Heading 2", "Chapter Two"),
+            ("Heading 3", "Section A"),
+            ("Normal", "Third."),
+        ])
+        with pytest.raises(ParseError, match="Duplicate section titles"):
+            parse_document(buf, "docx", 2)
+
+    def test_duplicate_section_titles_across_chapters_is_allowed(self):
+        buf = _make_docx([
+            ("Heading 2", "Chapter One"),
+            ("Heading 3", "Intro"),
+            ("Normal", "First."),
+            ("Heading 2", "Chapter Two"),
+            ("Heading 3", "Intro"),
+            ("Normal", "Second."),
+        ])
+        result = parse_document(buf, "docx", 2)
+        assert len(result.chapters) == 2
+
+    def test_empty_title_en_raises(self):
+        with pytest.raises(ParseError, match="cannot be empty"):
+            build_schema(1, "   ", "ספר בדיקה")
+
+    def test_title_en_with_slash_raises(self):
+        with pytest.raises(ParseError):
+            build_schema(1, "Chapter/One", "ספר בדיקה")
+
+    def test_title_en_with_period_raises(self):
+        with pytest.raises(ParseError):
+            build_schema(1, "Chapter.One", "ספר בדיקה")
+
+    def test_title_en_with_colon_raises(self):
+        with pytest.raises(ParseError):
+            build_schema(1, "Chapter:One", "ספר בדיקה")
+
+    def test_title_en_with_comma_raises(self):
+        with pytest.raises(ParseError):
+            build_schema(1, "Chapter,One", "ספר בדיקה")
+
+    def test_title_en_is_stripped(self):
+        schema = build_schema(1, "  Test Book  ", "ספר בדיקה")
+        assert schema["key"] == "Test Book"
+        assert schema["titles"][0]["text"] == "Test Book"
 
 
 class TestParseDocxForbiddenContent:

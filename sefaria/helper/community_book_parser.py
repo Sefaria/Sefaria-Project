@@ -38,7 +38,22 @@ def parse_document(file_obj, file_type: str, declared_depth: int) -> ParseResult
         raise ParseError(f"Unsupported file type: {file_type}")
 
 
+FORBIDDEN_TITLE_CHARS = ["/", ".", ":", ","]
+
+
+def _validate_title_en(title_en: str) -> str:
+    stripped = (title_en or "").strip()
+    if not stripped:
+        raise ParseError("The English title cannot be empty.")
+    for char in FORBIDDEN_TITLE_CHARS:
+        if char in stripped:
+            raise ParseError(f"The English title cannot contain '{char}'.")
+    return stripped
+
+
 def build_schema(depth: int, title_en: str, title_he: str) -> dict:
+    title_en = _validate_title_en(title_en)
+
     if depth == 1:
         address_types = ["Integer"]
         section_names = ["Chapter"]
@@ -61,26 +76,37 @@ def build_schema(depth: int, title_en: str, title_he: str) -> dict:
 
 def build_jagged_array(parse_result: ParseResult) -> list:
     if parse_result.structure_depth == 1:
-        return ['\n'.join(ch.content) for ch in parse_result.chapters]
+        return ['<br>'.join(ch.content) for ch in parse_result.chapters]
     else:
-        return [[sec.content for sec in ch.sections] for ch in parse_result.chapters]
+        return [['<br>'.join(sec.content) for sec in ch.sections] for ch in parse_result.chapters]
 
 
-def _detect_heading_level(para) -> int:
+def _detect_heading_level(para, use_markdown_fallback: bool) -> int:
     """Return 2 for H2, 3 for H3, 0 otherwise.
-    First checks Word style name, then falls back to Markdown-style prefixes."""
+    Uses Word style name if the document has real heading styles, otherwise
+    falls back to Markdown-style prefixes. A document is either
+    style-structured or markdown-structured, never both."""
     style_name = (para.style.name or "").lower()
-    if style_name.startswith("heading 2"):
+    if style_name == "heading 2":
         return 2
-    if style_name.startswith("heading 3"):
+    if style_name == "heading 3":
         return 3
-    # Markdown fallback — check ### before ## to avoid false positives
-    text = para.text
-    if text.startswith("### "):
-        return 3
-    if text.startswith("## "):
-        return 2
+    if use_markdown_fallback:
+        # Markdown fallback — check ### before ## to avoid false positives
+        text = para.text
+        if text.startswith("### "):
+            return 3
+        if text.startswith("## "):
+            return 2
     return 0
+
+
+def _has_real_heading_styles(doc) -> bool:
+    for para in doc.paragraphs:
+        style_name = (para.style.name or "").lower()
+        if style_name in ("heading 2", "heading 3"):
+            return True
+    return False
 
 
 def _check_forbidden_content(doc) -> None:
@@ -108,6 +134,12 @@ def _make_section(title: str, paragraphs: List[str]) -> Section:
 
 def _make_chapter(title: str, paragraphs: List[str], sections: List[Section], depth: int) -> Chapter:
     if depth == 2:
+        if paragraphs:
+            raise ParseError(
+                f"Chapter '{title}' has body text before its first section heading "
+                "(Heading 3 style or ### prefix). Move this text into a section, or "
+                "add a section heading before it."
+            )
         word_count = sum(s.word_count for s in sections)
         return Chapter(title=title, sections=sections, content=[], word_count=word_count)
     else:
@@ -128,6 +160,15 @@ def _validate_chapters(chapters: List[Chapter], declared_depth: int, has_h3: boo
         raise ParseError("Duplicate chapter titles found. All chapter titles must be unique.")
     if declared_depth == 2 and not has_h3:
         raise ParseError("Depth-2 structure declared but no section headings (Heading 3 / ### prefix) found.")
+    for ch in chapters:
+        if not ch.sections:
+            continue
+        section_titles = [s.title for s in ch.sections]
+        if len(section_titles) != len(set(section_titles)):
+            raise ParseError(
+                f"Duplicate section titles found in chapter '{ch.title}'. "
+                "All section titles within a chapter must be unique."
+            )
 
 
 def _parse_docx(file_obj, declared_depth: int) -> ParseResult:
@@ -135,6 +176,8 @@ def _parse_docx(file_obj, declared_depth: int) -> ParseResult:
 
     doc = DocxDocument(file_obj)
     _check_forbidden_content(doc)
+
+    use_markdown_fallback = not _has_real_heading_styles(doc)
 
     chapters: List[Chapter] = []
     has_h3 = False
@@ -174,7 +217,7 @@ def _parse_docx(file_obj, declared_depth: int) -> ParseResult:
         current_chapter_sections = []
 
     for para in doc.paragraphs:
-        level = _detect_heading_level(para)
+        level = _detect_heading_level(para, use_markdown_fallback)
         text = para.text
 
         if level == 2:
@@ -184,6 +227,17 @@ def _parse_docx(file_obj, declared_depth: int) -> ParseResult:
             current_chapter_title = title
 
         elif level == 3:
+            if current_chapter_title is None:
+                raise ParseError(
+                    f"Section heading '{text}' appears before any chapter heading. "
+                    "Add a chapter heading (Heading 2 style or ## prefix) first."
+                )
+            if declared_depth == 1:
+                raise ParseError(
+                    f"Section heading '{text}' (Heading 3 style or ### prefix) found, "
+                    "but this book was declared as a single-level structure. Remove "
+                    "the section heading or re-upload as a two-level book."
+                )
             has_h3 = True
             title = text[4:] if text.startswith("### ") else text
             flush_section()
@@ -193,6 +247,11 @@ def _parse_docx(file_obj, declared_depth: int) -> ParseResult:
             # Regular paragraph — skip if empty
             if not text.strip():
                 continue
+            if current_chapter_title is None:
+                raise ParseError(
+                    "Body text found before the first chapter heading. Add a chapter "
+                    "heading (Heading 2 style or ## prefix) before any body text."
+                )
             if current_section_title is not None:
                 current_section_paragraphs.append(text)
             else:

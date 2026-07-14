@@ -378,6 +378,17 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   return page;
 };
 
+/**
+ * Resolve a filename against e2e-tests/fixtures/, so specs can reference
+ * fixture files (uploaded docs, images, etc.) without hardcoding the
+ * relative path from wherever the spec file happens to live.
+ * @param filename - Name of the file inside e2e-tests/fixtures/
+ * @returns Absolute path to the fixture file
+ */
+export const getFixturePath = (filename: string): string => {
+  return path.join(__dirname, 'fixtures', filename);
+};
+
 export const getPathAndParams = (url: string) => {
   const urlObj = new URL(url);
   return urlObj.pathname + urlObj.search;
