@@ -275,8 +275,8 @@
               'user_id': DJANGO_VARS.props ? DJANGO_VARS.props._uid : null,
               'traffic_type': DJANGO_VARS.props && DJANGO_VARS.props._email.includes('sefaria.org') ? 'sefariaemail' : null,
               'site_lang': '{{ request.interfaceLang }}',
-              // appVersion is empty outside deployed environments; fall back to null so gtag omits the param instead of recording "".
-              'app_version': DJANGO_VARS.props ? DJANGO_VARS.props.appVersion || null : null,
+              // appVersion is an empty string outside deployed environments; fall back to null so gtag omits the param instead of recording "".
+              'app_version': DJANGO_VARS.props?.appVersion || null,
             });
 
             <!-- attach analyticsEventTracker -->
