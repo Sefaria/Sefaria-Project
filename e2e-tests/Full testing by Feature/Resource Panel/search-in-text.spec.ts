@@ -34,7 +34,7 @@ test.describe('Resource Panel — Search in Text — English', () => {
     await expect(input).toHaveAttribute('placeholder', /Search in this text/i);
   });
 
-  test('RP-181: Searching for a common term in the current book yields results', async () => {
+  test('RP-181: Searching for a common term in the current book yields results', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().typeInSidebarSearch('covenant');
     // ElasticSearchQuerier results render under the panel. We accept any
     // anchor that links into the text (the querier renders result rows as

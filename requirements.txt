@@ -272,8 +272,6 @@ pytest~=7.4.4
     #   pytest-django
 pytest-django==4.9.0
     # via -r ./requirements.txt
-pytest-timeout==2.3.1
-    # via -r ./requirements.txt
 python-bidi==0.6.3
     # via -r ./requirements.txt
 python-dateutil==2.9.0.post0

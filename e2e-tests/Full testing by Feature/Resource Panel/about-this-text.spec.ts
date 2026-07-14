@@ -41,7 +41,7 @@ test.describe('Resource Panel — About This Text — English', () => {
     await pm.onResourcePanel().openAbout();
   });
 
-  test('RP-030: About shows text metadata — title and description', async () => {
+  test('RP-030: About shows text metadata — title and description', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().expectAboutTitle();
     await pm.onResourcePanel().expectAboutDescription();
   });
