@@ -37,6 +37,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: SHARD_COUNT
               value: "{{ .Values.cronJobs.reindexElasticSearch.shardCount }}"
+            - name: SHARD_ACTIVE_DEADLINE_SECONDS
+              value: "{{ .Values.cronJobs.reindexElasticSearch.shardActiveDeadlineSeconds }}"
             - name: SHARD_JOB_IMAGE
               value: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             - name: SHARD_JOB_NAME

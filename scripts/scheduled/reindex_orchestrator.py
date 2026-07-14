@@ -99,7 +99,8 @@ def build_shard_env_from(
 
 def build_shard_job_manifest(
     name, namespace, image, shard_count, command,
-    env=None, env_from=None, volumes=None, volume_mounts=None, resources=None, affinity=None
+    env=None, env_from=None, volumes=None, volume_mounts=None, resources=None, affinity=None,
+    active_deadline_seconds=None,
 ):
     """Build a batch/v1 Indexed Job manifest as a plain dict.
     Pure function — no I/O, no imports beyond builtins.
@@ -129,22 +130,98 @@ def build_shard_job_manifest(
     if affinity:
         pod_spec["affinity"] = affinity
 
+    spec = {
+        "completionMode": "Indexed",
+        "completions": shard_count,
+        "parallelism": shard_count,
+        "backoffLimitPerIndex": 2,
+        "maxFailedIndexes": 0,
+        "ttlSecondsAfterFinished": 86400,
+        "template": {
+            "spec": pod_spec,
+        },
+    }
+    if active_deadline_seconds is not None:
+        # Bounds a wedged shard - observed on a live cluster spinning at ~500m CPU with zero
+        # bulk writes and zero log output for hours with no crash. Without this the shard Job
+        # (and the orchestrator's barrier behind it) waits forever.
+        spec["activeDeadlineSeconds"] = active_deadline_seconds
+
     return {
         "apiVersion": "batch/v1",
         "kind": "Job",
         "metadata": {"name": name, "namespace": namespace},
-        "spec": {
-            "completionMode": "Indexed",
-            "completions": shard_count,
-            "parallelism": shard_count,
-            "backoffLimitPerIndex": 2,
-            "maxFailedIndexes": 0,
-            "ttlSecondsAfterFinished": 86400,
-            "template": {
-                "spec": pod_spec,
-            },
-        },
+        "spec": spec,
     }
+
+
+def parse_completed_indexes(completed_indexes_str):
+    """Parse a Kubernetes Indexed Job status.completedIndexes range string (e.g. '0,2-4,7')
+    into a set of ints. Pure function — no I/O, no imports beyond builtins."""
+    result = set()
+    if not completed_indexes_str:
+        return result
+    for part in completed_indexes_str.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "-" in part:
+            lo, hi = part.split("-", 1)
+            result.update(range(int(lo), int(hi) + 1))
+        else:
+            result.add(int(part))
+    return result
+
+
+def incomplete_shard_indexes(completed_indexes_str, shard_count):
+    """Which shard indexes (0..shard_count-1) have not completed, for naming the stuck
+    shard(s) in barrier-timeout/failure logs. Pure function."""
+    completed = parse_completed_indexes(completed_indexes_str)
+    return sorted(set(range(shard_count)) - completed)
+
+
+def run_barrier_loop(
+    read_job_status, shard_count, timeout_seconds,
+    poll_interval_seconds=60, sleep_fn=time.sleep, now_fn=time.monotonic, log_fn=None,
+):
+    """Poll the shard Job until it reaches a terminal state or the barrier timeout elapses.
+
+    `read_job_status` is a zero-arg callable returning the Job's `.status` object (as
+    returned by `BatchV1Api.read_namespaced_job_status(...).status`).
+
+    Returns (state, incomplete_indexes) where state is one of 'complete', 'failed', 'timeout'.
+    This loop used to be an unbounded `while True`, which meant a wedged shard (no crash, no
+    log output, doc count frozen) held the barrier - and therefore the CronJob's
+    concurrencyPolicy: Forbid slot - forever. The timeout here is a backstop behind the shard
+    Job's own activeDeadlineSeconds, so even if that somehow doesn't fire, this loop still
+    gives up, logs which shards never finished, and returns without ever claiming success.
+    """
+    log = log_fn or (lambda msg: logger.info(msg))
+    start = now_fn()
+    deadline = start + timeout_seconds
+    while True:
+        st = read_job_status()
+        status = {"succeeded": st.succeeded or 0, "failed": st.failed or 0}
+        backoff_exhausted = bool(getattr(st, "conditions", None)) and any(
+            c.type == "Failed" and c.status == "True" for c in st.conditions
+        )
+        state = job_terminal_state(status, shard_count, backoff_exhausted)
+        completed_indexes_str = (
+            getattr(st, "completed_indexes", None) or getattr(st, "completedIndexes", None)
+        )
+        incomplete = incomplete_shard_indexes(completed_indexes_str, shard_count)
+        elapsed = now_fn() - start
+        log(
+            f"barrier: {status['succeeded']}/{shard_count} shards succeeded, "
+            f"{status['failed']} failed, incomplete={incomplete}, elapsed={elapsed:.0f}s"
+        )
+        if state == "complete":
+            return "complete", []
+        if state == "failed":
+            return "failed", incomplete
+        if now_fn() >= deadline:
+            return "timeout", incomplete
+        sleep_fn(poll_interval_seconds)
 
 
 def parse_shard_resources():
@@ -181,6 +258,13 @@ def main():
     image = os.environ["SHARD_JOB_IMAGE"]
     job_name = os.environ.get("SHARD_JOB_NAME", "reindex-shard")
     debug = os.environ.get("REINDEX_DEBUG", "").lower() in ("1", "true", "yes")
+    # Shards that completed took ~2-3h; 6h is generous but bounded, so a wedged shard
+    # (observed spinning with zero progress and zero logs for hours) is force-terminated
+    # instead of running forever.
+    shard_active_deadline_seconds = int(os.environ.get("SHARD_ACTIVE_DEADLINE_SECONDS", "21600"))
+    # Comfortably longer than shard_active_deadline_seconds so the shard Job's own deadline
+    # fires first; this is only a backstop in case that somehow doesn't happen.
+    barrier_timeout_seconds = int(os.environ.get("REINDEX_BARRIER_TIMEOUT_SECONDS", "25200"))
     command = [
         "bash", "-c",
         "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && "
@@ -247,6 +331,7 @@ def main():
         volume_mounts=shard_volume_mounts or None,
         resources=resources,
         affinity=MONGO_POD_ANTI_AFFINITY,
+        active_deadline_seconds=shard_active_deadline_seconds,
     )
 
     # Delete stale job before init so a failed prior run does not block recreate
@@ -271,23 +356,30 @@ def main():
         )
         sys.exit(1)
 
-    logger.info(f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards")
+    logger.info(
+        f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards, "
+        f"activeDeadlineSeconds={shard_active_deadline_seconds}, "
+        f"barrier_timeout={barrier_timeout_seconds}s"
+    )
 
-    while True:
-        job = batch.read_namespaced_job_status(job_name, namespace)
-        st = job.status
-        status = {"succeeded": st.succeeded or 0, "failed": st.failed or 0}
-        backoff_exhausted = bool(getattr(st, "conditions", None)) and any(
-            c.type == "Failed" and c.status == "True" for c in st.conditions
+    barrier_state, incomplete = run_barrier_loop(
+        read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
+        shard_count=shard_count,
+        timeout_seconds=barrier_timeout_seconds,
+        log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
+    )
+    if barrier_state == "failed":
+        logger.error(
+            f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "
+            "NOT finalizing (alias unchanged)"
         )
-        state = job_terminal_state(status, shard_count, backoff_exhausted)
-        logger.info(f"Orchestrator: shard job status={status}, state={state}")
-        if state == "complete":
-            break
-        if state == "failed":
-            logger.error("Orchestrator: shard job failed; NOT finalizing (alias unchanged)")
-            sys.exit(1)
-        time.sleep(60)
+        sys.exit(1)
+    if barrier_state == "timeout":
+        logger.error(
+            f"Orchestrator: barrier timed out after {barrier_timeout_seconds}s; shard "
+            f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged)"
+        )
+        sys.exit(1)
 
     logger.info("Orchestrator: all shards complete; finalizing")
     run_reindex_finalize_all(

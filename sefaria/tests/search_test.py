@@ -99,6 +99,78 @@ def test_index_all_continues_past_bulk_connection_timeout(monkeypatch):
     assert fail["title"] == "BookB"
     assert fail["error_type"] == "ConnectionTimeout"
 
+    # After a hang/OOM postmortem, cls._current_title must name the last title touched -
+    # here that's BookC, the last title the loop reached before index_all returned.
+    assert TextIndexer._current_title == "BookC"
+
+
+def test_mark_progress_updates_title_and_timestamp():
+    """cls._mark_progress is what both the title loop and _flush_bulk_actions call to
+    prove forward progress to the heartbeat thread."""
+    TextIndexer._current_title = None
+    TextIndexer._last_progress_monotonic = None
+
+    TextIndexer._mark_progress("SomeBook")
+    assert TextIndexer._current_title == "SomeBook"
+    first_ts = TextIndexer._last_progress_monotonic
+    assert first_ts is not None
+
+    # Calling again without a title updates the timestamp but not the title - this is
+    # exactly what _flush_bulk_actions does, since it doesn't know a "title" per se.
+    TextIndexer._mark_progress()
+    assert TextIndexer._current_title == "SomeBook"
+    assert TextIndexer._last_progress_monotonic >= first_ts
+
+
+def test_heartbeat_loop_warns_when_no_progress_between_polls(monkeypatch, caplog):
+    """A wedged shard must SAY SO: if cls._last_progress_monotonic hasn't advanced
+    between heartbeat polls, the heartbeat thread logs a WARNING naming the stuck title."""
+    import logging as _logging
+    from sefaria import search
+
+    TextIndexer._current_title = "StuckBook"
+    TextIndexer._last_progress_monotonic = 100.0
+
+    # Drive the heartbeat loop directly (not via threading.Thread) for a deterministic test.
+    # stop_event.wait is monkeypatched to return False exactly once (one heartbeat tick),
+    # then True to end the loop.
+    calls = iter([False, True])
+    fake_stop_event = types.SimpleNamespace(wait=lambda timeout: next(calls))
+
+    with caplog.at_level(_logging.WARNING, logger="sefaria.search"):
+        TextIndexer._heartbeat_loop(fake_stop_event, shard_index=5, shard_count=8)
+
+    warnings = [r for r in caplog.records if r.levelno == _logging.WARNING]
+    assert len(warnings) == 1
+    assert "StuckBook" in warnings[0].message
+    assert "Shard 5/8" in warnings[0].message
+
+
+def test_heartbeat_loop_silent_when_progress_advances(monkeypatch, caplog):
+    """No WARNING when _mark_progress keeps advancing between polls - the happy path
+    must stay quiet."""
+    import logging as _logging
+
+    TextIndexer._current_title = "MovingBook"
+    TextIndexer._last_progress_monotonic = 100.0
+
+    ticks = iter([False, True])
+
+    def fake_wait(timeout):
+        result = next(ticks)
+        if not result:
+            # Simulate progress happening during the heartbeat interval.
+            TextIndexer._mark_progress("NextBook")
+        return result
+
+    fake_stop_event = types.SimpleNamespace(wait=fake_wait)
+
+    with caplog.at_level(_logging.WARNING, logger="sefaria.search"):
+        TextIndexer._heartbeat_loop(fake_stop_event, shard_index=None, shard_count=None)
+
+    warnings = [r for r in caplog.records if r.levelno == _logging.WARNING]
+    assert warnings == []
+
 
 @pytest.mark.parametrize("bad_exc", [
     TypeError("programming bug"),

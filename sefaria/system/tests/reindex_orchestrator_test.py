@@ -209,3 +209,126 @@ def test_parse_kubernetes_version_empty_string():
 def test_parse_kubernetes_version_gke():
     spec.loader.exec_module(orch)
     assert orch.parse_kubernetes_version("v1.35.5-gke.1057002") == (1, 35)
+
+
+def test_build_shard_job_manifest_includes_active_deadline_seconds():
+    spec.loader.exec_module(orch)
+    manifest = orch.build_shard_job_manifest(
+        name="test-job",
+        namespace="default",
+        image="my-image:latest",
+        shard_count=4,
+        command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
+        active_deadline_seconds=21600,
+    )
+    assert manifest["spec"]["activeDeadlineSeconds"] == 21600
+
+
+def test_build_shard_job_manifest_omits_active_deadline_seconds_when_not_set():
+    """No activeDeadlineSeconds key at all when the caller doesn't pass one - the shard Job
+    manifest should not silently invent a value that wasn't configured."""
+    spec.loader.exec_module(orch)
+    manifest = orch.build_shard_job_manifest(
+        name="test-job",
+        namespace="default",
+        image="my-image:latest",
+        shard_count=4,
+        command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
+    )
+    assert "activeDeadlineSeconds" not in manifest["spec"]
+
+
+def test_parse_completed_indexes():
+    spec.loader.exec_module(orch)
+    assert orch.parse_completed_indexes(None) == set()
+    assert orch.parse_completed_indexes("") == set()
+    assert orch.parse_completed_indexes("0") == {0}
+    assert orch.parse_completed_indexes("0,2-4,7") == {0, 2, 3, 4, 7}
+
+
+def test_incomplete_shard_indexes():
+    spec.loader.exec_module(orch)
+    assert orch.incomplete_shard_indexes("0,1,2,3,4,5,6,7", 8) == []
+    assert orch.incomplete_shard_indexes("0,1,2,3", 8) == [4, 5, 6, 7]
+    assert orch.incomplete_shard_indexes(None, 8) == [0, 1, 2, 3, 4, 5, 6, 7]
+
+
+class _FakeJobStatus:
+    def __init__(self, succeeded=0, failed=0, conditions=None, completed_indexes=None):
+        self.succeeded = succeeded
+        self.failed = failed
+        self.conditions = conditions
+        self.completed_indexes = completed_indexes
+
+
+def test_run_barrier_loop_returns_complete_when_all_shards_succeed():
+    spec.loader.exec_module(orch)
+    statuses = iter([
+        _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5"),
+        _FakeJobStatus(succeeded=8, failed=0, completed_indexes="0-7"),
+    ])
+    sleeps = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: sleeps.append(s),
+        now_fn=iter([0.0, 1.0, 2.0, 3.0]).__next__,
+        log_fn=lambda msg: None,
+    )
+    assert state == "complete"
+    assert incomplete == []
+    assert sleeps == [60]
+
+
+def test_run_barrier_loop_returns_failed_on_backoff_exhaustion():
+    spec.loader.exec_module(orch)
+
+    class _FailedCondition:
+        type = "Failed"
+        status = "True"
+
+    statuses = iter([
+        _FakeJobStatus(succeeded=5, failed=3, conditions=[_FailedCondition()], completed_indexes="0-4"),
+    ])
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=lambda: next(statuses),
+        shard_count=8,
+        timeout_seconds=99999,
+        sleep_fn=lambda s: None,
+        now_fn=iter([0.0, 1.0]).__next__,
+        log_fn=lambda msg: None,
+    )
+    assert state == "failed"
+    assert incomplete == [5, 6, 7]
+
+
+def test_run_barrier_loop_gives_up_once_timeout_elapses_and_never_returns_complete():
+    """The barrier must not wait forever. Time is patched (now_fn) so the timeout fires
+    instantly regardless of wall-clock; the loop must give up and signal failure rather
+    than block or silently report success."""
+    spec.loader.exec_module(orch)
+
+    # Job never reaches a terminal state - always short of shard_count successes.
+    def stuck_status():
+        return _FakeJobStatus(succeeded=6, failed=0, completed_indexes="0-5")
+
+    # now_fn: start at 0, then jump straight past the deadline on the very next call so
+    # the loop gives up after exactly one poll.
+    now_values = iter([0.0, 1000.0, 1000.0])
+    sleeps = []
+    state, incomplete = orch.run_barrier_loop(
+        read_job_status=stuck_status,
+        shard_count=8,
+        timeout_seconds=100,
+        sleep_fn=lambda s: sleeps.append(s),
+        now_fn=lambda: next(now_values),
+        log_fn=lambda msg: None,
+    )
+    assert state == "timeout"
+    assert state != "complete"
+    assert incomplete == [6, 7]
+    # Gave up without ever sleeping again past the deadline check
+    assert sleeps == []

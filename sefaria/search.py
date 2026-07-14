@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import sys
+import threading
 import bleach
 import pymongo
 
@@ -57,6 +58,15 @@ _indexer_es_client = get_elasticsearch_client_for_indexer()
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
 PROGRESS_LOG_EVERY_N = 100
+
+# A wedged shard used to go completely silent - zero log output, zero bulk writes, no crash -
+# until it was killed by activeDeadlineSeconds hours later. This heartbeat makes that state
+# loud: a daemon thread that WARNs if the title loop hasn't advanced in this many seconds,
+# naming the title it is stuck on. Daemon so it can never keep the process alive on its own.
+try:
+    REINDEX_HEARTBEAT_SECONDS = int(os.environ.get("REINDEX_HEARTBEAT_SECONDS", 300))
+except (TypeError, ValueError):
+    REINDEX_HEARTBEAT_SECONDS = 300
 
 # elasticsearch.helpers.bulk defaults to a 100MB max_chunk_bytes per request. With N
 # shards flushing concurrently, that is N*100MB of in-flight coordinating bytes against
@@ -527,10 +537,16 @@ def get_search_categories(oref, categories):
 
 
 class TextIndexer(object):
-    
+
     # Class-level failure tracking
     _failed_versions = None
     _skipped_versions = None
+
+    # Progress/heartbeat state - set at the top of every title-loop iteration and read by
+    # the heartbeat thread. cls._current_title survives a crash/OOM for postmortem log
+    # scraping; cls._last_progress_monotonic is what the heartbeat compares across polls.
+    _current_title = None
+    _last_progress_monotonic = None
 
     @classmethod
     def clear_cache(cls):
@@ -566,11 +582,40 @@ class TextIndexer(object):
         })
 
     @classmethod
+    def _mark_progress(cls, title=None):
+        """Record forward progress for the stall heartbeat. Called at the top of every
+        title-loop iteration (with the title) and after every bulk flush (without one) so
+        the heartbeat thread has a fresh timestamp even during a long single-title flush."""
+        if title is not None:
+            cls._current_title = title
+        cls._last_progress_monotonic = pytime.monotonic()
+
+    @classmethod
+    def _heartbeat_loop(cls, stop_event, shard_index=None, shard_count=None):
+        """Runs in a daemon thread for the duration of index_all. If no forward progress
+        (title loop or bulk flush) has happened since the previous heartbeat, log a WARNING
+        naming the current title and how long it has been stuck - this is the only way to
+        tell a wedged shard from a slow-but-alive one, since a wedge otherwise produces zero
+        log output until it is eventually killed."""
+        last_seen = cls._last_progress_monotonic
+        shard_label = f"Shard {shard_index}/{shard_count}: " if shard_index is not None else ""
+        while not stop_event.wait(REINDEX_HEARTBEAT_SECONDS):
+            progress_ts = cls._last_progress_monotonic
+            if progress_ts is not None and progress_ts == last_seen:
+                stuck_seconds = int(pytime.monotonic() - progress_ts)
+                logger.warning(
+                    f"{shard_label}No progress in the last {REINDEX_HEARTBEAT_SECONDS}s - "
+                    f"currently on title: {cls._current_title}, stuck for ~{stuck_seconds}s"
+                )
+            last_seen = progress_ts
+
+    @classmethod
     def _flush_bulk_actions(cls, in_flight_versions):
         """Flush bulk actions; absorb connection failures, propagate everything else.
 
         Returns the number of versions reclassified as failed.
         """
+        cls._mark_progress()
         if not cls._bulk_actions:
             return 0
         backoff = BULK_429_INITIAL_BACKOFF_SECONDS
@@ -870,11 +915,41 @@ class TextIndexer(object):
         skipped = 0
         failed = 0
         versions = None  # release RAM
-        
+
+        cls._current_title = None
+        cls._mark_progress()
+        heartbeat_stop = threading.Event()
+        heartbeat_thread = threading.Thread(
+            target=cls._heartbeat_loop,
+            args=(heartbeat_stop, shard_index, shard_count),
+            daemon=True,
+        )
+        heartbeat_thread.start()
+
+        try:
+            vcount, skipped, failed = cls._index_all_titles(
+                versions_by_index, total_indexes, start_time, for_es, action,
+                vcount, skipped, failed, shard_index, shard_count,
+            )
+        finally:
+            heartbeat_stop.set()
+
+        elapsed = datetime.now() - start_time
+        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+
+    @classmethod
+    def _index_all_titles(cls, versions_by_index, total_indexes, start_time, for_es, action,
+                           vcount, skipped, failed, shard_index, shard_count):
+        """The per-title indexing loop, split out of index_all so the heartbeat thread wraps
+        it cleanly via try/finally. Returns the updated (vcount, skipped, failed) counters."""
+        shard_label = f"Shard {shard_index}/{shard_count}: " if shard_index is not None else ""
         for idx_count, (title, vlist) in enumerate(list(versions_by_index.items())):
+            title_name = title[0] if isinstance(title, tuple) else title
+            cls._mark_progress(title_name)
+
             if len(vlist) == 0:
                 continue
-            
+
             try:
                 cls.curr_index = vlist[0].get_index()
             except Exception as e:
@@ -934,12 +1009,15 @@ class TextIndexer(object):
                     vcount -= rolled_back
                     failed += rolled_back
 
-            if idx_count % 100 == 0:
+            if idx_count % PROGRESS_LOG_EVERY_N == 0:
                 elapsed_so_far = datetime.now() - start_time
-                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+                logger.info(
+                    f"{shard_label}TextIndexer progress: {idx_count}/{total_indexes} indexes "
+                    f"({100*idx_count//total_indexes}%), current title: {title_name}, "
+                    f"{vcount} versions indexed, elapsed: {elapsed_so_far}"
+                )
 
-        elapsed = datetime.now() - start_time
-        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        return vcount, skipped, failed
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):

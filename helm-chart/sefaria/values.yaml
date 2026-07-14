@@ -441,6 +441,11 @@ cronJobs:
     SEARCH_HOST_ES6: ""
     SEARCH_HOST_ES8: ""
     shardCount: 8
+    # Bounds a single shard's runtime. A wedged shard has been observed spinning at ~500m CPU
+    # with zero bulk writes and zero log output for hours with no crash - without a deadline
+    # it runs forever, and (with concurrencyPolicy: Forbid) blocks every future scheduled
+    # reindex too. Shards that completed took ~2-3h, so 6h is generous but bounded.
+    shardActiveDeadlineSeconds: 21600
     orchestratorResources:
       requests:
         memory: "4Gi"
