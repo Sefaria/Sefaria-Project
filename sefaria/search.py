@@ -1193,6 +1193,18 @@ def _without_none(doc):
     return {k: v for k, v in doc.items() if v is not None}
 
 
+def _book_title_variants(index, lang):
+    """
+    The book-level title variants of an Index: the root node's own title group.
+    Not `Index.all_titles()` — that walks the whole schema tree for ref resolution,
+    so on complex texts it returns every chapter/section title crossed with every
+    root variant (e.g. "Moreh Nevukhim, Prefatory Remarks"), which are not book titles.
+    """
+    if not index.nodes:
+        return []
+    return index.nodes.title_group.all_titles(lang) or []
+
+
 def _authored_index_titles(index):
     """
     The searchable titles of one authored Index for the author's `authored_titles`
@@ -1209,7 +1221,7 @@ def _authored_index_titles(index):
     primary_en = index.get_title('en')
     if primary_en:
         en_titles.append(primary_en)
-    en_titles += [t for t in (index.all_titles('en') or []) if t != primary_en]
+    en_titles += [t for t in _book_title_variants(index, 'en') if t != primary_en]
     try:
         he = index.get_title('he')
     except Exception:
@@ -1359,7 +1371,7 @@ def make_book_index_document(index, author_name_cache=None):
         title_he = None
 
     categories = getattr(index, 'categories', None) or []
-    variants = [t for t in (index.all_titles('en') or []) if t != title_en]
+    variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
