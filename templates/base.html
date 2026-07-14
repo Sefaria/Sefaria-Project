@@ -196,6 +196,9 @@
     {% if APPLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
     <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>
     {% endif %}
+    {% if RECAPTCHA_PUBLIC_KEY and not request.user.is_authenticated %}
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
+    {% endif %}
 
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">

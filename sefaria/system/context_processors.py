@@ -7,6 +7,7 @@ import time
 import json
 from functools import wraps
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from reader.models import user_has_experiments
 from sefaria.settings import *
 from django.conf import settings
@@ -76,6 +77,7 @@ def global_settings(request):
         "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
         "GOOGLE_SSO_CLIENT_ID":   getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
         "APPLE_SSO_CLIENT_ID":    getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "RECAPTCHA_PUBLIC_KEY":   getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY),
     }
 
 
