@@ -74,6 +74,8 @@ def global_settings(request):
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
         "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
+        "GOOGLE_SSO_CLIENT_ID":   getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "APPLE_SSO_CLIENT_ID":    getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
     }
 
 

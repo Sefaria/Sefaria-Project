@@ -190,6 +190,13 @@
     <!-- Unbounce Embed Code -->
     <script src="https://fd810a0513c94a16a52ef4d0d9b9c6c8.js.ubembed.com" async></script>
 
+    {% if GOOGLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    {% endif %}
+    {% if APPLE_SSO_CLIENT_ID and not request.user.is_authenticated %}
+    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>
+    {% endif %}
+
 </head>
  <body data-active-module="{{ active_module }}" data-render-static="{{ renderStatic }}" class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}

@@ -140,6 +140,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
@@ -176,7 +177,14 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
-    'django.contrib.postgres'
+    'django.contrib.postgres',
+    'sso.apps.SsoConfig',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
+    'allauth.headless',
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
@@ -191,6 +199,7 @@ LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 REST_FRAMEWORK = {
@@ -368,6 +377,36 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+# django-allauth configuration (local_settings must be imported first for SSO vars)
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_ADAPTER = 'sso.adapters.SefariaAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'sso.adapters.SefariaSocialAccountAdapter'
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {'client_id': GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
+        'SCOPE': ['profile', 'email'],
+    },
+    'apple': {
+        'APP': {
+            'client_id': APPLE_SSO_CLIENT_ID,
+            'secret': APPLE_SSO_PRIVATE_KEY,
+            'key': APPLE_SSO_KEY_ID,
+            'settings': {
+                'certificate_key': APPLE_SSO_PRIVATE_KEY,
+                'audience': [APPLE_SSO_CLIENT_ID, APPLE_SSO_IOS_BUNDLE_ID],
+                'team_id': APPLE_SSO_TEAM_ID,
+            },
+        },
+    },
+}
+HEADLESS_ONLY = False
+HEADLESS_FRONTEND_URLS = {'account_confirm_email': '/'}
 
 ROOT_HOSTCONF = 'sefaria.hosts'
 DEFAULT_HOST = 'library'
