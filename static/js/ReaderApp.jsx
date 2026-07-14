@@ -1292,11 +1292,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
-    if (path === '/login') {
-      this.showAuthPage('login', params.get('next') || '/');
-      return true;
-    } else if (path === '/register') {
-      this.showAuthPage('register', params.get('next') || '/');
+    if (path === '/login' || path === '/register') {
+      const flow = path === '/register' ? 'register' : 'login';
+      const next = params.get('next') || Sefaria.util.currentPath();
+      this.showAuthPage(flow, next);
       return true;
     }
 
@@ -2490,8 +2489,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               <main id="main" role="main">
                 {this.state.showAuth ? (
                   <AuthPage
-                    initialFlow={this.state.authFlow}
+                    flow={this.state.authFlow}
                     next={this.state.authNext}
+                    onFlowChange={(f) => this.setState({ authFlow: f }, this.updateHistoryState)}
                   />
                 ) : (
                 <div className="panelContainer">

@@ -17,10 +17,10 @@ import { getCsrf, makeFlowId, focusProvider } from './utils.js';
  * login/register use JSON+session endpoints (/api/auth/login, /api/auth/register).
  */
 const AuthPage = ({
-  initialFlow = 'login',
+  flow = 'login',
   next = '/',
+  onFlowChange,
 }) => {
-  const [flow, setFlow] = useState(initialFlow === 'register' ? 'register' : 'login');
   const [view, setView] = useState('choose'); // choose | email | forgot
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrf();
@@ -39,8 +39,8 @@ const AuthPage = ({
   };
   const switchFlow = (f) => (e) => {
     e?.preventDefault();
-    setFlow(f);
     setView('choose');
+    onFlowChange?.(f);
   };
 
   const trackRegistration = useCallback((name, extra = {}) => {
@@ -137,8 +137,9 @@ const AuthPage = ({
 };
 
 AuthPage.propTypes = {
-  initialFlow: PropTypes.oneOf(['login', 'register']),
+  flow: PropTypes.oneOf(['login', 'register']),
   next: PropTypes.string,
+  onFlowChange: PropTypes.func,
 };
 
 export default AuthPage;

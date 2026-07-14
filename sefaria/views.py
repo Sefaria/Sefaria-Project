@@ -96,11 +96,15 @@ class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
     template_name = 'base.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('Log in to Sefaria')
-        context['desc'] = _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.')
-        return context
+    def render_to_response(self, context, **response_kwargs):
+        return render_template(
+            self.request, "base.html",
+            {"headerMode": False},
+            {
+                'title': _('Log in to Sefaria'),
+                'desc': _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.'),
+            }
+        )
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
