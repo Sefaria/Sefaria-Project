@@ -190,7 +190,7 @@ const CommunityUploadPage = ({ multiPanel, menuOpen, openMenu, openNav, openDisp
                 {confirmed.url && (
                   <>
                     {' '}
-                    <a href={confirmed.url}>
+                    <a href={Sefaria.util.fullURL(confirmed.url, Sefaria.LIBRARY_MODULE)} data-target-module={Sefaria.LIBRARY_MODULE}>
                       <InterfaceText text={{ en: 'View your book', he: 'צפה בספר' }} />
                     </a>
                   </>

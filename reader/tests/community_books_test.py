@@ -17,6 +17,8 @@ sefaria/pytest.ini only collects `reader/tests/*_test.py` — the parser test's
 """
 import io
 import json
+import re
+import itertools
 import uuid
 import zipfile
 from datetime import datetime, timedelta
@@ -24,14 +26,77 @@ from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.http import Http404, HttpResponse
+from django.test import RequestFactory, TestCase
 
 from api import community_books as cb_views
-from api.community_books import CommunityBookStatus, can_view_community_book
+from api.community_books import CommunityBookStatus, can_view_community_book, is_community_book_publicly_readable
+from reader import views as reader_views
 from sefaria.helper.community_book_parser import Chapter, ParseResult
 from sefaria.model import Index, Version, VersionState, Ref, library
 from sefaria.search import TextIndexer
 from sefaria.system.database import db
+
+
+# Title prefixes used by every community-book test below. Django's TestCase
+# rolls back the SQL users a run creates, but Mongo writes (Index docs) are
+# not part of that transaction, so an interrupted run (Ctrl-C, crash,
+# timeout) can leave an orphan community-book Index behind. A later run's
+# freshly-created SQL users then get reused auto-increment ids, which can
+# collide with a leftover doc's `submittedBy` and trip rate-limit/ownership
+# logic on the very first upload. Sweeping by these prefixes before (and
+# after) the module runs makes the suite self-healing across interruptions.
+COMMUNITY_BOOK_TEST_TITLE_PREFIXES = (
+    "Test Community Book ",
+    "Admin Scope Book ",
+    "Read Gate Book ",
+)
+
+
+def _purge_community_book_title(title):
+    """Best-effort removal of a community-book Index and its dependent
+    documents. Tolerant of partially-created or already-missing state so a
+    prior interruption never blocks cleanup here or in a later run."""
+    try:
+        idx = Index().load({"title": title})
+    except Exception:
+        idx = None
+    if idx:
+        try:
+            idx.delete()
+        except Exception:
+            pass
+    # Belt-and-suspenders: Index.delete() may not fully clean a malformed
+    # leftover doc, so also clear the raw collections directly.
+    try:
+        db.index.delete_many({"title": title})
+        db.texts.delete_many({"title": title})
+        db.vstate.delete_many({"title": title})
+    except Exception:
+        pass
+
+
+TEST_USER_ID_BASE = 90000000
+_test_user_id_counter = itertools.count()
+
+
+def _sweep_leftover_community_book_titles():
+    for prefix in COMMUNITY_BOOK_TEST_TITLE_PREFIXES:
+        titles = db.index.distinct("title", {"title": {"$regex": f"^{re.escape(prefix)}"}})
+        for title in titles:
+            _purge_community_book_title(title)
+
+
+def setUpModule():
+    # Clean up any orphans left by a prior interrupted run before this
+    # module's tests execute.
+    _sweep_leftover_community_book_titles()
+
+
+def tearDownModule():
+    # Clean up after ourselves too, in case a test in this run gets
+    # interrupted before its own tearDown runs.
+    _sweep_leftover_community_book_titles()
 
 
 def _fake_parse_result():
@@ -66,24 +131,30 @@ class CommunityBooksApiTestBase(TestCase):
 
     def setUp(self):
         token = uuid.uuid4().hex
+        # Django rolls back its SQL users between tests, so auto-increment ids
+        # get reused and start at 1. Mongo is not transactional and the dev
+        # database already holds community books submitted by low user ids, which
+        # would count against a fresh test user's submission limits before it did
+        # anything. Pin the test users well above any real id instead, so they are
+        # isolated without deleting anyone else's data.
+        base_id = TEST_USER_ID_BASE + next(_test_user_id_counter) * 3
         self.user = User.objects.create_user(
+            id=base_id,
             username=f"cb-user-{token}", email=f"cb-user-{token}@example.com", password="password",
         )
         self.other_user = User.objects.create_user(
+            id=base_id + 1,
             username=f"cb-other-{token}", email=f"cb-other-{token}@example.com", password="password",
         )
         self.admin_user = User.objects.create_user(
+            id=base_id + 2,
             username=f"cb-admin-{token}", email=f"cb-admin-{token}@example.com", password="password",
         )
         self._created_titles = []
 
     def tearDown(self):
         for title in self._created_titles:
-            idx = Index().load({"title": title})
-            if idx:
-                idx.delete()
-            db.texts.delete_many({"title": title})
-            db.vstate.delete_many({"title": title})
+            _purge_community_book_title(title)
 
     def _track(self, title):
         self._created_titles.append(title)
@@ -283,10 +354,12 @@ class AdminScopeTests(CommunityBooksApiTestBase):
 
 class ModerationGapHelperTests(TestCase):
     """
-    Unit tests for can_view_community_book(), the narrow helper used to gate
-    reads of non-approved community books. See ReadGateTests below for
-    request-level tests confirming it is wired into reader/views.py's
-    texts_api and catchall.
+    Unit tests for can_view_community_book(), the per-user helper used to gate
+    reads of non-approved community books on the UNCACHED HTML reader path
+    only. See ReadGateTests below for request-level tests confirming it is
+    wired into reader/views.py's catchall, and confirming the separate,
+    strict, all-or-nothing is_community_book_publicly_readable() is wired
+    into the Varnish-cached texts_api and index_api paths instead.
     """
 
     class _FakeUser:
@@ -337,11 +410,65 @@ class ModerationGapHelperTests(TestCase):
         self.assertTrue(can_view_community_book(idx, anon))
 
 
+class StrictPublicReadGateHelperTests(TestCase):
+    """
+    Unit tests for is_community_book_publicly_readable(), the strict,
+    user-agnostic helper for read paths Varnish caches keyed on URL alone
+    (cookies stripped, so Django never sees who is asking). Unlike
+    can_view_community_book(), this must have NO submitter/admin branch --
+    a non-approved book is 404 for everyone on these paths, since a 200
+    here would be cached and replayed to every subsequent anonymous
+    visitor of that URL.
+    """
+
+    class _FakeIndex:
+        def __init__(self, community_book):
+            self.communityBook = community_book
+
+        @property
+        def is_community_book(self):
+            return self.communityBook is not None
+
+    def test_approved_book_is_publicly_readable(self):
+        idx = self._FakeIndex({"status": CommunityBookStatus.APPROVED, "submittedBy": 1})
+        self.assertTrue(is_community_book_publicly_readable(idx))
+
+    def test_submitted_book_is_not_publicly_readable_even_for_its_submitter(self):
+        # No per-user branch: this helper takes no user argument at all, so
+        # there is no way for a submitter to be let through on this path.
+        idx = self._FakeIndex({"status": CommunityBookStatus.SUBMITTED, "submittedBy": 1})
+        self.assertFalse(is_community_book_publicly_readable(idx))
+
+    def test_rejected_book_is_not_publicly_readable(self):
+        idx = self._FakeIndex({"status": CommunityBookStatus.REJECTED, "submittedBy": 1})
+        self.assertFalse(is_community_book_publicly_readable(idx))
+
+    def test_non_community_book_always_publicly_readable(self):
+        idx = self._FakeIndex(None)
+        self.assertTrue(is_community_book_publicly_readable(idx))
+
+
 class ReadGateTests(CommunityBooksApiTestBase):
     """
-    Request-level tests confirming can_view_community_book() is actually wired
-    into reader/views.py's texts_api, via the Django test client.
+    Request-level tests confirming the two read gates are wired into the
+    right places in reader/views.py, via the Django test client:
+
+    - texts_api (GET) and index_api (GET, which serves /api/index,
+      /api/v2/index, and /api/v2/raw/index) are Varnish-cached, cookie-
+      stripped API paths (see helm-chart/sefaria/templates/configmap/
+      varnish-config.yaml). Django can never distinguish the submitter from
+      an anonymous stranger there, and a 200 would be cached and replayed to
+      every subsequent anonymous visitor of that URL. So a non-approved
+      community book must be 404 for EVERYONE on these paths, including its
+      own submitter -- there is intentionally no per-user exception here.
+    - catchall (the HTML reader page, an uncached path) uses the per-user
+      can_view_community_book(), where letting the submitter/admin through
+      is safe because it never gets cached for anyone else.
     """
+
+    def setUp(self):
+        super().setUp()
+        self.factory = RequestFactory()
 
     def _make_book(self, submitter, status=CommunityBookStatus.SUBMITTED, with_version=True):
         title = self._track(f"Read Gate Book {uuid.uuid4().hex}")
@@ -385,19 +512,42 @@ class ReadGateTests(CommunityBooksApiTestBase):
     def _get_text(self, title):
         return self.client.get(f"/api/texts/{title.replace(' ', '_')}")
 
-    def test_third_party_gets_404_on_submitted_book(self):
+    def _get_index(self, title):
+        return self.client.get(f"/api/v2/index/{title.replace(' ', '_')}")
+
+    def _catchall_request(self, title, user):
+        # Build a request for reader.views.catchall() directly via
+        # RequestFactory instead of self.client, and call the view function
+        # ourselves. This avoids ever reaching text_panels()'s full-page
+        # template render, which requires a webpack build
+        # (node/webpack-stats.client.json) that does not exist in this
+        # environment -- and shouldn't be required just to test an
+        # authorization decision. It also makes this block dramatically
+        # faster than the self.client-based version it replaces.
+        tref = f"{title.replace(' ', '_')}.1"
+        request = self.factory.get(f"/{tref}")
+        request.user = user
+        return request, tref
+
+    # --- Cached API path (texts_api GET): all-or-nothing, no per-user exception ---
+
+    def test_third_party_gets_404_from_text_api_on_submitted_book(self):
         title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED)
         self.client.force_login(self.other_user)
         response = self._get_text(title)
         self.assertEqual(response.status_code, 404)
 
-    def test_submitter_gets_200_on_own_submitted_book(self):
+    def test_submitter_gets_404_from_text_api_on_own_submitted_book(self):
+        # The cached API path can't tell submitter from stranger (Varnish
+        # strips cookies and caches by URL alone), so even the submitter
+        # must be denied here -- letting them through would mean caching a
+        # 200 with the book's full text and serving it to the public.
         title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED)
         self.client.force_login(self.user)
         response = self._get_text(title)
-        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.status_code, 404, response.content)
 
-    def test_admin_gets_200_on_submitted_book(self):
+    def test_admin_gets_404_from_text_api_on_submitted_book(self):
         title = self._make_book(self.other_user, status=CommunityBookStatus.SUBMITTED)
         original = list(cb_views.COMMUNITY_BOOK_ADMIN_IDS)
         cb_views.COMMUNITY_BOOK_ADMIN_IDS[:] = [self.admin_user.id]
@@ -405,19 +555,98 @@ class ReadGateTests(CommunityBooksApiTestBase):
 
         self.client.force_login(self.admin_user)
         response = self._get_text(title)
-        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.status_code, 404, response.content)
 
-    def test_third_party_gets_200_once_approved(self):
+    def test_anyone_gets_200_from_text_api_once_approved(self):
         title = self._make_book(self.user, status=CommunityBookStatus.APPROVED)
         self.client.force_login(self.other_user)
         response = self._get_text(title)
         self.assertEqual(response.status_code, 200, response.content)
 
-    def test_third_party_gets_404_on_rejected_book(self):
+    def test_third_party_gets_404_from_text_api_on_rejected_book(self):
         title = self._make_book(self.user, status=CommunityBookStatus.REJECTED)
         self.client.force_login(self.other_user)
         response = self._get_text(title)
         self.assertEqual(response.status_code, 404)
+
+    # --- Cached API path (index_api GET / /api/v2/index): same all-or-nothing rule ---
+
+    def test_index_api_404s_for_non_approved_book_even_for_submitter(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED, with_version=False)
+        self.client.force_login(self.user)
+        response = self._get_index(title)
+        self.assertEqual(response.status_code, 404, response.content)
+
+    def test_index_api_404s_for_non_approved_book_for_anonymous(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED, with_version=False)
+        response = self._get_index(title)
+        self.assertEqual(response.status_code, 404, response.content)
+
+    def test_index_api_200s_once_approved(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.APPROVED, with_version=False)
+        response = self._get_index(title)
+        self.assertEqual(response.status_code, 200, response.content)
+
+    # --- Uncached HTML reader path (catchall): per-user access is safe here ---
+    #
+    # These do NOT go through self.client / the full view stack, because
+    # doing so for an *allowed* request would render the full text_panels
+    # template, which requires a webpack build (node/webpack-stats.client.json)
+    # that does not exist in this environment -- and full-page rendering is
+    # not something an authorization-gate test should depend on regardless.
+    # Denied cases instead call catchall() directly via RequestFactory and
+    # assert Http404 IS raised, before any rendering is reached. Allowed
+    # cases assert two things separately, without ever rendering: (1) the
+    # gate's decision, via can_view_community_book() directly, and (2) that
+    # catchall() consults that decision and does not raise Http404 for that
+    # same user, with text_panels() mocked out purely so the test never
+    # touches webpack.
+
+    def test_third_party_gets_404_from_html_reader_on_submitted_book(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED)
+        request, tref = self._catchall_request(title, self.other_user)
+        with self.assertRaises(Http404):
+            reader_views.catchall(request, tref)
+
+    def test_submitter_is_not_gated_out_of_html_reader_on_own_submitted_book(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.SUBMITTED)
+        idx = Index().load({"title": title})
+        self.assertTrue(can_view_community_book(idx, self.user))
+
+        request, tref = self._catchall_request(title, self.user)
+        with mock.patch.object(reader_views, "text_panels", return_value=HttpResponse("ok")) as mocked_text_panels:
+            reader_views.catchall(request, tref)  # must not raise Http404
+        mocked_text_panels.assert_called_once()
+
+    def test_admin_is_not_gated_out_of_html_reader_on_submitted_book(self):
+        title = self._make_book(self.other_user, status=CommunityBookStatus.SUBMITTED)
+        original = list(cb_views.COMMUNITY_BOOK_ADMIN_IDS)
+        cb_views.COMMUNITY_BOOK_ADMIN_IDS[:] = [self.admin_user.id]
+        self.addCleanup(lambda: cb_views.COMMUNITY_BOOK_ADMIN_IDS.__setitem__(slice(None), original))
+
+        idx = Index().load({"title": title})
+        self.assertTrue(can_view_community_book(idx, self.admin_user))
+
+        request, tref = self._catchall_request(title, self.admin_user)
+        with mock.patch.object(reader_views, "text_panels", return_value=HttpResponse("ok")) as mocked_text_panels:
+            reader_views.catchall(request, tref)  # must not raise Http404
+        mocked_text_panels.assert_called_once()
+
+    def test_third_party_is_not_gated_out_of_html_reader_once_approved(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.APPROVED)
+        idx = Index().load({"title": title})
+        self.assertTrue(can_view_community_book(idx, self.other_user))
+
+        request, tref = self._catchall_request(title, self.other_user)
+        with mock.patch.object(reader_views, "text_panels", return_value=HttpResponse("ok")) as mocked_text_panels:
+            reader_views.catchall(request, tref)  # must not raise Http404
+        mocked_text_panels.assert_called_once()
+
+    def test_third_party_gets_404_from_html_reader_on_rejected_book(self):
+        title = self._make_book(self.user, status=CommunityBookStatus.REJECTED)
+        request, tref = self._catchall_request(title, self.other_user)
+        with self.assertRaises(Http404):
+            reader_views.catchall(request, tref)
 
 
 class _FakeCommunityBookIndex:

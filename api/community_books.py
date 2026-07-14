@@ -14,6 +14,8 @@ from docx.opc.exceptions import PackageNotFoundError
 
 from sefaria.model import Index, IndexSet, Version, VersionSet, library
 from sefaria.model.notification import Notification
+from sefaria.model.text import process_index_change_in_core_cache
+from sefaria.model.version_state import create_version_state_on_index_creation
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.community_book_parser import (
     parse_document, build_jagged_array, build_schema, ParseError,
@@ -66,13 +68,35 @@ def _require_community_book_admin(request):
     return None
 
 
+def is_community_book_publicly_readable(idx):
+    """
+    Strict, user-agnostic read gate for API endpoints that Varnish caches
+    keyed on the URL alone. See helm-chart/sefaria/templates/configmap/
+    varnish-config.yaml: for paths like ^/api/texts, ^/api/index, and
+    ^/api/v2/index, Varnish does `unset req.http.Cookie` and hashes only on
+    `req.url` -- Django never sees which user is asking (it always sees
+    AnonymousUser), and any 200 response gets cached and replayed to every
+    subsequent anonymous visitor of that URL. A per-user branch here (e.g.
+    "let the submitter through") would therefore let an unapproved book's
+    full text leak to the public the moment Varnish caches that submitter's
+    own request. So on these paths a non-approved community book is denied
+    to EVERYONE, submitter included -- do not add a submittedBy/admin
+    exception to this function. Use can_view_community_book() below instead
+    for the uncached HTML reader path, where per-user access is safe.
+    """
+    if not idx.is_community_book:
+        return True
+    return idx.communityBook.get("status") == CommunityBookStatus.APPROVED
+
+
 def can_view_community_book(idx, user):
     """
+    Per-user read gate for the UNCACHED HTML reader path only (catchall() in
+    reader/views.py, which is not one of the Varnish cookie-stripped/cached
+    API paths -- see is_community_book_publicly_readable() above for those).
     A community book that has not been approved is visible only to its
-    submitter or a community-book admin. Callers on any read path (text API,
-    search, etc.) that may serve a community book should consult this before
-    returning content, and should return a 404 (not 403) on failure so a
-    non-approved book's existence is not disclosed.
+    submitter or a community-book admin. Return a 404 (not 403) on failure
+    so a non-approved book's existence is not disclosed.
     """
     if not idx.is_community_book:
         return True
@@ -215,6 +239,26 @@ def _build_preview(result, depth):
     }
 
 
+def _register_index_for_reads(idx, is_new):
+    """
+    _create_or_update_index() saves the Index with override_dependencies=True
+    to skip the "save" observers subscribed in sefaria/model/dependencies.py --
+    in particular text.process_index_change_in_toc, which rebuilds the TOC and
+    is expensive enough to make confirm() blow through the gateway's ~15s
+    timeout. A community book is hidden and not yet approved at this point, so
+    it must not appear in the public TOC anyway; the TOC gets built for real
+    when the book is approved (approve() calls idx.save() without
+    override_dependencies, running the normal observers).
+    We still need the other two "save" observers to run so the book is
+    actually reachable: registering/refreshing the title in the in-memory
+    library cache (without this, Ref() raises InputError and the book 404s)
+    and ensuring its VersionState exists. Call the real observer functions
+    directly rather than reimplementing their logic.
+    """
+    process_index_change_in_core_cache(idx, is_new=is_new)
+    create_version_state_on_index_creation(idx)
+
+
 def _create_or_update_index(payload, schema, user):
     existing_index = Index().load({"title": payload["title_en"]})
 
@@ -236,13 +280,14 @@ def _create_or_update_index(payload, schema, user):
             existing_index.communityBook = _build_community_book_dict(user.id, payload.get("topics"))
             existing_index.hidden = True
             try:
-                existing_index.save()
+                existing_index.save(override_dependencies=True)
             except InputError as e:
                 existing_index.communityBook = original_cb
                 existing_index.schema = original_schema
-                existing_index.save()
+                existing_index.save(override_dependencies=True)
                 logger.error("Index update failed, restored original state", error=str(e))
                 return None, JsonResponse({"error": "Failed to update book. Please try again."}, status=500)
+            _register_index_for_reads(existing_index, is_new=False)
             return existing_index, None
         else:
             return None, JsonResponse({"error": "A text with this title already exists."}, status=409)
@@ -257,10 +302,11 @@ def _create_or_update_index(payload, schema, user):
         "heDesc": payload["description_he"],
     })
     try:
-        idx.save()
+        idx.save(override_dependencies=True)
     except InputError as e:
         logger.error("Index creation failed", error=str(e), title=payload["title_en"])
         return None, JsonResponse({"error": "Failed to save book: " + str(e)}, status=500)
+    _register_index_for_reads(idx, is_new=True)
     return idx, None
 
 

@@ -51,7 +51,7 @@ from remote_config import remoteConfigCache
 
 from sefaria.model import *
 from sefaria.model.text import TocSerializationOptions
-from api.community_books import can_view_community_book
+from api.community_books import can_view_community_book, is_community_book_publicly_readable
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -1646,7 +1646,14 @@ def modify_bulk_text_api(request, title):
 @csrf_exempt
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
-    if not can_view_community_book(oref.index, request.user):
+    if request.method == "GET":
+        # GET is the path Varnish caches keyed on URL alone (cookies stripped --
+        # see helm-chart/sefaria/templates/configmap/varnish-config.yaml), so it
+        # must use the strict, user-agnostic gate. POST/DELETE below are never
+        # cached and carry the real session, so the per-user gate is safe there.
+        if not is_community_book_publicly_readable(oref.index):
+            return jsonResponse({"error": "Text not found."}, status=404)
+    elif not can_view_community_book(oref.index, request.user):
         return jsonResponse({"error": "Text not found."}, status=404)
     tref = oref.url()
 
@@ -2008,8 +2015,19 @@ def index_api(request, title, raw=False):
     ADMIN_TYPE = "ADMIN"
 
     def handle_get_request(request, title, raw):
+        # /api/index, /api/v2/index, and /api/v2/raw/index (all routed here) are
+        # Varnish-cached and cookie-stripped GET paths (see helm-chart/sefaria/
+        # templates/configmap/varnish-config.yaml), so they must use the strict,
+        # user-agnostic community-book gate -- see is_community_book_publicly_readable().
+        try:
+            index = library.get_index(title)
+        except BookNameError:
+            return jsonResponse({"error": "Index not found."}, status=404)
+        if not is_community_book_publicly_readable(index):
+            return jsonResponse({"error": "Index not found."}, status=404)
+
         with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
-        index_record = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
+        index_record = index.contents(raw=raw, with_content_counts=with_content_counts)
 
         if bool(int(request.GET.get("with_related_topics", False))):
             index_record["relatedTopics"] = get_topics_for_book(title, annotate=True)
