@@ -15,24 +15,6 @@ import {
 } from './Misc';
 
 class SearchFilters extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isExactSearch: props.searchState.field === props.searchState.fieldExact
-    }
-  }
-  componentWillReceiveProps(newProps) {
-    // Save current filters
-    // todo: check for cases when we want to rebuild / not
-    const { field, fieldExact } = this.props.searchState;
-    if ((newProps.query != this.props.query)
-        || (newProps.searchState.availableFilters.length !== this.props.searchState.availableFilters.length)) {
-
-      this.setState({
-        isExactSearch: field === fieldExact
-      });
-    }
-  }
   getSelectedTitles(lang) {
     let results = [];
     for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
@@ -41,24 +23,11 @@ class SearchFilters extends Component {
     }
     return results;
   }
-  toggleExactSearch() {
-    let newExactSearch = !this.state.isExactSearch;
-    if (newExactSearch) {
-      this.props.updateAppliedOptionField(this.props.searchState.fieldExact);
-    } else {
-      this.props.updateAppliedOptionField(this.props.searchState.fieldBroad);
-    }
-    this.setState({isExactSearch: newExactSearch});
-  }
   render() {
     const filters = (this.props.type === 'text' ?
       <TextSearchFilters
-        toggleExactSearch={this.toggleExactSearch}
-        openedCategory={this.state.openedCategory}
-        openedCategoryBooks={this.state.openedCategoryBooks}
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
-        isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
       /> :
       <SheetSearchFilters
         updateAppliedFilter={this.props.updateAppliedFilter}
@@ -86,6 +55,7 @@ class SearchFilters extends Component {
           <div></div>
         </div>
         <div className="searchFilters navSidebarModule">
+          {this.props.topSection}
           <div className="searchFilterGroup">
             <h2>
               <InterfaceText>Sort by</InterfaceText>
@@ -111,14 +81,14 @@ class SearchFilters extends Component {
   }
 }
 SearchFilters.propTypes = {
-  query:                    PropTypes.string,
-  searchState:              PropTypes.object,
-  total:                    PropTypes.number,
-  updateAppliedFilter:      PropTypes.func,
-  updateAppliedOptionField: PropTypes.func,
-  updateAppliedOptionSort:  PropTypes.func,
-  isQueryRunning:           PropTypes.bool,
-  type:                     PropTypes.string,
+  query:                   PropTypes.string,
+  searchState:             PropTypes.object,
+  total:                   PropTypes.number,
+  updateAppliedFilter:     PropTypes.func,
+  updateAppliedOptionSort: PropTypes.func,
+  topSection:              PropTypes.node,
+  isQueryRunning:          PropTypes.bool,
+  type:                    PropTypes.string,
 };
 
 
@@ -132,26 +102,13 @@ class TextSearchFilters extends Component {
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
           expandable={true} />
-
-        <div className="searchFilterGroup">
-          <h2>
-            <InterfaceText>Options</InterfaceText>
-          </h2>
-          <SearchFilterExactBox
-            selected={this.props.isExactSearch}
-            checkBoxClick={this.props.toggleExactSearch} />
-        </div>
       </div>
     );
   }
 }
 TextSearchFilters.propTypes = {
   availableFilters:    PropTypes.array,
-  openedCategory:      PropTypes.object,
   updateAppliedFilter: PropTypes.func,
-  openedCategoryBooks: PropTypes.array,
-  isExactSearch:       PropTypes.bool,
-  toggleExactSearch:   PropTypes.func,
 };
 
 
@@ -237,30 +194,6 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   );
 };
 
-
-class SearchFilterExactBox extends Component {
-  handleClick() {
-    this.props.checkBoxClick();
-  }
-  render() {
-    return (
-      <li>
-        <div className="checkboxAndText">
-          <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label tabIndex="0" onClick={this.handleClick} onKeyDown={Util.handleEnterKey(this.handleClick)}><span></span></label>
-        
-         <span className={"filter-title"}>
-            <InterfaceText>Exact Matches Only</InterfaceText>
-          </span>
-        </div>
-      </li>
-    );
-  }
-}
-SearchFilterExactBox.propTypes = {
-  selected:      PropTypes.bool,
-  checkBoxClick: PropTypes.func
-};
 
 
 class SearchFilter extends Component {

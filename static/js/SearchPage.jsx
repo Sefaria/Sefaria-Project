@@ -16,8 +16,10 @@ import {
   InterfaceText,
   LoadingMessage,
   TabView,
+  ToggleSet,
 } from './Misc';
 import SearchLoadSkeleton from './SearchLoadSkeleton';
+import SearchToggle from './SearchToggle';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -287,6 +289,30 @@ class SearchPage extends Component {
           openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
           nFilters={this.props.searchState.appliedFilters.length}/>;
 
+    const isExactSearch = this.props.type === "text"
+      && this.props.searchState.field === this.props.searchState.fieldExact;
+    const handleExactMatchChange = (name) => {
+      this.props.updateAppliedOptionField(
+        name === "exact" ? this.props.searchState.fieldExact : this.props.searchState.fieldBroad
+      );
+    };
+    const searchTypeSection = this.props.type === "text" ? (
+      <div className="searchFilterGroup">
+        <h2><InterfaceText>Search Type</InterfaceText></h2>
+        <ToggleSet
+          ariaLabel={Sefaria._("Search Type")}
+          name="searchType"
+          options={[
+            {name: "all",   content: <InterfaceText text={{en: "All results",  he: "כל התוצאות"}} />, role: "radio", ariaLabel: Sefaria._("All results")},
+            {name: "exact", content: <InterfaceText text={{en: "Exact phrase", he: "מונח מדויק"}}  />, role: "radio", ariaLabel: Sefaria._("Exact phrase")},
+          ]}
+          setOption={(set, name) => handleExactMatchChange(name)}
+          currentValue={isExactSearch ? "exact" : "all"}
+          blueStyle={true}
+        />
+      </div>
+    ) : null;
+
     if (this.props.searchInBook) {
       return searchResultList;
     }
@@ -299,8 +325,8 @@ class SearchPage extends Component {
           query={this.props.query}
           searchState={this.props.searchState}
           updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
-          updateAppliedOptionField={this.props.updateAppliedOptionField}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          topSection={searchTypeSection}
           closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
           compare={this.props.compare}
           type={this.props.type}/>;
@@ -346,6 +372,16 @@ class SearchPage extends Component {
                         containerClasses={"largeTabs"}>
                       <div className="searchTabPanel" key="sources">
                         <div className="searchTopMatter">
+                          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
+                            <SearchToggle
+                              options={[
+                                {name: "all",   en: "All results",  he: "כל התוצאות"},
+                                {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
+                              ]}
+                              selected={isExactSearch ? "exact" : "all"}
+                              onChange={handleExactMatchChange}
+                            />
+                          )}
                           <div>
                             {sortFilterControls}
                           </div>

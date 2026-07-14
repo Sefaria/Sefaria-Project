@@ -4037,6 +4037,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+.searchToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: #fafafa;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 9999px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.searchToggle__slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.searchToggle__option {
+  position: relative;
+  z-index: 1;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--darker-grey);
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+.searchToggle__option--active {
+  color: #121212;
+  font-weight: 600;
+}
 
 .searchContent .searchResultList {
   padding-top: 25px;
