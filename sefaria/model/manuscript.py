@@ -6,6 +6,7 @@ from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet, SluggedAbstractMongoRecord
 from sefaria.model.text import Ref
 import structlog
+from sefaria.system.progress_context import report_progress
 logger = structlog.get_logger(__name__)
 
 
@@ -218,7 +219,7 @@ class ManuscriptPageSet(AbstractMongoSet):
 def process_index_title_change_in_manuscript_links(indx, **kwargs):
     from sefaria.system.exceptions import InputError
 
-    print("Cascading ManuscriptPage from {} to {}".format(kwargs['old'], kwargs['new']))
+    report_progress("Cascading ManuscriptPage from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
     from .text import re as reg_reg

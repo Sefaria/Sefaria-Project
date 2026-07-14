@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "New Additions to the Sefaria Library" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "New Additions to the Sefaria Library" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "See texts, translations and connections that have been recently added to Sefaria." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "See texts, translations and connections that have been recently added to Sefaria." %}{% endmeta_desc %}{% endblock %}
 
 {% block js %}
 <script>

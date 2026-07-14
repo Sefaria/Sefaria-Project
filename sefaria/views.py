@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import io
 import os
 import zipfile
@@ -9,18 +8,18 @@ import requests
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Any
 from dataclasses import asdict
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, parse_qsl, urlunparse
 from collections import defaultdict
 from random import choice
 from celery.result import AsyncResult
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.conf import settings
 from django.shortcuts import render, redirect, resolve_url
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest, HttpRequest
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
@@ -46,9 +45,9 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
@@ -63,11 +62,13 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
+from sefaria import tracker
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -77,7 +78,9 @@ from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, Sefa
 from remote_config import remoteConfigCache
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_linked, invalidate_counts, invalidate_all
+
+from sefaria.history import record_version_deletion
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -92,11 +95,27 @@ class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
+    http_method_names = ["get", "post", "options"]
+
+    def get(self, request, *args, **kwargs):
+        # Django >= 5.0 dropped GET on LogoutView. Existing <a href="/logout?next=..."> links
+        # in the header / mobile menu still rely on GET, so route GET through the same flow as POST.
+        return self.post(request, *args, **kwargs)
 
     def get_next_page(self):
         next_page = self.request.GET.get('next')
         if next_page:
-            return resolve_url(next_page)
+            # Validate ?next= against the request host before redirecting. Django's stock
+            # LogoutView.get_next_page does this; this override previously skipped it,
+            # which combined with GET-based logout would let a crafted /logout?next=...
+            # link bounce a user to an attacker-controlled domain (open redirect).
+            url_is_safe = url_has_allowed_host_and_scheme(
+                url=next_page,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+            if url_is_safe:
+                return resolve_url(next_page)
         return super().get_next_page()
 
 
@@ -198,30 +217,29 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next = request.GET.get('next', '')
+    next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
-            if "noredirect" in request.POST:
-                return HttpResponse("ok")
-            elif "new?assignment=" in request.POST.get("next",""):
-                next = request.POST.get("next", "")
-                return HttpResponseRedirect(next)
+            if "new?assignment=" in request.POST.get("next", ""):
+                next_url = request.POST.get("next", "")
             else:
-                next = request.POST.get("next", "/")
-                if "?" in next:
-                    next += "&welcome=to-sefaria"
-                else:
-                    next += "?welcome=to-sefaria"
-                return HttpResponseRedirect(next)
+                next_url = request.POST.get("next", "/")
+                parsed = urlparse(next_url)
+                next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if "noredirect" in request.POST:
+                return jsonResponse({"redirect": next_url})
+            return HttpResponseRedirect(next_url)
+        elif "noredirect" in request.POST:
+            return jsonResponse(errors)
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next, "renderStatic": True})
+    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
 
 
 def maintenance_message(request):
@@ -404,6 +422,10 @@ def linker_js(request, linker_version=None):
     }
 
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+
+
+def linker_js_map(request):
+    return HttpResponse(read_webpack_bundle_map("LINKER"), content_type="application/json")
 
 
 @api_view(["POST"])
@@ -724,8 +746,15 @@ def reset_websites_data(request):
 
 @staff_member_required
 def reset_index_cache_for_text(request, title):
+    try:
+        index = model.library.get_index(title)
+    except BookNameError:
+        # The title may have been renamed in a Celery worker whose cache update
+        # hasn't propagated to this web-server process yet. Load fresh from DB.
+        index = model.Index().load({"title": title})
+        if index is None:
+            return HttpResponseRedirect("/?m=Title-Not-Found")
 
-    index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
     model.library.reset_text_titles_cache()
 
@@ -848,7 +877,12 @@ def reset_ref(request, tref):
     :param tref:
     :return:
     """
-    oref = model.Ref(tref)
+    try:
+        oref = model.Ref(tref)
+    except InputError:
+        # in the case of index title change, you may need to refresh cache to get the current index since title changes now happen in celery
+        library.refresh_index_record_in_cache(tref)
+        oref = model.Ref(tref)
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
         model.library.reset_text_titles_cache()
@@ -1605,6 +1639,7 @@ def bulk_download_versions_api(request):
     return response
 
 
+
 def _get_text_version_file(format, title, lang, versionTitle):
     from sefaria.export import text_is_copyright, make_json, make_text, prepare_merged_text_for_export, prepare_text_for_export, export_merged_csv, export_version_csv
 
@@ -1651,18 +1686,18 @@ def _get_text_version_file(format, title, lang, versionTitle):
     return content
 
 
-
 @staff_member_required
 def text_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     from sefaria.export import import_versions_from_stream
+    skip_toc_refresh = request.POST.get('defer_toc_refresh', '').lower() in ('1', 'true', 'yes')
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
         try:
-            import_versions_from_stream(f, [1], request.user.id)
+            import_versions_from_stream(f, [1], request.user.id, skip_toc_refresh=skip_toc_refresh)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
             return jsonResponse({"error": str(e), "message": message})
@@ -1670,6 +1705,294 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+
+
+
+@staff_member_required
+def version_indices_api(request):
+    """
+    Get indices that have versions matching a versionTitle.
+
+    ?versionTitle=...&language=he   →  {"indices":["Genesis","Exodus",...], "metadata": {...}}
+    Returns indices and optional metadata (categories) for each index.
+    """
+    if request.method != "GET":
+        return HttpResponseBadRequest("GET required")
+
+    version_title = request.GET.get("versionTitle")
+    if not version_title:
+        raise InputError("versionTitle is required")
+    language = request.GET.get("language")
+
+    query = {"versionTitle": version_title}
+    if language:
+        query["language"] = language
+    indices = db.texts.distinct("title", query)
+    sorted_indices = sorted(indices)
+
+    # Build metadata with categories for each index
+    # Note: library.get_index() uses an in-memory cache, so this loop is efficient
+    metadata = {}
+    for index_title in sorted_indices:
+        try:
+            index = library.get_index(index_title)
+            metadata[index_title] = {"categories": getattr(index, 'categories', [])}
+        except Exception:
+            metadata[index_title] = {"categories": []}
+
+    return jsonResponse({"indices": sorted_indices, "metadata": metadata})
+
+
+# Allowed fields for version bulk edit - prevents arbitrary attribute injection
+# Note: versionTitle is excluded - it's the search key used to find versions, not editable
+VERSION_BULK_EDIT_ALLOWED_FIELDS = {
+    "versionTitleInHebrew", "versionSource", "license", "status",
+    "priority", "digitizedBySefaria", "isPrimary", "isSource", "versionNotes",
+    "versionNotesInHebrew", "purchaseInformationURL", "purchaseInformationImage", "direction"
+}
+
+@staff_member_required
+def version_bulk_edit_api(request):
+    """
+    Bulk update Version metadata for multiple indices.
+
+    Request:
+      POST {"versionTitle": "...", "language": "he", "indices": [...], "updates": {...}}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        indices = data["indices"]
+        updates = data["updates"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    # Validate that all update fields are allowed
+    disallowed_fields = set(updates.keys()) - VERSION_BULK_EDIT_ALLOWED_FIELDS
+    if disallowed_fields:
+        return jsonResponse({"error": f"Disallowed fields: {', '.join(disallowed_fields)}"}, status=400)
+
+    # Track successes and failures for detailed reporting
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            # title + versionTitle uniquely identifies a version (pkeys in Version model)
+            version = Version().load({
+                "title": index_title,
+                "versionTitle": version_title,
+            })
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            tracker.update_version_metadata(request.user.id, version, updates)
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    # Return detailed results
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
+
+
+@staff_member_required
+def version_rename_api(request):
+    """
+    Rename Version.versionTitle for a single index.
+
+    Request:
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+
+    Response:
+      Celery enabled: 202 {"task_id": "..."}
+      Celery disabled: 200 {"status": "ok"} or non-200 {"error": "..."}
+
+    Callers that need to rename a versionTitle across many indices should call
+    this endpoint once per index and aggregate per-index results.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        new_version_title = data["newVersionTitle"]
+        index_title = data["index"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not isinstance(new_version_title, str):
+        return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
+
+    new_version_title = new_version_title.strip()
+    if not new_version_title:
+        return jsonResponse({"error": "newVersionTitle may not be empty"}, status=400)
+
+    if isinstance(version_title, str) and version_title.strip() == new_version_title:
+        return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
+
+    language = data.get("language")
+    rename_payload = {
+        "user_id": request.user.id,
+        "versionTitle": version_title,
+        "newVersionTitle": new_version_title,
+        "index": index_title,
+        "language": language,
+    }
+
+    if CELERY_ENABLED:
+        async_result = rename_version_title.apply_async(
+            args=(rename_payload,),
+            queue=CeleryQueue.TASKS.value,
+        )
+        return celeryResponse(async_result.id)
+
+    result, status_code = run_version_rename(
+        user_id=request.user.id,
+        version_title=version_title,
+        new_version_title=new_version_title,
+        index_title=index_title,
+        language=language,
+    )
+    if result.get("status") == "error" and "error" in result:
+        return jsonResponse({"error": result["error"]}, status=status_code)
+    return jsonResponse(result, status=status_code)
+
+
+@staff_member_required
+def version_bulk_delete_api(request):
+    """
+    Bulk delete Versions (hard delete) for multiple indices that share a versionTitle.
+
+    Request:
+      POST {"versionTitle": "...", "indices": [...], "language": "he" (optional)}
+
+    Response:
+      {"status": "ok"|"partial"|"error", "successes": [...], "failures": [{index, error}, ...]}
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        indices = data["indices"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not indices:
+        return jsonResponse({"error": "indices may not be empty"}, status=400)
+
+    language = data.get("language")
+
+    successes = []
+    failures = []
+
+    for index_title in indices:
+        try:
+            load_query = {"title": index_title, "versionTitle": version_title}
+            if language:
+                load_query["language"] = language
+            version = Version().load(load_query)
+            if not version:
+                failures.append({"index": index_title, "error": f'No Version "{version_title}" found'})
+                continue
+
+            # Capture language before delete since it's needed for history + varnish
+            lang = version.language
+            version.delete()
+            record_version_deletion(index_title, version_title, lang, request.user.id)
+
+            if USE_VARNISH:
+                try:
+                    oref = Ref(index_title)
+                    invalidate_linked(oref)
+                    invalidate_ref(oref, lang, version_title)
+                except Exception as e:
+                    logger.warning(f"Varnish invalidation failed for {index_title}: {e}")
+
+            successes.append(index_title)
+
+        except Exception as e:
+            error_msg = str(e) if str(e) else type(e).__name__
+            failures.append({"index": index_title, "error": error_msg})
+
+    result = {
+        "status": "ok" if not failures else "partial" if successes else "error",
+        "successes": successes,
+        "failures": failures
+    }
+    return jsonResponse(result)
+
+
+@staff_member_required
+def check_index_dependencies_api(request, title):
+    """
+    Check what dependencies exist for a given index title.
+    Used by NodeTitleEditor to warn about potential impacts of title changes.
+
+    NOTE: NodeTitleEditor is currently disabled in ModeratorToolsPanel.
+    This endpoint is not in active use and should be reviewd when used but retained for future re-enablement.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "GET required"})
+
+    try:
+        # Get dependent indices (commentaries, etc.)
+        dependent_indices = library.get_dependant_indices(title, full_records=False)
+
+        # Get version count
+        version_count = db.texts.count_documents({"title": title})
+
+        # Get link count (approximate)
+        from sefaria.model.text import prepare_index_regex_for_dependency_process    # Inline import: this specific function is not exported via sefaria.model wildcard
+        try:
+            index = library.get_index(title)
+            pattern = prepare_index_regex_for_dependency_process(index)
+            link_count = db.links.count_documents({"refs": {"$regex": pattern}})
+        except Exception as e:
+            logger.debug(f"Failed to get link count for {title}: {e}")
+            link_count = 0
+
+        return jsonResponse({
+            "title": title,
+            "dependent_indices": dependent_indices,
+            "version_count": version_count,
+            "link_count": link_count,
+            "has_dependencies": len(dependent_indices) > 0 or version_count > 0 or link_count > 0
+        })
+
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
 
 @staff_member_required
 def update_authors_from_sheet(request):
@@ -1705,7 +2028,7 @@ def modtools_upload_workflowy(request):
     # Handle checkbox parameters
     c_index = request.POST.get("c_index", "").lower() == "true"
     c_version = request.POST.get("c_version", "").lower() == "true"
-    
+
     delims = request.POST.get("delims") if request.POST.get("delims", "") != "" else None
     term_scheme = request.POST.get("term_scheme") if request.POST.get("term_scheme", "") != "" else None
 

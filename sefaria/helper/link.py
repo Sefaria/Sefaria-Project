@@ -512,7 +512,10 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
 
 def add_links_from_csv(file, linktype, generated_by, uid):
     csv.field_size_limit(sys.maxsize)
-    reader = csv.DictReader(StringIO(file.read().decode()))
+    content = file.read()
+    if isinstance(content, bytes):
+        content = content.decode('utf-8')
+    reader = csv.DictReader(StringIO(content))
     fieldnames = reader.fieldnames
     if len(fieldnames) != 2:
         raise ValueError(f'file has {len(fieldnames)} columns rather than 2')

@@ -10,12 +10,12 @@ import structlog
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
 from emailusernames.utils import get_user, user_exists
-from captcha.fields import ReCaptchaField
-from captcha.widgets import ReCaptchaV2Checkbox
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
@@ -66,9 +66,10 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
-        del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
-        self.fields.keyOrder.append("subscribe_educator")
+        self.fields.pop('password2', None)
+        # order_fields preserves any field not listed (placed at the end) and goes through
+        # Django's form internals — safer than reassigning self.fields to a new dict.
+        self.order_fields(["email", "first_name", "last_name", "password1", "captcha", "subscribe_educator"])
 
     def clean_email(self):
         email = self.cleaned_data["email"]

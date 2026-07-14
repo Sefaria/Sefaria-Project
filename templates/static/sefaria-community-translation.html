@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "About Sefaria Community Translations" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "About Sefaria Community Translations" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria Community Translations are open, crowd-sourced translations of texts available in the Sefaria Library." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria Community Translations are open, crowd-sourced translations of texts available in the Sefaria Library." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 

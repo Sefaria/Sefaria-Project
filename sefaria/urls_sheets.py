@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import path, re_path
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -13,24 +13,24 @@ handler500 = 'reader.views.custom_server_error'
 handler404 = 'reader.views.custom_page_not_found'
 
 urlpatterns = [
-    url(r'^$', sheets_views.sheets_home_page, name='home'),
-    url(r'sheets-with-ref/(?P<tref>.+)$', sheets_views.sheets_with_ref),
-    url(r'^collections/?$', reader_views.public_collections),
-    url(r'^collections/new$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
-    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    path('', sheets_views.sheets_home_page, name='home'),
+    path('sheets-with-ref/<path:tref>', sheets_views.sheets_with_ref),
+    re_path(r'^collections/?$', reader_views.public_collections),
+    path('collections/new', reader_views.edit_collection_page),
+    re_path(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    re_path(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
 
-    url(r'^getstarted/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
-    url(r'^sheets/?$', reader_views.sheets_redirect_to_getstarted),
-    url(r'^sheets/new/?$', sheets_views.new_sheet),
-    url(r'^sheets/(?P<sheet_id>\d+)$', sheets_views.view_sheet),
-    url(r'^sheets/visual/(?P<sheet_id>\d+)$', sheets_views.view_visual_sheet),
-    url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
+    re_path(r'^getstarted/?$', reader_views.serve_static, {'page': 'sheets'}, name='sheets'),
+    re_path(r'^sheets/?$', reader_views.sheets_redirect_to_getstarted),
+    re_path(r'^sheets/new/?$', sheets_views.new_sheet),
+    path('sheets/<int:sheet_id>', sheets_views.view_sheet),
+    path('sheets/visual/<int:sheet_id>', sheets_views.view_visual_sheet),
+    re_path(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 
-    url(r'^my/profile', reader_views.my_profile),
-    url(r'^profile/?$', reader_views.my_profile),
-    url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
-    url(r'^settings/profile/?$', reader_views.edit_profile),
+    re_path(r'^my/profile', reader_views.my_profile),
+    re_path(r'^profile/?$', reader_views.my_profile),
+    re_path(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
+    re_path(r'^settings/profile/?$', reader_views.edit_profile),
 
 ]
 

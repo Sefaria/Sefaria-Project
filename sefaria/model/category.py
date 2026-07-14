@@ -336,6 +336,14 @@ class TocTree(object):
     def get_serialized_toc(self, serialization_options=None):
         return self._root.serialize(serialization_options=serialization_options).get("contents", [])
 
+    def get_serialized_toc_with_authors(self):
+        return self._root.serialize(serialization_options=text.TocSerializationOptions(
+            include_first_section=False,
+            include_flags=False,
+            include_base_texts=True,
+            include_authors=True,
+        )).get("contents", [])
+
     def get_collections_in_library(self):
         return self._collections_in_library
 

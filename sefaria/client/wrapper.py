@@ -305,7 +305,7 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
     for prefix in bound_texts:
         if nRef.startswith(prefix):
             base_ref = nRef[len(prefix):]
-            base_links = get_links(base_ref)
+            base_links = get_links(base_ref, with_text=with_text, with_sheet_links=with_sheet_links, categories=categories)
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
                 link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]

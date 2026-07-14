@@ -55,7 +55,10 @@ class PoolFilter(admin.SimpleListFilter):
         pool_name = self.value()
         if pool_name == 'all':
             return queryset
-        pool = TopicPool.objects.get(name=pool_name)
+        try:
+            pool = TopicPool.objects.get(name=pool_name)
+        except TopicPool.DoesNotExist:
+            return queryset
         return queryset.filter(pools=pool)
 
     def value(self):
@@ -67,12 +70,14 @@ class PoolFilter(admin.SimpleListFilter):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
+    search_help_text = "Searching within the active pool filter. Select 'All Topics' in the filter panel to search all topics."
     list_display = ['slug', 'en_title', 'he_title', 'sefaria_link']
     for pool_type in PoolType:
         list_display.append(f'is_in_pool_{pool_type.value}')
     list_filter = (PoolFilter,)
     filter_horizontal = ('pools',)
     search_fields = ('slug', 'en_title', 'he_title')
+    ordering = ['slug']
     readonly_fields = ('slug', 'en_title', 'he_title')
     actions = [
         create_add_to_pool_action(PoolType.LIBRARY.value),
@@ -86,6 +91,13 @@ class TopicAdmin(admin.ModelAdmin):
         create_remove_from_pool_action(PoolType.GENERAL_HE.value),
         create_remove_from_pool_action(PoolType.TORAH_TAB.value),
     ]
+    def get_queryset(self, request):
+        # The PoolFilter adds an INNER JOIN on the M2M through table which can
+        # produce duplicate rows if the through table has duplicate entries.
+        # Django admin only auto-deduplicates when search_fields contain __ lookups;
+        # our direct-field searches don't trigger that, so we call distinct() here.
+        return super().get_queryset(request).distinct()
+
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         Topic.objects.build_slug_to_pools_cache(rebuild=True)
@@ -97,35 +109,47 @@ class TopicAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    @admin.display(
+        description="Library Pool",
+        boolean=True,
+    )
     def is_in_pool_library(self, obj):
         return obj.pools.filter(name=PoolType.LIBRARY.value).exists()
-    is_in_pool_library.boolean = True
-    is_in_pool_library.short_description = "Library Pool"
 
+    @admin.display(
+        description="Sheets Pool",
+        boolean=True,
+    )
     def is_in_pool_sheets(self, obj):
         return obj.pools.filter(name=PoolType.SHEETS.value).exists()
-    is_in_pool_sheets.boolean = True
-    is_in_pool_sheets.short_description = "Sheets Pool"
 
+    @admin.display(
+        description="General Pool EN",
+        boolean=True,
+    )
     def is_in_pool_general_en(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL_EN.value).exists()
-    is_in_pool_general_en.boolean = True
-    is_in_pool_general_en.short_description = "General Pool EN"
 
+    @admin.display(
+        description="General Pool HE",
+        boolean=True,
+    )
     def is_in_pool_general_he(self, obj):
         return obj.pools.filter(name=PoolType.GENERAL_HE.value).exists()
-    is_in_pool_general_he.boolean = True
-    is_in_pool_general_he.short_description = "General Pool HE"
 
+    @admin.display(
+        description="TorahTab Pool",
+        boolean=True,
+    )
     def is_in_pool_torah_tab(self, obj):
         return obj.pools.filter(name=PoolType.TORAH_TAB.value).exists()
-    is_in_pool_torah_tab.boolean = True
-    is_in_pool_torah_tab.short_description = "TorahTab Pool"
 
+    @admin.display(
+        description="Sefaria Link"
+    )
     def sefaria_link(self, obj):
         url = f"https://www.sefaria.org/topics/{obj.slug}"
         return format_html('<a href="{}" target="_blank">{}</a>', url, obj.slug)
-    sefaria_link.short_description = "Sefaria Link"
 
 
 class FeaturedTopicAdmin(admin.ModelAdmin):
@@ -178,7 +202,6 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
         'display_start_date_diaspora',
         'display_end_date_diaspora'
     )
-    raw_id_fields = ('topic', 'secondary_topic')
     list_filter = (
         'start_date',
         'display_start_date_israel',
@@ -186,7 +209,7 @@ class SeasonalTopicAdmin(admin.ModelAdmin):
     )
     ordering = ['-start_date']
     search_fields = ('topic__slug', 'topic__en_title', 'topic__he_title', 'secondary_topic__slug')
-    autocomplete_fields = ('topic', 'secondary_topic')
+    raw_id_fields = ('topic', 'secondary_topic')
     date_hierarchy = 'start_date'
     fieldsets = (
         (None, {

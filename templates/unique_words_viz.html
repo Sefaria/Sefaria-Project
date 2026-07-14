@@ -4,9 +4,9 @@
 {% load sefaria_tags %}
 {% load i18n %}
 
-{% block title %}{% trans "Unique Words used by Biblical Commentators" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Unique Words used by Biblical Commentators" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Explore how unique and verbose biblical commentators were." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Explore how unique and verbose biblical commentators were." %}{% endmeta_desc %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="/static/img/sefer-hachinukh-mitzvot.png"/>{% endblock %}
 {% block head %}
@@ -25,7 +25,7 @@
     {% endif %}
 
 
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
 

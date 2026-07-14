@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n cache %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Top Contributors | Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Top Contributors | Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "See who has been contributing most to Sefaria in terms of texts, translations, and source sheet." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "See who has been contributing most to Sefaria in terms of texts, translations, and source sheet." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 

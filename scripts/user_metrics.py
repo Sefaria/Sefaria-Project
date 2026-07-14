@@ -93,3 +93,72 @@ def user_activity(query={}):
 
 	return months
 
+
+def monthly_registrations_with_signals():
+	"""
+	Monthly registration cohort report. Anchored on Postgres auth_user so deactivated
+	spam accounts (whose Mongo profile docs are purged) are still counted. Joins in
+	per-user activity signals from Mongo to give a sense of how many registrations
+	in each cohort look like real users.
+
+	Columns:
+	  total_registered      - all auth_user rows with date_joined in the month
+	  still_active          - is_active=True (i.e. not deactivated as spam)
+	  deactivated_spam      - total_registered - still_active
+	  has_profile           - has a doc in Mongo `profiles` (purged on spam deactivation)
+	  ever_logged_in        - last_login is not null
+	  returned_after_signup - last_login > date_joined + 5 minutes (filters auto-login at signup)
+	  has_read_history      - appears as uid in `user_history`
+	  has_sheet             - owns a non-quarantined sheet
+	  has_note              - owns a note
+	  any_activity          - union of the four activity signals above
+	"""
+
+	users = list(User.objects.all().values('id', 'date_joined', 'last_login', 'is_active'))
+	df = pd.DataFrame(users)
+	df['month'] = df['date_joined'].dt.to_period("M")
+
+	profile_ids = set(db.profiles.distinct("id"))
+	user_history_ids = set(db.user_history.distinct("uid"))
+	sheet_owner_ids = set(db.sheets.distinct("owner", {"spam_sheet_quarantine": {"$exists": False}}))
+	note_owner_ids = set(db.notes.distinct("owner"))
+
+	df['has_profile']      = df['id'].isin(profile_ids)
+	df['has_read_history'] = df['id'].isin(user_history_ids)
+	df['has_sheet']        = df['id'].isin(sheet_owner_ids)
+	df['has_note']         = df['id'].isin(note_owner_ids)
+	df['ever_logged_in']   = df['last_login'].notna()
+	df['returned_after_signup'] = (
+		df['last_login'].notna()
+		& (df['last_login'] > df['date_joined'] + pd.Timedelta(minutes=5))
+	)
+	df['any_activity'] = df[
+		['has_read_history', 'has_sheet', 'has_note', 'returned_after_signup']
+	].any(axis=1)
+
+	agg = df.groupby('month').agg(
+		total_registered      = ('id', 'count'),
+		still_active          = ('is_active', 'sum'),
+		has_profile           = ('has_profile', 'sum'),
+		ever_logged_in        = ('ever_logged_in', 'sum'),
+		returned_after_signup = ('returned_after_signup', 'sum'),
+		has_read_history      = ('has_read_history', 'sum'),
+		has_sheet             = ('has_sheet', 'sum'),
+		has_note              = ('has_note', 'sum'),
+		any_activity          = ('any_activity', 'sum'),
+	)
+	agg['deactivated_spam'] = agg['total_registered'] - agg['still_active']
+	agg = agg[[
+		'total_registered', 'still_active', 'deactivated_spam',
+		'has_profile', 'ever_logged_in', 'returned_after_signup',
+		'has_read_history', 'has_sheet', 'has_note', 'any_activity',
+	]]
+
+	pd.set_option('display.max_rows', None)
+	pd.set_option('display.width', None)
+	print("\nMonthly Registrations with Activity & Spam Signals\n" + "*" * 50)
+	print(f"Total users: {len(df)}   Deactivated: {(~df['is_active']).sum()}")
+	print(agg)
+
+	return agg
+

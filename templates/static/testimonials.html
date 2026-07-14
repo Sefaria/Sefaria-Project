@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria Testimonials" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria Testimonials" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria’s Impact – Reflections and Insights from Users" %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria’s Impact – Reflections and Insights from Users" %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
     #top #languageToggle {

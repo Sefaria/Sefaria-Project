@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "The Sefaria Story" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "The Sefaria Story" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Watch a video about the story of Sefaria." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Watch a video about the story of Sefaria." %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 .static h1 {

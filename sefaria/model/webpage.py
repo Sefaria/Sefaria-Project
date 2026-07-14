@@ -113,7 +113,7 @@ class WebPage(abst.AbstractMongoRecord):
         because it matches a title/url we want to exclude or has no refs"""
         if len(self.refs) == 0:
             return True
-        bleached_url = bleach.clean(self.url.encode('utf-8'), tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+        bleached_url = bleach.clean(self.url, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
         if len(bleached_url) > 1000:
             # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
             from sefaria.system.database import db
@@ -501,7 +501,7 @@ def dedupe_identical_urls(test=True):
 
 
 def clean_webpages(test=True):
-    url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
+    url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + r"|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
 
 
 

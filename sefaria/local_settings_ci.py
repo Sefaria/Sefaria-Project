@@ -12,7 +12,15 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
-    }
+    },
+    'vector_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGVECTOR_DB', 'pgvector'),
+        'USER': os.environ.get('PGVECTOR_USER', os.environ.get('POSTGRES_USER', 'sefaria')),
+        'PASSWORD': os.environ.get('PGVECTOR_PASSWORD', os.environ.get('POSTGRES_PASSWORD', '')),
+        'HOST': os.environ.get('PGVECTOR_HOST', 'localhost'),
+        'PORT': os.environ.get('PGVECTOR_DB_PORT', '5432'),
+    },
 }
 
 DOMAIN_MODULES = {
@@ -27,9 +35,9 @@ DOMAIN_MODULES = {
 }
 ALLOWED_HOSTS = ['127.0.0.1', "0.0.0.0", '[::1]', "localhost", "voices.localhost"]
 #SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
-
+CSRF_TRUSTED_ORIGINS = ["https://*.sefaria.org"]
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+     'you@example.com',
 )
 MANAGERS = ADMINS
 
@@ -223,3 +231,6 @@ structlog.configure(
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+GEMINI_API_KEY = ""
+SEMANTIC_SEARCH_API_TOKEN = ""

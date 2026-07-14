@@ -8,7 +8,7 @@ import secrets
 from datetime import datetime
 
 from django.utils import translation
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
@@ -337,7 +337,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         from sefaria.google_storage_manager import GoogleStorageManager
         bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
-        if isinstance(old_url, str) and re.search("^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
+        if isinstance(old_url, str) and re.search(r"^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
             GoogleStorageManager.delete_filename(old_url, bucket_name)
 
 

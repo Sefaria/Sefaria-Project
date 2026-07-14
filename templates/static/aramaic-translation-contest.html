@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n cache humanize sefaria_tags static %}
 
-{% block title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria: a Living Library of Jewish Texts Online" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more." %}{% endmeta_desc %}{% endblock %}
 
 {% block head %}
 {% endblock %}
@@ -169,7 +169,7 @@
     </div>
 {% endblock %}
 
-{% block js  %}
+{% block js %}
     <script>
     $(function() {
         // Email List

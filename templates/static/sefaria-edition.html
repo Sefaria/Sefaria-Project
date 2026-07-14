@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "About Sefaria Editions" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "About Sefaria Editions" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "The Sefaria Edition is a Sefaria commissioned translation created by professional translators." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "The Sefaria Edition is a Sefaria commissioned translation created by professional translators." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 

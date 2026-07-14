@@ -23,7 +23,7 @@ CHATBOT_OPT_IN_WEBHOOK_URL = (
     acks_late=True,
     ignore_result=True,
 )
-def send_chatbot_opt_in_webhook(self: Any, email: str, opt_in: bool) -> None:
+def send_chatbot_opt_in_webhook(self: Any, email: str, opt_in: bool, interface_language: str = "english") -> None:
     """
     POST a chatbot experiment opt-in/opt-out event to the Salesforce webhook.
 
@@ -35,6 +35,7 @@ def send_chatbot_opt_in_webhook(self: Any, email: str, opt_in: bool) -> None:
         "data": {
             "email": email,
             "optIn": opt_in,
+            "interfaceLanguage": interface_language,
         },
     }
 
@@ -91,17 +92,17 @@ def extract_error_detail(exc: Exception) -> str:
     return str(exc)
 
 
-def dispatch_chatbot_opt_in_webhook(email: str, opt_in: bool) -> None:
+def dispatch_chatbot_opt_in_webhook(email: str, opt_in: bool, interface_language: str = "english") -> None:
     """Fire the Salesforce webhook for a chatbot experiment opt-in/opt-out change."""
     if not email:
         return
     if CELERY_ENABLED:
         send_chatbot_opt_in_webhook.apply_async(
-            args=[email, opt_in],
+            args=[email, opt_in, interface_language],
             queue=CeleryQueue.TASKS.value,
         )
     else:
         try:
-            send_chatbot_opt_in_webhook(email, opt_in)
+            send_chatbot_opt_in_webhook(email, opt_in, interface_language)
         except Exception:
             logger.warning("chatbot_opt_in_webhook_sync_failed", email=email, exc_info=True)

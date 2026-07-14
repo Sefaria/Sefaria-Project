@@ -58,6 +58,7 @@ data:
             || req.url ~"^/api/regexs/"
             || req.url ~"^/api/bulktext/"
             || req.url ~"^/linker.js"
+            || req.url ~"^/linker\.v3\.js"
             || req.url ~"^/api/stats/"
             || req.url ~"^/api/find-refs/cache-lookup"
             || req.url ~"^/api/websites/"

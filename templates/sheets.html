@@ -4,10 +4,9 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if title %}{{ title }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% if title %}{{ title }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endmeta_desc %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
@@ -925,7 +924,7 @@
 	<div id="printFooter">
 		<img src="{% static 'img/samekh.png' %}">
 		<div>
-            {% trans "Made with the Sefaria Source Sheet Builder"  %}
+            {% trans "Made with the Sefaria Source Sheet Builder" %}
 			<br/>
             sheets.sefaria.org/sheets
 		</div>
@@ -1473,7 +1472,7 @@
 </div> <!-- end sheetContent -->
 {% endblock %}
 
-{% block js  %}
+{% block js %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
 <script>{% include "js/django-csrf.js" %}</script>

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Sefaria iOS" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Sefaria iOS" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% endblock %}
 
 {% block content %}
 <div id="iosPage" class="static biReady">

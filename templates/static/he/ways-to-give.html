@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Donate to Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endmeta_desc %}{% endblock %}
 
 {% block content %}
 

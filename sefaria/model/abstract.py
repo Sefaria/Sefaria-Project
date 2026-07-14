@@ -36,7 +36,7 @@ class AbstractMongoRecord(object):
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
-    ALLOWED_TAGS = bleach.ALLOWED_TAGS + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
+    ALLOWED_TAGS = list(bleach.ALLOWED_TAGS) + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
     def __init__(self, attrs=None):
@@ -526,16 +526,16 @@ def make_hashable(obj):
     """WARNING: This function only works on a limited subset of objects
     Make a range of objects hashable.
     Accepts embedded dictionaries, lists or tuples (including namedtuples)"""
-    if isinstance(obj, collections.Hashable):
+    if isinstance(obj, collections.abc.Hashable):
         #Fine to be hashed without any changes
         return obj
-    elif isinstance(obj, collections.Mapping):
+    elif isinstance(obj, collections.abc.Mapping):
         #Convert into a frozenset instead
         items = list(obj.items())
         for i, item in enumerate(items):
             items[i] = make_hashable(item)
         return frozenset(items)
-    elif isinstance(obj, collections.Iterable):
+    elif isinstance(obj, collections.abc.Iterable):
         #Convert into a tuple instead
         ret=[type(obj)]
         for i, item in enumerate(obj):

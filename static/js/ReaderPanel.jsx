@@ -22,7 +22,6 @@ import CollectionPage from "./CollectionPage"
 import EditCollectionPage from "./EditCollectionPage";
 import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
-import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
@@ -149,7 +148,7 @@ class ReaderPanel extends Component {
     const {mode, menuOpen, connectionsMode} = this.state;
     const originalLanguage = this.state.settings.language;
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
+    if (["topics", "allTopics", "calendars", "collection" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -789,8 +788,6 @@ class ReaderPanel extends Component {
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           style={style}
           historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -862,8 +859,6 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           setPreviousSettings={this.setPreviousSettings}
           filterRef={this.state.filterRef}
           backButtonSettings={this.state.backButtonSettings}
@@ -891,7 +886,7 @@ class ReaderPanel extends Component {
                     initialWidth={this.state.width}
                     toggleSignUpModal={this.props.toggleSignUpModal} />);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef}
                                  searchState={this.state['searchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
@@ -1074,15 +1069,7 @@ class ReaderPanel extends Component {
         />
       );
     }
-    else if (this.state.menuOpen === "community") {
-      menu = (
-        <CommunityPage
-          multiPanel={this.props.multiPanel}
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          initialWidth={this.state.width} />
-      );
-
-    } else if (this.state.menuOpen === "user_stats") {
+    else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
 
     } else if (this.state.menuOpen === "modtools") {
@@ -1264,7 +1251,6 @@ ReaderPanel.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
-  setDivineNameReplacement:    PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,

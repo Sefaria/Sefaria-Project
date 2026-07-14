@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "Pioneers | Sefaria" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Pioneers | Sefaria" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria Pioneers" %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria Pioneers" %}{% endmeta_desc %}{% endblock %}
 
 {% block css %}
 

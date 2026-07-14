@@ -53,7 +53,7 @@ def send_email(subject, message_html, from_email, to_email):
     return True
 
 
-def read_webpack_bundle(config_name):
+def _webpack_bundle_path(config_name):
     webpack_files = webpack_utils.get_files('main', config=config_name)
     url = webpack_files[0]["url"]
     # Handle both relative paths and full URLs
@@ -61,6 +61,14 @@ def read_webpack_bundle(config_name):
     # which makes webpack_files return full URLs instead of relative paths
     parsed = urlparse(url)
     path = parsed.path if parsed.scheme else url
-    bundle_path = relative_to_abs_path('..' + path)
-    with open(bundle_path, 'r') as file:
+    return relative_to_abs_path('..' + path)
+
+
+def read_webpack_bundle(config_name):
+    with open(_webpack_bundle_path(config_name), 'r') as file:
+        return file.read()
+
+
+def read_webpack_bundle_map(config_name):
+    with open(_webpack_bundle_path(config_name) + '.map', 'r') as file:
         return file.read()

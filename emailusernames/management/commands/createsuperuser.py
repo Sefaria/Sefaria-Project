@@ -10,7 +10,7 @@ from optparse import make_option
 from django.contrib.auth.models import User
 from django.core import exceptions
 from django.core.management.base import BaseCommand, CommandError
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from emailusernames.utils import get_user, create_superuser
 
 def is_valid_email(value):

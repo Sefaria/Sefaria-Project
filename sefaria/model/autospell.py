@@ -27,11 +27,21 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
             + " Iabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
+APOSTROPHE_CHARS = {"'", "’", "‘", "׳"}
+
+
+def strip_apostrophes(text):
+    return "".join(c for c in text if c not in APOSTROPHE_CHARS)
+
+
+def normalize_chars(text):
+    return strip_apostrophes("".join([c if c in letter_scope else unidecode(c) for c in text]))
+
 
 def normalizer(lang):
     if lang == "he":
-        return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in hebrew.normalize_final_letters_in_str(x)])
-    return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in str.lower(x)])
+        return lambda x: normalize_chars(hebrew.normalize_final_letters_in_str(x))
+    return lambda x: normalize_chars(str.lower(x))
 
 
 splitter = re.compile(r"[\s,]+")
@@ -700,4 +710,3 @@ class TfidfScorer:
         tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
         idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
-

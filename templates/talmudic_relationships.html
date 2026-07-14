@@ -21,9 +21,9 @@ Ideas:
 {% load sefaria_tags %}
 {% load i18n %}
 
-{% block title %}{% trans "Student-Teacher Relationships in the Talmud" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "Student-Teacher Relationships in the Talmud" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Student-Teacher Relationships in the Talmud" %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Student-Teacher Relationships in the Talmud" %}{% endmeta_desc %}{% endblock %}
 
 {% block ogimage %}<meta property="og:image" content="/static/img/talmud-rabbis-visualization.png"/>{% endblock %}
 {% block head %}
@@ -47,7 +47,7 @@ Ideas:
     to set up a python environment at a specific port
     to run it, then ran it at said port. -->
       <script src="//d3js.org/d3.v3.min.js"></script>
-{%  endblock %}
+{% endblock %}
 
 {% block css %}
 

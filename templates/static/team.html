@@ -1,10 +1,11 @@
 
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 
-{% block title %}{% trans "The Sefaria Team" %}{% endblock %}
+{% block meta_title %}{% meta_title %}{% trans "The Sefaria Team" %}{% endmeta_title %}{% endblock %}
 
-{% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
+{% block meta_description %}{% meta_desc %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endmeta_desc %}{% endblock %}
 
 {% block js %}
 <script>
