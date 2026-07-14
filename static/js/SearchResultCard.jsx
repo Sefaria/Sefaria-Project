@@ -48,7 +48,7 @@ function SearchResultCard({
     if (onResultClick) {
       e.preventDefault();
       Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
-      onResultClick(href);
+      onResultClick(href, null, null); // matches handleNavigationClick(ref, currVersions, options)
     }
   };
 

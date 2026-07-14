@@ -4877,7 +4877,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Heebo", sans-serif;
   line-height: normal;
 }
-.searchResultCard-versionsToggle:hover {
+.searchResultCard-versionsToggle:hover,
+.searchResultCard-versionsToggle:hover * {
   color: var(--near-black, #121212);
 }
 .searchResultCard-versionsChevron {
