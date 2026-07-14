@@ -372,8 +372,8 @@ class SearchPage extends Component {
                         containerClasses={"largeTabs"}>
                       <div className="searchTabPanel" key="sources">
                         <div className="searchTopMatter">
-                          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
                             <SearchToggle
+                              ariaLabel={Sefaria._("Search Type")}
                               options={[
                                 {name: "all",   en: "All results",  he: "כל התוצאות"},
                                 {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
