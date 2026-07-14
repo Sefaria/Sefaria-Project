@@ -30,6 +30,7 @@ const SearchToggle = ({ options, selected, onChange }) => {
           className={`searchToggle__option${selected === option.name ? ' searchToggle__option--active' : ''}`}
           onClick={() => onChange(option.name)}
           aria-pressed={selected === option.name}
+        >
           <InterfaceText text={{ en: option.en, he: option.he }} />
         </button>
       ))}
