@@ -4045,6 +4045,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #fafafa;
   border: 1px solid #ededec;
   border-radius: 9999px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .searchToggle__slider {
   position: absolute;
@@ -4066,13 +4068,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-radius: 9999px;
   cursor: pointer;
   font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
   line-height: 18px;
   color: #575757;
   white-space: nowrap;
   transition: color 150ms ease;
 }
 .searchToggle__option--active {
-  color: #121212;
+  color: var(--Semantic-Text-Primary, #121212);
   font-weight: 600;
 }
 
