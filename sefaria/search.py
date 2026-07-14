@@ -634,7 +634,7 @@ class TextIndexer(object):
                 raise e
 
     @classmethod
-    def get_all_versions(cls, tries=0, versions=None, page=0):
+    def get_all_versions(cls, tries=0, versions=None, page=0, query=None):
         if page == 0:
             logger.debug("Starting to fetch all versions from database")
         versions = versions or []
@@ -643,7 +643,7 @@ class TextIndexer(object):
             temp_versions = []
             first_run = True
             while first_run or len(temp_versions) > 0:
-                temp_versions = VersionSet(limit=version_limit, page=page).array()
+                temp_versions = VersionSet(query or {}, limit=version_limit, page=page).array()
                 versions += temp_versions
                 page += 1
                 first_run = False
@@ -657,7 +657,9 @@ class TextIndexer(object):
                 if tries % 10 == 0:
                     logger.warning(f"MongoDB AutoReconnect while fetching versions, retrying - attempt: {tries}, versions_so_far: {len(versions)}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
-                return cls.get_all_versions(tries+1, versions, page)
+                # query must be threaded through the retry, or a mid-fetch AutoReconnect
+                # would silently drop back to loading the entire corpus.
+                return cls.get_all_versions(tries+1, versions, page, query)
             else:
                 logger.error(f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}")
                 raise e
@@ -671,47 +673,93 @@ class TextIndexer(object):
 
     @classmethod
     def _index_size_map(cls):
-        """Cheap per-title size proxy from VersionState (one set load, no per-index Mongo).
-        Returns {title: weight}; missing/unparseable -> weight 1."""
+        """Real per-title size proxy: for each VersionState, sum the available section counts
+        (across "he" and "en") reported across all LEAF schema nodes. This tracks how much text
+        index_all actually has to load and index per title, which is what drives per-shard
+        memory use. Counts are summed over leaf nodes - not just the root - because complex/
+        structured texts (e.g. commentaries with multiple sub-sections) carry their
+        availableCounts on the leaf schema nodes, not the root node; for a simple text the root
+        node IS a leaf, so get_leaf_nodes() naturally returns just that node and the simple case
+        is unaffected. Returns {title: weight}, weight always >= 1.
+        Individual VersionStates can fail (e.g. orphaned VersionStates left behind after their
+        Index was deleted) - those are counted and reported in one aggregated warning after the
+        loop, not logged per-failure, since a shard-count x per-VersionState-failure log would
+        spam the logs. If the whole computation raises, or the resulting map ends up empty or
+        uniform (every weight identical - the degenerate case that silently broke balancing
+        before), a WARNING is logged that shard balancing is DEGRADED and shards may be
+        unbalanced/OOM. On total failure, {} is returned rather than pretending balancing
+        succeeded."""
         sizes = {}
+        failed = 0
         try:
             for vs in VersionStateSet():
                 title = getattr(vs, "title", None)
                 if not title:
                     continue
-                weight = 1
                 try:
-                    # top-level availableCounts is a small list per language; sum as proxy
-                    for lang in ("he", "en"):
-                        counts = vs.content_node.get_available_counts(lang) if hasattr(vs, "content_node") else None
-                        if counts:
-                            weight += sum(c for c in counts if isinstance(c, int))
+                    weight = 0
+                    for leaf in vs.index.nodes.get_leaf_nodes():
+                        sn = vs.state_node(leaf)
+                        for lang in ("he", "en"):
+                            # get_available_counts can return None/falsy for complex texts
+                            # missing counts on a given node/lang - guard before summing.
+                            counts = sn.get_available_counts(lang)
+                            if counts:
+                                weight += sum(x for x in counts if isinstance(x, int))
                 except Exception:
-                    pass
+                    failed += 1
+                    continue
                 sizes[title] = max(weight, 1)
         except Exception as e:
-            logger.warning(f"Could not build index size map, falling back to uniform weights: {e}")
+            logger.warning(f"Failed to build index size map from VersionStates - shard balancing is DEGRADED, shards may be unbalanced/OOM: {e}")
+            return {}
+        if failed:
+            logger.warning(f"Skipped {failed} VersionState(s) while building index size map (likely orphaned VersionStates with no matching Index)")
+        if not sizes:
+            logger.warning("Index size map is empty - shard balancing is DEGRADED, shards may be unbalanced/OOM")
+        elif len(set(sizes.values())) == 1:
+            logger.warning("Index size map has uniform weights - shard balancing is DEGRADED, shards may be unbalanced/OOM")
         return sizes
 
     @classmethod
-    def _select_shard_groups(cls, versions_by_index, shard_index, shard_count, size_map=None):
-        """Deterministically pick this shard's (title, lang) groups.
-        Snake-distribute groups sorted by descending size so the heavy head spreads evenly."""
-        size_map = size_map or {}
-        def weight(key):
-            title = key[0]
-            return size_map.get(title, len(versions_by_index[key]))
+    def _snake_assign(cls, keys, shard_index, shard_count, weight_fn):
+        """Deterministically pick this shard's keys out of `keys`, a collection of
+        (title, lang) tuples. Snake-distributes keys sorted by descending weight_fn(key)
+        so the heavy head spreads evenly across shards. Returns a set of selected keys."""
         # stable, deterministic ordering: by descending weight, then by key
-        ordered = sorted(versions_by_index.keys(), key=lambda k: (-weight(k), k))
-        selected = {}
+        ordered = sorted(keys, key=lambda k: (-weight_fn(k), k))
+        selected = set()
         for pos, key in enumerate(ordered):
             # snake: 0..N-1, then N-1..0, repeating -> balances big items across shards
             cycle = pos // shard_count
             offset = pos % shard_count
             assigned = offset if cycle % 2 == 0 else (shard_count - 1 - offset)
             if assigned == shard_index:
-                selected[key] = versions_by_index[key]
+                selected.add(key)
         return selected
+
+    @classmethod
+    def _select_shard_keys(cls, keys, shard_index, shard_count, size_map=None):
+        """Same snake selection as _select_shard_groups, but operating on bare (title, lang)
+        keys instead of a versions_by_index dict - lets index_all pick this shard's titles
+        from a metadata-only projection, before any Version (with text) is loaded."""
+        if not size_map:
+            logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
+        size_map = size_map or {}
+        # no versions_by_index here to fall back on for weight, so use a constant
+        weight_fn = lambda key: size_map.get(key[0], 1)
+        return cls._snake_assign(keys, shard_index, shard_count, weight_fn)
+
+    @classmethod
+    def _select_shard_groups(cls, versions_by_index, shard_index, shard_count, size_map=None):
+        """Deterministically pick this shard's (title, lang) groups.
+        Snake-distribute groups sorted by descending size so the heavy head spreads evenly."""
+        if not size_map:
+            logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
+        size_map = size_map or {}
+        weight_fn = lambda key: size_map.get(key[0], len(versions_by_index[key]))
+        selected_keys = cls._snake_assign(versions_by_index.keys(), shard_index, shard_count, weight_fn)
+        return {key: versions_by_index[key] for key in versions_by_index if key in selected_keys}
 
     @classmethod
     def index_all(cls, index_name, debug=False, for_es=True, action=None, shard_index=None, shard_count=None):
@@ -728,23 +776,47 @@ class TextIndexer(object):
         logger.debug("Clearing Ref cache to save RAM")
         Ref.clear_cache()
 
-        # Get and sort versions
-        logger.debug("Sorting versions by priority")
-        versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
-        versions_by_index = {}
-        
-        # Organize by index for the merged case
-        for v in versions:
-            key = (v.title, v.language)
-            if key in versions_by_index:
-                versions_by_index[key] += [v]
-            else:
-                versions_by_index[key] = [v]
-        
         if shard_index is not None and shard_count is not None:
+            # Sharded path: pick this shard's (title, lang) groups from METADATA ONLY -
+            # a cheap projection over VersionState/Version, no text loaded - so we know
+            # which titles to load BEFORE loading any of them. Loading everything first
+            # and filtering after (the old behavior) defeats sharding's memory benefit:
+            # every shard would hold the whole corpus in RAM just to discard most of it.
             size_map = cls._index_size_map()
-            versions_by_index = cls._select_shard_groups(versions_by_index, shard_index, shard_count, size_map)
+            keys = set()
+            for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
+                if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
+                    keys.add((v.get("title"), v.get("language")))
+            selected_keys = cls._select_shard_keys(keys, shard_index, shard_count, size_map)
+            titles = sorted({t for (t, l) in selected_keys})
+
+            logger.debug("Sorting versions by priority")
+            versions = sorted(
+                [x for x in cls.get_all_versions(query={"title": {"$in": titles}})
+                 if (x.title, x.versionTitle, x.language) in cls.version_priority_map
+                 and (x.title, x.language) in selected_keys],
+                key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0]
+            )
+            versions_by_index = {}
+            for v in versions:
+                key = (v.title, v.language)
+                versions_by_index.setdefault(key, []).append(v)
+
             logger.info(f"Shard {shard_index}/{shard_count}: indexing {len(versions_by_index)} of the title groups")
+            logger.info(f"Shard {shard_index}/{shard_count}: loaded {len(versions)} versions for {len(titles)} titles")
+        else:
+            # Get and sort versions
+            logger.debug("Sorting versions by priority")
+            versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+            versions_by_index = {}
+
+            # Organize by index for the merged case
+            for v in versions:
+                key = (v.title, v.language)
+                if key in versions_by_index:
+                    versions_by_index[key] += [v]
+                else:
+                    versions_by_index[key] = [v]
 
         total_versions = len(versions)
         total_indexes = len(versions_by_index)

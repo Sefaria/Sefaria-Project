@@ -198,8 +198,9 @@ def test_shard_selection_is_deterministic_partition():
     assert max(counts) - min(counts) <= 1
 
 
-def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
-    """When shard_index/shard_count are passed, _select_shard_groups must be called."""
+def test_index_all_calls_select_shard_keys_when_sharding(monkeypatch):
+    """When shard_index/shard_count are passed, index_all must select this shard's keys
+    from metadata only (_select_shard_keys), not load the whole corpus first."""
     from sefaria.search import TextIndexer
 
     book_a = _FakeVersion("BookA", "v1", "en")
@@ -211,7 +212,6 @@ def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
 
     monkeypatch.setattr(TextIndexer, "create_version_priority_map", classmethod(lambda cls: None))
     monkeypatch.setattr(TextIndexer, "create_terms_dict", classmethod(lambda cls: None))
-    monkeypatch.setattr(TextIndexer, "get_all_versions", classmethod(lambda cls: list(all_versions)))
     TextIndexer.version_priority_map = {
         (v.title, v.versionTitle, v.language): (i, None)
         for i, v in enumerate(all_versions)
@@ -222,14 +222,28 @@ def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
     # Stub _index_size_map so it doesn't call Mongo
     monkeypatch.setattr(TextIndexer, "_index_size_map", classmethod(lambda cls: {}))
 
-    # Capture calls to _select_shard_groups and return empty so the loop is a no-op
+    # Stub the metadata-only projection query so no real Mongo access happens
+    monkeypatch.setattr(
+        "sefaria.search.db.texts.find",
+        lambda *a, **kw: [{"title": "BookA", "versionTitle": "v1", "language": "en"}],
+    )
+
+    get_all_versions_calls = []
+
+    def fake_get_all_versions(cls, tries=0, versions=None, page=0, query=None):
+        get_all_versions_calls.append(query)
+        return list(all_versions)
+
+    monkeypatch.setattr(TextIndexer, "get_all_versions", classmethod(fake_get_all_versions))
+
+    # Capture calls to _select_shard_keys and return empty so the loop is a no-op
     shard_calls = []
 
-    def fake_select(cls, versions_by_index, shard_index, shard_count, size_map=None):
+    def fake_select(cls, keys, shard_index, shard_count, size_map=None):
         shard_calls.append({"shard_index": shard_index, "shard_count": shard_count})
-        return {}
+        return set()
 
-    monkeypatch.setattr(TextIndexer, "_select_shard_groups", classmethod(fake_select))
+    monkeypatch.setattr(TextIndexer, "_select_shard_keys", classmethod(fake_select))
     monkeypatch.setattr("sefaria.search.bulk", lambda *a, **kw: (0, []))
 
     TextIndexer.index_all(index_name="text-b", debug=False, for_es=True, shard_index=0, shard_count=4)
@@ -237,6 +251,99 @@ def test_index_all_calls_select_shard_groups_when_sharding(monkeypatch):
     assert len(shard_calls) == 1
     assert shard_calls[0]["shard_index"] == 0
     assert shard_calls[0]["shard_count"] == 4
+    # get_all_versions must be called with a title filter, not unfiltered - this is the
+    # whole point of the fix: a shard must never load versions outside its own titles.
+    assert len(get_all_versions_calls) == 1
+    assert get_all_versions_calls[0] is not None
+    assert "title" in get_all_versions_calls[0]
+
+
+def test_select_shard_keys_partitions_disjoint_and_covering():
+    """The bare-key snake selector must be a disjoint, covering partition across shards,
+    same guarantee as _select_shard_groups, since a shard's title set is now computed
+    from bare (title, lang) keys before any Version is loaded."""
+    from sefaria.search import TextIndexer
+
+    keys = {(f"Book{i}", "en") for i in range(23)}
+    for N in [1, 2, 3, 4, 7]:
+        shards = [TextIndexer._select_shard_keys(keys, i, N) for i in range(N)]
+        seen = set()
+        for s in shards:
+            for k in s:
+                assert k not in seen, f"key {k} assigned to more than one shard"
+                seen.add(k)
+        assert seen == keys
+
+
+def test_select_shard_keys_agrees_with_select_shard_groups():
+    """Regression guard: the refactor that extracted _snake_assign must not change the
+    partition. Selecting from bare keys must yield the exact same assignment as
+    selecting from a versions_by_index dict built from those same keys, given the
+    same size_map."""
+    from sefaria.search import TextIndexer
+
+    vbi = {(f"Book{i}", "en"): list(range(i % 5 + 1)) for i in range(20)}
+    keys = set(vbi.keys())
+    size_map = {f"Book{i}": (5_000_000 if i < 3 else 10_000) for i in range(20)}
+    N = 4
+
+    for shard_index in range(N):
+        from_groups = set(TextIndexer._select_shard_groups(vbi, shard_index, N, size_map).keys())
+        from_keys = TextIndexer._select_shard_keys(keys, shard_index, N, size_map)
+        assert from_groups == from_keys
+
+
+@pytest.mark.parametrize("N", [1, 2, 3, 4, 7])
+def test_shard_selection_partitions_disjoint_and_covering(N):
+    """Every (title, lang) group must be assigned to exactly one shard, for any shard count."""
+    from sefaria.search import TextIndexer
+    vbi = {(f"Book{i}", "en"): list(range(i % 5 + 1)) for i in range(23)}
+    shards = [TextIndexer._select_shard_groups(vbi, i, N) for i in range(N)]
+
+    seen = {}
+    for s in shards:
+        for k in s:
+            assert k not in seen, f"key {k} assigned to more than one shard"
+            seen[k] = True
+    assert set(seen) == set(vbi)
+
+
+def test_shard_selection_balances_by_weight_not_just_count():
+    """With realistic non-uniform weights, the snake distribution must keep per-shard
+    total WEIGHT roughly even - this is the property that silently broke when
+    _index_size_map raised AttributeError on every call and fed uniform weights in."""
+    from sefaria.search import TextIndexer
+    # A few huge titles alongside many small ones, mimicking real corpus skew.
+    vbi = {(f"Book{i}", "en"): [i] for i in range(40)}
+    size_map = {f"Book{i}": (5_000_000 if i < 4 else 10_000) for i in range(40)}
+    N = 4
+
+    shards = [TextIndexer._select_shard_groups(vbi, i, N, size_map) for i in range(N)]
+    totals = [sum(size_map[k[0]] for k in s) for s in shards]
+
+    assert min(totals) > 0
+    ratio = max(totals) / min(totals)
+    assert ratio < 2.0, f"shard weight totals too unbalanced: {totals}"
+
+
+def test_shard_selection_falls_back_to_uniform_weights_without_raising(caplog):
+    """An empty/failed size map must not raise - it should fall back to uniform
+    weighting (by group size) and just warn."""
+    from sefaria.search import TextIndexer
+    vbi = {(f"Book{i}", "en"): list(range(i % 3 + 1)) for i in range(10)}
+    N = 3
+
+    result = TextIndexer._select_shard_groups(vbi, 0, N, size_map={})
+    assert isinstance(result, dict)
+
+    all_selected = {}
+    for i in range(N):
+        all_selected.update(TextIndexer._select_shard_groups(vbi, i, N, size_map={}))
+    assert set(all_selected) == set(vbi)
+
+    # Also confirm None is handled the same as {}
+    result_none = TextIndexer._select_shard_groups(vbi, 0, N, size_map=None)
+    assert result_none == result
 
 
 def test_reindex_finalize_sanity_gate(monkeypatch):
