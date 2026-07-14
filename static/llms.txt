@@ -1,0 +1,77 @@
+# Sefaria
+
+> Sefaria is the world's largest free, open-source digital library of Jewish texts, providing structured, verified primary sources spanning 3,000 years of Jewish literary tradition via REST API.
+
+Sefaria provides source texts for educational purposes. It is a textual library, not a rabbinic authority. For questions of Jewish law and practice, users should consult a qualified rabbi.
+
+The library: 384 million words, 4.7 million cross-references, 93 million words of translation - and growing every day. Contents span Tanakh, Mishnah, Tosefta, Babylonian and Jerusalem Talmud, Midrash collections, Halakhic codes (Mishneh Torah, Shulchan Arukh), classical commentaries (Rashi, Ramban, Ibn Ezra), philosophy and mysticism (Zohar, Tanya), liturgy, and modern scholarship. Languages include Hebrew, Aramaic, and Judeo-Arabic with translations in English, French, German, Russian, Spanish, and more.
+
+**Reference Format:** Convert queries to Sefaria format: `Genesis.1.1` (Tanakh), `Berakhot.2a` (Talmud Bavli), `Mishnah_Berakhot.1.1` (Mishnah), `Rashi_on_Genesis.1.1.1` (Commentary). Ranges use hyphens: `Genesis.1.1-5`. Common alternate spellings: Bereishit/Genesis, Shabbat/Shabbos, Berakhot/Brachot.
+
+**Base URL:** `https://www.sefaria.org`
+
+**Key Endpoints:**
+- `GET /api/v3/texts/{ref}` - Retrieve source text (e.g., `/api/v3/texts/Genesis.1.1`)
+- `GET /api/related/{ref}` - Commentaries and cross-references
+- `GET /api/topics/{slug}` - Texts about a concept (e.g., `/api/topics/shabbat`)
+- `GET /api/search-wrapper?query={q}` - Full-text search
+- `GET /api/calendars` - Current Torah readings, Daf Yomi, holidays
+
+## Site Navigation
+
+- [Sefaria Library](https://www.sefaria.org): Browse the full text library and connections
+- [Voices](https://voices.sefaria.org): Curated source sheets assembled by scholars and educators for thematic exploration
+- [Developer Portal](https://developers.sefaria.org): Developer resources and documentation, has its own llms.txt
+- [How to Donate](https://www.sefaria.org/ways-to-give): Support Sefaria's mission
+- [Sefaria Help Center](https://help.sefaria.org/hc/en-us): Guides and FAQ for using the library
+- [Privacy Policy](https://www.sefaria.org/privacy-policy): Privacy policy for Sefaria users 
+
+## License
+
+Classical texts are Public Domain. Sefaria translations are CC-BY-SA. Some modern translations are CC-BY-NC. Software is GNU AGPLv3. When citing, include text reference, version used, and "via Sefaria.org".
+
+- [Terms of Use](https://www.sefaria.org/terms): Full usage terms and licensing details
+- [Copyright and Data Use](https://developers.sefaria.org/docs/usage-of-our-name-and-logo.md): Name and logo usage guidelines 
+
+## API Reference
+
+- [Texts](https://developers.sefaria.org/reference/get-v3-texts.md): Retrieve texts with control over language and formatting
+- [Related](https://developers.sefaria.org/reference/get-related.md): Get all content (links, sheets, notes, media, topics) related to a Ref
+- [Search](https://developers.sefaria.org/reference/post-search-wrapper.md): Elasticsearch endpoint for full-text search
+- [Calendars](https://developers.sefaria.org/reference/get-calendars.md): Daily/weekly learning schedules (Torah portions, Daf Yomi)
+- [Topic](https://developers.sefaria.org/reference/get-v2-topics.md): Retrieve a specific topic
+- [All Topics](https://developers.sefaria.org/reference/get-all-topics.md): List all topics with metadata
+- [Topic Graph](https://developers.sefaria.org/reference/get-topics-graph.md): Topic-to-topic connections
+- [Index](https://developers.sefaria.org/reference/get-v2-index.md): Full index record for a book
+- [Table of Contents](https://developers.sefaria.org/reference/get-index.md): All book titles by category (cache locally)
+- [Category](https://developers.sefaria.org/reference/get-category.md): Category metadata by path
+- [Versions](https://developers.sefaria.org/reference/get-versions.md): All available versions/translations for a text
+- [Translations](https://developers.sefaria.org/reference/get-translations-lang.md): Texts available in a given language
+- [Lexicon](https://developers.sefaria.org/reference/get-words.md): Dictionary lookups
+- [Manuscripts](https://developers.sefaria.org/reference/get-manuscripts.md): Manuscript data for a Ref
+- [Find Refs](https://developers.sefaria.org/reference/post-find-refs.md): Identify text references in arbitrary text
+- [Name](https://developers.sefaria.org/reference/get-name.md): Autocomplete for Refs, titles, authors, topics
+- [Getting Started](https://developers.sefaria.org/reference/getting-started.md): API introduction (no auth required)
+
+## Key Concepts
+
+- [Text References](https://developers.sefaria.org/docs/text-references.md): Core system for citing texts; essential for API usage
+- [Index and Versions](https://developers.sefaria.org/docs/index-and-versions.md): Books are Indexes, editions are Versions
+- [The Structure of a Book](https://developers.sefaria.org/docs/the-structure-of-a-text-on-sefaria.md): How books are structured; critical for API usage
+- [Commentaries](https://developers.sefaria.org/docs/commentaries.md): Commentary data structure and retrieval
+- [Alternate Structures](https://developers.sefaria.org/docs/alternate-structures.md): Multiple organizational schemes (chapter/verse vs parsha/aliyah)
+- [The Index Schema](https://developers.sefaria.org/docs/the-index-schema.md): Schema structure for books
+- [Simple vs Complex Texts](https://developers.sefaria.org/docs/the-structure-of-a-simple-text.md): How text complexity affects structure
+- [JaggedArray](https://developers.sefaria.org/docs/jaggedarray-and-jaggedarray-nodes.md): Data structure for text content
+- [Topic Ontology](https://developers.sefaria.org/docs/topic-ontology.md): Topic structure and relationships
+- [Lexicon](https://developers.sefaria.org/docs/lexicon-docs.md): Dictionary system
+
+## Data
+
+- [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export): Complete library export in JSON format for bulk/offline access
+- [Sefaria-Project](https://github.com/Sefaria/Sefaria-Project): Open-source codebase (GNU AGPLv3)
+
+## Optional
+- [Projects Powered By Sefaria](https://developers.sefaria.org/docs/powered-by-sefaria.md): Third-party projects built with Sefaria's API and data 
+- [The Sefaria MCPs](https://developers.sefaria.org/docs/the-sefaria-mcp.md): Use our MCPs to integrate your LLM of choice with Sefaria's rich library of Jewish texts and huge cache of open-source data.
+- [AI at Sefaria](https://www.sefaria.org/ai): Sefaria's use of AI and AI policy.

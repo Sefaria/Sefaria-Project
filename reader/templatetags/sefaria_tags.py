@@ -45,6 +45,22 @@ register = template.Library()
 domain = SimpleLazyObject(lambda: Site.objects.get_current().domain)
 
 
+@register.simple_tag
+def social_image_url(request, platform):
+    """
+    Build the social-image endpoint URL with a real query encoder so version
+    titles containing spaces, pipes, ampersands, or punctuation survive when
+    nested inside the meta tag URL.
+    """
+    params = {
+        "lang": request.GET.get("lang", ""),
+        "platform": platform,
+        "ven": request.GET.get("ven", ""),
+        "vhe": request.GET.get("vhe", ""),
+    }
+    return f"https://{request.get_host()}/api/img-gen{request.path}?{urllib.parse.urlencode(params)}"
+
+
 class SyncedMetaTagNode(template.Node):
     """
     Base node that renders content into synchronized regular, OpenGraph, and Twitter meta tags.
@@ -341,7 +357,7 @@ def strip_tags(value):
 
 @register.filter(is_safe=True)
 def escape_quotes(value):
-	"""
+	r"""
 	Returns the given HTML with single and double quotes escpaed with \ for a JS context
 	"""
 	value = value.replace("'", "\\'")
@@ -608,5 +624,4 @@ def date_string_to_date(dateString):
 def sheet_via_absolute_link(sheet_id):
     return mark_safe(absolute_link(
 		'<a href="/sheets/{}">a sheet</a>'.format(sheet_id)))
-
 

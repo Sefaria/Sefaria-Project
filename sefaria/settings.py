@@ -79,6 +79,7 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
+SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [
@@ -123,6 +124,7 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sefaria.system.middleware.SessionIDAuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_user_agents.middleware.UserAgentMiddleware',
     'sefaria.system.middleware.ModuleMiddleware',
@@ -160,6 +162,8 @@ INSTALLED_APPS = (
     'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
+    'powered_by.apps.PoweredByAppConfig',
+    'dedications.apps.DedicationsAppConfig',
     'django_recaptcha',
     'django.contrib.admin',
     'anymail',
@@ -171,7 +175,14 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'django_hosts',
+    'pgvector.django',
+    'semantic_search',
+    'django.contrib.postgres'
 )
+
+DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
+
+SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 
 LOGIN_URL = 'login'
 

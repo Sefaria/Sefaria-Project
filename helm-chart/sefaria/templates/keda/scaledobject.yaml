@@ -8,6 +8,9 @@
 {{- if .Values.keda.varnish.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "varnish" (printf "%s-varnish" .Values.deployEnv) .Values.keda.varnish) }}
 {{- end }}
+{{- if .Values.keda.redis.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "redis" (printf "%s-redis" .Values.deployEnv) .Values.keda.redis) }}
+{{- end }}
 {{- if .Values.keda.nodejs.enabled }}
 {{- include "sefaria.keda.scaledobject" (list . "nodejs" (printf "%s-node" .Values.deployEnv) .Values.keda.nodejs) }}
 {{- end }}

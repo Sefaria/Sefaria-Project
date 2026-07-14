@@ -349,6 +349,9 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
+        '_source': {
+            'excludes': ['linked_refs']
+        },
         'properties' : {
             'categories': {
                 'type': 'keyword',
@@ -400,6 +403,9 @@ def put_text_mapping(index_name):
                         'analyzer': 'exact_english'
                     }
                 }
+            },
+            "linked_refs": {
+                'type': 'keyword'
             }
         }
     }
@@ -750,11 +756,13 @@ class TextIndexer(object):
                 if rolled_back:
                     vcount -= rolled_back
                     failed += rolled_back
-        
+
+            if idx_count % 100 == 0:
+                elapsed_so_far = datetime.now() - start_time
+                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+
         elapsed = datetime.now() - start_time
-        # Only log if there are failures or skips
-        if failed > 0 or skipped > 0:
-            logger.debug(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
@@ -807,7 +815,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, doc, id=id)
+        es_client.index(index=index_name, document=doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
@@ -891,6 +899,12 @@ class TextIndexer(object):
 
         oref = Ref(tref)
 
+        linked_refs = []
+        for link in LinkSet(oref):
+            linked_refs.extend(link.expandedRefs0)
+            linked_refs.extend(link.expandedRefs1)
+        linked_refs = list({r for r in linked_refs if r != tref})
+
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
@@ -916,6 +930,7 @@ class TextIndexer(object):
             'hebrew_version_title': hebrew_version_title,
             "languageFamilyName": language_family_name,
             "isPrimary": is_primary,
+            "linked_refs": linked_refs,
         }
 
 

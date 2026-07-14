@@ -7,6 +7,7 @@ from io import StringIO
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.shortcuts import redirect
 from django.http import HttpResponse
@@ -14,6 +15,7 @@ from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
+from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
@@ -314,6 +316,44 @@ class SessionCookieDomainMiddleware(MiddlewareMixin):
         return response
 
 
+class SessionIDAuthMiddleware(MiddlewareMixin):
+    """
+    Authenticates anonymous requests from an encrypted X-Session-ID header.
+
+    This supplements Django's normal session auth. If the request already has an
+    authenticated user from the session, this middleware leaves it untouched.
+    """
+
+    def process_request(self, request):
+        if getattr(request, "user", None) and request.user.is_authenticated:
+            return
+
+        header_name = getattr(settings, "SESSION_ID_AUTH_HEADER", "HTTP_X_SESSION_ID")
+        encrypted_session_id = request.META.get(header_name)
+        if not encrypted_session_id:
+            return
+
+        user_id = get_user_id_from_chatbot_user_token(
+            encrypted_session_id,
+            getattr(settings, "CHATBOT_USER_ID_SECRET", None),
+        )
+        if not user_id:
+            return
+
+        User = get_user_model()
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return
+
+        if getattr(user, "is_active", True) is False:
+            return
+
+        request.user = user
+        request._cached_user = user
+        request.user_id = user.id
+
+
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """
@@ -397,6 +437,11 @@ class ModuleMiddleware(MiddlewareURLMixin):
     def __init__(self, get_response):
         self.get_response = get_response
         self.default_module = LIBRARY_MODULE
+
+    def should_process_request(self, request):
+        if request.path.startswith('/api/img-gen/'):
+            return True
+        return super().should_process_request(request)
 
     def _set_active_module(self, request):
         """

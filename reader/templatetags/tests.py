@@ -75,3 +75,24 @@ class TestStaticFileTag(SimpleTestCase):
         rendered = template.render(Context({}))
         self.assertIn(f'?v={new_expected_hash}', rendered)
         self.assertNotIn(f'?v={self.expected_hash}', rendered)
+
+
+class TestSocialImageUrlTag(SimpleTestCase):
+    databases = set()
+
+    def test_social_image_url_tag_url_encodes_version_query_params(self):
+        template = Template('{% load sefaria_tags %}{% social_image_url request "facebook" %}')
+        request = self.client.request().wsgi_request
+        request.path = "/Genesis.1.1"
+        request.GET = {
+            "lang": "en",
+            "ven": "english|The Five Books of Moses, by Everett Fox & Co.",
+            "vhe": "",
+        }
+
+        rendered = template.render(Context({"request": request}))
+
+        self.assertIn("platform=facebook", rendered)
+        self.assertIn("lang=en", rendered)
+        self.assertIn("ven=english%7CThe+Five+Books+of+Moses%2C+by+Everett+Fox+%26+Co.", rendered)
+        self.assertNotIn("Everett Fox & Co.", rendered)

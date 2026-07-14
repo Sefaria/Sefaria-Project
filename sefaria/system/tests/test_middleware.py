@@ -5,10 +5,12 @@ Tests that session and CSRF cookie domains are dynamically set based on
 an approved list derived from DOMAIN_MODULES.
 """
 from unittest.mock import patch
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
-from sefaria.system.middleware import SessionCookieDomainMiddleware
-
+from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
 # TEST CONFIGURATIONS
@@ -54,10 +56,10 @@ EMPTY_CONFIG = {}
 # HELPER FUNCTIONS
 # ============================================================================
 
-def create_request(host):
+def create_request(host, path='/'):
     """Create a mock request with the specified host."""
     factory = RequestFactory()
-    request = factory.get('/')
+    request = factory.get(path)
     request.META['HTTP_HOST'] = host
     return request
 
@@ -78,6 +80,40 @@ def create_response_without_cookies():
 # ============================================================================
 # TESTS: APPROVED DOMAIN LIST BUILDING
 # ============================================================================
+
+
+class TestModuleMiddleware:
+    """Test active module detection for regular pages and social image API requests."""
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
+    def test_social_image_api_uses_host_module(self):
+        captured = {}
+
+        def get_response(request):
+            captured["active_module"] = request.active_module
+            return HttpResponse()
+
+        middleware = ModuleMiddleware(get_response=get_response)
+        request = create_request('voices.localsefaria.xyz:8000', '/api/img-gen/not-a-ref')
+
+        middleware(request)
+
+        assert captured["active_module"] == VOICES_MODULE
+
+    @override_settings(DOMAIN_MODULES=LOCAL_CONFIG)
+    def test_other_api_paths_use_default_module(self):
+        captured = {}
+
+        def get_response(request):
+            captured["active_module"] = request.active_module
+            return HttpResponse()
+
+        middleware = ModuleMiddleware(get_response=get_response)
+        request = create_request('voices.localsefaria.xyz:8000', '/api/texts/Genesis.1.1')
+
+        middleware(request)
+
+        assert captured["active_module"] == LIBRARY_MODULE
 
 class TestBuildApprovedDomains:
     """Test the _build_approved_domains method."""
@@ -504,9 +540,65 @@ class TestLegacyCookieExpiration:
         middleware.process_request(request)
         result = middleware.process_response(request, response)
 
-        # Only CSRF legacy expiry morsel should be added
+        # Only CSRF legacy morsel should be added — session cookie was not in the response
         assert '_legacy_expire_csrftoken' in result.cookies
         assert '_legacy_expire_sessionid' not in result.cookies
+
+
+class TestSessionIDAuthMiddleware:
+    secret = "test-session-id-secret"
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+        self.middleware = SessionIDAuthMiddleware(get_response=lambda r: HttpResponse())
+
+    def test_valid_header_authenticates_anonymous_request(self, django_user_model):
+        user = django_user_model.objects.create_user(username="header-auth-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.is_authenticated
+        assert request.user.id == user.id
+        assert request.user_id == user.id
+        assert request._cached_user.id == user.id
+
+    def test_invalid_header_leaves_request_anonymous(self):
+        request = self.factory.get("/", HTTP_X_SESSION_ID="not-a-valid-token")
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
+
+    def test_existing_session_user_takes_precedence(self, django_user_model):
+        session_user = django_user_model.objects.create_user(username="session-user", password="pass")
+        other_user = django_user_model.objects.create_user(username="header-other-user", password="pass")
+        token = build_chatbot_user_token(other_user.id, self.secret)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = session_user
+        request._cached_user = session_user
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert request.user.id == session_user.id
+        assert request._cached_user.id == session_user.id
+
+    def test_expired_header_leaves_request_anonymous(self, django_user_model):
+        user = django_user_model.objects.create_user(username="expired-header-user", password="pass")
+        token = build_chatbot_user_token(user.id, self.secret, ttl_hours=-1)
+        request = self.factory.get("/", HTTP_X_SESSION_ID=token)
+        request.user = AnonymousUser()
+
+        with override_settings(CHATBOT_USER_ID_SECRET=self.secret):
+            self.middleware.process_request(request)
+
+        assert not request.user.is_authenticated
 
 
 # ============================================================================

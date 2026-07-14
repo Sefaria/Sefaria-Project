@@ -18,10 +18,21 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
-    }
+    },
+    'vector_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGVECTOR_DB', 'pgvector'),
+        'USER': os.getenv('PGVECTOR_USER', os.getenv('POSTGRES_USER', 'admin')),
+        'PASSWORD': os.getenv('PGVECTOR_PASSWORD', os.getenv('POSTGRES_PASSWORD', 'admin')),
+        'HOST': os.getenv('PGVECTOR_HOST', 'localhost'),
+        'PORT': os.getenv('PGVECTOR_DB_PORT', '5432'),
+    },
 }
 
 ADMIN_PATH = 'admin'
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+SEMANTIC_SEARCH_API_TOKEN = os.getenv("SEMANTIC_SEARCH_API_TOKEN", "")
