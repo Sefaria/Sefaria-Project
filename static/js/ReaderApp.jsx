@@ -32,6 +32,7 @@ import {
   CookiesNotification,
 } from './Misc';
 import Button from './common/Button';
+import GoogleOneTap from './common/GoogleOneTap';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -2477,6 +2478,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
+            <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {showChatbotBanner && (

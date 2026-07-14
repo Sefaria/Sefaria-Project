@@ -7,7 +7,7 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, authError, getCsrf, makeFlowId, safeNext, focusProvider } from './utils.js';
+import { whenReady, authError, getCsrf, makeFlowId, safeNext, focusProvider, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
 
 const ChooseView = ({
   flow, switchFlow, next, onEmailClick,
@@ -58,7 +58,7 @@ const ChooseView = ({
           if (useRedirect) {
             config.login_uri = `${window.location.origin}/auth/google/redirect`;
           } else {
-            config.callback = (resp) => onSSOResult('/_allauth/browser/v1/auth/provider/token', {
+            config.callback = (resp) => onSSOResult(ALLAUTH_PROVIDER_TOKEN_URL, {
               provider: 'google',
               process: 'login',
               token: { client_id: googleClientId, id_token: resp.credential },
