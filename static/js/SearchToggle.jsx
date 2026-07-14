@@ -24,12 +24,12 @@ const SearchToggle = ({ options, selected, onChange }) => {
       <div className="searchToggle__slider" style={sliderStyle} aria-hidden="true" />
       {options.map((option, i) => (
         <button
+          type="button"
           key={option.name}
           ref={el => { optionRefs.current[i] = el; }}
           className={`searchToggle__option${selected === option.name ? ' searchToggle__option--active' : ''}`}
           onClick={() => onChange(option.name)}
           aria-pressed={selected === option.name}
-        >
           <InterfaceText text={{ en: option.en, he: option.he }} />
         </button>
       ))}
