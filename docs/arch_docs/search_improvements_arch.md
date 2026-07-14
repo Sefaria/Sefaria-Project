@@ -49,7 +49,7 @@ The `/api/entity-search` endpoint is backed by two new Elasticsearch indices —
 
 **`topic` index — topics and authors**
 
-One document per Topic. Authors are not a separate index — `AuthorTopic` is a subtype of `Topic`, so authors live in the `topic` index and are distinguished by a `subtype` field (`"topic"` or `"author"`).
+One document per Topic **in the `library` TopicPool**. Pool membership (curated in Postgres via `django_topics`) is the inclusion filter: the full Mongo `TopicSet` carries ~40k topics, most of them auto-generated noise never curated for the library, so only the ~5.5k library-pool topics and authors are indexed. Authors are not a separate index — `AuthorTopic` is a subtype of `Topic`, so authors live in the `topic` index and are distinguished by a `subtype` field (`"topic"` or `"author"`).
 
 | Field | Type | Analyzer | Notes |
 |---|---|---|---|
@@ -109,7 +109,7 @@ The pipeline plugs into the existing reindex infrastructure rather than building
 - *Topic builder*: reads titles, variants, descriptions, and `numSources`; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
 - *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer.
 
-**Bulk indexers** — `index_topics` iterates all topics via `TopicSet`; `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
+**Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
 
 
 Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_BOOK` (defaulting to `topic` and `book`), parallel to `SEARCH_INDEX_NAME_TEXT` / `_SHEET`.
