@@ -18,6 +18,7 @@ from elastic_transport import ConnectionError as ESConnectionError, ConnectionTi
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
+from django_topics.models import Topic as DjangoTopic, PoolType
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
@@ -1191,6 +1192,16 @@ def _without_none(doc):
     return {k: v for k, v in doc.items() if v is not None}
 
 
+def library_topic_slugs():
+    """
+    Slugs of the topics curated into the `library` TopicPool (Postgres, via
+    django_topics). Entity search only indexes these: the full Mongo TopicSet
+    carries ~40k topics, most of them auto-generated noise that was never
+    curated for the library.
+    """
+    return list(DjangoTopic.objects.get_topic_slugs_by_pool(PoolType.LIBRARY.value))
+
+
 def _build_authored_titles_map():
     """
     Map every author slug to the titles of their works in one `IndexSet()` pass:
@@ -1396,17 +1407,19 @@ def _bulk_index_entities(index_name, actions, entity_label):
 
 def index_topics(index_name):
     """
-    Index every Topic (and AuthorTopic) into `index_name`, keyed by slug (idempotent).
+    Index every Topic (and AuthorTopic) in the `library` TopicPool into `index_name`,
+    keyed by slug (idempotent). Topics outside the pool are not indexed at all.
     Skipped slugs (no title / no slug) are collected into the returned summary.
     """
     logger.info(f"Starting index_topics - index_name: {index_name}")
     skipped = []
     total = 0
     authored_titles_map = _build_authored_titles_map()
+    pool_slugs = library_topic_slugs()
 
     def actions():
         nonlocal total
-        for topic in TopicSet():
+        for topic in TopicSet({"slug": {"$in": pool_slugs}}):
             total += 1
             doc = make_topic_index_document(topic, authored_titles_map)
             if doc is None:
