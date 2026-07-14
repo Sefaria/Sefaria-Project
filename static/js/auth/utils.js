@@ -31,8 +31,10 @@ export function getCsrf() {
 export function pickFirstError(data) {
   if (!data || typeof data !== 'object') return null;
   if (typeof data.error === 'string') return data.error;
+  if (typeof data.errors?.[0]?.message === 'string')
+    return data.errors[0].message;
   for (const k of Object.keys(data)) {
-    if (k === '_auth') continue;
+    if (k === '_auth' || k === 'errors') continue;
     if (typeof data[k] === 'string') return data[k];
   }
   return null;

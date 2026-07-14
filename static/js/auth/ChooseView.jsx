@@ -7,7 +7,7 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, authError, makeFlowId, safeNext, focusProvider } from './utils.js';
+import { whenReady, authError, getCsrf, makeFlowId, safeNext, focusProvider } from './utils.js';
 
 const ChooseView = ({
   flow, switchFlow, next, onEmailClick,
@@ -23,7 +23,7 @@ const ChooseView = ({
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
@@ -58,7 +58,11 @@ const ChooseView = ({
           if (useRedirect) {
             config.login_uri = `${window.location.origin}/auth/google/redirect`;
           } else {
-            config.callback = (resp) => onSSOResult('/api/auth/google/callback', { credential: resp.credential });
+            config.callback = (resp) => onSSOResult('/_allauth/browser/v1/auth/provider/token', {
+              provider: 'google',
+              process: 'login',
+              token: { client_id: googleClientId, id_token: resp.credential },
+            });
           }
           window.google.accounts.id.initialize(config);
           const el = googleBtnRef.current;
@@ -105,7 +109,7 @@ const ChooseView = ({
           window.AppleID.auth.init({
             clientId: appleClientId,
             scope: 'name email',
-            redirectURI: `${window.location.origin}/auth/apple/redirect`,
+            redirectURI: `${window.location.origin}/accounts/apple/login/callback/`,
             state: ssoRedirectState,
             usePopup: !useRedirect,
           });
