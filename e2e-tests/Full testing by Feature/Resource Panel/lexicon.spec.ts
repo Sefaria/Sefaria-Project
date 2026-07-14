@@ -36,7 +36,7 @@ test.describe('Resource Panel — Lexicon — English interface, Hebrew text', (
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-050: Selecting 1 Hebrew word auto-opens the Lexicon with definitions', async () => {
+  test('RP-050: Selecting 1 Hebrew word auto-opens the Lexicon with definitions', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().selectHebrewWordInMainReader();
     await pm.onResourcePanel().expectLexiconOpen();
     await pm.onResourcePanel().expectLexiconHasResults();

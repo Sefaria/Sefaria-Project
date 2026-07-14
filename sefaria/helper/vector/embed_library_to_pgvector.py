@@ -7,11 +7,9 @@ Chunks and embeds the entire Sefaria library (every Index, every Version, every
 language) using the patot semantic chunker + Gemini embedding pipeline, and upserts
 the resulting chunks into a pgvector-backed Postgres table (`library_chunks`).
 
-Designed to run as a sharded Kubernetes Indexed Job: each pod processes the subset of
-indexes whose title hashes (mod --shard-count) into --shard-index. Resumable - on
-restart, (index, language, version_title) combinations whose section refs are already
-present in pgvector are skipped, so a restart does not re-embed (and re-bill Gemini
-for) already-completed work.
+Resumable - on restart, (index, language, version_title) combinations whose section
+refs are already present in pgvector are skipped, so a restart does not re-embed
+(and re-bill Gemini for) already-completed work.
 
 Note: Logging is configured via sefaria.search.setup_logging() so output is visible
 in `kubectl logs`.
@@ -31,13 +29,11 @@ import django
 django.setup()
 
 from django.conf import settings as django_settings
-from django.db import connections
 from sefaria.model import *
 from sefaria.search import setup_logging
 from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import DjangoSemanticTextChunk
-from semantic_search.semantic_text_chunk import SemanticTextChunk
+from semantic_search.models import SemanticTextChunk
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -53,9 +49,16 @@ if os.environ.get("TQDM_DISABLE"):
     _tqdm_module.tqdm.__init__ = _patched_tqdm_init
     _tqdm_auto_module.tqdm.__init__ = _patched_tqdm_init
 
-from patot import ChunkerConfig, PatotChunker
-from patot.records import SegmentRecord
-from patot.analytics import ChunkingRuntimeAnalytics
+# patot is an optional dependency, only present in the embedding job image (not the
+# web/test image). Guard the import so this module can be imported (and its pure helpers
+# tested) without patot installed; the `if PatotChunker is None` check in main() handles
+# the runtime case.
+try:
+    from patot import ChunkerConfig, PatotChunker
+    from patot.records import SegmentRecord
+    from patot.analytics import ChunkingRuntimeAnalytics
+except ModuleNotFoundError:
+    ChunkerConfig = PatotChunker = SegmentRecord = ChunkingRuntimeAnalytics = None
 
 _slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
 
@@ -63,58 +66,12 @@ logger = logging.getLogger(__name__)
 
 SEPARATOR_LINE = "=" * 60
 
-_SCHEMA_ADVISORY_LOCK_KEY = 727274002
-_SCHEMA_SQL = """
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE IF NOT EXISTS library_chunks (
-    doc_id                  TEXT PRIMARY KEY,
-    index_title             TEXT NOT NULL,
-    ref                     TEXT NOT NULL,
-    url                     TEXT NOT NULL,
-    chunked_from_ref        TEXT NOT NULL,
-    language                TEXT NOT NULL,
-    version_title           TEXT NOT NULL,
-    direction               TEXT NOT NULL,
-    text                    TEXT NOT NULL,
-    embedding               VECTOR(1536) NOT NULL,
-    primary_category        TEXT,
-    all_categories          TEXT[],
-    is_primary              BOOLEAN,
-    is_source               BOOLEAN,
-    composition_date        JSONB,
-    composition_place       TEXT,
-    era_name                TEXT,
-    pagerank                DOUBLE PRECISION,
-    author_names            TEXT[],
-    author_slugs            TEXT[],
-    associated_topic_names  TEXT[],
-    associated_topic_slugs  TEXT[],
-    linked_refs             TEXT[],
-    chunker_metadata        JSONB NOT NULL,
-    created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_library_chunks_resume
-    ON library_chunks (index_title, language, version_title);
-"""
-
-
-def _ensure_schema() -> None:
-    with connections['vector_db'].cursor() as cur:
-        cur.execute("SELECT pg_advisory_lock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
-        try:
-            cur.execute(_SCHEMA_SQL)
-        finally:
-            cur.execute("SELECT pg_advisory_unlock(%s)", [_SCHEMA_ADVISORY_LOCK_KEY])
-
 # Thread-local storage: each worker thread gets its own PatotChunker.
 thread_local = threading.local()
 
 
 class EmbeddingResult:
-    """Track per-shard embedding progress, failures, and warnings. Thread-safe."""
+    """Track embedding progress, failures, and warnings. Thread-safe."""
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -177,23 +134,13 @@ class EmbeddingResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Chunk and embed the Sefaria library into pgvector.")
     parser.add_argument(
-        "--shard-index", type=int,
-        default=int(os.environ.get("JOB_COMPLETION_INDEX", 0)),
-        help="This pod's shard index (defaults to JOB_COMPLETION_INDEX).",
-    )
-    parser.add_argument(
-        "--shard-count", type=int,
-        default=int(os.environ.get("SHARD_COUNT", 1)),
-        help="Total number of shards (defaults to SHARD_COUNT env var, or 1).",
-    )
-    parser.add_argument(
         "--limit-indexes", type=int, default=None,
-        help="Process only the first N indexes assigned to this shard (for smoke testing).",
+        help="Process only the first N indexes (for smoke testing).",
     )
     parser.add_argument(
         "--threads", type=int,
-        default=int(os.environ.get("SHARD_THREADS", 10)),
-        help="Number of parallel threads for index processing within a shard (defaults to SHARD_THREADS env var, or 10).",
+        default=int(os.environ.get("EMBED_THREADS", 10)),
+        help="Number of parallel threads for index processing (defaults to EMBED_THREADS env var, or 10).",
     )
     parser.add_argument(
         "--max-versions", type=int, default=None,
@@ -201,11 +148,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
     return parser.parse_args()
-
-
-def shard_for_title(title: str, shard_count: int) -> int:
-    """Stable (non-salted) hash so all shards agree on index->shard assignment."""
-    return int(hashlib.sha256(title.encode("utf-8")).hexdigest(), 16) % shard_count
 
 
 def is_passage_based(index) -> bool:
@@ -279,7 +221,7 @@ def chunk_ref_from_segments(source_segment_refs: list):
 
 
 def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
-                     result, index_context: dict, version_context: dict) -> list[DjangoSemanticTextChunk]:
+                     result, index_context: dict, version_context: dict) -> list[SemanticTextChunk]:
     unit_normal = unit_ref.normal()
     unit_slug = _slugify(unit_normal)
     vtitle_slug = _slugify(vtitle)
@@ -295,7 +237,7 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
         chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunks.append(DjangoSemanticTextChunk(
+        chunks.append(SemanticTextChunk(
             doc_id=doc_id,
             index_title=index_title,
             ref=chunk_ref.normal(),
@@ -428,11 +370,6 @@ def main():
             "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency."
         )
 
-    if args.shard_count < 1:
-        raise SystemExit("--shard-count must be at least 1")
-    if not (0 <= args.shard_index < args.shard_count):
-        raise SystemExit(f"--shard-index ({args.shard_index}) must be in [0, {args.shard_count})")
-
     api_key = django_settings.GEMINI_API_KEY
     if not api_key:
         raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
@@ -442,10 +379,8 @@ def main():
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
-    logger.info(f"Shard {args.shard_index} of {args.shard_count}, threads={args.threads}")
+    logger.info(f"threads={args.threads}")
     logger.info(SEPARATOR_LINE)
-
-    _ensure_schema()
 
     config = ChunkerConfig(
         debug=False,
@@ -456,22 +391,21 @@ def main():
     )
 
     all_indexes = library.all_index_records()
-    shard_indexes = [idx for idx in all_indexes if shard_for_title(idx.title, args.shard_count) == args.shard_index]
-    logger.info(f"This shard owns {len(shard_indexes)} of {len(all_indexes)} indexes")
+    logger.info(f"Total indexes: {len(all_indexes)}")
 
     if args.limit_indexes is not None:
-        shard_indexes = shard_indexes[:args.limit_indexes]
-        logger.info(f"--limit-indexes set: processing only {len(shard_indexes)} index(es)")
+        all_indexes = all_indexes[:args.limit_indexes]
+        logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
     if args.max_versions is not None:
-        before = len(shard_indexes)
-        shard_indexes = [idx for idx in shard_indexes
-                         if VersionSet({"title": idx.title}).count() <= args.max_versions]
-        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(shard_indexes)} index(es), "
-                    f"{len(shard_indexes)} remaining")
+        before = len(all_indexes)
+        all_indexes = [idx for idx in all_indexes
+                       if VersionSet({"title": idx.title}).count() <= args.max_versions]
+        logger.info(f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
+                    f"{len(all_indexes)} remaining")
 
-    total_versions = sum(VersionSet({"title": idx.title}).count() for idx in shard_indexes)
-    logger.info(f"Total versions in this shard: {total_versions}")
+    total_versions = sum(VersionSet({"title": idx.title}).count() for idx in all_indexes)
+    logger.info(f"Total versions: {total_versions}")
 
     with tqdm(total=total_versions, desc="versions", unit="ver", file=sys.stderr, disable=None) as version_pbar:
         def run_index(index):
@@ -487,7 +421,7 @@ def main():
             initializer=thread_init,
             initargs=(api_key, config),
         ) as executor:
-            futures = [executor.submit(run_index, index) for index in shard_indexes]
+            futures = [executor.submit(run_index, index) for index in all_indexes]
             completed = 0
             for future in as_completed(futures):
                 future.result()

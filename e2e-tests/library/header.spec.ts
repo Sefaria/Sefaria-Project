@@ -78,7 +78,7 @@ test.describe('Library Module Header Tests - English', () => {
     await pm.onModuleHeader().testSearch('Genesis 1:1', /Genesis/);
   });
 
-  test('MOD-H005: Language switcher functionality', async () => {
+  test('MOD-H005: Language switcher functionality', { tag: '@sanity' }, async () => {
     // Verify starts in English
     await expect(page.locator('body')).toHaveClass(/interface-english/);
     await expect(page.getByRole('link', { name: 'Texts' })).toBeVisible();
@@ -91,7 +91,7 @@ test.describe('Library Module Header Tests - English', () => {
     await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
   });
 
-  test('MOD-H006: Module switcher navigation', async () => {
+  test('MOD-H006: Module switcher navigation', { tag: '@sanity' }, async () => {
     // Test Voices navigation (new tab)
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
     let newPage = await pm.onModuleHeader().selectDropdownOption('Voices', true);
@@ -203,13 +203,13 @@ test.describe('Library Module Header Tests - Logged In', () => {
     await hideAllModalsAndPopups(page);
   });
 
-  test('MOD-H015: Library header shows the Saved items (bookmark) icon when logged in', async () => {
+  test('MOD-H015: Library header shows the Saved items (bookmark) icon when logged in', { tag: '@sanity' }, async () => {
     await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
     // Presence-only: the bookmark icon renders in the header for a logged-in Library user.
     await pm.onModuleHeader().expectSavedItemsIcon();
   });
 
-  test('MOD-H016: Library user menu contains all expected items', async () => {
+  test('MOD-H016: Library user menu contains all expected items', { tag: '@sanity' }, async () => {
     // Presence-only: every expected item exists in the logged-in user-menu dropdown.
     await pm.onModuleHeader().assertUserMenuItems(USER_MENU_ITEMS.LIBRARY_LOGGED_IN);
   });

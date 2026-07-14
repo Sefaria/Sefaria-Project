@@ -27,22 +27,22 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('UX-001: Floating trigger button is visible when the panel is closed', async () => {
+  test('UX-001: Floating trigger button is visible when the panel is closed', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().expectTriggerVisible();
   });
 
-  test('UX-003: Clicking the floating trigger opens the chat panel and focuses input', async () => {
+  test('UX-003: Clicking the floating trigger opens the chat panel and focuses input', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().clickTriggerAndExpectOpen();
   });
 
-  test('UX-004: Close button closes the chat panel', async () => {
+  test('UX-004: Close button closes the chat panel', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().clickCloseAndExpectClosed();
   });
 
-  test('UX-013: Toggle panel to docked (side-rail) mode', async () => {
+  test('UX-013: Toggle panel to docked (side-rail) mode', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().toggleToDocked();
   });
@@ -59,7 +59,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().expectSendDisabled();
   });
 
-  test('UX-023: Send button is enabled when the input has text', async () => {
+  test('UX-023: Send button is enabled when the input has text', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> hello');
     await pm.onLibraryAssistant().expectSendEnabled();
@@ -76,7 +76,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-026: Clicking the send button sends the typed message', async () => {
+  test('UX-026: Clicking the send button sends the typed message', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     const prompt = '<AUTO TEST> Say hello in one short word';
     await pm.onLibraryAssistant().ensureOpen();
@@ -87,7 +87,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027: Input and send button are disabled while awaiting a response', async () => {
+  test('UX-027: Input and send button are disabled while awaiting a response', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
@@ -96,7 +96,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-036: Thinking indicator appears immediately after sending a message', async () => {
+  test('UX-036: Thinking indicator appears immediately after sending a message', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Say hello briefly');
@@ -153,7 +153,7 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectMenuHidden();
   });
 
-  test('UX-060: Restart conversation clears all messages and shows empty state', async () => {
+  test('UX-060: Restart conversation clears all messages and shows empty state', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     // Send a message so there is something to clear
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Hello for restart test');

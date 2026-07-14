@@ -22,7 +22,7 @@ test.describe('Resource Panel — Navigation (TOC) — English', () => {
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-020: TOC opens with the full book hierarchy', async () => {
+  test('RP-020: TOC opens with the full book hierarchy', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().openTOC();
     // At least one section link must be rendered.
     const links = page.locator('.connectionsPanel .textTableOfContents a, .connectionsPanel .tocContent a');
@@ -66,7 +66,7 @@ test.describe('Resource Panel — Navigation (TOC) — Hebrew', () => {
     await pm.onResourcePanel().waitForReaderReady();
   });
 
-  test('RP-023: Hebrew TOC renders the book hierarchy with the Hebrew interface', async () => {
+  test('RP-023: Hebrew TOC renders the book hierarchy with the Hebrew interface', { tag: '@sanity' }, async () => {
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
     await pm.onResourcePanel().openTOC();
     const tocLinks = page.locator('.connectionsPanel .textTableOfContents a, .connectionsPanel .tocContent a');

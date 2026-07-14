@@ -19,8 +19,7 @@ from sefaria.model import (
 )
 from sefaria.helper.vector.context import get_index_context, get_chunk_context
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import DjangoSemanticTextChunk
-from semantic_search.semantic_text_chunk import SemanticTextChunk
+from semantic_search.models import SemanticTextChunk
 
 logger = structlog.get_logger(__name__)
 
@@ -177,7 +176,7 @@ def _section_ref_str(ref_str: str) -> str | None:
         return None
 
 
-def _update_chunk_context_fields(chunks: list[DjangoSemanticTextChunk], fields_to_update: list[str]) -> int:
+def _update_chunk_context_fields(chunks: list[SemanticTextChunk], fields_to_update: list[str]) -> int:
     """
     Recompute get_chunk_context() for each chunk and bulk-update the requested fields.
     `fields_to_update` must be a subset of ['associated_topic_names', 'associated_topic_slugs',
@@ -210,7 +209,7 @@ def update_ref_topic_links(ref_str: str, index_title: str) -> None:
     chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
         # Fall back to section-level query (covers all languages/versions)
-        chunks = list(DjangoSemanticTextChunk.objects.filter(
+        chunks = list(SemanticTextChunk.objects.filter(
             index_title=index_title, chunked_from_ref=section
         ))
     count = _update_chunk_context_fields(
@@ -230,7 +229,7 @@ def update_ref_links(ref_str: str, index_title: str) -> None:
         return
     chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
-        chunks = list(DjangoSemanticTextChunk.objects.filter(
+        chunks = list(SemanticTextChunk.objects.filter(
             index_title=index_title, chunked_from_ref=section
         ))
     count = _update_chunk_context_fields(chunks, ["linked_refs"])
@@ -251,7 +250,7 @@ def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> 
         return
     chunks = _chunk_store.get_chunks_containing_ref(index_title, ref_str)
     if not chunks:
-        chunks = list(DjangoSemanticTextChunk.objects.filter(
+        chunks = list(SemanticTextChunk.objects.filter(
             index_title=index_title, chunked_from_ref=section
         ))
     if not chunks:
