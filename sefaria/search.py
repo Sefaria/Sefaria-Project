@@ -24,7 +24,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, strip_markdown
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
@@ -1265,8 +1265,8 @@ def make_topic_index_document(topic, authored_titles_map=None):
         'title_en': title_en or None,
         'title_he': title_he or None,
         'titleVariants': variants,
-        'description_en': description.get('en', ''),
-        'description_he': description.get('he', ''),
+        'description_en': strip_markdown(description.get('en', '')),
+        'description_he': strip_markdown(description.get('he', '')),
         'numSources': getattr(topic, 'numSources', 0) or 0,
     }
 
@@ -1361,8 +1361,8 @@ def make_book_index_document(index, author_name_cache=None):
         'titleVariants': variants,
         'categories': categories,
         'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        'description_en': getattr(index, 'enShortDesc', '') or '',
-        'description_he': getattr(index, 'heShortDesc', '') or '',
+        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or ''),
+        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or ''),
         'compDate': comp_date,
         'era': getattr(index, 'era', None),
         'authors': author_slugs,
