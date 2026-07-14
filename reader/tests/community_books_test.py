@@ -29,7 +29,7 @@ from django.test import TestCase
 from api import community_books as cb_views
 from api.community_books import CommunityBookStatus, can_view_community_book
 from sefaria.helper.community_book_parser import Chapter, ParseResult
-from sefaria.model import Index, Version, library
+from sefaria.model import Index, Version, VersionState, Ref, library
 from sefaria.search import TextIndexer
 from sefaria.system.database import db
 
@@ -83,6 +83,7 @@ class CommunityBooksApiTestBase(TestCase):
             if idx:
                 idx.delete()
             db.texts.delete_many({"title": title})
+            db.vstate.delete_many({"title": title})
 
     def _track(self, title):
         self._created_titles.append(title)
@@ -492,3 +493,43 @@ class SearchIndexingExclusionTests(TestCase):
         skipped_reasons = {s["title"]: s.get("reason") for s in TextIndexer._skipped_versions}
         self.assertEqual(skipped_reasons.get("Submitted Book"), "community_book_not_approved")
         self.assertEqual(skipped_reasons.get("Rejected Book"), "community_book_not_approved")
+
+
+class LibraryCacheRegistrationTests(CommunityBooksApiTestBase):
+    """
+    Guards against a newly created community book being saved with
+    override_dependencies=True, which skips the observers that register the
+    title in the core library cache and create its VersionState. When that
+    happens, Index.save() succeeds and the document exists in Mongo, but
+    Ref(title) raises InputError because the running process's in-memory
+    title cache never learned about the new book -- the book becomes
+    unreachable even though it was "successfully" submitted.
+    """
+
+    def test_confirmed_book_is_ref_resolvable_and_has_version_state(self):
+        self._mocked_gcs()
+        self._mocked_parser()
+        self.client.force_login(self.user)
+
+        upload_kwargs = _upload_kwargs()
+        upload_resp = self.client.post("/api/community-books/upload", data=upload_kwargs)
+        self.assertEqual(upload_resp.status_code, 200, upload_resp.content)
+        token = json.loads(upload_resp.content)["upload_token"]
+
+        from django.core import signing
+        title = signing.loads(token, salt="community-book-upload")["title_en"]
+        self._track(title)
+
+        confirm_resp = self.client.post(
+            "/api/community-books/confirm", data=json.dumps({"upload_token": token}), content_type="application/json",
+        )
+        self.assertEqual(confirm_resp.status_code, 201, confirm_resp.content)
+
+        try:
+            ref = Ref(f"{title} 1")
+        except Exception as e:
+            self.fail(f"Ref({title!r} 1) should resolve for a just-confirmed community book, raised: {e}")
+        self.assertEqual(ref.index.title, title)
+
+        vs = VersionState(title)
+        self.assertFalse(vs.is_new_state, "VersionState should have been created on Index save")

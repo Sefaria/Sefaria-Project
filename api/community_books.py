@@ -236,11 +236,11 @@ def _create_or_update_index(payload, schema, user):
             existing_index.communityBook = _build_community_book_dict(user.id, payload.get("topics"))
             existing_index.hidden = True
             try:
-                existing_index.save(override_dependencies=True)
+                existing_index.save()
             except InputError as e:
                 existing_index.communityBook = original_cb
                 existing_index.schema = original_schema
-                existing_index.save(override_dependencies=True)
+                existing_index.save()
                 logger.error("Index update failed, restored original state", error=str(e))
                 return None, JsonResponse({"error": "Failed to update book. Please try again."}, status=500)
             return existing_index, None
@@ -257,7 +257,7 @@ def _create_or_update_index(payload, schema, user):
         "heDesc": payload["description_he"],
     })
     try:
-        idx.save(override_dependencies=True)
+        idx.save()
     except InputError as e:
         logger.error("Index creation failed", error=str(e), title=payload["title_en"])
         return None, JsonResponse({"error": "Failed to save book: " + str(e)}, status=500)
