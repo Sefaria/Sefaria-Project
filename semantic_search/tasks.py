@@ -18,6 +18,7 @@ from sefaria.model import (
     Index, IndexSet, Version, VersionSet, Ref, RefDataSet, RefData, Topic, CategorySet,
 )
 from sefaria.helper.vector.context import get_index_context, get_chunk_context, get_chunking_unit_ref
+from sefaria.pagesheetrank import PAGESHEETRANK_CHANGE_THRESHOLD
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import SemanticTextChunk
 
@@ -236,9 +237,6 @@ def update_ref_links(ref_str: str, index_title: str) -> None:
     )
 
 
-_PAGERANK_CHANGE_THRESHOLD = 0.03
-
-
 @app.task(name="semantic_search.update_ref_pagerank")
 def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> None:
     """Update pagerank for chunks containing ref_str if the change exceeds the threshold."""
@@ -247,7 +245,7 @@ def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> 
         return
     # Only update if the stored value is significantly stale
     stored_pagerank = chunks[0].pagerank or 0.0
-    if stored_pagerank and abs(new_pagerank - stored_pagerank) / stored_pagerank < _PAGERANK_CHANGE_THRESHOLD:
+    if stored_pagerank and abs(new_pagerank - stored_pagerank) / stored_pagerank < PAGESHEETRANK_CHANGE_THRESHOLD:
         return
     count = _update_chunk_context_fields(chunks, ["pagerank"])
     logger.info(
