@@ -20,6 +20,7 @@ import {
 } from './Misc';
 import SearchLoadSkeleton from './SearchLoadSkeleton';
 import SearchToggle from './SearchToggle';
+import SearchTabsMobileWeb from './SearchTabsMobileWeb';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -343,6 +344,36 @@ class SearchPage extends Component {
       {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityData.topic?.total)},
     ];
 
+    const tabPanels = [
+      <div className="searchTabPanel" key="sources">
+        <div className="searchTopMatter">
+          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
+            <SearchToggle
+              options={[
+                {name: "all",   en: "All results",  he: "כל התוצאות"},
+                {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
+              ]}
+              selected={isExactSearch ? "exact" : "all"}
+              onChange={handleExactMatchChange}
+            />
+          )}
+          <div>
+            {sortFilterControls}
+          </div>
+        </div>
+        {searchResultList}
+      </div>,
+      <div className="searchTabPanel" key="books">
+        <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
+      </div>,
+      <div className="searchTabPanel" key="authors">
+        <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
+      </div>,
+      <div className="searchTabPanel" key="topics">
+        <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
+      </div>,
+    ];
+
     return (
         <div className={classes} key={this.props.query}>
           {this.props.compare ?
@@ -364,40 +395,22 @@ class SearchPage extends Component {
 
                 {this.props.isQueryRunning
                   ? <SearchLoadSkeleton />
-                  : <TabView
-                        tabs={tabs}
-                        currTabName={this.state.activeTab}
-                        setTab={this.setTab}
-                        renderTab={this.renderTab}
-                        containerClasses={"largeTabs"}>
-                      <div className="searchTabPanel" key="sources">
-                        <div className="searchTopMatter">
-                          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
-                            <SearchToggle
-                              options={[
-                                {name: "all",   en: "All results",  he: "כל התוצאות"},
-                                {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
-                              ]}
-                              selected={isExactSearch ? "exact" : "all"}
-                              onChange={handleExactMatchChange}
-                            />
-                          )}
-                          <div>
-                            {sortFilterControls}
-                          </div>
-                        </div>
-                        {searchResultList}
-                      </div>
-                      <div className="searchTabPanel" key="books">
-                        <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
-                      </div>
-                      <div className="searchTabPanel" key="authors">
-                        <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
-                      </div>
-                      <div className="searchTabPanel" key="topics">
-                        <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
-                      </div>
-                    </TabView>
+                  : Sefaria.multiPanel
+                    ? <TabView
+                          tabs={tabs}
+                          currTabName={this.state.activeTab}
+                          setTab={this.setTab}
+                          renderTab={this.renderTab}
+                          containerClasses={"largeTabs"}>
+                        {tabPanels}
+                      </TabView>
+                    : <>
+                        <SearchTabsMobileWeb
+                            tabs={tabs}
+                            currTabName={this.state.activeTab}
+                            setTab={this.setTab}/>
+                        {tabPanels[tabs.findIndex(t => t.id === this.state.activeTab)]}
+                      </>
                 }
               </div>
 
