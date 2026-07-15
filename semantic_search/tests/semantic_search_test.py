@@ -5,7 +5,7 @@ All tests run without a live pgvector connection and without a Gemini API key.
 ORM-touching code is mocked at the SemanticTextChunk.objects boundary.
 """
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
@@ -171,6 +171,66 @@ class TestBulkDelete:
         with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
             SemanticTextChunk.objects.bulk_delete([])
         mock_filter.assert_called_once_with(doc_id__in=[])
+
+
+# ---------------------------------------------------------------------------
+# update_category_path
+# ---------------------------------------------------------------------------
+
+class TestUpdateCategoryPath:
+    def test_empty_old_path_is_a_noop(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            result = SemanticTextChunk.objects.update_category_path([], ["Talmud"])
+        mock_filter.assert_not_called()
+        assert result == 0
+
+    def test_empty_new_path_is_a_noop(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            result = SemanticTextChunk.objects.update_category_path(["Talmud"], [])
+        mock_filter.assert_not_called()
+        assert result == 0
+
+    def test_filters_on_exact_prefix_by_position(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.update_category_path(["Talmud", "Bavli"], ["Talmud", "Talmud Bavli"])
+        mock_filter.assert_called_once_with(all_categories__0="Talmud", all_categories__1="Bavli")
+
+    def test_unchanged_primary_category_is_not_touched(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.update_category_path(["Talmud", "Bavli"], ["Talmud", "Talmud Bavli"])
+        mock_filter.assert_called_once()
+        _, kwargs = mock_filter.return_value.update.call_args
+        assert "primary_category" not in kwargs
+        assert "all_categories" in kwargs
+
+    def test_changed_primary_category_is_overwritten_only_for_rows_matching_old_top_level(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.update_category_path(["Talmud"], ["Talmud Bavli"])
+        primary_category_call, all_categories_call = mock_filter.call_args_list
+        assert primary_category_call == call(primary_category="Talmud", all_categories__0="Talmud")
+        assert all_categories_call == call(all_categories__0="Talmud")
+        primary_update_kwargs = mock_filter.return_value.update.call_args_list[0].kwargs
+        assert primary_update_kwargs == {"primary_category": "Talmud Bavli"}
+        all_categories_update_kwargs = mock_filter.return_value.update.call_args_list[1].kwargs
+        assert "primary_category" not in all_categories_update_kwargs
+        assert "all_categories" in all_categories_update_kwargs
+
+    def test_dependent_text_chunks_are_excluded_from_primary_category_overwrite(self):
+        """Commentaries/targumim have primary_category derived from Index.dependence
+        (see Index.get_primary_category()), not all_categories[0]. A rename of the top-level
+        category must only touch primary_category for rows where it currently equals
+        old_path[0] - dependent-text chunks (primary_category e.g. "Commentary") don't, so
+        they're excluded from the filter and keep their existing primary_category."""
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            SemanticTextChunk.objects.update_category_path(["Talmud"], ["Talmud Bavli"])
+        primary_category_call = mock_filter.call_args_list[0]
+        assert primary_category_call.kwargs["primary_category"] == "Talmud"
+
+    def test_returns_all_categories_update_row_count(self):
+        with patch.object(SemanticTextChunk.objects, "filter") as mock_filter:
+            mock_filter.return_value.update.side_effect = [3, 7]
+            result = SemanticTextChunk.objects.update_category_path(["Talmud"], ["Talmud Bavli"])
+        assert result == 7
 
 
 # ---------------------------------------------------------------------------

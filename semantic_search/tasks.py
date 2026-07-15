@@ -149,18 +149,17 @@ def update_author_topic_names(author_slug: str) -> None:
 # ---------------------------------------------------------------------------
 
 @app.task(name="semantic_search.update_category_chunks")
-def update_category_chunks(old_path: list) -> None:
-    """Refresh primary_category and all_categories for all indexes under the changed category path."""
-    affected_indexes = IndexSet({"categories.0": old_path[0]}) if old_path else IndexSet({})
-    total = 0
-    for index in affected_indexes:
-        if index.categories[:len(old_path)] == old_path:
-            context = get_index_context(index)
-            total += SemanticTextChunk.objects.update_index_metadata(index.title, {
-                "primary_category": context["primary_category"],
-                "all_categories": context["all_categories"],
-            })
-    logger.info("semantic_search.update_category_chunks: updated", old_path=old_path, rows=total)
+def update_category_chunks(old_path: list, new_path: list) -> None:
+    """
+    Splice new_path in place of old_path for every chunk whose all_categories starts with the
+    exact old_path prefix, and update primary_category too if the top-level category changed.
+    A pure Postgres array update - no Mongo reads needed.
+    """
+    total = SemanticTextChunk.objects.update_category_path(old_path, new_path)
+    logger.info(
+        "semantic_search.update_category_chunks: updated",
+        old_path=old_path, new_path=new_path, rows=total,
+    )
 
 
 # ---------------------------------------------------------------------------

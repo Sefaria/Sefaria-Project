@@ -2,6 +2,7 @@ from typing import Optional
 
 from django.db import models
 from django.db.models import Func, Value
+from django.db.models.expressions import RawSQL
 from django.db.models.functions import Concat, Length, Substr
 from django.contrib.postgres.fields import ArrayField
 from pgvector.django import VectorField, CosineDistance
@@ -66,6 +67,32 @@ class SemanticTextChunkManager(models.Manager):
             ref=rewritten('ref', old_title, new_title),
             url=rewritten('url', url_prefix(old_title), url_prefix(new_title)),
             chunked_from_ref=rewritten('chunked_from_ref', old_title, new_title),
+        )
+
+    def update_category_path(self, old_path: list, new_path: list) -> int:
+        """
+        Splice new_path in place of old_path within all_categories, for every chunk whose
+        all_categories starts with the exact old_path prefix.
+
+        primary_category is only overwritten for chunks where it currently equals old_path[0].
+        That invariant (primary_category == all_categories[0]) holds for standalone texts, but
+        not for dependent texts (commentaries/targumim), whose primary_category is derived from
+        Index.dependence instead (see Index.get_primary_category()) and is unrelated to
+        categories[0] - those chunks' primary_category is left untouched. This filter must run
+        before the all_categories splice below, since it relies on all_categories still holding
+        old_path. Pure Postgres array ops; no Mongo reads required.
+        """
+        if not old_path or not new_path:
+            return 0
+        prefix_filter = {f"all_categories__{i}": segment for i, segment in enumerate(old_path)}
+        if old_path[0] != new_path[0]:
+            self.filter(primary_category=old_path[0], **prefix_filter).update(primary_category=new_path[0])
+        return self.filter(**prefix_filter).update(
+            all_categories=RawSQL(
+                "%s::text[] || all_categories[%s:]",
+                (new_path, len(old_path) + 1),
+                output_field=ArrayField(models.TextField()),
+            ),
         )
 
     def update_version_fields(self, index_title: str, version_title: str, fields: dict) -> int:

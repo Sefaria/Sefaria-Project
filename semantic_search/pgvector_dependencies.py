@@ -103,10 +103,11 @@ def process_category_path_change_in_pgvector(cat, **kwargs) -> None:
     if not _enabled():
         return
     old_path = kwargs.get("old")
-    if not old_path:
+    new_path = kwargs.get("new")
+    if not old_path or not new_path:
         return
     from semantic_search.tasks import update_category_chunks
-    update_category_chunks.delay(list(old_path))
+    update_category_chunks.delay(list(old_path), list(new_path))
 
 
 # ---------------------------------------------------------------------------
