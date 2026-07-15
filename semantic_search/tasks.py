@@ -302,13 +302,22 @@ def sync_text_and_embedding(index_title: str, language: str, vtitle: str, change
                 index_title, language, vtitle, unit_normal, embedder
             )
         else:
-            _chunk_new_section(index, language, vtitle, unit_ref, embedder)
+            _chunk_new_unit(index, language, vtitle, unit_ref, embedder)
 
 
 def _reembed_existing_section(
     index_title: str, language: str, vtitle: str, unit_normal: str, embedder: GeminiEmbedder
 ) -> None:
     """Re-embed all existing chunks for a chunking unit (section or passage) without re-chunking."""
+    try:
+        from patot.text_utils import remove_html_footnotes, strip_html, strip_hebrew_niqqud, normalize_whitespace
+    except ImportError:
+        logger.warning(
+            "semantic_search._reembed_existing_section: patot not installed, cannot clean text, skipping",
+            index_title=index_title, section=unit_normal,
+        )
+        return
+
     chunks = SemanticTextChunk.objects.get_chunks_for_unit(index_title, language, vtitle, unit_normal)
     if not chunks:
         return
@@ -318,17 +327,36 @@ def _reembed_existing_section(
         source_refs = chunk.chunker_metadata.get("source_segment_refs", [])
         if not source_refs:
             continue
-        # Re-assemble text from current Version content
-        segment_texts = []
+        # Re-assemble text from current Version content, applying the same preprocessing
+        # PatotChunker._preprocess() applies before chunk text is ever embedded (with
+        # extract_html_footnotes_to_segments=False, matching the bulk embed job's
+        # ChunkerConfig): strip inline footnote markup, strip remaining HTML tags, strip
+        # Hebrew niqqud, then collapse whitespace. Skipping this would embed dirtier text
+        # than what the section was originally (or would be freshly) chunked with.
+        # Dedupe base refs: a footnote pseudo-ref ("Ref::fn:1") shares its base segment
+        # with its parent ref, so without this a segment already present in source_refs
+        # would otherwise get fetched and appended twice.
+        base_refs = []
+        seen_bases = set()
         for seg_ref_str in source_refs:
-            # Strip footnote pseudo-refs
             base_ref_str = seg_ref_str.split("::fn:")[0] if "::fn:" in seg_ref_str else seg_ref_str
+            if base_ref_str not in seen_bases:
+                seen_bases.add(base_ref_str)
+                base_refs.append(base_ref_str)
+
+        segment_texts = []
+        for base_ref_str in base_refs:
             try:
-                text = Ref(base_ref_str).text(lang=language, vtitle=vtitle).text
+                raw_text = Ref(base_ref_str).text(lang=language, vtitle=vtitle).text
             except Exception:
-                text = ""
-            segment_texts.append(text if isinstance(text, str) else "")
-        new_text = " ".join(t for t in segment_texts if t)
+                raw_text = ""
+            raw_text = raw_text if isinstance(raw_text, str) else ""
+            if not raw_text:
+                continue
+            cleaned = normalize_whitespace(strip_hebrew_niqqud(strip_html(remove_html_footnotes(raw_text))))
+            if cleaned:
+                segment_texts.append(cleaned)
+        new_text = " ".join(segment_texts)
         if not new_text.strip():
             continue
         try:
@@ -352,7 +380,7 @@ def _reembed_existing_section(
     )
 
 
-def _chunk_new_section(
+def _chunk_new_unit(
     index, language: str, vtitle: str, unit_ref: Ref, embedder: GeminiEmbedder
 ) -> None:
     """Chunk and embed a unit (section or passage) that has no pgvector chunks yet (requires patot)."""
@@ -363,7 +391,7 @@ def _chunk_new_section(
         from patot.records import SegmentRecord
     except ImportError:
         logger.warning(
-            "semantic_search._chunk_new_section: patot not installed, skipping new section",
+            "semantic_search._chunk_new_unit: patot not installed, skipping new section",
             index_title=index_title, section=unit_normal,
         )
         return
@@ -379,7 +407,10 @@ def _chunk_new_section(
         return
 
     api_key = getattr(settings, "GEMINI_API_KEY", None)
-    config = ChunkerConfig(debug=False)
+    # extract_html_footnotes_to_segments=False matches the bulk embed job's ChunkerConfig
+    # (embed_library_to_pgvector.main()) so a section chunked incrementally here produces the
+    # same chunk boundaries/text as one chunked in bulk.
+    config = ChunkerConfig(debug=False, extract_html_footnotes_to_segments=False)
     chunker = PatotChunker(api_key=api_key, config=config)
 
     index_context = get_index_context(index)
@@ -400,7 +431,7 @@ def _chunk_new_section(
         chunk_result = chunker.chunk_segments(segment_records)
     except Exception as exc:
         logger.warning(
-            "semantic_search._chunk_new_section: chunking failed",
+            "semantic_search._chunk_new_unit: chunking failed",
             index_title=index_title, section=unit_normal, error=str(exc),
         )
         return
@@ -414,6 +445,6 @@ def _chunk_new_section(
     )
     SemanticTextChunk.objects.upsert(chunk_data)
     logger.info(
-        "semantic_search._chunk_new_section: chunked and indexed",
+        "semantic_search._chunk_new_unit: chunked and indexed",
         index_title=index_title, section=unit_normal, chunks=len(chunk_data),
     )
