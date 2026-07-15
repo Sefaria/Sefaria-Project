@@ -3,11 +3,21 @@ name: "Manual Promotion"
 # Trigger manually from the Actions tab when you want to promote between environments.
 # Creates a promotion PR with changelog (and AI summary for prod).
 #
-# Promotion paths:
+# Forward promotion paths:
 #   master  → preprod  (staging → pre-production)
 #   preprod → prod     (pre-production → production)
 #
-# After the PR is created and reviewed, merge it normally.
+# Reverse back-merge paths (propagate a hotfix that landed directly on prod):
+#   prod    → preprod
+#   preprod → master
+#
+# Reverse chaining: when a prod → preprod PR is merged, the chain-backmerge
+# job below automatically opens the follow-up preprod → master PR — so a
+# single prod → preprod trigger walks the hotfix all the way back to master.
+# The chained PR is created with BYPASS_BRANCH_PROTECTION_TOKEN so its
+# required checks (PyTest / Playwright / Sandbox Deploy) actually run.
+#
+# After a PR is created and reviewed, merge it normally.
 # The promotion-gate.yaml check enforces that only valid source branches can merge.
 
 on:
@@ -20,6 +30,7 @@ on:
         options:
           - master
           - preprod
+          - prod
       target:
         description: "Target branch"
         required: true
@@ -27,10 +38,17 @@ on:
         options:
           - preprod
           - prod
+          - master
+  # Reverse-chain trigger: fires when a prod → preprod back-merge PR is merged,
+  # to auto-open the follow-up preprod → master PR.
+  pull_request:
+    types: [closed]
+    branches: [preprod]
 
 jobs:
   promote:
     name: "Promote: ${{ github.event.inputs.source }} → ${{ github.event.inputs.target }}"
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,15 +63,17 @@ jobs:
           SOURCE: ${{ github.event.inputs.source }}
           TARGET: ${{ github.event.inputs.target }}
         run: |
-          if [[ "$SOURCE" == "master" && "$TARGET" == "preprod" ]]; then
-            echo "✅ Valid: master → preprod"
-          elif [[ "$SOURCE" == "preprod" && "$TARGET" == "prod" ]]; then
-            echo "✅ Valid: preprod → prod"
-          else
-            echo "❌ Invalid path: $SOURCE → $TARGET"
-            echo "Allowed: master→preprod, preprod→prod"
-            exit 1
-          fi
+          case "${SOURCE} -> ${TARGET}" in
+            "master -> preprod"|"preprod -> prod")
+              echo "✅ Valid forward promotion: ${SOURCE} → ${TARGET}" ;;
+            "prod -> preprod"|"preprod -> master")
+              echo "✅ Valid reverse back-merge: ${SOURCE} → ${TARGET}" ;;
+            *)
+              echo "❌ Invalid path: ${SOURCE} → ${TARGET}"
+              echo "Allowed forward:  master→preprod, preprod→prod"
+              echo "Allowed reverse:  prod→preprod, preprod→master"
+              exit 1 ;;
+          esac
 
       - name: Generate changelog and create PR
         id: create_pr
@@ -69,8 +89,10 @@ jobs:
           github.event.inputs.target == 'prod' &&
           steps.create_pr.outputs.pr_url != 'already exists' &&
           steps.create_pr.outputs.pr_url != 'no-changes'
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v3.0.3
         with:
+          webhook: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "blocks": [
@@ -104,8 +126,6 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
 
       - name: Summary
         if: steps.create_pr.outputs.pr_url != 'no-changes'
@@ -118,3 +138,40 @@ jobs:
       - name: No changes
         if: steps.create_pr.outputs.pr_url == 'no-changes'
         run: echo "⚠️ No commits between ${{ github.event.inputs.source }} and ${{ github.event.inputs.target }} — nothing to promote."
+
+  # Reverse-chain leg: when a prod → preprod back-merge PR is merged, auto-open
+  # the follow-up preprod → master PR so the hotfix propagates all the way back.
+  # Fires on ANY merged prod → preprod PR (action-created or hand-made), which is
+  # the correct invariant: commits on prod that preprod lacked must reach master.
+  # The same-repo guard prevents a fork PR opened from a branch coincidentally
+  # named `prod` from triggering the privileged (PAT-backed) chain leg.
+  chain-backmerge-to-master:
+    name: "Chain back-merge: preprod → master"
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'prod' &&
+      github.event.pull_request.base.ref == 'preprod'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # SOURCE/TARGET are hardcoded literals (not derived from event payload),
+      # so there is no injection surface from the triggering PR.
+      # BYPASS_BRANCH_PROTECTION_TOKEN (a PAT) is used so the created PR triggers
+      # master's required checks — GITHUB_TOKEN-created PRs do not.
+      # Required scope: a fine-grained PAT limited to THIS repo with
+      # Contents: Read + Pull requests: Write (it only reads git history and
+      # opens a PR — it does not need, and should not have, push/admin scope).
+      - name: Open preprod → master back-merge PR
+        env:
+          GH_TOKEN: ${{ secrets.BYPASS_BRANCH_PROTECTION_TOKEN }}
+          SOURCE: preprod
+          TARGET: master
+        run: ./build/ci/generate-promotion-pr.sh "$SOURCE" "$TARGET"

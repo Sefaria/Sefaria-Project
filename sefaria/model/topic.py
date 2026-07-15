@@ -5,7 +5,7 @@ from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
 from django_topics.models import Topic as DjangoTopic
 from django_topics.models import TopicPool, PoolType
-from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, DuplicateRecordError, SluggedMongoRecordMissingError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url
 from sefaria.model.portal import Portal
@@ -1179,15 +1179,42 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
     objs = RefTopicLinkSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        # Rewrite each matching link independently. A single malformed link (e.g. one
+        # whose topic no longer exists) must not abort the rename cascade and strand the
+        # remaining links. We swallow the bad-record error families that save()/its topic
+        # recompute can raise for a corrupt link — InputError (and subclasses like
+        # DuplicateRecordError), AssertionError (from _validate's type asserts), and
+        # SluggedMongoRecordMissingError (missing toTopic/linkType slug). Systemic failures
+        # (Mongo/Postgres down surface as other exception types) still abort loudly.
         try:
             o.save()
-        except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+        except (InputError, AssertionError, SluggedMongoRecordMissingError) as e:
+            logger.warning("Failed to convert ref topic link '{}' on topic '{}' from '{}' to '{}': {}".format(
+                getattr(o, 'ref', '?'), getattr(o, 'toTopic', '?'), kwargs['old'], kwargs['new'], e))
 
 def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
-    RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+    # Delete each matching link independently rather than via the set's bulk loop:
+    # RefTopicLink.delete() recomputes the topic's pools/numSources, and if one link's
+    # topic is itself malformed and fails to save, the set loop would abort and leave the
+    # remaining orphaned links behind. Isolate each deletion so one bad record can't strand
+    # the rest. We swallow the bad-record error families the delete + topic recompute can
+    # raise for a corrupt link — InputError (and subclasses), AssertionError (from _validate's
+    # type/subclass asserts), and SluggedMongoRecordMissingError. Systemic failures (Mongo/
+    # Postgres down surface as other exception types) still abort loudly.
+    total, failed = 0, 0
+    for link in RefTopicLinkSet({"ref": {"$regex": pattern}}):
+        total += 1
+        try:
+            link.delete()
+        except (InputError, AssertionError, SluggedMongoRecordMissingError) as e:
+            failed += 1
+            logger.warning("Failed to delete ref topic link '{}' on topic '{}' while deleting index '{}': {}".format(
+                getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), indx.title, e))
+    if failed:
+        logger.error("Deleting index '{}' left {} of {} ref topic links undeleted; orphaned links remain.".format(
+            indx.title, failed, total))
 
 def process_topic_delete(topic):
     RefTopicLinkSet({"toTopic": topic.slug}).delete()
@@ -1212,7 +1239,7 @@ def process_topic_description_change(topic, **kwargs):
 
     markdown_links = set()
     for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
-        for m in re.findall('\[.*?\]\((.*?)\)', val):
+        for m in re.findall(r'\[.*?\]\((.*?)\)', val):
             markdown_links.add(m)
 
     for markdown_link in markdown_links:

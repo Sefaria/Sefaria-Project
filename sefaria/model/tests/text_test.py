@@ -531,6 +531,53 @@ def dep_counts(name, indx):
     return ret
 
 
+def test_index_rename_migrates_versions():
+    """Renaming an Index must migrate all of its versions to the new title,
+    leaving none stranded under the old one — including non-primary versions.
+
+    This is the behavior that broke (the rename cascade once stranded versions
+    when a non-primary version was processed first). We assert the user-facing
+    outcome through index.save() rather than the cascade's internals, so the
+    test survives future refactors of how the migration is performed.
+    Complements test_index_title_setter, which renames an index with no versions.
+    """
+    from sefaria.system.database import db
+
+    old = "Test Rename Versions"
+    new = "Test Rename Versions NEW"
+    chapter = [['1'], ['2'], ["original text", "2nd"]]
+
+    index = model.Index({
+        "title": old,
+        "heTitle": "כותרת בדיקה",
+        "titleVariants": [old],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+    }).save()
+
+    # Insert raw to skip Version._validate during setup and include a non-primary version.
+    db.texts.insert_many([
+        {"title": old, "versionTitle": "Secondary TEST", "versionSource": "blabla",
+         "language": "en", "isPrimary": False, "direction": "ltr", "chapter": chapter},
+        {"title": old, "versionTitle": "Primary TEST", "versionSource": "blabla",
+         "language": "he", "isPrimary": True, "direction": "rtl", "chapter": chapter},
+    ])
+
+    try:
+        assert model.VersionSet({"title": old}).count() == 2
+
+        index.title = new
+        index.save()
+
+        assert model.VersionSet({"title": old}).count() == 0
+        assert model.VersionSet({"title": new}).count() == 2
+        # The text itself is still reachable under the new title.
+        assert model.Ref(f"{new} 3:1").text("en").text == "original text"
+    finally:
+        model.IndexSet({"title": {"$in": [old, new]}}).delete()
+        model.VersionSet({"title": {"$in": [old, new]}}).delete()
+
+
 def test_version_word_count():
     #simple
     assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813

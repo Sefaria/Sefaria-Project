@@ -31,6 +31,9 @@ export default defineConfig({
   testDir: './e2e-tests',
   /* Output directory for test results */
   outputDir: './e2e-tests/e2e-test-logs/test-results',
+  /* Log in every test account once before any worker starts and write a
+   * read-only storage-state file per profile. See e2e-tests/global-setup.ts. */
+  globalSetup: './e2e-tests/global-setup.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -45,7 +48,7 @@ export default defineConfig({
 
 
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 2,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -76,10 +79,14 @@ export default defineConfig({
 
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    /* Record video on failure */
-    video: 'retain-on-failure',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'retain-on-failure',
+    /* Video is recorded for EVERY test under retain-on-failure (Playwright can't
+     * know which will fail), then discarded on pass — pure overhead on the happy
+     * path and largely redundant with the trace viewer's DOM snapshots. Off by
+     * default; the trace on first retry covers debugging. */
+    video: 'off',
+    /* No artifacts on the first pass (fast, low contention); a full trace is
+     * captured only when a failed test is retried. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
   },
 
   /* Configure projects for major browsers */
@@ -110,9 +117,19 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
+    // every test tagged `@sanity`, wherever it lives — the release-gate set is
+    // defined by the tag, not by any folder. (The Sanity/ folder is now docs
+    // only; the specs live in their feature folders.) Safe to give one baseURL
+    // because the suite navigates to absolute MODULE_URLS, never relative paths.
     {
       name: 'chrome-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -131,6 +148,60 @@ export default defineConfig({
     {
       name: 'chrome-resource-panel',
       testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Voices Topics feature-coverage tests — Voices module
+    {
+      name: 'chrome-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    // Library Topics feature-coverage tests — Library module
+    {
+      name: 'chrome-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Voices Bookmarks & History feature-coverage tests — Voices module
+    {
+      name: 'chrome-bookmarks-(saved)-and-history',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    // Search feature-coverage tests — spans Library + Voices (navigates absolute MODULE_URLS)
+    {
+      name: 'chrome-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // User Menu feature-coverage tests (profile/account/language/module switcher/logout)
+    {
+      name: 'chrome-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
+    {
+      name: 'chrome-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -166,7 +237,12 @@ export default defineConfig({
     },
     {
       name: 'firefox-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -183,6 +259,54 @@ export default defineConfig({
     {
       name: 'firefox-resource-panel',
       testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'firefox-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-voices-bookmarks',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'firefox-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Firefox'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'firefox-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -218,7 +342,12 @@ export default defineConfig({
     },
     {
       name: 'safari-sanity',
-      testDir: './e2e-tests/Sanity',
+      testDir: './e2e-tests',
+      grep: /@sanity/,
+      // Mobile @sanity tests need the mobile viewport/config — exclude them here
+      // so this desktop project doesn't run them at a desktop viewport (they'd
+      // fail). They run under the mobile-sanity project in the mobile config.
+      testIgnore: '**/mobile web/**',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -235,6 +364,54 @@ export default defineConfig({
     {
       name: 'safari-resource-panel',
       testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-voices-topics',
+      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'safari-library-topics',
+      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-voices-bookmarks',
+      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
+    {
+      name: 'safari-search',
+      testDir: './e2e-tests/Full testing by Feature/Search',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-user-menu',
+      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      use: {
+        ...devices['Desktop Safari'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
+    {
+      name: 'safari-cross-module',
+      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
