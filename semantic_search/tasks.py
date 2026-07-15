@@ -109,6 +109,7 @@ def update_topic_slug(old_slug: str, new_slug: str) -> None:
     assoc_count = SemanticTextChunk.objects.replace_associated_topic_slug(old_slug, new_slug)
 
     # author_slugs (covers the case where this topic is an author)
+    # somewhat redundant given the next few lines but acts as a safety net in case the author hasn't been changed in mongo yet.
     author_count = SemanticTextChunk.objects.replace_author_slug(old_slug, new_slug)
 
     # Refresh author_names for all indexes that now carry new_slug as an author
