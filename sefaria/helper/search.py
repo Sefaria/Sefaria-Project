@@ -534,7 +534,7 @@ def _author_works_response(author, sort="relevance"):
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
-def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None):
+def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
@@ -550,6 +550,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     category filter still runs the flat search — a category row spans many per-book
     paths, so it can't be filtered as a unit.
 
+    `aggregate=False` skips the author resolution entirely, so a book query always
+    returns the flat list — a QA escape hatch for comparing the two views side by side.
+    Only books aggregate, so the flag is a no-op for other types.
+
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
     """
@@ -563,7 +567,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if not category_paths:
+        if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
                 return _author_works_response(author, sort=sort)
