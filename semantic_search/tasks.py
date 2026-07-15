@@ -309,7 +309,7 @@ def _reembed_existing_section(
     index_title: str, language: str, vtitle: str, unit_normal: str, embedder: GeminiEmbedder
 ) -> None:
     """Re-embed all existing chunks for a chunking unit (section or passage) without re-chunking."""
-    chunks = SemanticTextChunk.objects.get_chunks_for_section(index_title, language, vtitle, unit_normal)
+    chunks = SemanticTextChunk.objects.get_chunks_for_unit(index_title, language, vtitle, unit_normal)
     if not chunks:
         return
 

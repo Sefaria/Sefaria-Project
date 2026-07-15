@@ -120,7 +120,7 @@ class SemanticTextChunkManager(models.Manager):
     def bulk_update_chunks(self, chunks: list['SemanticTextChunk'], fields: list[str]) -> None:
         self.bulk_update(chunks, fields)
 
-    def get_chunks_for_section(
+    def get_chunks_for_unit(
         self, index_title: str, language: str, version_title: str, section_ref: str
     ) -> list['SemanticTextChunk']:
         return list(self.filter(
