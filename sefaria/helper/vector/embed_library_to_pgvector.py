@@ -31,7 +31,7 @@ django.setup()
 from django.conf import settings as django_settings
 from sefaria.model import *
 from sefaria.search import setup_logging
-from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context
+from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context, is_passage_based
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import SemanticTextChunk, SemanticTextChunkManager
 
@@ -148,10 +148,6 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
     return parser.parse_args()
-
-
-def is_passage_based(index) -> bool:
-    return index.get_primary_corpus() in {"Tanakh", "Bavli"}
 
 
 def get_passages_for_index(index) -> list:

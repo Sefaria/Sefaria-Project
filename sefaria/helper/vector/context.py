@@ -3,7 +3,28 @@ Shared helpers for computing pgvector chunk context from Sefaria model objects.
 
 Used by both the bulk embed script and the incremental update tasks.
 """
-from sefaria.model import Ref, Topic, RefDataSet, RefData
+from sefaria.model import Ref, Topic, RefDataSet, RefData, Passage
+
+PASSAGE_BASED_CORPORA = {"Tanakh", "Bavli"}
+
+
+def is_passage_based(index) -> bool:
+    """Whether this index's chunks are built from passages (sugyot/perakim) rather than sections."""
+    return index.get_primary_corpus() in PASSAGE_BASED_CORPORA
+
+
+def get_chunking_unit_ref(index, oref: Ref) -> Ref:
+    """
+    Return the ref used as the chunking "unit" for `oref` - i.e. the value stored in a chunk's
+    `chunked_from_ref`. Mirrors the unit_ref chosen during bulk embedding (see process_index() /
+    build_chunk_data() in embed_library_to_pgvector.py): a passage ref for passage-based corpora
+    (Tanakh, Bavli) when `oref` falls inside a known passage, otherwise the segment's section ref.
+    """
+    if is_passage_based(index) and oref.is_segment_level():
+        passage = Passage.containing_segment(oref)
+        if passage:
+            return passage.ref()
+    return oref.section_ref()
 
 
 def time_period_to_dict(time_period) -> dict | None:

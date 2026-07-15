@@ -17,7 +17,7 @@ from sefaria.celery_setup.app import app
 from sefaria.model import (
     Index, IndexSet, Version, VersionSet, Ref, RefDataSet, RefData, Topic, CategorySet,
 )
-from sefaria.helper.vector.context import get_index_context, get_chunk_context
+from sefaria.helper.vector.context import get_index_context, get_chunk_context, get_chunking_unit_ref
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import SemanticTextChunk
 
@@ -166,12 +166,27 @@ def update_category_chunks(old_path: list) -> None:
 # Ref-derived metadata tasks (topic links, links, pagerank)
 # ---------------------------------------------------------------------------
 
-def _section_ref_str(ref_str: str) -> str | None:
-    """Return the section ref normal form for a segment ref, or None on error."""
+def _get_chunks_for_ref(ref_str: str, index_title: str) -> list[SemanticTextChunk]:
+    """
+    Find chunks that could contain `ref_str`: first by an exact match against chunker_metadata's
+    source_segment_refs, falling back to every chunk in the same chunking unit (section, or
+    passage for passage-based corpora like Tanakh/Bavli) if that comes up empty.
+    """
+    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
+    if chunks:
+        return chunks
     try:
-        return Ref(ref_str).section_ref().normal()
+        oref = Ref(ref_str)
     except Exception:
-        return None
+        return []
+    index = Index().load({"title": index_title})
+    if not index:
+        return []
+    try:
+        unit_normal = get_chunking_unit_ref(index, oref).normal()
+    except Exception:
+        return []
+    return list(SemanticTextChunk.objects.filter(index_title=index_title, chunked_from_ref=unit_normal))
 
 
 def _update_chunk_context_fields(chunks: list[SemanticTextChunk], fields_to_update: list[str]) -> int:
@@ -200,16 +215,7 @@ def _update_chunk_context_fields(chunks: list[SemanticTextChunk], fields_to_upda
 @app.task(name="pgvector.update_ref_topic_links")
 def update_ref_topic_links(ref_str: str, index_title: str) -> None:
     """Recompute associated_topic_names and associated_topic_slugs for chunks containing ref_str."""
-    section = _section_ref_str(ref_str)
-    if not section:
-        return
-    # Find chunks that might contain this ref (by section) or via chunker_metadata
-    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
-    if not chunks:
-        # Fall back to section-level query (covers all languages/versions)
-        chunks = list(SemanticTextChunk.objects.filter(
-            index_title=index_title, chunked_from_ref=section
-        ))
+    chunks = _get_chunks_for_ref(ref_str, index_title)
     count = _update_chunk_context_fields(
         chunks, ["associated_topic_names", "associated_topic_slugs"]
     )
@@ -222,14 +228,7 @@ def update_ref_topic_links(ref_str: str, index_title: str) -> None:
 @app.task(name="pgvector.update_ref_links")
 def update_ref_links(ref_str: str, index_title: str) -> None:
     """Recompute linked_refs for chunks containing ref_str."""
-    section = _section_ref_str(ref_str)
-    if not section:
-        return
-    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
-    if not chunks:
-        chunks = list(SemanticTextChunk.objects.filter(
-            index_title=index_title, chunked_from_ref=section
-        ))
+    chunks = _get_chunks_for_ref(ref_str, index_title)
     count = _update_chunk_context_fields(chunks, ["linked_refs"])
     logger.info(
         "pgvector.update_ref_links: updated",
@@ -243,14 +242,7 @@ _PAGERANK_CHANGE_THRESHOLD = 0.03
 @app.task(name="pgvector.update_ref_pagerank")
 def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> None:
     """Update pagerank for chunks containing ref_str if the change exceeds the threshold."""
-    section = _section_ref_str(ref_str)
-    if not section:
-        return
-    chunks = SemanticTextChunk.objects.get_chunks_containing_ref(index_title, ref_str)
-    if not chunks:
-        chunks = list(SemanticTextChunk.objects.filter(
-            index_title=index_title, chunked_from_ref=section
-        ))
+    chunks = _get_chunks_for_ref(ref_str, index_title)
     if not chunks:
         return
     # Only update if the stored value is significantly stale
@@ -272,10 +264,11 @@ def update_ref_pagerank(ref_str: str, index_title: str, new_pagerank: float) -> 
 @app.task(name="pgvector.sync_text_and_embedding")
 def sync_text_and_embedding(index_title: str, language: str, vtitle: str, changed_refs: list[str]) -> None:
     """
-    For each changed segment ref:
+    For each distinct chunking unit (section, or passage for passage-based corpora like Tanakh/Bavli)
+    touched by changed_refs:
     - If existing chunks cover it: re-assemble text from source_segment_refs,
       re-call Gemini, and UPDATE text + embedding (no re-chunking).
-    - If the section has no chunks yet: call PatotChunker + embed + INSERT
+    - If the unit has no chunks yet: call PatotChunker + embed + INSERT
       (requires patot; skipped with a warning if not installed).
     """
     from django.conf import settings
@@ -284,31 +277,41 @@ def sync_text_and_embedding(index_title: str, language: str, vtitle: str, change
         logger.warning("pgvector.sync_text_and_embedding: GEMINI_API_KEY not set, skipping")
         return
 
+    index = Index().load({"title": index_title})
+    if not index:
+        logger.warning("pgvector.sync_text_and_embedding: index not found", index_title=index_title)
+        return
+
     embedder = GeminiEmbedder(api_key=api_key)
     already_indexed = SemanticTextChunk.objects.get_indexed_unit_refs(index_title, language, vtitle)
 
+    # Multiple changed_refs can fall in the same chunking unit (e.g. two segments in the same
+    # section, or two segments in the same passage) - dedupe so each unit is only re-embedded
+    # or re-chunked once.
+    unit_refs_by_normal = {}
     for ref_str in changed_refs:
         try:
             oref = Ref(ref_str)
         except Exception as exc:
             logger.warning("pgvector.sync_text_and_embedding: bad ref", ref=ref_str, error=str(exc))
             continue
+        unit_ref = get_chunking_unit_ref(index, oref)
+        unit_refs_by_normal.setdefault(unit_ref.normal(), unit_ref)
 
-        section_normal = oref.section_ref().normal()
-
-        if section_normal in already_indexed:
+    for unit_normal, unit_ref in unit_refs_by_normal.items():
+        if unit_normal in already_indexed:
             _reembed_existing_section(
-                index_title, language, vtitle, section_normal, embedder
+                index_title, language, vtitle, unit_normal, embedder
             )
         else:
-            _chunk_new_section(index_title, language, vtitle, section_normal, embedder)
+            _chunk_new_section(index, language, vtitle, unit_ref, embedder)
 
 
 def _reembed_existing_section(
-    index_title: str, language: str, vtitle: str, section_normal: str, embedder: GeminiEmbedder
+    index_title: str, language: str, vtitle: str, unit_normal: str, embedder: GeminiEmbedder
 ) -> None:
-    """Re-embed all existing chunks for a section without re-chunking."""
-    chunks = SemanticTextChunk.objects.get_chunks_for_section(index_title, language, vtitle, section_normal)
+    """Re-embed all existing chunks for a chunking unit (section or passage) without re-chunking."""
+    chunks = SemanticTextChunk.objects.get_chunks_for_section(index_title, language, vtitle, unit_normal)
     if not chunks:
         return
 
@@ -347,33 +350,34 @@ def _reembed_existing_section(
     logger.info(
         "pgvector._reembed_existing_section: reembedded",
         index_title=index_title, language=language, vtitle=vtitle,
-        section=section_normal, chunks=len(updated),
+        section=unit_normal, chunks=len(updated),
     )
 
 
 def _chunk_new_section(
-    index_title: str, language: str, vtitle: str, section_normal: str, embedder: GeminiEmbedder
+    index, language: str, vtitle: str, unit_ref: Ref, embedder: GeminiEmbedder
 ) -> None:
-    """Chunk and embed a section that has no pgvector chunks yet (requires patot)."""
+    """Chunk and embed a unit (section or passage) that has no pgvector chunks yet (requires patot)."""
+    index_title = index.title
+    unit_normal = unit_ref.normal()
     try:
         from patot import ChunkerConfig, PatotChunker
         from patot.records import SegmentRecord
     except ImportError:
         logger.warning(
             "pgvector._chunk_new_section: patot not installed, skipping new section",
-            index_title=index_title, section=section_normal,
+            index_title=index_title, section=unit_normal,
         )
         return
 
     from django.conf import settings
     from sefaria.helper.vector.context import get_version_context
     from sefaria.helper.vector.embed_library_to_pgvector import (
-        build_chunk_data, collect_segment_records_by_section,
+        build_chunk_data, collect_segment_text_by_ref,
     )
 
-    index = Index().load({"title": index_title})
     ver = Version().load({"title": index_title, "versionTitle": vtitle, "language": language})
-    if not index or not ver:
+    if not ver:
         return
 
     api_key = getattr(settings, "GEMINI_API_KEY", None)
@@ -383,18 +387,23 @@ def _chunk_new_section(
     index_context = get_index_context(index)
     version_context = get_version_context(ver)
 
-    segment_records_by_section = collect_segment_records_by_section(ver)
-    segment_records = segment_records_by_section.get(section_normal, [])
+    # Build segment records the same way for a plain section ref or a (possibly multi-section)
+    # passage ref: walk the unit's own segment refs against a flat {ref: text} map of the version.
+    segment_text_by_ref = collect_segment_text_by_ref(ver)
+    segment_records = [
+        SegmentRecord(tref=r, text=segment_text_by_ref[r], segment_index=i)
+        for i, r in enumerate(seg_ref.normal() for seg_ref in unit_ref.all_segment_refs())
+        if r in segment_text_by_ref
+    ]
     if not segment_records:
         return
 
     try:
-        section_ref = Ref(section_normal)
         chunk_result = chunker.chunk_segments(segment_records)
     except Exception as exc:
         logger.warning(
             "pgvector._chunk_new_section: chunking failed",
-            index_title=index_title, section=section_normal, error=str(exc),
+            index_title=index_title, section=unit_normal, error=str(exc),
         )
         return
 
@@ -402,11 +411,11 @@ def _chunk_new_section(
         return
 
     chunk_data = build_chunk_data(
-        section_ref, language, vtitle, index_title, embedder,
+        unit_ref, language, vtitle, index_title, embedder,
         chunk_result, index_context, version_context,
     )
     SemanticTextChunk.objects.upsert(chunk_data)
     logger.info(
         "pgvector._chunk_new_section: chunked and indexed",
-        index_title=index_title, section=section_normal, chunks=len(chunk_data),
+        index_title=index_title, section=unit_normal, chunks=len(chunk_data),
     )
