@@ -718,7 +718,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
         # represented by a custom image.
         return SocialImagePageType.MODULE_FALLBACK
 
-    if match.func in {serve_static, serve_static_by_lang}:
+    if match.func is serve_static:
         # Static pages are shared between modules and should use the simple
         # Sefaria fallback image, not Library or Voices module branding.
         return SocialImagePageType.STATIC
