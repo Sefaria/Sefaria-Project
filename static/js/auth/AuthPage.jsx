@@ -14,7 +14,7 @@ import { getCsrf, makeFlowId, focusProvider } from './utils.js';
  * The card's own back button returns to `choose`; the browser URL stays /login or /register.
  *
  * SSO uses the existing backend callbacks (/api/auth/{google,apple}/callback). Email
- * login/register use JSON+session endpoints (/api/auth/login, /api/register).
+ * login/register use JSON+session endpoints (/api/auth/login, /register).
  */
 const AuthPage = ({
   flow = 'login',
