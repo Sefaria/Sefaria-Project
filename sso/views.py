@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 
+import requests
 import structlog
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.providers.google.views import login_by_token as google_login_by_token
 from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -54,7 +54,10 @@ def apple_callback(request):
         provider = adapter.get_provider(request, "apple")
         sociallogin = provider.verify_token(request, {"id_token": id_token})
     except Exception as e:
-        logger.warning("Apple token verification failed", error=str(e))
+        if isinstance(e.__cause__, requests.RequestException):
+            logger.error("Apple JWKS fetch failed", error=str(e))
+        else:
+            logger.warning("Apple token verification failed", error=str(e))
         return JsonResponse({"error": "Invalid token"}, status=400)
 
     # Inject name from Apple SDK response (absent from ID token)
