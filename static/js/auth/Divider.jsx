@@ -10,6 +10,4 @@ const Divider = () => (
   <div className="sefaria-divider" role="separator"><InterfaceText>or</InterfaceText></div>
 );
 
-Divider.propTypes = { children: PropTypes.node };
-
 export default Divider;
