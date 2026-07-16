@@ -17,7 +17,7 @@ const SearchTabsMobileWeb = ({ tabs, currTabName, setTab }) => {
 
   useEffect(() => {
     updateGradients();
-  }, []);
+  }, [tabs, currTabName]);
 
   useEffect(() => {
     const tabEl = tabRefs.current[currTabName];
