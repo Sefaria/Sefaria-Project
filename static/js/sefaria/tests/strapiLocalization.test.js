@@ -25,9 +25,16 @@ describe("config", function () {
 
 describe("groupBy", function () {
   it("groups items under their key, preserving order within each group", function () {
-    const items = [{ a: 1, id: "x" }, { a: 2, id: "y" }, { a: 1, id: "z" }];
+    const items = [
+      { a: 1, id: "x" },
+      { a: 2, id: "y" },
+      { a: 1, id: "z" },
+    ];
     expect(groupBy(items, (item) => item.a)).toEqual({
-      1: [{ a: 1, id: "x" }, { a: 1, id: "z" }],
+      1: [
+        { a: 1, id: "x" },
+        { a: 1, id: "z" },
+      ],
       2: [{ a: 2, id: "y" }],
     });
   });
@@ -46,12 +53,18 @@ describe("groupBy", function () {
 
 describe("keyBy", function () {
   it("indexes items by key", function () {
-    const items = [{ id: "en", v: 1 }, { id: "he", v: 2 }];
+    const items = [
+      { id: "en", v: 1 },
+      { id: "he", v: 2 },
+    ];
     expect(keyBy(items, (item) => item.id)).toEqual({ en: { id: "en", v: 1 }, he: { id: "he", v: 2 } });
   });
 
   it("keeps the last item when keys collide", function () {
-    const items = [{ id: "en", v: 1 }, { id: "en", v: 2 }];
+    const items = [
+      { id: "en", v: 1 },
+      { id: "en", v: 2 },
+    ];
     expect(keyBy(items, (item) => item.id)).toEqual({ en: { id: "en", v: 2 } });
   });
 });
