@@ -8,8 +8,9 @@ import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters, {BookSearchFilters} from './SearchFilters';
 import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
-import {SearchSortBox, SearchFilterButton} from './SearchResultList';
+import {SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
+import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
 import {
   CategoryColorLine,
@@ -202,6 +203,7 @@ class SearchPage extends Component {
       mobileFiltersOpen: false,
       activeTab: "sources",
       entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
+      entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
       bookCategoryFilters: this.makeBookCategoryFilters(),
     };
   }
@@ -213,6 +215,17 @@ class SearchPage extends Component {
       aggKey: cat.category,
       aggType: "categories",
     }));
+  }
+
+  setEntitySort(type, sortKey) {
+    this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}));
+  }
+
+  getSortedEntityData(type) {
+    const data = this.state.entityData[type];
+    if (!data) return null;
+    const sortKey = this.state.entitySort[type];
+    return {...data, hits: sortEntityHits(data.hits, type, sortKey)};
   }
 
   toggleBookCategoryFilter(filter) {
@@ -280,11 +293,10 @@ class SearchPage extends Component {
     />;
 
     const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
-      <SearchSortBox
-          type={this.props.type}
-          sortTypeArray={this.props.sortTypeArray}
-          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-          sortType={this.props.searchState.sortType}/>
+      <SearchSortDropdown
+          options={this.props.sortTypeArray}
+          sortType={this.props.searchState.sortType}
+          onSortChange={this.props.updateAppliedOptionSort}/>
       :
       <SearchFilterButton
           openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
@@ -364,13 +376,34 @@ class SearchPage extends Component {
         {searchResultList}
       </div>,
       <div className="searchTabPanel" key="books">
-        <EntitySearchResults type="book" data={this.state.entityData.book} query={this.props.query}/>
+        <div className="searchSortBar">
+          <SearchSortDropdown
+            options={ENTITY_SORT_OPTIONS.books}
+            sortType={this.state.entitySort.book}
+            onSortChange={(key) => this.setEntitySort('book', key)}
+          />
+        </div>
+        <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}/>
       </div>,
       <div className="searchTabPanel" key="authors">
-        <EntitySearchResults type="author" data={this.state.entityData.author} query={this.props.query}/>
+        <div className="searchSortBar">
+          <SearchSortDropdown
+            options={ENTITY_SORT_OPTIONS.authors}
+            sortType={this.state.entitySort.author}
+            onSortChange={(key) => this.setEntitySort('author', key)}
+          />
+        </div>
+        <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}/>
       </div>,
       <div className="searchTabPanel" key="topics">
-        <EntitySearchResults type="topic" data={this.state.entityData.topic} query={this.props.query}/>
+        <div className="searchSortBar">
+          <SearchSortDropdown
+            options={ENTITY_SORT_OPTIONS.topics}
+            sortType={this.state.entitySort.topic}
+            onSortChange={(key) => this.setEntitySort('topic', key)}
+          />
+        </div>
+        <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}/>
       </div>,
     ];
 

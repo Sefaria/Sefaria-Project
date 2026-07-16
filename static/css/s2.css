@@ -16385,3 +16385,51 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
+
+/* ========== SEARCH SORT DROPDOWN ========== */
+.searchSortBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 42px;
+}
+.searchSortDropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin: 8px;
+  background-color: #ededec;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  color: #575757;
+  user-select: none;
+  outline: none;
+}
+.interface-hebrew .searchSortDropdown {
+  font-family: var(--hebrew-sans-serif-font-family);
+  flex-direction: row-reverse;
+}
+.searchSortDropdown:hover,
+.searchSortDropdown:focus-visible {
+  background-color: #dfdfdf;
+}
+.searchSortDropdown__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.searchSortDropdown__chevron {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.searchSortDropdown.open .searchSortDropdown__chevron {
+  transform: rotate(180deg);
+}
+/* ========== SEARCH SORT DROPDOWN - END ========== */
