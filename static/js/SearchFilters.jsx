@@ -11,7 +11,6 @@ import {
   InterfaceText,
   LoadingMessage,
   CloseButton,
-  ToggleSet,
 } from './Misc';
 
 const SortRadioList = ({options, value, onChange}) => (
@@ -178,10 +177,10 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   const updateFilters = text => {
     if (text && text !== "") {
       const matched = filters.filter(x => hasWordStartingWithOrSelected(x, text));
-      setFilters(!expandable && !preserveOrder ? matched.sort(sortFiltersBySelected) : matched);
+      setFilters(!expandable && !preserveOrder ? [...matched].sort(sortFiltersBySelected) : matched);
       setShowClearInputButton(true);
     } else {
-      setFilters(!expandable && !preserveOrder ? filters.sort(sortFiltersBySelected) : filters);
+      setFilters(!expandable && !preserveOrder ? [...filters].sort(sortFiltersBySelected) : filters);
       setShowClearInputButton(false);
     }
   }
@@ -203,7 +202,16 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     </div>
   );
 };
-
+SearchFilterGroup.propTypes = {
+  name:              PropTypes.string.isRequired,
+  filters:           PropTypes.array.isRequired,
+  updateSelected:    PropTypes.func.isRequired,
+  expandable:        PropTypes.bool,
+  paged:             PropTypes.bool,
+  searchable:        PropTypes.bool,
+  preserveOrder:     PropTypes.bool,
+  searchPlaceholder: PropTypes.string,
+};
 
 
 class SearchFilter extends Component {
@@ -337,9 +345,9 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
         {filterContent}
       </div>
       <div className="mobileSearchFiltersFooter">
-        <div className="button fillWidth" onClick={onClose}>
+        <button type="button" className="button fillWidth" onClick={onClose}>
           <InterfaceText>Show Results</InterfaceText>
-        </div>
+        </button>
       </div>
     </>
   );
@@ -410,9 +418,9 @@ const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
       </div>
     </div>
     <div className="mobileSearchFiltersFooter">
-      <div className="button fillWidth" onClick={onClose}>
+      <button type="button" className="button fillWidth" onClick={onClose}>
         <InterfaceText>Show Results</InterfaceText>
-      </div>
+      </button>
     </div>
   </>
 );
