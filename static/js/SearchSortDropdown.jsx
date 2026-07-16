@@ -6,27 +6,27 @@ import { InterfaceText, DropdownModal, DropdownOptionList } from './Misc';
 
 export const ENTITY_SORT_OPTIONS = {
   books: [
-    { type: 'relevance',    name: 'Relevance',                       heName: 'רלוונטיות' },
-    { type: 'pubYear_asc',  name: 'Publication Year (Oldest First)', heName: 'שנת פרסום (ישן לחדש)' },
-    { type: 'pubYear_desc', name: 'Publication Year (Newest First)', heName: 'שנת פרסום (חדש לישן)' },
-    { type: 'az',           name: 'A-Z',                             heName: 'א-ת' },
+    { type: 'relevance',  name: 'Relevance',                       heName: 'רלוונטיות' },
+    { type: 'year_asc',   name: 'Composition Date (Oldest First)', heName: 'תאריך חיבור (ישן לחדש)' },
+    { type: 'year_desc',  name: 'Composition Date (Newest First)', heName: 'תאריך חיבור (חדש לישן)' },
+    { type: 'alpha',      name: 'A-Z',                             heName: 'א-ת' },
   ],
   authors: [
-    { type: 'relevance',  name: 'Relevance',            heName: 'רלוונטיות' },
-    { type: 'year_asc',   name: 'Year (Oldest First)',  heName: 'שנה (ישן לחדש)' },
-    { type: 'year_desc',  name: 'Year (Newest First)',  heName: 'שנה (חדש לישן)' },
-    { type: 'az',         name: 'A-Z',                  heName: 'א-ת' },
+    { type: 'relevance', name: 'Relevance',           heName: 'רלוונטיות' },
+    { type: 'year_asc',  name: 'Year (Oldest First)', heName: 'שנה (ישן לחדש)' },
+    { type: 'year_desc', name: 'Year (Newest First)', heName: 'שנה (חדש לישן)' },
+    { type: 'alpha',     name: 'A-Z',                 heName: 'א-ת' },
   ],
   topics: [
     { type: 'relevance', name: 'Relevance', heName: 'רלוונטיות' },
-    { type: 'az',        name: 'A-Z',       heName: 'א-ת' },
+    { type: 'alpha',     name: 'A-Z',       heName: 'א-ת' },
   ],
 };
 
 export const sortEntityHits = (hits, type, sortKey) => {
   if (!hits || sortKey === 'relevance') return hits;
   const sorted = [...hits];
-  if (sortKey === 'az') {
+  if (sortKey === 'alpha') {
     return sorted.sort((a, b) =>
       (a.title_en || a.title_he || '').localeCompare(b.title_en || b.title_he || '')
     );
@@ -51,6 +51,7 @@ export const sortEntityHits = (hits, type, sortKey) => {
 const SearchSortDropdown = ({ options, sortType, onSortChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  if (!options || !options.length) return null;
   const currentOption = options.find(o => o.type === sortType) || options[0];
 
   const handleSelect = (newSortType) => {
