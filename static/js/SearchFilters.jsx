@@ -14,6 +14,31 @@ import {
   ToggleSet,
 } from './Misc';
 
+const SortRadioList = ({options, value, onChange}) => (
+  <ul className="sortRadioList">
+    {options.map(opt => (
+      <li key={opt.type} className="sortRadioItem">
+        <label>
+          <input
+            type="radio"
+            name="sortType"
+            value={opt.type}
+            checked={value === opt.type}
+            onChange={() => onChange(opt.type)}
+          />
+          <span className="sortRadioLabel">
+            {opt.heName
+              ? <InterfaceText text={{en: opt.name, he: opt.heName}} />
+              : <InterfaceText>{opt.name}</InterfaceText>
+            }
+          </span>
+        </label>
+      </li>
+    ))}
+  </ul>
+);
+
+
 class SearchFilters extends Component {
   getSelectedTitles(lang) {
     let results = [];
@@ -36,12 +61,6 @@ class SearchFilters extends Component {
     );
 
     const {searchState, type, updateAppliedOptionSort} = this.props;
-    const sortOptions = SearchState.metadataByType[type].sortTypeArray.map(data => ({
-      name: data.type,
-      content: <InterfaceText>{data.name}</InterfaceText>,
-      role: "radio",
-      ariaLabel: Sefaria._("Sort by") + " " + Sefaria._(data.name),
-    }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
       <div className="searchFilters navSidebarModule">
@@ -60,13 +79,11 @@ class SearchFilters extends Component {
             <h2>
               <InterfaceText>Sort by</InterfaceText>
             </h2>
-            <ToggleSet
-              ariaLabel="Sort by"
-              name="sortBy"
-              options={sortOptions}
-              setOption={(set, sortType) => updateAppliedOptionSort(sortType)}
-              currentValue={searchState.sortType}
-              blueStyle={true} />
+            <SortRadioList
+              options={SearchState.metadataByType[type].sortTypeArray}
+              value={searchState.sortType}
+              onChange={updateAppliedOptionSort}
+            />
           </div>
 
           {filters}
@@ -112,7 +129,7 @@ TextSearchFilters.propTypes = {
 };
 
 
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
   if (!filters || !filters.length) { return null; }
 
   useEffect(() => {
@@ -160,18 +177,11 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
 
   const updateFilters = text => {
     if (text && text !== "") {
-      if (!expandable) {
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(sortFiltersBySelected));
-      } else { // don't sort
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
-      }
+      const matched = filters.filter(x => hasWordStartingWithOrSelected(x, text));
+      setFilters(!expandable && !preserveOrder ? matched.sort(sortFiltersBySelected) : matched);
       setShowClearInputButton(true);
     } else {
-      if (!expandable) {
-        setFilters(filters.sort(sortFiltersBySelected));
-      } else {
-        setFilters(filters);
-      }
+      setFilters(!expandable && !preserveOrder ? filters.sort(sortFiltersBySelected) : filters);
       setShowClearInputButton(false);
     }
   }
@@ -181,7 +191,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   }
   // need hebrew for placeholder/title
   const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={searchPlaceholder || Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
@@ -290,21 +300,54 @@ SearchFilter.propTypes = {
 };
 
 
-const BookSearchFilters = ({filters, updateSelected}) => (
-  // Sidebar for the Books tab: a flat, searchable list of book categories.
-  <div className="searchFilters navSidebarModule">
+const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
+  const filterContent = (
     <div className="searchFilterBoxes">
       <SearchFilterGroup
         name="Texts"
         searchable={true}
         filters={filters}
-        updateSelected={updateSelected} />
+        updateSelected={updateSelected}
+        preserveOrder={true}
+        searchPlaceholder={Sefaria._("Search")} />
     </div>
-  </div>
-);
+  );
+
+  if (!mobileSortProps) {
+    return (
+      <div className="searchFilters navSidebarModule">
+        {filterContent}
+      </div>
+    );
+  }
+
+  const {sortOptions, sortType, onSortChange, onClose} = mobileSortProps;
+  return (
+    <>
+      <div className="mobileSearchFiltersHeader sans-serif">
+        <CloseButton onClick={onClose} />
+        <InterfaceText>Filter</InterfaceText>
+        <div></div>
+      </div>
+      <div className="searchFilters navSidebarModule">
+        <div className="searchFilterGroup">
+          <h2><InterfaceText>Sort by</InterfaceText></h2>
+          <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
+        </div>
+        {filterContent}
+      </div>
+      <div className="mobileSearchFiltersFooter">
+        <div className="button fillWidth" onClick={onClose}>
+          <InterfaceText>Show Results</InterfaceText>
+        </div>
+      </div>
+    </>
+  );
+};
 BookSearchFilters.propTypes = {
   filters:        PropTypes.array.isRequired,
   updateSelected: PropTypes.func.isRequired,
+  mobileSortProps: PropTypes.object,
 };
 
 
@@ -353,5 +396,33 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
 };
 
 
+const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
+  <>
+    <div className="mobileSearchFiltersHeader sans-serif">
+      <CloseButton onClick={onClose} />
+      <InterfaceText>Sort</InterfaceText>
+      <div></div>
+    </div>
+    <div className="searchFilters navSidebarModule">
+      <div className="searchFilterGroup">
+        <h2><InterfaceText>Sort by</InterfaceText></h2>
+        <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
+      </div>
+    </div>
+    <div className="mobileSearchFiltersFooter">
+      <div className="button fillWidth" onClick={onClose}>
+        <InterfaceText>Show Results</InterfaceText>
+      </div>
+    </div>
+  </>
+);
+EntitySortPanel.propTypes = {
+  sortOptions:  PropTypes.array.isRequired,
+  sortType:     PropTypes.string.isRequired,
+  onSortChange: PropTypes.func.isRequired,
+  onClose:      PropTypes.func.isRequired,
+};
+
+
 export default SearchFilters;
-export { BookSearchFilters };
+export { BookSearchFilters, EntitySortPanel };

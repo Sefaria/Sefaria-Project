@@ -5,7 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchFilters, {BookSearchFilters} from './SearchFilters';
+import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters';
 import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
 import {SearchFilterButton} from './SearchResultList';
@@ -17,7 +17,6 @@ import {
   InterfaceText,
   LoadingMessage,
   TabView,
-  ToggleSet,
 } from './Misc';
 import SearchLoadSkeleton from './SearchLoadSkeleton';
 import SearchToggle from './SearchToggle';
@@ -225,7 +224,16 @@ class SearchPage extends Component {
     const data = this.state.entityData[type];
     if (!data) return null;
     const sortKey = this.state.entitySort[type];
-    return {...data, hits: sortEntityHits(data.hits, type, sortKey)};
+    let hits = sortEntityHits(data.hits, type, sortKey);
+    if (type === 'book') {
+      const selectedCategories = this.state.bookCategoryFilters
+        .filter(f => f.isSelected())
+        .map(f => f.aggKey);
+      if (selectedCategories.length > 0) {
+        hits = hits.filter(hit => hit.categories && selectedCategories.includes(hit.categories[0]));
+      }
+    }
+    return {...data, hits};
   }
 
   toggleBookCategoryFilter(filter) {
@@ -312,16 +320,13 @@ class SearchPage extends Component {
     const searchTypeSection = this.props.type === "text" ? (
       <div className="searchFilterGroup">
         <h2><InterfaceText>Search Type</InterfaceText></h2>
-        <ToggleSet
-          ariaLabel={Sefaria._("Search Type")}
-          name="searchType"
+        <SearchToggle
           options={[
-            {name: "all",   content: <InterfaceText text={{en: "All results",  he: "כל התוצאות"}} />, role: "radio", ariaLabel: Sefaria._("All results")},
-            {name: "exact", content: <InterfaceText text={{en: "Exact phrase", he: "מונח מדויק"}}  />, role: "radio", ariaLabel: Sefaria._("Exact phrase")},
+            {name: "all",   en: "All results",  he: "כל התוצאות"},
+            {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
           ]}
-          setOption={(set, name) => handleExactMatchChange(name)}
-          currentValue={isExactSearch ? "exact" : "all"}
-          blueStyle={true}
+          selected={isExactSearch ? "exact" : "all"}
+          onChange={handleExactMatchChange}
         />
       </div>
     ) : null;
@@ -330,8 +335,11 @@ class SearchPage extends Component {
       return searchResultList;
     }
 
+    const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
+    const selectedBookFilterCount = this.state.bookCategoryFilters.filter(f => f.isSelected()).length;
+
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
-    // category list, Topics and Authors get no sidebar.
+    // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
     if (this.state.activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
       sidebar = <SearchFilters
@@ -340,13 +348,36 @@ class SearchPage extends Component {
           updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
           topSection={searchTypeSection}
-          closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
+          closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
     } else if (this.state.activeTab === "books") {
       sidebar = <BookSearchFilters
           filters={this.state.bookCategoryFilters}
-          updateSelected={this.toggleBookCategoryFilter}/>;
+          updateSelected={this.toggleBookCategoryFilter}
+          mobileSortProps={!Sefaria.multiPanel ? {
+            sortOptions: ENTITY_SORT_OPTIONS.books,
+            sortType: this.state.entitySort.book,
+            onSortChange: (key) => this.setEntitySort('book', key),
+            onClose: closeMobileFilters,
+          } : null}
+      />;
+    } else if (!Sefaria.multiPanel) {
+      if (this.state.activeTab === "authors") {
+        sidebar = <EntitySortPanel
+            sortOptions={ENTITY_SORT_OPTIONS.authors}
+            sortType={this.state.entitySort.author}
+            onSortChange={(key) => this.setEntitySort('author', key)}
+            onClose={closeMobileFilters}
+        />;
+      } else if (this.state.activeTab === "topics") {
+        sidebar = <EntitySortPanel
+            sortOptions={ENTITY_SORT_OPTIONS.topics}
+            sortType={this.state.entitySort.topic}
+            onSortChange={(key) => this.setEntitySort('topic', key)}
+            onClose={closeMobileFilters}
+        />;
+      }
     }
 
     const tabs = [
@@ -377,31 +408,50 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="books">
         <div className="searchSortBar">
-          <SearchSortDropdown
-            options={ENTITY_SORT_OPTIONS.books}
-            sortType={this.state.entitySort.book}
-            onSortChange={(key) => this.setEntitySort('book', key)}
-          />
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.books}
+                sortType={this.state.entitySort.book}
+                onSortChange={(key) => this.setEntitySort('book', key)}
+              />
+            : <SearchFilterButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                nFilters={selectedBookFilterCount}
+                label="Filter"
+              />
+          }
         </div>
         <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}/>
       </div>,
       <div className="searchTabPanel" key="authors">
         <div className="searchSortBar">
-          <SearchSortDropdown
-            options={ENTITY_SORT_OPTIONS.authors}
-            sortType={this.state.entitySort.author}
-            onSortChange={(key) => this.setEntitySort('author', key)}
-          />
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.authors}
+                sortType={this.state.entitySort.author}
+                onSortChange={(key) => this.setEntitySort('author', key)}
+              />
+            : <SearchFilterButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                label="Sort"
+              />
+          }
         </div>
         <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}/>
       </div>,
       <div className="searchTabPanel" key="topics">
         <div className="searchSortBar">
-          <SearchSortDropdown
-            options={ENTITY_SORT_OPTIONS.topics}
-            sortType={this.state.entitySort.topic}
-            onSortChange={(key) => this.setEntitySort('topic', key)}
-          />
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.topics}
+                sortType={this.state.entitySort.topic}
+                onSortChange={(key) => this.setEntitySort('topic', key)}
+              />
+            : <SearchFilterButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                label="Sort"
+              />
+          }
         </div>
         <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}/>
       </div>,
