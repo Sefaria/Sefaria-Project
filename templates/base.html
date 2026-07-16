@@ -316,7 +316,7 @@
         logged_in: Boolean(DJANGO_VARS.props._uid),
         interface_lang: DJANGO_VARS.props.interfaceLang === 'hebrew' ? 'he' : 'en',
         device_type: DJANGO_VARS.props.multiPanel ? 'desktop' : 'mobile',
-        user_type: Sefaria.isReturningVisitor() ? 'old' : 'new',
+        user_type: localStorage.getItem('isReturningVisitor') === 'true' ? 'old' : 'new',
         custom_session_id: sessionStorage.getItem(SESSION_KEY),
         sefaria_id: localStorage.getItem(SA_KEY),
         ...(DJANGO_VARS.props._email.includes('sefaria.org') && { traffic_type: 'sefaria_email' })
