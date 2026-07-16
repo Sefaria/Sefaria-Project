@@ -71,7 +71,7 @@ const SearchSortDropdown = ({ options, sortType, onSortChange }) => {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }}}
         tabIndex="0"
         role="button"
-        aria-haspopup="listbox"
+        aria-haspopup="true"
         aria-expanded={isOpen}
         aria-label={`Sort by ${currentOption.name}`}
       >
