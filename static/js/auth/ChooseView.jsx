@@ -56,7 +56,7 @@ const ChooseView = ({
             ux_mode: useRedirect ? 'redirect' : 'popup',
           };
           if (useRedirect) {
-            config.login_uri = `${window.location.origin}/auth/google/redirect`;
+            config.login_uri = `${window.location.origin}/api/auth/google/redirect`;
           } else {
             config.callback = (resp) => onSSOResult(ALLAUTH_PROVIDER_TOKEN_URL, {
               provider: 'google',
