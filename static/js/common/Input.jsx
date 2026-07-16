@@ -76,6 +76,11 @@ const Input = ({
               className="sefaria-input-trailingLink"
               href={trailingLink.href}
               onClick={trailingLink.onClick}
+              tabIndex={!trailingLink.href && 0}
+              role={!trailingLink.href && 'link'}
+              onKeyDown={!trailingLink.href && trailingLink.onClick
+                ? (e) => { if (e.key === 'Enter') trailingLink.onClick(e); }
+                : undefined}
             >
               {trailingLink.text}
             </a>
