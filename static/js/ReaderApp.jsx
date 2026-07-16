@@ -121,8 +121,8 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
-      showAuth:  ['/login', '/register'].includes(window.location.pathname),
-      authFlow:  window.location.pathname === '/register' ? 'register' : 'login',
+      showAuth:  ['/login', '/register'].includes(window.location.pathname.replace(/\/$/, '')),
+      authFlow:  window.location.pathname.replace(/\/$/, '') === '/register' ? 'register' : 'login',
       authNext:  new URLSearchParams(window.location.search).get('next') || '/',
     };
   }
@@ -1293,8 +1293,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
-    if (path === '/login' || path === '/register') {
-      const flow = path === '/register' ? 'register' : 'login';
+    const authMatch = path.match(/^\/(login|register)\/?$/);
+    if (authMatch) {
+      const flow = authMatch[1];
       const next = params.get('next') || Sefaria.util.currentPath();
       this.showAuthPage(flow, next);
       return true;
