@@ -3992,6 +3992,81 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchResultCount {
   color: var(--dark-grey);
 }
+.searchTabsMobileWeb {
+  position: relative;
+  margin-bottom: 18px;
+}
+.searchTabsMobileWeb-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid #CCC;
+}
+.searchTabsMobileWeb-spacer {
+  flex-shrink: 0;
+  width: 30px;
+}
+.searchTabsMobileWeb-scroll::-webkit-scrollbar {
+  display: none;
+}
+.searchTabsMobileWeb-tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  color: var(--Semantic-Text-Secondary, #575757);
+  padding: 10px 0 14px;
+  margin-inline-end: 24px;
+  white-space: nowrap;
+}
+.searchTabsMobileWeb-tab .int-en,
+.searchTabsMobileWeb-tab .int-he {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: normal;
+  text-align: center;
+}
+.searchTabsMobileWeb-tab.active {
+  color: var(--Semantic-Text-Primary, #121212);
+  border-bottom-color: var(--light-grey);
+}
+.searchTabsMobileWeb-count {
+  display: inline-block;
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  margin-inline-start: 8px;
+  background-color: var(--lighter-grey);
+  border-radius: 4px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dark-grey);
+  text-align: center;
+}
+.searchTabsMobileWeb-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  pointer-events: none;
+}
+.searchTabsMobileWeb-gradient.right {
+  right: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+}
+.searchTabsMobileWeb-gradient.left {
+  left: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0), #fff);
+}
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
