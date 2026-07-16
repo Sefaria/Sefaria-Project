@@ -9,4 +9,5 @@ urlpatterns = [
     path("api/auth/apple/callback", views.apple_callback),
     # JSON email login for the SSO auth page (existing /login form is untouched)
     path("api/auth/login", views.email_login),
+    path("api/auth/password/reset", views.password_reset_api),
 ]

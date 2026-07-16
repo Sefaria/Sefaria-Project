@@ -13,6 +13,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from emailusernames.utils import user_exists, get_user
+from sefaria.forms import SefariaPasswordResetForm
 
 logger = structlog.get_logger(__name__)
 
@@ -71,6 +72,25 @@ def apple_callback(request):
     if request.user.is_authenticated:
         return JsonResponse({})
     return JsonResponse({"error": "Authentication failed"}, status=400)
+
+
+@require_POST
+def password_reset_api(request):
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    form = SefariaPasswordResetForm(data={'email': data.get('email', '')})
+    if not form.is_valid():
+        return JsonResponse({"error": "Enter a valid email address."}, status=400)
+
+    form.save(
+        request=request,
+        email_template_name='registration/password_reset_email.txt',
+        html_email_template_name='registration/password_reset_email.html',
+    )
+    return JsonResponse({})
 
 
 @require_POST
