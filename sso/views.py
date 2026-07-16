@@ -87,6 +87,8 @@ def password_reset_api(request):
 
     form.save(
         request=request,
+        domain_override=request.get_host(),
+        use_https=request.is_secure(),
         email_template_name='registration/password_reset_email.txt',
         html_email_template_name='registration/password_reset_email.html',
     )
