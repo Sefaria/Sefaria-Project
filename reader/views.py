@@ -766,7 +766,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
         # represented by a custom image.
         return SocialImagePageType.MODULE_FALLBACK
 
-    if match.func in {serve_static, serve_static_by_lang}:
+    if match.func is serve_static:
         # Static pages are shared between modules and should use the simple
         # Sefaria fallback image, not Library or Voices module branding.
         return SocialImagePageType.STATIC
@@ -4852,19 +4852,15 @@ def search_path_filter(request, book_title):
 
 
 
-@ensure_csrf_cookie
-def serve_static(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
+_ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 @ensure_csrf_cookie
-def serve_static_by_lang(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
+def serve_static(request, page, by_lang=False):
+    if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
+        return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
+    lang_prefix = f'{request.LANGUAGE_CODE}/' if by_lang else ''
+    template = f'static/{lang_prefix}{page}.html'
+    return render_template(request, template, {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)

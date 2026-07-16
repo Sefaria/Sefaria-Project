@@ -78,6 +78,16 @@ class TestVersionIndicesAPI:
 class TestVersionBulkEditAPI:
     """Tests for /api/version-bulk-edit endpoint."""
 
+    @pytest.fixture(autouse=True)
+    def clean_test_versions(self):
+        from sefaria.model import VersionSet
+        titles = ['TestVersionForClearing', 'TestVersionMixed', 'TestVersionNoField', 'TestVersionNoLang']
+        def wipe():
+            VersionSet({'versionTitle': {'$in': titles}}).delete()
+        wipe()
+        yield
+        wipe()
+
     @pytest.mark.django_db
     def test_bulk_edit_requires_staff(self, regular_client):
         """Non-staff users should be denied access."""
@@ -146,8 +156,6 @@ class TestVersionBulkEditAPI:
     def test_bulk_edit_null_clears_field(self, staff_client):
         """Sending null value should remove field from version entirely."""
         from sefaria.model import VersionSet, Version
-        
-        VersionSet({"versionTitle": "TestVersionForClearing"}).delete()
 
         # Create a test version with purchaseInformationURL set
         test_version = Version({
@@ -198,14 +206,8 @@ class TestVersionBulkEditAPI:
         # Verify field was removed (not just set to null or empty string)
         v = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Genesis'})
         assert not hasattr(v, 'purchaseInformationURL'), "Field should be completely removed after clearing"
-
-        # Cleanup
-        v.delete()
         v2 = Version().load({'versionTitle': 'TestVersionForClearing', 'language': 'en', 'title': 'Exodus'})
         assert not hasattr(v2, 'purchaseInformationURL'), "Field should be completely removed after clearing"
-        # Cleanup
-        v.delete()
-        v2.delete()
 
     @pytest.mark.django_db
     def test_bulk_edit_mixed_updates_and_clears(self, staff_client):
@@ -261,18 +263,10 @@ class TestVersionBulkEditAPI:
         assert v.license == 'CC-BY', "License should be updated"
         assert v.versionNotes == 'New notes', "Notes should be updated"
         assert not hasattr(v, 'purchaseInformationURL'), "purchaseInformationURL should be removed"
-
-        # Cleanup
-        v.delete()
-
         v2 = Version().load({'versionTitle': 'TestVersionMixed', 'language': 'en', 'title': 'Exodus'})
         assert v2.license == 'CC-BY', "License should be updated"
         assert v2.versionNotes == 'New notes', "Notes should be updated"
         assert not hasattr(v2, 'purchaseInformationURL'), "purchaseInformationURL should be removed"
-
-        # Cleanup
-        v.delete()
-        v2.delete()
         
     @pytest.mark.django_db
     def test_bulk_edit_clear_nonexistent_field(self, staff_client):
@@ -318,17 +312,9 @@ class TestVersionBulkEditAPI:
         v = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Genesis'})
         assert v is not None
         assert not hasattr(v, 'purchaseInformationURL')
-
-        # Cleanup
-        v.delete()
-
         v2 = Version().load({'versionTitle': 'TestVersionNoField', 'language': 'en', 'title': 'Exodus'})
         assert v2 is not None
         assert not hasattr(v2, 'purchaseInformationURL')
-
-        # Cleanup
-        v.delete()
-        v2.delete()
         
     @pytest.mark.django_db
     def test_bulk_edit_without_language_parameter(self, staff_client):
@@ -376,12 +362,19 @@ class TestVersionBulkEditAPI:
         assert v is not None
         assert v.versionNotes == 'Updated notes'
 
-        # Cleanup
-        v.delete()
-
 
 class TestVersionBulkDeleteAPI:
     """Tests for /api/version-bulk-delete endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def clean_test_versions(self):
+        from sefaria.model import VersionSet
+        titles = ['TestVersionForBulkDelete', 'TestVersionForPartialDelete']
+        def wipe():
+            VersionSet({'versionTitle': {'$in': titles}}).delete()
+        wipe()
+        yield
+        wipe()
 
     @pytest.mark.django_db
     def test_bulk_delete_requires_staff(self, regular_client):
@@ -580,6 +573,23 @@ class TestVersionBulkDeleteAPI:
 class TestVersionRenameAPI:
     """Tests for /api/version-rename endpoint (single-index rename)."""
 
+    @pytest.fixture(autouse=True)
+    def clean_test_versions(self):
+        from sefaria.model import VersionSet
+        titles = [
+            'TestVersionForRename', 'TestVersionForRename_New',
+            'TestVersionForRenameCollision_Old', 'TestVersionForRenameCollision_New',
+            'TestVersionRenameLang', 'TestVersionRenameLang_New',
+            'TestVersionRenameAmbiguous', 'TestVersionRenameAmbiguous_New',
+            'TestVersionRenameDisambig', 'TestVersionRenameDisambig_New',
+            'TestVersionRenameFamily_Old', 'TestVersionRenameFamily_New',
+        ]
+        def wipe():
+            VersionSet({'versionTitle': {'$in': titles}}).delete()
+        wipe()
+        yield
+        wipe()
+
     @pytest.mark.django_db
     def test_rename_requires_staff(self, regular_client):
         """Non-staff users should be denied access."""
@@ -732,9 +742,6 @@ class TestVersionRenameAPI:
         v_new = Version().load({'versionTitle': 'TestVersionForRename_New', 'title': 'Genesis'})
         assert v_new is not None
 
-        # Cleanup
-        v_new.delete()
-
     @pytest.mark.django_db
     def test_rename_collision_fails(self, staff_client):
         """If a version with the new title already exists, the request should fail."""
@@ -776,10 +783,6 @@ class TestVersionRenameAPI:
         assert Version().load({'versionTitle': 'TestVersionForRenameCollision_Old', 'title': 'Genesis'}) is not None
         assert Version().load({'versionTitle': 'TestVersionForRenameCollision_New', 'title': 'Genesis'}) is not None
 
-        # Cleanup
-        v1.delete()
-        v2.delete()
-
     @pytest.mark.django_db
     def test_rename_with_language_parameter(self, staff_client):
         """Language parameter should be accepted and used to load the version when provided."""
@@ -811,9 +814,6 @@ class TestVersionRenameAPI:
 
         v_new = Version().load({'versionTitle': 'TestVersionRenameLang_New', 'title': 'Genesis'})
         assert v_new is not None
-
-        # Cleanup
-        v_new.delete()
 
     @pytest.mark.django_db
     def test_rename_multiple_matches_requires_language(self, staff_client):
@@ -857,10 +857,6 @@ class TestVersionRenameAPI:
         assert len(VersionSet({'versionTitle': 'TestVersionRenameAmbiguous', 'title': 'Genesis'})) == 2
         assert Version().load({'versionTitle': 'TestVersionRenameAmbiguous_New', 'title': 'Genesis'}) is None
 
-        # Cleanup
-        v_en.delete()
-        v_he.delete()
-
     @pytest.mark.django_db
     def test_rename_multiple_matches_resolved_by_language(self, staff_client):
         """Passing language disambiguates among same-titled versions and renames only that one."""
@@ -903,10 +899,6 @@ class TestVersionRenameAPI:
         assert renamed is not None
         assert renamed.language == 'en'
         assert Version().load({'versionTitle': 'TestVersionRenameDisambig', 'title': 'Genesis', 'language': 'he'}) is not None
-
-        # Cleanup
-        renamed.delete()
-        v_he.delete()
 
     @pytest.mark.django_db
     def test_rename_collision_different_language_family_allowed(self, staff_client):
@@ -954,10 +946,6 @@ class TestVersionRenameAPI:
         # The English version took the new title; the German version is untouched. Both coexist.
         assert len(VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'})) == 2
         assert Version().load({'versionTitle': 'TestVersionRenameFamily_Old', 'title': 'Genesis'}) is None
-
-        # Cleanup
-        for v in VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'}):
-            v.delete()
 
 
 class TestCheckIndexDependenciesAPI:
