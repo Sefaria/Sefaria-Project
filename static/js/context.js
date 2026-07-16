@@ -111,10 +111,14 @@ const sidebarAdFields = `
 
 // Emits one aliased query field per supported locale (e.g. `en_banners`, `he_banners`),
 // so adding a locale to SUPPORTED_LOCALES fans out to every content type automatically.
+// The `en_banners:` before the real `banners` field is a GraphQL alias: it lets us query
+// the same collection field once per locale in a single request and get each locale's rows
+// back under a distinct response key (which rowsByLocale() reads below). Without the alias
+// GraphQL treats `en_banners` as a (nonexistent) field name and rejects the query.
 const buildLocalizedQueryBlock = (contentType, filtersExpression, fieldsSelection) =>
   SUPPORTED_LOCALES.map(
     (locale) => `
-          ${locale}_${contentType}(
+          ${locale}_${contentType}: ${contentType}(
             locale: "${locale}"
             filters: ${filtersExpression}
           ) {

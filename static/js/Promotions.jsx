@@ -1,6 +1,6 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
-import { LOCALE_TO_INTERFACE_LANG } from "./sefaria/strapiLocalization";
+import { buildInAppAdsFromSidebarAds } from "./sefaria/sidebarAds";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
@@ -24,45 +24,7 @@ const Promotions = () => {
         // Only an array is iterable here. A stale/incompatible payload may nest the ads under a wrapper object (Strapi v4's { data: [...] })
         // The wrong data type  must be treated as "no ads" rather than crashing on .forEach iterator
         if (Array.isArray(sidebarAds)) {
-          sidebarAds.forEach((sidebarAd) => {
-            let keywordTargetsArray = sidebarAd.keywords
-              .split(",")
-              .map((x) => x.trim().toLowerCase());
-            let excludeKeywordTargets = keywordTargetsArray
-              .filter((x) => x[0] === "!")
-              .map((x) => x.slice(1));
-            keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
-
-            // One ad per locale actually present on this document - a locale with no
-            // counterpart in another locale (e.g. Hebrew-only) is no longer skipped.
-            sidebarAd.locales.forEach((locale) => {
-              const localizedFields = sidebarAd.byLocale[locale];
-              Sefaria._inAppAds.push({
-                campaignId: sidebarAd.internalCampaignId,
-                title: localizedFields.title,
-                bodyText: localizedFields.bodyText,
-                buttonText: localizedFields.buttonText,
-                buttonURL: localizedFields.buttonURL,
-                buttonIcon: sidebarAd.buttonIcon,
-                buttonLocation: sidebarAd.buttonAboveOrBelow,
-                hasBlueBackground: sidebarAd.hasBlueBackground,
-                isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-                newsletterMailingLists:
-                  sidebarAd.newsletterMailingLists?.map(
-                    (mailingLists) => mailingLists.newsletterName
-                  ) ?? [],
-                trigger: {
-                  showTo: sidebarAd.showTo,
-                  interfaceLang: LOCALE_TO_INTERFACE_LANG[locale],
-                  startTimeDate: Date.parse(sidebarAd.startTime),
-                  endTimeDate: Date.parse(sidebarAd.endTime),
-                  keywordTargets: keywordTargetsArray,
-                  excludeKeywordTargets: excludeKeywordTargets,
-                },
-                debug: sidebarAd.debug,
-              });
-            });
-          });
+          Sefaria._inAppAds = buildInAppAdsFromSidebarAds(sidebarAds);
           setInAppAds(Sefaria._inAppAds);
         }
       } catch (error) {
