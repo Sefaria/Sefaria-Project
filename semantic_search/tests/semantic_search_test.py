@@ -83,6 +83,10 @@ class TestSearchByEmbeddingFilters:
         kwargs = self._run({"language": "en"})
         assert kwargs == {"language": "en"}
 
+    def test_ref_in_filter_passes_through(self):
+        kwargs = self._run({"ref__in": ["Genesis 1:1", "Genesis 1:2"]})
+        assert kwargs == {"ref__in": ["Genesis 1:1", "Genesis 1:2"]}
+
     def test_unknown_field_is_dropped(self):
         kwargs = self._run({"bad__inject": "x"})
         assert "bad__inject" not in kwargs

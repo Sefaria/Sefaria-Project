@@ -235,29 +235,60 @@ class KnnSearch(View):
             return ""
 
     @staticmethod
-    def _semantic_chunk_filters(base_filters, ref, ref_field):
+    def _semantic_chunk_filters(base_filters, ref_filter):
         filters = dict(base_filters or {})
-        filters[ref_field] = ref
+        filters.update(ref_filter)
         return filters
+
+    @staticmethod
+    def _segment_ref_filter_for_linked_ref(ref):
+        oref = Ref(ref)
+        if not (oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())):
+            return None, []
+
+        segment_refs = [segment_ref.normal() for segment_ref in oref.all_segment_refs()]
+        if not segment_refs:
+            return None, []
+        if len(segment_refs) == 1:
+            return {"ref": segment_refs[0]}, segment_refs
+        return {"ref__in": segment_refs}, segment_refs
+
+    @staticmethod
+    def _is_supported_linked_ref(ref):
+        try:
+            oref = Ref(ref)
+        except Exception:
+            return False
+        return oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())
 
     @classmethod
     def _semantic_chunks_for_linked_ref(cls, ref, query_embedding, base_filters):
         from semantic_search.search import semantic_search_by_embedding
 
-        for ref_field in ("chunked_from_ref", "ref"):
-            chunks = semantic_search_by_embedding(
-                query_embedding,
-                filters=cls._semantic_chunk_filters(base_filters, ref, ref_field),
-                limit=cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
-            )
-            if chunks:
-                return chunks, ref_field
+        ref_filter, segment_refs = cls._segment_ref_filter_for_linked_ref(ref)
+        if ref_filter is None:
+            return [], None
+
+        vector_filters = cls._semantic_chunk_filters(base_filters, ref_filter)
+        chunks = semantic_search_by_embedding(
+            query_embedding,
+            filters=vector_filters,
+            limit=cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+        )
+        if chunks:
+            return chunks, next(iter(ref_filter.keys()))
         return [], None
 
     @classmethod
     def _serialize_linked_ref(cls, ref, include_text, query_embedding=None, filters=None):
         serialized = {"ref": ref}
         if include_text:
+            if not cls._is_supported_linked_ref(ref):
+                serialized.update({
+                    "text": "",
+                    "text_source": "omitted_unsupported_linked_ref",
+                })
+                return serialized
             text = cls._ref_text(ref)
             if len(text) > cls.LINKED_REF_FULL_TEXT_CHAR_LIMIT and query_embedding is not None:
                 chunks, ref_field = cls._semantic_chunks_for_linked_ref(ref, query_embedding, filters)
