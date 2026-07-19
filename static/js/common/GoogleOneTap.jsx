@@ -29,8 +29,9 @@ export default function GoogleOneTap({ googleClientId }) {
         .catch(err => console.error('Google One Tap error', err));
     };
 
+    let timeoutId;
     const initOneTap = () => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (hasInterruptiveUI()) { markShown(); return; }
         window.google.accounts.id.initialize({ client_id: googleClientId, callback: handleCredential });
         window.google.accounts.id.prompt();
@@ -40,9 +41,13 @@ export default function GoogleOneTap({ googleClientId }) {
 
     if (window.google?.accounts) {
       initOneTap();
+      return () => clearTimeout(timeoutId);
     } else {
       window.addEventListener('google-identity-loaded', initOneTap, { once: true });
-      return () => window.removeEventListener('google-identity-loaded', initOneTap);
+      return () => {
+        window.removeEventListener('google-identity-loaded', initOneTap);
+        clearTimeout(timeoutId);
+      };
     }
   }, [googleClientId]);
 
