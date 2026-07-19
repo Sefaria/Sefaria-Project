@@ -54,6 +54,8 @@ def import_gravatar(profile):
         logger.info("Gravatar URL error", reason=str(e.reason))
     except GoogleCloudError as e:
         logger.warning("Google Storage error during Gravatar import", error=str(e))
+    except OSError as e:
+        logger.info("Gravatar image error", error=str(e))
 
 
 class SefariaAccountAdapter(DefaultAccountAdapter):
