@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { getCsrf, ALLAUTH_PROVIDER_TOKEN_URL } from '../auth/utils';
+import { ALLAUTH_PROVIDER_TOKEN_URL } from '../auth/utils';
+import { getCsrfToken } from '../sefaria/csrf';
 
 const AUTH_PATHS = new Set(['/login', '/register']);
 const SESSION_KEY = 'sefaria_interruptive_ui_shown';
@@ -19,7 +20,7 @@ export default function GoogleOneTap({ googleClientId }) {
     const handleCredential = (response) => {
       fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
         body: JSON.stringify({ provider: 'google', process: 'login',
                                token: { client_id: googleClientId, id_token: response.credential } }),
       })

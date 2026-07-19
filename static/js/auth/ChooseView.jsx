@@ -7,7 +7,8 @@ import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
 import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
-import { whenReady, authError, getCsrf, makeFlowId, safeNext, focusProvider, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
+import { whenReady, authError, makeFlowId, safeNext, focusProvider, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
+import { getCsrfToken } from '../sefaria/csrf';
 
 const ChooseView = ({
   flow, switchFlow, next, onEmailClick,
@@ -23,7 +24,7 @@ const ChooseView = ({
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));

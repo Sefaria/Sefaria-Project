@@ -4,7 +4,8 @@ import ChooseView from './ChooseView.jsx';
 import EmailView from './EmailView.jsx';
 import ForgotView from './ForgotView.jsx';
 import ForgotSentView from './ForgotSentView.jsx';
-import { getCsrf, makeFlowId, focusProvider } from './utils.js';
+import { makeFlowId, focusProvider } from './utils.js';
+import { getCsrfToken } from '../sefaria/csrf';
 
 /**
  * AuthPage — the React login / register / reset experience (spec 1602).
@@ -23,7 +24,7 @@ const AuthPage = ({
 }) => {
   const [view, setView] = useState('choose'); // choose | email | forgot
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
-  const csrf = getCsrf();
+  const csrf = getCsrfToken();
   const fieldsRef = useRef(fields);
   const registrationAnalytics = useRef({
     flowId: makeFlowId(),
