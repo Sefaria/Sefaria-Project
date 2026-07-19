@@ -239,8 +239,8 @@ class TextRange extends Component {
       if (alt != null) {
         if (includeAliyout && alt.aliyah_en) {
           return {
-            "en": `Parashat ${alt.parasha_en}: ${alt.aliyah_en}`,
-            "he": `פרשת ${alt.parasha_he}: ${alt.aliyah_he}`,
+            "en": `${alt.parasha_en}: ${alt.aliyah_en}`,
+            "he": `${alt.parasha_he}: ${alt.aliyah_he}`,
             "parashaTitle": false, // styled as an aliyah header (see .parashahHeader.aliyah)
           };
         }
