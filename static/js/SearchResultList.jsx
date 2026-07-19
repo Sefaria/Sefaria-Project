@@ -9,6 +9,7 @@ import Sefaria from './sefaria/sefaria';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchState from './sefaria/searchState';
+import SearchResultCard from './SearchResultCard';
 import {
   DropdownModal,
   DropdownButton,
@@ -18,59 +19,55 @@ import {
 } from './Misc';
 
 
+const getSnippetFromHit = (data) => {
+  if (data.highlight) {
+    const field = Object.keys(data.highlight)[0];
+    let snippet = data.highlight[field].join('...');
+    snippet = snippet.replace(/^[ .,;:!-)\]]+/, '');
+    return snippet;
+  }
+  return data._source.exact || '';
+};
+
+const sourceHitCardProps = (hit, query) => {
+  const s = hit._source;
+  const snippet = getSnippetFromHit(hit);
+  const snippetLang = Sefaria.hebrew.isHebrew(snippet) ? 'he' : 'en';
+  const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${query}`;
+
+  const versions = (hit.duplicates || [])
+    .filter(d => !!d._source.version)
+    .map(d => {
+      const dSnippet = getSnippetFromHit(d);
+      return {
+        snippet: dSnippet,
+        snippetLang: Sefaria.hebrew.isHebrew(dSnippet) ? 'he' : 'en',
+        versionName: d._source.version,
+        hebrewVersionName: d._source.hebrew_version_title,
+        href: `/${Sefaria.normRef(d._source.ref)}?v${d._source.lang}=${Sefaria.util.encodeVtitle(d._source.version)}&qh=${query}`,
+      };
+    });
+
+  return {
+    mode: 'sources',
+    type: 'text',
+    name: s.ref,
+    hebrewName: s.heRef,
+    href,
+    query,
+    snippet,
+    snippetLang,
+    versionName: s.version,
+    hebrewVersionName: s.hebrew_version_title,
+    versions,
+  };
+};
 
 
 
-const SourcesSheetsDiv = (props) => {
-    let sourcesSheetsCounts = [];
-    let sheetsURL, sourcesURL;
-    if (props?.numSources > 0 && props?.numSheets > 0) { // if there's both, we need to specify two different URLs
-        sheetsURL = props.url + "?tab=sheets";
-        sourcesURL = props.url + "?tab=sources";
-    }
-    else {
-        sheetsURL = props.url;
-        sourcesURL = props.url;
-    }
-
-    if (props?.numSources > 0) {
-        const sourcesDiv = <span><a href={sourcesURL}><InterfaceText>{props.numSources}</InterfaceText> <InterfaceText>Sources</InterfaceText></a></span>;
-        sourcesSheetsCounts.push(sourcesDiv);
-    }
-    if (props?.numSheets > 0) {
-        const sheetsDiv = <span><a href={sheetsURL}><InterfaceText>{props.numSheets}</InterfaceText> <InterfaceText>Sheets</InterfaceText></a></span>;
-        sourcesSheetsCounts.push(sheetsDiv);
-    }
-
-    if (sourcesSheetsCounts.length === 0) {
-        return null;
-    }
-    else {
-        return <div className="topicSourcesSheets systemText">{sourcesSheetsCounts.reduce((prev, curr) => [prev, " ∙ ",  curr])}</div>;
-    }
-}
 
 
-const SearchTopic = (props) => {
-    const sourcesSheetsDiv = <SourcesSheetsDiv url={props.topic.url} numSheets={props.topic.numSheets} numSources={props.topic.numSources}/>;
-    const topicTitle = <div className="topicTitle">
-                          <h2>
-                          <a href={props.topic.url} onClick={() => Sefaria.track.event("Search", "topic in search click", props.topic.analyticCat+"|"+props.topic.title)}><InterfaceText text={{en:props.topic.title, he:props.topic.heTitle}}/></a>
-                          </h2>
-                        </div>;
-    const topicCategory = <div className="topicCategory sectionTitleText">
-                            <InterfaceText text={{en:props.topic.topicCat, he:props.topic.heTopicCat}}/>
-                          </div>;
-    return <div className="searchTopic">
-                {topicTitle}
-                {topicCategory}
-                {"enDesc" in props.topic ?
-                    <div className="topicDescSearchResult systemText">
-                       <InterfaceText markdown={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
-                    </div> : null}
-                {sourcesSheetsDiv}
-        </div>
-}
+
 
 
 class SearchResultList extends Component {
@@ -104,26 +101,18 @@ class SearchResultList extends Component {
         if (type === "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.props.hits);
           results = results.filter(result => !!result._source.version).map(result =>
-            <SearchTextResult
-              data={result}
-              query={this.props.query}
-              key={result._id}
-              searchInBook={this.props.searchInBook}
-              onResultClick={this.props.onResultClick} />
+            this.props.searchInBook
+              ? <SearchTextResult
+                  data={result}
+                  query={this.props.query}
+                  key={result._id}
+                  searchInBook={this.props.searchInBook}
+                  onResultClick={this.props.onResultClick} />
+              : <SearchResultCard
+                  key={result._id}
+                  {...sourceHitCardProps(result, this.props.query)}
+                  onResultClick={this.props.onResultClick} />
           );
-          if (this.props.topics.length > 0) {
-              let topics = this.props.topics.map(t => {
-                  Sefaria.track.event("Search", "topic in search display", t.analyticCat+"|"+t.title);
-                  return <SearchTopic topic={t}/>
-              });
-              if (results.length > 0) {
-                  topics = <div id="searchTopics">{topics}</div>
-                  results.splice(2, 0, topics);
-              }
-              else {
-                  results = topics;
-              }
-          }
 
 
         } else if (type === "sheet") {
@@ -164,7 +153,6 @@ SearchResultList.propTypes = {
     loadNextPage:             PropTypes.func,
     queryFullyLoaded: PropTypes.bool,
     isQueryRunning:   PropTypes.bool,
-    topics:           PropTypes.array
 };
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray}) => {
@@ -205,14 +193,14 @@ SearchSortBox.propTypes = {
 };
 
 
-const SearchFilterButton = ({openMobileFilters, nFilters}) => (
-  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} 
-       onClick={openMobileFilters} 
-       role="button" 
-       tabIndex="0" 
-       aria-label={`Open filters${nFilters ? ` (${nFilters} active)` : ''}`}>
-    <InterfaceText>Filter</InterfaceText>
-    {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+const SearchFilterButton = ({openMobileFilters, nFilters, label = "Filter"}) => (
+  <div className={classNames({button: 1, extraSmall: 1, grey: label === "Filter" ? !nFilters : false})}
+       onClick={openMobileFilters}
+       role="button"
+       tabIndex="0"
+       aria-label={`Open ${label.toLowerCase()}${label === "Filter" && nFilters ? ` (${nFilters} active)` : ''}`}>
+    <InterfaceText>{label}</InterfaceText>
+    {label === "Filter" && !!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
 );
 
