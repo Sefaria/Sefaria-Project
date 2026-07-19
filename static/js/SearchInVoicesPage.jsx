@@ -1,0 +1,144 @@
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import ComparePanelHeader from './ComparePanelHeader';
+import SearchFilters from './SearchFilters';
+import Component from 'react-class';
+import {SearchResultList, SearchSortBox, SearchFilterButton} from './SearchResultList';
+import {
+  InterfaceText,
+  AiInfoTooltip,
+} from './Misc';
+
+class SearchInVoicesPage extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mobileFiltersOpen: false,
+    };
+  }
+
+  render () {
+    const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
+    const {aiBadgeText} = this.props;
+    const showAiBadge = aiBadgeText != null;
+    const searchResultList = <SearchResultList
+        query={this.props.query}
+        hits={this.props.hits}
+        type={this.props.type}
+        compare={this.props.compare}
+        searchState={this.props.searchState}
+        onResultClick={this.props.onResultClick}
+        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+        registerAvailableFilters={this.props.registerAvailableFilters}
+        loadNextPage={this.props.loadNextPage}
+        isQueryRunning={this.props.isQueryRunning}
+        moreToLoad={this.props.moreToLoad}
+        topics={this.props.topics}
+    />;
+
+    const resultCount = this.props.totalResults?.getValue() > 0 && (
+      <>
+        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
+        <InterfaceText>Results</InterfaceText>
+      </>
+    );
+
+    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
+      <SearchSortBox
+          type={this.props.type}
+          sortTypeArray={this.props.sortTypeArray}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          sortType={this.props.searchState.sortType}/>
+      :
+      <SearchFilterButton
+          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+          nFilters={this.props.searchState.appliedFilters.length}/>;
+
+    if (this.props.searchInBook) {
+      return searchResultList;
+    }
+    return (
+        <div className={classes} key={this.props.query}>
+          {this.props.compare ?
+              <ComparePanelHeader
+                  search={true}
+                  showDisplaySettings={false}
+                  onBack={this.props.close}
+                  openSearch={this.props.onQueryChange}/> : null}
+
+          <div className="content searchContent">
+            <div className="sidebarLayout">
+              <div className="contentInner">
+
+                <div className="searchTopLine">
+                  <div className="searchTopLineInner">
+                    <h1 className="serif">
+                      <InterfaceText>{this.props.searchTopMsg}</InterfaceText>&nbsp;
+                      <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
+                      {this.props.query}
+                      <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>
+                    </h1>
+                    {showAiBadge && <AiInfoTooltip
+                      displayText={aiBadgeText}
+                      variant="solid"
+                      size={24}
+                    />}
+                  </div>
+                  <div className="searchTopMatter">
+                    <div className="searchResultCount">
+                      {resultCount}
+                    </div>
+                    <div>
+                      {sortFilterControls}
+                    </div>
+                  </div>
+                </div>
+                {searchResultList}
+              </div>
+
+              {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
+                  <div
+                      className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
+                    {this.props.totalResults?.getValue() > 0 ?
+                        <SearchFilters
+                            query={this.props.query}
+                            searchState={this.props.searchState}
+                            updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+                            updateAppliedOptionField={this.props.updateAppliedOptionField}
+                            updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                            closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
+                            compare={this.props.compare}
+                            type={this.props.type}/>
+                        : null}
+                  </div>
+                  : null}
+            </div>
+          </div>
+        </div>
+    );
+  }
+}
+
+SearchInVoicesPage.propTypes = {
+  query:                    PropTypes.string,
+  type:                      PropTypes.oneOf(["text", "sheet"]),
+  searchState:              PropTypes.object,
+  close:                    PropTypes.func,
+  onResultClick:            PropTypes.func,
+  onQueryChange:            PropTypes.func,
+  updateAppliedFilter:      PropTypes.func,
+  updateAppliedOptionField: PropTypes.func,
+  updateAppliedOptionSort:  PropTypes.func,
+  registerAvailableFilters: PropTypes.func,
+  loadNextPage:             PropTypes.func,
+  moreToLoad:               PropTypes.bool,
+  topics:                   PropTypes.array,
+  totalResults:             PropTypes.object,
+  sortTypeArray:            PropTypes.array,
+  aiBadgeText:              PropTypes.string,
+};
+
+
+export default SearchInVoicesPage;
