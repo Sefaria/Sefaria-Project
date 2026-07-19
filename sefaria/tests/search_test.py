@@ -103,15 +103,24 @@ class _FakeAuthoredIndex:
         self._title_en = title_en
         self._title_he = title_he
         self._variants_en = variants_en or []
+
+        class _TG:
+            def all_titles(_self, lang):
+                if lang == "en":
+                    return [self._title_en] + self._variants_en
+                if lang == "he":
+                    return [self._title_he] if self._title_he else []
+                return []
+
+        class _Nodes:
+            title_group = _TG()
+
+        self.nodes = _Nodes()
         if authors is not None:
             self.authors = authors
 
     def get_title(self, lang="en"):
         return self._title_he if lang == "he" else self._title_en
-
-    def all_titles(self, lang):
-        return ([self._title_en] + self._variants_en) if lang == "en" else []
-
 
 def test_authored_index_titles_include_english_variants():
     """An author must be findable by every title its book is findable by — incl. variants."""
