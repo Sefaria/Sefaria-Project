@@ -293,7 +293,8 @@ class SearchPage extends Component {
       return searchResultList;
     }
 
-    const activeTab = this.props.tab || "sources";
+    const isValidTab = ["sources", "books", "authors", "topics"].includes(this.props.tab);
+    const activeTab = isValidTab ? this.props.tab : "sources";
 
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Topics and Authors get no sidebar.
