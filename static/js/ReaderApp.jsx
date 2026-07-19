@@ -54,6 +54,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
+        tab:                     props.initialSearchTab,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
           type:                  searchType,
@@ -510,7 +511,10 @@ class ReaderApp extends Component {
             const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "Search";
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
+            // `tab` is taken on search URLs (it means the text/sheet search type),
+            // so the active results tab (sources/books/authors/topics) is `search_tab`.
+            const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -2498,6 +2502,7 @@ ReaderApp.propTypes = {
   initialCollection:           PropTypes.string,
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
+  initialSearchTab:            PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,

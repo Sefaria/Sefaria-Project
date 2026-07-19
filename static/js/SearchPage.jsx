@@ -200,7 +200,6 @@ class SearchPage extends Component {
     this.state = {
       totalResults: null,
       mobileFiltersOpen: false,
-      activeTab: "sources",
       entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
       entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
       bookCategoryFilters: this.makeBookCategoryFilters(),
@@ -270,8 +269,11 @@ class SearchPage extends Component {
     return count >= 10000 ? "10,000+" : count.addCommas();
   }
 
-  setTab(tab) {
-    this.setState({activeTab: tab, mobileFiltersOpen: false});
+  setTab(tab, replaceHistory) {
+    // The active tab lives in panel state (this.props.tab) so it is serialized
+    // into the URL and history; back/forward restores it via handlePopState.
+    this.setState({mobileFiltersOpen: false});
+    this.props.setTab(tab, replaceHistory);
   }
 
   renderTab(tab) {
@@ -335,13 +337,15 @@ class SearchPage extends Component {
       return searchResultList;
     }
 
+    const isValidTab = ["sources", "books", "authors", "topics"].includes(this.props.tab);
+    const activeTab = isValidTab ? this.props.tab : "sources";
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
     const selectedBookFilterCount = this.state.bookCategoryFilters.filter(f => f.isSelected()).length;
 
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
-    if (this.state.activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+    if (activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
@@ -351,7 +355,7 @@ class SearchPage extends Component {
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
-    } else if (this.state.activeTab === "books") {
+    } else if (activeTab === "books") {
       sidebar = <BookSearchFilters
           filters={this.state.bookCategoryFilters}
           updateSelected={this.toggleBookCategoryFilter}
@@ -363,14 +367,14 @@ class SearchPage extends Component {
           } : null}
       />;
     } else if (!Sefaria.multiPanel) {
-      if (this.state.activeTab === "authors") {
+      if (activeTab === "authors") {
         sidebar = <EntitySortPanel
             sortOptions={ENTITY_SORT_OPTIONS.authors}
             sortType={this.state.entitySort.author}
             onSortChange={(key) => this.setEntitySort('author', key)}
             onClose={closeMobileFilters}
         />;
-      } else if (this.state.activeTab === "topics") {
+      } else if (activeTab === "topics") {
         sidebar = <EntitySortPanel
             sortOptions={ENTITY_SORT_OPTIONS.topics}
             sortType={this.state.entitySort.topic}
@@ -481,7 +485,7 @@ class SearchPage extends Component {
                   : Sefaria.multiPanel
                     ? <TabView
                           tabs={tabs}
-                          currTabName={this.state.activeTab}
+                          currTabName={isValidTab ? this.props.tab : null}
                           setTab={this.setTab}
                           renderTab={this.renderTab}
                           containerClasses={"largeTabs"}>
@@ -490,9 +494,9 @@ class SearchPage extends Component {
                     : <>
                         <SearchTabsMobileWeb
                             tabs={tabs}
-                            currTabName={this.state.activeTab}
+                            currTabName={activeTab}
                             setTab={this.setTab}/>
-                        {tabPanels[tabs.findIndex(t => t.id === this.state.activeTab)]}
+                        {tabPanels[tabs.findIndex(t => t.id === activeTab)]}
                       </>
                 }
               </div>
@@ -515,6 +519,8 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  tab:                      PropTypes.string,
+  setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,
   settings:                 PropTypes.object,
