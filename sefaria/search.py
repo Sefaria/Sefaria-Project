@@ -24,7 +24,7 @@ from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, strip_markdown
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
@@ -60,26 +60,38 @@ PROGRESS_LOG_EVERY_N = 100
 
 
 def delete_text(oref, version, lang):
+    delete_text_by_ref_string(oref.normal(), version, lang)
+
+
+def delete_text_by_ref_string(tref, version, lang):
+    # Takes the ref as a plain string so callers can delete docs whose refs can no
+    # longer be parsed into an Ref (e.g. refs built from a book's pre-rename title).
     try:
         index_names = get_new_and_current_index_names('text')
         if not index_names:
-            logger.error(f"Could not get index names for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            logger.error(f"Could not get index names for text - ref: {tref}, version: {version}, lang: {lang}")
             return
-        
+
         curr_index = index_names.get('current')
         if not curr_index:
-            logger.error(f"No current index found for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            logger.error(f"No current index found for text - ref: {tref}, version: {version}, lang: {lang}")
             return
 
-        id = make_text_doc_id(oref.normal(), version, lang)
+        id = make_text_doc_id(tref, version, lang)
         es_client.delete(index=curr_index, id=id)
     except NotFoundError:
-        logger.warning(f"Document not found when deleting - ref: {oref.normal()}, version: {version}, lang: {lang}")
+        logger.warning(f"Document not found when deleting - ref: {tref}, version: {version}, lang: {lang}")
     except Exception as e:
-        logger.error(f"Failed to delete text - ref: {oref.normal()}, version: {version}, lang: {lang}, error: {e}")
+        logger.error(f"Failed to delete text - ref: {tref}, version: {version}, lang: {lang}, error: {e}")
 
 
-def delete_version(index, version, lang):
+def delete_version(index, version, lang, old_title=None):
+    """
+    Delete the ES docs of every segment of `version`/`lang` of `index`.
+    :param old_title: pass the book's previous title when `index` was just renamed —
+        the stale docs' ids were built from refs under that title, so the title prefix
+        of each current ref is swapped for `old_title` before computing the doc id.
+    """
     assert isinstance(index, AbstractIndex)
 
     refs = []
@@ -93,7 +105,10 @@ def delete_version(index, version, lang):
     refs += index.all_segment_refs()
 
     for ref in refs:
-        delete_text(ref, version, lang)
+        tref = ref.normal()
+        if old_title:
+            tref = old_title + tref[len(index.title):]
+        delete_text_by_ref_string(tref, version, lang)
 
 
 def delete_sheet(index_name, id):
@@ -974,6 +989,8 @@ class TextIndexer(object):
         categories = cls.curr_index.categories
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
+        if not doc:  # segment is empty in this version — nothing to index
+            return
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index=index_name, document=doc, id=id)
 
@@ -1265,8 +1282,8 @@ def make_topic_index_document(topic, authored_titles_map=None):
         'title_en': title_en or None,
         'title_he': title_he or None,
         'titleVariants': variants,
-        'description_en': description.get('en', ''),
-        'description_he': description.get('he', ''),
+        'description_en': strip_markdown(description.get('en', '')),
+        'description_he': strip_markdown(description.get('he', '')),
         'numSources': getattr(topic, 'numSources', 0) or 0,
     }
 
@@ -1361,8 +1378,8 @@ def make_book_index_document(index, author_name_cache=None):
         'titleVariants': variants,
         'categories': categories,
         'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        'description_en': getattr(index, 'enShortDesc', '') or '',
-        'description_he': getattr(index, 'heShortDesc', '') or '',
+        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or ''),
+        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or ''),
         'compDate': comp_date,
         'era': getattr(index, 'era', None),
         'authors': author_slugs,
@@ -1451,6 +1468,128 @@ def index_books(index_name):
     if skipped:
         logger.info(f"index_books skipped {len(skipped)} books (sample): {skipped[:20]}")
     return result
+
+
+# --------------------------------------------------------------------------- #
+#  Entity search: single-doc updates                                          #
+#                                                                             #
+#  Incremental counterparts to index_topics/index_books, called from the      #
+#  model dependency hooks in sefaria/model/dependencies.py when a book or     #
+#  topic is saved, renamed, or deleted. Doc ids are deterministic (topic      #
+#  slug / book English title) so a save is a plain upsert; only an id change  #
+#  or a delete needs an explicit doc deletion. All of these are best-effort:  #
+#  they log and swallow failures, because they run after the change has       #
+#  already been committed to Mongo — the weekly full rebuild reconciles any   #
+#  docs missed here.                                                          #
+# --------------------------------------------------------------------------- #
+
+def _current_entity_index_name(entity_type):
+    index_names = get_new_and_current_index_names(entity_type)
+    if not index_names or not index_names.get('current'):
+        logger.error(f"Could not resolve current index name - entity_type: {entity_type}")
+        return None
+    return index_names['current']
+
+
+def index_topic_doc(topic):
+    """
+    Upsert the ES doc for a single topic (doc id = slug) in the live `topic` index.
+    """
+    slug = getattr(topic, 'slug', '<no-slug>')
+    try:
+        index_name = _current_entity_index_name('topic')
+        if not index_name:
+            return
+        # No authored_titles_map: for a single author topic the per-slug IndexSet
+        # fallback inside the builder is the right trade-off (see its docstring).
+        doc = make_topic_index_document(topic)
+        if not doc:
+            return
+        es_client.index(index=index_name, document=doc, id=doc['slug'])
+    except Exception as e:
+        logger.error(f"Failed to index topic doc - slug: {slug}, error: {e}")
+
+
+def delete_topic_doc(slug):
+    """
+    Delete the ES doc for a single topic (doc id = slug) from the live `topic` index.
+    """
+    try:
+        index_name = _current_entity_index_name('topic')
+        if not index_name:
+            return
+        es_client.delete(index=index_name, id=slug)
+    except NotFoundError:
+        # Expected for topics that never made it into the index (no titles,
+        # oversized slug, or indexed while SEARCH_INDEX_ON_SAVE was off).
+        logger.warning(f"Topic doc not found when deleting - slug: {slug}")
+    except Exception as e:
+        logger.error(f"Failed to delete topic doc - slug: {slug}, error: {e}")
+
+
+def index_book_doc(index):
+    """
+    Upsert the ES doc for a single book (doc id = English title) in the live `book` index.
+    """
+    title = getattr(index, 'title', '<no-title>')
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        doc = make_book_index_document(index)
+        if not doc:
+            return
+        es_client.index(index=index_name, document=doc, id=doc['title_en'])
+    except Exception as e:
+        logger.error(f"Failed to index book doc - title: {title}, error: {e}")
+
+
+def delete_book_doc(title_en):
+    """
+    Delete the ES doc for a single book (doc id = English title) from the live `book` index.
+    """
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        es_client.delete(index=index_name, id=title_en)
+    except NotFoundError:
+        logger.warning(f"Book doc not found when deleting - title: {title_en}")
+    except Exception as e:
+        logger.error(f"Failed to delete book doc - title: {title_en}, error: {e}")
+
+
+def index_book_docs(indexes):
+    """
+    Re-upsert the ES book docs for an iterable of Index records in one bulk request.
+    The incremental counterpart to index_books for a bounded set — e.g. every book
+    under a category whose path just changed. Doc ids are the (unchanged) English
+    titles, so existing docs are overwritten in place; per-doc build failures are
+    logged and skipped so one bad record can't block the rest.
+    """
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        author_name_cache = {}
+        actions = []
+        for index in indexes:
+            try:
+                doc = make_book_index_document(index, author_name_cache)
+            except Exception as e:
+                logger.warning(f"index_book_docs: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}")
+                continue
+            if doc is None:
+                continue
+            actions.append({"_index": index_name, "_id": doc['title_en'], "_source": doc})
+        if not actions:
+            return
+        succeeded, errors = bulk(es_client, actions, raise_on_error=False)
+        if errors:
+            logger.warning(f"index_book_docs bulk errors - count: {len(errors)}, sample: {errors[:5]}")
+        logger.info(f"index_book_docs - index_name: {index_name}, succeeded: {succeeded}, errors: {len(errors)}")
+    except Exception as e:
+        logger.error(f"index_book_docs failed - error: {e}")
 
 
 def clear_index(index_name):
