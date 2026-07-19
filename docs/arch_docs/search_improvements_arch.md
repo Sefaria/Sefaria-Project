@@ -49,7 +49,7 @@ The `/api/entity-search` endpoint is backed by two new Elasticsearch indices —
 
 **`topic` index — topics and authors**
 
-One document per Topic. Authors are not a separate index — `AuthorTopic` is a subtype of `Topic`, so authors live in the `topic` index and are distinguished by a `subtype` field (`"topic"` or `"author"`).
+One document per Topic **in the `library` TopicPool**. Pool membership (curated in Postgres via `django_topics`) is the inclusion filter: the full Mongo `TopicSet` carries ~40k topics, most of them auto-generated noise never curated for the library, so only the ~5.5k library-pool topics and authors are indexed. Authors are not a separate index — `AuthorTopic` is a subtype of `Topic`, so authors live in the `topic` index and are distinguished by a `subtype` field (`"topic"` or `"author"`).
 
 | Field | Type | Analyzer | Notes |
 |---|---|---|---|
@@ -58,8 +58,8 @@ One document per Topic. Authors are not a separate index — `AuthorTopic` is a 
 | `title_en` | `text` + `keyword` | `stemmed_english` | Primary match; `keyword` sub-field for exact-match and sort |
 | `title_he` | `text` + `keyword` | plain `text` | Primary match; `keyword` sub-field for exact-match and sort |
 | `titleVariants` | `text` | `stemmed_english` | Alternate titles — the main recall driver |
-| `description_en` | `text` | `stemmed_english` | Full-text match |
-| `description_he` | `text` | plain `text` | Full-text match |
+| `description_en` | `text` | `stemmed_english` | Returned for display only; **not searched** |
+| `description_he` | `text` | plain `text` | Returned for display only; **not searched** |
 | `numSources` | `integer` | — | Popularity signal for `function_score` ranking |
 | `era` | `keyword` | — | Author-only: historical period |
 | `birthYear` | `integer` | — | Author-only: for display and filtering |
@@ -80,8 +80,8 @@ One document per Index record.
 | `titleVariants` | `text` | `stemmed_english` | Alternate titles; recall |
 | `categories` | `keyword` | — | Category path components; filterable |
 | `path` | `keyword` | — | `"Category/Subcategory/Title"` — mirrors text index shape |
-| `description_en` | `text` | `stemmed_english` | Full-text match |
-| `description_he` | `text` | plain `text` | Full-text match |
+| `description_en` | `text` | `stemmed_english` | Returned for display only; **not searched** |
+| `description_he` | `text` | plain `text` | Returned for display only; **not searched** |
 | `compDate` | `integer` | — | Composition date (collapsed from Mongo list to single sortable int) |
 | `era` | `keyword` | — | Historical period label |
 | `authors` | `keyword` | — | Author slugs for facet/filter |
@@ -110,7 +110,7 @@ The pipeline plugs into the existing reindex infrastructure rather than building
 - *Topic builder*: reads titles, variants, descriptions, and `numSources`; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
 - *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer.
 
-**Bulk indexers** — `index_topics` iterates all topics via `TopicSet`; `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
+**Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
 
 
 Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_BOOK` (defaulting to `topic` and `book`), parallel to `SEARCH_INDEX_NAME_TEXT` / `_SHEET`.
@@ -120,21 +120,21 @@ Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_
 The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, `numSources`).
 
 #### Elastic Search Scoring Mechanisms
-Each query combines three scoring mechanisms, applied over English and Hebrew fields with titles weighted highest, then title variants, then descriptions:
+Each query combines three scoring mechanisms, applied over English and Hebrew fields with titles weighted highest, then title variants. **Descriptions are not searched at all** — a description mention is not a meaningful entity match; description fields stay in the index only so hits can render them:
 
 - **Exact-word match (`best_fields`, ×2 boost)** — the primary scorer. Searches for the query as complete words and ranks documents by how well they match. Gets a 2× boost so a full-word hit always outranks a partial one.
-- **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. Elasticsearch treats each word as an indivisible token, so "Mos" doesn't match "Moses" in an exact search — it's not a recognized token. `phrase_prefix` solves this by treating the last word in the query as a prefix, so "Mos" matches "Moses", "Moshe", etc. Applied to title fields only (not descriptions) to avoid noise.
+- **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. Elasticsearch treats each word as an indivisible token, so "Mos" doesn't match "Moses" in an exact search — it's not a recognized token. `phrase_prefix` solves this by treating the last word in the query as a prefix, so "Mos" matches "Moses", "Moshe", etc. Applied to title fields only.
 - **Popularity boost (`function_score` on `numSources`)** — without this, "Mos" prefix-matches Moses, Mosquitoes, and Moser with nearly identical text scores. `numSources` breaks the tie using source count: Moses has 7,074 references, Mosquitoes has 3. The score is log-scaled so the multiplier stays reasonable (≈8.9× vs ≈1.4×), and is applied as a multiplier — not an additive offset — so it consistently separates results regardless of their base text score.
 
 **Routing:** `topic` and `author` queries both search the `topic` index, filtered by `subtype`. Book queries additionally boost `author_names` so a search for "Rambam" surfaces his works even when his name isn't in the book title.
 
 #### Product-configurable ranking (RemoteConfig)
 
-A natural extension is to lift the ranking weights out of code and into a RemoteConfig JSON entry, so the product team can tune result ordering without a code change or reindex. The per-field **match boosts** map onto this cleanly: the weights in the `multi_match` field list — e.g. `["title_en^3", "title_he^3", "titleVariants^2", "description_en", "author_names^2"]` — are already a `{field: weight}` dictionary. The `^3` on `title_en` means a query word found in the title counts three times as much as the same word found in a description, so a search for "Rashi" ranks *Rashi on Genesis* (title match) above a book that merely mentions Rashi in its description. Exposing that dictionary as config lets product retune it live.
+A natural extension is to lift the ranking weights out of code and into a RemoteConfig JSON entry, so the product team can tune result ordering without a code change or reindex. The per-field **match boosts** map onto this cleanly: the weights in the `multi_match` field list — e.g. `["title_en^3", "title_he^3", "titleVariants^2", "author_names^2"]` — are already a `{field: weight}` dictionary. The `^3` on `title_en` means a query word found in the title counts three times as much as the same word found in a lower-weighted field like `titleVariants`, so a search for "Rashi" ranks *Rashi on Genesis* (title match) above a book that merely matches on a variant. Exposing that dictionary as config lets product retune it live. The defaults also double as an allow-list: a RemoteConfig key that isn't a default field for that type (a typo, or an intentionally removed field like `description_en`) is ignored, never added to the query.
 
 The catch is that **not every ranking factor reduces to a single per-field weight.** The inputs fall into a few kinds, only one of which fits the flat model:
 
-- **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `description_en`, `author_names`, …). One weight per field, safe for product to edit directly.
+- **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `author_names`, …). One weight per field, safe for product to edit directly.
 - **Document signals — need more structure.** Numeric properties that should lift a document *regardless of the query* — e.g. ranking authors with more `numSources` above those with fewer, or a future per-book page rank to float more-studied books to the top. These feed a `function_score`, not the field list, and a bare weight is not enough: the raw values live on very different scales (`numSources` spans 0–7,000+), so each needs a scaling modifier (e.g. log) and missing-value handling, not just a multiplier.
 - **Categorical preferences — don't fit at all.** Wanting certain categories to outrank others (e.g. surfacing Halakhah above a niche category) is a weight per *value*, not per *field* — a different shape again (`{category: weight}`), wired as filtered boost clauses.
 
@@ -172,7 +172,7 @@ When the query resolves to an author, the endpoint returns that author's works a
 
 **QA escape hatch:** `aggregate=0` on the API (or appended to the search page URL, which forwards it) skips the author resolution entirely, so a book query always returns the flat list. This exists so product staff can compare the aggregated and flat views for the same query; it is ignored for types that never aggregate (topics/authors) and composes with any `sort`.
 
-> **Note:** It is possible to trigger the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions. This can cause queries like "Genesis" to return all of Rashi's books because his name appeared in a description. To fix this, ensure that the aggregated-works view now only activates when the query directly matches an author entity in the `topic` index.
+> **Note:** An earlier iteration could trigger the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions — causing queries like "Genesis" to return all of Rashi's books because his name appeared in a description. This is addressed twice over: descriptions are no longer searched at all, and the aggregated-works view only activates when the query directly matches an author entity's title or title variant in the `topic` index.
 
 To support useful labels in the aggregated view, the author-works aggregation was extended to report, per entry, whether it is a category aggregation and a localized category label. 
 
@@ -314,7 +314,7 @@ This resolves the open **"eager vs. lazy entity search"** question (see [Open Qu
 - **Empty results** — what should each tab show when there are no matches? Fall through to another tab? Show a zero-state message?
 - **Categorical collapsing** — should similar topic clusters be collapsed?
 - **Language filtering** — a language-family filter has been added to source search results (see [Language Filtering](#language-filtering) in Frontend Tech Debt). This needs further tweaking from a UX perspective.
-- **Topic descriptions** — how much do we display? When is the text included in a search or not included?
+- **Topic descriptions** — how much do we display? (The search side is decided: descriptions are never searched, only displayed.)
 - **Ref queries ("Genesis 1:1")** — it's unclear whether a ref-shaped query should trigger a search or directly load that ref in the reader. Needs a product decision before building: these are fundamentally different UX flows.
 - **Hebrew text analysis** — entity search uses a built-in `stemmed_english` analyzer for English fields and plain `text` for Hebrew. Hebrew morphology is complex (prefixes, root-based stems) and plain tokenization may hurt recall for Hebrew queries. Worth considering a dedicated Hebrew analyzer, though this may be out of scope for the initial MVP.
 - **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). The `numSources` field is already indexed; the question is where to apply the filter — as a hard `must` filter in the query, a minimum `numSources` threshold, or at render time.
