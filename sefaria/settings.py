@@ -158,12 +158,12 @@ INSTALLED_APPS = (
     'reader',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'django.contrib.postgres',
     'emailusernames',
     'guides',
     'sefaria.gauth',
     'django_topics.apps.DjangoTopicsAppConfig',
     'powered_by.apps.PoweredByAppConfig',
+    'dedications.apps.DedicationsAppConfig',
     'django_recaptcha',
     'django.contrib.admin',
     'anymail',
@@ -177,11 +177,16 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
+    'django.contrib.postgres'
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
+
+# Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
+# Empty in local dev, where no deploy has happened.
+APP_VERSION = os.environ.get("APP_VERSION", "")
 
 LOGIN_URL = 'login'
 
