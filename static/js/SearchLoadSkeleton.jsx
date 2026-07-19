@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 function SkeletonCard() {
   return (
@@ -18,8 +18,18 @@ function SkeletonCard() {
 }
 
 function SearchLoadSkeleton() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const scrollContainer = ref.current?.closest('.content');
+    if (!scrollContainer) return;
+    const prevOverflowY = scrollContainer.style.overflowY;
+    scrollContainer.style.overflowY = 'hidden';
+    return () => { scrollContainer.style.overflowY = prevOverflowY; };
+  }, []);
+
   return (
-    <div className="searchLoadSkeleton" aria-hidden="true">
+    <div ref={ref} className="searchLoadSkeleton" aria-hidden="true">
       <div className="searchLoadSkeleton-tabs">
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-tab" />
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-tab" />
@@ -30,14 +40,7 @@ function SearchLoadSkeleton() {
         <div className="searchLoadSkeleton-shimmer searchLoadSkeleton-sort" />
       </div>
       <div className="searchLoadSkeleton-results">
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
-        <SkeletonCard />
+        {Array.from({ length: 11 }, (_, i) => <SkeletonCard key={i} />)}
       </div>
     </div>
   );
