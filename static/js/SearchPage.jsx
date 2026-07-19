@@ -345,7 +345,7 @@ class SearchPage extends Component {
                   ? <SearchLoadSkeleton />
                   : <TabView
                         tabs={tabs}
-                        currTabName={this.props.tab}
+                        currTabName={isValidTab ? this.props.tab : null}
                         setTab={this.setTab}
                         renderTab={this.renderTab}
                         containerClasses={"largeTabs"}>

@@ -512,8 +512,9 @@ class ReaderApp extends Component {
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             // `tab` is taken on search URLs (it means the text/sheet search type),
-            // so the active results tab (sources/books/authors/topics) is `stab`.
-            const searchTab = state.tab ? `&stab=${encodeURIComponent(state.tab)}` : "";
+            // so the active results tab (sources/books/authors/topics) is `search_tab`.
+            const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;

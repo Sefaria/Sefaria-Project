@@ -582,7 +582,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
-        "tab": search_params["stab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1013,9 +1013,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
-        # `tab` is the text/sheet search type; `stab` is the active results tab
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
-        "stab": urllib.parse.unquote(get_dict.get(get_param("stab", i), "")) or None,
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1056,7 +1056,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
-        "initialSearchTab": search_params["stab"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
