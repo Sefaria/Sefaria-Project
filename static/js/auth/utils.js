@@ -24,12 +24,6 @@ export function whenReady(check, cb) {
   };
 }
 
-export function getCsrf() {
-  if (typeof document === 'undefined') return '';
-  const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-  return m ? m[1] : '';
-}
-
 export function pickFirstError(data) {
   if (!data || typeof data !== 'object') return null;
   if (typeof data.error === 'string') return data.error;
