@@ -577,12 +577,19 @@ class Search {
         // tab panels. The Books / Authors / Topics tab count badges read `total` off the
         // response rather than counting the hits — the API returns at most one page (capped
         // at 100), so `hits.length` would undercount broad queries.
-        const cacheKey = `entitySearch|${type}|${query}`;
+        // QA escape hatch: appending &aggregate=0 to the search page URL turns off the
+        // author-works aggregation on the Books tab (flat book hits instead of category
+        // rows). Forwarded on every tab's request; the API ignores it for types that
+        // never aggregate.
+        const noAggregate = typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).get("aggregate") === "0";
+        const cacheKey = `entitySearch|${type}|${query}${noAggregate ? "|noAggregate" : ""}`;
         const cacheResult = this.cache(cacheKey);
         if (cacheResult !== undefined) {
             return Promise.resolve(cacheResult);
         }
-        const url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
+        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`;
+        if (noAggregate) { url += "&aggregate=0"; }
         // Wrapped in a real Promise because jQuery 2's Deferred has no .catch()
         return new Promise((resolve, reject) => {
             $.getJSON(url).then(data => {
