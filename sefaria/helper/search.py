@@ -1,7 +1,6 @@
 from functools import wraps
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
-from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
 from remote_config import remoteConfigCache
 from remote_config.keys import (
@@ -9,10 +8,15 @@ from remote_config.keys import (
     SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
     SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
 )
-import logging
+import structlog
 import re
 
-logger = logging.getLogger(__name__)
+# This module must not import sefaria.model at module level: it is imported by
+# sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
+# (for the ES cascade handlers below), so a top-level model import would be circular.
+# Model imports live inside the functions that need them instead.
+
+logger = structlog.get_logger(__name__)
 
 
 def default_list(param):
@@ -178,6 +182,8 @@ def normalize_linked_ref_filters(refs):
     """
     Expand raw refs into normalized segment refs for linked_refs search filters.
     """
+    from sefaria.model import Ref
+
     segment_refs = []
     for ref in refs:
         try:
@@ -528,7 +534,7 @@ def _author_works_response(author, sort="relevance"):
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
-def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None):
+def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
@@ -544,6 +550,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     category filter still runs the flat search — a category row spans many per-book
     paths, so it can't be filtered as a unit.
 
+    `aggregate=False` skips the author resolution entirely, so a book query always
+    returns the flat list — a QA escape hatch for comparing the two views side by side.
+    Only books aggregate, so the flag is a no-op for other types.
+
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
     """
@@ -557,7 +567,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if not category_paths:
+        if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
                 return _author_works_response(author, sort=sort)
@@ -591,3 +601,124 @@ def get_elasticsearch_client_for_indexer():
         retry_on_timeout=True,
         max_retries=3,
     )
+
+
+# --------------------------------------------------------------------------- #
+#  ES cascade handlers                                                        #
+#                                                                             #
+#  Model dependency listeners, subscribed in sefaria/model/dependencies.py,   #
+#  that keep the search indices in sync when Mongo records change. Guarded    #
+#  by SEARCH_INDEX_ON_SAVE; single-doc helpers live in sefaria/search.py.     #
+# --------------------------------------------------------------------------- #
+
+def process_index_title_change_in_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.model import library, text
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        index_names = get_new_and_current_index_names("text")
+        search_index_name = index_names.get("current") if index_names else None
+        if not search_index_name:
+            logger.error(
+                "process_index_title_change_in_search: could not resolve current text index name",
+                old_title=kwargs.get("old"),
+                new_title=kwargs.get("new"),
+            )
+            return
+        old_title, new_title = kwargs.get("old"), kwargs.get("new")
+        text_index = library.get_index(new_title)
+        # This callback is subscribed after process_index_title_change_in_versions, so
+        # the book's versions already carry the new title in Mongo. The stale ES docs,
+        # however, have ids built from old-title refs — delete_version(old_title=...)
+        # rewrites each ref's title prefix to target them.
+        versions = text.VersionSet({"title": new_title}).array()
+        for ver in versions:
+            delete_version(text_index, ver.versionTitle, ver.language, old_title=old_title)
+        failed = []
+        for ver in versions:
+            for ref in text_index.all_segment_refs():
+                # Best-effort reindex, same rationale as process_version_title_change_in_search
+                # in sefaria/model/dependencies.py: the rename is already committed to Mongo,
+                # so one bad segment must not abort the rest. Collect failures and surface
+                # them so search can be re-synced.
+                try:
+                    TextIndexer.index_ref(search_index_name, ref, ver.versionTitle, ver.language,
+                                          getattr(ver, 'languageFamilyName', None), getattr(ver, 'isPrimary', False))
+                except Exception as e:
+                    failed.append((ref.normal(), ver.versionTitle))
+                    logger.warning(
+                        "process_index_title_change_in_search: failed to index segment",
+                        index=new_title,
+                        versionTitle=ver.versionTitle,
+                        language=ver.language,
+                        ref=ref.normal(),
+                        error=str(e),
+                    )
+        if failed:
+            logger.error(
+                "process_index_title_change_in_search: some segments failed to reindex",
+                index=new_title,
+                old_title=old_title,
+                failed_count=len(failed),
+                failed_refs=failed,
+            )
+
+
+# Entity search (`topic` and `book` indices behind /api/entity-search).
+# One entity = one ES doc with a deterministic id (book: English title, topic: slug),
+# so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
+# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
+# deliberately NOT chased here — the weekly full rebuild reconciles them.
+
+def process_index_title_change_in_book_search(indx, **kwargs):
+    # A rename changes the book doc's ES id. Only the stale doc is deleted here:
+    # save() emits attributeChange notifications before the "save" notification,
+    # so process_index_save_in_book_search upserts the new-id doc right after.
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(kwargs.get("old"))
+
+
+def process_index_save_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_book_doc
+        index_book_doc(indx)
+
+
+def process_index_delete_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(indx.title)
+
+
+def process_topic_save_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_topic_doc
+        index_topic_doc(topic_obj)
+
+
+def process_topic_delete_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_topic_doc
+        delete_topic_doc(topic_obj.slug)
+
+
+def process_category_path_change_in_book_search(cat, **kwargs):
+    # Must be subscribed AFTER category.process_category_path_change: that hook
+    # cascades the new path into the affected Index records in Mongo, which this
+    # hook re-reads. (It saves them with override_dependencies=True, so
+    # process_index_save_in_book_search never fires for those books — this hook is
+    # their only path back into the book index.)
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.model import text
+        from sefaria.search import index_book_docs
+        new_path = kwargs.get("new") or []
+        if not new_path:  # an empty path would match every book in the library
+            return
+        index_book_docs(text.IndexSet({f"categories.{i}": p for i, p in enumerate(new_path)}))

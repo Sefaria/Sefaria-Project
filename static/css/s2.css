@@ -3992,6 +3992,81 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchResultCount {
   color: var(--dark-grey);
 }
+.searchTabsMobileWeb {
+  position: relative;
+  margin-bottom: 18px;
+}
+.searchTabsMobileWeb-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid #CCC;
+}
+.searchTabsMobileWeb-spacer {
+  flex-shrink: 0;
+  width: 30px;
+}
+.searchTabsMobileWeb-scroll::-webkit-scrollbar {
+  display: none;
+}
+.searchTabsMobileWeb-tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  color: var(--Semantic-Text-Secondary, #575757);
+  padding: 10px 0 14px;
+  margin-inline-end: 24px;
+  white-space: nowrap;
+}
+.searchTabsMobileWeb-tab .int-en,
+.searchTabsMobileWeb-tab .int-he {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: normal;
+  text-align: center;
+}
+.searchTabsMobileWeb-tab.active {
+  color: var(--Semantic-Text-Primary, #121212);
+  border-bottom-color: var(--light-grey);
+}
+.searchTabsMobileWeb-count {
+  display: inline-block;
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  margin-inline-start: 8px;
+  background-color: var(--lighter-grey);
+  border-radius: 4px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dark-grey);
+  text-align: center;
+}
+.searchTabsMobileWeb-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  pointer-events: none;
+}
+.searchTabsMobileWeb-gradient.right {
+  right: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+}
+.searchTabsMobileWeb-gradient.left {
+  left: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0), #fff);
+}
 .searchContent .searchTopMatter {
   position: relative;
   display: flex;
@@ -4036,6 +4111,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
+}
+.searchToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: #fafafa;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 9999px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.searchToggle__slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.searchToggle__option {
+  position: relative;
+  z-index: 1;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--darker-grey);
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+.searchToggle__option--active {
+  color: #121212;
+  font-weight: 600;
 }
 
 .searchContent .searchResultList {
@@ -4441,6 +4558,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .mobileSearchFiltersFooter {
   padding: 15px;
   border-top: 1px solid var(--light-grey);
+}
+.sortRadioList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sortRadioItem label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.sortRadioLabel {
+  color: var(--Semantic-Text-Primary, #121212);
 }
 .searchContent .result {
   padding-bottom: 20px;
@@ -16268,3 +16400,51 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
+
+/* ========== SEARCH SORT DROPDOWN ========== */
+.searchSortBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 42px;
+}
+.searchSortDropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin: 8px;
+  background-color: #ededec;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  color: #575757;
+  user-select: none;
+  outline: none;
+}
+.interface-hebrew .searchSortDropdown {
+  font-family: var(--hebrew-sans-serif-font-family);
+  flex-direction: row-reverse;
+}
+.searchSortDropdown:hover,
+.searchSortDropdown:focus-visible {
+  background-color: #dfdfdf;
+}
+.searchSortDropdown__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.searchSortDropdown__chevron {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.searchSortDropdown.open .searchSortDropdown__chevron {
+  transform: rotate(180deg);
+}
+/* ========== SEARCH SORT DROPDOWN - END ========== */

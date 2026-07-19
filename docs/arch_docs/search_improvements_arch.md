@@ -169,6 +169,8 @@ The Books tab also supports a category filter: `filter=<category path>` on the A
 
 When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
 
+**QA escape hatch:** `aggregate=0` on the API (or appended to the search page URL, which forwards it) skips the author resolution entirely, so a book query always returns the flat list. This exists so product staff can compare the aggregated and flat views for the same query; it is ignored for types that never aggregate (topics/authors) and composes with any `sort`.
+
 > **Note:** It is possible to trigger the author-works view whenever an author's name appeared anywhere in matched text — including book descriptions. This can cause queries like "Genesis" to return all of Rashi's books because his name appeared in a description. To fix this, ensure that the aggregated-works view now only activates when the query directly matches an author entity in the `topic` index.
 
 To support useful labels in the aggregated view, the author-works aggregation was extended to report, per entry, whether it is a category aggregation and a localized category label. 

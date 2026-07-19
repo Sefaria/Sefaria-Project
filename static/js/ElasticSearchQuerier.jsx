@@ -92,7 +92,7 @@ class TopicQuerier {
 class ElasticSearchQuerier extends Component {
     constructor(props) {
       super(props);
-      this.querySize = {"text": 50, "sheet": 20};
+      this.querySize = {"text": 100, "sheet": 20};
       this.state = {
         runningQueries: null,
         isQueryRunning: false,
