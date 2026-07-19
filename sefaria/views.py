@@ -179,8 +179,9 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            import_gravatar(p)
             p.save()
+
+        import_gravatar(p)
 
         if auth_method == 'session':
             auth_login(request, user)
