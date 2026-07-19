@@ -1,18 +1,13 @@
 import React  from 'react';
-import ReactDOM  from 'react-dom';
-import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters from './SearchFilters';
 import Component from 'react-class';
-import {SearchSortBox, SearchFilterButton} from './SearchResultList';
-import {SearchResultList} from "./SearchResultList";
+import {SearchResultList, SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {
-  CategoryColorLine,
   InterfaceText,
-  LoadingMessage,
   AiInfoTooltip,
 } from './Misc';
 
@@ -20,7 +15,6 @@ class SearchInVoicesPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      totalResults: null,
       mobileFiltersOpen: false,
     };
   }
@@ -131,8 +125,6 @@ SearchInVoicesPage.propTypes = {
   query:                    PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,
-  settings:                 PropTypes.object,
-  panelsOpen:               PropTypes.number,
   close:                    PropTypes.func,
   onResultClick:            PropTypes.func,
   onQueryChange:            PropTypes.func,
