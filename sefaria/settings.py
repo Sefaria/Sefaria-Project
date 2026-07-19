@@ -389,18 +389,18 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'APP': {'client_id': GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
+        'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID'), 'secret': '', 'key': ''},
         'SCOPE': ['profile', 'email'],
     },
     'apple': {
         'APP': {
-            'client_id': APPLE_SSO_CLIENT_ID,
-            'secret': APPLE_SSO_PRIVATE_KEY,
-            'key': APPLE_SSO_KEY_ID,
+            'client_id': os.environ.get('APPLE_SSO_CLIENT_ID'),
+            'secret': os.environ.get('APPLE_SSO_PRIVATE_KEY'),
+            'key': os.environ.get('APPLE_SSO_KEY_ID'),
             'settings': {
-                'certificate_key': APPLE_SSO_PRIVATE_KEY,
-                'audience': [APPLE_SSO_CLIENT_ID, APPLE_SSO_IOS_BUNDLE_ID],
-                'team_id': APPLE_SSO_TEAM_ID,
+                'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY'),
+                'audience': [os.environ.get('APPLE_SSO_CLIENT_ID'), os.environ.get('APPLE_SSO_IOS_BUNDLE_ID')],
+                'team_id': os.environ.get('APPLE_SSO_TEAM_ID'),
             },
         },
     },
