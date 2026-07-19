@@ -513,8 +513,7 @@ class ReaderApp extends Component {
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             // `tab` is taken on search URLs (it means the text/sheet search type),
             // so the active results tab (sources/books/authors/topics) is `stab`.
-            const searchTab = state.tab ? `&stab=${state.tab}` : "";
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
+            const searchTab = state.tab ? `&stab=${encodeURIComponent(state.tab)}` : "";
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
