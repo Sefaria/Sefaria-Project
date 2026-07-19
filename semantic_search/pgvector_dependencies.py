@@ -14,6 +14,17 @@ def _enabled() -> bool:
     return "vector_db" in getattr(settings, "DATABASES", {})
 
 
+def _tasks_queue() -> str:
+    """The env-specific queue the sefaria celery worker consumes (CELERY_QUEUES['tasks']).
+
+    Dispatches must target this explicitly; a bare .delay() routes to the default
+    'celery' queue, which no worker drains. See sefaria/helper/texts/tasks.py for the
+    same pattern via .set(queue=CeleryQueue.TASKS.value).
+    """
+    from sefaria.celery_setup.config import CeleryQueue
+    return CeleryQueue.TASKS.value
+
+
 # ---------------------------------------------------------------------------
 # Index
 # ---------------------------------------------------------------------------
@@ -22,7 +33,7 @@ def process_index_save_in_pgvector(index, **kwargs) -> None:
     if not _enabled():
         return
     from semantic_search.tasks import update_index_metadata
-    update_index_metadata.delay(index.title)
+    update_index_metadata.apply_async(args=(index.title,), queue=_tasks_queue())
 
 
 def process_index_title_change_in_pgvector(index, **kwargs) -> None:
@@ -33,14 +44,14 @@ def process_index_title_change_in_pgvector(index, **kwargs) -> None:
     if not old_title or not new_title or old_title == new_title:
         return
     from semantic_search.tasks import update_index_title
-    update_index_title.delay(old_title, new_title)
+    update_index_title.apply_async(args=(old_title, new_title), queue=_tasks_queue())
 
 
 def process_index_delete_in_pgvector(index, **kwargs) -> None:
     if not _enabled():
         return
     from semantic_search.tasks import delete_index_chunks
-    delete_index_chunks.delay(index.title)
+    delete_index_chunks.apply_async(args=(index.title,), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +62,7 @@ def process_version_save_in_pgvector(ver, **kwargs) -> None:
     if not _enabled():
         return
     from semantic_search.tasks import update_version_attributes
-    update_version_attributes.delay(ver.title, ver.versionTitle)
+    update_version_attributes.apply_async(args=(ver.title, ver.versionTitle), queue=_tasks_queue())
 
 
 def process_version_title_change_in_pgvector(ver, **kwargs) -> None:
@@ -62,14 +73,14 @@ def process_version_title_change_in_pgvector(ver, **kwargs) -> None:
     if not old_vtitle or not new_vtitle or old_vtitle == new_vtitle:
         return
     from semantic_search.tasks import update_version_title
-    update_version_title.delay(ver.title, old_vtitle, new_vtitle)
+    update_version_title.apply_async(args=(ver.title, old_vtitle, new_vtitle), queue=_tasks_queue())
 
 
 def process_version_delete_in_pgvector(ver, **kwargs) -> None:
     if not _enabled():
         return
     from semantic_search.tasks import delete_version_chunks
-    delete_version_chunks.delay(ver.title, ver.versionTitle)
+    delete_version_chunks.apply_async(args=(ver.title, ver.versionTitle), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +95,7 @@ def process_topic_slug_change_in_pgvector(topic_obj, **kwargs) -> None:
     if not old_slug or not new_slug or old_slug == new_slug:
         return
     from semantic_search.tasks import update_topic_slug
-    update_topic_slug.delay(old_slug, new_slug)
+    update_topic_slug.apply_async(args=(old_slug, new_slug), queue=_tasks_queue())
 
 
 def process_author_topic_save_in_pgvector(topic_obj, **kwargs) -> None:
@@ -92,7 +103,7 @@ def process_author_topic_save_in_pgvector(topic_obj, **kwargs) -> None:
     if not _enabled():
         return
     from semantic_search.tasks import update_author_topic_names
-    update_author_topic_names.delay(topic_obj.slug)
+    update_author_topic_names.apply_async(args=(topic_obj.slug,), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +118,7 @@ def process_category_path_change_in_pgvector(cat, **kwargs) -> None:
     if not old_path or not new_path:
         return
     from semantic_search.tasks import update_category_chunks
-    update_category_chunks.delay(list(old_path), list(new_path))
+    update_category_chunks.apply_async(args=(list(old_path), list(new_path)), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +142,7 @@ def process_ref_topic_link_change_in_pgvector(link, **kwargs) -> None:
     if not index_title:
         return
     from semantic_search.tasks import update_ref_topic_links
-    update_ref_topic_links.delay(link.ref, index_title)
+    update_ref_topic_links.apply_async(args=(link.ref, index_title), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +167,7 @@ def process_link_change_in_pgvector(link, **kwargs) -> None:
         return
     from semantic_search.tasks import update_ref_links
     for ref_str, index_title in _link_refs_and_titles(link):
-        update_ref_links.delay(ref_str, index_title)
+        update_ref_links.apply_async(args=(ref_str, index_title), queue=_tasks_queue())
 
 
 # ---------------------------------------------------------------------------
@@ -172,4 +183,4 @@ def process_ref_data_save_in_pgvector(ref_data, **kwargs) -> None:
     except Exception:
         return
     from semantic_search.tasks import update_ref_pagerank
-    update_ref_pagerank.delay(ref_data.ref, index_title, float(ref_data.pagesheetrank))
+    update_ref_pagerank.apply_async(args=(ref_data.ref, index_title, float(ref_data.pagesheetrank)), queue=_tasks_queue())
