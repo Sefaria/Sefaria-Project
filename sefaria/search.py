@@ -1414,8 +1414,10 @@ def index_topics(index_name):
     logger.info(f"Starting index_topics - index_name: {index_name}")
     skipped = []
     total = 0
-    authored_titles_map = _build_authored_titles_map()
     pool_slugs = library_topic_slugs()
+    if not pool_slugs:
+        raise RuntimeError("index_topics: library TopicPool is empty; refusing to build an empty topic index")
+    authored_titles_map = _build_authored_titles_map()
 
     def actions():
         nonlocal total
