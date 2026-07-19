@@ -78,6 +78,68 @@ flushed out. Docs 00–11 are the research base; where these notes contradict a 
   Sefaria nginx pod stays. **Action: share this branch with Lev before the arch solidifies twice.**
 - SSO epic (above) — touches the same accounts/registration surface as the portal.
 
+## Update 2026-07-19: Lev's "API Key Program" doc lands — technical spine settled
+
+Lev (CTO) wrote an architecture doc that decides the technical questions. Not copied verbatim here
+(it's Lev's doc; this repo is public) — key decisions it fixes:
+
+- **Purpose framing:** keys for identification, not security (identity / communication / usage
+  understanding / abuse remediation).
+- **Gate in front of Varnish**, implemented in Envoy from the get-go (nginx an interim option);
+  key validation against a **map file in a k8s secret**, regenerated from the DB on update; rate
+  limit class per key in the map file.
+- **Transport:** header (`X-Sefaria-API-Key`); optional `?api_key=` accepted and normalized into
+  the header at the gate.
+- **Request-classification ladder:** (1) has key → per-key attribution/limits; (2) browser context
+  (Sec-Fetch-Site / Origin / Referer) → untouched; (3) verified crawler UA → untouched; (4) our
+  mobile apps by UA (Android needs explicit UA; next releases embed client-id key → rung 1);
+  (5) everything else = unkeyed programmatic → phased notice → shared limit → per-endpoint 401.
+- **Tiers:** browser/first-party/crawler untouched; keyed generous; partner lifted per agreement;
+  unkeyed programmatic phased pressure.
+- **Key model:** self-serve, verified email required, org/URL/use optional, instant issuance;
+  keys in our DB; *possibly extend `db.apikeys`*.
+- **MCP:** one keyed consumer (rung 1); per-user OAuth identity a separate project.
+- **Phases:** 0 instrument (add Sec-Fetch-Site/Origin/Host/key-presence to nginx logs, validate
+  ladder) → 1 soft launch T+1mo (portal, notice header, outreach, MCP keyed) → 2 pressure T+3mo
+  (shared per-IP limit on rung 5) → 3 per-endpoint key requirement T+6mo (401 + registration URL,
+  grandfather windows; start api/sheets, api/search-wrapper, api/calendars, api/words). Gated on
+  measurements, not calendar. Comms plan per phase (Discord, dev site, dev email, 1:1).
+
+**Consequence for remaining work:** our documents now focus on the PRODUCT surface — portal/signup
+flow, dev-portal content updates, ToS/attribution, SSO-vs-confirmation choice, distinct-users
+options. Architecture questions route to Lev's doc.
+
+**Engineering flags to feed back on Lev's doc:**
+1. Extending `db.apikeys` needs the cleanup attached: hash keys, close the `index_api` staff-check
+   gap (reader/views.py:2013 privilege escalation), index the collection.
+2. `?api_key=` normalization must STRIP the param from the URL pre-Varnish (else per-key cache
+   fragmentation), not just copy it into the header.
+3. Instant issuance ⇒ portal→DB→k8s-secret→gate-reload pipeline runs per registration; latency
+   between "here's your key" and "gate knows it" needs an owner in the portal design.
+4. "Phase out our nginx": ambiguity vs Brendan's Slack statement that the Sefaria nginx pod stays
+   (only ingress nginx is replaced). Matters because that pod's logs ARE the BigQuery analytics
+   backbone (tables since 2020). Recommend: coexistence through the key rollout; folding nginx
+   into Envoy is a separate later project. Clarify with Lev/Brendan.
+5. Cached-vs-uncached limits: gate can't see hit/miss (it's pre-Varnish). Practical substitute:
+   per-path limit classes (cached families generous, origin-hitting paths real limits) in the same
+   map-file design. Caveat: unique-URL sprays miss every time despite "cached family" limits —
+   extension point is a coarse second limiter behind Varnish (Django+Redis sees exactly
+   misses+writes) or the abuse tier. Noted as designed-in extension, not built now.
+
+## Product-doc positions settled 07-19 (Daniel)
+
+- **SSO & key issuance:** present product with two options — (a) require SSO (Google/Apple) to
+  get a key (verified email for free via sc-44749's verified-claims requirement), or (b) build our
+  own email-confirmation at key issuance. Product chooses.
+- **Distinct users per project:** present options to product WITHOUT depth: (a) we record client
+  IPs, so client-side integrations yield distinct-users-per-key automatically — make sure IP
+  recording is stated; (b) optional self-reporting field/mechanism (expected to be declined);
+  no bonus-credit/partner-tier incentive for reporting (explicitly rejected).
+- Numeric-limit placement: decided by Lev's doc (gate/map-file) — no longer our open question.
+
 ## Pending explanation threads (Daniel wants step-by-step)
 
-- Caching/Varnish/Envoy architecture walkthrough — started 07-19, basics first, incremental.
+- Caching/Varnish/Envoy architecture walkthrough — basics (Part 1) and cache-key mechanics
+  (Part 2) delivered 07-19. Part 3 pending: key's full journey (portal → Mongo → k8s secret →
+  gate map-file → enforcement → nginx log → BigQuery attribution) = the portal's integration
+  points list.
