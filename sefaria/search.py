@@ -568,11 +568,13 @@ def put_topic_mapping(index_name):
                 'type': 'integer',
             },
             # Denormalized titles of the books this author wrote (analyzed text, split
-            # by language) so an author is findable by a work they authored — the
-            # mirror image of `author_names` on the book index. `norms: false` so a
-            # prolific author (a large title list) isn't penalized by field-length
-            # normalization; the `keyword` sub-field powers exact-match (tier 1), which
-            # is what ranks the true author of an exactly-titled work above its commentators.
+            # by language, incl. English title variants — the same title set the book
+            # index carries) so an author is findable by any name of a work they
+            # authored — the mirror image of `author_names` on the book index.
+            # `norms: false` so a prolific author (a large title list) isn't penalized
+            # by field-length normalization; the `keyword` sub-field powers exact-match
+            # (tier 1), which is what ranks the true author of an exactly-titled work
+            # above its commentators.
             'authored_titles_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
@@ -1218,6 +1220,41 @@ def library_topic_slugs():
     """
     return list(DjangoTopic.objects.get_topic_slugs_by_pool(PoolType.LIBRARY.value))
 
+def _book_title_variants(index, lang):
+    """
+    The book-level title variants of an Index: the root node's own title group.
+    Not `Index.all_titles()` — that walks the whole schema tree for ref resolution,
+    so on complex texts it returns every chapter/section title crossed with every
+    root variant (e.g. "Moreh Nevukhim, Prefatory Remarks"), which are not book titles.
+    """
+    if not index.nodes:
+        return []
+    return index.nodes.title_group.all_titles(lang) or []
+
+
+def _authored_index_titles(index):
+    """
+    The searchable titles of one authored Index for the author's `authored_titles`
+    fields: the primary EN title plus every English title variant, and the primary HE
+    title — the same title set `make_book_index_document` indexes for the book itself
+    (`title_en` + `titleVariants` + `title_he`). Mirroring it keeps author↔book search
+    symmetric: any query that returns a book by one of its titles also returns that
+    book's author (e.g. "Moreh Nevukhim", a variant of "Guide for the Perplexed",
+    finds Rambam).
+
+    :return: (en_titles, he_titles), primary title first, de-duped downstream
+    """
+    en_titles = []
+    primary_en = index.get_title('en')
+    if primary_en:
+        en_titles.append(primary_en)
+    en_titles += [t for t in _book_title_variants(index, 'en') if t != primary_en]
+    try:
+        he = index.get_title('he')
+    except Exception:
+        he = None
+    return en_titles, ([he] if he else [])
+
 
 def _build_authored_titles_map():
     """
@@ -1233,16 +1270,10 @@ def _build_authored_titles_map():
         author_slugs = getattr(index, 'authors', None) or []
         if not author_slugs:
             continue
-        en = index.get_title('en')
-        try:
-            he = index.get_title('he')
-        except Exception:
-            he = None
+        en_titles, he_titles = _authored_index_titles(index)
         for slug in author_slugs:
-            if en:
-                titles_by_slug[slug]['en'].append(en)
-            if he:
-                titles_by_slug[slug]['he'].append(he)
+            titles_by_slug[slug]['en'] += en_titles
+            titles_by_slug[slug]['he'] += he_titles
     return titles_by_slug
 
 
@@ -1306,23 +1337,19 @@ def make_topic_index_document(topic, authored_titles_map=None):
         doc['era'] = topic.get_property('era')
         doc['birthYear'] = topic.get_property('birthYear')
         doc['deathYear'] = topic.get_property('deathYear')
-        # Denormalize the titles of this author's works (EN + HE) so the author is
-        # searchable by a book they wrote (e.g. "Mishneh Torah" -> Maimonides).
+        # Denormalize the titles of this author's works (EN incl. variants + HE, the
+        # same title set the book index carries — see _authored_index_titles) so the
+        # author is searchable by any name of a book they wrote (e.g. "Mishneh Torah"
+        # -> Maimonides, "Moreh Nevukhim" -> Rambam).
         if authored_titles_map is not None:
             authored = authored_titles_map.get(slug, {'en': [], 'he': []})
             authored_en, authored_he = authored['en'], authored['he']
         else:
             authored_en, authored_he = [], []
             for authored_index in IndexSet({"authors": slug}):
-                en = authored_index.get_title('en')
-                if en:
-                    authored_en.append(en)
-                try:
-                    he = authored_index.get_title('he')
-                except Exception:
-                    he = None
-                if he:
-                    authored_he.append(he)
+                en_titles, he_titles = _authored_index_titles(authored_index)
+                authored_en += en_titles
+                authored_he += he_titles
         doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
         doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
 
@@ -1371,7 +1398,7 @@ def make_book_index_document(index, author_name_cache=None):
         title_he = None
 
     categories = getattr(index, 'categories', None) or []
-    variants = [t for t in (index.all_titles('en') or []) if t != title_en]
+    variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).

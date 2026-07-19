@@ -64,9 +64,10 @@ One document per Topic **in the `library` TopicPool**. Pool membership (curated 
 | `era` | `keyword` | — | Author-only: historical period |
 | `birthYear` | `integer` | — | Author-only: for display and filtering |
 | `deathYear` | `integer` | — | Author-only: for display and filtering |
-| `authored_slugs` | `keyword` | — | Author-only: slugs of books this author wrote |
+| `authored_titles_en` | `text` + `keyword` | `stemmed_english` | Author-only: denormalized titles of the author's works, **including English title variants** — the same title set the book doc indexes (`title_en` + `titleVariants`), so any query that returns a book in the Books tab also returns its author in the Authors tab (e.g. "Moreh Nevukhim" → Rambam) |
+| `authored_titles_he` | `text` + `keyword` | plain `text` | Author-only: Hebrew primary titles of the author's works (mirrors the book doc's `title_he`) |
 
-Author-only fields (`era`, `birthYear`, `deathYear`, `authored_slugs`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
+Author-only fields (`era`, `birthYear`, `deathYear`, `authored_titles_*`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
 
 **`book` index — Index (book) records**
 
@@ -291,7 +292,7 @@ This resolves the open **"eager vs. lazy entity search"** question (see [Open Qu
 
 - **No on-save freshness.** When a text is saved in Sefaria, a hook automatically updates its Elasticsearch entry right away. The `topic` and `book` indices don't have this — they only get updated when the cron job runs its full rebuild. So edits to a topic or book won't appear in search results until the next scheduled rebuild.
 - **Relevance is unproven at scale.** Field boosting is a reasonable first cut; default ranking and cross-language behavior still need tuning against real queries.
-- **Denormalization staleness.** `author_names` on book docs and `authored_slugs` on author docs are snapshots taken at index time; an author rename requires reindexing affected books to stay consistent.
+- **Denormalization staleness.** `author_names` on book docs and `authored_titles_*` on author docs are snapshots taken at index time; an author rename (or a book title/variant change) requires reindexing the affected docs to stay consistent.
 - **Numeric token false positives.** Queries containing numbers (e.g., "Genesis 1:1") match books with "1" in the title or `titleVariants` — "I Kings", "Vol. I", numbered tractates, etc. — producing noisy results. Needs a fix before production (e.g., exclude purely-numeric tokens from `titleVariants` matching, or treat numeric-heavy queries as ref queries rather than book searches).
 - **Cauldron test environment.** Getting Elasticsearch and the reindex cron job working correctly in our cauldron test environment carries non-trivial setup complexity. This needs to be budgeted as part of the production path — it is not automatic from the existing cron wiring.
 - **Prefix Matching** - To match strings like `Mo` to `Moses`, we use a strategy that treats ending word fragments as search prefixes. It should be noted that this approach comes with query cost and the main Elastic Search query performance risk to validate at scale.

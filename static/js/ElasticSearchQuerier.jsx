@@ -12,6 +12,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
+import SearchInVoicesPage from "./SearchInVoicesPage";
 
 class TopicQuerier {
     async addCollection(collection) {
@@ -335,11 +336,16 @@ class ElasticSearchQuerier extends Component {
         }
     }
     render () {
-        return <SearchPage
+        const isVoices = Sefaria.activeModule === Sefaria.VOICES_MODULE;
+        const SearchPageComponent = isVoices ? SearchInVoicesPage : SearchPage;
+        return <SearchPageComponent
                     key={"searchPage"}
                     moreToLoad={this.state.moreToLoad}
                     isQueryRunning={this.state.isQueryRunning}
+                    searchTopMsg={isVoices ? "Results for" : undefined}
                     query={this.props.query}
+                    tab={this.props.tab}
+                    setTab={this.props.setTab}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
@@ -366,6 +372,8 @@ class ElasticSearchQuerier extends Component {
 
 ElasticSearchQuerier.propTypes = {
     query: PropTypes.string,
+    tab: PropTypes.string,
+    setTab: PropTypes.func,
     searchState: PropTypes.object,
     onResultClick: PropTypes.func,
     registerAvailableFilters: PropTypes.func,
