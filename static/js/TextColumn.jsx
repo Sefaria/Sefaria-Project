@@ -35,7 +35,7 @@ class TextColumn extends Component {
     this.setState({showScrollPlaceholders: true});
 
        const params = {
-         content_type: Sefaria.index(this.props.bookTitle).primary_category,
+         content_type: Sefaria.index(this.props.bookTitle) ? Sefaria.index(this.props.bookTitle).primary_category : null,
          item_id: this.props.bookTitle
        }
       gtag("event", "select_content", params)
