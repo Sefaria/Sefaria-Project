@@ -390,7 +390,7 @@ def base_props(request):
     user_data.update({
         "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
         "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
-        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
     })
     return user_data
 
