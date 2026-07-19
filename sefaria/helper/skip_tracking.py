@@ -26,17 +26,17 @@ logger = structlog.get_logger(__name__)
 
 # One skipped record, with as much context as was available at the skip site:
 #   pathway     — the build trigger(s) that reach this site (e.g. "reset_toc,startup")
-#   what        — the loop/site that skipped (e.g. "TocTree index")
+#   operation   — the loop/site that skipped (e.g. "TocTree index")
 #   record      — identifier of the skipped record (title / _id / slug / path), or None
 #   level       — "warning" or "error"
 #   error_type  — exception class name for guard-caught skips; None for log_skip soft-skips
 #   detail      — str(e) for guard-caught skips; the detail message for log_skip soft-skips
-SkipRecord = namedtuple("SkipRecord", "pathway what record level error_type detail")
+SkipRecord = namedtuple("SkipRecord", "pathway operation record level error_type detail")
 
 # Per-build log of records skipped by the guards below.
 skip_records = []
 
-# At most this many records are stored verbatim per (pathway, what) group; further skips in
+# At most this many records are stored verbatim per (pathway, operation) group; further skips in
 # the same group are still counted (and surfaced as "… N more" in the summary) but not stored,
 # so a pathologically corrupt DB can't blow up memory or the Slack payload.
 MAX_STORED_PER_GROUP = 10
@@ -45,7 +45,7 @@ MAX_STORED_PER_GROUP = 10
 # end-of-build summary posts as "error" vs "warning".
 _skip_saw_error = False
 
-# Per (pathway, what): total skips seen this build (including ones not stored verbatim).
+# Per (pathway, operation): total skips seen this build (including ones not stored verbatim).
 _skip_group_counts = defaultdict(int)
 
 
@@ -55,30 +55,30 @@ def get_skip_records():
 
 
 def get_skip_counts():
-    """Return a plain-dict tally derived from the skip log: {pathway: {what: count}}.
+    """Return a plain-dict tally derived from the skip log: {pathway: {operation: count}}.
 
     Counts reflect every skip seen this build, including records dropped past
     MAX_STORED_PER_GROUP.
     """
     counts = defaultdict(lambda: defaultdict(int))
-    for (pathway, what), count in _skip_group_counts.items():
-        counts[pathway][what] = count
-    return {pathway: dict(whats) for pathway, whats in counts.items()}
+    for (pathway, operation), count in _skip_group_counts.items():
+        counts[pathway][operation] = count
+    return {pathway: dict(operations) for pathway, operations in counts.items()}
 
 
-def _note_skip(pathway, what, level, record=None, error_type=None, detail=None):
+def _note_skip(pathway, operation, level, record=None, error_type=None, detail=None):
     """Record one skipped record: store its context (bounded per group), keep the running
     group count, and remember if it was error-level."""
     global _skip_saw_error
-    key = (pathway, what)
+    key = (pathway, operation)
     _skip_group_counts[key] += 1
     if _skip_group_counts[key] <= MAX_STORED_PER_GROUP:
-        skip_records.append(SkipRecord(pathway, what, record, level, error_type, detail))
+        skip_records.append(SkipRecord(pathway, operation, record, level, error_type, detail))
     if level == "error":
         _skip_saw_error = True
 
 
-def log_skip(log, pathway, what, detail, level="warning", record=None):
+def log_skip(log, pathway, operation, detail, level="warning", record=None):
     """
     Record one skipped/degraded record: store it in the skip log and log it locally
     (via the bound logger, at `level`). Does NOT post to Slack per-record — the
@@ -87,8 +87,8 @@ def log_skip(log, pathway, what, detail, level="warning", record=None):
     For soft-skip sites that aren't wrapped in skip_bad_record (e.g. a record missing a
     required field rather than raising an exception).
     """
-    _note_skip(pathway, what, level, record=record, detail=detail)
-    getattr(log, level)("[pathway:{}] {}: {}".format(pathway, what, detail))
+    _note_skip(pathway, operation, level, record=record, detail=detail)
+    getattr(log, level)("[pathway:{}] {}: {}".format(pathway, operation, detail))
 
 
 def signal_and_reset_skip_counts(pathway):
@@ -98,7 +98,7 @@ def signal_and_reset_skip_counts(pathway):
     build pathway (reset_cache, reset_toc, startup); `pathway` is the summary
     header naming the triggering pathway.
 
-    The summary groups skips by (pathway, what) and, under each group, lists a bounded
+    The summary groups skips by (pathway, operation) and, under each group, lists a bounded
     sample of the actual records skipped and why (record id + error type/detail) so the
     failures are diagnosable from Slack, not just countable.
 
@@ -108,10 +108,10 @@ def signal_and_reset_skip_counts(pathway):
     """
     if _skip_group_counts:
         total = sum(_skip_group_counts.values())
-        # Group the stored records by (pathway, what), preserving their (bounded) detail.
+        # Group the stored records by (pathway, operation), preserving their (bounded) detail.
         grouped = defaultdict(list)
         for rec in skip_records:
-            grouped[(rec.pathway, rec.what)].append(rec)
+            grouped[(rec.pathway, rec.operation)].append(rec)
 
         # Groups, worst-offender first then alphabetical, for stable & scannable output.
         groups = sorted(_skip_group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
@@ -121,9 +121,9 @@ def signal_and_reset_skip_counts(pathway):
         # Detail (B): a bold group header, bulleted records, with the site's own pathway
         # noted only when it differs from the build pathway in the header.
         lines = [header]
-        for (pw, what), count in groups:
-            lines.append("\n*{}* — {}".format(what, count))
-            stored = grouped.get((pw, what), [])
+        for (pw, operation), count in groups:
+            lines.append("\n*{}* — {}".format(operation, count))
+            stored = grouped.get((pw, operation), [])
             for rec in stored:
                 lines.append("  • {}".format(_format_skip_record(rec)))
             if count > len(stored):
@@ -138,7 +138,7 @@ def signal_and_reset_skip_counts(pathway):
             "cache_build_skipped",
             pathway=pathway,
             total=total,
-            groups={"{}/{}".format(pw, what): count for (pw, what), count in groups},
+            groups={"{}/{}".format(pw, operation): count for (pw, operation), count in groups},
         )
         notify_engineering_signal(message, level=level)
     reset_skip_counts()
@@ -182,11 +182,11 @@ def bad_record_guard(log):
                 ...build using rec...
     """
     @contextmanager
-    def skip_bad_record(pathway, what, record=None, level="warning", exceptions=BAD_RECORD_EXCEPTIONS):
+    def skip_bad_record(pathway, operation, record=None, level="warning", exceptions=BAD_RECORD_EXCEPTIONS):
         try:
             yield
         except exceptions as e:
-            _note_skip(pathway, what, level, record=record, error_type=type(e).__name__, detail=str(e))
+            _note_skip(pathway, operation, level, record=record, error_type=type(e).__name__, detail=str(e))
             # Local log only; the per-build summary is posted by signal_and_reset_skip_counts().
-            getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, what, record, e))
+            getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, operation, record, e))
     return skip_bad_record
