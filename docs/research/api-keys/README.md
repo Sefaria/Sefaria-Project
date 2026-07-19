@@ -24,3 +24,4 @@ flagged).
 | [09-self-serve-portal-ux.md](./09-self-serve-portal-ux.md) | Portal UX patterns, the app/project abstraction, ToS acceptance, build-vs-buy, minimal vs fuller scope |
 | [10-decision-points.md](./10-decision-points.md) | **Synthesis: the seven decisions, recommendations, and what goes to product — the ADR skeleton** |
 | [11-anonymous-tier-options.md](./11-anonymous-tier-options.md) | Product-facing menu: the escalation ladder for unkeyed traffic (warn → advertised limits → throttle), the Varnish/Envoy constraint picture, registration-friction options, convergence with the abuse track |
+| [12-product-decisions.md](./12-product-decisions.md) | **The 2-page product deliverable**: five decisions (key issuance/SSO, registration fields, Linker registration, users-vs-projects, terms) + touchpoint list; assumes the settled API Key Program architecture |
