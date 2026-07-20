@@ -113,7 +113,7 @@ const OpenTransBanner = ({ openTranslations }) => {
 /**
  * Banner which appears right above text column and informs a user of an action they can take
  * @param children: React element to display the call-to-action text.
- * @param buttons: List of objects. Each object should have keys "text" and "onClick". Can optionally have key "sideEffect" whose value can be "close" if the button should close the banner.
+ * @param buttons: List of objects. Each object must have keys "textId" (keyed interface-string ID for the button label), "text" (raw string used for the React key and aria-label), and "onClick". Can optionally have key "sideEffect" whose value can be "close" if the button should close the banner.
  * @param onClose: Optional callback that gets called when the banner is closed.
  * @returns {JSX.Element|null}
  * @constructor
@@ -147,7 +147,7 @@ const TextColumnBannerButton = ({ button, closeBanner }) => {
     }
     return (
         <button tabIndex="0" className="yesNoButton" aria-label={button.text} onClick={onClick}>
-            <InterfaceText>{button.textId || button.text}</InterfaceText>
+            <InterfaceText>{button.textId}</InterfaceText>
         </button>
     );
 }
