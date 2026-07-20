@@ -163,9 +163,8 @@ const EmailView = ({
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
-                 inputDir="ltr" autoComplete="email"
-                 placeholder="you@example.com" value={fields.email} onChange={setField('email')}
-                 onFocus={cfg.emailOnFocus} />
+                 inputDir="ltr" autoComplete="email" placeholder="you@example.com" value={fields.email}
+                 onChange={setField('email')} onFocus={cfg.emailOnFocus} />
           <Input label={Sefaria._('Password')} type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  value={fields.password} onChange={setField('password')}

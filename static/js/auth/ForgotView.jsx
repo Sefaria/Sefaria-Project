@@ -38,7 +38,7 @@ const ForgotView = ({ emailValue, setField, csrf, onSuccess, onBack }) => {
       <ErrorBanner error={error} />
       <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
         <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
-               inputDir="ltr"
+               inputDir="ltr" autoComplete="email" placeholder="you@example.com"
                value={emailValue} onChange={setField('email')} />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
           <InterfaceText>Send Reset Link</InterfaceText>
