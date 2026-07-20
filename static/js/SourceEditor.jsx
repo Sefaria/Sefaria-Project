@@ -103,26 +103,28 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const previousTitleItem = previousTitleItemRef.current;
     const previousPromptItem = previousPromptItemRef.current;
 
-    return <div>
-        <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} items={[previousTitleItem, "Title", previousPromptItem, "Prompt", "Context for Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
-                extras={
-                    [<div>
-                        <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
-                        <Autocompleter
-                            selectedCallback={() => {}}
-                            getSuggestions={getSuggestions}
-                            inputValue={displayRef}
-                            changeInputValue={handleChange}
-                            inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
-                            buttonTitle="Select Source"
-                            autocompleteClassNames="addInterfaceInput"
-                            showSuggestionsOnSelect={true}
-                        />
-                    </div>]
-                }/>
+    return (
+        <div>
+            <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
+                    validate={validate} items={[previousTitleItem, "Title", previousPromptItem, "Prompt", "Context for Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
+                    extras={
+                        [<div>
+                            <label><InterfaceText>source_editor.enter_source_ref_for_example_yevamot_62b_9</InterfaceText></label>
+                            <Autocompleter
+                                selectedCallback={() => {}}
+                                getSuggestions={getSuggestions}
+                                inputValue={displayRef}
+                                changeInputValue={handleChange}
+                                inputPlaceholder={Sefaria._("common.search_for_a_text_or_commentator")}
+                                buttonTitle="Select Source"
+                                autocompleteClassNames="addInterfaceInput"
+                                showSuggestionsOnSelect={true}
+                            />
+                        </div>]
+                    }/>
 
-    </div>;
+        </div>
+    );
 }
 
 export {SourceEditor};
