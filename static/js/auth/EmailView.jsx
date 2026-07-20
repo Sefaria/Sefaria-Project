@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 import AuthCard from './AuthCard.jsx';
+import EmailInput from './EmailInput.jsx';
 import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
@@ -162,9 +163,7 @@ const EmailView = ({
       <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
-          <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
-                 inputDir="ltr" autoComplete="email" placeholder="you@example.com" value={fields.email}
-                 onChange={setField('email')} onFocus={cfg.emailOnFocus} />
+          <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} />
           <Input label={Sefaria._('Password')} type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  value={fields.password} onChange={setField('password')}

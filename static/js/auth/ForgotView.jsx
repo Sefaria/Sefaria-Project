@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 import AuthCard from './AuthCard.jsx';
-import Input from '../common/Input.jsx';
+import EmailInput from './EmailInput.jsx';
 import Button from '../common/Button.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
 import { authError } from './utils.js';
@@ -37,9 +37,7 @@ const ForgotView = ({ emailValue, setField, csrf, onSuccess, onBack }) => {
       heading={<InterfaceText>Forgot Password?</InterfaceText>}>
       <ErrorBanner error={error} />
       <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
-        <Input label={Sefaria._('Email Address', 'Auth')} type="email" name="email"
-               inputDir="ltr" autoComplete="email" placeholder="you@example.com"
-               value={emailValue} onChange={setField('email')} />
+        <EmailInput value={emailValue} setField={setField} />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
           <InterfaceText>Send Reset Link</InterfaceText>
         </Button>
