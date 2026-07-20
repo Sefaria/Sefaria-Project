@@ -4,15 +4,31 @@
 
 **Settled, for context.** Every programmatic API consumer will identify itself with a free,
 instantly-issued key. Keys are identification, not security — the goals are knowing who builds on
-Sefaria, being able to reach them, understanding usage, and containing abuse. The architecture is
-decided (gating at the network edge, enforcement phased over ~6 months and gated on measurements):
-normal browser traffic, search-engine crawlers, and our own apps are **never affected**; only
-unregistered *programmatic* traffic feels pressure — first a notice, then shared rate limits,
-eventually a per-endpoint key requirement with generous grandfather windows. Registration creates a
-**project**: one account can hold several projects, each with its own key and limits, so usage is
-understood per project, not per person. This work is slated for **after the SSO project ships**.
-Specific limit numbers come from measurement, not from this document. What remains are the six
-product decisions below.
+Sefaria, being able to reach them, understanding usage, and containing abuse.
+
+In parallel, Lev has designed the technical program for how keys get checked and how request
+volume is controlled — the mechanism that lets us slow down or shut off traffic that is excessive
+or unwanted. **That architecture is decided, and it suits us well**, so this document treats it as
+given. In short: checking happens at the network edge, and enforcement arrives in measured phases
+over roughly six months. Normal browser traffic, search-engine crawlers, and our own apps are
+**never affected**; only unregistered *programmatic* traffic feels pressure — first a notice, then
+shared rate limits, eventually a per-endpoint key requirement with generous grandfather windows.
+Specific limit numbers come from measurement, not from this document. The work is slated for
+**after the SSO project ships**.
+
+A few of the choices below would extend that architecture rather than fit inside it. **Wherever
+that happens it is flagged in place**, so the engineering conversation can start early instead of
+after the design is locked.
+
+Registration creates a **project**: one account can hold several projects, each with its own key
+and limits, so usage is understood per project rather than per person — this is what lets one
+person's three apps appear as three distinct consumers.
+
+> ⚑ **Architecture flag.** The key design as drafted assumes one key per user account. Projects —
+> one account owning several independently-limited keys — extend it, and this should be raised
+> with Lev sooner rather than later, since it affects how keys are stored and looked up.
+
+What remains are the six product decisions below.
 
 ## 1 · How someone gets a key
 
@@ -47,6 +63,10 @@ browser referer signals, we hold contact information for none of the installing 
 no per-site lever. **Recommendation:** leave every existing install untouched; route *new* installs
 through a lightweight "Get the Linker" page (site name + contact email → snippet with a per-site
 identifier). The registry fills in over time without breaking anything.
+
+> ⚑ **Architecture flag.** The current design deliberately lets Linker traffic through untouched as
+> ordinary browser traffic. Giving embeds their own identifiers adds a case it doesn't yet cover —
+> another one to raise with Lev early if product wants it.
 
 **Decide:** build the registration page now, later, or never.
 
