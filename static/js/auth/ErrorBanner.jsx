@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 
-const SSO_LINK_LABELS = {
-  google: 'Continue with Google',
-  apple: 'Continue with Apple',
+const SSO_PROVIDER_INFO = {
+  google: { msgEn: 'This email address is registered via Google Sign-In.', linkEn: 'Continue with Google' },
+  apple:  { msgEn: 'This email address is registered via Apple.',           linkEn: 'Continue with Apple'  },
 };
 
 const ErrorBanner = ({ error, onProviderClick }) => {
@@ -13,21 +13,22 @@ const ErrorBanner = ({ error, onProviderClick }) => {
     <div className="sefaria-auth-error" role="alert">
       <img className="sefaria-auth-error-icon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
       <div className="sefaria-auth-error-content">
-        <InterfaceText>{error.message}</InterfaceText>
-        {error.code === 'sso_only_account' && error.providers.map((provider) => {
-          const key = provider.toLowerCase();
-          const labelEn = SSO_LINK_LABELS[key] || `Continue with ${provider}`;
-          return (
-            <a
-              key={provider}
-              href={`#${key === 'google' ? 'google-signin-button' : 'apple-signin-button'}`}
-              className="sefaria-auth-provider-action"
-              onClick={(event) => { event.preventDefault(); onProviderClick?.(provider); }}
-            >
-              <InterfaceText>{labelEn}</InterfaceText>
-            </a>
-          );
-        })}
+        {error.code === 'sso_only_account'
+          ? error.providers.map((provider) => {
+              const key = provider.toLowerCase();
+              const info = SSO_PROVIDER_INFO[key] || { msgEn: `This email is registered via ${provider}.`, linkEn: `Continue with ${provider}` };
+              return (
+                <span key={provider}>
+                  <InterfaceText>{info.msgEn}</InterfaceText>
+                  {' '}
+                  <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(provider); }}>
+                    <InterfaceText context="Auth">{info.linkEn}</InterfaceText>
+                  </a>
+                </span>
+              );
+            })
+          : <InterfaceText>{error.message}</InterfaceText>
+        }
       </div>
     </div>
   );

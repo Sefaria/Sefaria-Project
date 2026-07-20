@@ -70,6 +70,8 @@ $stroke-strong:   1.5px;
   align-items: center;
   justify-content: center;
 
+  a { text-decoration: underline; }
+
   &--choose         { min-height: 535px; }
   &--login-email    { min-height: 538px; }
   &--register-email { min-height: 823px; }
@@ -117,10 +119,7 @@ $stroke-strong:   1.5px;
     font-size: 16px;
     color: $sef-text-primary;
 
-    a {
-      color: var(--inline-link-blue);
-      text-decoration: underline;
-    }
+    a { color: var(--inline-link-blue); }
   }
 
   // Direct children except the back button and header are capped at 348px
@@ -176,10 +175,7 @@ $stroke-strong:   1.5px;
   line-height: 1.25;
   text-align: start;
 
-  a {
-    color: $sef-error;
-    text-decoration: underline;
-  }
+  a { color: $sef-error; }
 
   &-icon    { align-self: flex-start; }
   &-content { min-width: 0; }
@@ -311,8 +307,5 @@ $stroke-strong:   1.5px;
   color: $sef-text-primary;
   text-align: center;
 
-  a {
-    color: var(--sefaria-blue);
-    text-decoration: underline;
-  }
+  a { color: var(--sefaria-blue); }
 }

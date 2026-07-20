@@ -124,7 +124,7 @@ const Input = ({
       {error && (
         <div className="sefaria-input-error" id={errorId} role="alert">
           <img className="sefaria-input-errorIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
-          <span>{error}</span>
+          {typeof error === 'string' ? <InterfaceText>{error}</InterfaceText> : error}
         </div>
       )}
     </div>
@@ -140,7 +140,7 @@ Input.propTypes = {
   name: PropTypes.string,
   id: PropTypes.string,
   placeholder: PropTypes.string,
-  error: PropTypes.string,
+  error: PropTypes.node,
   disabled: PropTypes.bool,
   required: PropTypes.bool,
   inputDir: PropTypes.oneOf(['ltr', 'rtl']),

@@ -49,6 +49,9 @@
   align-items: center;
   justify-content: center;
 }
+.sefaria-auth-card a {
+  text-decoration: underline;
+}
 .sefaria-auth-card--choose {
   min-height: 535px;
 }
@@ -106,7 +109,6 @@
 }
 .sefaria-auth-card-sub a {
   color: var(--inline-link-blue);
-  text-decoration: underline;
 }
 .sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
   width: 100%;
@@ -150,7 +152,6 @@
 }
 .sefaria-auth-error a {
   color: #c03522;
-  text-decoration: underline;
 }
 .sefaria-auth-error-icon {
   align-self: flex-start;
@@ -270,7 +271,6 @@
 }
 .sefaria-legal-text a {
   color: var(--sefaria-blue);
-  text-decoration: underline;
 }
 
 /*# sourceMappingURL=auth.css.map */

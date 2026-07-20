@@ -775,13 +775,20 @@ const Strings = {
     "Invalid email address": 'דוא״ל שגוי',
     "Required field": "שדה חובה",
     "A user with that email already exists.": 'קיים חשבון עם הדוא״ל הזה. להתחברות',
+    "This email address is already registered via Google Sign-In.": "דוא״ל זה כבר רשום דרך גוגל.",
+    "This email address is already registered via Apple Sign-In.": "דוא״ל זה כבר רשום דרך אפל.",
+    "An account with this email address already exists.": "קיים חשבון עם הדוא״ל הזה.",
+    "This email address is registered via Google Sign-In.": "דוא״ל זה רשום דרך גוגל.",
+    "This email address is registered via Apple.": "דוא״ל זה רשום דרך אפל.",
   },
 
   _i18nInterfaceStringsWithContext: {
     "Auth": {
       "Sign Up": "יצירת חשבון",    // heading/title — default "Sign Up" maps to "להרשמה" (cross-flow link)
       "Email Address": 'דוא״ל',    // auth input label — default maps to 'כתובת דוא"ל'
-      "Log In": "להתחברות",         // cross-flow link — default "Log In" maps to "התחברות" (button/heading)
+      "Log In": "להתחברות",             // cross-flow link — default "Log In" maps to "התחברות" (button/heading)
+      "Continue with Google": "להתחברות דרך גוגל",  // in SSO error messages
+      "Continue with Apple": "להתחברות דרך אפל",    // in SSO error messages
       "By continuing, you are agreeing to Sefaria's ": "המשך מהווה הסכמה ל",
       "Terms of Use": "תנאי השימוש",
       " and ": " ו",

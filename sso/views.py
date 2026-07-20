@@ -131,7 +131,7 @@ def email_login(request):
                     },
                     status=401,
                 )
-        return JsonResponse({"error": "Invalid email or password"}, status=401)
+        return JsonResponse({"error": "Email and/or password are incorrect"}, status=401)
 
     auth_login(request, user)
     return JsonResponse({})

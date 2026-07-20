@@ -10,6 +10,12 @@ import LegalText from './LegalText.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
 import { whenReady, pickFirstError, authError, safeNext } from './utils.js';
 
+const EMAIL_EXISTS_ERRORS = {
+  'This email address is already registered via Google Sign-In.': { message: 'This email address is already registered via Google Sign-In.', linkText: 'Continue with Google', provider: 'google' },
+  'This email address is already registered via Apple Sign-In.':  { message: 'This email address is already registered via Apple Sign-In.',  linkText: 'Continue with Apple',  provider: 'apple'  },
+  'An account with this email address already exists.':           { message: 'An account with this email address already exists.',            linkText: 'Log In' },
+};
+
 const EmailView = ({
   flow, switchFlow, fields, setField,
   onBack, onProviderClick, startRegistration, trackRegistration, endRegistration,
@@ -127,12 +133,29 @@ const EmailView = ({
         const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', last_name: 'last' };
         const newFieldErrors = { email: null, password: null, first: null, last: null };
         let hasUnknownError = false;
+        const BACKEND_MESSAGES = { 'This field is required.': 'Required field' };
         for (const [key, val] of Object.entries(data || {})) {
           if (key === '_auth' || key === 'captcha') continue;
           if (FIELD_MAP[key]) {
-            newFieldErrors[FIELD_MAP[key]] = typeof val === 'string' ? val : String(val);
+            const raw = typeof val === 'string' ? val : String(val);
+            newFieldErrors[FIELD_MAP[key]] = BACKEND_MESSAGES[raw] || raw;
           } else {
             hasUnknownError = true;
+          }
+        }
+        if (newFieldErrors.email) {
+          const info = EMAIL_EXISTS_ERRORS[newFieldErrors.email];
+          if (info) {
+            newFieldErrors.email = (
+              <span>
+                <InterfaceText>{info.message}</InterfaceText>
+                {' '}
+                {info.provider
+                  ? <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(info.provider); }}><InterfaceText context="Auth">{info.linkText}</InterfaceText></a>
+                  : <a href="/login" onClick={switchFlow('login')}><InterfaceText context="Auth">{info.linkText}</InterfaceText></a>
+                }
+              </span>
+            );
           }
         }
         setFieldErrors(newFieldErrors);
