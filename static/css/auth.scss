@@ -96,6 +96,11 @@ $stroke-strong:   1.5px;
     img { width: 24px; height: 24px; display: block; }
 
     .interface-hebrew & img { transform: scaleX(-1); }
+
+    @include breakpoint(mobile) {
+      top: 20px;
+      inset-inline-start: 20px;
+    }
   }
 
   &-header {
@@ -132,7 +137,7 @@ $stroke-strong:   1.5px;
     max-width: 329px;
     min-height: 0;
     border-radius: 16px;
-    padding: 24px;
+    padding: 56px 24px 24px;
   }
 }
 

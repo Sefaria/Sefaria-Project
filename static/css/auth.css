@@ -89,6 +89,12 @@
 .interface-hebrew .sefaria-auth-card-back img {
   transform: scaleX(-1);
 }
+@media (max-width: 842px) {
+  .sefaria-auth-card-back {
+    top: 20px;
+    inset-inline-start: 20px;
+  }
+}
 .sefaria-auth-card-header {
   align-items: center;
   gap: 12px;
@@ -119,7 +125,7 @@
     max-width: 329px;
     min-height: 0;
     border-radius: 16px;
-    padding: 24px;
+    padding: 56px 24px 24px;
   }
 }
 
