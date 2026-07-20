@@ -10,6 +10,7 @@ logger = structlog.get_logger(__name__)
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
+from sefaria.system.database import db
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
@@ -325,3 +326,150 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
         links = [link for link in links if link["category"] in categories]
 
     return links
+
+
+class LinkNetwork(object):
+    """
+    The network of works that directly cite, or are directly cited by, a base passage.
+
+    Nodes are (line, work) pairs.  A line is the work's top-level category, with
+    a "/Commentary" suffix for dependent commentaries, so that e.g. Rashi on Berakhot
+    lands on "Talmud/Commentary" while Rashi on Genesis lands on "Tanakh/Commentary".
+    A work is its collective title where one exists, otherwise its title.
+    """
+    EXCLUDED_CATEGORIES = {"Reference"}
+    CATEGORY_ALIASES = {"Second Temple": "Tanakh"}
+
+    def __init__(self, base_tref):
+        self.base_oref = expand_passage(Ref(base_tref))
+        self.base_trefs = [r.normal() for r in self.base_oref.all_segment_refs()]
+        base_index = self.base_oref.index
+        self.base_title = base_index.title
+        self.root_line = self.line_key(base_index)
+        self.root_year = self.work_year(base_index)
+        self.nodes = {}
+
+        for doc in db.linknet.find({"early_refs": {"$in": self.base_trefs}}):
+            self.record_node(doc, "late")
+        for doc in db.linknet.find({"late_refs": {"$in": self.base_trefs}}):
+            self.record_node(doc, "early")
+
+        self.cluster_refs()
+
+    def contents(self):
+        return {
+            "ref": self.base_oref.normal(),
+            "heRef": self.base_oref.he_normal(),
+            "year": self.root_year,
+            "line": self.root_line,
+            "category": self.normalized_category(self.base_oref.index),
+            "nodes": [self.nodes[k] for k in sorted(self.nodes.keys())],
+        }
+
+    def normalized_category(self, index):
+        cat = index.categories[0]
+        cat = self.CATEGORY_ALIASES.get(cat, cat)
+        return None if cat in self.EXCLUDED_CATEGORIES else cat
+
+    def stop_key(self, index):
+        # Distinct stops within a line, e.g. Bavli vs. Yerushalmi on the Talmud
+        # line, or Second Temple works riding the Tanakh line.
+        if index.categories[0] == "Second Temple":
+            return "Second Temple"
+        if index.categories[0] == "Talmud" and len(index.categories) > 1 \
+                and index.categories[1] in ("Bavli", "Yerushalmi"):
+            return index.categories[1]
+        return None
+
+    def work_year(self, index, fallback=None):
+        period = index.composition_time_period()
+        estimate = period.determine_year_estimate() if period else None
+        return int(estimate) if estimate is not None else fallback
+
+    def is_commentary(self, index):
+        return str(getattr(index, "dependence", "")).lower() == "commentary"
+
+    def line_key(self, index):
+        cat = self.normalized_category(index)
+        if cat is None:
+            return None
+        return cat + "/Commentary" if self.is_commentary(index) else cat
+
+    def work_key(self, index):
+        key = getattr(index, "collective_title", None) or index.title
+        if "Mishneh Torah" in key:
+            return "Mishneh Torah"
+        if "Shulchan Arukh" in key:
+            return "Shulchan Arukh"
+        return key
+
+    def he_work(self, index, key):
+        he = None
+        try:
+            he = hebrew_term(key)
+        except Exception:
+            pass
+        if not he and key == index.title:
+            he = index.get_title("he")
+        return he or key
+
+    def record_node(self, doc, side):
+        tref = doc[side + "_orig_ref"]
+        try:
+            oref = Ref(tref)
+        except Exception:  # links built against an older library may no longer parse
+            return
+        index = oref.index
+        if index.title == self.base_title:
+            return
+        line = self.line_key(index)
+        if line is None:
+            return
+        # linknet stores range-start years; the period midpoint buckets eras better
+        year = self.work_year(index, fallback=doc[side + "_year"])
+        key = (line, self.work_key(index))
+        node = self.nodes.get(key)
+        if node is None:
+            commentary = line.endswith("/Commentary")
+            node = {
+                "work": key[1],
+                "heWork": self.he_work(index, key[1]),
+                "line": line,
+                "stop": None if commentary else self.stop_key(index),  # commentary stations name like any other
+                "category": line.split("/")[0],
+                "commentary": commentary,
+                "year": year,
+                "direction": "future" if side == "late" else "past",
+                "refs": set(),
+            }
+            self.nodes[key] = node
+        else:
+            if year is not None and (node["year"] is None or year < node["year"]):
+                node["year"] = year
+            direction = "future" if side == "late" else "past"
+            if node["direction"] != direction:
+                node["direction"] = "both"
+        node["refs"].add(oref.normal())
+
+    def cluster_refs(self):
+        from sefaria.recommendation_engine import RecommendationEngine
+
+        for k, v in self.nodes.items():
+            refs = sorted(v["refs"])
+            v["refCount"] = len(refs)
+            clusters = RecommendationEngine.cluster_close_refs([Ref(r) for r in refs], refs, 1, fast=True)
+            results = []
+            for cluster in clusters:
+                if len(cluster) == 1:
+                    results += [cluster[0]["data"]]
+                else:
+                    results += [cluster[0]["ref"].to(cluster[-1]["ref"]).normal()]
+            v["refs"] = results
+
+
+def expand_passage(oref):
+        p = Passage().load({"ref_list": oref.normal()})
+        return Ref(p.full_ref) if p else oref
+
+
+

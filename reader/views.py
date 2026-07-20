@@ -4984,7 +4984,6 @@ def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=N
 
     return render_template(request,'explore.html', None, template_vars)
 
-@staff_member_required
 def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
 

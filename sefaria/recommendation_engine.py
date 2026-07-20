@@ -257,7 +257,7 @@ class RecommendationEngine:
         return [Recommendation(Ref(r), relevance=d["score"], sources=[RecommendationSource(d["source"], d["anchor_ref"])]) for (r, _), d in list(included_ref_dict.items())]
 
     @staticmethod
-    def cluster_close_refs(ref_list, data_list, dist_threshold):
+    def cluster_close_refs(ref_list, data_list, dist_threshold, fast=False):
         '''
 
         :param ref_list: list of orefs
@@ -266,16 +266,18 @@ class RecommendationEngine:
         :return: List of lists where each internal list is a cluster of segment refs
         '''
 
-        clusters = []
         item_list = sorted(zip(ref_list, data_list), key=lambda x: x[0].order_id())
-        last_cluster = None
-        for temp_oref, temp_data in item_list:
+        if len(item_list) == 0:
+            return []
+        last_oref = item_list[0][0]
+        clusters = [[{"ref": last_oref, "data": item_list[0][1]}]]
+        for temp_oref, temp_data in item_list[1:]:
             new_cluster_item = {"ref": temp_oref, "data": temp_data}
-            if last_cluster is None or (not (-1 < last_cluster[-1]["ref"].distance(temp_oref) <= dist_threshold)):
-                last_cluster = [new_cluster_item]
-                clusters += [last_cluster]
+            if -1 < last_oref.distance(temp_oref, max_dist=dist_threshold, fast=fast) <= dist_threshold:
+                clusters[-1].append(new_cluster_item)
             else:
-                last_cluster.append(new_cluster_item)
+                clusters += [[new_cluster_item]]
+            last_oref = temp_oref
         return clusters
 
     @staticmethod
