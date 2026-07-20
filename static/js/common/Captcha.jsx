@@ -15,7 +15,7 @@ const Captcha = ({ error = null, errorLabel, children }) => (
     <div className="sefaria-captcha-box">{children}</div>
     {error && (
       <div className="sefaria-captcha-error" role="alert">
-        <img src="/static/icons/info.svg" alt="" aria-hidden="true" />
+        <img src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
         <InterfaceText>{errorLabel || error}</InterfaceText>
       </div>
     )}

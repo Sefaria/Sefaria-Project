@@ -11,7 +11,7 @@ const ErrorBanner = ({ error, onProviderClick }) => {
   if (!error) return null;
   return (
     <div className="sefaria-auth-error" role="alert">
-      <img className="sefaria-auth-error-icon" src="/static/icons/info.svg" alt="" aria-hidden="true" />
+      <img className="sefaria-auth-error-icon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
       <div className="sefaria-auth-error-content">
         <InterfaceText>{error.message}</InterfaceText>
         {error.code === 'sso_only_account' && error.providers.map((provider) => {

@@ -123,7 +123,7 @@ const Input = ({
 
       {error && (
         <div className="sefaria-input-error" id={errorId} role="alert">
-          <img className="sefaria-input-errorIcon" src="/static/icons/info.svg" alt="" aria-hidden="true" />
+          <img className="sefaria-input-errorIcon" src="/static/icons/info-error.svg" alt="" aria-hidden="true" />
           <span>{error}</span>
         </div>
       )}
