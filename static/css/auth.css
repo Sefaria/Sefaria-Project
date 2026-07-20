@@ -41,6 +41,7 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 640px;
+  min-height: 480px;
   background: #ffffff;
   border-radius: 16px;
   padding: 56px 48px;
