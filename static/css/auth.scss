@@ -46,7 +46,7 @@ $stroke-strong:   1.5px;
   background-repeat: no-repeat;
 
   @include breakpoint(mobile) {
-    padding: 0;
+    padding: 56px 24px 24px;
     background-image: url('/static/img/auth/auth-bg-mobile.png');
     background-position: center top;
   }
@@ -129,7 +129,7 @@ $stroke-strong:   1.5px;
   }
 
   @include breakpoint(mobile) {
-    max-width: 100%;
+    max-width: 329px;
     min-height: 0;
     border-radius: 0;
     padding: 24px;
