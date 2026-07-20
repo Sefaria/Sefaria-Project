@@ -131,7 +131,7 @@ $stroke-strong:   1.5px;
   @include breakpoint(mobile) {
     max-width: 329px;
     min-height: 0;
-    border-radius: 0;
+    border-radius: 16px;
     padding: 24px;
   }
 }

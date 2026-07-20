@@ -50,13 +50,15 @@ const EmailView = ({
       const scale = box.offsetWidth / 304;
       // Use physical margins so the slot is always anchored to the physical left,
       // regardless of whether the page or the reCAPTCHA script sets direction:rtl/ltr.
+      // On narrow (mobile) RTL layouts the gap is visible — anchor to the correct physical edge.
+      const isRtl = getComputedStyle(slot).direction === 'rtl';
       slot.style.display = 'block';
       slot.style.width = '304px';
       slot.style.height = '78px';
-      slot.style.marginLeft = '0';
-      slot.style.marginRight = 'auto';
+      slot.style.marginLeft = isRtl ? 'auto' : '0';
+      slot.style.marginRight = isRtl ? '0' : 'auto';
       slot.style.transform = `scale(${scale})`;
-      slot.style.transformOrigin = 'left top';
+      slot.style.transformOrigin = isRtl ? 'right top' : 'left top';
       box.style.height = `${Math.round(78 * scale)}px`;
     };
 
