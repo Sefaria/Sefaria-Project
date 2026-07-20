@@ -38,7 +38,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
       <img
           className="searchIcon"
           src="/static/icons/search_mdl.svg"
-          alt={Sefaria._("Search")}
+          alt={Sefaria._("common.search")}
           role="button"
           tabIndex="0"
           onClick={submit}
@@ -53,8 +53,8 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           type="text"
           className="serif"
           value={value}
-          placeholder={Sefaria._("Search")}
-          aria-label={Sefaria._("Search for Texts or Keywords Here")}
+          placeholder={Sefaria._("common.search")}
+          aria-label={Sefaria._("common.search_for_texts_or_keywords_here")}
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
@@ -63,7 +63,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           <img
               className="searchBarClearButton"
               src="/static/icons/heavy-x.svg"
-              alt={Sefaria._("Clear")}
+              alt={Sefaria._("common.clear")}
               role="button"
               tabIndex="0"
               onClick={() => setValue("")}
@@ -321,7 +321,7 @@ class SearchPage extends Component {
     };
     const searchTypeSection = this.props.type === "text" ? (
       <div className="searchFilterGroup">
-        <h2><InterfaceText>Search Type</InterfaceText></h2>
+        <h2><InterfaceText>search_page.search_type</InterfaceText></h2>
         <SearchToggle
           options={[
             {name: "all",   en: "All results",  he: "כל התוצאות"},
@@ -385,10 +385,10 @@ class SearchPage extends Component {
     }
 
     const tabs = [
-      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() || ""},
-      {id: "books",   title: "Books",   count: this.formatEntityCount(this.state.entityData.book?.total)},
-      {id: "authors", title: "Authors", count: this.formatEntityCount(this.state.entityData.author?.total)},
-      {id: "topics",  title: "Topics",  count: this.formatEntityCount(this.state.entityData.topic?.total)},
+      {id: "sources", title: "common.sources", count: this.props.totalResults?.asString() || ""},
+      {id: "books",   title: "common.books",   count: this.formatEntityCount(this.state.entityData.book?.total)},
+      {id: "authors", title: "common.authors", count: this.formatEntityCount(this.state.entityData.author?.total)},
+      {id: "topics",  title: "common.topics",  count: this.formatEntityCount(this.state.entityData.topic?.total)},
     ];
 
     const tabPanels = [

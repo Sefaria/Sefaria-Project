@@ -69,7 +69,7 @@ class SearchFilters extends Component {
       <>
         <div className="mobileSearchFiltersHeader sans-serif">
           <CloseButton onClick={this.props.closeMobileFilters} />
-          <InterfaceText>Filters</InterfaceText>
+          <InterfaceText>common.filters</InterfaceText>
           <div></div>
         </div>
         <div className="searchFilters navSidebarModule">
@@ -89,7 +89,7 @@ class SearchFilters extends Component {
         </div>
         <div className="mobileSearchFiltersFooter">
           <div className="button fillWidth" onClick={this.props.closeMobileFilters}>
-            <InterfaceText>Show Results</InterfaceText>
+            <InterfaceText>common.show_results</InterfaceText>
           </div>
         </div>
       </>
@@ -130,6 +130,7 @@ TextSearchFilters.propTypes = {
 
 const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
 const SEARCH_FILTER_GROUP_IDS = {
+  "Texts": "header.texts",
   "Topics": "common.topics",
   "Collections": "search_filters.collections",
 };
@@ -338,7 +339,7 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
     <>
       <div className="mobileSearchFiltersHeader sans-serif">
         <CloseButton onClick={onClose} />
-        <InterfaceText>Filter</InterfaceText>
+        <InterfaceText>common.filter</InterfaceText>
         <div></div>
       </div>
       <div className="searchFilters navSidebarModule">
@@ -350,7 +351,7 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
       </div>
       <div className="mobileSearchFiltersFooter">
         <button type="button" className="button fillWidth" onClick={onClose}>
-          <InterfaceText>Show Results</InterfaceText>
+          <InterfaceText>common.show_results</InterfaceText>
         </button>
       </div>
     </>
