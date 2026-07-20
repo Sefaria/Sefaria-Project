@@ -14,6 +14,7 @@ $(function() {
   if (sentryDSN) {
     Sentry.init({
       dsn: sentryDSN,
+      release: DJANGO_VARS.props?.appVersion || undefined,
       integrations: [
         new Sentry.BrowserTracing(),
         new Sentry.Replay(),

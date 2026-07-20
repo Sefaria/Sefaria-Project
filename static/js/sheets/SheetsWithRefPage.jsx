@@ -281,8 +281,7 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
         const sheetId = parseInt(sheetRef.replace("Sheet ", ""), 10);
         onResultClick(sheetId, null, enRefs);
     };
-    const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance'
-        ? 'These sheet results are ranked by AI relevance.' : undefined;
+    const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance' ? 'ai_info_tooltip.these_sheet_results_are_ranked_by_ai' : undefined;
     return <SheetsWithRefLayout
           key={"sheetsPage"}
           isQueryRunning={loading}

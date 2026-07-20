@@ -76,7 +76,7 @@ class SearchFilters extends Component {
           {this.props.topSection}
           <div className="searchFilterGroup">
             <h2>
-              <InterfaceText>Sort by</InterfaceText>
+              <InterfaceText>common.sort_by</InterfaceText>
             </h2>
             <SortRadioList
               options={SearchState.metadataByType[type].sortTypeArray}
@@ -129,6 +129,10 @@ TextSearchFilters.propTypes = {
 
 
 const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
+const SEARCH_FILTER_GROUP_IDS = {
+  "Topics": "common.topics",
+  "Collections": "search_filters.collections",
+};
   if (!filters || !filters.length) { return null; }
 
   useEffect(() => {
@@ -189,13 +193,13 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={searchPlaceholder || Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const clearInputButton = <button aria-label={Sefaria._("search_filters.clear_input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={searchPlaceholder || Sefaria._(`search_filters.search_${name.toLowerCase()}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
       <h2>
-        <InterfaceText context="SearchFilters">{name}</InterfaceText>
+        <InterfaceText>{SEARCH_FILTER_GROUP_IDS[name] || name}</InterfaceText>
       </h2>
       {search}
       <ul className="searchFilterList">{content}</ul>
@@ -317,7 +321,7 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
         filters={filters}
         updateSelected={updateSelected}
         preserveOrder={true}
-        searchPlaceholder={Sefaria._("Search")} />
+        searchPlaceholder={Sefaria._("common.search")} />
     </div>
   );
 
@@ -339,7 +343,7 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
       </div>
       <div className="searchFilters navSidebarModule">
         <div className="searchFilterGroup">
-          <h2><InterfaceText>Sort by</InterfaceText></h2>
+          <h2><InterfaceText>common.sort_by</InterfaceText></h2>
           <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
         </div>
         {filterContent}
@@ -395,8 +399,8 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
     <>
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
-      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("See More", "SearchFilters")}>
-        <InterfaceText context="SearchFilters">See More</InterfaceText>
+      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("search_filters.see_more")}>
+        <InterfaceText>search_filters.see_more</InterfaceText>
       </button>
       : null}
     </>
@@ -408,18 +412,18 @@ const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
   <>
     <div className="mobileSearchFiltersHeader sans-serif">
       <CloseButton onClick={onClose} />
-      <InterfaceText>Sort</InterfaceText>
+      <InterfaceText>common.sort</InterfaceText>
       <div></div>
     </div>
     <div className="searchFilters navSidebarModule">
       <div className="searchFilterGroup">
-        <h2><InterfaceText>Sort by</InterfaceText></h2>
+        <h2><InterfaceText>common.sort_by</InterfaceText></h2>
         <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
       </div>
     </div>
     <div className="mobileSearchFiltersFooter">
       <button type="button" className="button fillWidth" onClick={onClose}>
-        <InterfaceText>Show Results</InterfaceText>
+        <InterfaceText>common.show_results</InterfaceText>
       </button>
     </div>
   </>
