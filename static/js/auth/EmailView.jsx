@@ -166,6 +166,7 @@ const EmailView = ({
           <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} />
           <Input label={Sefaria._('Password')} type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
+                 placeholder="••••••••"
                  value={fields.password} onChange={setField('password')}
                  onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
                  revealLabel={Sefaria._('Show password')} hideLabel={Sefaria._('Hide password')} />

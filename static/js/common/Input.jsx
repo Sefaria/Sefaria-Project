@@ -105,7 +105,7 @@ const Input = ({
           aria-describedby={errorId}
           {...rest}
         />
-        {isPassword && !disabled && (
+        {isPassword && !disabled && value && (
           <button
             type="button"
             className="sefaria-input-reveal"
