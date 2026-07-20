@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 
 const PROVIDERS = {
   google: { icon: 'google', defaultLabel: 'Continue with Google' },
@@ -32,7 +33,7 @@ const ProviderButton = ({
         alt=""
         aria-hidden="true"
       />
-      <span>{label || config.defaultLabel}</span>
+      <InterfaceText>{label || config.defaultLabel}</InterfaceText>
     </>
   );
 

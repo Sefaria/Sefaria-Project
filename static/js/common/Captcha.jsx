@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 
 /**
  * Captcha — wraps the reCAPTCHA widget (passed as children) and adds the error
@@ -15,7 +16,7 @@ const Captcha = ({ error = null, errorLabel, children }) => (
     {error && (
       <div className="sefaria-captcha-error" role="alert">
         <img src="/static/icons/info.svg" alt="" aria-hidden="true" />
-        <span>{errorLabel || error}</span>
+        <InterfaceText>{errorLabel || error}</InterfaceText>
       </div>
     )}
   </div>

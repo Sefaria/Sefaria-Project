@@ -4,7 +4,8 @@ import Input from '../common/Input.jsx';
 
 const EmailInput = ({ value, setField, onFocus }) => (
   <Input
-    label={Sefaria._('Email Address', 'Auth')}
+    label="Email Address"
+    labelContext="Auth"
     type="email"
     name="email"
     inputDir="ltr"

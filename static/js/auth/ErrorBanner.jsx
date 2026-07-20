@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 
 const SSO_LINK_LABELS = {
   google: 'Continue with Google',
@@ -12,7 +13,7 @@ const ErrorBanner = ({ error, onProviderClick }) => {
     <div className="sefaria-auth-error" role="alert">
       <img className="sefaria-auth-error-icon" src="/static/icons/info.svg" alt="" aria-hidden="true" />
       <div className="sefaria-auth-error-content">
-        <span>{error.message}</span>
+        <InterfaceText>{error.message}</InterfaceText>
         {error.code === 'sso_only_account' && error.providers.map((provider) => {
           const key = provider.toLowerCase();
           const labelEn = SSO_LINK_LABELS[key] || `Continue with ${provider}`;
@@ -23,7 +24,7 @@ const ErrorBanner = ({ error, onProviderClick }) => {
               className="sefaria-auth-provider-action"
               onClick={(event) => { event.preventDefault(); onProviderClick?.(provider); }}
             >
-              {Sefaria._(labelEn)}
+              <InterfaceText>{labelEn}</InterfaceText>
             </a>
           );
         })}

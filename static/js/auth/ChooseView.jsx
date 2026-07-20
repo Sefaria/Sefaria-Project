@@ -179,7 +179,7 @@ const ChooseView = ({
               <ProviderButton
                 id="google-signin-button"
                 provider="google"
-                label={Sefaria._('Continue with Google')}
+                label="Continue with Google"
                 disabled={!googleReady}
                 sdkOverlayRef={googleBtnRef}
               />
@@ -188,7 +188,7 @@ const ChooseView = ({
               <ProviderButton
                 id="apple-signin-button"
                 provider="apple"
-                label={Sefaria._('Continue with Apple')}
+                label="Continue with Apple"
                 disabled={!appleReady}
                 onClick={startAppleSignIn}
               />

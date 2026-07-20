@@ -125,7 +125,7 @@ const EmailView = ({
         const hasCaptchaError = !!(data?.captcha);
         const nonCaptchaError = Object.keys(data || {}).some((key) => key !== '_auth' && key !== 'captcha');
         setError(nonCaptchaError ? authError(data, message) : null);
-        if (hasCaptchaError) setCaptchaError(Sefaria._('Verify that you are not a robot'));
+        if (hasCaptchaError) setCaptchaError('Verify that you are not a robot');
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
           captchaToken.current = '';
@@ -184,7 +184,7 @@ const EmailView = ({
     emailOnFocus: undefined,
     passwordAutoComplete: 'current-password',
     passwordOnFocus: undefined,
-    passwordTrailingLink: { text: Sefaria._('Forgot password?'), onClick: onForgotClick },
+    passwordTrailingLink: { text: 'Forgot password?', onClick: onForgotClick },
     buttonText: <InterfaceText>Log In</InterfaceText>,
   };
 
@@ -192,7 +192,6 @@ const EmailView = ({
     <AuthCard
       className={[cfg.cardClass, error || captchaError ? 'sefaria-auth-card--email-error' : ''].filter(Boolean).join(' ')}
       onBack={onBack}
-      backLabel={Sefaria._('Back')}
       heading={cfg.heading}
       sub={cfg.sub}
     >
@@ -200,14 +199,13 @@ const EmailView = ({
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} />
-          <Input label={Sefaria._('Password')} type="password" name="password"
+          <Input label="Password" type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  placeholder="••••••••"
                  value={fields.password} onChange={setField('password')}
-                 onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
-                 revealLabel={Sefaria._('Show password')} hideLabel={Sefaria._('Hide password')} />
-          {isRegister && <Input label={Sefaria._('First Name')} name="first_name" placeholder={Sefaria._('First Name')} value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
-          {isRegister && <Input label={Sefaria._('Last Name')} name="last_name" placeholder={Sefaria._('Last Name')} value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+                 onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink} />
+          {isRegister && <Input label="First Name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
+          {isRegister && <Input label="Last Name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
         </div>
         {isRegister && recaptchaSiteKey && (
           <Captcha error={captchaError}>

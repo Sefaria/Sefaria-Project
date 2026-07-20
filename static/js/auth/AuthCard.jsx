@@ -17,7 +17,7 @@ import PropTypes from 'prop-types';
 const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', className = '', children }) => (
   <div className={`sefaria-auth-card ${className}`.trim()}>
     {onBack && (
-      <button type="button" className="sefaria-auth-card-back" onClick={onBack} aria-label={backLabel}>
+      <button type="button" className="sefaria-auth-card-back" onClick={onBack} aria-label={Sefaria._(backLabel)}>
         <img src="/static/icons/arrow-left.svg" alt="" aria-hidden="true" />
       </button>
     )}

@@ -33,8 +33,7 @@ const ForgotView = ({ emailValue, setField, csrf, onSuccess, onBack }) => {
   };
 
   return (
-    <AuthCard onBack={handleBack} backLabel={Sefaria._('Back')}
-      heading={<InterfaceText>Forgot Password?</InterfaceText>}>
+    <AuthCard onBack={handleBack} heading={<InterfaceText>Forgot Password?</InterfaceText>}>
       <ErrorBanner error={error} />
       <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
         <EmailInput value={emailValue} setField={setField} />
