@@ -20,6 +20,7 @@ const EmailView = ({
   const [captchaError, setCaptchaError] = useState(null);
   const captchaToken = useRef('');
   const captchaWidgetId = useRef(null);
+  const captchaObserver = useRef(null);
 
   const isRegister = flow === 'register';
   const recaptchaSiteKey = Sefaria.recaptchaSiteKey;
@@ -30,6 +31,28 @@ const EmailView = ({
       captchaToken.current = '';
       return;
     }
+
+    // reCAPTCHA always renders a 304×78 px widget; scale the slot itself to fill its
+    // container. Scaling the slot (not an inner div) guarantees the origin is always
+    // at x=0 of the container, avoiding any offset introduced by Google's markup.
+    const scaleWidget = () => {
+      const slot = document.getElementById('auth-captcha-slot');
+      if (!slot?.firstElementChild) return;
+      const box = slot.parentElement;
+      if (!box) return;
+      const scale = box.offsetWidth / 304;
+      // Use physical margins so the slot is always anchored to the physical left,
+      // regardless of whether the page or the reCAPTCHA script sets direction:rtl/ltr.
+      slot.style.display = 'block';
+      slot.style.width = '304px';
+      slot.style.height = '78px';
+      slot.style.marginLeft = '0';
+      slot.style.marginRight = 'auto';
+      slot.style.transform = `scale(${scale})`;
+      slot.style.transformOrigin = 'left top';
+      box.style.height = `${Math.round(78 * scale)}px`;
+    };
+
     const renderWidget = () => {
       const slot = document.getElementById('auth-captcha-slot');
       if (!slot || captchaWidgetId.current !== null || !window.grecaptcha.render) return;
@@ -39,15 +62,28 @@ const EmailView = ({
           callback: (t) => { captchaToken.current = t; },
           'expired-callback': () => { captchaToken.current = ''; },
         });
+        scaleWidget();
+        const box = slot.parentElement;
+        if (box) {
+          captchaObserver.current = new ResizeObserver(scaleWidget);
+          captchaObserver.current.observe(box);
+        }
       } catch (e) { /* not ready / already rendered */ }
     };
-    return whenReady(
+
+    const cancel = whenReady(
       () => window.grecaptcha?.render,
       () => {
         if (window.grecaptcha.ready) window.grecaptcha.ready(renderWidget);
         else renderWidget();
       },
     );
+
+    return () => {
+      cancel();
+      captchaObserver.current?.disconnect();
+      captchaObserver.current = null;
+    };
   }, [isRegister, recaptchaSiteKey]);
 
   const submitEmail = async (e) => {
