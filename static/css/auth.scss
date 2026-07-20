@@ -181,7 +181,7 @@ $stroke-strong:   1.5px;
     text-decoration: underline;
   }
 
-  &-icon    { width: 18px; height: 18px; flex: 0 0 18px; }
+  &-icon    { align-self: flex-start; }
   &-content { min-width: 0; }
 }
 

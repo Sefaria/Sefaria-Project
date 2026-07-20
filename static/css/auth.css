@@ -153,9 +153,7 @@
   text-decoration: underline;
 }
 .sefaria-auth-error-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  align-self: flex-start;
 }
 .sefaria-auth-error-content {
   min-width: 0;
