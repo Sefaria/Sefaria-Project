@@ -209,7 +209,7 @@ const EmailView = ({
       heading={cfg.heading}
       sub={cfg.sub}
     >
-      <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
+      <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail} noValidate>
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} error={fieldErrors.email} />
