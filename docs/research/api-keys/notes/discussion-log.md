@@ -158,6 +158,48 @@ options. Architecture questions route to Lev's doc.
   (source `product-decisions.html` alongside; render via headless Chrome — weasyprint shim broken
   in senv). **Next: Daniel reviews the PDF and gives feedback.**
 
+## Update 2026-07-20 (later): product doc v3 — restructured, peer-reviewed
+
+**Reversals of earlier positions (these win over anything above):**
+- Architecture flags **DO** go in the product doc now (earlier note said keep out / don't flag to
+  Lev). Daniel asked for them in place, in the affected section, no separate call-out box.
+- "Settled" language dropped everywhere — Lev's work is framed as a **first draft being decided in
+  parallel that works well for us**, and the doc says up front it will flag anything needing a
+  change to it.
+- SSO framing: **not** assumed live at launch ("won't necessarily be live before this work lands,
+  but the two fit together well"). Recommendation is to lean on SSO; self-built email confirmation
+  explicitly held in reserve as a future option.
+- §4 (registration fields) carries **no recommendation** — Lev's draft default (email required,
+  rest optional) is presented as the strong default, with the trade stated neutrally.
+
+**Structure now (9 sections):** 1 project-not-person (was the "not really an option" point, moved
+first) · 2 full flow incl. naming/viewing/deleting + where the page lives · 3 email verification ·
+4 registration fields · 5 terms · 6 Linker · 7 users-vs-projects (no decide line) · 8 rollout
+stages from Lev's plan + anonymous end-state question · 9 stepping in / raising limits. Dropped:
+communications section, separate "where things change" list (folded into §2).
+
+**Linker analytics answer (asked 07-20):** we are NOT blind — Linker requests carry the installing
+site's Referer, which is how the 11.5% bucket was split per-site in the 07-09 inventory. What's
+missing is contact info, any per-site lever, and reliability (browsers trim Referer to origin;
+`referrer-policy` can suppress it). Doc says exactly this.
+
+**Peer review (2 agents, 07-20)** — accepted: added §9 (abuse response + limit-raise ownership) and
+the anonymous-end-state decide; fixed rollout stage 4 wording ("where dependence is concentrated
+and we know the callers" per Lev, not "endpoints whose users we know"); "six months" now = when the
+last stage *begins*, not end-to-end; dropped unsupported "reversible at any stage"; intro no longer
+claims first-party is exempt (our apps carry keys); Referer described as "the site a request came
+from" (browsers trim to origin) not "the page"; 12% → 11.5%; MCP-keyless restored into stage 2.
+Rejected: their objections to the architecture flags, the SSO hedge, and adding a §4 recommendation
+— all three are Daniel's explicit instructions (the reviewers were reading the earlier notes).
+Note: fact-checker flagged Aish/JWA/MJL as invented; they're sourced from the 07-09 inventory in
+the wiki (hot.md), so they stay.
+
+**Deliverable:** 2 pages. Markdown `12-product-decisions.md`; HTML source + PDF in
+`Sefaria-Project/.claude/scratch/api-keys/` (main checkout, branch-independent); copy in
+`~/Downloads/`. Render: headless Chrome; page count via `pdftoppm`/regex on `/Type /Page`.
+**Worktree note:** main checkout moved to another branch mid-session; this branch now lives in
+worktree `~/code/Sefaria-Project-sc-45692`.
+
 ## Pending explanation threads (Daniel wants step-by-step)
 
 - Caching/Varnish/Envoy architecture walkthrough — basics (Part 1) and cache-key mechanics
