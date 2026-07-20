@@ -11,12 +11,16 @@ kind: Role
 metadata:
   name: {{ .Values.deployEnv }}-reindex-orchestrator
 rules:
+  # The orchestrator creates the shard Indexed Job, polls its status to run the
+  # barrier, and deletes a stale prior job before recreating. That is the entire
+  # Kube-API surface — no configmap/secret reads: shard pods receive config via
+  # envFrom (names only), resolved by the kubelet, per the 2026-07-13 decision.
   - apiGroups: ["batch"]
-    resources: ["jobs", "jobs/status"]
-    verbs: ["create", "get", "list", "watch", "delete"]
-  - apiGroups: [""]
-    resources: ["pods", "pods/log"]
-    verbs: ["get", "list", "watch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs/status"]
+    verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
