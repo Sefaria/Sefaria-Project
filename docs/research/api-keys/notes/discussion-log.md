@@ -137,6 +137,27 @@ options. Architecture questions route to Lev's doc.
   no bonus-credit/partner-tier incentive for reporting (explicitly rejected).
 - Numeric-limit placement: decided by Lev's doc (gate/map-file) — no longer our open question.
 
+## Update 2026-07-20: product-doc round 2 (Daniel feedback applied to 12-product-decisions.md)
+
+- **Timing assumption: work happens after SSO ships** — Decision 1 reframed (SSO available at
+  launch; A = require SSO zero-build, B = confirmation-at-issuance small build).
+- **URL field: recommendation, not mandate** — softened wording.
+- **Project model made explicit** (was research Decision 1): registration creates a *project*;
+  one account ↔ many projects, each with own key(s) and limits. Engineering-side note (NOT in the
+  product doc, not flagged to Lev per Daniel): Lev's "extend db.apikeys" is a one-key-per-user
+  schema — the project model needs a schema change there.
+- **New Decision 5: where the registration page lives** — sefaria.org account area vs
+  developers.sefaria.org entry (ReadMe can't issue keys; its version hands off), or both.
+- **Old Decision 5 (terms) slimmed to Decision 6**: ownership question dropped (policy team
+  obviously owns text); only the attribution posture remains as the product call.
+- **MCP keyless-today made explicit** in touchpoints (gets its key at soft launch per arch plan).
+- **Linker reminder answered**: research recommended per-site keys but explicitly deferred to
+  product (ask #5 in 10-decision-points); Lev's doc leaves Linker unkeyed at rung 2; no one has
+  decided — hence it stays a decision item (middle-path rec).
+- **PDF regenerated**: `.claude/scratch/api-keys/Sefaria-API-Keys-Product-Decisions.pdf`
+  (source `product-decisions.html` alongside; render via headless Chrome — weasyprint shim broken
+  in senv). **Next: Daniel reviews the PDF and gives feedback.**
+
 ## Pending explanation threads (Daniel wants step-by-step)
 
 - Caching/Varnish/Envoy architecture walkthrough — basics (Part 1) and cache-key mechanics
