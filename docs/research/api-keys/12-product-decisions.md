@@ -2,115 +2,152 @@
 
 *July 2026 · Team Platform*
 
-**Settled, for context.** Every programmatic API consumer will identify itself with a free,
-instantly-issued key. Keys are identification, not security — the goals are knowing who builds on
-Sefaria, being able to reach them, understanding usage, and containing abuse.
+## What this is
 
-In parallel, Lev has designed the technical program for how keys get checked and how request
-volume is controlled — the mechanism that lets us slow down or shut off traffic that is excessive
-or unwanted. **That architecture is decided, and it suits us well**, so this document treats it as
-given. In short: checking happens at the network edge, and enforcement arrives in measured phases
-over roughly six months. Normal browser traffic, search-engine crawlers, and our own apps are
-**never affected**; only unregistered *programmatic* traffic feels pressure — first a notice, then
-shared rate limits, eventually a per-endpoint key requirement with generous grandfather windows.
-Specific limit numbers come from measurement, not from this document. The work is slated for
-**after the SSO project ships**.
+We want everyone who uses our API programmatically to identify themselves with a free key that
+takes a minute to get. Keys are for identification, not security: we want to know who builds on
+Sefaria, be able to reach them, understand how the API is used, and have a way to act when someone
+abuses it.
 
-A few of the choices below would extend that architecture rather than fit inside it. **Wherever
-that happens it is flagged in place**, so the engineering conversation can start early instead of
-after the design is locked.
+A first draft of the technical program — how keys are checked, and how request volume can be slowed
+or shut off — has been written by Lev and is being decided in parallel. It works well for us, so
+this document assumes it. Where a product choice here would require a change to that draft, we say
+so in place.
 
-Registration creates a **project**: one account can hold several projects, each with its own key
-and limits, so usage is understood per project rather than per person — this is what lets one
-person's three apps appear as three distinct consumers.
+Ordinary visitors and search-engine crawlers are never asked for a key, and our own apps will carry
+keys invisibly. Everything below concerns *programmatic* use.
 
-> ⚑ **Architecture flag.** The key design as drafted assumes one key per user account. Projects —
-> one account owning several independently-limited keys — extend it, and this should be raised
-> with Lev sooner rather than later, since it affects how keys are stored and looked up.
+## 1 · What gets registered: a project, not a person
 
-What remains are the six product decisions below.
+We'd register **projects** rather than people: one account can hold several, each with its own name,
+key, and limits, so someone who builds three tools appears as three consumers rather than one
+enthusiast. The name and description aren't only for their benefit — they're what we search when we
+want to know who does what with our texts. "Which projects use our API, and for what?" is the
+question this effort exists to answer; a key per person answers a different and less useful one.
 
-## 1 · How someone gets a key
+*Note for engineering:* the current draft assumes one key per account, so this is a change to it —
+worth raising early, since it affects how keys are stored and looked up.
 
-Self-serve, instant, no approval queue — settled. A verified email is required, and Sefaria
-accounts today never verify email. Since this work follows SSO, Google/Apple sign-in will exist by
-launch, giving two ways to get verification:
+## 2 · The flow, end to end
 
-- **Option A — require Google/Apple sign-in** to request a key. Provider-verified email, zero
-  additional build.
-- **Option B — any Sefaria account**; the first key request sends a confirmation email that
-  activates the key. A small build; keeps the email/password path open for developers who don't
-  use Google/Apple.
+1. **Sign in** to a Sefaria account.
+2. **Create a project** — name it, and say what it's for.
+3. **Get the key**, immediately. Nobody is reviewed or turned down.
+4. **Come back later** to a list of projects: see each key, rename, add another, or delete one no
+   longer used. Deleting stops that key working.
 
-**Decide:** require SSO, or fund the confirmation step.
+The page can live in the sefaria.org account area, on developers.sefaria.org, or both — our
+documentation site can link to it, but the page handing out keys must be one we build.
 
-## 2 · What we ask at registration
+**Decide:** where the primary home is, and whether anything beyond create / view / rename / delete
+belongs in the first version.
 
-Beyond the verified email, our suggestion is to require only a **project name** and one question —
-*"What are you building?"* (one line). That answer is the analytics payoff of the whole program: a
-key alone tells us *that* something calls us; this field tells us *what*. Org name, site URL,
-category — optional; we'd recommend keeping the URL optional in particular, since requiring it can
-read as though API calls were only permitted from that URL. Each additional required field
-measurably costs registrations.
+## 3 · Making sure the email is real
 
-**Decide:** the required field set and its exact wording.
+We want a working email address per project, since being able to reach people is half the point. A
+Sefaria account today doesn't prove one: we never verify email addresses at signup.
 
-## 3 · The Linker
+Google and Apple sign-in gives us this for free — those accounts arrive with an address the
+provider has already checked. It won't necessarily be live before this work lands, but the two fit
+together well, and our recommendation is to lean on it: sign in that way and you're verified; sign
+in with a password and we'd ask you to connect Google or Apple first. Sending our own confirmation
+email is a real option, worth keeping in reserve rather than building now.
 
-About 12% of all API traffic is the Linker embedded on partner sites (Times of Israel, Aish, JWA,
-My Jewish Learning…). Under the settled architecture it flows untouched — but attribution rests on
-browser referer signals, we hold contact information for none of the installing sites, and there is
-no per-site lever. **Recommendation:** leave every existing install untouched; route *new* installs
-through a lightweight "Get the Linker" page (site name + contact email → snippet with a per-site
-identifier). The registry fills in over time without breaking anything.
+**Decide:** product should own the full sign-in-to-key flow, including what a password-only user
+sees at the moment we ask them to connect an account.
 
-> ⚑ **Architecture flag.** The current design deliberately lets Linker traffic through untouched as
-> ordinary browser traffic. Giving embeds their own identifiers adds a case it doesn't yet cover —
-> another one to raise with Lev early if product wants it.
+## 4 · What we ask when a project is registered
 
-**Decide:** build the registration page now, later, or never.
+The draft asks for a verified email and treats everything else — organisation, URL, what the
+project is for — as optional, erring toward fewer abandoned forms. That's the default unless product
+wants otherwise.
 
-## 4 · Seeing users, not just projects
+The trade in the other direction: each required field costs some registrations, and the "what are
+you building?" answer is the one that turns a key into an answer about who uses us and why. A site
+URL is best left optional whatever else is decided — asking for it can read
+as though calls were only permitted from that address.
 
-We record client IPs, so a project whose app calls our API directly from its users' devices gives
-us users-per-project automatically; a project that proxies through its own server appears as a
-single consumer, and its user count is invisible to us. If finer numbers matter, the only available
-addition is a voluntary, self-reported "estimated users" field at registration.
+**Decide:** which fields are required, and their wording.
 
-**Decide:** include the voluntary field, or skip it.
+## 5 · What people agree to
 
-## 5 · Where key registration lives
+Issuing a key is a natural moment to set expectations. The simplest version is a single checkbox:
+acceptable use, crediting Sefaria where our texts appear, and agreeing to be emailed about API
+changes — quietly the most valuable of the three. It could also do more: say what we ask of people
+who build on Sefaria, or ask what they'd like from us.
 
-The key backend is ours either way; the question is the front door. The page can live in the
-**sefaria.org account area** (where the user's session already is), or be entered from
-**developers.sefaria.org** (where developers already are — the docs platform cannot issue keys
-itself, so its version is an entry point that hands off to our page), or both.
+**Decide:** whether this stays a checkbox or becomes something fuller, and whether crediting
+Sefaria is required or requested.
 
-**Decide:** the primary home — website account area, developer-portal entry, or both.
+## 6 · The Linker
 
-## 6 · Terms at issuance
+The Linker — our snippet embedded on partner sites like Times of Israel, Aish, JWA and My Jewish
+Learning — accounts for about 11.5% of all API traffic.
 
-Registration ends with a checkbox; the policy team drafts the text. The product call embedded in
-it: **attribution — required, or requested?** — plus acceptable use and consent to be contacted
-about API changes (quietly the most valuable line in it).
+**As drafted, nothing changes for it.** Those requests come from ordinary visitors' browsers, so
+they pass through untouched, and we can already see roughly which sites they come from, because
+browsers report the site a request came from. What we lack is a way to contact those sites, act on
+one specifically, or any guarantee the signal lasts — browsers routinely trim it, and a site can
+switch it off.
 
-**Decide:** the attribution posture.
+The alternative is to **register new installs**: a "get the Linker" page asking for a site name and
+contact email, handing back a snippet that identifies that site. Existing installs keep working and
+the list fills in over time. *Note for engineering:* this would extend the
+current draft, which has no notion of identifying embeds.
 
-## Where things change
+**Decide:** leave it as is or register new installs — noting we can start contacting the sites we
+can already see either way.
 
-- **New:** a key registration & management page (create, view, revoke; tied to Sefaria accounts) —
-  location per decision 5.
-- **developers.sefaria.org** (ReadMe): "Get a key" onboarding, an authentication section on
-  endpoint pages, launch announcement.
-- **Account settings:** an "API keys" section.
-- **Linker page** (if decision 3 is yes): registration-gated snippet.
-- **Mobile apps / MCP server:** currently keyless — today no Sefaria client sends a key, including
-  our own MCP server. Each receives its own key per the architecture plan (MCP at soft launch);
-  no product surface beyond release notes. Per-user identity on MCP is a separate future project.
-- **Communications** per phase (developer Discord, dev site, email lists) as scheduled in the
-  architecture plan.
+## 7 · What we will and won't learn about people
+
+Keys tell us about projects, not their users. When a project's app calls us straight from its users'
+devices, those arrive as separate visitors and we can estimate reach; when it calls us from its own
+server, its entire audience reaches us as one caller and stays invisible. We could let projects send
+an anonymous user identifier of their own, but it only works when they choose to and raises
+questions about what that identifier is — so we wouldn't ask now, though leaving room for it later
+is cheap.
+
+## 8 · How people actually end up using keys
+
+Issuing keys doesn't get anyone to use them, so the draft applies pressure in stages, each starting
+only when measurements from the previous one justify it:
+
+1. **Measure** — confirm we can reliably tell apart browsers, crawlers, our own apps, and
+   programmatic callers.
+2. **Launch quietly** — the portal opens, documentation updates, and every unregistered
+   programmatic request comes back with a note pointing at registration and the limits that are
+   coming. Developers see it in their logs; nobody's users see anything. Our MCP server gets its key
+   here, and we contact the large consumers we can identify.
+3. **Apply limits** — everyone without a key draws on one shared allowance and competes with the
+   others for it; each registered project gets a generous allowance of its own. Nothing is blocked
+   outright.
+4. **Require keys, endpoint by endpoint** — starting where dependence is concentrated and we know
+   who the callers are, each with a grace period announced in advance.
+
+The last stage begins around six months in, and each is gated on measurement rather than the
+calendar. This is the part external developers will feel, so it's worth pushing back now if it reads
+too fast, too slow, or too blunt.
+
+One thing the stages don't settle: where this ends. We could keep unregistered access working
+indefinitely at a humbler speed — the posture most in keeping with a free public library — or treat
+"key required" as the destination for every endpoint. Either works, but the answer changes what we
+say publicly at stage 3.
+
+**Decide:** whether unregistered access is permanently supported at a lower tier, or a transitional
+state.
+
+## 9 · When we need to step in, and when someone needs more
+
+Two directions, both unanswered. **If a project misbehaves**, we can slow its key or switch it off —
+we'd suggest never switching off first: an email, then a reduced limit, then off, with a person
+reachable at each step. That is the value of contact details, and someone must own that inbox. **If
+a project needs more room** than the standard allowance, there should be a way to ask and someone
+able to say yes; the draft allows lifted limits per key, but not who decides.
+
+**Decide:** who owns the "we need to talk to you" conversation and the "can we have more?" request,
+and whether either is published policy or handled case by case.
 
 ---
 
-*Drafted by Team Platform with Claude, July 2026 — distilled from the API Key Program architecture
-(Lev) and the sc-45692 research series (`docs/research/api-keys/`).*
+*Drafted by Team Platform with Claude, July 2026, from the API Key Program draft (Lev) and the
+sc-45692 research series.*
