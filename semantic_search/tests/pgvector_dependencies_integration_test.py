@@ -359,6 +359,20 @@ class TestTopicHooks:
         chunk1 = _fetch(seed.doc1)  # only doc1 carries this author in author_slugs
         assert chunk1.author_names == ["New Author Name"]
 
+    def test_author_topic_save_without_title_change_is_noop(self, seed):
+        """A save that doesn't change the author's primary English title (e.g. the numSources
+        bump when a RefTopicLink is added) must NOT enqueue update_author_topic_names."""
+        from semantic_search.models import SemanticTextChunk
+        # Seed a deliberately-stale value so a stray task run would be observable as a correction.
+        SemanticTextChunk.objects.filter(doc_id=seed.doc1).update(author_names=["STALE - keep me"])
+
+        author = AuthorTopic().load({"slug": seed.author_slug})
+        author.numSources = getattr(author, "numSources", 0) + 1  # non-title attribute
+        author.save()
+
+        # Title never changed, so the stale value is left untouched (task did not fire).
+        assert _fetch(seed.doc1).author_names == ["STALE - keep me"]
+
 
 # ---------------------------------------------------------------------------
 # RefTopicLink / Link / RefData events (recomputed via get_chunk_context)

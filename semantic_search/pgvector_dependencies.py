@@ -99,9 +99,20 @@ def process_topic_slug_change_in_pgvector(topic_obj, **kwargs) -> None:
 
 
 def process_author_topic_save_in_pgvector(topic_obj, **kwargs) -> None:
-    """Fired on any AuthorTopic save — refreshes author_names in case the primary title changed."""
+    """Fired on any AuthorTopic save. author_names in pgvector chunks derive from the author's
+    English primary title, so only refresh them when that title actually changed. A plain re-save
+    (e.g. the numSources bump when a RefTopicLink is added — which happens twice per link add)
+    leaves the title untouched and must not enqueue this expensive per-index fan-out task."""
     if not _enabled():
         return
+    if kwargs.get("is_new"):
+        return  # a brand-new author has no chunks referencing it yet
+    orig_title = getattr(topic_obj, "_orig_en_primary_title", None)
+    new_title = topic_obj.get_primary_title("en")
+    if orig_title == new_title:
+        return  # title unchanged — nothing to propagate
+    # Advance the snapshot so re-saving this same instance doesn't re-fire on an already-applied change.
+    topic_obj._orig_en_primary_title = new_title
     from semantic_search.tasks import update_author_topic_names
     update_author_topic_names.apply_async(args=(topic_obj.slug,), queue=_tasks_queue())
 
