@@ -42,7 +42,7 @@ const Strings = {
     "Log in to Join": "התחברות כדי להצטרף", 
     "Maybe later": "אולי מאוחר יותר",
 
-    "Create an Account": "יצירת חשבון",
+    "Create Account": "יצירת חשבון",
     "Try It": "נסו עכשיו",
     "Log in to Try": "התחברות כדי להתנסות",
     

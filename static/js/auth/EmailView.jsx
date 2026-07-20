@@ -191,7 +191,7 @@ const EmailView = ({
 
   const cfg = isRegister ? {
     cardClass: 'sefaria-auth-card--register-email',
-    heading: <InterfaceText context="Auth">Sign Up</InterfaceText>,
+    heading: <InterfaceText context="Auth">Create Account</InterfaceText>,
     sub: (
       <>
         <InterfaceText>Already have an account?</InterfaceText>
