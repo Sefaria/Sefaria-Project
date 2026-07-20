@@ -177,49 +177,47 @@ const SiteWideBanner = ({
     trackBannerInteraction("close");
   };
 
-  return (!isDismissed() &&
-    <div className={`siteWideBanner ${bannerVisibility}`}>
-      <div className="siteWideBannerContent">
-        <div className="siteWideBannerTextBox">
-          <span className="bannerMainText">{mainText}</span>
-          {secondaryText && (
-            <span className="bannerSecondaryText">{secondaryText}</span>
-          )}
-        </div>
-        <div className="siteWideBannerButtonBox">
-          {actionButtons(trackBannerInteraction)}
-          {enableBackoffDismissal && (
-            <button
-              type="button"
-              className="button small siteWideBannerMaybeLater"
-              onClick={closeBanner}
-            >
-              <span>{Sefaria._("Maybe later")}</span>
-            </button>
-          )}
-        </div>
-        {learnMoreUrl && (
-          <a
-            href={learnMoreUrl}
-            className="bannerLearnMore"
-            target="_blank"
-            onClick={() => trackBannerInteraction("learn_more")}
-          >
-            {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
-          </a>
+  return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
+    <div className="siteWideBannerContent">
+      <div className="siteWideBannerTextBox">
+        <span className="bannerMainText">{mainText}</span>
+        {secondaryText && (
+          <span className="bannerSecondaryText">{secondaryText}</span>
         )}
-        {!enableBackoffDismissal && (
+      </div>
+      <div className="siteWideBannerButtonBox">
+        {actionButtons(trackBannerInteraction)}
+        {enableBackoffDismissal && (
           <button
-            className="siteWideBannerClose"
+            type="button"
+            className="button small siteWideBannerMaybeLater"
             onClick={closeBanner}
-            aria-label="Close banner"
           >
-            &times;
+            <span>{Sefaria._("site_wide_banner.maybe_later")}</span>
           </button>
         )}
       </div>
+      {learnMoreUrl && (
+        <a
+          href={learnMoreUrl}
+          className="bannerLearnMore"
+          target="_blank"
+          onClick={() => trackBannerInteraction("learn_more")}
+        >
+          {Sefaria._(learnMoreText) || Sefaria._("common.learn_more")}
+        </a>
+      )}
+      {!enableBackoffDismissal && (
+        <button
+          className="siteWideBannerClose"
+          onClick={closeBanner}
+          aria-label="Close banner"
+        >
+          &times;
+        </button>
+      )}
     </div>
-  );
+  </div>);
 };
 
 SiteWideBanner.propTypes = {
@@ -235,7 +233,7 @@ SiteWideBanner.propTypes = {
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Enhance Your Learning Experience");
+const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("site_wide_banner.enhance_your_learning_experience");
 const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
@@ -275,11 +273,11 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
       actionButtons={(track) => isLoggedIn ? (
         <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
-          <span>{isActionPending ? Sefaria._("Loading...") : Sefaria._("Try It")}</span>
+          <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
         </button>
       ) : (<>
         <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
-          <span>{Sefaria._("Log in to Try")}</span>
+          <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}

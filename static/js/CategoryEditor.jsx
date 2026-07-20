@@ -42,12 +42,14 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
     }
 
     return subcategoriesAndBooks.map((child, i) => {
-        return <div id={`reorder-${i}`} className="reorderTool">
-                    <div id="title">{displayOptions[displayType](child)}</div>
-                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)} alt={Sefaria._("Move up")} role="button" tabIndex="0"/>
-                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)} alt={Sefaria._("Move down")} role="button" tabIndex="0"/>
-              </div>;
-        })
+        return (
+            <div id={`reorder-${i}`} className="reorderTool">
+                        <div id="title">{displayOptions[displayType](child)}</div>
+                        <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)} alt={Sefaria._("category_editor.move_up")} role="button" tabIndex="0"/>
+                        <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)} alt={Sefaria._("category_editor.move_down")} role="button" tabIndex="0"/>
+                  </div>
+        );
+        });
 }
 
 const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}) => {
@@ -88,17 +90,19 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
             .then(() => window.location.href = redirect)
             .finally(() => setSavingStatus(false));
     }
-    return <div className="editTextInfo">
-            <div className="static">
-                <div className="inner">
-                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
-                    <div id="newIndex">
-                        <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
+    return (
+        <div className="editTextInfo">
+                <div className="static">
+                    <div className="inner">
+                        {savingStatus ?  <div className="collectionsWidget">{Sefaria._("common.saving")}</div> : null}
+                        <div id="newIndex">
+                            <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
+                            <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
+                        </div>
                     </div>
                 </div>
-            </div>
-    </div>
+        </div>
+    );
 }
 
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {

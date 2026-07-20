@@ -66,21 +66,21 @@ const renderItem = (openTopic, item, index, highlightedIndex, getItemProps)=>{
       highlighted: index === highlightedIndex,
     });
     return (
-      <div onClick={openTopic.bind(null, item.slug)}>
-          <div
-              className={`topic-landing-search-suggestion ${highlightedClassString}`}
-              key={item.slug}
-              {...getItemProps({index})}
-              data-anl-link_type="topic"
-              data-anl-text={item.text}
-              data-anl-event="navto_topic:click"
+        <div onClick={openTopic.bind(null, item.slug)}>
+            <div
+                className={`topic-landing-search-suggestion ${highlightedClassString}`}
+                key={item.slug}
+                {...getItemProps({index})}
+                data-anl-link_type="topic"
+                data-anl-text={item.text}
+                data-anl-event="navto_topic:click"
 
-          >
-              <img alt={Sefaria._("Topic")} className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
-              <span className="topic-landing-search-suggestion-title">{item.text}</span> <span
-              className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
-          </div>
-      </div>
+            >
+                <img alt={Sefaria._("topic_landing_search.topic")} className="type-icon" src="/static/icons/iconmonstr-hashtag-1.svg"/>
+                <span className="topic-landing-search-suggestion-title">{item.text}</span> <span
+                className="topic-landing-search-suggestion-category-path">&nbsp;{item.categoryText}</span>
+            </div>
+        </div>
     );
 };
 
@@ -144,19 +144,19 @@ export const TopicLandingSearch = ({openTopic, numOfTopics}) => {
 
     return (
         <>
-        <div className="topic-landing-search-wrapper" data-anl-feature_name="Search">
-            <GeneralAutocomplete
-                getSuggestions={getSuggestions}
-                renderItems={renderItems.bind(null, openTopic)}
-                containerClassString="topic-landing-search-container"
-                dropdownMenuClassString="topic-landing-search-dropdown"
-                renderInput={renderInput.bind(null, openTopic, numOfTopics)}
-                // shouldDisplaySuggestions={()=>true}
-            />
-        </div>
-    <div className="explore-all-topics-prompt" onClick={scrollBrowseTopicsIntoView}>
-        <InterfaceText>Explore all Topics ›</InterfaceText>
-    </div>
-            </>
+            <div className="topic-landing-search-wrapper" data-anl-feature_name="Search">
+                <GeneralAutocomplete
+                    getSuggestions={getSuggestions}
+                    renderItems={renderItems.bind(null, openTopic)}
+                    containerClassString="topic-landing-search-container"
+                    dropdownMenuClassString="topic-landing-search-dropdown"
+                    renderInput={renderInput.bind(null, openTopic, numOfTopics)}
+                    // shouldDisplaySuggestions={()=>true}
+                />
+            </div>
+            <div className="explore-all-topics-prompt" onClick={scrollBrowseTopicsIntoView}>
+                <InterfaceText>topic_landing_search.explore_all_topics</InterfaceText>
+            </div>
+        </>
     );
 };

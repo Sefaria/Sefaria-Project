@@ -72,7 +72,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -362,6 +362,7 @@ def base_props(request):
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
+        "appVersion": APP_VERSION,
     })
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
@@ -766,7 +767,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
         # represented by a custom image.
         return SocialImagePageType.MODULE_FALLBACK
 
-    if match.func in {serve_static, serve_static_by_lang}:
+    if match.func is serve_static:
         # Static pages are shared between modules and should use the simple
         # Sefaria fallback image, not Library or Voices module branding.
         return SocialImagePageType.STATIC
@@ -4852,19 +4853,15 @@ def search_path_filter(request, book_title):
 
 
 
-@ensure_csrf_cookie
-def serve_static(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
+_ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 @ensure_csrf_cookie
-def serve_static_by_lang(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
+def serve_static(request, page, by_lang=False):
+    if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
+        return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
+    lang_prefix = f'{request.LANGUAGE_CODE}/' if by_lang else ''
+    template = f'static/{lang_prefix}{page}.html'
+    return render_template(request, template, {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)

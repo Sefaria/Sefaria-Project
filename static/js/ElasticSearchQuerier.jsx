@@ -22,11 +22,11 @@ class TopicQuerier {
             heTitle: d.name,
             url: "/collections/" + collection.key,
             topicCat: "Collections",
-            heTopicCat: Sefaria.hebrewTranslation("Collections"),
+            heTopicCat: Sefaria.hebrewTranslation("common.collections"),
             enDesc: d.description,
             heDesc: d.description,
             numSheets: d.sheets.length
-        }
+        };
     }
     async addRefTopic(topic) {
         const book = await Sefaria.getIndexDetails(topic.key);
@@ -70,7 +70,7 @@ class TopicQuerier {
         const typeObj = Sefaria.displayTopicTocCategory(topic.key);
         if (!typeObj) {
             searchTopic.topicCat = "Topics";
-            searchTopic.heTopicCat = Sefaria.hebrewTranslation("Topics");
+            searchTopic.heTopicCat = Sefaria.hebrewTranslation("common.topics");
         } else {
             searchTopic.topicCat = typeObj["en"];
             searchTopic.heTopicCat = typeObj["he"];
@@ -339,7 +339,7 @@ class ElasticSearchQuerier extends Component {
                     key={"searchPage"}
                     moreToLoad={this.state.moreToLoad}
                     isQueryRunning={this.state.isQueryRunning}
-                    searchTopMsg="Results for"
+                    searchTopMsg="search_page.results_for"
                     query={this.props.query}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
