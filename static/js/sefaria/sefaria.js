@@ -3971,9 +3971,6 @@ Sefaria.ssoUseRedirect = function() {
   return window.matchMedia('(max-width: 767px)').matches ||
     /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 };
-Sefaria.ssoSetRedirectState = function(state) {
-  document.cookie = 'sso_redirect_state=' + encodeURIComponent(state) + '; Max-Age=900; Path=/; SameSite=Lax; Secure';
-};
 
 Sefaria.setup = function(data, props = null, resetCache = false) {
     if (resetCache) {

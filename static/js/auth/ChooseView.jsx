@@ -45,9 +45,6 @@ const ChooseView = ({
     setGoogleReady(false);
     if (!googleClientId) return;
     const useRedirect = Sefaria.ssoUseRedirect();
-    if (useRedirect) {
-      Sefaria.ssoSetRedirectState(ssoRedirectState);
-    }
     const stopWaiting = whenReady(
       () => window.google?.accounts?.id && googleBtnRef.current,
       () => {
@@ -86,9 +83,14 @@ const ChooseView = ({
   useEffect(() => {
     setAppleReady(false);
     if (!appleClientId) return;
-    const useRedirect = Sefaria.ssoUseRedirect();
+    // Redirect mode navigates straight to allauth's /accounts/apple/login/ (see
+    // startAppleSignIn below) and never touches the Apple JS SDK, so the button
+    // is ready immediately and none of the SDK setup below is needed.
+    if (Sefaria.ssoUseRedirect()) {
+      setAppleReady(true);
+      return undefined;
+    }
     const onOk = (ev) => {
-      if (useRedirect) return;
       const a = (ev.detail?.authorization) || {};
       const u = (ev.detail?.user) || {};
       const n = u.name || {};
@@ -112,7 +114,7 @@ const ChooseView = ({
             scope: 'name email',
             redirectURI: `${window.location.origin}/accounts/apple/login/callback/`,
             state: ssoRedirectState,
-            usePopup: !useRedirect,
+            usePopup: true,
           });
           setAppleReady(true);
         } catch (e) { /* ignore */ }
@@ -126,7 +128,12 @@ const ChooseView = ({
   }, [onSSOResult, ssoRedirectState]);
 
   const startAppleSignIn = () => {
-    if (!appleReady || !window.AppleID?.auth) return;
+    if (!appleReady) return;
+    if (Sefaria.ssoUseRedirect()) {
+      window.location.href = `/accounts/apple/login/?next=${encodeURIComponent(safeNext(next))}`;
+      return;
+    }
+    if (!window.AppleID?.auth) return;
     try {
       const signIn = window.AppleID.auth.signIn();
       if (signIn && typeof signIn.catch === 'function') {

@@ -387,24 +387,30 @@ ACCOUNT_ADAPTER = 'sso.adapters.SefariaAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'sso.adapters.SefariaSocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# Env vars take precedence (production injects these via the deploy environment);
+# fall back to the local_settings values imported above (used in local dev).
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID'), 'secret': '', 'key': ''},
+        'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID') or GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
         'SCOPE': ['profile', 'email'],
     },
     'apple': {
         'APP': {
-            'client_id': os.environ.get('APPLE_SSO_CLIENT_ID'),
-            'secret': os.environ.get('APPLE_SSO_PRIVATE_KEY'),
-            'key': os.environ.get('APPLE_SSO_KEY_ID'),
+            'client_id': os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
+            'secret': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
+            'key': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
             'settings': {
-                'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY'),
-                'audience': [os.environ.get('APPLE_SSO_CLIENT_ID'), os.environ.get('APPLE_SSO_IOS_BUNDLE_ID')],
-                'team_id': os.environ.get('APPLE_SSO_TEAM_ID'),
+                'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
+                'audience': [
+                    os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
+                    os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID,
+                ],
+                'team_id': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
             },
         },
     },
 }
+SOCIALACCOUNT_LOGIN_ON_GET = True
 HEADLESS_ONLY = False
 HEADLESS_FRONTEND_URLS = {'account_confirm_email': '/'}
 
