@@ -1,4 +1,4 @@
-// Sefaria has or potentially will have nonprofit entities in US, Canada, Israel, UK, and Austrailia.
+// Sefaria has or potentially will have nonprofit entities in US, Canada, Israel, UK, and Australia.
 
 // Builds a SET of plausible countries for a viewer, not a single predicted country
 // A modal/banner shows if its targets intersect this set
