@@ -8,7 +8,7 @@ import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters';
 import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
-import {SearchFilterButton} from './SearchResultList';
+import {SearchFilterButton, MobileFilterIconButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
 import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
@@ -187,6 +187,7 @@ const EntitySearchResults = ({type, data, query}) => {
     <div className="entitySearchResults">
       {data.hits.map(hit => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
+        console.log('hit', hit);
         return <SearchResultCard key={cardProps.href} {...cardProps} />;
       })}
     </div>
@@ -308,9 +309,8 @@ class SearchPage extends Component {
           sortType={this.props.searchState.sortType}
           onSortChange={this.props.updateAppliedOptionSort}/>
       :
-      <SearchFilterButton
-          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-          nFilters={this.props.searchState.appliedFilters.length}/>;
+      <MobileFilterIconButton
+          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}/>;
 
     const isExactSearch = this.props.type === "text"
       && this.props.searchState.field === this.props.searchState.fieldExact;
@@ -418,10 +418,8 @@ class SearchPage extends Component {
                 sortType={this.state.entitySort.book}
                 onSortChange={(key) => this.setEntitySort('book', key)}
               />
-            : <SearchFilterButton
+            : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                nFilters={selectedBookFilterCount}
-                label="Filter"
               />
           }
         </div>
@@ -435,9 +433,8 @@ class SearchPage extends Component {
                 sortType={this.state.entitySort.author}
                 onSortChange={(key) => this.setEntitySort('author', key)}
               />
-            : <SearchFilterButton
+            : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                label="Sort"
               />
           }
         </div>
@@ -451,9 +448,8 @@ class SearchPage extends Component {
                 sortType={this.state.entitySort.topic}
                 onSortChange={(key) => this.setEntitySort('topic', key)}
               />
-            : <SearchFilterButton
+            : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                label="Sort"
               />
           }
         </div>
