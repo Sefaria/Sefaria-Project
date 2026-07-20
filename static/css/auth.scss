@@ -92,6 +92,8 @@ $stroke-strong:   1.5px;
     color: $sef-text-primary;
 
     img { width: 24px; height: 24px; display: block; }
+
+    .interface-hebrew & img { transform: scaleX(-1); }
   }
 
   &-header {

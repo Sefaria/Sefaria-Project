@@ -83,6 +83,9 @@
   height: 24px;
   display: block;
 }
+.interface-hebrew .sefaria-auth-card-back img {
+  transform: scaleX(-1);
+}
 .sefaria-auth-card-header {
   align-items: center;
   gap: 12px;
