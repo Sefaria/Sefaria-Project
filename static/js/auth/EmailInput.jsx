@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Input from '../common/Input.jsx';
 
-const EmailInput = ({ value, setField, onFocus }) => (
+const EmailInput = ({ value, setField, onFocus, error }) => (
   <Input
     label="Email Address"
     labelContext="Auth"
@@ -14,6 +14,7 @@ const EmailInput = ({ value, setField, onFocus }) => (
     value={value}
     onChange={setField('email')}
     onFocus={onFocus}
+    error={error}
   />
 );
 
@@ -21,6 +22,7 @@ EmailInput.propTypes = {
   value: PropTypes.string.isRequired,
   setField: PropTypes.func.isRequired,
   onFocus: PropTypes.func,
+  error: PropTypes.string,
 };
 
 export default EmailInput;

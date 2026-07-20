@@ -18,6 +18,7 @@ const EmailView = ({
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [captchaError, setCaptchaError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({ email: null, password: null, first: null, last: null });
   const captchaToken = useRef('');
   const captchaWidgetId = useRef(null);
   const captchaObserver = useRef(null);
@@ -91,6 +92,7 @@ const EmailView = ({
     setSubmitting(true);
     setError(null);
     setCaptchaError(null);
+    setFieldErrors({ email: null, password: null, first: null, last: null });
     try {
       if (flow === 'register') {
         startRegistration();
@@ -122,9 +124,21 @@ const EmailView = ({
           status: 'failure',
           error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
         });
+        const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', last_name: 'last' };
+        const newFieldErrors = { email: null, password: null, first: null, last: null };
+        let hasUnknownError = false;
+        for (const [key, val] of Object.entries(data || {})) {
+          if (key === '_auth' || key === 'captcha') continue;
+          if (FIELD_MAP[key]) {
+            newFieldErrors[FIELD_MAP[key]] = typeof val === 'string' ? val : String(val);
+          } else {
+            hasUnknownError = true;
+          }
+        }
+        setFieldErrors(newFieldErrors);
         const hasCaptchaError = !!(data?.captcha);
-        const nonCaptchaError = Object.keys(data || {}).some((key) => key !== '_auth' && key !== 'captcha');
-        setError(nonCaptchaError ? authError(data, message) : null);
+        const hasAuthError = !!(data?._auth?.code);
+        setError(hasAuthError || hasUnknownError ? authError(data, message) : null);
         if (hasCaptchaError) setCaptchaError('Verify that you are not a robot');
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
@@ -190,7 +204,7 @@ const EmailView = ({
 
   return (
     <AuthCard
-      className={[cfg.cardClass, error || captchaError ? 'sefaria-auth-card--email-error' : ''].filter(Boolean).join(' ')}
+      className={[cfg.cardClass, error || captchaError || Object.values(fieldErrors).some(Boolean) ? 'sefaria-auth-card--email-error' : ''].filter(Boolean).join(' ')}
       onBack={onBack}
       heading={cfg.heading}
       sub={cfg.sub}
@@ -198,14 +212,15 @@ const EmailView = ({
       <form id={cfg.formId} className="sefaria-auth-email-form" onSubmit={submitEmail}>
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
-          <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} />
+          <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} error={fieldErrors.email} />
           <Input label="Password" type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  placeholder="••••••••"
                  value={fields.password} onChange={setField('password')}
-                 onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink} />
-          {isRegister && <Input label="First Name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} />}
-          {isRegister && <Input label="Last Name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} />}
+                 onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
+                 error={fieldErrors.password} />
+          {isRegister && <Input label="First Name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />}
+          {isRegister && <Input label="Last Name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />}
         </div>
         {isRegister && recaptchaSiteKey && (
           <Captcha error={captchaError}>
