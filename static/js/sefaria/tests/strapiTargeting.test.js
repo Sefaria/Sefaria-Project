@@ -150,6 +150,11 @@ describe("matchesCountryTarget", function () {
       ];
       expect(matchesCountryTarget({ countryMode: "exclude", countries }, new Set(["gi", "gb"]))).toBe(false);
     });
+
+    it("matches when no candidates are known (undetermined viewer location)", function () {
+      const countries = [{ name: "United States", code: "US" }];
+      expect(matchesCountryTarget({ countryMode: "exclude", countries }, new Set())).toBe(true);
+    });
   });
 
   describe("country code casing", function () {
