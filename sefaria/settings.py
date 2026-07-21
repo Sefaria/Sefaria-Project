@@ -407,15 +407,16 @@ SOCIALACCOUNT_PROVIDERS = {
     'apple': {
         'APP': {
             'client_id': os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
-            'secret': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
-            'key': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
+            # allauth's Apple client signs its own client-secret JWT from these:
+            # 'secret' -> Key ID (JWT 'kid' header), 'key' -> Team ID (JWT 'iss' claim).
+            'secret': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
+            'key': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
             'settings': {
                 'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
                 'audience': [
                     os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
                     os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID,
                 ],
-                'team_id': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
             },
         },
     },
