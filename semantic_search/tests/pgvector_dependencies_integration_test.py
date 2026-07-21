@@ -24,6 +24,9 @@ Not covered here: the text+embedding sync path (sync_text_and_embedding /
 _reembed_existing_section / _chunk_new_unit), which needs a Gemini API key and
 patot. Those are exercised separately in the embed-job container.
 
+Marked `deep` (excluded from `pytest -m "not deep"`) since it requires a live pgvector
+Postgres and Mongo, and drives real model saves/deletes rather than mocks.
+
 Run with:  pytest semantic_search/tests/pgvector_dependencies_integration_test.py -v
 """
 import os
@@ -38,6 +41,8 @@ from sefaria.model import (
     RefTopicLink, RefTopicLinkSet,
     Term, library,
 )
+
+pytestmark = pytest.mark.deep
 
 # A unique per-run tag so parallel/leftover data never collides and cleanup is targeted.
 RUN_TAG = uuid.uuid4().hex[:8]
