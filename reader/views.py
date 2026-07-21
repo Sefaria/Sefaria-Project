@@ -1381,6 +1381,13 @@ def modtools(request):
     return menu_page(request, page="modtools", title=title)
 
 
+@ensure_csrf_cookie
+@staff_member_required
+def linker_editor(request):
+    title = _("Linker Editor")
+    return menu_page(request, page="linkerEditor", title=title)
+
+
 def canonical_url(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return None

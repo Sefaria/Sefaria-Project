@@ -598,6 +598,11 @@ class ReaderApp extends Component {
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
+          case "linkerEditor":
+            hist.title = Sefaria._("Linker Editor");
+            hist.url = "linker-editor";
+            hist.mode = "linkerEditor";
+            break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
             hist.url = "torahtracker";
@@ -1317,6 +1322,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/torahtracker") {
       this.showUserStats();
 
+    } else if (path === "/linker-editor") {
+      this.showLinkerEditor();
+
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
@@ -1947,6 +1955,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showUserStats() {
     this.setSinglePanelState({menuOpen: "user_stats"});
+  }
+  showLinkerEditor() {
+    this.setSinglePanelState({menuOpen: "linkerEditor"});
   }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});

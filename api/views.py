@@ -9,6 +9,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
+from sefaria.helper import linker_editor
 from .api_warnings import *
 
 
@@ -318,3 +319,91 @@ class KnnSearch(View):
             })
 
         return jsonResponse(response)
+
+
+class StaffRequiredMixin:
+    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Staff only."}, status=403)
+        return super().dispatch(request, *args, **kwargs)
+
+
+def _load_json_body(request):
+    """Parse a JSON request body, returning (data, error_response)."""
+    try:
+        return json.loads(request.body), None
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, jsonResponse({"error": "Invalid JSON body."}, status=400)
+
+
+class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
+    """Create (POST) or remove (DELETE) a MatchTemplate on a schema node."""
+
+    def post(self, request, title, node_key_path):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            serialized = linker_editor.add_match_template(
+                title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"status": "ok", "match_template": serialized})
+
+    def delete(self, request, title, node_key_path):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            linker_editor.remove_match_template(title, node_key_path, body)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"status": "ok"})
+
+
+class LinkerEditorAddressTypeView(StaffRequiredMixin, View):
+    """Overwrite a schema node's addressTypes (PUT)."""
+
+    def put(self, request, title, node_key_path):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        address_types = body.get("address_types")
+        if not isinstance(address_types, list):
+            return jsonResponse({"error": "'address_types' must be a list."}, status=400)
+        try:
+            result = linker_editor.set_address_types(title, node_key_path, address_types)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"status": "ok", "address_types": result})
+
+
+class LinkerEditorAddressTypesListView(StaffRequiredMixin, View):
+    """List all valid addressType names for the editor dropdown (GET)."""
+
+    def get(self, request):
+        return jsonResponse({"address_types": linker_editor.all_address_type_names()})
+
+
+class LinkerEditorNonUniqueTermView(StaffRequiredMixin, View):
+    """Term titles + cross-usages for a single NonUniqueTerm (GET)."""
+
+    def get(self, request, slug):
+        try:
+            return jsonResponse(linker_editor.get_non_unique_term_detail(slug))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=404)
+
+
+class LinkerEditorNonUniqueTermSearchView(StaffRequiredMixin, View):
+    """Autocomplete search over NonUniqueTerms (GET ?q=...)."""
+
+    def get(self, request):
+        q = request.GET.get("q", "")
+        try:
+            limit = int(request.GET.get("limit", 20))
+        except (TypeError, ValueError):
+            limit = 20
+        return jsonResponse({"terms": linker_editor.search_non_unique_terms(q, limit)})

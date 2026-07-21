@@ -5755,6 +5755,16 @@ class Library(object):
             linker = self.build_linker(lang)
         return linker
 
+    def rebuild_linker(self, langs=("en", "he")):
+        """
+        Rebuild the cached linker (ref-resolver) for each language so that linker
+        metadata edits (match_templates / addressTypes / NonUniqueTerms) take effect on
+        the live linker. Invoked directly and, in multiserver setups, on every web
+        server via the coordinator (see sefaria.views.rebuild_linker).
+        """
+        for lang in langs:
+            self.build_linker(lang)
+
     def build_linker(self, lang: str):
         from sefaria.model.linker.linker import Linker
 

@@ -25,6 +25,7 @@ import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import LinkerEditorPage from './LinkerEditorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
@@ -1077,7 +1078,10 @@ class ReaderPanel extends Component {
         <ModeratorToolsPanel
           interfaceLang={this.props.interfaceLang} />
       );
-      
+
+    } else if (this.state.menuOpen === "linkerEditor") {
+      menu = (<LinkerEditorPage interfaceLang={this.props.interfaceLang} />);
+
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
         <UserHistoryPanel              

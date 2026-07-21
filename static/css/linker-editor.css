@@ -1,0 +1,194 @@
+/* Linker editor (/linker-editor) — staff-only tool. Functional styling. */
+
+.linkerEditorPage {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 24px 160px;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  color: #333;
+}
+
+.linkerEditorTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+.linkerEditorTopBar h1 { font-size: 24px; margin: 0; }
+.linkerEditorTopActions { display: flex; gap: 8px; }
+
+.linkerEditorBtn {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+.linkerEditorBtn:hover { background: #f4f4f4; }
+.linkerEditorBtn.small { padding: 2px 8px; font-size: 12px; }
+.linkerEditorBtn.primary { background: #212e50; color: #fff; border-color: #212e50; }
+.linkerEditorBtn.primary:hover { background: #2c3c6a; opacity: 0.9; }
+.linkerEditorBtn.danger { color: #b00; border-color: #e0b4b4; }
+.linkerEditorBtn:disabled { opacity: 0.5; cursor: default; }
+
+/* Search / autocomplete */
+.linkerEditorSearchWrap { margin-top: 40px; }
+.linkerEditorAutocomplete { position: relative; }
+.linkerEditorSearchInput,
+.linkerEditorTermInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.linkerEditorTermInput { font-size: 13px; padding: 5px 8px; width: 220px; }
+.linkerEditorDropdown {
+  position: absolute;
+  z-index: 20;
+  left: 0; right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.linkerEditorSuggestion {
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+.linkerEditorSuggestion.highlighted { background: #eef2fb; }
+.linkerEditorSuggestion .termSlug { font-weight: 600; font-size: 13px; }
+.linkerEditorSuggestion .termTitles { font-size: 12px; color: #777; }
+
+/* Tree */
+.linkerEditorIndexTitle { font-size: 20px; margin: 0 0 16px; }
+.linkerEditorError,
+.termDetailError { color: #b00; padding: 8px 0; }
+
+.schemaNodeCard {
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+  margin: 8px 0;
+  background: #fafafa;
+}
+.schemaNodeCard.root { background: #fff; }
+.schemaNodeHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+.expandToggle { cursor: pointer; width: 14px; color: #888; user-select: none; }
+.expandToggle.placeholder { cursor: default; }
+.schemaNodeTitle { font-weight: 600; }
+.schemaNodeKey { font-size: 12px; color: #999; }
+.schemaNodeBody { padding: 10px 12px; }
+.schemaNodeChildren { padding: 0 0 8px 22px; }
+
+.cardLabel {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #999;
+  margin-right: 8px;
+}
+.emptyNote { color: #aaa; font-style: italic; font-size: 13px; }
+
+/* MatchTemplates */
+.matchTemplatesSection { margin-bottom: 12px; }
+.matchTemplateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  flex-wrap: wrap;
+}
+.matchTemplateRow.busy { opacity: 0.5; }
+.matchTemplateBadges { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.matchTemplateActions { display: flex; gap: 6px; align-items: center; }
+.termBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e8eefc;
+  color: #223;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.termBadge:hover { background: #d6e0fb; }
+.termBadge .removeSlug { cursor: pointer; color: #a55; font-weight: bold; }
+.scopeBadge {
+  font-size: 11px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  background: #eee;
+  color: #666;
+}
+.scopeBadge.scope-alone { background: #fff2d6; color: #8a6d1a; }
+.scopeBadge.scope-any { background: #e0f5e0; color: #2c6e2c; }
+
+.addMatchTemplateForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px;
+  background: #f0f4fb;
+  border-radius: 5px;
+}
+.addMatchTemplateBadges { display: flex; gap: 5px; flex-wrap: wrap; }
+.scopeSelect { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+
+/* AddressType */
+.addressTypeEditor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.addressTypeEditor select { font-size: 13px; padding: 3px 6px; }
+.addressTypeMsg.ok { color: #2c6e2c; font-size: 12px; }
+.addressTypeMsg.err { color: #b00; font-size: 12px; }
+
+/* Term detail panel */
+.termDetailPanel {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  max-height: 45vh;
+  overflow-y: auto;
+  background: #fff;
+  border-top: 2px solid #212e50;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+  padding: 14px 24px 24px;
+  z-index: 50;
+}
+.termDetailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.termDetailSlug { font-weight: 700; font-size: 16px; }
+.termTitlesList { margin-bottom: 12px; }
+.termTitleItem { display: inline-block; margin-right: 12px; font-size: 13px; }
+.termTitleItem em { color: #888; font-style: normal; text-transform: uppercase; font-size: 11px; }
+.termUsageItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.usageNodeTitle { font-weight: 600; min-width: 220px; }
+.usageTemplate { color: #777; flex: 1; }
