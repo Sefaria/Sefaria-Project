@@ -297,7 +297,7 @@ class ConnectionsPanel extends Component {
             </div>
         
           {showConnectionSummary ?
-            <ConnectionsPanelSection title="Related Texts">
+            <ConnectionsPanelSection title="connection_panel_section.related_texts">
               <ConnectionsSummary
                 currObjectVersions={this.state.currObjectVersions}
                 srefs={this.props.srefs}
@@ -317,7 +317,7 @@ class ConnectionsPanel extends Component {
             null
           }
           {showResourceButtons ?
-            <ConnectionsPanelSection title={"Resources"}>
+            <ConnectionsPanelSection title={"connection_panel_section.resources"}>
               <ResourcesList
                 srefs={this.props.srefs}
                 setConnectionsMode={this.props.setConnectionsMode}
@@ -327,7 +327,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          <ConnectionsPanelSection title={"Tools"}>
+          <ConnectionsPanelSection title={"connection_panel_section.tools"}>
             <ToolsList
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelMode={this.props.masterPanelMode}
@@ -840,7 +840,7 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
       {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contentLang={contentLang} contextSelector=".topicList"
                                                                          srefs={srefs}
                                                                          update={updateTopics}
-                                                                         createNewTopicStr={Sefaria.translation(contentLang, "Create a new topic: ")}/>
+                                                                         createNewTopicStr={Sefaria.translation(contentLang, "connections_panel.create_a_new_topic")}/>
                                                                          : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
@@ -867,7 +867,7 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
-    dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
+    dataSourceText = `${Sefaria._("common.this_topic_is_connected_to")}"${Sefaria._r(srefs[0])}" ${Sefaria._("common.by")} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
       <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`}>
@@ -984,10 +984,12 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" role="button" tabindex="0" onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
-          <img className="icon" src={site.faviconUrl} alt={Sefaria._("Website icon")} />
-          <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
-        </div>);
+        return (
+          <div className="website" role="button" tabIndex="0" onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.setFilter(site.name))} onClick={() => this.setFilter(site.name)} key={site.name}>
+            <img className="icon" src={site.faviconUrl} alt={Sefaria._("common.website_icon")} />
+            <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
+          </div>
+        );
       });
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
@@ -1007,7 +1009,7 @@ class WebPagesList extends Component {
 
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
       <div className="webpagesLinkerMessage sans-serif">
-        <InterfaceText>Sites that are listed here use the</InterfaceText> <a href="/linker"><InterfaceText>Sefaria Linker</InterfaceText></a>
+        <InterfaceText>connections_panel.sites_that_are_listed_here_use_the</InterfaceText> <a href="/linker"><InterfaceText>connections_panel.sefaria_linker</InterfaceText></a>
       </div> : null;
 
     return <div className="webpageList">
@@ -1210,13 +1212,13 @@ class ShareBox extends Component {
     const classes = classNames({ textList: 1, fullPanel: this.props.fullPanel });
     return (
       <div>
-        <ConnectionsPanelSection title="Share Link">
+        <ConnectionsPanelSection title="connection_panel_section.share_link">
           <div className="shareInputBox">
             <button className="shareInputButton" aria-label="Copy Link to Sheet" onClick={this.copySheetLink.bind(this)}><img src="/static/icons/copy.svg" className="copyLinkIcon" aria-hidden="true"></img></button>
             <input className="shareInput" id="sheetShareLink" value={this.props.url} aria-label="Shareable link"/>
           </div>
         </ConnectionsPanelSection>
-        <ConnectionsPanelSection title="More Options">
+        <ConnectionsPanelSection title="connection_panel_section.more_options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
           <ToolsButton en="Share on X" he="X" icon="X" onClick={shareTwitter} />
           <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
@@ -1270,10 +1272,10 @@ class AddNoteBox extends Component {
         $(ReactDOM.findDOMNode(this)).find(".noteText").val("");
         this.props.onSave();
       } else {
-        alert(Sefaria._("Sorry, there was a problem saving your note."));
+        alert(Sefaria._("connections_panel.sorry_there_was_a_problem_saving_your_note"));
       }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-      alert(Sefaria._("Unfortunately, there was an error saving this note. Please try again or try reloading this page."));
+      alert(Sefaria._("connections_panel.unfortunately_there_was_an_error_saving_this_note"));
     });
     this.setState({ saving: true });
   }
@@ -1284,7 +1286,7 @@ class AddNoteBox extends Component {
     this.setState({ isPrivate: false });
   }
   deleteNote() {
-    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
+    if (!confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this"))) { return; }
     Sefaria.deleteNote(this.props.noteId).then(this.props.onDelete);
   }
   render() {
@@ -1295,12 +1297,12 @@ class AddNoteBox extends Component {
     //const publicClasses = classNames({ notePublicButton: 1, active: !this.state.isPrivate });
     return (
       <div className="addNoteBox">
-        <textarea className="noteText" placeholder={Sefaria._("Write a note...")} defaultValue={this.props.noteText}></textarea>
+        <textarea className="noteText" placeholder={Sefaria._("connections_panel.write_a_note")} defaultValue={this.props.noteText}></textarea>
         <div
           className="button fillWidth"
           role="button"
           tabIndex="0"
-          aria-label={Sefaria._(this.props.noteId ? "Save" : "Add Note")}
+          aria-label={Sefaria._(this.props.noteId ? "common.save" : "Add Note")}
           onClick={this.saveNote}
           onKeyDown={(e) => Util.handleKeyboardClick(e, this.saveNote)}
         >
@@ -1312,7 +1314,7 @@ class AddNoteBox extends Component {
             className="button white fillWidth"
             role="button"
             tabIndex="0"
-            aria-label={Sefaria._("Cancel")}
+            aria-label={Sefaria._("common.cancel")}
             onClick={this.props.onCancel}
             onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onCancel)}
           >
@@ -1324,7 +1326,8 @@ class AddNoteBox extends Component {
             <span className="int-en">Delete Note</span>
             <span className="int-he">מחיקת הערה</span>
           </div>) : null}
-      </div>);
+      </div>
+    );
 
     /* Leaving out public / private toggle until public notes are reintroduced
     <div className="noteSharingToggle">
@@ -1480,65 +1483,63 @@ class AddConnectionBox extends Component {
   render() {
     const refs = this.state.refs;
     const heRefs = this.state.heRefs;
-    return (<div className="addConnectionBox">
+    return (
+      <div className="addConnectionBox">
+        {this.props.srefs.length == 1 ?
+          <div>
+            <span className="int-en">Choose a text to connect.</span>
+            <span className="int-he">בחר טקסט לקישור</span>
 
-      {this.props.srefs.length == 1 ?
-        <div>
-          <span className="int-en">Choose a text to connect.</span>
-          <span className="int-he">בחר טקסט לקישור</span>
-
-          <div 
-            className="button fillWidth" 
-            role="button"
-            tabIndex="0"
-            onClick={this.props.openComparePanel}
-            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.openComparePanel)}
-          >
-            <span className="int-en">Browse</span>
-            <span className="int-he">סייר</span>
+            <div 
+              className="button fillWidth" 
+              role="button"
+              tabIndex="0"
+              onClick={this.props.openComparePanel}
+              onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.openComparePanel)}
+            >
+              <span className="int-en">Browse</span>
+              <span className="int-he">סייר</span>
+            </div>
           </div>
-        </div>
-        : null}
-
-      {this.props.srefs.length > 2 ?
-        <div>
-          <span className="int-en">We currently only understand connections between two texts.</span>
-          <span className="int-he">ניתן לקשר רק בין 2 טקסטים</span>
-        </div>
-        : null}
-
-      {this.props.srefs.length == 2 ?
-        <div>
-
-          <div className="addConnectionSummary">
-            <span className="en">{refs[0]}<br />&<br />{refs[1]}</span>
-            <span className="he">{heRefs[0]}<br />&<br />{heRefs[1]}</span>
+          : null}
+        {this.props.srefs.length > 2 ?
+          <div>
+            <span className="int-en">We currently only understand connections between two texts.</span>
+            <span className="int-he">ניתן לקשר רק בין 2 טקסטים</span>
           </div>
+          : null}
+        {this.props.srefs.length == 2 ?
+          <div>
 
-          <Dropdown
-            name="connectionType"
-            options={[
-              { value: "", label: Sefaria._("None", "AddConnectionBox") },
-              { value: "commentary", label: Sefaria._("Commentary", "AddConnectionBox") },
-              { value: "quotation", label: Sefaria._("Quotation", "AddConnectionBox") },
-              { value: "midrash", label: Sefaria._("Midrash", "AddConnectionBox") },
-              { value: "ein mishpat", label: Sefaria._("Ein Mishpat / Ner Mitsvah", "AddConnectionBox") },
-              { value: "mesorat hashas", label: Sefaria._("Mesorat HaShas", "AddConnectionBox") },
-              { value: "reference", label: Sefaria._("Reference", "AddConnectionBox") },
-              { value: "related", label: Sefaria._("Related Passage", "AddConnectionBox") }
-            ]}
-            placeholder={Sefaria._("Select Type", "AddConnectionBox")}
-            onChange={this.setType} />
+            <div className="addConnectionSummary">
+              <span className="en">{refs[0]}<br />&<br />{refs[1]}</span>
+              <span className="he">{heRefs[0]}<br />&<br />{heRefs[1]}</span>
+            </div>
 
-          <div className="button fillWidth" onClick={this.addConnection}>
-            <span className="int-en">Add Connection</span>
-            <span className="int-he">הוסף קישור</span>
+            <Dropdown
+              name="connectionType"
+              options={[
+                { value: "", label: Sefaria._("add_connection_box.none") },
+                { value: "commentary", label: Sefaria._("add_connection_box.commentary") },
+                { value: "quotation", label: Sefaria._("add_connection_box.quotation") },
+                { value: "midrash", label: Sefaria._("add_connection_box.midrash") },
+                { value: "ein mishpat", label: Sefaria._("add_connection_box.ein_mishpat_ner_mitsvah") },
+                { value: "mesorat hashas", label: Sefaria._("add_connection_box.mesorat_hashas") },
+                { value: "reference", label: Sefaria._("add_connection_box.reference") },
+                { value: "related", label: Sefaria._("add_connection_box.related_passage") }
+              ]}
+              placeholder={Sefaria._("add_connection_box.select_type")}
+              onChange={this.setType} />
+
+            <div className="button fillWidth" onClick={this.addConnection}>
+              <span className="int-en">Add Connection</span>
+              <span className="int-he">הוסף קישור</span>
+            </div>
+
           </div>
-
-        </div>
-        : null}
-
-    </div>);
+          : null}
+      </div>
+    );
   }
 }
 AddConnectionBox.propTypes = {
@@ -1561,44 +1562,46 @@ function ManuscriptImage(props) {
   let manuscript = props.manuscript;
   const [cls, description] = props.interfaceLang === 'hebrew'
     ? ['int-he', 'he_description'] : ['int-en', 'description'];
-  return <div className={"manuscript"} >
-    <a href={manuscript['image_url']} target="_blank">
-      <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"} />
-    </a>
-    {
-      (props.interfaceLang === 'hebrew')
-        ? <p className={"hebrew manuscriptCaptionHe"}>{manuscript.manuscript.he_title}</p>
-        : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
-    }
-    <div className="meta">
-      <InterfaceText>Location: </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
-      {
-        manuscript.manuscript[description]
-          ? <span>
-            <InterfaceText text={{ en: 'Courtesy of: ', he: 'הודות ל' }} />
-            <span className={cls}>{manuscript.manuscript[description]}<br /></span>
-          </span>
-          : ''
-      }
-      {
-        manuscript.manuscript['license']
-          ? <div className="manuscriptLicense">
-              <InterfaceText>License</InterfaceText>
-              <InterfaceText>:</InterfaceText>
-              <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
-                {Sefaria._(manuscript.manuscript['license'])}
-              </a>
-          </div>
-          : ''
-      }
-      <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-      <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
-        { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+  return (
+    <div className={"manuscript"} >
+      <a href={manuscript['image_url']} target="_blank">
+        <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"} />
       </a>
+      {
+        (props.interfaceLang === 'hebrew')
+          ? <p className={"hebrew manuscriptCaptionHe"}>{manuscript.manuscript.he_title}</p>
+          : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
+      }
+      <div className="meta">
+        <InterfaceText>connections_panel.location</InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br />
+        {
+          manuscript.manuscript[description]
+            ? <span>
+              <InterfaceText text={{ en: 'Courtesy of: ', he: 'הודות ל' }} />
+              <span className={cls}>{manuscript.manuscript[description]}<br /></span>
+            </span>
+            : ''
+        }
+        {
+          manuscript.manuscript['license']
+            ? <div className="manuscriptLicense">
+                <InterfaceText>common.license</InterfaceText>
+                <InterfaceText>:</InterfaceText>
+                <a className="manuscriptLicenseLink" href={Sefaria.getLicenseMap()[manuscript.manuscript['license']]} target="_blank">
+                  {Sefaria.translateLicense(manuscript.manuscript['license'])}
+                </a>
+            </div>
+            : ''
+        }
+        <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
+        <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+          { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+        </a>
+      </div>
+
+
     </div>
-
-
-  </div>
+  );
 }
 
 ManuscriptImage.propTypes = {
@@ -1619,7 +1622,7 @@ const ConnectionsPanelSection = ({ title, children }) => {
     <>
       <div className="connectionPanelSectionHeader sans-serif">
         <span className="connectionPanelSectionHeaderInner">
-          <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
+          <InterfaceText>{title}</InterfaceText>
         </span>
       </div>
       {children}

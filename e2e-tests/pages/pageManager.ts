@@ -23,6 +23,7 @@ import { MobileHamburgerPage } from "./mobileHamburgerPage"
 import { VoicesTopicPage } from "./voicesTopicPage"
 import { LibraryTopicPage } from "./libraryTopicPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
+import { InterfaceStringsPage } from "./interfaceStringsPage"
 
 
 export class PageManager {
@@ -49,6 +50,7 @@ export class PageManager {
     private readonly voicesTopicPage: VoicesTopicPage
     private readonly libraryTopicPage: LibraryTopicPage
     private readonly voicesBookmarksPage: VoicesBookmarksPage
+    private readonly interfaceStringsPage: InterfaceStringsPage
 
 
 
@@ -76,6 +78,7 @@ export class PageManager {
         this.voicesTopicPage = new VoicesTopicPage(page, language)
         this.libraryTopicPage = new LibraryTopicPage(page, language)
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
+        this.interfaceStringsPage = new InterfaceStringsPage(page, language)
 
     }
 
@@ -166,6 +169,10 @@ export class PageManager {
 
     onVoicesBookmarks() {
         return this.voicesBookmarksPage
+    }
+
+    onInterfaceStrings() {
+        return this.interfaceStringsPage
     }
 
 
