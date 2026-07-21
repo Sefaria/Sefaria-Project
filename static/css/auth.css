@@ -114,7 +114,7 @@
   color: #121212;
 }
 .sefaria-auth-card-sub a {
-  color: var(--inline-link-blue);
+  color: var(--sefaria-blue);
 }
 .sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
   width: 100%;
