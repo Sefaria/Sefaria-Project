@@ -67,7 +67,9 @@ class LocationSettingsMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         loc = request.headers.get("cf-ipcountry", None)
-        if not loc:
+        if not loc or loc.upper() == "XX":
+            # Cloudflare sets cf-ipcountry to "XX" when it can't determine the visitor's country --
+            # treat that the same as a missing header rather than passing "XX" on as a real country.
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
                 loc = PINNED_IPCOUNTRY
