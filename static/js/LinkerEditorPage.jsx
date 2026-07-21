@@ -81,7 +81,7 @@ const TermAutocomplete = ({ onSelect, placeholder }) => {
     suggestions.map((item, index) => (
       <div
         key={item.slug}
-        {...getItemProps({ item, index, onClick: () => onSelect(item) })}
+        {...getItemProps({ item, index })}
         className={'linkerEditorSuggestion' + (highlightedIndex === index ? ' highlighted' : '')}
       >
         <span className="termSlug">{item.slug}</span>
@@ -96,6 +96,7 @@ const TermAutocomplete = ({ onSelect, placeholder }) => {
       getSuggestions={getSuggestions}
       renderInput={renderInput}
       renderItems={renderItems}
+      onSelectedItemChange={({ selectedItem }) => { if (selectedItem) { onSelect(selectedItem); } }}
     />
   );
 };
@@ -418,7 +419,7 @@ const IndexSearch = ({ onSelect }) => {
     suggestions.map((item, index) => (
       <div
         key={item.key + index}
-        {...getItemProps({ item, index, onClick: () => select(item) })}
+        {...getItemProps({ item, index })}
         className={'linkerEditorSuggestion' + (highlightedIndex === index ? ' highlighted' : '')}
       >
         {item.name}
@@ -433,6 +434,14 @@ const IndexSearch = ({ onSelect }) => {
         getSuggestions={getSuggestions}
         renderInput={renderInput}
         renderItems={renderItems}
+        onSelectedItemChange={({ selectedItem }) => { if (selectedItem) { select(selectedItem); } }}
+        onEnter={({ event, highlightedSuggestion, suggestions }) => {
+          const item = highlightedSuggestion || suggestions[0];
+          if (!item) { return false; }
+          event.preventDefault();
+          select(item);
+          return true;
+        }}
       />
     </div>
   );
