@@ -4077,6 +4077,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .singlePanel .searchContent .searchTopMatter {
   border-bottom: 1px solid var(--light-grey);
   padding-bottom: 5px;
+  justify-content: flex-end;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -16449,3 +16450,27 @@ span.ref-link-color-3 {color: blue}
   transform: rotate(180deg);
 }
 /* ========== SEARCH SORT DROPDOWN - END ========== */
+
+/* ========== MOBILE FILTER ICON BUTTON ========== */
+.mobileFilterIconButton {
+  display: inline-flex;
+  padding: 8px;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  user-select: none;
+}
+.mobileFilterIconButton img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.mobileFilterIconButton:active {
+  background-color: var(--lighter-grey);
+}
+body.user-is-tabbing .mobileFilterIconButton:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+/* ========== MOBILE FILTER ICON BUTTON - END ========== */

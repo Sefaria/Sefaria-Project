@@ -205,4 +205,18 @@ const SearchFilterButton = ({openMobileFilters, nFilters, label = "Filter"}) => 
 );
 
 
-export { SearchResultList, SearchFilterButton, SearchSortBox };
+const MobileFilterIconButton = ({ openMobileFilters }) => (
+  <div
+    className="mobileFilterIconButton"
+    onClick={openMobileFilters}
+    role="button"
+    tabIndex="0"
+    aria-label={Sefaria._("Filter and Sort")}
+    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
+  >
+    <img src="/static/icons/sliders.svg" alt="" aria-hidden="true" />
+  </div>
+);
+
+
+export { SearchResultList, SearchFilterButton, MobileFilterIconButton, SearchSortBox };
