@@ -133,7 +133,8 @@ class ReaderApp extends Component {
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
-  showAuthPage(flow, next = '/') {
+  showAuthPage(flow, nextParam) {
+    const next = this.state.showAuth ? this.state.authNext : (nextParam || Sefaria.util.currentPath());
     this.setState({ showAuth: true, authFlow: flow, authNext: next });
   }
   makePanelState(state) {
@@ -1306,8 +1307,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const authMatch = path.match(/^\/(login|register)\/?$/);
     if (authMatch) {
       const flow = authMatch[1];
-      const next = params.get('next') || Sefaria.util.currentPath();
-      this.showAuthPage(flow, next);
+      this.showAuthPage(flow, params.get('next'));
       return true;
     }
 
