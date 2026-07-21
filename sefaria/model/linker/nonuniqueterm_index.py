@@ -46,11 +46,12 @@ def make_usage_entry(index_title: str, node, template, struct_name: Optional[str
     Build a usage entry for a single MatchTemplate on a single node.
     `template` is a MatchTemplate instance; `node` is a schema node.
     """
-    key = getattr(node, "key", None)
-    if key is not None and hasattr(node, "address"):
+    if struct_name:
+        node_key_path = _alt_struct_editor_path(node, struct_name)
+    elif getattr(node, "key", None) is not None and hasattr(node, "address"):
         node_key_path = node.address()
     else:
-        # Alt-struct nodes and other non-SchemaNodes don't have a key path;
+        # Non-SchemaNodes don't have a key path;
         # fall back to the primary title so the usage is still displayable.
         node_key_path = [node.primary_title("en")]
     return {
@@ -61,6 +62,23 @@ def make_usage_entry(index_title: str, node, template, struct_name: Optional[str
         "term_slugs": list(template.term_slugs),
         "scope": template.scope,
     }
+
+
+def _alt_struct_editor_path(node, struct_name: str) -> List[str]:
+    """
+    Return the linker-editor path for an alt-struct node:
+    ["__alt__", struct_name, child_index, ...].
+    """
+    path = []
+    parent = getattr(node, "parent", None)
+    while parent is not None:
+        try:
+            path.insert(0, str(parent.children.index(node)))
+        except ValueError:
+            break
+        node = parent
+        parent = getattr(node, "parent", None)
+    return ["__alt__", struct_name] + path
 
 
 def _entry_identity(entry: dict) -> Tuple:

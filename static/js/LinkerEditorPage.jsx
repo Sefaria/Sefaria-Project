@@ -497,7 +497,7 @@ const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
               <div key={i} className="termUsageItem">
                 <span className="usageNodeTitle">{u.index_title}{u.node_title && u.node_title !== u.index_title ? ` › ${u.node_title}` : ''}</span>
                 <span className="usageTemplate">[{(u.term_slugs || []).join(', ')}] · {u.scope}</span>
-                {!u.struct_name && u.index_title && (
+                {u.index_title && (!u.struct_name || (u.node_key_path || [])[0] === '__alt__') && (
                   <button className="linkerEditorBtn small" onClick={() => onJump(u.index_title, u.node_key_path)}>{Sefaria._('Jump')}</button>
                 )}
               </div>
@@ -628,12 +628,16 @@ const LinkerEditorPage = () => {
     if (indexTitle !== title) {
       loadIndex(indexTitle);
     }
+    const path = pathString(nodeKeyPath);
     // Expand every ancestor path so the target node is visible.
     setExpandedPaths(prev => {
       const next = new Set(prev);
       for (let i = 1; i <= nodeKeyPath.length; i++) { next.add(nodeKeyPath.slice(0, i).join('.')); }
       return next;
     });
+    setTimeout(() => {
+      document.getElementById(nodeDomId(path))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   }, [title, loadIndex]);
 
   const rebuildLinker = async () => {

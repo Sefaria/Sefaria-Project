@@ -47,6 +47,22 @@ def test_normalize_scope():
         le._normalize_scope("bogus")
 
 
+def test_alt_struct_editor_path():
+    class FakeNode:
+        def __init__(self, children=None):
+            self.children = children or []
+            self.parent = None
+            for child in self.children:
+                child.parent = self
+
+    leaf = FakeNode()
+    root = FakeNode([leaf])
+    wrapper = FakeNode([root])
+
+    assert ni._alt_struct_editor_path(leaf, "Parasha") == ["__alt__", "Parasha", "0", "0"]
+    assert ni._alt_struct_editor_path(root, "Parasha") == ["__alt__", "Parasha", "0"]
+
+
 def test_add_non_unique_term_titles(monkeypatch):
     class FakeTerm:
         slug = "__le_test_term__"
