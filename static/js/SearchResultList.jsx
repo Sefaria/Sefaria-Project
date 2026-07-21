@@ -199,7 +199,7 @@ const SearchFilterButton = ({openMobileFilters, nFilters, label = "Filter"}) => 
        role="button"
        tabIndex="0"
        aria-label={`Open ${label.toLowerCase()}${label === "Filter" && nFilters ? ` (${nFilters} active)` : ''}`}>
-    <InterfaceText>{label}</InterfaceText>
+    <InterfaceText>common.filter</InterfaceText>
     {label === "Filter" && !!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
 );
