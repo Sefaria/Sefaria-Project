@@ -23,12 +23,12 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 
-const AuthNavLink = ({flow, openURL, children}) => {
+const AuthNavLink = ({flow, openURL, close, children}) => {
   const href = `/${flow}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
   return (
     <a className='interfaceLinks-option int-bi dropdownItem'
        href={href}
-       onClick={(e) => { e.preventDefault(); openURL(href); }}>
+       onClick={(e) => { e.preventDefault(); openURL(href); close?.(); }}>
       {children}
     </a>
   );
@@ -36,6 +36,7 @@ const AuthNavLink = ({flow, openURL, children}) => {
 AuthNavLink.propTypes = {
   flow: PropTypes.oneOf(['login', 'register']).isRequired,
   openURL: PropTypes.func.isRequired,
+  close: PropTypes.func,
   children: PropTypes.node.isRequired,
 };
 
@@ -397,23 +398,23 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-const LoggedOutButtons = ({ mobile, loginOnly, openURL }) => {
+const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   const classes = classNames({accountLinks: !mobile, anon: !mobile});
 
   return (
     <div className={classes}>
       {loginOnly && (
-        <AuthNavLink flow='login' openURL={openURL}>
+        <AuthNavLink flow='login' openURL={openURL} close={close}>
           {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
           <InterfaceText>header.log_in</InterfaceText>
         </AuthNavLink>)}
       {loginOnly ? null :
         <span>
-          <AuthNavLink flow='register' openURL={openURL}>
+          <AuthNavLink flow='register' openURL={openURL} close={close}>
             {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
             <InterfaceText>header.sign_up</InterfaceText>
           </AuthNavLink>
-          <AuthNavLink flow='login' openURL={openURL}>
+          <AuthNavLink flow='login' openURL={openURL} close={close}>
             <InterfaceText>header.log_in</InterfaceText>
           </AuthNavLink>
         </span>}
@@ -583,7 +584,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <InterfaceText>header.logout</InterfaceText>
           </a>
           :
-          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} />}
+          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />}
 
         <hr />
       </div>
