@@ -69,17 +69,19 @@ is for — as optional, which keeps the form short. That's a fine default, and t
 weighing against it is a one-line "what are you building?", since that answer is what turns a key
 into a real picture of who uses us.
 
+> ⚑ **Flag for Lev.** His design makes every field but the email optional; requiring one is a change
+> to that.
+
 **Decide:** which fields are required, and how they're worded.
 
 ## 5 · What people agree to
 
 Issuing a key is a natural moment to set expectations. The simplest version is one checkbox
-covering acceptable use, crediting Sefaria where our texts appear, and agreeing to be emailed about
-API changes — that last is quietly the most valuable of the three. It could also do more: state
-what we ask of people who build on Sefaria, or ask what they'd like from us.
+covering acceptable use and agreeing to be emailed about API changes — that second part is quietly
+the most valuable. It could also do more: state what we ask of people who build on Sefaria, or ask
+what they'd like from us.
 
-**Decide:** whether this stays a single checkbox or does more, and whether crediting Sefaria is
-required or merely requested.
+**Decide:** whether this stays a single checkbox or does more.
 
 ## 6 · The Linker
 
@@ -106,10 +108,13 @@ Keys tell us about projects, not the people using them. When a project calls us 
 users' devices, each person reaches us separately and we can estimate its audience; when it calls
 from its own server, the whole audience arrives as one caller and stays invisible.
 
-We could let a project send us its own anonymous user identifier and count those. It only works
-when a project chooses to use it — but building the small hook now is likely worth it: it lets us
-go to a large consumer later and ask them to send it, with nothing new to build on our side. Cheap
-future-proofing.
+Two options if we want more. We could add a question to the registration form — roughly how many
+users, and whether it's for personal use — and take the answer at face value. We could also let a
+project send us its own anonymous user identifier and count those, though that only works when a
+project chooses to use it.
+
+> ⚑ **Flag for Lev.** Accepting and logging a per-user identifier isn't in his design — an addition
+> if we go that way.
 
 ## 8 · How people move to keys
 
@@ -122,6 +127,9 @@ only when the previous one's measurements justify it:
    comes back with a note pointing at registration and the limits ahead. Developers see it in their
    logs; their users see nothing. Our MCP server gets its key here, and we reach out to the large
    consumers we can identify.
+
+   > **Product's analytics begin here** — per-project usage as registrations arrive, sharpening
+   > with adoption.
 3. **Apply limits** — unregistered callers share one allowance and compete for it; each registered
    project gets a generous allowance of its own. Nothing is blocked outright.
 4. **Require keys, endpoint by endpoint** — starting where dependence is concentrated and we know
@@ -131,14 +139,13 @@ The last stage begins around six months in, and each stage is gated on what we m
 calendar. This is the part outside developers feel, so it's worth pushing back now if it reads too
 fast, too slow, or too blunt.
 
-> **When does product start seeing analytics?** At stage 1 — aggregate traffic broken down by type
-> of caller — and per-project analytics from stage 2, as registrations arrive. The picture sharpens
-> as adoption grows.
-
 One thing the stages don't settle: where this ends. We could keep unregistered access working
 indefinitely at a slower tier — the posture most in keeping with a free library — or treat "key
 required" as every endpoint's eventual state. Either works, but the answer shapes what we say
 publicly at stage 3.
+
+> ⚑ **Flag for Lev.** A permanent anonymous tier means the last stage stops short of a hard block on
+> those endpoints, rather than the ladder ending in a key requirement everywhere.
 
 **Decide:** whether unregistered access stays permanently at a lower tier, or is a step on the way
 to keys everywhere.
