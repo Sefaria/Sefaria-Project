@@ -738,3 +738,28 @@ class TestLocationSettingsMiddleware:
         middleware.process_request(request)
 
         assert request.country_code == 'de'
+
+    def test_missing_setting_falls_back_to_env_var(self, monkeypatch):
+        """Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, but the chart's
+        generated local_settings may not define the Django setting -- the env var must
+        still take effect."""
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.setenv('PINNED_IPCOUNTRY', 'GB')
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'gb'
+
+    def test_missing_setting_and_env_defaults_to_us(self, monkeypatch):
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.delenv('PINNED_IPCOUNTRY', raising=False)
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'us'

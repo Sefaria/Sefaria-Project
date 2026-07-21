@@ -1,3 +1,4 @@
+import os
 import resource
 import sys
 import tempfile
@@ -73,8 +74,10 @@ class LocationSettingsMiddleware(MiddlewareMixin):
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
                 loc = PINNED_IPCOUNTRY
-            except:
-                loc = "us"
+            except ImportError:
+                # Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, which the
+                # chart-generated local_settings.py may not expose as a Django setting.
+                loc = os.environ.get("PINNED_IPCOUNTRY") or "us"
         request.country_code = loc.lower()
         request.diaspora = request.country_code != "il"
 
