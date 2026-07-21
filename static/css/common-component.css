@@ -57,7 +57,8 @@
   appearance: none;
 }
 .sefaria-input-control::placeholder {
-  color: #707070;
+  color: var(--medium-grey-legacy);
+  font-size: 14px;
   opacity: 1;
 }
 .sefaria-input-control:hover:not(:disabled) {

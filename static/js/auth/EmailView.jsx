@@ -244,8 +244,8 @@ const EmailView = ({
                  value={fields.password} onChange={setField('password')}
                  onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
                  error={fieldErrors.password} />
-          {isRegister && <Input label="common.first_name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />}
-          {isRegister && <Input label="common.last_name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />}
+          {isRegister && <Input label="common.first_name" placeholder={Sefaria._('common.first_name')} name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />}
+          {isRegister && <Input label="common.last_name" placeholder={Sefaria._('common.last_name')} name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />}
         </div>
         {isRegister && recaptchaSiteKey && (
           <Captcha error={captchaError}>

@@ -87,7 +87,8 @@ $stroke-strong:   1.5px;
     appearance: none;
 
     &::placeholder {
-      color: $sef-text-muted;
+      color: var(--medium-grey-legacy);
+      font-size: $font-size-label;
       opacity: 1;
     }
 
