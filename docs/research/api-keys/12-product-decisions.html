@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sefaria API Keys — Product Decisions</title>
+<style>
+  @page { size: Letter; margin: 12mm 16mm 9mm 16mm;
+    @bottom-right { content: counter(page) " / " counter(pages); font: 8.5pt Georgia, serif; color: #999; } }
+  body { font: 9.1pt/1.32 "Helvetica Neue", Helvetica, Arial, sans-serif; color: #222; margin: 0; }
+  h1 { font: 700 17.5pt/1.2 Georgia, "Times New Roman", serif; color: #18345d; margin: 0 0 1pt 0; }
+  .subtitle { font: italic 9.5pt Georgia, serif; color: #777; margin: 0 0 7pt 0; }
+  h2 { font: 700 10.8pt/1.2 Georgia, serif; color: #18345d; margin: 6pt 0 2pt 0; page-break-after: avoid; }
+  p { margin: 0 0 4pt 0; }
+  .context { background: #f4f6f9; border-left: 3px solid #18345d; padding: 6pt 10pt; margin-bottom: 2pt; }
+  .context p:last-child { margin-bottom: 0; }
+  ol, ul { margin: 2pt 0 5pt 0; padding-left: 15pt; page-break-inside: avoid; }
+  li { margin-bottom: 2pt; }
+  .decide { font-weight: 700; color: #7a4b12; background: #fdf6ec; border-left: 3px solid #c8862a;
+            padding: 2.3pt 9pt; margin: 2.6pt 0 1.5pt 0; page-break-inside: avoid; }
+  .decide span { font-weight: 400; color: #4a3a20; }
+  .flag { background: #f4eff8; border-left: 3px solid #7a5aa0; padding: 2.3pt 9pt; margin: 2.6pt 0;
+          color: #3f2d55; page-break-inside: avoid; }
+  .flag strong { color: #4a2f78; }
+  .info { background: #eef4f2; border-left: 3px solid #3c8168; padding: 2.6pt 9pt; margin: 3pt 0;
+          color: #26463b; page-break-inside: avoid; }
+  .info strong { color: #1f4d3c; }
+  .footer { margin-top: 5pt; padding-top: 3pt; border-top: 0.6pt solid #ccc;
+            font: italic 8.5pt Georgia, serif; color: #888; }
+</style>
+</head>
+<body>
+
+<h1>Sefaria API Keys — Product Decisions</h1>
+<p class="subtitle">July 2026 · Team Platform</p>
+
+<div class="context">
+<p><strong>What this is.</strong> We want everyone who uses our API programmatically to identify
+themselves with a free key that takes a minute to get. Keys are for identification, not security.
+They give us four things: knowing who builds on Sefaria, a way to reach them, an understanding of
+how the API is used, and a way to act when someone abuses it.</p>
+<p>The technical side — how a key is checked, and how request volume can be slowed or shut off — is
+covered by an architecture document Lev has written. It is being decided in parallel, it works well
+for us, and this document assumes it; we refer to it below as <strong>Lev’s design</strong>. Where a
+product choice here would need a change to that design, we flag it.</p>
+<p>Ordinary visitors and search-engine crawlers are never asked for a key, and our own apps carry
+keys invisibly. Everything below is about programmatic use.</p>
+</div>
+
+<h2>1 · What gets registered: a project, not a person</h2>
+<p>We’d register projects, not people. One account can hold several projects, each with its own
+name, key, and limits — so someone who builds three tools registers three of them, and we see three
+consumers rather than one enthusiast. The name and short description are the payoff: they’re what we
+read when we ask who does what with our texts. “Which projects use our API, and for what?” is the
+question this effort exists to answer; a key tied to a person answers a weaker one.</p>
+<p class="flag">⚑ <strong>Flag for Lev.</strong> This changes his design, which currently assumes one
+key per account — worth raising early, since it affects how keys are stored and looked up.</p>
+
+<h2>2 · The flow</h2>
+<p>The steps a developer goes through:</p>
+<ol>
+<li><strong>Arrive</strong> at the key page — from their Sefaria account, or by following a link in
+our developer docs.</li>
+<li><strong>Sign in</strong>, if they aren’t already.</li>
+<li><strong>Create a project</strong> — give it a name and say what it’s for.</li>
+<li><strong>Get the key</strong>, shown right away. Nobody is reviewed or turned down.</li>
+<li><strong>Return later</strong> to a list of their projects, where they can copy a key, rename a
+project, add another, or delete one. Deleting stops that key working.</li>
+</ol>
+<p>Those steps are the substance; how they look on screen is a separate set of choices. Is “create a
+project” a dialog or its own page? Does the new key appear in place or on a project page we route
+to? Does all of this live in the account area, the developer portal, or both?</p>
+<p class="decide">Decide: <span>the on-screen flow — where it lives, and whether each step is a
+dialog or a full page.</span></p>
+
+<h2>3 · Verifying the account</h2>
+<p>We want a verified account behind every project, because a working email address is what lets us
+reach people, and that’s half the point. A Sefaria account today doesn’t give us one: we never
+verify email at signup.</p>
+<p>SSO solves this for free — an account signed in through SSO arrives with an address the provider has
+already checked. It won’t necessarily be live before this work lands, but the two fit together well,
+so our recommendation is to lean on it: sign in through SSO and you’re verified; otherwise we ask
+you to connect it before issuing a key. Building our own confirmation email is a real option to hold
+in reserve rather than build now.</p>
+<p class="decide">Decide: <span>product should own the full sign-in-to-key path, including what a
+password-only user sees when we ask them to connect an account.</span></p>
+
+<h2>4 · What we ask when a project is registered</h2>
+<p>Lev’s design asks for a verified email and treats everything else — organisation, what the
+project is for — as optional, which keeps the form short. That’s a fine default, and the one field
+worth weighing against it is a one-line “what are you building?”, since that answer is what turns a
+key into a real picture of who uses us.</p>
+<p class="flag">⚑ <strong>Flag for Lev.</strong> His design makes every field but the email optional;
+requiring one is a change to that.</p>
+<p class="decide">Decide: <span>which fields are required, and how they’re worded.</span></p>
+
+<h2>5 · What people agree to</h2>
+<p>Issuing a key is a natural moment to set expectations. The simplest version is one checkbox
+covering acceptable use and agreeing to be emailed about API changes — that second part is quietly
+the most valuable. It could also do more: state what we ask of people who build on Sefaria, or ask
+what they’d like from us.</p>
+<p class="decide">Decide: <span>whether this stays a single checkbox or does more.</span></p>
+
+<h2>6 · The Linker</h2>
+<p>The Linker — our snippet embedded on partner sites like Times of Israel, Aish, JWA, and My Jewish
+Learning — is about 11.5% of all API traffic. Under Lev’s design nothing changes for it: those
+requests come from ordinary visitors’ browsers and pass through untouched. We can already see
+roughly which sites they come from, because the browser reports the site each request came from —
+but we can’t contact those sites, act on one in particular, or rely on the signal, which browsers
+trim and a site can switch off.</p>
+<p>The alternative is to register new installs: a “get the Linker” page that takes a site name and
+contact email and hands back a snippet identifying that site. Existing installs keep working, and
+the list fills in over time.</p>
+<p class="flag">⚑ <strong>Flag for Lev.</strong> Registering installs extends his design, which has
+no notion of identifying embeds.</p>
+<p class="decide">Decide: <span>leave the Linker as is, or register new installs — either way we can
+start contacting the sites we can already see.</span></p>
+
+<h2>7 · Learning about users, not just projects</h2>
+<p>Keys tell us about projects, not the people using them. When a project calls us straight from its
+users’ devices, each person reaches us separately and we can estimate its audience; when it calls
+from its own server, the whole audience arrives as one caller and stays invisible.</p>
+<p>Two options if we want more. We could add a question to the registration form — roughly how many
+users, and whether it’s for personal use — and take the answer at face value. We could also let a
+project send us its own anonymous user identifier and count those, though that only works when a
+project chooses to use it.</p>
+<p class="flag">⚑ <strong>Flag for Lev.</strong> Accepting and logging a per-user identifier isn’t in
+his design — an addition if we go that way.</p>
+
+<h2>8 · How people move to keys</h2>
+<p>Issuing keys doesn’t make anyone use them, so Lev’s plan applies pressure in stages, each
+starting only when the previous one’s measurements justify it:</p>
+<ol>
+<li><strong>Measure</strong> — confirm we can reliably tell browsers, crawlers, our own apps, and
+programmatic callers apart.</li>
+<li><strong>Launch quietly</strong> — the portal opens, docs update, and every unregistered
+programmatic request comes back with a note pointing at registration and the limits ahead.
+Developers see it in their logs; their users see nothing. Our MCP server gets its key here, and we
+reach out to the large consumers we can identify.
+<p class="info" style="margin-top:2.5pt"><strong>Product’s analytics begin here</strong> — per-project
+usage as registrations arrive, sharpening with adoption.</p></li>
+<li><strong>Apply limits</strong> — unregistered callers share one allowance and compete for it;
+each registered project gets a generous allowance of its own. Nothing is blocked outright.</li>
+<li><strong>Require keys, endpoint by endpoint</strong> — starting where dependence is concentrated
+and we know the callers, each with a grace period announced in advance.</li>
+</ol>
+<p>The last stage begins around six months in, and each stage is gated on what we measure, not the
+calendar. This is the part outside developers feel, so it’s worth pushing back now if it reads too
+fast, too slow, or too blunt.</p>
+<p>One thing the stages don’t settle: where this ends. We could keep unregistered access working
+indefinitely at a slower tier — the posture most in keeping with a free library — or treat “key
+required” as every endpoint’s eventual state. Either works, but the answer shapes what we say
+publicly at stage 3.</p>
+<p class="flag">⚑ <strong>Flag for Lev.</strong> A permanent anonymous tier means the last stage stops
+short of a hard block on those endpoints, rather than the ladder ending in a key requirement
+everywhere.</p>
+<p class="decide">Decide: <span>whether unregistered access stays permanently at a lower tier, or is
+a step on the way to keys everywhere.</span></p>
+
+<h2>9 · Asking for more room</h2>
+<p>Some projects will genuinely need more than the standard allowance — a real partner with real
+volume. Lev’s design already allows lifted limits per key; what’s missing is the product side. Is
+there a form to ask? Who reviews it, and against what? Is the answer a published policy (“partners
+at this scale get this tier”) or a case-by-case conversation?</p>
+<p class="decide">Decide: <span>whether we build a standard “request more room” flow, and who owns
+approving it.</span></p>
+
+<p class="footer">Drafted by Team Platform with Claude, July 2026, from Lev’s API Key Program design
+and the sc-45692 research series.</p>
+
+</body>
+</html>
