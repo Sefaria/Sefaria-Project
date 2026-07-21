@@ -163,18 +163,24 @@ def _delete_test_chunks():
 
 class Seed:
     def __init__(self):
-        self.index_title = f"Zzz Pgv Int {RUN_TAG}"
-        self.new_index_title = f"Zzz Pgv Renamed {RUN_TAG}"
+        # A fresh per-test tag so every test gets a *distinct* Index title. These tests share one
+        # process-wide `library` singleton; reusing a single title across tests leaves the shared
+        # TocTree with an orphaned node after the title-change test, so the next test's
+        # index.save() blows up in TocTree.update_title -> node.replace (assert parent). Distinct
+        # titles per test sidestep that entirely (lookup misses -> a fresh node is added).
+        u = uuid.uuid4().hex[:8]
+        self.index_title = f"Zzz Pgv Int {u}"
+        self.new_index_title = f"Zzz Pgv Renamed {u}"
         self.version_title = "Pgv Int Test Version"
         self.section_ref = f"{self.index_title} 1"
         self.seg1_ref = f"{self.index_title} 1:1"
         self.seg2_ref = f"{self.index_title} 1:2"
-        self.author_slug = f"pgv-int-author-{RUN_TAG}"
-        self.author_new_slug = f"pgv-int-author-new-{RUN_TAG}"
-        self.topic_slug = f"pgv-int-topic-{RUN_TAG}"
-        self.topic_new_slug = f"pgv-int-topic-new-{RUN_TAG}"
-        self.doc1 = f"{DOC_ID_PREFIX}1"
-        self.doc2 = f"{DOC_ID_PREFIX}2"
+        self.author_slug = f"pgv-int-author-{u}"
+        self.author_new_slug = f"pgv-int-author-new-{u}"
+        self.topic_slug = f"pgv-int-topic-{u}"
+        self.topic_new_slug = f"pgv-int-topic-new-{u}"
+        self.doc1 = f"{DOC_ID_PREFIX}{u}-1"
+        self.doc2 = f"{DOC_ID_PREFIX}{u}-2"
 
 
 @pytest.fixture
@@ -449,6 +455,13 @@ class TestCategoryHook:
         term.add_primary_titles(leaf, leaf[::-1])
         term.save()
 
+        # A category renamed through the shared-title path needs a Term for the *new* leaf too:
+        # Category.change_key_name looks it up when the primary attribute (path) changes.
+        term_renamed = Term()
+        term_renamed.name = leaf_renamed
+        term_renamed.add_primary_titles(leaf_renamed, leaf_renamed[::-1])
+        term_renamed.save()
+
         cat = Category()
         cat.path = old_path
         cat.add_shared_term(leaf)
@@ -464,9 +477,15 @@ class TestCategoryHook:
         ])
 
         try:
-            reloaded = Category().load({"path": old_path})
-            reloaded.path = new_path
-            reloaded.save()
+            # Rename the way the Category Editor does: load the old path, then feed a new path +
+            # origPath through load_from_dict so _set_derived_attributes -> change_key_name updates
+            # lastPath / sharedTitle / path[-1] together and fires the `path` attributeChange the
+            # hook listens for. Assigning `.path` directly (and nothing else) trips
+            # Category._validate (lastPath / primary title still stale) before the hook can run.
+            Category().update(
+                {"path": old_path},
+                {"path": new_path, "sharedTitle": leaf_renamed, "origPath": old_path},
+            )
 
             chunk = _fetch(doc_id)
             assert chunk.all_categories == new_path
@@ -478,7 +497,7 @@ class TestCategoryHook:
                 c = Category().load({"path": p})
                 if c:
                     c.delete()
-            for name in (leaf,):
+            for name in (leaf, leaf_renamed):
                 t = Term().load({"name": name})
                 if t:
                     t.delete()

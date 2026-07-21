@@ -51,15 +51,17 @@ kubectl --context "${DEV_CONTEXT}" exec -i -n "${NAMESPACE}" "${POD}" -- bash -c
   psql -h localhost -U '"${DB_USER}"' -d '"${DB_NAME}"' -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ' <<< "${PGVECTOR_DEV_PASSWORD}"
 
-# Stream the dump from GCS straight into pg_restore inside the pod.
+# Stream the dump from GCS straight into pg_restore inside the pod. The password line and
+# the dump bytes must share a single stdin stream (can't combine a pipe with a here-string
+# on the same command), so prepend the password line, then concatenate the dump.
 # --clean --if-exists drops existing objects first (dev's prior library_chunks data is
 # overwritten); --no-owner --no-privileges avoids failing on role mismatches between clusters.
-gcloud storage cat "${DUMP_PATH}" \
+{ printf '%s\n' "${PGVECTOR_DEV_PASSWORD}"; gcloud storage cat "${DUMP_PATH}"; } \
   | kubectl --context "${DEV_CONTEXT}" exec -i -n "${NAMESPACE}" "${POD}" -- bash -c '
   set -euo pipefail
   IFS= read -r PGPASSWORD
   export PGPASSWORD
   pg_restore -h localhost -U '"${DB_USER}"' -d '"${DB_NAME}"' --clean --if-exists --no-owner --no-privileges
-' <<< "${PGVECTOR_DEV_PASSWORD}"
+'
 
 echo "Restore complete." >&2
