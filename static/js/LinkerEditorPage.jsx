@@ -455,48 +455,52 @@ const LinkerEditorPage = () => {
   const schema = rawIndex && rawIndex.schema;
 
   return (
-    <div className="linkerEditorPage">
-      <div className="linkerEditorTopBar">
-        <h1><InterfaceText>Linker Editor</InterfaceText></h1>
-        <div className="linkerEditorTopActions">
-          {title && <button className="linkerEditorBtn" onClick={() => { setTitle(null); setRawIndex(null); }}>{Sefaria._('New search')}</button>}
-          <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
-            {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
-          </button>
-        </div>
-      </div>
+    <div className="readerNavMenu linkerEditorNavMenu sans-serif">
+      <div className="content linkerEditorContent">
+        <div className="linkerEditorPage">
+          <div className="linkerEditorTopBar">
+            <h1><InterfaceText>Linker Editor</InterfaceText></h1>
+            <div className="linkerEditorTopActions">
+              {title && <button className="linkerEditorBtn" onClick={() => { setTitle(null); setRawIndex(null); }}>{Sefaria._('New search')}</button>}
+              <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
+                {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
+              </button>
+            </div>
+          </div>
 
-      {!title && <IndexSearch onSelect={loadIndex} />}
+          {!title && <IndexSearch onSelect={loadIndex} />}
 
-      {title && (
-        <div className="linkerEditorTreeWrap">
-          <h2 className="linkerEditorIndexTitle">{title}</h2>
-          {loading && <LoadingMessage />}
-          {error && <div className="linkerEditorError">{error}</div>}
-          {schema && (
-            <SchemaNodeCard
-              node={schema}
-              keyPath={[schema.key]}
-              title={title}
-              isRoot={true}
-              expandedPaths={expandedPaths}
-              toggleExpand={toggleExpand}
-              addressTypeOptions={addressTypeOptions}
-              onTermClick={setTermSlug}
-              onChanged={reload}
+          {title && (
+            <div className="linkerEditorTreeWrap">
+              <h2 className="linkerEditorIndexTitle">{title}</h2>
+              {loading && <LoadingMessage />}
+              {error && <div className="linkerEditorError">{error}</div>}
+              {schema && (
+                <SchemaNodeCard
+                  node={schema}
+                  keyPath={[schema.key]}
+                  title={title}
+                  isRoot={true}
+                  expandedPaths={expandedPaths}
+                  toggleExpand={toggleExpand}
+                  addressTypeOptions={addressTypeOptions}
+                  onTermClick={setTermSlug}
+                  onChanged={reload}
+                />
+              )}
+            </div>
+          )}
+
+          {termSlug && (
+            <TermDetailPanel
+              slug={termSlug}
+              refreshToken={refreshToken}
+              onClose={() => setTermSlug(null)}
+              onJump={jumpToNode}
             />
           )}
         </div>
-      )}
-
-      {termSlug && (
-        <TermDetailPanel
-          slug={termSlug}
-          refreshToken={refreshToken}
-          onClose={() => setTermSlug(null)}
-          onJump={jumpToNode}
-        />
-      )}
+      </div>
     </div>
   );
 };

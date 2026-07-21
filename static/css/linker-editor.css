@@ -1,5 +1,9 @@
 /* Linker editor (/linker-editor) — staff-only tool. Functional styling. */
 
+.linkerEditorNavMenu .linkerEditorContent {
+  height: 100%;
+}
+
 .linkerEditorPage {
   max-width: 1000px;
   margin: 0 auto;
