@@ -156,6 +156,35 @@ def test_get_node_by_key_path():
     assert le.get_node_by_key_path(idx, ["Berakhot", "NoSuchChild"]) is None
 
 
+def test_get_node_by_editor_path_alt_struct():
+    class FakeNode:
+        def __init__(self, key=None, children=None):
+            self.key = key
+            self.children = children or []
+
+        def get_child_by_key(self, key):
+            for child in self.children:
+                if child.key == key:
+                    return child
+
+    alt_leaf = FakeNode("alt-leaf")
+    alt_root = FakeNode("alt-root", [alt_leaf])
+
+    class FakeIndex:
+        nodes = FakeNode("Default")
+
+        def get_alt_structure(self, name):
+            return FakeNode(children=[alt_root]) if name == "Parasha" else None
+
+    node, struct_name = le.get_node_by_editor_path(FakeIndex(), ["__alt__", "Parasha", "0", "0"])
+    assert node is alt_leaf
+    assert struct_name == "Parasha"
+
+    node, struct_name = le.get_node_by_editor_path(FakeIndex(), ["__alt__", "Parasha", "99"])
+    assert node is None
+    assert struct_name == "Parasha"
+
+
 def test_search_and_detail_non_unique_terms():
     results = le.search_non_unique_terms("bavli", 5)
     slugs = [t["slug"] for t in results]

@@ -96,8 +96,28 @@
 .expandToggle.placeholder { cursor: default; }
 .schemaNodeTitle { font-weight: 600; }
 .schemaNodeKey { font-size: 12px; color: #999; }
+.schemaNodeStructName {
+  font-size: 11px;
+  color: #666;
+  background: #eee;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
 .schemaNodeBody { padding: 10px 12px; }
 .schemaNodeChildren { padding: 0 0 8px 22px; }
+.altStructChildren {
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+.altStructHeading {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #777;
+  margin: 0 0 8px;
+}
 
 .cardLabel {
   display: inline-block;

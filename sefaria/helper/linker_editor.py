@@ -44,6 +44,29 @@ def get_node_by_key_path(index, key_path: List[str]):
     return node
 
 
+def get_node_by_editor_path(index, key_path: List[str]):
+    """
+    Resolve a linker editor node path.
+    Default-structure paths are schema key paths. Alt-structure paths are encoded as:
+    ["__alt__", struct_name, child_index, ...], where child indexes traverse the raw
+    alt_structs nodes arrays.
+    """
+    if key_path and key_path[0] == "__alt__":
+        if len(key_path) < 3:
+            return None, None
+        struct_name = key_path[1]
+        node = index.get_alt_structure(struct_name)
+        if node is None:
+            return None, struct_name
+        try:
+            for child_index in key_path[2:]:
+                node = node.children[int(child_index)]
+        except (ValueError, IndexError):
+            return None, struct_name
+        return node, struct_name
+    return get_node_by_key_path(index, key_path), None
+
+
 # ---------------------------------------------------------------------------
 # MatchTemplate editing
 # ---------------------------------------------------------------------------
@@ -74,7 +97,7 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
     scope = _normalize_scope(scope)
 
     index = library.get_index(title)
-    node = get_node_by_key_path(index, parse_node_key_path(node_key_path))
+    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
     if node is None:
         raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
 
@@ -83,14 +106,14 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
     node.match_templates = list(getattr(node, "match_templates", [])) + [serialized]
     index.save()
 
-    nut_index.add_template_usage(title, node, template)
+    nut_index.add_template_usage(title, node, template, struct_name=struct_name)
     return serialized
 
 
 def remove_match_template(title: str, node_key_path: str, serialized_template: dict) -> None:
     """Remove the MatchTemplate matching `serialized_template` from a node."""
     index = library.get_index(title)
-    node = get_node_by_key_path(index, parse_node_key_path(node_key_path))
+    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
     if node is None:
         raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
 
@@ -105,7 +128,7 @@ def remove_match_template(title: str, node_key_path: str, serialized_template: d
         list(serialized_template.get("term_slugs", [])),
         serialized_template.get("scope", "combined"),
     )
-    nut_index.remove_template_usage(title, node, template)
+    nut_index.remove_template_usage(title, node, template, struct_name=struct_name)
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +151,7 @@ def all_address_type_names() -> List[str]:
 def set_address_types(title: str, node_key_path: str, address_types: List[str]) -> List[str]:
     """Overwrite a node's addressTypes. Validates length == depth and that each name resolves."""
     index = library.get_index(title)
-    node = get_node_by_key_path(index, parse_node_key_path(node_key_path))
+    node, _ = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
     if node is None:
         raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
 

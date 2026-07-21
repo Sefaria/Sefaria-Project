@@ -22,10 +22,16 @@ const nodePrimaryTitle = (node) => {
   if (primaryEn) { return primaryEn.text; }
   const anyEn = titles.find(t => t.lang === 'en');
   if (anyEn) { return anyEn.text; }
-  return node.title || node.key || '(untitled)';
+  return node.title || node.sharedTitle || node.key || node.wholeRef || '(untitled)';
 };
 
 const pathString = (keyPath) => keyPath.join('.');
+
+const altStructRoots = (rawIndex) => {
+  const altStructs = rawIndex?.alt_structs || {};
+  return Object.entries(altStructs)
+    .map(([structName, struct]) => ({ structName, nodes: struct.nodes || [] }));
+};
 
 const encPath = (s) => encodeURIComponent(s);
 
@@ -257,24 +263,39 @@ const AddressTypeEditor = ({ node, title, keyPath, addressTypeOptions, onChanged
 // Recursive schema node card
 // ---------------------------------------------------------------------------
 
-const SchemaNodeCard = ({ node, keyPath, title, isRoot, expandedPaths, toggleExpand, addressTypeOptions, onTermClick, onChanged }) => {
+const SchemaNodeCard = ({
+  node,
+  keyPath,
+  title,
+  isRoot,
+  forceExpanded=false,
+  expandedPaths,
+  toggleExpand,
+  addressTypeOptions,
+  onTermClick,
+  onChanged,
+  altStructRootEntries=[],
+  collapseBranchBodyWhenCollapsed=false,
+}) => {
   const path = pathString(keyPath);
   const children = node.nodes || [];
   const hasChildren = children.length > 0;
-  const expanded = isRoot || expandedPaths.has(path);
+  const expanded = forceExpanded || expandedPaths.has(path);
   const matchTemplates = node.match_templates || [];
+  const childKeyPath = (child, index) => keyPath[0] === '__alt__' ? [...keyPath, String(index)] : [...keyPath, child.key];
+  const showBody = forceExpanded || expanded || !hasChildren || !collapseBranchBodyWhenCollapsed;
 
   return (
     <div className={'schemaNodeCard' + (isRoot ? ' root' : '')}>
       <div className="schemaNodeHeader">
-        {hasChildren && !isRoot
+        {hasChildren && !forceExpanded
           ? <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
           : <span className="expandToggle placeholder" />}
         <span className="schemaNodeTitle">{nodePrimaryTitle(node)}</span>
-        <span className="schemaNodeKey">{node.key}</span>
+        <span className="schemaNodeKey">{node.key || node.nodeType}</span>
       </div>
 
-      <div className="schemaNodeBody">
+      {showBody && <div className="schemaNodeBody">
         <div className="matchTemplatesSection">
           <span className="cardLabel">{Sefaria._('MatchTemplates')}</span>
           {matchTemplates.length === 0 && <span className="emptyNote">{Sefaria._('none')}</span>}
@@ -298,7 +319,7 @@ const SchemaNodeCard = ({ node, keyPath, title, isRoot, expandedPaths, toggleExp
           addressTypeOptions={addressTypeOptions}
           onChanged={onChanged}
         />
-      </div>
+      </div>}
 
       {expanded && hasChildren && (
         <div className="schemaNodeChildren">
@@ -306,14 +327,71 @@ const SchemaNodeCard = ({ node, keyPath, title, isRoot, expandedPaths, toggleExp
             <SchemaNodeCard
               key={child.key || i}
               node={child}
-              keyPath={[...keyPath, child.key]}
+              keyPath={childKeyPath(child, i)}
               title={title}
               isRoot={false}
+              forceExpanded={false}
               expandedPaths={expandedPaths}
               toggleExpand={toggleExpand}
               addressTypeOptions={addressTypeOptions}
               onTermClick={onTermClick}
               onChanged={onChanged}
+              collapseBranchBodyWhenCollapsed={collapseBranchBodyWhenCollapsed}
+            />
+          ))}
+        </div>
+      )}
+
+      {isRoot && altStructRootEntries.length > 0 && (
+        <div className="schemaNodeChildren altStructChildren">
+          <div className="altStructHeading">{Sefaria._('Alt Structs')}</div>
+          {altStructRootEntries.map(({ structName, nodes }) => (
+            <AltStructGroup
+              key={structName}
+              structName={structName}
+              nodes={nodes}
+              title={title}
+              expandedPaths={expandedPaths}
+              toggleExpand={toggleExpand}
+              addressTypeOptions={addressTypeOptions}
+              onTermClick={onTermClick}
+              onChanged={onChanged}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, onTermClick, onChanged }) => {
+  const path = pathString(['__alt__', structName]);
+  const expanded = expandedPaths.has(path);
+
+  return (
+    <div className="schemaNodeCard altStructGroup">
+      <div className="schemaNodeHeader">
+        <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
+        <span className="schemaNodeTitle">{structName}</span>
+        <span className="schemaNodeStructName">{Sefaria._('Alt Struct')}</span>
+      </div>
+
+      {expanded && (
+        <div className="schemaNodeChildren">
+          {nodes.map((altNode, rootIndex) => (
+            <SchemaNodeCard
+              key={`${structName}-${rootIndex}`}
+              node={altNode}
+              keyPath={['__alt__', structName, String(rootIndex)]}
+              title={title}
+              isRoot={false}
+              forceExpanded={false}
+              expandedPaths={expandedPaths}
+              toggleExpand={toggleExpand}
+              addressTypeOptions={addressTypeOptions}
+              onTermClick={onTermClick}
+              onChanged={onChanged}
+              collapseBranchBodyWhenCollapsed={true}
             />
           ))}
         </div>
@@ -529,6 +607,7 @@ const LinkerEditorPage = () => {
   };
 
   const schema = rawIndex && rawIndex.schema;
+  const altStructRootEntries = rawIndex ? altStructRoots(rawIndex) : [];
 
   return (
     <div className="readerNavMenu linkerEditorNavMenu sans-serif">
@@ -557,11 +636,13 @@ const LinkerEditorPage = () => {
                   keyPath={[schema.key]}
                   title={title}
                   isRoot={true}
+                  forceExpanded={true}
                   expandedPaths={expandedPaths}
                   toggleExpand={toggleExpand}
                   addressTypeOptions={addressTypeOptions}
                   onTermClick={setTermSlug}
                   onChanged={reload}
+                  altStructRootEntries={altStructRootEntries}
                 />
               )}
             </div>
