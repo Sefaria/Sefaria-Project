@@ -25,10 +25,10 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 
 | File | Role |
 | --- | --- |
-| [pageManager.ts](pageManager.ts) | Mounts all 20 page objects and exposes the `pm.onX()` accessors. Register every new POM here. |
+| [pageManager.ts](pageManager.ts) | Mounts all 22 page objects and exposes the `pm.onX()` accessors. Register every new POM here. |
 | [helperBase.ts](helperBase.ts) | Base class every page object extends — provides `this.page` and `this.language`. |
 
-**Mounted page objects (21) — reached via `pm.<accessor>()`:**
+**Mounted page objects (22) — reached via `pm.<accessor>()`:**
 
 | File | Accessor | Owns | Status |
 | --- | --- | --- | --- |
@@ -45,6 +45,7 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 | [loginPage.ts](loginPage.ts) | `onLoginPage()` | Login form | ✅ standard |
 | [signupPage.ts](signupPage.ts) | `onSignUpPage()` | Sign-up form | ✅ standard |
 | [searchPage.ts](searchPage.ts) | `onSearchPage()` | Search + autocomplete | ✅ standard |
+| [interfaceStringsPage.ts](interfaceStringsPage.ts) | `onInterfaceStrings()` | Keyed interface-string (i18n) assertions on any page (I18N-*) — presence of localized values + raw-ID leak detection | ✅ standard |
 | [userMenu.ts](userMenu.ts) | `onUserMenu()` | User dropdown menu | ✅ standard |
 | [sourceTextPage.ts](sourceTextPage.ts) | `onSourceTextPage()` | Reader source-text page | ✅ standard |
 | [moduleHeaderPage.ts](moduleHeaderPage.ts) | `onModuleHeader()` | Module header (logo, dropdowns, switcher) | ⚠️ not canonical — leaks selector strings to callers, carries dead code |
@@ -61,7 +62,7 @@ Everything a canonical POM does is spelled out in the handbook's [Canonical page
 | [sheetReaderPage.ts](sheetReaderPage.ts) | Not mounted on `PageManager`; no spec imports it. |
 | [sourceSheetEditor.page.ts](sourceSheetEditor.page.ts) | Not mounted; duplicates much of `sheetEditorPage.ts`. |
 
-*(2 infrastructure + 20 mounted + 2 orphans = 24 files.)*
+*(2 infrastructure + 22 mounted + 2 orphans = 26 files.)*
 
 ---
 

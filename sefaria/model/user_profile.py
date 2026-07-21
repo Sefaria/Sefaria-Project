@@ -2,6 +2,41 @@ import hashlib
 import urllib.request, urllib.parse, urllib.error
 import re
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
+
+_BIO_ALLOWED_TAGS = [
+    'a', 'strong', 'em', 'u', 's', 'sub', 'sup',
+    'p', 'br', 'div', 'span',
+    'ul', 'ol', 'li',
+    'table', 'tbody', 'tr', 'th', 'td',
+    'img', 'hr',
+]
+_BIO_ALLOWED_ATTRS = {
+    'a':   ['href', 'target'],
+    'img': ['src', 'alt', 'height', 'width', 'style'],
+    'td':  ['colspan', 'rowspan', 'style'],
+    'th':  ['colspan', 'rowspan', 'style'],
+    '*':   ['style', 'dir'],
+}
+_BIO_CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
+    'color', 'background-color', 'font-family', 'font-size', 'text-align', 'direction',
+])
+
+
+def _target_blank_noopener(attrs, new=False):
+    if attrs.get((None, 'target')) == '_blank':
+        rel_key = (None, 'rel')
+        rel_values = attrs.get(rel_key, '').split()
+        for val in ('noopener', 'noreferrer'):
+            if val not in rel_values:
+                rel_values.append(val)
+        attrs[rel_key] = ' '.join(rel_values)
+    return attrs
+
+
+def sanitize_bio(bio):
+    cleaned = bleach.clean(bio, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True)
+    return bleach.linkify(cleaned, callbacks=[bleach.callbacks.nofollow, _target_blank_noopener])
 import sys
 import json
 import csv
@@ -497,7 +532,7 @@ class UserProfile(object):
         Save profile to DB, updated Django User object if needed
         """
         # Sanitize & Linkify fields that allow HTML
-        self.bio = bleach.linkify(self.bio)
+        self.bio = sanitize_bio(self.bio)
 
         d = self.to_mongo_dict()
         if self._id:

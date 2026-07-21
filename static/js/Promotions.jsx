@@ -14,65 +14,40 @@ const Promotions = () => {
   const strapi = useContext(StrapiDataContext);
   useEffect(() => {
     if (strapi.dataFromStrapiHasBeenReceived) {
-      Sefaria._inAppAds = [];
+      // Guard against unexpected Strapi payload shapes so a processing error here so the code can never unmount the whole React tree
+      try {
+        Sefaria._inAppAds = [];
 
-      const sidebarAds = strapi.strapiData?.sidebarAds;
+        const sidebarAds = strapi.strapiData?.sidebarAds;
 
-      if (sidebarAds) {
-        sidebarAds.forEach((sidebarAd) => {
-          console.log(JSON.stringify(sidebarAd, null, 2));
-          let keywordTargetsArray = sidebarAd.keywords
-            .split(",")
-            .map((x) => x.trim().toLowerCase());
-          let excludeKeywordTargets = keywordTargetsArray
-            .filter((x) => x[0] === "!")
-            .map((x) => x.slice(1));
-          keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
-          Sefaria._inAppAds.push({
-            campaignId: sidebarAd.internalCampaignId,
-            title: sidebarAd.title,
-            bodyText: sidebarAd.bodyText,
-            buttonText: sidebarAd.buttonText,
-            buttonURL: sidebarAd.buttonURL,
-            buttonIcon: sidebarAd.buttonIcon,
-            buttonLocation: sidebarAd.buttonAboveOrBelow,
-            hasBlueBackground: sidebarAd.hasBlueBackground,
-            isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-            newsletterMailingLists:
-              sidebarAd.newsletterMailingLists?.map(
-                (mailingLists) => mailingLists.newsletterName
-              ) ?? [],
-            trigger: {
-              showTo: sidebarAd.showTo,
-              interfaceLang: "english",
-              startTimeDate: Date.parse(sidebarAd.startTime),
-              endTimeDate: Date.parse(sidebarAd.endTime),
-              keywordTargets: keywordTargetsArray,
-              excludeKeywordTargets: excludeKeywordTargets,
-            },
-            debug: sidebarAd.debug,
-          });
-          // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
-          if (sidebarAd.localizations?.length) {
-            const hebrewAttributes = sidebarAd.localizations[0];
-            const [buttonText, bodyText, buttonURL, title] = [
-              hebrewAttributes.buttonText,
-              hebrewAttributes.bodyText,
-              hebrewAttributes.buttonURL,
-              hebrewAttributes.title,
-            ];
+        // Only an array is iterable here. A stale/incompatible payload may nest the ads under a wrapper object (Strapi v4's { data: [...] })
+        // The wrong data type  must be treated as "no ads" rather than crashing on .forEach iterator
+        if (Array.isArray(sidebarAds)) {
+          sidebarAds.forEach((sidebarAd) => {
+            let keywordTargetsArray = sidebarAd.keywords
+              .split(",")
+              .map((x) => x.trim().toLowerCase());
+            let excludeKeywordTargets = keywordTargetsArray
+              .filter((x) => x[0] === "!")
+              .map((x) => x.slice(1));
+            keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
             Sefaria._inAppAds.push({
               campaignId: sidebarAd.internalCampaignId,
-              title: title,
-              bodyText: bodyText,
-              buttonText: buttonText,
-              buttonURL: buttonURL,
+              title: sidebarAd.title,
+              bodyText: sidebarAd.bodyText,
+              buttonText: sidebarAd.buttonText,
+              buttonURL: sidebarAd.buttonURL,
               buttonIcon: sidebarAd.buttonIcon,
               buttonLocation: sidebarAd.buttonAboveOrBelow,
               hasBlueBackground: sidebarAd.hasBlueBackground,
+              isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
+              newsletterMailingLists:
+                sidebarAd.newsletterMailingLists?.map(
+                  (mailingLists) => mailingLists.newsletterName
+                ) ?? [],
               trigger: {
                 showTo: sidebarAd.showTo,
-                interfaceLang: "hebrew",
+                interfaceLang: "english",
                 startTimeDate: Date.parse(sidebarAd.startTime),
                 endTimeDate: Date.parse(sidebarAd.endTime),
                 keywordTargets: keywordTargetsArray,
@@ -80,9 +55,40 @@ const Promotions = () => {
               },
               debug: sidebarAd.debug,
             });
-          }
-        });
-        setInAppAds(Sefaria._inAppAds);
+            // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
+            if (sidebarAd.localizations?.length) {
+              const hebrewAttributes = sidebarAd.localizations[0];
+              const [buttonText, bodyText, buttonURL, title] = [
+                hebrewAttributes.buttonText,
+                hebrewAttributes.bodyText,
+                hebrewAttributes.buttonURL,
+                hebrewAttributes.title,
+              ];
+              Sefaria._inAppAds.push({
+                campaignId: sidebarAd.internalCampaignId,
+                title: title,
+                bodyText: bodyText,
+                buttonText: buttonText,
+                buttonURL: buttonURL,
+                buttonIcon: sidebarAd.buttonIcon,
+                buttonLocation: sidebarAd.buttonAboveOrBelow,
+                hasBlueBackground: sidebarAd.hasBlueBackground,
+                trigger: {
+                  showTo: sidebarAd.showTo,
+                  interfaceLang: "hebrew",
+                  startTimeDate: Date.parse(sidebarAd.startTime),
+                  endTimeDate: Date.parse(sidebarAd.endTime),
+                  keywordTargets: keywordTargetsArray,
+                  excludeKeywordTargets: excludeKeywordTargets,
+                },
+                debug: sidebarAd.debug,
+              });
+            }
+          });
+          setInAppAds(Sefaria._inAppAds);
+        }
+      } catch (error) {
+        console.error("Failed to process sidebar ads from Strapi: ", error);
       }
     }
   }, [strapi.dataFromStrapiHasBeenReceived]);
@@ -185,7 +191,7 @@ const GDocAdvertBox = React.memo(() => {
                   onClick={handleInstall}
                   onKeyDown={(e) => Util.handleLinkSpaceKey(e, handleInstall)}
                 >
-                  <InterfaceText>Install Now</InterfaceText>
+                  <InterfaceText>promotions.install_now</InterfaceText>
                 </a>
               </div>
             </div>

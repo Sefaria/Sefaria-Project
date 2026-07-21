@@ -72,7 +72,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -362,6 +362,7 @@ def base_props(request):
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
+        "appVersion": APP_VERSION,
     })
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
@@ -405,20 +406,68 @@ def user_credentials(request):
         return {"user_type": "API", "user_id": apikey["uid"]}
 
 
-def _reader_redirect_add_languages(request, tref):
-    versions = Ref(tref).version_list()
+def _reader_redirect_versions(request, tref, current_versions, normalized_versions):
+    """
+    Redirect to a URL with normalized version query params.
+    Replaces version params that have a normalized form and removes those that don't match any known version.
+    """
     query_params = QueryDict(request.GET.urlencode(), mutable=True)
-    for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
-        version_title = request.GET.get(vlang)
-        if version_title:
-            version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
-            if version is not None:
-                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
-            else:
-                query_params.pop(vlang)
-    return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+    for version in current_versions:
+        if version in normalized_versions:
+            query_params[version] = normalized_versions[version]
+        else:
+            query_params.pop(version, None)
+    return redirect(f'/{tref}/?{query_params.urlencode()}')
 
+
+def _get_normalized_versions(tref, ven, vhe):
+    """
+    Normalize version params for a single ref into the canonical 'language|version_title' format.
+    Matches each param against known versions by title and/or language, falling back to partial matches
+    (language-only or title-only) when an exact match isn't found. Returns None for unmatched params.
+    """
+    if not ven and not vhe:
+        return [None, None] # saves `version_list()` db query
+    versions = Ref(tref).version_list()
+    normalized = []
+    for version_param, direction in [(ven, 'ltr'), (vhe, 'rtl')]:
+        if not version_param:
+            normalized.append(None)
+            continue
+        if '|' in version_param:
+            lang, vtitle = version_param.split('|', 1)
+        else:
+            lang, vtitle = None, version_param  # Legacy url with only version title
+        vtitle = vtitle.replace('_', ' ')
+        candidates = [v for v in versions if v['direction'] == direction]
+        version = (next((v for v in candidates if v['versionTitle'] == vtitle and v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['versionTitle'] == vtitle), None))
+        if version:
+            normalized.append(f'{version["languageFamilyName"]}|{version["versionTitle"].replace(" ", "_")}')
+        else:
+            normalized.append(None)
+    return normalized
+
+
+def _get_current_and_normalized_versions(request, tref):
+    """
+    Extract current version query params (ven/vhe) from the request for each panel and normalize them.
+    Normalization resolves legacy or partial version params (e.g. title-only without language) to the
+    canonical 'language|version_title' format by matching against known versions in the database.
+    Returns two dicts mapping param names to their current and normalized values respectively.
+    """
+    current_versions, normalized_versions = {}, {}
+    tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
+    tref_mappings[''] = tref
+    tref_mappings = dict(sorted(tref_mappings.items()))
+    for panel_num, tref in tref_mappings.items():
+        ven = request.GET.get(f'ven{panel_num}')
+        vhe = request.GET.get(f'vhe{panel_num}')
+        norm_ven, norm_vhe = _get_normalized_versions(tref, ven, vhe)
+        current_versions.update({k: v for k, v in [(f'ven{panel_num}', ven), (f'vhe{panel_num}', vhe)] if v})
+        normalized_versions.update({k: v for k, v in [(f'ven{panel_num}', norm_ven), (f'vhe{panel_num}', norm_vhe)] if v})
+    return current_versions, normalized_versions
 
 
 @ensure_csrf_cookie
@@ -429,9 +478,9 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    for version in ['ven', 'vhe']:
-        if request.GET.get(version) and '|' not in request.GET.get(version):
-            return _reader_redirect_add_languages(request, tref)
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
 
     if sheet is None:
         # Validate ref first
@@ -718,7 +767,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
         # represented by a custom image.
         return SocialImagePageType.MODULE_FALLBACK
 
-    if match.func in {serve_static, serve_static_by_lang}:
+    if match.func is serve_static:
         # Static pages are shared between modules and should use the simple
         # Sefaria fallback image, not Library or Voices module branding.
         return SocialImagePageType.STATIC
@@ -4805,19 +4854,15 @@ def search_path_filter(request, book_title):
 
 
 
-@ensure_csrf_cookie
-def serve_static(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
+_ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 @ensure_csrf_cookie
-def serve_static_by_lang(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
+def serve_static(request, page, by_lang=False):
+    if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
+        return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
+    lang_prefix = f'{request.LANGUAGE_CODE}/' if by_lang else ''
+    template = f'static/{lang_prefix}{page}.html'
+    return render_template(request, template, {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)

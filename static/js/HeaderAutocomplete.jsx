@@ -28,6 +28,17 @@ const type_title_map = {
   "User": "Users"
 };
 
+const type_title_id_map = {
+  "Collection": "common.collections",
+  "AuthorTopic": "common.authors",
+  "TocCategory": "header_autocomplete.categories",
+  "PersonTopic": "common.topics",
+  "Topic": "common.topics",
+  "ref": "header_autocomplete.books",
+  "Term": "header_autocomplete.terms",
+  "User": "header_autocomplete.users"
+};
+
 const MODULE_ALLOWED_SEARCH_TYPES = {
   [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Term'],
   [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
@@ -130,7 +141,7 @@ const getQueryObj = (query) => {
 };
 
 const TextualSearchSuggestion = ({label, onClick, ...props}) => {
-    const searchOverridePre = Sefaria._('Search for') +':';
+    const searchOverridePre = Sefaria._("header_autocomplete.search_for") +':';
     const displayedLabel = (
         <>
             <span className={"search-override-text"}>
@@ -270,24 +281,24 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
      
     return (
-      <div id="searchBox"
-           className={searchBoxClasses}
-           role="search"
-           aria-label={Sefaria._("Site search")}>
-        <SearchButton onClick={handleSearchButtonClick} />
-        <input
-          className={inputClasses}
-          id="searchInput"
-          placeholder={Sefaria._("Search")}
-          aria-label={Sefaria._("Search for Texts or Keywords Here")}
-          onKeyDown={handleSearchKeyDown}
-          onFocus={focusSearch}
-          onBlur={blurSearch}
-          maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")}
-          {...otherDownShiftProps}
-        />
-      </div>
+        <div id="searchBox"
+             className={searchBoxClasses}
+             role="search"
+             aria-label={Sefaria._("header_autocomplete.site_search")}>
+            <SearchButton onClick={handleSearchButtonClick} />
+            <input
+              className={inputClasses}
+              id="searchInput"
+              placeholder={Sefaria._("common.search")}
+              aria-label={Sefaria._("common.search_for_texts_or_keywords_here")}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={focusSearch}
+              onBlur={blurSearch}
+              maxLength={75}
+              title={Sefaria._("common.search_for_texts_or_keywords_here")}
+              {...otherDownShiftProps}
+            />
+        </div>
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
@@ -355,7 +366,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         <div className={"search-group-suggestions"}>
 
          {(type != 'search') &&
-            <div className={'type-title'}><InterfaceText>{title}</InterfaceText></div>
+            <div className={'type-title'}><InterfaceText>{type_title_id_map[type] || title}</InterfaceText></div>
          }
 
             <div className={"search-group-suggestions-items"}>

@@ -258,3 +258,32 @@ def test_get_all_topics_min_sources(topics_with_varying_source_counts):
 	# 'two' has only 2 sources and no exemption, so it's hidden; 'curated' has 1 source but a
 	# published description, so the curation exemption keeps it visible; 'three' clears the bar outright
 	assert strict_result == {by_suffix['three'].slug, by_suffix['curated'].slug}
+
+
+def test_get_topic_omits_orphaned_ref_links():
+	"""A RefTopicLink whose text was deleted from the library (its ref no longer
+	resolves) must be omitted from the get_topic response. Otherwise the orphaned source
+	reaches the client and blanks out the topic page. A valid ref link is still returned."""
+	from sefaria.system.database import db
+	t = Topic({'slug': '', 'data_source': 'sefaria', 'numSources': 0})
+	t.add_primary_titles('SC38063 Orphan Filter Test', 'SC38063 Orphan Filter Test'[::-1])
+	t.set_slug_to_primary_title()
+	t.save()
+	slug = t.slug
+	# Insert directly (bypassing RefTopicLink.save/_normalize, which would reject the dead ref).
+	base = {'class': 'refTopic', 'toTopic': slug, 'linkType': 'about', 'is_sheet': False, 'dataSource': 'sefaria'}
+	db.topic_links.insert_many([
+		{**base, 'ref': 'Genesis 1:1', 'expandedRefs': ['Genesis 1:1']},
+		{**base, 'ref': 'ThisBookWasDeleted 1:1', 'expandedRefs': ['ThisBookWasDeleted 1:1']},
+	])
+	try:
+		# with_links=True + with_refs=True exercises the combined all_links branch of
+		# get_topic — the same path the topic-page API uses (the crash scenario).
+		response = topic.get_topic(True, slug, 'english', with_links=True, with_refs=True,
+								   ref_link_type_filters={'about'})
+		returned_refs = [r['ref'] for grp in response['refs'].values() for r in grp['refs']]
+		assert 'Genesis 1:1' in returned_refs
+		assert 'ThisBookWasDeleted 1:1' not in returned_refs
+	finally:
+		db.topic_links.delete_many({'toTopic': slug})
+		t.delete()
