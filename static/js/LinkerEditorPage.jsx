@@ -29,10 +29,29 @@ const pathString = (keyPath) => keyPath.join('.');
 
 const encPath = (s) => encodeURIComponent(s);
 
+const detectTitleLang = (text) => {
+  let heCount = 0;
+  let otherCount = 0;
+  const punctuationRE = /[\s.,'"?!;:\-=@#$%^&*()[\]{}\/<>\\|_+`~׳״]/;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x05D0 && code <= 0x05EA) {
+      heCount++;
+    } else if ((code >= 0x0591 && code <= 0x05C7) || punctuationRE.test(text[i])) {
+      continue;
+    } else {
+      otherCount++;
+    }
+  }
+  return heCount > otherCount ? 'he' : 'en';
+};
+
 const editorApi = {
   loadRawIndex: (title) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/v2/raw/index/${encPath(title)}`),
   searchTerms: (q) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/linker/non-unique-terms?q=${encPath(q)}`),
   termDetail: (slug) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term/${encPath(slug)}`),
+  addTermTitles: (slug, payload) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, payload, 'POST'),
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
   addMatchTemplate: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'POST'),
@@ -293,6 +312,8 @@ const SchemaNodeCard = ({ node, keyPath, title, isRoot, expandedPaths, toggleExp
 const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [savingTitles, setSavingTitles] = useState(false);
 
   useEffect(() => {
     setDetail(null); setError(null);
@@ -304,6 +325,20 @@ const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const addTitles = async () => {
+    const text = newTitle.trim();
+    if (!text) { return; }
+    setSavingTitles(true); setError(null);
+    try {
+      const nextDetail = await editorApi.addTermTitles(slug, { titles: [{ lang: detectTitleLang(text), text }] });
+      setDetail(nextDetail);
+      setNewTitle('');
+    } catch (e) {
+      setError(e.message || String(e));
+    }
+    setSavingTitles(false);
+  };
 
   return (
     <div className="termDetailPanel">
@@ -320,6 +355,22 @@ const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
             {(detail.titles || []).map((t, i) => (
               <span key={i} className="termTitleItem"><em>{t.lang}</em> {t.text}{t.primary ? ' ★' : ''}</span>
             ))}
+          </div>
+          <div className="termAddTitlesForm">
+            <span className="cardLabel">{Sefaria._('Add alt titles')}</span>
+            <input
+              className="linkerEditorTermInput"
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              placeholder={Sefaria._('Alternate title')}
+            />
+            <button
+              className="linkerEditorBtn small"
+              disabled={savingTitles || !newTitle.trim()}
+              onClick={addTitles}
+            >
+              {savingTitles ? Sefaria._('Saving…') : Sefaria._('Save')}
+            </button>
           </div>
           <div className="termUsagesList">
             <span className="cardLabel">{Sefaria._('Used by')} ({(detail.usages || []).length})</span>

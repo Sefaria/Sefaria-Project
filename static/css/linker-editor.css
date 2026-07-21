@@ -186,6 +186,13 @@
 .termTitlesList { margin-bottom: 12px; }
 .termTitleItem { display: inline-block; margin-right: 12px; font-size: 13px; }
 .termTitleItem em { color: #888; font-style: normal; text-transform: uppercase; font-size: 11px; }
+.termAddTitlesForm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
 .termUsageItem {
   display: flex;
   align-items: center;

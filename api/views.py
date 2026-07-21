@@ -388,13 +388,22 @@ class LinkerEditorAddressTypesListView(StaffRequiredMixin, View):
 
 
 class LinkerEditorNonUniqueTermView(StaffRequiredMixin, View):
-    """Term titles + cross-usages for a single NonUniqueTerm (GET)."""
+    """Term titles + cross-usages for a single NonUniqueTerm (GET); add alternate titles (POST)."""
 
     def get(self, request, slug):
         try:
             return jsonResponse(linker_editor.get_non_unique_term_detail(slug))
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=404)
+
+    def post(self, request, slug):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(linker_editor.add_non_unique_term_titles(slug, body.get("titles", [])))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
 
 
 class LinkerEditorNonUniqueTermSearchView(StaffRequiredMixin, View):

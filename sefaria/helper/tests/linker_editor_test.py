@@ -47,6 +47,70 @@ def test_normalize_scope():
         le._normalize_scope("bogus")
 
 
+def test_add_non_unique_term_titles(monkeypatch):
+    class FakeTerm:
+        slug = "__le_test_term__"
+
+        def __init__(self):
+            self.titles = [{"text": "Primary", "lang": "en", "primary": True}]
+            self.saved = False
+
+        def add_title(self, text, lang):
+            self.titles.append({"text": text, "lang": lang})
+
+        def save(self):
+            self.saved = True
+
+        def get_titles_object(self):
+            return self.titles
+
+    term = FakeTerm()
+
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return term if slug == term.slug else None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+    monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
+
+    detail = le.add_non_unique_term_titles(term.slug, [
+        {"text": "Alt", "lang": "en"},
+        {"text": "חלופה", "lang": "he"},
+    ])
+
+    assert term.saved
+    assert {"text": "Alt", "lang": "en"} in detail["titles"]
+    assert {"text": "חלופה", "lang": "he"} in detail["titles"]
+    assert detail["usages"] == []
+
+
+def test_add_non_unique_term_titles_validation(monkeypatch):
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+
+    with pytest.raises(InputError):
+        le.add_non_unique_term_titles("__no_such_slug__", [{"text": "Alt", "lang": "en"}])
+
+    class ExistingFakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return object()
+
+    monkeypatch.setattr(le, "NonUniqueTerm", ExistingFakeNonUniqueTerm)
+
+    with pytest.raises(InputError):
+        le.add_non_unique_term_titles("__le_test_term__", [])
+    with pytest.raises(InputError):
+        le.add_non_unique_term_titles("__le_test_term__", [{"text": "Alt", "lang": "fr"}])
+    with pytest.raises(InputError):
+        le.add_non_unique_term_titles("__le_test_term__", [{"text": "   ", "lang": "en"}])
+
+
 # ---------------------------------------------------------------------------
 # Redis usage index — surgical add/remove (cache only)
 # ---------------------------------------------------------------------------

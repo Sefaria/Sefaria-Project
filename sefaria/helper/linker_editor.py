@@ -178,3 +178,26 @@ def get_non_unique_term_detail(slug: str) -> dict:
         "titles": term.get_titles_object(),
         "usages": nut_index.get_term_usages(slug),
     }
+
+
+def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
+    """Add alternate titles to a NonUniqueTerm and return the refreshed term detail."""
+    term = NonUniqueTerm.init(slug)
+    if term is None:
+        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+    if not isinstance(titles, list) or not titles:
+        raise InputError("titles must be a non-empty list.")
+
+    for title in titles:
+        if not isinstance(title, dict):
+            raise InputError("Each title must be an object.")
+        lang = title.get("lang")
+        text = (title.get("text") or "").strip()
+        if lang not in ("en", "he"):
+            raise InputError("Title lang must be 'en' or 'he'.")
+        if not text:
+            raise InputError("Title text may not be blank.")
+        term.add_title(text, lang)
+
+    term.save()
+    return get_non_unique_term_detail(slug)
