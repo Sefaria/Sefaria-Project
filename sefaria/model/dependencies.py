@@ -4,12 +4,12 @@ dependencies.py -- list cross model dependencies and subscribe listeners to chan
 
 from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place, marked_up_text_chunk
 
+from django.conf import settings
+
 _pgv = None
-try:
+_PGVECTOR_DEPS = "vector_db" in getattr(settings, "DATABASES", {})
+if _PGVECTOR_DEPS:
     from semantic_search import pgvector_dependencies as _pgv
-except ImportError:
-    pass
-_PGVECTOR_DEPS = _pgv is not None
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache

@@ -17,7 +17,7 @@ from sefaria.celery_setup.app import app
 from sefaria.model import (
     Index, IndexSet, Version, VersionSet, Ref, RefDataSet, RefData, Topic, CategorySet,
 )
-from sefaria.helper.vector.context import get_index_context, get_chunk_context, get_chunking_unit_ref
+from sefaria.helper.vector.context import get_index_context, get_version_context, get_chunk_context, get_chunking_unit_ref
 from sefaria.pagesheetrank import PAGESHEETRANK_CHANGE_THRESHOLD
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import SemanticTextChunk
@@ -73,11 +73,7 @@ def update_version_attributes(index_title: str, vtitle: str) -> None:
             index_title=index_title, vtitle=vtitle,
         )
         return
-    fields = {
-        "is_primary": bool(ver.isPrimary),
-        "is_source": bool(ver.isSource),
-        "direction": ver.direction,
-    }
+    fields = get_version_context(ver)
     count = SemanticTextChunk.objects.update_version_fields(index_title, vtitle, fields)
     logger.info(
         "semantic_search.update_version_attributes: updated",
@@ -397,7 +393,6 @@ def _chunk_new_unit(
         return
 
     from django.conf import settings
-    from sefaria.helper.vector.context import get_version_context
     from sefaria.helper.vector.embed_library_to_pgvector import (
         build_chunk_data, collect_segment_text_by_ref,
     )
