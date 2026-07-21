@@ -33,6 +33,8 @@ const altStructRoots = (rawIndex) => {
     .map(([structName, struct]) => ({ structName, nodes: struct.nodes || [] }));
 };
 
+const nodeDomId = (path) => `linker-editor-node-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+
 const encPath = (s) => encodeURIComponent(s);
 
 const detectTitleLang = (text) => {
@@ -276,6 +278,8 @@ const SchemaNodeCard = ({
   onChanged,
   altStructRootEntries=[],
   collapseBranchBodyWhenCollapsed=false,
+  ancestorCrumbs=[],
+  jumpToPath,
 }) => {
   const path = pathString(keyPath);
   const children = node.nodes || [];
@@ -283,15 +287,28 @@ const SchemaNodeCard = ({
   const expanded = forceExpanded || expandedPaths.has(path);
   const matchTemplates = node.match_templates || [];
   const childKeyPath = (child, index) => keyPath[0] === '__alt__' ? [...keyPath, String(index)] : [...keyPath, child.key];
+  const childAncestorCrumbs = [...ancestorCrumbs, { label: nodePrimaryTitle(node), path }];
   const showBody = forceExpanded || expanded || !hasChildren || !collapseBranchBodyWhenCollapsed;
 
   return (
-    <div className={'schemaNodeCard' + (isRoot ? ' root' : '')}>
+    <div id={nodeDomId(path)} className={'schemaNodeCard' + (isRoot ? ' root' : '')}>
       <div className="schemaNodeHeader">
         {hasChildren && !forceExpanded
           ? <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
           : <span className="expandToggle placeholder" />}
         <span className="schemaNodeTitle">{nodePrimaryTitle(node)}</span>
+        {ancestorCrumbs.length > 0 && (
+          <span className="schemaNodePath">
+            (
+            {ancestorCrumbs.map((crumb, i) => (
+              <React.Fragment key={`${crumb.path}-${i}`}>
+                {i > 0 && <span className="schemaNodePathSeparator"> / </span>}
+                <button className="schemaNodePathCrumb" onClick={() => jumpToPath(crumb.path)}>{crumb.label}</button>
+              </React.Fragment>
+            ))}
+            )
+          </span>
+        )}
         <span className="schemaNodeKey">{node.key || node.nodeType}</span>
       </div>
 
@@ -337,6 +354,8 @@ const SchemaNodeCard = ({
               onTermClick={onTermClick}
               onChanged={onChanged}
               collapseBranchBodyWhenCollapsed={collapseBranchBodyWhenCollapsed}
+              ancestorCrumbs={childAncestorCrumbs}
+              jumpToPath={jumpToPath}
             />
           ))}
         </div>
@@ -356,6 +375,7 @@ const SchemaNodeCard = ({
               addressTypeOptions={addressTypeOptions}
               onTermClick={onTermClick}
               onChanged={onChanged}
+              jumpToPath={jumpToPath}
             />
           ))}
         </div>
@@ -364,12 +384,12 @@ const SchemaNodeCard = ({
   );
 };
 
-const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, onTermClick, onChanged }) => {
+const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, onTermClick, onChanged, jumpToPath }) => {
   const path = pathString(['__alt__', structName]);
   const expanded = expandedPaths.has(path);
 
   return (
-    <div className="schemaNodeCard altStructGroup">
+    <div id={nodeDomId(path)} className="schemaNodeCard altStructGroup">
       <div className="schemaNodeHeader">
         <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
         <span className="schemaNodeTitle">{structName}</span>
@@ -392,6 +412,10 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
               onTermClick={onTermClick}
               onChanged={onChanged}
               collapseBranchBodyWhenCollapsed={true}
+              ancestorCrumbs={[
+                { label: structName, path },
+              ]}
+              jumpToPath={jumpToPath}
             />
           ))}
         </div>
@@ -565,7 +589,10 @@ const LinkerEditorPage = () => {
     editorApi.loadRawIndex(indexTitle)
       .then(d => {
         if (d.error) { setError(d.error); }
-        else { setRawIndex(d); }
+        else {
+          setRawIndex(d);
+          setExpandedPaths(new Set(d.schema?.key ? [d.schema.key] : []));
+        }
         setLoading(false);
       }, e => { setError(e.message || String(e)); setLoading(false); })
   }, []);
@@ -583,6 +610,18 @@ const LinkerEditorPage = () => {
       if (next.has(path)) { next.delete(path); } else { next.add(path); }
       return next;
     });
+  }, []);
+
+  const jumpToPath = useCallback((path) => {
+    setExpandedPaths(prev => {
+      const next = new Set(prev);
+      const parts = path.split('.');
+      for (let i = 1; i <= parts.length; i++) { next.add(parts.slice(0, i).join('.')); }
+      return next;
+    });
+    setTimeout(() => {
+      document.getElementById(nodeDomId(path))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   }, []);
 
   const jumpToNode = useCallback((indexTitle, nodeKeyPath) => {
@@ -636,13 +675,15 @@ const LinkerEditorPage = () => {
                   keyPath={[schema.key]}
                   title={title}
                   isRoot={true}
-                  forceExpanded={true}
+                  forceExpanded={false}
                   expandedPaths={expandedPaths}
                   toggleExpand={toggleExpand}
                   addressTypeOptions={addressTypeOptions}
                   onTermClick={setTermSlug}
                   onChanged={reload}
                   altStructRootEntries={altStructRootEntries}
+                  collapseBranchBodyWhenCollapsed={true}
+                  jumpToPath={jumpToPath}
                 />
               )}
             </div>
