@@ -66,7 +66,13 @@ const editorApi = {
 // NonUniqueTerm autocomplete (used by the MatchTemplate editor)
 // ---------------------------------------------------------------------------
 
-const TermAutocomplete = ({ onSelect, placeholder }) => {
+const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocus=false }) => {
+  let clearInput = null;
+  const selectTerm = (term) => {
+    if (!term) { return; }
+    onSelect(term);
+    if (clearOnSelect && clearInput) { clearInput(); }
+  };
   const getSuggestions = async (inputValue) => {
     if (!inputValue || inputValue.trim().length < 1) { return []; }
     try {
@@ -74,9 +80,12 @@ const TermAutocomplete = ({ onSelect, placeholder }) => {
       return (d.terms || []).map(t => ({ ...t, name: t.slug }));
     } catch (e) { return []; }
   };
-  const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps) => (
-    <input {...getInputProps()} className="linkerEditorTermInput" placeholder={placeholder || Sefaria._('Search terms…')} />
-  );
+  const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue) => {
+    clearInput = () => setInputValue('');
+    return (
+      <input {...getInputProps()} className="linkerEditorTermInput" placeholder={placeholder || Sefaria._('Search terms…')} autoFocus={autoFocus} />
+    );
+  };
   const renderItems = (suggestions, highlightedIndex, getItemProps) => (
     suggestions.map((item, index) => (
       <div
@@ -96,7 +105,14 @@ const TermAutocomplete = ({ onSelect, placeholder }) => {
       getSuggestions={getSuggestions}
       renderInput={renderInput}
       renderItems={renderItems}
-      onSelectedItemChange={({ selectedItem }) => { if (selectedItem) { onSelect(selectedItem); } }}
+      onSelectedItemChange={({ selectedItem }) => selectTerm(selectedItem)}
+      onEnter={({ event, highlightedSuggestion, suggestions }) => {
+        const item = highlightedSuggestion || suggestions[0];
+        if (!item) { return false; }
+        event.preventDefault();
+        selectTerm(item);
+        return true;
+      }}
     />
   );
 };
@@ -186,7 +202,7 @@ const AddMatchTemplateForm = ({ title, keyPath, onChanged }) => {
           </span>
         ))}
       </div>
-      <TermAutocomplete onSelect={(term) => { if (!slugs.includes(term.slug)) { setSlugs([...slugs, term.slug]); } }} />
+      <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={(term) => { if (!slugs.includes(term.slug)) { setSlugs([...slugs, term.slug]); } }} />
       <label className="scopeSelect">
         {Sefaria._('scope')}:
         <select value={scope} onChange={e => setScope(e.target.value)}>
