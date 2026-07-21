@@ -8,7 +8,7 @@ import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters';
 import FilterNode from './sefaria/FilterNode';
 import Component from 'react-class';
-import {SearchFilterButton, MobileFilterIconButton} from './SearchResultList';
+import {MobileFilterIconButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
 import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
