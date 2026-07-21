@@ -3,11 +3,11 @@ import { InterfaceText } from '../Misc.jsx';
 
 const LegalText = () => (
   <p className="sefaria-legal-text">
-    <InterfaceText context="Auth">{"By continuing, you are agreeing to Sefaria's "}</InterfaceText>
-    <a href="/terms"><InterfaceText context="Auth">Terms of Use</InterfaceText></a>
-    <InterfaceText context="Auth">{" and "}</InterfaceText>
-    <a href="/privacy-policy"><InterfaceText context="Auth">Privacy Policy</InterfaceText></a>
-    <InterfaceText context="Auth">{"."}</InterfaceText>
+    <InterfaceText>auth.terms_prefix</InterfaceText>
+    <a href="/terms"><InterfaceText>auth.terms_of_use</InterfaceText></a>
+    <InterfaceText>auth.terms_conjunction</InterfaceText>
+    <a href="/privacy-policy"><InterfaceText>auth.privacy_policy</InterfaceText></a>
+    <InterfaceText>auth.terms_suffix</InterfaceText>
   </p>
 );
 

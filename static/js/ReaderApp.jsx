@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { Header } from './Header';
 import ReaderPanel from './ReaderPanel';
+import {CONNECTION_MODE_STRING_IDS} from './constants';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
@@ -48,6 +49,9 @@ class ReaderApp extends Component {
     // TODO clean up generation of initial panels objects
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH       = 360.0;
+    this._aboutSidebarPaths    = new Set(
+      (Sefaria._siteSettings.ABOUT_SIDEBAR_PAGES || []).map(p => '/' + p.path)
+    );
     let panels                 = [];
     const searchType = SearchState.moduleToSearchType(Sefaria.activeModule);
     if (props.initialMenu) {
@@ -525,7 +529,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "Search";
+            const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "common.search";
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
@@ -544,13 +548,13 @@ class ReaderApp extends Component {
               hist.mode  = "topicCat";
             } else {
               hist.url   = "topics";
-              hist.title = Sefaria.getPageTitle("Topics");
+              hist.title = Sefaria.getPageTitle("common.topics");
               hist.mode  = "topics";
             }
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              const allTopicsTitle = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter;
+              const allTopicsTitle = Sefaria._("reader_app.explore_jewish_texts_by_topic") + " - " + state.navigationTopicLetter;
               hist.title = Sefaria.getPageTitle(allTopicsTitle);
               hist.mode  = "topics";
             break;
@@ -560,7 +564,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria.getPageTitle("Notifications");
+            hist.title = Sefaria.getPageTitle("common.notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -575,10 +579,10 @@ class ReaderApp extends Component {
           case "editCollection":
             if (state.collectionData && state.collectionData.slug) {
               hist.url   = "collections/" + state.collectionData.slug + "/settings";
-              hist.title = Sefaria.getPageTitle("Edit Collection");
+              hist.title = Sefaria.getPageTitle("edit_collection_page.edit_collection");
             } else {
               hist.url   = "collections/new";
-              hist.title = Sefaria.getPageTitle("Create Collection");
+              hist.title = Sefaria.getPageTitle("user_profile.create_collection");
             }
             hist.mode  = "editCollection";
             break;
@@ -593,7 +597,7 @@ class ReaderApp extends Component {
             hist.mode  = "translations";
             break;
           case "calendars":
-            hist.title = Sefaria.getPageTitle("Learning Schedules");
+            hist.title = Sefaria.getPageTitle("header.learning_schedules");
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
@@ -608,27 +612,27 @@ class ReaderApp extends Component {
             hist.mode = "updates";
             break;
           case "modtools":
-            hist.title = Sefaria._("Moderator Tools");
+            hist.title = Sefaria._("reader_app.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
           case "user_stats":
-            hist.title = Sefaria.getPageTitle("Torah Tracker");
+            hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
             hist.url = "torahtracker";
             hist.mode = "user_stats";
             break;
           case "saved":
-            hist.title = Sefaria.getPageTitle("My Saved Content");
+            hist.title = Sefaria.getPageTitle("user_history_panel.my_saved_content");
             hist.url = "saved";
             hist.mode = "saved";
             break;
           case "history":
-            hist.title = Sefaria.getPageTitle("My Reading History");
+            hist.title = Sefaria.getPageTitle("user_history_panel.my_reading_history");
             hist.url = "history";
             hist.mode = "history";
             break;
           case "notes":
-            hist.title = Sefaria.getPageTitle("My Notes");
+            hist.title = Sefaria.getPageTitle("my_notes_panel.my_notes");
             hist.url = "texts/notes";
             hist.mode = "notes";
             break;
@@ -681,7 +685,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSource = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const connectionsTitle = shouldShowSource ?
-          Sefaria._r(ref) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(ref) + Sefaria._("reader_app.with") + Sefaria._(CONNECTION_MODE_STRING_IDS[hist.sources] || hist.sources) :
           Sefaria._r(ref);
         hist.title    = Sefaria.getPageTitle(connectionsTitle);
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
@@ -704,7 +708,7 @@ class ReaderApp extends Component {
         }
         const shouldShowSourceInTitle = hist.sources !== "all" && !hist.sources.includes("ConnectionsList");
         const textAndConnectionsTitle = shouldShowSourceInTitle ?
-          Sefaria._r(htitle) + Sefaria._(" with ") + Sefaria._(hist.sources) :
+          Sefaria._r(htitle) + Sefaria._("reader_app.with") + Sefaria._(CONNECTION_MODE_STRING_IDS[hist.sources] || hist.sources) :
           Sefaria._r(htitle);
         hist.title    = Sefaria.getPageTitle(textAndConnectionsTitle);
         hist.url      = Sefaria.normRef(htitle); // + "?with=" + sources;
@@ -829,14 +833,14 @@ class ReaderApp extends Component {
             hist.url += `&namedEntityText${i}=${encodeURIComponent(histories[i].selectedNamedEntityText)}`;
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
-          hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
+          hist.title += Sefaria._("reader_app.and") + histories[i].title; // TODO this doesn't trim title properly
         }
       } else {
         var next    = "&p=" + histories[i].url;
         next        = next.replace("?", "&").replace(/=/g, (i+1) + "=");
         hist.url   += next;
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
-        hist.title += Sefaria._(" & ") + histories[i].title;
+        hist.title += Sefaria._("reader_app.and") + histories[i].title;
       }
       if (!isMobileConnectionsOpen) {
         if (histories[i].lang) {
@@ -1285,6 +1289,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       return true;
     }
     const path = decodeURI(url.pathname);
+    if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+      if (this._aboutSidebarPaths.has(path)) {
+        window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
+        return true;
+      }
+    }
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
@@ -2476,7 +2486,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
-            <Button href="#main" className="skip-link">{Sefaria._("Skip to main content")}</Button>
+            <Button href="#main" className="skip-link">{Sefaria._("reader_app.skip_to_main_content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
             <GoogleOneTap googleClientId={Sefaria.googleClientId} />

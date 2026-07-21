@@ -14,31 +14,30 @@ import { InterfaceText } from '../Misc.jsx';
  *   with link · placeholder/error · filled/error.
  *
  * Controlled component — the parent owns `value` and validation. Keep it presentational:
- * pass raw English strings for `label`, `placeholder`, `error`, and the reveal labels;
+ * pass keyed string IDs for `label`, `error`, and the reveal labels;
  * this component wraps visible text in InterfaceText and aria-labels via Sefaria._().
  *
  * @param type           "text" | "email" | "password"
  * @param value          controlled value
  * @param onChange       change handler
- * @param label          field label (raw English string)
+ * @param label          field label (keyed string ID)
  * @param name           input name (also used as id fallback)
  * @param id             input id (defaults to name)
  * @param placeholder    placeholder (raw string — HTML attribute, not localized via InterfaceText)
- * @param error          error message string, or null/empty for no error
+ * @param error          error message (keyed string ID), or null/empty for no error
  * @param disabled       disables the field
  * @param required       marks the field required
  * @param inputDir       "ltr" | "rtl" — direction for the control value only (e.g. "ltr" for email/password in RTL layouts)
  * @param autoComplete   autocomplete hint
- * @param trailingLink   { text, href?, onClick? } — the Figma "with link" variant (e.g. "Forgot password?")
- * @param revealLabel    aria-label for the show-password control (raw English string)
- * @param hideLabel      aria-label for the hide-password control (raw English string)
+ * @param trailingLink   { text, href?, onClick? } — the Figma "with link" variant (text is a keyed string ID)
+ * @param revealLabel    aria-label for the show-password control (keyed string ID)
+ * @param hideLabel      aria-label for the hide-password control (keyed string ID)
  */
 const Input = ({
   type = 'text',
   value,
   onChange,
   label,
-  labelContext,
   name,
   id,
   placeholder,
@@ -48,8 +47,8 @@ const Input = ({
   inputDir,
   autoComplete,
   trailingLink = null,
-  revealLabel = 'Show password',
-  hideLabel = 'Hide password',
+  revealLabel = 'auth.show_password',
+  hideLabel = 'auth.hide_password',
   ...rest
 }) => {
   const inputId = id || name;
@@ -73,7 +72,7 @@ const Input = ({
     <div className={wrapperClasses}>
       {(label || trailingLink) && (
         <div className="sefaria-input-labelRow">
-          {label ? <label className="sefaria-input-label" htmlFor={inputId}><InterfaceText context={labelContext}>{label}</InterfaceText></label> : <span />}
+          {label ? <label className="sefaria-input-label" htmlFor={inputId}><InterfaceText>{label}</InterfaceText></label> : <span />}
           {trailingLink && (
             <a
               className="sefaria-input-trailingLink"
@@ -136,7 +135,6 @@ Input.propTypes = {
   value: PropTypes.string,
   onChange: PropTypes.func,
   label: PropTypes.string,
-  labelContext: PropTypes.string,
   name: PropTypes.string,
   id: PropTypes.string,
   placeholder: PropTypes.string,

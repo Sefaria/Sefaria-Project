@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 
 const PROVIDERS = {
-  google: { icon: 'google', defaultLabel: 'Continue with Google' },
-  apple: { icon: 'apple', defaultLabel: 'Continue with Apple' },
+  google: { icon: 'google', defaultLabel: 'auth.continue_with_google' },
+  apple: { icon: 'apple', defaultLabel: 'auth.continue_with_apple' },
 };
 
 /**

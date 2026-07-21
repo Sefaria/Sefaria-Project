@@ -11,9 +11,9 @@ import ErrorBanner from './ErrorBanner.jsx';
 import { whenReady, pickFirstError, authError, safeNext } from './utils.js';
 
 const EMAIL_EXISTS_ERRORS = {
-  'This email address is already registered via Google Sign-In.': { message: 'This email address is already registered via Google Sign-In.', linkText: 'Continue with Google', provider: 'google' },
-  'This email address is already registered via Apple Sign-In.':  { message: 'This email address is already registered via Apple Sign-In.',  linkText: 'Continue with Apple',  provider: 'apple'  },
-  'An account with this email address already exists.':           { message: 'An account with this email address already exists.',            linkText: 'Log In' },
+  'This email address is already registered via Google Sign-In.': { message: 'auth.email_exists_google', linkText: 'auth.continue_with_google_link', provider: 'google' },
+  'This email address is already registered via Apple Sign-In.':  { message: 'auth.email_exists_apple',  linkText: 'auth.continue_with_apple_link',  provider: 'apple'  },
+  'An account with this email address already exists.':           { message: 'auth.email_exists_generic', linkText: 'auth.log_in_link' },
 };
 
 const EmailView = ({
@@ -127,7 +127,7 @@ const EmailView = ({
           window.location.href = data.redirect;
           return;
         }
-        const message = pickFirstError(data) || 'Something went wrong. Try again.';
+        const message = pickFirstError(data) || 'auth.generic_error';
         trackRegistration('form_submit_result', {
           status: 'failure',
           error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
@@ -135,7 +135,7 @@ const EmailView = ({
         const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', last_name: 'last' };
         const newFieldErrors = { email: null, password: null, first: null, last: null };
         let hasUnknownError = false;
-        const BACKEND_MESSAGES = { 'This field is required.': 'Required field' };
+        const BACKEND_MESSAGES = { 'This field is required.': 'auth.required_field' };
         for (const [key, val] of Object.entries(data || {})) {
           if (key === '_auth' || key === 'captcha') continue;
           if (FIELD_MAP[key]) {
@@ -153,8 +153,8 @@ const EmailView = ({
                 <InterfaceText>{info.message}</InterfaceText>
                 {' '}
                 {info.provider
-                  ? <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(info.provider); }}><InterfaceText context="Auth">{info.linkText}</InterfaceText></a>
-                  : <a href="/login" onClick={switchFlow('login')}><InterfaceText context="Auth">{info.linkText}</InterfaceText></a>
+                  ? <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(info.provider); }}><InterfaceText>{info.linkText}</InterfaceText></a>
+                  : <a href="/login" onClick={switchFlow('login')}><InterfaceText>{info.linkText}</InterfaceText></a>
                 }
               </span>
             );
@@ -164,7 +164,7 @@ const EmailView = ({
         const hasCaptchaError = !!(data?.captcha);
         const hasAuthError = !!(data?._auth?.code);
         setError(hasAuthError || hasUnknownError ? authError(data, message) : null);
-        if (hasCaptchaError) setCaptchaError('Verify that you are not a robot');
+        if (hasCaptchaError) setCaptchaError('auth.verify_not_robot');
         if (window.grecaptcha && captchaWidgetId.current !== null) {
           try { window.grecaptcha.reset(captchaWidgetId.current); } catch (e2) { /* noop */ }
           captchaToken.current = '';
@@ -177,13 +177,13 @@ const EmailView = ({
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok) { window.location.href = safeNext(next); return; }
-        setError(authError(data, 'Email and/or password are incorrect'));
+        setError(authError(data, 'auth.invalid_credentials'));
       }
     } catch (err) {
       if (flow === 'register') {
         trackRegistration('form_submit_result', { status: 'failure', error: 'network_error' });
       }
-      setError(authError(null, 'Something went wrong. Try again.'));
+      setError(authError(null, 'auth.generic_error'));
     } finally {
       setSubmitting(false);
     }
@@ -191,13 +191,13 @@ const EmailView = ({
 
   const cfg = isRegister ? {
     cardClass: 'sefaria-auth-card--register-email',
-    heading: <InterfaceText context="Auth">Create Account</InterfaceText>,
+    heading: <InterfaceText>auth.create_account</InterfaceText>,
     sub: (
       <>
-        <InterfaceText>Already have an account?</InterfaceText>
+        <InterfaceText>auth.already_have_an_account</InterfaceText>
         {' '}
         <a href="/login" onClick={switchFlow('login')}>
-          <InterfaceText context="Auth">Log In</InterfaceText>
+          <InterfaceText>auth.log_in_link</InterfaceText>
         </a>
       </>
     ),
@@ -206,16 +206,16 @@ const EmailView = ({
     passwordAutoComplete: 'new-password',
     passwordOnFocus: startRegistration,
     passwordTrailingLink: null,
-    buttonText: <InterfaceText>Create Account</InterfaceText>,
+    buttonText: <InterfaceText>auth.create_account</InterfaceText>,
   } : {
     cardClass: 'sefaria-auth-card--login-email',
-    heading: <InterfaceText>Log In</InterfaceText>,
+    heading: <InterfaceText>header.log_in</InterfaceText>,
     sub: (
       <>
-        <InterfaceText>{"Don't have an account?"}</InterfaceText>
+        <InterfaceText>auth.dont_have_an_account</InterfaceText>
         {' '}
         <a href="/register" onClick={switchFlow('register')}>
-          <InterfaceText>Sign Up</InterfaceText>
+          <InterfaceText>header.sign_up</InterfaceText>
         </a>
       </>
     ),
@@ -223,8 +223,8 @@ const EmailView = ({
     emailOnFocus: undefined,
     passwordAutoComplete: 'current-password',
     passwordOnFocus: undefined,
-    passwordTrailingLink: { text: 'Forgot password?', onClick: onForgotClick },
-    buttonText: <InterfaceText>Log In</InterfaceText>,
+    passwordTrailingLink: { text: 'auth.forgot_password', onClick: onForgotClick },
+    buttonText: <InterfaceText>header.log_in</InterfaceText>,
   };
 
   return (
@@ -238,14 +238,14 @@ const EmailView = ({
         <ErrorBanner error={error} onProviderClick={onProviderClick} />
         <div className="sefaria-auth-fields">
           <EmailInput value={fields.email} setField={setField} onFocus={cfg.emailOnFocus} error={fieldErrors.email} />
-          <Input label="Password" type="password" name="password"
+          <Input label="auth.password" type="password" name="password"
                  inputDir="ltr" autoComplete={cfg.passwordAutoComplete}
                  placeholder="••••••••"
                  value={fields.password} onChange={setField('password')}
                  onFocus={cfg.passwordOnFocus} trailingLink={cfg.passwordTrailingLink}
                  error={fieldErrors.password} />
-          {isRegister && <Input label="First Name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />}
-          {isRegister && <Input label="Last Name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />}
+          {isRegister && <Input label="common.first_name" name="first_name" value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />}
+          {isRegister && <Input label="common.last_name" name="last_name" value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />}
         </div>
         {isRegister && recaptchaSiteKey && (
           <Captcha error={captchaError}>

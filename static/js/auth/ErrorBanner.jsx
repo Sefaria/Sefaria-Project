@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 
 const SSO_PROVIDER_INFO = {
-  google: { msgEn: 'This email address is registered via Google Sign-In.', linkEn: 'Continue with Google' },
-  apple:  { msgEn: 'This email address is registered via Apple.',           linkEn: 'Continue with Apple'  },
+  google: { msgEn: 'auth.email_registered_google', linkEn: 'auth.continue_with_google_link' },
+  apple:  { msgEn: 'auth.email_registered_apple',  linkEn: 'auth.continue_with_apple_link'  },
 };
 
 const ErrorBanner = ({ error, onProviderClick }) => {
@@ -22,7 +22,7 @@ const ErrorBanner = ({ error, onProviderClick }) => {
                   <InterfaceText>{info.msgEn}</InterfaceText>
                   {' '}
                   <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(provider); }}>
-                    <InterfaceText context="Auth">{info.linkEn}</InterfaceText>
+                    <InterfaceText>{info.linkEn}</InterfaceText>
                   </a>
                 </span>
               );

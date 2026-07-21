@@ -29,9 +29,9 @@ const ChooseView = ({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) { window.location.href = safeNext(next); }
-      else { setError(authError(data, 'Something went wrong. Try again.')); }
+      else { setError(authError(data, 'auth.generic_error')); }
     } catch (e) {
-      setError(authError(null, 'Something went wrong. Try again.'));
+      setError(authError(null, 'auth.generic_error'));
     }
   }, [next]);
 
@@ -100,7 +100,7 @@ const ChooseView = ({
     };
     const onFail = (ev) => {
       if (ev.detail?.error !== 'popup_closed_by_user') {
-        setError(authError(null, 'Something went wrong. Try again.'));
+        setError(authError(null, 'auth.generic_error'));
       }
     };
     document.addEventListener('AppleIDSignInOnSuccess', onOk);
@@ -139,35 +139,35 @@ const ChooseView = ({
       if (signIn && typeof signIn.catch === 'function') {
         signIn.catch((err) => {
           if (err?.error !== 'popup_closed_by_user') {
-            setError(authError(null, 'Something went wrong. Try again.'));
+            setError(authError(null, 'auth.generic_error'));
           }
         });
       }
     } catch (err) {
-      setError(authError(null, 'Something went wrong. Try again.'));
+      setError(authError(null, 'auth.generic_error'));
     }
   };
 
 
   const isLogin = flow === 'login';
   const heading = isLogin
-    ? <InterfaceText>Log In</InterfaceText>
-    : <InterfaceText context="Auth">Sign Up</InterfaceText>;
+    ? <InterfaceText>header.log_in</InterfaceText>
+    : <InterfaceText>auth.create_account</InterfaceText>;
   const sub = isLogin
     ? (
       <>
-        <InterfaceText>{"Don't have an account?"}</InterfaceText>
+        <InterfaceText>auth.dont_have_an_account</InterfaceText>
         {' '}
         <a href="/register" onClick={switchFlow('register')}>
-          <InterfaceText>Sign Up</InterfaceText>
+          <InterfaceText>header.sign_up</InterfaceText>
         </a>
       </>
     ) : (
       <>
-        <InterfaceText>Already have an account?</InterfaceText>
+        <InterfaceText>auth.already_have_an_account</InterfaceText>
         {' '}
         <a href="/login" onClick={switchFlow('login')}>
-          <InterfaceText context="Auth">Log In</InterfaceText>
+          <InterfaceText>auth.log_in_link</InterfaceText>
         </a>
       </>
     );
@@ -186,7 +186,7 @@ const ChooseView = ({
               <ProviderButton
                 id="google-signin-button"
                 provider="google"
-                label="Continue with Google"
+                label="auth.continue_with_google"
                 disabled={!googleReady}
                 sdkOverlayRef={googleBtnRef}
               />
@@ -195,7 +195,7 @@ const ChooseView = ({
               <ProviderButton
                 id="apple-signin-button"
                 provider="apple"
-                label="Continue with Apple"
+                label="auth.continue_with_apple"
                 disabled={!appleReady}
                 onClick={startAppleSignIn}
               />
@@ -204,7 +204,7 @@ const ChooseView = ({
         </div>
         <Divider/>
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={onEmailClick}>
-          <InterfaceText>Continue with Email</InterfaceText>
+          <InterfaceText>auth.continue_with_email</InterfaceText>
         </Button>
         <LegalText />
       </div>

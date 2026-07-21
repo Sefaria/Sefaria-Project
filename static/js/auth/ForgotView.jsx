@@ -26,19 +26,19 @@ const ForgotView = ({ emailValue, setField, csrf, onSuccess, onBack }) => {
       if (res.ok) { onSuccess(); }
       else {
         const d = await res.json().catch(() => ({}));
-        setError(authError(d, 'Something went wrong. Try again.'));
+        setError(authError(d, 'auth.generic_error'));
       }
-    } catch (e) { setError(authError(null, 'Something went wrong. Try again.'));
+    } catch (e) { setError(authError(null, 'auth.generic_error'));
     } finally { setSubmitting(false); }
   };
 
   return (
-    <AuthCard onBack={handleBack} heading={<InterfaceText>Forgot Password?</InterfaceText>}>
+    <AuthCard onBack={handleBack} heading={<InterfaceText>auth.forgot_password</InterfaceText>}>
       <ErrorBanner error={error} />
       <form className="sefaria-auth-email-form" onSubmit={submitForgot}>
         <EmailInput value={emailValue} setField={setField} />
         <Button variant="sefaria-common-button auth-primary" size="fullwidth" disabled={submitting}>
-          <InterfaceText>Send Reset Link</InterfaceText>
+          <InterfaceText>auth.send_reset_link</InterfaceText>
         </Button>
       </form>
     </AuthCard>

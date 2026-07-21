@@ -7,7 +7,7 @@ import {InterfaceText} from "../Misc";
  * SSO buttons and the email button on the auth choose screen. Figma `Form Card`.
  */
 const Divider = () => (
-  <div className="sefaria-divider" role="separator"><InterfaceText>or</InterfaceText></div>
+  <div className="sefaria-divider" role="separator"><InterfaceText>auth.or</InterfaceText></div>
 );
 
 export default Divider;

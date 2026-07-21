@@ -175,12 +175,12 @@ class GuideBox extends Component {
   }
 
   render() {
-    const DISPLAY_TEXT = "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know."
+    const DISPLAY_TEXT = "ai_info_tooltip.the_questions_and_answers_in_this_learning_guide"
     return (
       <section className="guideBox">
         <h2 className="guideHeader">
           <div>
-            <InterfaceText context="GuideBox">Guided Learning</InterfaceText>
+            <InterfaceText>guide_box.guided_learning</InterfaceText>
           </div>
           <div className="guideHeaderTags">
             <span className="experimentLabel">Experiment</span>
@@ -191,7 +191,7 @@ class GuideBox extends Component {
         {this.state.promptState === SUMMARIES && <SummaryBox prompt={this.state.livePrompt} questionPosition={this.state.questionPosition} onClick={this.onClickSummary} />}
         {this.state.promptState === COMMENTARIES && <TextRange sref={this.state.commentaryRef} />}
       </section>
-    )
+    );
   }
 }
 

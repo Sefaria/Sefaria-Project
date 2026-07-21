@@ -14,7 +14,7 @@ import PropTypes from 'prop-types';
  * @param onBack   if provided, renders the back arrow (content-swap step)
  * @param backLabel aria-label for the back button (localized)
  */
-const AuthCard = ({ heading, sub, onBack, backLabel = 'Back', className = '', children }) => (
+const AuthCard = ({ heading, sub, onBack, backLabel = 'auth.back', className = '', children }) => (
   <div className={`sefaria-auth-card ${className}`.trim()}>
     {onBack && (
       <button type="button" className="sefaria-auth-card-back" onClick={onBack} aria-label={Sefaria._(backLabel)}>

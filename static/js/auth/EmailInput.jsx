@@ -4,8 +4,7 @@ import Input from '../common/Input.jsx';
 
 const EmailInput = ({ value, setField, onFocus, error }) => (
   <Input
-    label="Email Address"
-    labelContext="Auth"
+    label="auth.email_address"
     type="email"
     name="email"
     inputDir="ltr"

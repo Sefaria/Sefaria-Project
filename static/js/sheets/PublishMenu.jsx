@@ -15,7 +15,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
   const postingState = {
     notPosting: "",
     posting: "Updating sheet...",
-    posted: "Success!",
+    posted: "sheet_modals.success",
   }
 
   // if it's not yet public, show PublishMenu and don't yet post it; if it's public, start posting it
@@ -48,7 +48,7 @@ const PublishModal = ({close, status, sheetID, postSheet}) => {
       toggle();
   }, [postingText])
 
-  const publishStateText = initStatus.current === 'public' ? 'Unpublish' :  'Publish';
+  const publishStateText = initStatus.current === 'public' ? 'sheet_options.unpublish' :  'sheet_options.publish';
 
   let contents;
   if (postingText === postingState.notPosting) {
@@ -83,14 +83,14 @@ const PublishMenu = ({sheet, publishCallback}) => {
   const isFormValidated = () => {
         if ((!summary || summary.trim() === '') && tags.length === 0) {
             setValidation({
-                validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
+                validationMsg: Sefaria._("publish_menu.please_add_a_description_and_topics_to_publish"),
                 validationFailed: "both"
             });
             return false
         }
         else if (!summary || summary.trim() === '') {
             setValidation({
-                validationMsg: Sefaria._("Please add a description to publish your sheet."),
+                validationMsg: Sefaria._("publish_menu.please_add_a_description_to_publish_your_sheet"),
                 validationFailed: "summary"
             });
             return false
@@ -98,7 +98,7 @@ const PublishMenu = ({sheet, publishCallback}) => {
 
         else if (tags.length === 0) {
             setValidation({
-                validationMsg: Sefaria._("Please add topics to publish your sheet."),
+                validationMsg: Sefaria._("publish_menu.please_add_topics_to_publish_your_sheet"),
                 validationFailed: "topics"
             });
             return false;
@@ -168,48 +168,50 @@ const PublishMenu = ({sheet, publishCallback}) => {
       publishCallback(true);
     }
   }
-  return <>
-        <div className={"publishBox sans-serif"}>
-            <div className="publishLabel">
-                <InterfaceText>Title</InterfaceText>
+  return (
+      <>
+            <div className={"publishBox sans-serif"}>
+                <div className="publishLabel">
+                    <InterfaceText>publish_menu.title</InterfaceText>
+                </div>
+                <input type="text"
+                       value={title}
+                       placeholder={Sefaria._("common.untitled")}
+                       onChange={(e) => setTitle(e.target.value)}></input>
+                <div className="publishLabel">
+                    <InterfaceText>Description (max 140 characters)</InterfaceText>
+                </div>
+                <textarea
+                    className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
+                    rows="3"
+                    maxLength="140"
+                    placeholder={Sefaria._("publish_menu.write_a_short_description_of_your_sheet")}
+                    value={summary}
+                    onChange={handleSummaryChange}></textarea>
+                <div className="publishLabel">
+                    <InterfaceText>Add topics related to your sheet</InterfaceText>
+                </div>
+                <div
+                    className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
+                    <ReactTags
+                        ref={reactTags}
+                        allowNew={true}
+                        tags={tags}
+                        suggestions={suggestions}
+                        onDelete={onTagDelete}
+                        placeholderText={Sefaria._("common.add_a_topic")}
+                        delimiters={["Enter", ","]}
+                        onAddition={onTagAddition}
+                        onValidate={onTagValidate}
+                        onInput={updateSuggestedTags}
+                    />
+                </div>
+                {validation.validationFailed !== "none" &&
+                    <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
+                <Button className="button small" onClick={handlePublish}>Publish</Button>
             </div>
-            <input type="text"
-                   value={title}
-                   placeholder={Sefaria._("Untitled")}
-                   onChange={(e) => setTitle(e.target.value)}></input>
-            <div className="publishLabel">
-                <InterfaceText>Description (max 140 characters)</InterfaceText>
-            </div>
-            <textarea
-                className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}
-                rows="3"
-                maxLength="140"
-                placeholder={Sefaria._("Write a short description of your sheet...")}
-                value={summary}
-                onChange={handleSummaryChange}></textarea>
-            <div className="publishLabel">
-                <InterfaceText>Add topics related to your sheet</InterfaceText>
-            </div>
-            <div
-                className={validation.validationFailed === "both" || validation.validationFailed === "topics" ? "error" : ""}>
-                <ReactTags
-                    ref={reactTags}
-                    allowNew={true}
-                    tags={tags}
-                    suggestions={suggestions}
-                    onDelete={onTagDelete}
-                    placeholderText={Sefaria._("Add a topic...")}
-                    delimiters={["Enter", ","]}
-                    onAddition={onTagAddition}
-                    onValidate={onTagValidate}
-                    onInput={updateSuggestedTags}
-                />
-            </div>
-            {validation.validationFailed !== "none" &&
-                <p className="error"><InterfaceText>{validation.validationMsg}</InterfaceText></p>}
-            <Button className="button small" onClick={handlePublish}>Publish</Button>
-        </div>
-    </>
+        </>
+  );
 }
 
 export default PublishModal;
