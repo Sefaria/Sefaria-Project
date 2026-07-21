@@ -130,16 +130,8 @@ a.sefaria-common-button.auth-primary:hover {
   background-color: #132b4c;
 }
 
-button.sefaria-common-button.auth-primary:disabled,
-a.sefaria-common-button.auth-primary.is-disabled {
-  background-color: #e6e6e6;
-  border-color: #e6e6e6;
-  color: var(--medium-grey-legacy);
+button.sefaria-common-button.auth-primary:disabled {
   cursor: not-allowed;
-}
-button.sefaria-common-button.auth-primary:disabled *,
-a.sefaria-common-button.auth-primary.is-disabled * {
-  color: var(--medium-grey-legacy);
 }
 
 .sefaria-captcha {

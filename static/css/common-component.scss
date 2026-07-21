@@ -158,14 +158,8 @@ a.sefaria-common-button.auth-primary {
   &:hover { background-color: #132b4c; }
 }
 
-button.sefaria-common-button.auth-primary:disabled,
-a.sefaria-common-button.auth-primary.is-disabled {
-  background-color: $sef-border-default;
-  border-color: $sef-border-default;
-  color: var(--medium-grey-legacy);
+button.sefaria-common-button.auth-primary:disabled {
   cursor: not-allowed;
-
-  * { color: var(--medium-grey-legacy); }
 }
 
 
