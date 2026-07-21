@@ -196,6 +196,11 @@ SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 # Empty in local dev, where no deploy has happened.
 APP_VERSION = os.environ.get("APP_VERSION", "")
 
+# TLS terminates at the ingress/load balancer; without this, request.is_secure()
+# (and anything built from request.build_absolute_uri(), e.g. allauth's OAuth2
+# callback URLs) incorrectly reports 'http' behind the proxy.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'
