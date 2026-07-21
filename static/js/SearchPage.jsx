@@ -187,7 +187,6 @@ const EntitySearchResults = ({type, data, query}) => {
     <div className="entitySearchResults">
       {data.hits.map(hit => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
-        console.log('hit', hit);
         return <SearchResultCard key={cardProps.href} {...cardProps} />;
       })}
     </div>
