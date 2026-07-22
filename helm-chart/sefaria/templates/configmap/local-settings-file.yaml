@@ -59,8 +59,9 @@ data:
     GLOBAL_WARNING = os.getenv("GLOBAL_WARNING").lower() == "true"
     GLOBAL_WARNING_MESSAGE = os.getenv("GLOBAL_WARNING_MESSAGE")
 
-    # Only define when set: middleware falls back to "us" on a missing setting, but a
-    # None value here would crash it instead.
+    # Optional; injected by per-environment localsettings secrets (e.g. a cauldron's
+    # SealedSecret). Only define when set: middleware falls back to "us" on a missing
+    # setting, but a None value here would crash it instead.
     if os.getenv("PINNED_IPCOUNTRY"):
         PINNED_IPCOUNTRY = os.getenv("PINNED_IPCOUNTRY")
 
