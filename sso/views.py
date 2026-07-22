@@ -6,11 +6,14 @@ import requests
 import structlog
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.helpers import complete_social_login
-from allauth.socialaccount.providers.google.views import login_by_token as google_login_by_token
+from allauth.socialaccount.providers.google.views import (
+    login_by_token as google_login_by_token,
+)
 from django.contrib.auth import authenticate, login as auth_login
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from emailusernames.utils import user_exists, get_user
 from sefaria.forms import SefariaPasswordResetForm
@@ -18,11 +21,57 @@ from sefaria.forms import SefariaPasswordResetForm
 logger = structlog.get_logger(__name__)
 
 
+def _jwt_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {"access": str(refresh.access_token), "refresh": str(refresh)}
+
+
 # Google One Tap redirect mode (ux_mode: 'redirect') POSTs a signed credential +
 # g_csrf_token double-submit cookie to login_uri. Allauth's LoginByTokenView
 # handles both verification and the double-submit CSRF check, so we expose it
 # directly at this URL.
 google_redirect = google_login_by_token
+
+
+@csrf_exempt
+@require_POST
+def google_mobile(request):
+    """
+    Mobile Google Sign In. The native app (RN) obtains a Google ID token via
+    the platform's native SDK and POSTs it here. There is no session/cookie
+    to protect with CSRF — the request is authenticated by the signed
+    provider token itself, mirroring the DRF token endpoints rather than the
+    cookie-CSRF web views.
+
+    Body (JSON): { id_token } (also accepts { credential } as an alias)
+
+    Returns:
+      200 { access, refresh }  — simplejwt tokens for the mobile app
+      400 { error }            — missing/invalid token or auth failure
+    """
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    id_token = data.get("id_token") or data.get("credential") or ""
+
+    if not id_token:
+        return JsonResponse({"error": "id_token required"}, status=400)
+
+    adapter = get_social_adapter(request)
+    try:
+        provider = adapter.get_provider(request, "google")
+        sociallogin = provider.verify_token(request, {"id_token": id_token})
+    except Exception as e:
+        logger.warning("Google token verification failed", error=str(e))
+        return JsonResponse({"error": "Invalid token"}, status=400)
+
+    complete_social_login(request, sociallogin)
+
+    if request.user.is_authenticated:
+        return JsonResponse(_jwt_for_user(request.user))
+    return JsonResponse({"error": "Authentication failed"}, status=400)
 
 
 @require_POST
@@ -74,6 +123,58 @@ def apple_callback(request):
     return JsonResponse({"error": "Authentication failed"}, status=400)
 
 
+@csrf_exempt
+@require_POST
+def apple_mobile(request):
+    """
+    Mobile Apple Sign In. Same verification/name-injection flow as
+    apple_callback, but for the native app: there is no session/cookie to
+    protect with CSRF, so this is authenticated by the signed provider token
+    itself (mirroring the DRF token endpoints rather than the cookie-CSRF web
+    views), and it returns simplejwt tokens instead of an empty success body.
+
+    Body (JSON): { id_token, first_name, last_name }
+
+    Returns:
+      200 { access, refresh }  — simplejwt tokens for the mobile app
+      400 { error }            — missing/invalid token or auth failure
+    """
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    id_token = data.get("id_token", "")
+    first_name = data.get("first_name", "")
+    last_name = data.get("last_name", "")
+
+    if not id_token:
+        return JsonResponse({"error": "id_token required"}, status=400)
+
+    adapter = get_social_adapter(request)
+    try:
+        provider = adapter.get_provider(request, "apple")
+        sociallogin = provider.verify_token(request, {"id_token": id_token})
+    except Exception as e:
+        if isinstance(e.__cause__, requests.RequestException):
+            logger.error("Apple JWKS fetch failed", error=str(e))
+        else:
+            logger.warning("Apple token verification failed", error=str(e))
+        return JsonResponse({"error": "Invalid token"}, status=400)
+
+    # Inject name from Apple SDK response (absent from ID token)
+    if not sociallogin.user.first_name and first_name:
+        sociallogin.user.first_name = first_name
+    if not sociallogin.user.last_name and last_name:
+        sociallogin.user.last_name = last_name
+
+    complete_social_login(request, sociallogin)
+
+    if request.user.is_authenticated:
+        return JsonResponse(_jwt_for_user(request.user))
+    return JsonResponse({"error": "Authentication failed"}, status=400)
+
+
 @require_POST
 def password_reset_api(request):
     try:
@@ -81,7 +182,7 @@ def password_reset_api(request):
     except (json.JSONDecodeError, ValueError):
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    form = SefariaPasswordResetForm(data={'email': data.get('email', '')})
+    form = SefariaPasswordResetForm(data={"email": data.get("email", "")})
     if not form.is_valid():
         return JsonResponse({"error": "Enter a valid email address."}, status=400)
 
@@ -89,8 +190,8 @@ def password_reset_api(request):
         request=request,
         domain_override=request.get_host(),
         use_https=request.is_secure(),
-        email_template_name='registration/password_reset_email.txt',
-        html_email_template_name='registration/password_reset_email.html',
+        email_template_name="registration/password_reset_email.txt",
+        html_email_template_name="registration/password_reset_email.html",
     )
     return JsonResponse({})
 
@@ -121,9 +222,7 @@ def email_login(request):
         if user_exists(email):
             u = get_user(email)
             if not u.has_usable_password() and u.socialaccount_set.exists():
-                providers = list(
-                    u.socialaccount_set.values_list("provider", flat=True)
-                )
+                providers = list(u.socialaccount_set.values_list("provider", flat=True))
                 return JsonResponse(
                     {
                         "error": "This account uses social sign-in. Please sign in using one of the buttons above.",
@@ -131,7 +230,9 @@ def email_login(request):
                     },
                     status=401,
                 )
-        return JsonResponse({"error": "Email and/or password are incorrect"}, status=401)
+        return JsonResponse(
+            {"error": "Email and/or password are incorrect"}, status=401
+        )
 
     auth_login(request, user)
     return JsonResponse({})
