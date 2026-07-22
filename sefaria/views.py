@@ -33,7 +33,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -163,8 +163,65 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
         # Don't call super().form_valid(form) as it would send the email again
         return HttpResponseRedirect(self.get_success_url())
 
-class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
+    template_name = 'base.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        # dispatch() calls this directly (bypassing get()/post()) whenever the
+        # link is invalid/expired — for BOTH GET and POST. Branch on method so
+        # an invalid-link POST still gets JSON, not an HTML page.
+        if self.request.method == 'POST':
+            try:
+                data = json.loads(self.request.body)
+            except (json.JSONDecodeError, ValueError):
+                data = {}
+            if data.get('action') == 'resend':
+                # dispatch() already resolved self.user from the URL's uidb64
+                # before checking token validity, so the account is known
+                # even though the link itself has expired.
+                if self.user is None:
+                    return jsonResponse({
+                        "error": "We couldn't find an account for this link.",
+                        "_auth": {"code": "no_account_for_link"},
+                    }, status=400)
+                form = SefariaPasswordResetForm(data={'email': self.user.email})
+                if form.is_valid():
+                    form.save(
+                        request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
+                        email_template_name='registration/password_reset_email.txt',
+                        html_email_template_name='registration/password_reset_email.html',
+                    )
+                return jsonResponse({})
+            return jsonResponse({
+                "error": "This password reset link is no longer valid.",
+                "_auth": {"code": "invalid_reset_link"},
+            }, status=400)
+        return render_template(
+            self.request, "base.html",
+            {
+                "headerMode": False,
+                "authResetUid": self.kwargs.get("uidb64", ""),
+                "authResetValid": bool(context.get("validlink")),
+            },
+            {'title': _('Reset Your Password'), 'desc': _('Reset your Sefaria account password.')},
+        )
+
+    def post(self, request, *args, **kwargs):
+        # Only reached when dispatch() already confirmed validlink=True.
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return jsonResponse({"error": "Invalid JSON"}, status=400)
+        form = self.form_class(user=self.user, data={
+            "new_password1": data.get("new_password1", ""),
+            "new_password2": data.get("new_password2", ""),
+        })
+        if not form.is_valid():
+            return jsonResponse({k: v[0] for k, v in form.errors.items()}, status=400)
+        form.save()
+        del request.session[INTERNAL_RESET_SESSION_TOKEN]
+        return jsonResponse({})
 
 def process_register_form(request, auth_method='session'):
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)

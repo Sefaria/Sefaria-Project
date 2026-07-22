@@ -40,6 +40,39 @@ export function safeNext(next) {
   return /^\/(?!\/)/.test(next) ? next : '/';
 }
 
+export function buildResetUrl(uid) {
+  return `/password/reset/confirm/${uid}/set-password/`;
+}
+
+export function checkPasswordsMatch(p1, p2) {
+  return (p2 && p1 !== p2) ? 'auth.passwords_dont_match' : null;
+}
+
+async function postRequest(url, csrf, body, contentType) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': contentType, 'X-CSRFToken': csrf },
+      body,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data, networkError: false };
+  } catch (err) {
+    return { ok: false, data: {}, networkError: true };
+  }
+}
+
+// Every auth view POSTs, parses JSON (tolerating a non-JSON body), and needs
+// the same "network failed" fallback — centralized here so views only branch
+// on the (ok, data) they get back, not on how the request itself can fail.
+export function postJson(url, body, csrf) {
+  return postRequest(url, csrf, JSON.stringify(body), 'application/json');
+}
+
+export function postForm(url, body, csrf) {
+  return postRequest(url, csrf, body.toString(), 'application/x-www-form-urlencoded');
+}
+
 export function focusProvider(provider) {
   const target = provider.toLowerCase() === 'google' ? 'google-signin-button' : 'apple-signin-button';
   window.setTimeout(() => {

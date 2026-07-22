@@ -42,6 +42,7 @@ import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
+import { buildResetUrl } from './auth/utils.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -125,9 +126,10 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
-      showAuth:  ['/login', '/register'].includes(window.location.pathname.replace(/\/$/, '')),
-      authFlow:  window.location.pathname.replace(/\/$/, '') === '/register' ? 'register' : 'login',
-      authNext:  new URLSearchParams(window.location.search).get('next') || '/',
+      showAuth:  ['/login', '/register'].includes(window.location.pathname.replace(/\/$/, '')) || !!props.authResetUid,
+      authFlow:  props.authResetUid ? 'reset' : (window.location.pathname.replace(/\/$/, '') === '/register' ? 'register' : 'login'),
+      authNext:  props.authResetUid ? '/' : (new URLSearchParams(window.location.search).get('next') || '/'),
+      authReset: props.authResetUid ? { uid: props.authResetUid, valid: !!props.authResetValid } : null,
     };
   }
   setEditorSaveState = (nextState) => {
@@ -467,10 +469,14 @@ class ReaderApp extends Component {
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     if (this.state.showAuth) {
-      const flow = this.state.authFlow === 'register' ? 'register' : 'login';
-      const next = this.state.authNext || '/';
-      const url  = next && next !== '/' ? `/${flow}?next=${encodeURIComponent(next)}` : `/${flow}`;
-      return { state: { showAuth: true, authFlow: flow, authNext: next, panels: [] }, url, title: document.title };
+      const { authFlow, authReset } = this.state;
+      // The reset-confirm URL isn't a /<flow> path, so it can't come from the
+      // same template — everything else about the returned state is shared.
+      const next = (authFlow !== 'reset' && this.state.authNext) || '/';
+      const url = (authFlow === 'reset' && authReset)
+        ? buildResetUrl(authReset.uid)
+        : (next !== '/' ? `/${authFlow}?next=${encodeURIComponent(next)}` : `/${authFlow}`);
+      return { state: { showAuth: true, authFlow, authNext: next, authReset, panels: [] }, url, title: document.title };
     }
 
     var histories = [];
@@ -2504,7 +2510,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   <AuthPage
                     flow={this.state.authFlow}
                     next={this.state.authNext}
-                    onFlowChange={(f) => this.setState({ authFlow: f }, this.updateHistoryState)}
+                    resetValid={this.state.authReset?.valid}
+                    onFlowChange={(f) => this.setState({ authFlow: f, authReset: null }, this.updateHistoryState)}
                   />
                 ) : (
                 <div className="panelContainer">

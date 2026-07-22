@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { InterfaceText } from '../Misc.jsx';
 import ChooseView from './ChooseView.jsx';
-import EmailView from './EmailView.jsx';
+import LoginView from './LoginView.jsx';
+import RegisterView from './RegisterView.jsx';
 import ForgotView from './ForgotView.jsx';
-import ForgotSentView from './ForgotSentView.jsx';
+import ResetView from './ResetView.jsx';
+import ResetExpiredView from './ResetExpiredView.jsx';
+import MessageView from './MessageView.jsx';
+import Button from '../common/Button.jsx';
 import { makeFlowId, focusProvider } from './utils.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
@@ -11,8 +16,10 @@ import { getCsrfToken } from '../sefaria/csrf';
  * AuthPage — the React login / register / reset experience (spec 1602).
  *
  * A single state machine that swaps the card content in place (no page navigation):
- *   view ∈ { choose, email, forgot } and flow ∈ { login, register }.
- * The card's own back button returns to `choose`; the browser URL stays /login or /register.
+ *   view ∈ { choose, email, forgot, forgot-sent, reset, reset-expired, reset-success }
+ *   and flow ∈ { login, register, reset }.
+ * The card's own back button returns to `choose`; the browser URL stays /login, /register,
+ * or the reset-confirm URL (for `flow === 'reset'`, handled by ReaderApp).
  *
  * SSO uses the existing backend callbacks (/api/auth/{google,apple}/callback). Email
  * login/register use JSON+session endpoints (/api/auth/login, /register).
@@ -20,9 +27,13 @@ import { getCsrfToken } from '../sefaria/csrf';
 const AuthPage = ({
   flow = 'login',
   next = '/',
+  resetValid = null,
   onFlowChange,
 }) => {
-  const [view, setView] = useState('choose'); // choose | email | forgot
+  const [view, setView] = useState(() => {
+    if (flow !== 'reset') return 'choose';
+    return resetValid === false ? 'reset-expired' : 'reset';
+  });
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
   const fieldsRef = useRef(fields);
@@ -103,16 +114,27 @@ const AuthPage = ({
 
   // ---- views --------------------------------------------------------------
   const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
+  const onProviderClick = (p) => { setView('choose'); focusProvider(p); };
+  // The rare "link doesn't resolve to any account" fallback routes to the
+  // existing manual-email-entry ForgotView rather than building a new one.
+  const requestNewLink = () => { setView('forgot'); onFlowChange?.('login'); };
 
   let content;
-  if (view === 'email') {
+  if (view === 'email' && flow === 'register') {
     content = (
-      <EmailView
-        flow={flow} switchFlow={switchFlow} fields={fields} setField={setField}
-        onBack={() => setView('choose')}
-        onProviderClick={(p) => { setView('choose'); focusProvider(p); }}
+      <RegisterView
+        switchFlow={switchFlow} fields={fields} setField={setField}
+        onBack={() => setView('choose')} onProviderClick={onProviderClick}
         startRegistration={startRegistration}
         trackRegistration={trackRegistration} endRegistration={endRegistration}
+        next={next} csrf={csrf}
+      />
+    );
+  } else if (view === 'email') {
+    content = (
+      <LoginView
+        switchFlow={switchFlow} fields={fields} setField={setField}
+        onBack={() => setView('choose')} onProviderClick={onProviderClick}
         onForgotClick={onForgotClick} next={next} csrf={csrf}
       />
     );
@@ -124,7 +146,25 @@ const AuthPage = ({
       />
     );
   } else if (view === 'forgot-sent') {
-    content = <ForgotSentView onSignIn={switchFlow('login')} />;
+    content = <MessageView heading="auth.reset_link_sent" sub="auth.check_your_email" />;
+  } else if (view === 'reset') {
+    content = (
+      <ResetView csrf={csrf} onLinkExpired={() => setView('reset-expired')} onSuccess={() => setView('reset-success')} />
+    );
+  } else if (view === 'reset-expired') {
+    content = (
+      <ResetExpiredView csrf={csrf} onResendSuccess={() => setView('forgot-sent')} onRequestNewLink={requestNewLink} />
+    );
+  } else if (view === 'reset-success') {
+    content = (
+      <MessageView heading="auth.password_reset_success_title" sub="auth.password_reset_success_sub">
+        <div className="sefaria-auth-stack">
+          <Button variant="sefaria-common-button auth-primary" size="fullwidth" onClick={switchFlow('login')}>
+            <InterfaceText>auth.log_in_link</InterfaceText>
+          </Button>
+        </div>
+      </MessageView>
+    );
   } else {
     content = (
       <ChooseView
@@ -138,8 +178,9 @@ const AuthPage = ({
 };
 
 AuthPage.propTypes = {
-  flow: PropTypes.oneOf(['login', 'register']),
+  flow: PropTypes.oneOf(['login', 'register', 'reset']),
   next: PropTypes.string,
+  resetValid: PropTypes.bool,
   onFlowChange: PropTypes.func,
 };
 
