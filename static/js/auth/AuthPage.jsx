@@ -34,6 +34,17 @@ const AuthPage = ({
     if (flow !== 'reset') return 'choose';
     return resetValid === false ? 'reset-expired' : 'reset';
   });
+  const prevFlowRef = useRef(flow);
+  // Clicking "Log in"/"Sign up" outside this component (e.g. in the header) only updates the
+  // `flow` prop/URL, bypassing `switchFlow` below — without this, the card stays stuck on
+  // whatever view it was showing (reset, forgot, email, ...) instead of landing on ChooseView.
+  // `view` is never set to 'reset'/'reset-expired' here: that view is only ever reached via a
+  // direct reset-confirm link, handled once by the initializer above.
+  useEffect(() => {
+    if (prevFlowRef.current === flow) return;
+    prevFlowRef.current = flow;
+    setView('choose');
+  }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
   const fieldsRef = useRef(fields);
