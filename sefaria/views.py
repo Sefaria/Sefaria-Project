@@ -1418,6 +1418,10 @@ def index_sheets_by_timestamp(request):
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
 
+# Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
+# It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
+STRAPI_SCHEMA_VERSION = "v5"
+
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
     """
@@ -1477,8 +1481,9 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
-        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
+        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
@@ -1504,12 +1509,27 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         )
 
         if response.status_code != 200:
+            logger.error(
+                f"Strapi returned HTTP {response.status_code} for graphql-cache. "
+                f"Response body: {response.text[:500]}"
+            )
             return jsonResponse(
                 {"error": f"Strapi request failed with status {response.status_code}"},
                 status=500,
             )
 
         result_json = response.text
+
+        # GraphQL always returns HTTP 200, even for query errors — check the body for errors too
+        parsed = response.json()
+        if parsed.get("errors"):
+            logger.error(
+                f"Strapi GraphQL query returned errors: {parsed['errors']}"
+            )
+            # Do not cache error responses. 
+            # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL. 
+            # Still return the body so the client can degrade gracefully — the frontend renders nothing when there is no data.
+            return HttpResponse(result_json, content_type="application/json")
 
         # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
         set_cache_elem(
@@ -1519,7 +1539,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return HttpResponse(result_json, content_type="application/json")
 
     except Exception as e:
-        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}", exc_info=True)
         return jsonResponse({"error": "Internal server error"}, status=500)
 
 
