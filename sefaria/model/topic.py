@@ -132,7 +132,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
-    pkeys = ["description"]
+    pkeys = ["description", "slug"]
     track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
@@ -188,6 +188,14 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+        # Snapshot the English primary title as loaded, so 'save' dependency listeners can tell
+        # whether the name actually changed. Author names embedded in pgvector chunks derive from
+        # this; a plain re-save (e.g. a numSources bump from adding a link) must not look like a
+        # rename. Not refreshed on save() — a listener that acts on a change updates it itself.
+        try:
+            self._orig_en_primary_title = self.get_primary_title("en")
+        except Exception:
+            self._orig_en_primary_title = None
         if self.__class__ != Topic and not getattr(self, "subclass", False):
             # in a subclass. set appropriate "subclass" attribute
             setattr(self, "subclass", self.reverse_subclass_map[self.__class__.__name__])

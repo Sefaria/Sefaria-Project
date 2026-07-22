@@ -1,8 +1,161 @@
 from typing import Optional
 
 from django.db import models
+from django.db.models import Func, Value
+from django.db.models.expressions import RawSQL
+from django.db.models.functions import Concat, Length, Substr
 from django.contrib.postgres.fields import ArrayField
 from pgvector.django import VectorField, CosineDistance
+
+
+class SemanticTextChunkManager(models.Manager):
+    _ALLOWED_FILTER_FIELDS = frozenset({
+        'index_title', 'language', 'version_title', 'ref', 'chunked_from_ref',
+        'primary_category', 'is_primary', 'is_source', 'era_name', 'direction',
+    })
+
+    def upsert(self, chunks: list['SemanticTextChunk']) -> None:
+        if not chunks:
+            return
+        self.bulk_create(
+            chunks,
+            update_conflicts=True,
+            unique_fields=['doc_id'],
+            update_fields=_UPSERT_UPDATE_FIELDS,
+        )
+
+    def get_indexed_unit_refs(self, index_title: str, language: str, version_title: str) -> set:
+        """Return the distinct set of chunked_from_ref values already indexed for this index/language/version."""
+        return set(
+            self.filter(index_title=index_title, language=language, version_title=version_title)
+            .values_list('chunked_from_ref', flat=True)
+            .distinct()
+        )
+
+    def bulk_delete(self, doc_ids: list) -> None:
+        self.filter(doc_id__in=doc_ids).delete()
+
+    def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None) -> list['SemanticTextChunk']:
+        safe_filters = {k: v for k, v in (filters or {}).items() if k in self._ALLOWED_FILTER_FIELDS}
+        return list(
+            self.filter(**safe_filters).order_by(
+                CosineDistance('embedding', embedding)
+            )[:limit]
+        )
+
+    # --- Targeted field-level update methods ---
+
+    def update_index_metadata(self, index_title: str, fields: dict) -> int:
+        """Bulk UPDATE metadata fields for all chunks of an index. Returns row count."""
+        return self.filter(index_title=index_title).update(**fields)
+
+    def update_index_title(self, old_title: str, new_title: str) -> int:
+        """UPDATE index_title (and string-prefix in ref/url/chunked_from_ref) when an index is renamed."""
+        def url_prefix(title: str) -> str:
+            # Mirrors Ref.url(): title is encoded (' ' -> '_', ':' -> '.', '?' -> '%3F') and the
+            # space separating title from the first section becomes the '.' seen here as a trailing dot.
+            return title.replace(' ', '_').replace(':', '.').replace('?', '%3F') + '.'
+
+        def rewritten(field_name: str, old_prefix: str, new_prefix: str):
+            return Concat(
+                Value(new_prefix), Substr(field_name, Length(Value(old_prefix)) + 1),
+                output_field=models.TextField(),
+            )
+
+        return self.filter(index_title=old_title).update(
+            index_title=new_title,
+            ref=rewritten('ref', old_title, new_title),
+            url=rewritten('url', url_prefix(old_title), url_prefix(new_title)),
+            chunked_from_ref=rewritten('chunked_from_ref', old_title, new_title),
+        )
+
+    def update_category_path(self, old_path: list, new_path: list) -> int:
+        """
+        Splice new_path in place of old_path within all_categories, for every chunk whose
+        all_categories starts with the exact old_path prefix.
+
+        primary_category is only overwritten for chunks where it currently equals old_path[0].
+        That invariant (primary_category == all_categories[0]) holds for standalone texts, but
+        not for dependent texts (commentaries/targumim), whose primary_category is derived from
+        Index.dependence instead (see Index.get_primary_category()) and is unrelated to
+        categories[0] - those chunks' primary_category is left untouched. This filter must run
+        before the all_categories splice below, since it relies on all_categories still holding
+        old_path. Pure Postgres array ops; no Mongo reads required.
+        """
+        if not old_path or not new_path:
+            return 0
+        prefix_filter = {f"all_categories__{i}": segment for i, segment in enumerate(old_path)}
+        if old_path[0] != new_path[0]:
+            self.filter(primary_category=old_path[0], **prefix_filter).update(primary_category=new_path[0])
+        return self.filter(**prefix_filter).update(
+            all_categories=RawSQL(
+                "%s::text[] || all_categories[%s:]",
+                (new_path, len(old_path) + 1),
+                output_field=ArrayField(models.TextField()),
+            ),
+        )
+
+    def update_version_fields(self, index_title: str, version_title: str, fields: dict) -> int:
+        """Bulk UPDATE fields for all chunks of a specific index + version."""
+        return self.filter(
+            index_title=index_title, version_title=version_title
+        ).update(**fields)
+
+    def update_version_title(self, index_title: str, old_vtitle: str, new_vtitle: str) -> int:
+        """Rename version_title for all matching chunks."""
+        return self.filter(
+            index_title=index_title, version_title=old_vtitle
+        ).update(version_title=new_vtitle)
+
+    def delete_by_index(self, index_title: str) -> int:
+        count, _ = self.filter(index_title=index_title).delete()
+        return count
+
+    def delete_by_version(self, index_title: str, version_title: str) -> int:
+        count, _ = self.filter(
+            index_title=index_title, version_title=version_title
+        ).delete()
+        return count
+
+    def bulk_update_chunks(self, chunks: list['SemanticTextChunk'], fields: list[str]) -> None:
+        self.bulk_update(chunks, fields)
+
+    def get_chunks_for_unit(
+        self, index_title: str, language: str, version_title: str, section_ref: str
+    ) -> list['SemanticTextChunk']:
+        return list(self.filter(
+            index_title=index_title,
+            language=language,
+            version_title=version_title,
+            chunked_from_ref=section_ref,
+        ))
+
+    def get_chunks_containing_ref(self, index_title: str, ref_str: str) -> list['SemanticTextChunk']:
+        """Find chunks whose source_segment_refs (in chunker_metadata JSONB) contain the given ref."""
+        return list(self.filter(
+            index_title=index_title,
+            chunker_metadata__source_segment_refs__contains=[ref_str],
+        ))
+
+    def replace_author_slug(self, old_slug: str, new_slug: str) -> int:
+        """Replace old_slug with new_slug in the author_slugs array for all matching chunks."""
+        return self.filter(author_slugs__contains=[old_slug]).update(
+            author_slugs=Func(
+                'author_slugs', Value(old_slug), Value(new_slug),
+                function='array_replace',
+                output_field=ArrayField(models.TextField()),
+            )
+        )
+
+    def replace_associated_topic_slug(self, old_slug: str, new_slug: str) -> int:
+        """Replace old_slug with new_slug in the associated_topic_slugs array for all matching chunks."""
+        return self.filter(associated_topic_slugs__contains=[old_slug]).update(
+            associated_topic_slugs=Func(
+                'associated_topic_slugs', Value(old_slug), Value(new_slug),
+                function='array_replace',
+                output_field=ArrayField(models.TextField()),
+            )
+        )
 
 
 class SemanticTextChunk(models.Model):
@@ -33,47 +186,12 @@ class SemanticTextChunk(models.Model):
     created_at             = models.DateTimeField(auto_now_add=True)
     updated_at             = models.DateTimeField(auto_now=True)
 
-    _ALLOWED_FILTER_FIELDS = frozenset({
-        'index_title', 'language', 'version_title', 'ref', 'chunked_from_ref',
-        'primary_category', 'is_primary', 'is_source', 'era_name', 'direction',
-    })
+    objects = SemanticTextChunkManager()
 
     class Meta:
         managed = False
         db_table = 'library_chunks'
         app_label = 'semantic_search'
-
-    def upsert(self, chunks: list['SemanticTextChunk']) -> None:
-        if not chunks:
-            return
-        SemanticTextChunk.objects.bulk_create(
-            chunks,
-            update_conflicts=True,
-            unique_fields=['doc_id'],
-            update_fields=_UPSERT_UPDATE_FIELDS,
-        )
-
-    def get_indexed_unit_refs(self, index_title: str, language: str, version_title: str) -> set:
-        return set(
-            SemanticTextChunk.objects
-            .filter(index_title=index_title, language=language, version_title=version_title)
-            .values_list('chunked_from_ref', flat=True)
-            .distinct()
-        )
-
-    def bulk_delete(self, doc_ids: list) -> None:
-        SemanticTextChunk.objects.filter(doc_id__in=doc_ids).delete()
-
-    def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None) -> list['SemanticTextChunk']:
-        safe_filters = {k: v for k, v in (filters or {}).items() if k in self._ALLOWED_FILTER_FIELDS}
-        return list(
-            SemanticTextChunk.objects.filter(**safe_filters).order_by(
-                CosineDistance('embedding', embedding)
-            )[:limit]
-        )
-
-    def filter(self, **kwargs) -> list['SemanticTextChunk']:
-        return list(SemanticTextChunk.objects.filter(**kwargs))
 
 
 _UPSERT_UPDATE_FIELDS = [

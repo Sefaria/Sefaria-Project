@@ -301,7 +301,19 @@ def calculate_pagerank():
     return pagerank_dict
 
 
+# update_pagesheetrank() overwrites pagesheetrank on essentially every ref_data record via a raw
+# bulk_write, bypassing RefData.save() and the "save" notification it would otherwise emit (see
+# dependencies.py). Downstream listeners (e.g. pgvector's process_ref_data_save_in_pgvector) rely on
+# that notification to keep chunk pagerank in sync. Rather than skip the sync, we diff against the
+# ref_data values already in mongo and manually emit "save" notifications, but only for refs whose
+# pagesheetrank moved enough to matter -- otherwise we'd enqueue a sync task for nearly every segment
+# in the library on every run.
+PAGESHEETRANK_CHANGE_THRESHOLD = 0.03
+
+
 def update_pagesheetrank():
+    from sefaria.model.abstract import notify
+
     pagerank = calculate_pagerank()
     sheetrank = calculate_sheetrank()
     pagesheetrank = {}
@@ -310,11 +322,28 @@ def update_pagesheetrank():
         temp_pagerank_scaled = math.log(pagerank[tref]) + 20 if tref in pagerank else RefData.DEFAULT_PAGERANK
         temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5) ** 2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
+
+    prev_pagesheetrank = {
+        doc["ref"]: doc["pagesheetrank"]
+        for doc in db.ref_data.find({}, {"_id": 0, "ref": 1, "pagesheetrank": 1})
+    }
+
+    def changed_enough(tref, new_psr):
+        old_psr = prev_pagesheetrank.get(tref)
+        if not old_psr:  # missing or zero -- can't compute a ratio, treat as changed
+            return True
+        return abs(new_psr - old_psr) / abs(old_psr) > PAGESHEETRANK_CHANGE_THRESHOLD
+
+    changed_trefs = [tref for tref, psr in pagesheetrank.items() if changed_enough(tref, psr)]
+
     from pymongo import UpdateOne
     result = db.ref_data.bulk_write([
         UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in
         list(pagesheetrank.items())
     ])
+
+    for tref in changed_trefs:
+        notify(RefData({"ref": tref, "pagesheetrank": pagesheetrank[tref]}), "save")
 
 
 def cat_bonus(num_cats):
