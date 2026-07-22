@@ -26,6 +26,13 @@ def _jwt_for_user(user):
     return {"access": str(refresh.access_token), "refresh": str(refresh)}
 
 
+def _clean_name(value):
+    if not value:
+        return ""
+    cleaned = "".join(ch for ch in value if ch.isprintable())
+    return cleaned[:150]
+
+
 # Google One Tap redirect mode (ux_mode: 'redirect') POSTs a signed credential +
 # g_csrf_token double-submit cookie to login_uri. Allauth's LoginByTokenView
 # handles both verification and the double-submit CSRF check, so we expose it
@@ -69,9 +76,11 @@ def google_mobile(request):
 
     complete_social_login(request, sociallogin)
 
-    if request.user.is_authenticated:
-        return JsonResponse(_jwt_for_user(request.user))
-    return JsonResponse({"error": "Authentication failed"}, status=400)
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication failed"}, status=400)
+    tokens = _jwt_for_user(request.user)
+    request.session.flush()  # JWT-only client: don't persist a Django session cookie
+    return JsonResponse(tokens)
 
 
 @require_POST
@@ -164,15 +173,17 @@ def apple_mobile(request):
 
     # Inject name from Apple SDK response (absent from ID token)
     if not sociallogin.user.first_name and first_name:
-        sociallogin.user.first_name = first_name
+        sociallogin.user.first_name = _clean_name(first_name)
     if not sociallogin.user.last_name and last_name:
-        sociallogin.user.last_name = last_name
+        sociallogin.user.last_name = _clean_name(last_name)
 
     complete_social_login(request, sociallogin)
 
-    if request.user.is_authenticated:
-        return JsonResponse(_jwt_for_user(request.user))
-    return JsonResponse({"error": "Authentication failed"}, status=400)
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication failed"}, status=400)
+    tokens = _jwt_for_user(request.user)
+    request.session.flush()  # JWT-only client: don't persist a Django session cookie
+    return JsonResponse(tokens)
 
 
 @require_POST
