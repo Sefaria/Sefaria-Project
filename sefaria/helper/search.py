@@ -487,19 +487,21 @@ def _total_from_response(response):
 
 def _query_matches_entity_title(query, hit):
     """
-    True if `query` directly matches the entity's title or a title variant. Guards the
-    author-works view from triggering on a loose match (e.g. a stemmed or partial hit
-    on another field) rather than a direct name match.
+    True only if `query` is an *exact* (case-insensitive) match for the entity's title or a
+    title variant. Guards the author-works view: a book search flips to an author's collapsed
+    works only when the query really is that author's name.
+
+    Exact match, not prefix, on purpose. A prefix test (`title.startswith(query)`) hijacks any
+    common given-name query — e.g. "Shalom" is a prefix of the author "Shalom Buzaglo", so the
+    whole book search would collapse to his single work instead of returning Shalom Aleichem,
+    She'ilat Shalom, etc. The intended trigger is a full name ("Chafetz Chaim", "Rashi",
+    "Rambam"), which always matches a primary title or variant exactly.
     """
     q = (query or "").strip().lower()
     if not q:
         return False
     candidates = [hit.get("title_en", ""), hit.get("title_he", "")] + (hit.get("titleVariants") or [])
-    for c in candidates:
-        c = (c or "").strip().lower()
-        if c and (q == c or c.startswith(q) or q.startswith(c)):
-            return True
-    return False
+    return any(q == (c or "").strip().lower() for c in candidates)
 
 
 def _resolve_author(query, es_client):

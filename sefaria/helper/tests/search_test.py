@@ -2,7 +2,7 @@
 import json
 import pytest
 from sefaria.helper.search import *
-from sefaria.helper.search import _author_works_response
+from sefaria.helper.search import _author_works_response, _query_matches_entity_title
 
 
 def test_extract_filter_values():
@@ -229,6 +229,19 @@ def test_author_works_response_surfaces_eponymous_work():
     response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
     assert response["hits"][0]["title_en"] == "Chafetz Chaim"
     assert not response["hits"][0]["isCategory"]
+
+
+def test_query_matches_entity_title_exact_only():
+    author = {"title_en": "Shalom Buzaglo", "title_he": "שלום בוזגלו", "titleVariants": []}
+    # A common given name that is only a *prefix* of the author's name must NOT match —
+    # otherwise a "Shalom" book search collapses to this one author's works.
+    assert not _query_matches_entity_title("Shalom", author)
+    # The full name (or an exact variant) still matches, keeping the author-works trigger.
+    assert _query_matches_entity_title("Shalom Buzaglo", author)
+    assert _query_matches_entity_title("shalom buzaglo", author)  # case-insensitive
+    assert _query_matches_entity_title("Chafetz Chaim",
+                                       {"title_en": "Israel Meir Kagan",
+                                        "titleVariants": ["Chafetz Chaim"]})
 
 
 def ordered(obj):
