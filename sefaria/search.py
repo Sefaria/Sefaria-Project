@@ -605,6 +605,7 @@ def put_book_mapping(index_name):
             'title_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
+                'norms': False,
                 'fields': {
                     'keyword': {'type': 'keyword'},
                     'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
@@ -620,6 +621,10 @@ def put_book_mapping(index_name):
             'titleVariants': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
+                'norms': False,
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
             },
             'categories': {
                 'type': 'keyword',
@@ -1399,6 +1404,9 @@ def make_book_index_document(index, author_name_cache=None):
 
     categories = getattr(index, 'categories', None) or []
     variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
+    collective = getattr(index, 'collective_title', None) or {}
+    if collective.get('en') and collective['en'] not in variants:
+        variants.append(collective['en'])
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).

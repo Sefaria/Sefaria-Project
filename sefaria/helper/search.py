@@ -331,7 +331,7 @@ _ENTITY_KEYWORD_FIELDS = {
     "topic": ["title_en.keyword", "title_he.keyword"],
     "author": ["title_en.keyword", "title_he.keyword",
                "authored_titles_en.keyword", "authored_titles_he.keyword"],
-    "book": ["title_en.keyword", "title_he.keyword"],
+    "book": ["title_en.keyword", "title_he.keyword", "titleVariants.keyword"],
 }
 
 
