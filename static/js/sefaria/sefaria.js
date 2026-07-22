@@ -3679,7 +3679,7 @@ _media: {},
     }
   },
   _getShortInterfaceLang: function() {
-    return Sefaria.interfaceLang.slice(0, 2);
+    return (Sefaria.interfaceLang || "english").slice(0, 2);
   },
   _v: function(langOptions){
     /* Takes an object {en: "something", he: "משהו"}
