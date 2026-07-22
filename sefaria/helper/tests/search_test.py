@@ -193,7 +193,8 @@ def test_author_works_response_row_shape():
                 },
             ]
 
-    response = _author_works_response(_DummyAuthor())
+    # Query matches neither title, so no eponymous work is lifted: category row stays first.
+    response = _author_works_response(_DummyAuthor(), "rambam")
 
     assert response["total"] == 2
     assert response["author_slug"] == "rambam"
@@ -203,6 +204,31 @@ def test_author_works_response_row_shape():
     assert category_row["categories"] is None
     assert not work_row["isCategory"] and work_row["categoryLabel_en"] is None
     assert work_row["categories"] == ["Jewish Thought", "Rishonim"]
+
+
+def test_author_works_response_surfaces_eponymous_work():
+    class _DummyAuthor:
+        slug = "israel-meir-kagan"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/c", "title": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                 "categories": None, "compDate": 1900},
+                {"url": "/w1", "title": {"en": "Chafetz Chaim on Sifra", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+                {"url": "/w2", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+            ]
+
+    # The eponymous work (exact title match) leads, above the category row and the longer
+    # "... on Sifra" title that merely begins with the query.
+    response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
+    assert response["hits"][0]["title_en"] == "Chafetz Chaim"
+    assert not response["hits"][0]["isCategory"]
 
 
 def ordered(obj):

@@ -325,14 +325,29 @@ _ENTITY_TITLE_FIELDS = {
     "author": ["title_en", "title_he", "titleVariants", "authored_titles_en", "authored_titles_he"],
     "book": ["title_en", "title_he", "titleVariants"],
 }
-# Keyword sub-fields for tier-1 exact-match. Authors add authored_titles.keyword so the
-# author of an exactly-titled work (e.g. "Guide for the Perplexed") outranks its commentators.
-_ENTITY_KEYWORD_FIELDS = {
-    "topic": ["title_en.keyword", "title_he.keyword"],
-    "author": ["title_en.keyword", "title_he.keyword",
-               "authored_titles_en.keyword", "authored_titles_he.keyword"],
-    "book": ["title_en.keyword", "title_he.keyword", "titleVariants.keyword"],
+# Keyword sub-fields for the exact-match tier. Split into two groups with different
+# decisive boosts (see get_entity_query_obj):
+#   - PRIMARY: the entity's *own* primary title. An exact hit here must win outright —
+#     the book literally titled "Chafetz Chaim" beats "Chafetz Chaim on Sifra" and every
+#     work by the Chafetz Chaim.
+#   - SECONDARY: exact hits that are strong but not the entity's own name — a title
+#     *variant* (books) or the title of a work the entity *wrote* (authors, so the author
+#     of "Guide for the Perplexed" still surfaces on that query, just below the book).
+_ENTITY_PRIMARY_KEYWORD_FIELDS = ["title_en.keyword", "title_he.keyword"]
+_ENTITY_SECONDARY_KEYWORD_FIELDS = {
+    "topic": [],
+    "author": ["authored_titles_en.keyword", "authored_titles_he.keyword"],
+    "book": ["titleVariants.keyword"],
 }
+
+# Exact-match boosts are applied via constant_score (below), so they are IDF-independent:
+# an exact primary-title hit contributes a fixed, dominant amount that a longer title merely
+# *containing* the query words — or an exact hit on a variant — can never sum past. This is
+# what makes exact matches decisive and stable regardless of how common a word is corpus-wide
+# (the previous scored `term` let an exact *variant* hit outscore an exact *primary* hit purely
+# because the word was rarer in one field than another).
+_ENTITY_EXACT_PRIMARY_BOOST = 1000
+_ENTITY_EXACT_SECONDARY_BOOST = 100
 
 
 def _entity_sort_clauses(type, sort):
@@ -362,11 +377,16 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                          category_paths=None):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
-    index. Layers five match-type tiers as `should` clauses with descending boosts
+    index. Layers match-type tiers as `should` clauses with descending boosts
     (a `bool should` sums matching clauses, so a higher tier — which also satisfies the
     lower tiers — accumulates a higher score and ranks above a partial match):
 
-      1. Exact match   — `term` on the `.keyword` title sub-fields (highest boost).
+      1. Exact match   — `constant_score` on the `.keyword` title sub-fields, split into a
+                         dominant *primary-title* boost and a lower *variant / authored-work*
+                         boost. constant_score makes these contributions fixed (IDF-independent),
+                         so an exact primary-title hit always wins outright: no pile-up of the
+                         partial tiers below on a longer title, and no exact *variant* hit, can
+                         sum past it.
       2. Exact phrase  — `match_phrase` on title fields.
       3. All words     — `multi_match best_fields` over the per-type field list (with
                          per-field ^N boosts: title > variants > name/works; descriptions
@@ -404,17 +424,26 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
-    keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
+    secondary_kw = _ENTITY_SECONDARY_KEYWORD_FIELDS.get(type, _ENTITY_SECONDARY_KEYWORD_FIELDS["topic"])
 
-    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive).
-    tier1_exact = [Q("term", **{kf: {"value": query, "boost": 8}}) for kf in keyword_fields]
+    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive), via
+    # constant_score so the contribution is a fixed amount rather than an IDF-scaled score.
+    # A primary-title hit gets the dominant boost; a variant / authored-work hit gets a
+    # strong-but-lower one. Because these amounts are fixed, no accumulation of partial
+    # (phrase/word/prefix) tiers on a longer title can sum past a true exact match, and an
+    # exact variant hit can never outrank an exact primary hit (the bug this replaces).
+    tier1_primary = [Q("constant_score", filter=Q("term", **{kf: query}), boost=_ENTITY_EXACT_PRIMARY_BOOST)
+                     for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS]
+    tier1_variant = [Q("constant_score", filter=Q("term", **{kf: query}), boost=_ENTITY_EXACT_SECONDARY_BOOST)
+                     for kf in secondary_kw]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
     # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
     tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
     # Tier 4 — prefix / begins-with on titles only.
     tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
-    text_query = Q("bool", should=[*tier1_exact, tier2_phrase, tier3_words, tier4_prefix], minimum_should_match=1)
+    text_query = Q("bool", should=[*tier1_primary, *tier1_variant, tier2_phrase, tier3_words, tier4_prefix],
+                   minimum_should_match=1)
 
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
@@ -492,7 +521,21 @@ def _resolve_author(query, es_client):
     return AuthorTopic.init(slug)
 
 
-def _author_works_response(author, sort="relevance"):
+def _author_work_matches_query(query, hit):
+    """
+    True if an aggregated author-works row's title is exactly `query` (case-insensitive,
+    EN or HE). Used to surface an author's *eponymous* work — the book that shares the
+    author's name (e.g. the book "Chafetz Chaim" by the Chafetz Chaim) — at the very top of
+    that author's works. Exact equality (not prefix) so only the eponymous work is lifted,
+    not longer titles that merely begin with it ("Chafetz Chaim on Sifra").
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return False
+    return q == (hit.get("title_en") or "").strip().lower() or q == (hit.get("title_he") or "").strip().lower()
+
+
+def _author_works_response(author, query, sort="relevance"):
     """
     Build the aggregated author-works response: the author's works collapsed by
     category (reusing AuthorTopic aggregation).
@@ -502,8 +545,12 @@ def _author_works_response(author, sort="relevance"):
     of its dated works (see AuthorCategoryAggregation.get_comp_date). That key lets the
     explicit sorts order the aggregated rows in code, mirroring the ES sort semantics of
     the flat search ("alpha" A-Z on lowercased English title, "year_asc"/"year_desc" on
-    compDate, missing values last in either direction). The default "relevance" sort
-    keeps the original presentation order with category entries sorted to the top.
+    compDate, missing values last in either direction).
+
+    The default "relevance" sort surfaces the author's eponymous work (the one whose title
+    exactly matches the query) first, then category entries, then the remaining works — so a
+    search for "Chafetz Chaim" leads with the book of that name rather than burying it among
+    the author's other works. Explicit alpha/year sorts are left as pure orderings.
     """
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
@@ -532,7 +579,12 @@ def _author_works_response(author, sort="relevance"):
 
         hits.sort(key=year_key)
     else:
-        hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
+        # relevance: eponymous work (exact title match) first, then category aggregations,
+        # then the rest. Stable sort preserves the original aggregation order within each group.
+        hits.sort(key=lambda h: (
+            0 if _author_work_matches_query(query, h) else 1,
+            0 if h.get("isCategory") else 1,
+        ))
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}
 
 
@@ -572,7 +624,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
         if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author, sort=sort)
+                return _author_works_response(author, query, sort=sort)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC

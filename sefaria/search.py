@@ -602,10 +602,14 @@ def put_book_mapping(index_name):
     """
     book_mapping = {
         'properties': {
+            # Length norms are intentionally ON for the primary title fields: a short,
+            # focused title ("Chafetz Chaim") should outscore a longer title that merely
+            # contains the query words ("Chafetz Chaim on Sifra") for the same matched
+            # term. titleVariants keeps norms OFF so a book with many title variants isn't
+            # penalized on the variant tiers by its own richer variant list.
             'title_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
-                'norms': False,
                 'fields': {
                     'keyword': {'type': 'keyword'},
                     'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
@@ -1404,9 +1408,12 @@ def make_book_index_document(index, author_name_cache=None):
 
     categories = getattr(index, 'categories', None) or []
     variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
-    collective = getattr(index, 'collective_title', None) or {}
-    if collective.get('en') and collective['en'] not in variants:
-        variants.append(collective['en'])
+    # collective_title is a plain string term key (e.g. "Rashi", "Chafetz Chaim"), not a
+    # dict — see Index._saveable_attr_keys / Index.contents(). Treat it as the English
+    # collective title directly; the Hebrew side is resolved via hebrew_term() elsewhere.
+    collective_en = getattr(index, 'collective_title', None)
+    if collective_en and collective_en not in variants:
+        variants.append(collective_en)
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
