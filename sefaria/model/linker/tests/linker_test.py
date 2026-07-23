@@ -425,7 +425,7 @@ def _mock_full_pipeline_ner_response(input_str, expected_pretty_texts, expected_
     [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
     [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
     [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר.'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
     [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
 def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
