@@ -40,8 +40,29 @@ export function safeNext(next) {
   return /^\/(?!\/)/.test(next) ? next : '/';
 }
 
-export function buildResetUrl(uid) {
-  return `/password/reset/confirm/${uid}/set-password/`;
+// Whether a bare path (as clicked in-app) should enter the auth experience.
+// Reset-confirm links are excluded: they're only ever reached via a server-rendered
+// email link (full page load), never clicked in-app.
+export function isAuthPath(pathname) {
+  return /^\/(login|register)\/?$/.test(pathname);
+}
+
+// Interprets a path (pathname + optional search) into which AuthPage flow it represents.
+export function pathToFlow(path) {
+  if (/^\/password\/reset\/confirm\//.test(path)) return 'reset';
+  return /^\/register(\/|\?|$)/.test(path) ? 'register' : 'login';
+}
+
+export function withNext(path, next = '/') {
+  return next && next !== '/' ? `${path}?next=${encodeURIComponent(next)}` : path;
+}
+
+export function flowToPath(flow, next = '/') {
+  return withNext(flow === 'register' ? '/register' : '/login', next);
+}
+
+export function nextFromPath(path) {
+  return safeNext(new URLSearchParams(path.split('?')[1] || '').get('next') || '/');
 }
 
 export function checkPasswordsMatch(p1, p2) {

@@ -42,7 +42,7 @@ import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
-import { buildResetUrl } from './auth/utils.js';
+import { isAuthPath, withNext } from './auth/utils.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -126,18 +126,15 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
-      showAuth:  ['/login', '/register'].includes(window.location.pathname.replace(/\/$/, '')) || !!props.authResetUid,
-      authFlow:  props.authResetUid ? 'reset' : (window.location.pathname.replace(/\/$/, '') === '/register' ? 'register' : 'login'),
-      authNext:  props.authResetUid ? '/' : (new URLSearchParams(window.location.search).get('next') || '/'),
-      authReset: props.authResetUid ? { uid: props.authResetUid, valid: !!props.authResetValid } : null,
+      showAuth: isAuthPath(window.location.pathname.replace(/\/$/, '')) || !!props.authResetUid,
+      authPath: window.location.pathname + window.location.search,
     };
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
-  showAuthPage(flow, nextParam) {
-    const next = this.state.showAuth ? this.state.authNext : (nextParam || Sefaria.util.currentPath());
-    this.setState({ showAuth: true, authFlow: flow, authNext: next });
+  handleAuthNavigate(path) {
+    this.setState({ showAuth: true, authPath: path });
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -398,7 +395,7 @@ class ReaderApp extends Component {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
     if (!!history.state?.showAuth !== !!this.state.showAuth) { return true; }
-    if (this.state.showAuth && (history.state?.authFlow !== this.state.authFlow || history.state?.authNext !== this.state.authNext)) { return true; }
+    if (this.state.showAuth && history.state?.authPath !== this.state.authPath) { return true; }
 
     if (!history.state
         || (!history.state.panels && !!this.state.panels)
@@ -469,14 +466,8 @@ class ReaderApp extends Component {
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     if (this.state.showAuth) {
-      const { authFlow, authReset } = this.state;
-      // The reset-confirm URL isn't a /<flow> path, so it can't come from the
-      // same template — everything else about the returned state is shared.
-      const next = (authFlow !== 'reset' && this.state.authNext) || '/';
-      const url = (authFlow === 'reset' && authReset)
-        ? buildResetUrl(authReset.uid)
-        : (next !== '/' ? `/${authFlow}?next=${encodeURIComponent(next)}` : `/${authFlow}`);
-      return { state: { showAuth: true, authFlow, authNext: next, authReset, panels: [] }, url, title: document.title };
+      const { authPath } = this.state;
+      return { state: { showAuth: true, authPath, panels: [] }, url: authPath, title: document.title };
     }
 
     var histories = [];
@@ -1310,10 +1301,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
-    const authMatch = path.match(/^\/(login|register)\/?$/);
-    if (authMatch) {
-      const flow = authMatch[1];
-      this.showAuthPage(flow, params.get('next'));
+    if (isAuthPath(path)) {
+      const next = params.get('next') || Sefaria.util.currentPath();
+      this.handleAuthNavigate(withNext(path, next));
       return true;
     }
 
@@ -2508,10 +2498,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               <main id="main" role="main">
                 {this.state.showAuth ? (
                   <AuthPage
-                    flow={this.state.authFlow}
-                    next={this.state.authNext}
-                    resetValid={this.state.authReset?.valid}
-                    onFlowChange={(f) => this.setState({ authFlow: f, authReset: null }, this.updateHistoryState)}
+                    initialPath={this.state.authPath}
+                    resetValid={this.props.authResetValid}
+                    onNavigate={this.handleAuthNavigate}
                   />
                 ) : (
                 <div className="panelContainer">

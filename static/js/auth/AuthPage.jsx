@@ -9,7 +9,7 @@ import ResetView from './ResetView.jsx';
 import ResetExpiredView from './ResetExpiredView.jsx';
 import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
-import { makeFlowId, focusProvider } from './utils.js';
+import { makeFlowId, focusProvider, pathToFlow, flowToPath, nextFromPath } from './utils.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -17,26 +17,28 @@ import { getCsrfToken } from '../sefaria/csrf';
  *
  * A single state machine that swaps the card content in place (no page navigation):
  *   view ∈ { choose, email, forgot, forgot-sent, reset, reset-expired, reset-success }
- *   and flow ∈ { login, register, reset }.
+ *   and flow ∈ { login, register, reset }, derived from `initialPath` (ReaderApp only
+ *   knows this is an auth route, not what flow it represents).
  * The card's own back button returns to `choose`; the browser URL stays /login, /register,
- * or the reset-confirm URL (for `flow === 'reset'`, handled by ReaderApp).
+ * or the reset-confirm URL (for `flow === 'reset'`, pushed by ReaderApp via `onNavigate`).
  *
  * SSO uses the existing backend callbacks (/api/auth/{google,apple}/callback). Email
  * login/register use JSON+session endpoints (/api/auth/login, /register).
  */
 const AuthPage = ({
-  flow = 'login',
-  next = '/',
+  initialPath = '/login',
   resetValid = null,
-  onFlowChange,
+  onNavigate,
 }) => {
+  const flow = pathToFlow(initialPath);
+  const next = nextFromPath(initialPath);
   const [view, setView] = useState(() => {
     if (flow !== 'reset') return 'choose';
     return resetValid === false ? 'reset-expired' : 'reset';
   });
   const prevFlowRef = useRef(flow);
   // Clicking "Log in"/"Sign up" outside this component (e.g. in the header) only updates the
-  // `flow` prop/URL, bypassing `switchFlow` below — without this, the card stays stuck on
+  // `initialPath` prop/URL, bypassing `switchFlow` below — without this, the card stays stuck on
   // whatever view it was showing (reset, forgot, email, ...) instead of landing on ChooseView.
   // `view` is never set to 'reset'/'reset-expired' here: that view is only ever reached via a
   // direct reset-confirm link, handled once by the initializer above.
@@ -63,7 +65,7 @@ const AuthPage = ({
   const switchFlow = (f) => (e) => {
     e?.preventDefault();
     setView('choose');
-    onFlowChange?.(f);
+    onNavigate?.(flowToPath(f, next));
   };
 
   const trackRegistration = useCallback((name, extra = {}) => {
@@ -128,7 +130,7 @@ const AuthPage = ({
   const onProviderClick = (p) => { setView('choose'); focusProvider(p); };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
-  const requestNewLink = () => { setView('forgot'); onFlowChange?.('login'); };
+  const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
 
   let content;
   if (view === 'email' && flow === 'register') {
@@ -189,10 +191,9 @@ const AuthPage = ({
 };
 
 AuthPage.propTypes = {
-  flow: PropTypes.oneOf(['login', 'register', 'reset']),
-  next: PropTypes.string,
+  initialPath: PropTypes.string,
   resetValid: PropTypes.bool,
-  onFlowChange: PropTypes.func,
+  onNavigate: PropTypes.func,
 };
 
 export default AuthPage;
