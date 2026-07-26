@@ -25,7 +25,7 @@ from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.system.context_processors import _is_user_in_experiment
 from sefaria.utils.util import get_redirect_to_help_center
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -344,6 +344,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "countryCode": request.country_code,
         "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
@@ -3526,6 +3527,7 @@ def topic_page(request, slug, test_version=None):
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
+        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY),
     })
 
 @catch_error_as_json
@@ -3535,7 +3537,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     minify = bool(int(request.GET.get("minify", 1)))
-    all_topics = get_all_topics(limit, active_module=request.active_module)
+    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=minify, with_html=True)
@@ -4679,7 +4681,7 @@ def translations_api(request, lang=None):
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
 
     aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
-                                            "index.title": 1, "index.order": 1,
+                                            "index.title": 1, "index.order": 1, "languageFamilyName": 1,
                                             "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
                                             "priority": 1, "vstate.first_section_ref": 1}},
                               {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
@@ -4727,7 +4729,10 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    version_param = f'{my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
+                    params = urllib.parse.urlencode({'ven': version_param, "lang": "bi"})
+                    to_add["url"] = f'/{ref}?{params}'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]

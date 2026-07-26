@@ -233,7 +233,6 @@ SiteWideBanner.propTypes = {
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("site_wide_banner.enhance_your_learning_experience");
 const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
@@ -269,7 +268,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 
   return (
     <SiteWideBanner
-      mainText={CHATBOT_BANNER_MAIN_TEXT}
+      mainText={Sefaria._("site_wide_banner.enhance_your_learning_experience")}
       secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
       actionButtons={(track) => isLoggedIn ? (
         <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>

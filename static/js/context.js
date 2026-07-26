@@ -70,6 +70,13 @@ function StrapiDataProvider({ children }) {
             showToReturningVisitors
             showToSustainers
             showTo
+            countriesToTarget {
+              countryMode
+              countries {
+                name
+                code
+              }
+            }
             updatedAt
           }
           modals(
@@ -103,6 +110,13 @@ function StrapiDataProvider({ children }) {
             showToReturningVisitors
             showToSustainers
             showTo
+            countriesToTarget {
+              countryMode
+              countries {
+                name
+                code
+              }
+            }
             updatedAt
           }
           sidebarAds(
