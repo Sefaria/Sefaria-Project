@@ -337,14 +337,14 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
-            onSuggestionClick: () => {
+            onSuggestionClick: (item) => {
               gtag("event", "search_navto", {
                 "project": "Global Search",
                 "feature_name": "Nav To by Mouse",
                 "to": props.label,
                 "text": inputValue
               });
-              redirectToObject();
+              redirectToObject(item);
             },
             SuggestionComponent: EntitySearchSuggestion
         }
