@@ -257,8 +257,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     const blurSearch = (e) => {
       onBlur(e);
-      const oldValue = getVirtualKeyboardInputValue();
       const parent = document.getElementById('searchBox');
+      if (!parent) {
+        // the search box unmounts mid-blur when the mobile nav menu closes on navigation
+        return;
+      }
+      const oldValue = getVirtualKeyboardInputValue();
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
         setSearchFocused(false);
