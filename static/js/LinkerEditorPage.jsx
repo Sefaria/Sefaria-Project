@@ -27,6 +27,46 @@ const nodePrimaryTitle = (node) => {
 
 const pathString = (keyPath) => keyPath.join('.');
 
+// A NonUniqueTerm badge shows its primary English title (falling back to primary
+// Hebrew), with the raw slug always displayed in grey underneath for reference.
+const termBadgeTitle = (slug, termTitles) => {
+  const t = (termTitles || {})[slug] || {};
+  return (t.primary_en || '').trim() || (t.primary_he || '').trim();
+};
+
+const TermBadge = ({ slug, termTitles, onClick, children }) => {
+  const title = termBadgeTitle(slug, termTitles);
+  const interactive = typeof onClick === 'function';
+  return (
+    <span
+      className="termBadge"
+      title={slug}
+      onClick={interactive ? onClick : undefined}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+    >
+      <span className="termBadgeLabels">
+        {title && <span className="termBadgeTitle">{title}</span>}
+        <span className="termBadgeSlug">{slug}</span>
+      </span>
+      {children}
+    </span>
+  );
+};
+
+// Gather every NonUniqueTerm slug used across a raw index's default + alt structures.
+const collectTermSlugs = (rawIndex) => {
+  const slugs = new Set();
+  const walk = (node) => {
+    if (!node) { return; }
+    (node.match_templates || []).forEach(mt => (mt.term_slugs || []).forEach(s => slugs.add(s)));
+    (node.nodes || []).forEach(walk);
+  };
+  walk(rawIndex && rawIndex.schema);
+  altStructRoots(rawIndex || {}).forEach(({ nodes }) => nodes.forEach(walk));
+  return [...slugs];
+};
+
 const altStructRoots = (rawIndex) => {
   const altStructs = rawIndex?.alt_structs || {};
   return Object.entries(altStructs)
@@ -58,6 +98,7 @@ const editorApi = {
   loadRawIndex: (title) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/v2/raw/index/${encPath(title)}`),
   searchTerms: (q) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/linker/non-unique-terms?q=${encPath(q)}`),
   termDetail: (slug) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term/${encPath(slug)}`),
+  termTitles: (slugs) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term-titles?slugs=${encPath(slugs.join(','))}`),
   addTermTitles: (slug, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, payload, 'POST'),
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
@@ -129,7 +170,7 @@ const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocu
 // MatchTemplate editor within a node card
 // ---------------------------------------------------------------------------
 
-const MatchTemplateRow = ({ template, title, keyPath, onTermClick, onChanged }) => {
+const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, onChanged }) => {
   const [addingTerm, setAddingTerm] = useState(false);
   const [busy, setBusy] = useState(false);
   const path = pathString(keyPath);
@@ -163,7 +204,7 @@ const MatchTemplateRow = ({ template, title, keyPath, onTermClick, onChanged }) 
     <div className={'matchTemplateRow' + (busy ? ' busy' : '')}>
       <div className="matchTemplateBadges">
         {template.term_slugs.map((slug, i) => (
-          <span key={i} className="termBadge" onClick={() => onTermClick(slug)} role="button" tabIndex={0}>{slug}</span>
+          <TermBadge key={i} slug={slug} termTitles={termTitles} onClick={() => onTermClick(slug)} />
         ))}
         <span className={'scopeBadge scope-' + scope}>{scope}</span>
       </div>
@@ -177,14 +218,22 @@ const MatchTemplateRow = ({ template, title, keyPath, onTermClick, onChanged }) 
   );
 };
 
-const AddMatchTemplateForm = ({ title, keyPath, onChanged }) => {
+const AddMatchTemplateForm = ({ title, keyPath, termTitles, onChanged }) => {
   const [open, setOpen] = useState(false);
   const [slugs, setSlugs] = useState([]);
+  // Titles for slugs picked here that aren't yet in the index-wide termTitles map.
+  const [pickedTitles, setPickedTitles] = useState({});
   const [scope, setScope] = useState('combined');
   const [busy, setBusy] = useState(false);
   const path = pathString(keyPath);
 
-  const reset = () => { setSlugs([]); setScope('combined'); setOpen(false); };
+  const reset = () => { setSlugs([]); setPickedTitles({}); setScope('combined'); setOpen(false); };
+  const badgeTitles = { ...(termTitles || {}), ...pickedTitles };
+  const addSlug = (term) => {
+    if (slugs.includes(term.slug)) { return; }
+    setSlugs([...slugs, term.slug]);
+    setPickedTitles(prev => ({ ...prev, [term.slug]: { primary_en: term.primary_en, primary_he: term.primary_he } }));
+  };
 
   const save = async () => {
     if (!slugs.length) { return; }
@@ -204,13 +253,12 @@ const AddMatchTemplateForm = ({ title, keyPath, onChanged }) => {
     <div className="addMatchTemplateForm">
       <div className="addMatchTemplateBadges">
         {slugs.map((slug, i) => (
-          <span key={i} className="termBadge">
-            {slug}
+          <TermBadge key={i} slug={slug} termTitles={badgeTitles}>
             <span className="removeSlug" onClick={() => setSlugs(slugs.filter((_, j) => j !== i))}>×</span>
-          </span>
+          </TermBadge>
         ))}
       </div>
-      <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={(term) => { if (!slugs.includes(term.slug)) { setSlugs([...slugs, term.slug]); } }} />
+      <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={addSlug} />
       <label className="scopeSelect">
         {Sefaria._('scope')}:
         <select value={scope} onChange={e => setScope(e.target.value)}>
@@ -274,6 +322,7 @@ const SchemaNodeCard = ({
   expandedPaths,
   toggleExpand,
   addressTypeOptions,
+  termTitles,
   onTermClick,
   onChanged,
   altStructRootEntries=[],
@@ -322,11 +371,12 @@ const SchemaNodeCard = ({
               template={{ term_slugs: mt.term_slugs || [], scope: mt.scope || 'combined' }}
               title={title}
               keyPath={keyPath}
+              termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
             />
           ))}
-          <AddMatchTemplateForm title={title} keyPath={keyPath} onChanged={onChanged} />
+          <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} />
         </div>
 
         <AddressTypeEditor
@@ -351,6 +401,7 @@ const SchemaNodeCard = ({
               expandedPaths={expandedPaths}
               toggleExpand={toggleExpand}
               addressTypeOptions={addressTypeOptions}
+              termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
               collapseBranchBodyWhenCollapsed={collapseBranchBodyWhenCollapsed}
@@ -373,6 +424,7 @@ const SchemaNodeCard = ({
               expandedPaths={expandedPaths}
               toggleExpand={toggleExpand}
               addressTypeOptions={addressTypeOptions}
+              termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
               jumpToPath={jumpToPath}
@@ -384,7 +436,7 @@ const SchemaNodeCard = ({
   );
 };
 
-const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, onTermClick, onChanged, jumpToPath }) => {
+const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onChanged, jumpToPath }) => {
   const path = pathString(['__alt__', structName]);
   const expanded = expandedPaths.has(path);
 
@@ -409,6 +461,7 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
               expandedPaths={expandedPaths}
               toggleExpand={toggleExpand}
               addressTypeOptions={addressTypeOptions}
+              termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
               collapseBranchBodyWhenCollapsed={true}
@@ -577,11 +630,18 @@ const LinkerEditorPage = () => {
   const [expandedPaths, setExpandedPaths] = useState(new Set());
   const [addressTypeOptions, setAddressTypeOptions] = useState([]);
   const [termSlug, setTermSlug] = useState(null);
+  const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
   const [rebuilding, setRebuilding] = useState(false);
 
   useEffect(() => {
     editorApi.addressTypes().then(d => setAddressTypeOptions(d.address_types || []));
+  }, []);
+
+  const loadTermTitles = useCallback((rawIndexData) => {
+    const slugs = collectTermSlugs(rawIndexData);
+    if (!slugs.length) { setTermTitles({}); return; }
+    editorApi.termTitles(slugs).then(d => setTermTitles(d.titles || {}), () => {});
   }, []);
 
   const loadIndex = useCallback((indexTitle) => {
@@ -592,17 +652,19 @@ const LinkerEditorPage = () => {
         else {
           setRawIndex(d);
           setExpandedPaths(new Set(d.schema?.key ? [d.schema.key] : []));
+          loadTermTitles(d);
         }
         setLoading(false);
       }, e => { setError(e.message || String(e)); setLoading(false); })
-  }, []);
+  }, [loadTermTitles]);
 
   const reload = useCallback(async () => {
     if (!title) { return; }
     const d = await editorApi.loadRawIndex(title);
     setRawIndex(d);
+    loadTermTitles(d);
     setRefreshToken(t => t + 1);
-  }, [title]);
+  }, [title, loadTermTitles]);
 
   const toggleExpand = useCallback((path) => {
     setExpandedPaths(prev => {
@@ -683,6 +745,7 @@ const LinkerEditorPage = () => {
                   expandedPaths={expandedPaths}
                   toggleExpand={toggleExpand}
                   addressTypeOptions={addressTypeOptions}
+                  termTitles={termTitles}
                   onTermClick={setTermSlug}
                   onChanged={reload}
                   altStructRootEntries={altStructRootEntries}

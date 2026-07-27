@@ -215,6 +215,24 @@ def test_search_and_detail_non_unique_terms():
         le.get_non_unique_term_detail("__no_such_slug__")
 
 
+def test_search_non_unique_terms_by_slug():
+    # The hyphenated slug does not appear in the term's titles (which use spaces),
+    # so a hit here can only come from matching the slug itself.
+    results = le.search_non_unique_terms("a-collection-on-prophets", 5)
+    assert "a-collection-on-prophets" in [t["slug"] for t in results]
+
+
 def test_search_empty_query_returns_empty():
     assert le.search_non_unique_terms("", 5) == []
     assert le.search_non_unique_terms("   ", 5) == []
+
+
+def test_get_non_unique_term_titles():
+    titles = le.get_non_unique_term_titles(["bavli"])
+    assert "bavli" in titles
+    assert titles["bavli"]["primary_en"]
+    assert "primary_he" in titles["bavli"]
+
+    # Unknown/blank slugs are silently skipped; empty input returns {}.
+    assert le.get_non_unique_term_titles([]) == {}
+    assert le.get_non_unique_term_titles(["", "__no_such_slug__"]) == {}

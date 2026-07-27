@@ -168,6 +168,10 @@
   cursor: pointer;
 }
 .termBadge:hover { background: #d6e0fb; }
+/* Primary title on top, raw slug always shown muted underneath for reference. */
+.termBadgeLabels { display: inline-flex; flex-direction: column; line-height: 1.25; }
+.termBadgeTitle { color: #223; }
+.termBadgeSlug { color: #999; font-size: 11px; }
 .termBadge .removeSlug { cursor: pointer; color: #a55; font-weight: bold; }
 .scopeBadge {
   font-size: 11px;

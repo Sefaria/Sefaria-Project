@@ -176,11 +176,12 @@ def set_address_types(title: str, node_key_path: str, address_types: List[str]) 
 # ---------------------------------------------------------------------------
 
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
-    """Search NonUniqueTerms by title text (case-insensitive) for autocomplete."""
+    """Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete."""
     q = (q or "").strip()
     if not q:
         return []
-    query = {"titles.text": {"$regex": re.escape(q), "$options": "i"}}
+    regex = {"$regex": re.escape(q), "$options": "i"}
+    query = {"$or": [{"titles.text": regex}, {"slug": regex}]}
     results = []
     for term in NonUniqueTermSet(query, limit=limit):
         results.append({
@@ -189,6 +190,20 @@ def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
             "primary_he": term.get_primary_title("he"),
         })
     return results
+
+
+def get_non_unique_term_titles(slugs: List[str]) -> dict:
+    """Map each slug to its primary en/he titles, for rendering MatchTemplate badges."""
+    unique_slugs = list({s for s in slugs if s})
+    if not unique_slugs:
+        return {}
+    titles = {}
+    for term in NonUniqueTermSet({"slug": {"$in": unique_slugs}}):
+        titles[term.slug] = {
+            "primary_en": term.get_primary_title("en"),
+            "primary_he": term.get_primary_title("he"),
+        }
+    return titles
 
 
 def get_non_unique_term_detail(slug: str) -> dict:
