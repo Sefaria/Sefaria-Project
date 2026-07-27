@@ -231,6 +231,29 @@ def test_author_works_response_surfaces_eponymous_work():
     assert not response["hits"][0]["isCategory"]
 
 
+def test_author_works_response_paginates_with_full_total():
+    class _DummyAuthor:
+        slug = "rambam"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": f"/w{i}", "title": {"en": f"Work {i:02d}", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1000 + i}
+                for i in range(5)
+            ]
+
+    # A page is a slice of the sorted rows, but `total` always reports the full count so the
+    # tab badge and "more to load" check stay correct across pages.
+    page = _author_works_response(_DummyAuthor(), "rambam", sort="alpha", start=2, size=2)
+    assert page["total"] == 5
+    assert [h["title_en"] for h in page["hits"]] == ["Work 02", "Work 03"]
+
+    # start past the end yields an empty page but still the full total.
+    tail = _author_works_response(_DummyAuthor(), "rambam", sort="alpha", start=10, size=2)
+    assert tail["total"] == 5 and tail["hits"] == []
+
+
 def test_entity_query_obj_exact_tier_is_case_insensitive():
     # Regression: the Tier-1 exact-match `term` clauses run against raw (un-normalized)
     # `.keyword` sub-fields, so they must set `case_insensitive` — otherwise a lowercase

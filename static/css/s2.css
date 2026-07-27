@@ -4700,6 +4700,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 30px;
 }
 
+/* "Loading more results..." — shown at the bottom of any search tab while the next page
+   loads on scroll. Small, non-italic grey, aligned to the card content inset. */
+.searchResultList .searchLoadMore,
+.entitySearchResults .searchLoadMore {
+  color: var(--medium-grey);
+  font-style: normal;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 16px 20px;
+}
+
 /* SearchResultCard — multi-entity search result card */
 .searchResultCard {
   display: flex;

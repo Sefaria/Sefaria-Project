@@ -541,10 +541,15 @@ def _author_work_matches_query(query, hit):
     return q == (hit.get("title_en") or "").strip().lower() or q == (hit.get("title_he") or "").strip().lower()
 
 
-def _author_works_response(author, query, sort="relevance"):
+def _author_works_response(author, query, sort="relevance", start=0, size=None):
     """
     Build the aggregated author-works response: the author's works collapsed by
     category (reusing AuthorTopic aggregation).
+
+    The rows are built and sorted in full, then sliced by `start`/`size` for pagination;
+    `total` always reports the full row count so the tab badge and "more to load" checks
+    stay correct regardless of how many pages have been fetched. `size=None` returns every
+    row from `start` onward.
 
     Every row carries a `compDate`: an individual work's own composition year, or — for a
     category row, which collapses many works and dates into one entry — the average year
@@ -594,7 +599,9 @@ def _author_works_response(author, query, sort="relevance"):
             0 if (_author_work_matches_query(query, h) and not h.get("isCategory")) else 1,
             0 if h.get("isCategory") else 1,
         ))
-    return {"hits": hits, "total": len(hits), "author_slug": author.slug}
+    total = len(hits)
+    hits = hits[start:] if size is None else hits[start:start + size]
+    return {"hits": hits, "total": total, "author_slug": author.slug}
 
 
 def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
@@ -633,7 +640,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
         if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author, query, sort=sort)
+                return _author_works_response(author, query, sort=sort, start=start, size=size)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
