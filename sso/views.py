@@ -48,7 +48,7 @@ def _social_login_or_error(
             logger.error(f"{provider_id} JWKS fetch failed", error=str(e))
         else:
             logger.warning(f"{provider_id} token verification failed", error=str(e))
-        return None, JsonResponse({"error": "Invalid token"}, status=400)
+        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
 
     # Inject name from provider SDK response (absent from the ID token, e.g. Apple)
     if first_name and not sociallogin.user.first_name:
@@ -59,7 +59,7 @@ def _social_login_or_error(
     complete_social_login(request, sociallogin)
 
     if not request.user.is_authenticated:
-        return None, JsonResponse({"error": "Authentication failed"}, status=400)
+        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
     return request.user, None
 
 
@@ -89,12 +89,12 @@ def google_mobile(request):
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     id_token = data.get("id_token") or data.get("credential") or ""
 
     if not id_token:
-        return JsonResponse({"error": "id_token required"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     user, err = _social_login_or_error(request, "google", id_token)
     if err:
@@ -120,14 +120,14 @@ def apple_callback(request):
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     id_token = data.get("id_token", "")
     first_name = data.get("first_name", "")
     last_name = data.get("last_name", "")
 
     if not id_token:
-        return JsonResponse({"error": "id_token required"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     user, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
@@ -156,14 +156,14 @@ def apple_mobile(request):
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     id_token = data.get("id_token", "")
     first_name = data.get("first_name", "")
     last_name = data.get("last_name", "")
 
     if not id_token:
-        return JsonResponse({"error": "id_token required"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     user, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
@@ -180,11 +180,11 @@ def password_reset_api(request):
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     form = SefariaPasswordResetForm(data={"email": data.get("email", "")})
     if not form.is_valid():
-        return JsonResponse({"error": "Enter a valid email address."}, status=400)
+        return JsonResponse({"error": "auth.invalid_email"}, status=400)
 
     form.save(
         request=request,
@@ -212,7 +212,7 @@ def email_login(request):
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
 
     email = data.get("email", "")
     password = data.get("password", "")
@@ -225,13 +225,13 @@ def email_login(request):
                 providers = list(u.socialaccount_set.values_list("provider", flat=True))
                 return JsonResponse(
                     {
-                        "error": "This account uses social sign-in. Please sign in using one of the buttons above.",
+                        "error": "auth.generic_error",
                         "_auth": {"code": "sso_only_account", "providers": providers},
                     },
                     status=401,
                 )
         return JsonResponse(
-            {"error": "Email and/or password are incorrect"}, status=401
+            {"error": "auth.invalid_credentials"}, status=401
         )
 
     auth_login(request, user)
