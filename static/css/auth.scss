@@ -38,7 +38,7 @@ $stroke-strong:   1.5px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 56px 24px; // pure design gap — top offset handled by `top: var(--header-height)`
+  padding: 56px 32px; // pure design gap — top offset handled by `top: var(--header-height)`
   background-color: var(--sefaria-blue);
   background-image: url('/static/img/auth/auth-bg-desktop.png');
   background-size: cover;
@@ -46,7 +46,7 @@ $stroke-strong:   1.5px;
   background-repeat: no-repeat;
 
   @include breakpoint(mobile) {
-    padding: 56px 24px 24px;
+    padding: 56px 32px 24px;
     background-image: url('/static/img/auth/auth-bg-mobile.png');
     background-position: center top;
   }
@@ -65,7 +65,7 @@ $stroke-strong:   1.5px;
   min-height: 480px;
   background: $sef-surface;
   border-radius: 16px;
-  padding: 56px 48px;
+  padding: 56px 24px;
   gap: 32px;
   align-items: center;
   justify-content: center;
@@ -134,7 +134,6 @@ $stroke-strong:   1.5px;
   }
 
   @include breakpoint(mobile) {
-    max-width: 329px;
     min-height: 0;
     border-radius: 16px;
     padding: 56px 24px 24px;

@@ -21,7 +21,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 56px 24px;
+  padding: 56px 32px;
   background-color: var(--sefaria-blue);
   background-image: url("/static/img/auth/auth-bg-desktop.png");
   background-size: cover;
@@ -30,7 +30,7 @@
 }
 @media (max-width: 842px) {
   .sefaria-auth-page {
-    padding: 56px 24px 24px;
+    padding: 56px 32px 24px;
     background-image: url("/static/img/auth/auth-bg-mobile.png");
     background-position: center top;
   }
@@ -44,7 +44,7 @@
   min-height: 480px;
   background: #ffffff;
   border-radius: 16px;
-  padding: 56px 48px;
+  padding: 56px 24px;
   gap: 32px;
   align-items: center;
   justify-content: center;
@@ -122,7 +122,6 @@
 }
 @media (max-width: 842px) {
   .sefaria-auth-card {
-    max-width: 329px;
     min-height: 0;
     border-radius: 16px;
     padding: 56px 24px 24px;
