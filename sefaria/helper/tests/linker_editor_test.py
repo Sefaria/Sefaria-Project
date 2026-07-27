@@ -222,6 +222,30 @@ def test_search_non_unique_terms_by_slug():
     assert "a-collection-on-prophets" in [t["slug"] for t in results]
 
 
+def test_create_non_unique_term():
+    from sefaria.model.schema import NonUniqueTerm
+    detail = None
+    try:
+        detail = le.create_non_unique_term([
+            {"lang": "en", "text": "Zzz Editor Test Term"},
+            {"lang": "he", "text": "זזז מונח בדיקה"},
+        ])
+        assert detail["slug"] == "zzz-editor-test-term"
+        langs = {(t["lang"], t.get("primary")) for t in detail["titles"]}
+        assert ("en", True) in langs and ("he", True) in langs
+        assert detail["usages"] == []
+    finally:
+        if detail:
+            NonUniqueTerm.init(detail["slug"]).delete()
+
+
+def test_create_non_unique_term_requires_a_title():
+    with pytest.raises(InputError):
+        le.create_non_unique_term([])
+    with pytest.raises(InputError):
+        le.create_non_unique_term([{"lang": "en", "text": "   "}])
+
+
 def test_search_empty_query_returns_empty():
     assert le.search_non_unique_terms("", 5) == []
     assert le.search_non_unique_terms("   ", 5) == []

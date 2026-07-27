@@ -99,6 +99,8 @@ const editorApi = {
   searchTerms: (q) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/linker/non-unique-terms?q=${encPath(q)}`),
   termDetail: (slug) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term/${encPath(slug)}`),
   termTitles: (slugs) => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/non-unique-term-titles?slugs=${encPath(slugs.join(','))}`),
+  createTerm: (payload) =>
+    Sefaria.apiRequestWithBody('/_api/linker-editor/non-unique-term', {}, payload, 'POST'),
   addTermTitles: (slug, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, payload, 'POST'),
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
@@ -481,22 +483,42 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
 // NonUniqueTerm detail panel (bottom slide-up)
 // ---------------------------------------------------------------------------
 
-const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
+const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, onJump }) => {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [savingTitles, setSavingTitles] = useState(false);
+  // Create-mode state: primary English / Hebrew titles for a brand-new term.
+  const [newEn, setNewEn] = useState('');
+  const [newHe, setNewHe] = useState('');
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
+    if (createMode) { return; }
     setDetail(null); setError(null);
     editorApi.termDetail(slug).then(setDetail, e => setError(e.message || String(e)));
-  }, [slug, refreshToken]);
+  }, [slug, createMode, refreshToken]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') { onClose(); } };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const createTerm = async () => {
+    const titles = [];
+    if (newEn.trim()) { titles.push({ lang: 'en', text: newEn.trim() }); }
+    if (newHe.trim()) { titles.push({ lang: 'he', text: newHe.trim() }); }
+    if (!titles.length) { return; }
+    setCreating(true); setError(null);
+    try {
+      const created = await editorApi.createTerm({ titles });
+      onCreated(created.slug);
+    } catch (e) {
+      setError(e.message || String(e));
+    }
+    setCreating(false);
+  };
 
   const addTitles = async () => {
     const text = newTitle.trim();
@@ -511,6 +533,44 @@ const TermDetailPanel = ({ slug, refreshToken, onClose, onJump }) => {
     }
     setSavingTitles(false);
   };
+
+  if (createMode) {
+    return (
+      <div className="termDetailPanel">
+        <div className="termDetailHeader">
+          <span className="termDetailSlug">{Sefaria._('New term')}</span>
+          <button className="linkerEditorBtn small" onClick={onClose}>{Sefaria._('Close')}</button>
+        </div>
+        {error && <div className="termDetailError">{error}</div>}
+        <div className="termDetailBody">
+          <div className="termCreateForm">
+            <span className="cardLabel">{Sefaria._('Primary titles')} <span className="termCreateHint">({Sefaria._('at least one required')})</span></span>
+            <input
+              className="linkerEditorTermInput"
+              value={newEn}
+              onChange={e => setNewEn(e.target.value)}
+              placeholder={Sefaria._('Primary English title')}
+              autoFocus
+            />
+            <input
+              className="linkerEditorTermInput"
+              value={newHe}
+              onChange={e => setNewHe(e.target.value)}
+              placeholder={Sefaria._('Primary Hebrew title')}
+              dir="rtl"
+            />
+            <button
+              className="linkerEditorBtn small"
+              disabled={creating || (!newEn.trim() && !newHe.trim())}
+              onClick={createTerm}
+            >
+              {creating ? Sefaria._('Saving…') : Sefaria._('Save')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="termDetailPanel">
@@ -630,9 +690,13 @@ const LinkerEditorPage = () => {
   const [expandedPaths, setExpandedPaths] = useState(new Set());
   const [addressTypeOptions, setAddressTypeOptions] = useState([]);
   const [termSlug, setTermSlug] = useState(null);
+  const [addingTerm, setAddingTerm] = useState(false);
   const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
   const [rebuilding, setRebuilding] = useState(false);
+
+  const openTerm = useCallback((slug) => { setAddingTerm(false); setTermSlug(slug); }, []);
+  const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); }, []);
 
   useEffect(() => {
     editorApi.addressTypes().then(d => setAddressTypeOptions(d.address_types || []));
@@ -722,6 +786,7 @@ const LinkerEditorPage = () => {
             <h1><InterfaceText>Linker Editor</InterfaceText></h1>
             <div className="linkerEditorTopActions">
               {title && <button className="linkerEditorBtn" onClick={() => { setTitle(null); setRawIndex(null); }}>{Sefaria._('New search')}</button>}
+              <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
               <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
                 {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
               </button>
@@ -746,7 +811,7 @@ const LinkerEditorPage = () => {
                   toggleExpand={toggleExpand}
                   addressTypeOptions={addressTypeOptions}
                   termTitles={termTitles}
-                  onTermClick={setTermSlug}
+                  onTermClick={openTerm}
                   onChanged={reload}
                   altStructRootEntries={altStructRootEntries}
                   collapseBranchBodyWhenCollapsed={true}
@@ -756,11 +821,13 @@ const LinkerEditorPage = () => {
             </div>
           )}
 
-          {termSlug && (
+          {(termSlug || addingTerm) && (
             <TermDetailPanel
               slug={termSlug}
+              createMode={addingTerm}
               refreshToken={refreshToken}
-              onClose={() => setTermSlug(null)}
+              onClose={closeTermDrawer}
+              onCreated={openTerm}
               onJump={jumpToNode}
             />
           )}

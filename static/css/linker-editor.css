@@ -231,6 +231,13 @@
   gap: 8px;
   margin-bottom: 12px;
 }
+.termCreateForm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.termCreateHint { color: #999; font-weight: normal; }
 .termUsageItem {
   display: flex;
   align-items: center;

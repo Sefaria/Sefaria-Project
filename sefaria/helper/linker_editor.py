@@ -218,6 +218,38 @@ def get_non_unique_term_detail(slug: str) -> dict:
     }
 
 
+def create_non_unique_term(titles: List[dict]) -> dict:
+    """
+    Create a new NonUniqueTerm from a list of {lang, text} titles (at least one
+    non-blank title is required). The first title of each language becomes its primary.
+    Returns the new term's detail, including the slug generated on save.
+    """
+    if not isinstance(titles, list):
+        raise InputError("titles must be a list.")
+    cleaned = []
+    for title in titles:
+        if not isinstance(title, dict):
+            raise InputError("Each title must be an object.")
+        lang = title.get("lang")
+        text = (title.get("text") or "").strip()
+        if lang not in ("en", "he"):
+            raise InputError("Title lang must be 'en' or 'he'.")
+        if text:
+            cleaned.append((lang, text))
+    if not cleaned:
+        raise InputError("At least one title (English or Hebrew) is required.")
+
+    # Seed the slug from the primary English title, falling back to the first title.
+    slug_seed = next((text for lang, text in cleaned if lang == "en"), cleaned[0][1])
+    term = NonUniqueTerm({"slug": slug_seed, "titles": []})
+    primary_langs = set()
+    for lang, text in cleaned:
+        term.title_group.add_title(text, lang, primary=(lang not in primary_langs))
+        primary_langs.add(lang)
+    term.save()
+    return get_non_unique_term_detail(term.slug)
+
+
 def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
     """Add alternate titles to a NonUniqueTerm and return the refreshed term detail."""
     term = NonUniqueTerm.init(slug)
