@@ -120,7 +120,7 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
                 user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
-                lang=getattr(request, "interfaceLang", "english"),
+                lang=getattr(request, "LANGUAGE_CODE", "en"),
                 educator=False,
             )
         except Exception:
