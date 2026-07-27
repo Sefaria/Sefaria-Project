@@ -125,7 +125,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     _replace_existing_chunk(chunk)
 
     # Prepare the minimal info the next task needs
-    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})
+    mutc_trefs = _linked_trefs_from_mutc_spans(chunk.spans)
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
         added_mutc_trefs=mutc_trefs,
@@ -164,6 +164,8 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousRes
     spans = linker_output.spans
     ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
     for span in spans:
+        if span.get("deleted"):
+            continue
         if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
             key = tuple(span.get("charRange", []))
             if len(key) == 2:
@@ -212,6 +214,8 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     for mutc_span in mutc_spans:
         if mutc_span.get("type") != MUTCSpanType.CITATION.value:
             continue
+        if mutc_span.get("deleted"):
+            continue
         mutc_ref = mutc_span.get("ref")
         if not mutc_ref:
             continue
@@ -226,6 +230,8 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     non_segment_payloads: list[NonSegmentResolutionPayload] = []
     for span in spans:
         if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if span.get("deleted"):
             continue
         if span.get("failed"):
             continue
@@ -598,6 +604,51 @@ def _extract_resolved_spans(resolved_refs):
     return spans
 
 
+def _span_identity(span: dict) -> tuple:
+    return (
+        span.get("type"),
+        tuple(span.get("charRange") or []),
+        span.get("text"),
+        span.get("ref"),
+    )
+
+
+def _merge_deleted_spans(new_spans: list[dict], existing_spans: list[dict]) -> list[dict]:
+    deleted_spans = [span for span in existing_spans if span.get("deleted")]
+    if not deleted_spans:
+        return new_spans
+    deleted_keys = {_span_identity(span) for span in deleted_spans}
+    return [span for span in new_spans if _span_identity(span) not in deleted_keys] + deleted_spans
+
+
+def _linked_trefs_from_mutc_spans(spans: list[dict]) -> list[str]:
+    return sorted({s["ref"] for s in spans if "ref" in s and not s.get("deleted")})
+
+
+def _mutc_deleted_spans_from_linker_output(ref: str, version_title: str, language: str) -> list[dict]:
+    linker_output = LinkerOutput().load({
+        "ref": ref,
+        "versionTitle": version_title,
+        "language": language,
+    })
+    if not linker_output:
+        return []
+    deleted_spans = []
+    for span in linker_output.spans:
+        if not span.get("deleted") or span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if not span.get("ref"):
+            continue
+        deleted_spans.append({
+            "charRange": span.get("charRange"),
+            "text": span.get("text"),
+            "type": MUTCSpanType.CITATION.value,
+            "ref": span.get("ref"),
+            "deleted": True,
+        })
+    return deleted_spans
+
+
 def _upsert_mutc_span(
     ref: str,
     version_title: str,
@@ -706,6 +757,7 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
     }
     existing = LinkerOutput().load(query)
     if existing:
+        spans = _merge_deleted_spans(spans, existing.spans)
         if len(spans) == 0:
             existing.delete()
         else:
@@ -734,7 +786,9 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
+    linker_output_deleted_spans = _mutc_deleted_spans_from_linker_output(chunk.ref, chunk.versionTitle, chunk.language)
     if existing:
+        chunk.spans = _merge_deleted_spans(chunk.spans, existing.spans + linker_output_deleted_spans)
         if len(chunk.spans) == 0:
             # If the new chunk has no spans, just delete the existing one
             existing.delete()
@@ -745,6 +799,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         existing.add_non_overlapping_spans(existing_spans)
         existing.save()
     else:
+        chunk.spans = _merge_deleted_spans(chunk.spans, linker_output_deleted_spans)
         if len(chunk.spans) == 0:
             # No existing chunk and no spans to save
             return None
@@ -776,6 +831,8 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
             # Skip MUTC that matches the current version
             continue
         for span in mutc.spans:
+            if span.get("deleted"):
+                continue
             if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
                 other_mutc_trefs.add(span['ref'])
 
@@ -784,6 +841,8 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
     linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
     for mutc in linked_mutcs:
         for span in mutc.spans:
+            if span.get("deleted"):
+                continue
             if span['type'] == MUTCSpanType.CITATION.value and span.get('ref') == msg.ref:
                 # this is an MUTC that links back to the current ref implying we need to keep this link
                 other_mutc_trefs.add(mutc.ref)

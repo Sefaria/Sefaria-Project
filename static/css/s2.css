@@ -6509,6 +6509,110 @@ But not to use a display block directive that might break continuous mode for ot
 .mutc.spanAmbiguous {
     background: #fff8e1;
 }
+.mutc.spanDeleted {
+    background: #e0e0e0;
+    border-color: #9e9e9e;
+}
+.linkerAdminBox {
+    padding: 16px;
+}
+.linkerAdminToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    color: #333;
+    font-size: 14px;
+}
+.linkerAdminCitationActions,
+.linkerAdminInputRow {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+.linkerAdminInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+.linkerAdminActionButton {
+    border: 1px solid #999;
+    background: #fff;
+    color: #333;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.linkerAdminActionButton.danger {
+    border-color: #b71c1c;
+    color: #b71c1c;
+}
+.linkerAdminActionButton:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+.linkerAdminMuted,
+.linkerAdminPartType,
+.linkerAdminNode,
+.linkerAdminInvalidReason {
+    color: #666;
+    font-size: 12px;
+}
+.linkerAdminParts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.linkerAdminPartChip {
+    display: inline-flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    padding: 5px 7px;
+    margin: 2px;
+    max-width: 100%;
+}
+.linkerAdminPartText {
+    color: #222;
+    overflow-wrap: anywhere;
+}
+.linkerAdminParsing {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.linkerAdminParsing.valid {
+    background: #eef8ef;
+}
+.linkerAdminParsing.invalid {
+    background: #fdeeee;
+}
+.linkerAdminParsingRef {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.linkerAdminDisclosure {
+    border: 0;
+    background: transparent;
+    padding: 4px 0;
+    cursor: pointer;
+    color: #333;
+}
+.linkerAdminPairing {
+    margin-top: 8px;
+}
+.linkerAdminError {
+    color: #b71c1c;
+    margin-bottom: 10px;
+}
+.linkerAdminMessage {
+    color: #1b5e20;
+    margin-bottom: 10px;
+}
 .textRange .actionLinks {
   text-align: right;
 }

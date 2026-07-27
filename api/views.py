@@ -4,12 +4,14 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 
 from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
 from sefaria.helper import linker_editor
+from sefaria.helper import linker_admin
 from .api_warnings import *
 
 
@@ -162,6 +164,63 @@ class RefView(View):
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
 
         return jsonResponse(return_object)
+
+
+class LinkerAdminAPIView(View):
+
+    @method_decorator(staff_member_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def _body(request):
+        try:
+            body = json.loads(request.body or "{}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise InputError("Invalid JSON body")
+        if not isinstance(body, dict):
+            raise InputError("JSON body must be an object")
+        return body
+
+    def _handle(self, request, handler):
+        try:
+            return jsonResponse(handler(self._body(request)))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class LinkerAdminDeleteCitationView(LinkerAdminAPIView):
+
+    def post(self, request):
+        return self._handle(
+            request,
+            lambda body: linker_admin.set_linker_citation_deleted(body, request.user.id, True)
+        )
+
+
+class LinkerAdminRecreateCitationView(LinkerAdminAPIView):
+
+    def post(self, request):
+        return self._handle(
+            request,
+            lambda body: linker_admin.set_linker_citation_deleted(body, request.user.id, False)
+        )
+
+
+class LinkerAdminParseCitationView(LinkerAdminAPIView):
+
+    def post(self, request):
+        return self._handle(request, linker_admin.parse_linker_citation)
+
+
+class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
+
+    def post(self, request):
+        try:
+            result = linker_admin.rerun_linker_for_segment(self._body(request), request.user.id)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse(result, status=202)
 
 
 class KnnSearch(View):

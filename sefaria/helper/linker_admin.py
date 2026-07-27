@@ -1,0 +1,300 @@
+import ast
+import re
+from typing import Any, Optional
+
+from ne_span import NEDoc
+
+from sefaria import tracker
+from sefaria.model import Ref, Link, library
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, TermContext
+from sefaria.model.linker.ref_resolver import AmbiguousResolvedRef, ResolutionThoroughness
+from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.text import TextChunk
+from sefaria.system.exceptions import InputError
+from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
+
+
+ENCODED_PART_TYPE_MAP = {
+    "@": RefPartType.NAMED,
+    "#": RefPartType.NUMBERED,
+    "*": RefPartType.DH,
+    "^": RefPartType.RANGE_SYMBOL,
+    "&": RefPartType.IBID,
+    "<": RefPartType.RELATIVE,
+    "~": RefPartType.NON_CTS,
+}
+REF_PART_TYPE_BY_NAME = {part_type.name: part_type for part_type in RefPartType}
+
+
+def _required(payload: dict, key: str) -> Any:
+    value = payload.get(key)
+    if value is None or value == "":
+        raise InputError(f"Missing required field: {key}")
+    return value
+
+
+def _normalize_char_range(raw_char_range: Any) -> list[int]:
+    if isinstance(raw_char_range, str):
+        raw_char_range = raw_char_range.split("-")
+    if not isinstance(raw_char_range, list) or len(raw_char_range) != 2:
+        raise InputError("charRange must be a two-item list or start-end string")
+    try:
+        return [int(raw_char_range[0]), int(raw_char_range[1])]
+    except (TypeError, ValueError):
+        raise InputError("charRange values must be integers")
+
+
+def _span_matches(span: dict, payload: dict) -> bool:
+    return (
+        span.get("type") == MUTCSpanType.CITATION.value
+        and span.get("charRange") == payload["charRange"]
+        and span.get("text") == payload["text"]
+        and span.get("ref") == payload["targetRef"]
+    )
+
+
+def _update_deleted_marker(klass, payload: dict, deleted: bool) -> bool:
+    chunk = klass().load({
+        "ref": payload["ref"],
+        "versionTitle": payload["versionTitle"],
+        "language": payload["lang"],
+    })
+    if not chunk:
+        return False
+    updated = False
+    for span in chunk.spans:
+        if _span_matches(span, payload):
+            if deleted:
+                span["deleted"] = True
+            else:
+                span.pop("deleted", None)
+            updated = True
+    if updated:
+        chunk.save()
+    return updated
+
+
+def _delete_generated_link(source_ref: str, target_ref: str, user_id: Optional[int]) -> bool:
+    try:
+        source_ref = Ref(source_ref).normal()
+        target_ref = Ref(target_ref).normal()
+    except Exception:
+        pass
+    link = Link().load({
+        "refs": {"$all": [source_ref, target_ref]},
+        "generated_by": "add_links_from_text",
+    })
+    if not link:
+        return False
+    tracker.delete(user_id, Link, link._id)
+    return True
+
+
+def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
+    ref = Ref(_required(payload, "ref")).normal()
+    version_title = _required(payload, "versionTitle")
+    lang = _required(payload, "lang")
+    tc = TextChunk(Ref(ref), lang=lang, vtitle=version_title)
+    if not tc.text:
+        raise InputError(f"No text found for {ref}, {lang}, {version_title}")
+    async_result = enqueue_linking_chain(LinkingArgs(
+        ref=ref,
+        text=tc.text,
+        lang=lang,
+        vtitle=version_title,
+        user_id=user_id,
+        kwargs={},
+    ))
+    return {
+        "ok": True,
+        "ref": ref,
+        "versionTitle": version_title,
+        "lang": lang,
+        "task_id": async_result.id,
+    }
+
+
+def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: bool) -> dict:
+    normalized = {
+        "ref": Ref(_required(payload, "ref")).normal(),
+        "versionTitle": _required(payload, "versionTitle"),
+        "lang": _required(payload, "lang"),
+        "text": _required(payload, "text"),
+        "charRange": _normalize_char_range(_required(payload, "charRange")),
+        "targetRef": Ref(_required(payload, "targetRef")).normal(),
+    }
+
+    mutc_updated = _update_deleted_marker(MarkedUpTextChunk, normalized, deleted)
+    linker_output_updated = _update_deleted_marker(LinkerOutput, normalized, deleted)
+    link_deleted = False
+    if deleted:
+        link_deleted = _delete_generated_link(normalized["ref"], normalized["targetRef"], user_id)
+    else:
+        rerun_linker_for_segment(normalized, user_id)
+
+    return {
+        "ok": True,
+        "deleted": deleted,
+        "marked": mutc_updated or linker_output_updated,
+        "mutcUpdated": mutc_updated,
+        "linkerOutputUpdated": linker_output_updated,
+        "linkDeleted": link_deleted,
+    }
+
+
+def _part_dicts_from_encoded_parts(encoded_parts: list[str]) -> list[dict]:
+    parts = []
+    for encoded_part in encoded_parts:
+        symbol, text = encoded_part[:1], encoded_part[1:]
+        if symbol == "0":
+            continue
+        part_type = ENCODED_PART_TYPE_MAP.get(symbol)
+        if part_type is None:
+            raise InputError(f"Unknown CRRD part symbol: {symbol}")
+        parts.append({"text": text, "type": part_type.name})
+    return parts
+
+
+def _parse_parts_from_crrd(crrd_test_string: str) -> tuple[list[dict], str, Optional[str], list[str]]:
+    match = re.match(r"^\s*crrd\s*\((.*)\)\s*$", crrd_test_string, flags=re.S)
+    if not match:
+        raise InputError("Expected a crrd(...) linker test string")
+    try:
+        parsed = ast.parse(f"f({match.group(1)})", mode="eval")
+    except SyntaxError as e:
+        raise InputError(f"Malformed CRRD test string: {e.msg}")
+    call = parsed.body
+    if not isinstance(call, ast.Call) or not call.args:
+        raise InputError("CRRD test string must include a parts list")
+    try:
+        args = [ast.literal_eval(arg) for arg in call.args]
+        kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
+    except (ValueError, TypeError, SyntaxError) as e:
+        raise InputError(f"Malformed CRRD test string: {e}")
+    parts = args[0]
+    if not isinstance(parts, list) or not all(isinstance(part, str) for part in parts):
+        raise InputError("CRRD parts must be a list of strings")
+    context_ref = args[1] if len(args) > 1 else None
+    lang = args[2] if len(args) > 2 else "he"
+    prev_trefs = args[3] if len(args) > 3 else []
+    lang = kwargs.get("lang", lang)
+    context_ref = kwargs.get("context_tref") or kwargs.get("contextRef") or context_ref
+    prev_trefs = kwargs.get("prev_trefs") or kwargs.get("prevRefs") or prev_trefs
+    if prev_trefs is None:
+        prev_trefs = []
+    if not isinstance(prev_trefs, list):
+        raise InputError("prev_trefs must be a list")
+    return _part_dicts_from_encoded_parts(parts), lang, context_ref, prev_trefs
+
+
+def _raw_ref_from_part_dicts(part_dicts: list[dict], lang: str) -> RawRef:
+    if not isinstance(part_dicts, list) or not all(isinstance(part, dict) for part in part_dicts):
+        raise InputError("parts must be a list of objects with text and type")
+    texts = []
+    part_types = []
+    for part in part_dicts:
+        text = part.get("text")
+        part_type_name = part.get("type")
+        if not isinstance(text, str) or not text:
+            raise InputError("Each part must include non-empty string text")
+        if not isinstance(part_type_name, str):
+            raise InputError("Each part must include string type")
+        part_type = REF_PART_TYPE_BY_NAME.get(part_type_name)
+        if part_type is None:
+            raise InputError(f"Unknown ref part type: {part_type_name}")
+        texts.append(text)
+        part_types.append(part_type)
+
+    input_str = " ".join(texts)
+    doc = NEDoc(input_str)
+    raw_parts = []
+    cursor = 0
+    for text_value, part_type in zip(texts, part_types):
+        start = cursor
+        end = start + len(text_value)
+        cursor = end + 1
+        if part_type is None:
+            continue
+        raw_parts.append(RawRefPart(part_type, doc.subspan(slice(start, end))))
+    return RawRef(doc.subspan(slice(0, len(input_str))), lang, raw_parts)
+
+
+def _serialize_part(part) -> dict:
+    return {
+        "text": part.term.slug if isinstance(part, TermContext) else part.text,
+        "type": part.type.name,
+        "class": part.__class__.__name__,
+    }
+
+
+def _serialize_node(node) -> Optional[dict]:
+    if node is None:
+        return None
+    try:
+        ref = node.ref().normal()
+    except Exception:
+        ref = None
+    try:
+        key = node.unique_key()
+    except Exception:
+        key = ref
+    return {
+        "key": key,
+        "ref": ref,
+        "class": node.__class__.__name__,
+    }
+
+
+def _serialize_resolved_ref(resolved_ref) -> dict:
+    return {
+        "ref": resolved_ref.ref.normal() if resolved_ref.ref else None,
+        "valid": not bool(resolved_ref.disqualification_reason),
+        "disqualificationReason": resolved_ref.disqualification_reason,
+        "pairings": [
+            {
+                "parts": [_serialize_part(part) for part in part_node_match.parts],
+                "node": _serialize_node(part_node_match.node),
+                "canMatchOutOfOrder": part_node_match.can_match_out_of_order,
+            }
+            for part_node_match in resolved_ref.ref_part_and_node_matches
+        ],
+    }
+
+
+def parse_linker_citation(payload: dict) -> dict:
+    crrd_test_string = payload.get("crrdTestString") or payload.get("testString")
+    if crrd_test_string:
+        parts, lang, context_ref, prev_trefs = _parse_parts_from_crrd(crrd_test_string)
+    else:
+        parts = _required(payload, "parts")
+        lang = payload.get("lang", "he")
+        context_ref = payload.get("contextRef")
+        prev_trefs = payload.get("prevRefs") or []
+    raw_ref = _raw_ref_from_part_dicts(parts, lang)
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.reset_ibid_history()
+    for prev_tref in prev_trefs:
+        if prev_tref is None:
+            ref_resolver.reset_ibid_history()
+        else:
+            ref_resolver._ibid_history.last_refs = Ref(prev_tref)
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+    resolved = ref_resolver.resolve_raw_ref(Ref(context_ref) if context_ref else None, raw_ref, keep_disqualified=True)
+    if resolved is None:
+        resolved_refs = []
+    elif isinstance(resolved, AmbiguousResolvedRef):
+        resolved_refs = resolved.resolved_raw_refs
+    else:
+        resolved_refs = [resolved]
+    return {
+        "ok": True,
+        "input": {
+            "text": raw_ref.text,
+            "parts": [_serialize_part(part) for part in raw_ref.raw_ref_parts],
+            "lang": lang,
+            "contextRef": context_ref,
+            "prevRefs": prev_trefs,
+        },
+        "parsings": [_serialize_resolved_ref(resolved_ref) for resolved_ref in resolved_refs],
+    }

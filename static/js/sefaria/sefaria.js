@@ -624,13 +624,13 @@ Sefaria = extend(Sefaria, {
   _buildLinkerOutputMap: function(linker_output = []) {
       const getKey = (ref, language, charRange) => `${ref}|${language}|${charRange.join('-')}`;
       for (let linkerOutput of linker_output) {
-          const {ref, language} = linkerOutput;
+          const {ref, language, versionTitle} = linkerOutput;
           // reset arrays to keep track of ambiguous spans
           for (let span of linkerOutput.spans) {
               Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)] = [];
           }
           for (let span of linkerOutput.spans) {
-              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push(span);
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push({...span, refContext: ref, language, versionTitle});
           }
       }
   },
@@ -694,7 +694,7 @@ Sefaria = extend(Sefaria, {
               testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
           } else {
               const symbol = partTypeSymbolMap[type] || "?";
-              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+              testStr += JSON.stringify(`${symbol}${part}`);
           }
           if (i < refParts.length - 1) {
               testStr += ", ";
@@ -3545,16 +3545,14 @@ _media: {},
       const handle = setInterval(async () => {
         try {
           const resp = await fetch("/api/async/" + taskId);
+          const data = await resp.json();
           if (!resp.ok) {
             clearInterval(handle);
-            const err = new Error("Network error polling task " + taskId);
-            err.isNetworkError = true;
-            reject(err);
+            reject(new Error(data.error || "Network error polling task " + taskId));
             return;
           }
-          const data = await resp.json();
           if (!data.ready) {
-            if (onProgress && data.meta) onProgress(data.meta);
+            if (onProgress) onProgress(data.meta || { state: data.state });
             return;
           }
           clearInterval(handle);

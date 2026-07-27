@@ -40,6 +40,7 @@ import Util from './sefaria/util';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import ToggleSwitch from './common/ToggleSwitch';
 
 
 class ConnectionsPanel extends Component {
@@ -467,6 +468,16 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         interfaceLang={this.props.interfaceLang}
         key="Media" />);
+
+    } else if (this.props.mode === "LinkerAdmin") {
+      content = (<LinkerAdminBox
+        srefs={this.props.srefs}
+        connectionData={this.props.connectionData}
+        currVersions={this.props.currVersions}
+        currObjectVersions={this.state.currObjectVersions}
+        contentLang={this.props.contentLang}
+        setConnectionsMode={this.props.setConnectionsMode}
+      />);
 
     } else if (this.props.mode === "Advanced Tools") {
       content = (<AdvancedToolsList
@@ -1023,6 +1034,265 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
+const LINKER_PART_COLORS = {
+  NAMED: "#dbeafe",
+  NUMBERED: "#dcfce7",
+  DH: "#fef3c7",
+  RANGE: "#fce7f3",
+  RANGE_SYMBOL: "#ede9fe",
+  IBID: "#e0f2fe",
+  RELATIVE: "#ffedd5",
+  NON_CTS: "#f3f4f6",
+};
+
+const LinkerPartChip = ({part}) => (
+  <span className="linkerAdminPartChip" style={{backgroundColor: LINKER_PART_COLORS[part.type] || "#f3f4f6"}}>
+    <span className="linkerAdminPartText">{part.text}</span>
+    <span className="linkerAdminPartType">{part.type}</span>
+  </span>
+);
+
+LinkerPartChip.propTypes = {
+  part: PropTypes.object.isRequired,
+};
+
+const getSelectedLinkerAdminSpan = (testString) => {
+  if (!testString) { return null; }
+  for (let [key, spans] of Object.entries(Sefaria._linkerOutputMap || {})) {
+    const match = (spans || []).find(span => span.type === "citation" && Sefaria._getLinkerTestString(span) === testString);
+    if (match) {
+      const [sourceRef, lang, charRange] = key.split("|");
+      return {...match, sourceRef, lang, charRange};
+    }
+  }
+  return null;
+};
+
+const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).map((text, i) => ({
+  text,
+  type: span.inputRefPartTypes?.[i],
+})).filter(part => part.text && part.type);
+
+const linkerPartsFromCrrd = (testString) => {
+  const symbolTypeMap = {"@": "NAMED", "#": "NUMBERED", "*": "DH", "^": "RANGE_SYMBOL", "&": "IBID", "<": "RELATIVE", "~": "NON_CTS"};
+  const match = testString.match(/^\s*crrd\s*\(\s*\[([\s\S]*?)\]\s*(?:,|\))/);
+  if (!match) { throw new Error("Expected a crrd(...) linker test string"); }
+  const parts = [];
+  const partRegex = /(["'])((?:\\.|(?!\1)[\s\S])*)\1/g;
+  let partMatch;
+  while ((partMatch = partRegex.exec(match[1])) !== null) {
+    const rawPart = partMatch[2].replace(/\\(["'\\])/g, "$1");
+    const type = symbolTypeMap[rawPart.slice(0, 1)];
+    if (type) {
+      parts.push({text: rawPart.slice(1), type});
+    }
+  }
+  if (!parts.length) { throw new Error("No valid ref parts found in linker test string"); }
+  return parts;
+};
+
+const LinkerPairings = ({pairings}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="linkerAdminPairings">
+      <button className="linkerAdminDisclosure" onClick={() => setOpen(!open)}>
+        {open ? "v" : ">"} Ref Part / Node Pairings
+      </button>
+      {open ? pairings.map((pairing, i) => (
+        <div className="linkerAdminPairing" key={i}>
+          <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} />)}</div>
+          <div className="linkerAdminNode">{pairing.node?.ref || pairing.node?.key || "No node"}</div>
+        </div>
+      )) : null}
+    </div>
+  );
+};
+
+LinkerPairings.propTypes = {
+  pairings: PropTypes.array.isRequired,
+};
+
+const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions, contentLang, setConnectionsMode}) => {
+  const selectedCitationData = connectionData || Sefaria._linkerAdminSelectedCitation;
+  const urlVars = Sefaria.util.getUrlVars();
+  const initialTestString = selectedCitationData?.linkerAdminCitation || urlVars["linkerAdminCitation"] || "";
+  const linkerDebugOn = Sefaria._debug_mode === "linker";
+  const [testString, setTestString] = useState(initialTestString);
+  const [parsed, setParsed] = useState(null);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  const [rerunStatus, setRerunStatus] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
+  const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || srefs?.[0];
+  const selectedSpanLang = selectedSpan?.language || selectedSpan?.lang;
+  const visibleRerunVersions = selectedSpan?.versionTitle && selectedSpanLang ? [{
+    lang: selectedSpanLang,
+    versionTitle: selectedSpan.versionTitle,
+  }] : ["he", "en"].map(lang => ({
+    lang,
+    versionTitle: currVersions?.[lang]?.versionTitle || currObjectVersions?.[lang]?.versionTitle,
+  })).filter(version => version.versionTitle);
+
+  const parseCitation = async (value = testString) => {
+    if (!value) { return; }
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
+      const parts = span ? linkerPartsFromSpan(span) : linkerPartsFromCrrd(value);
+      const result = await Sefaria.apiRequestWithBody("/api/linker-admin/citation/parse", null, {
+        parts,
+        lang: span?.language || span?.lang || (Sefaria.hebrew.isHebrew(parts.map(part => part.text).join(" ")) ? "he" : "en"),
+        contextRef: span?.contextRef || null,
+      }, "POST");
+      setParsed(result);
+      setSelectedSpan(span || null);
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialTestString) {
+      setTestString(initialTestString);
+      setSelectedSpan(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
+      parseCitation(initialTestString);
+    }
+  }, [initialTestString]);
+
+  const toggleDeleted = async () => {
+    if (!selectedSpan) { return; }
+    const deleted = !!selectedSpan.deleted;
+    const payload = {
+      ref: selectedSpan.refContext || selectedSpan.sourceRef,
+      versionTitle: selectedSpan.versionTitle,
+      lang: selectedSpan.language || selectedSpan.lang,
+      text: selectedSpan.text,
+      charRange: selectedSpan.charRange,
+      targetRef: selectedSpan.ref,
+    };
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      await Sefaria.apiRequestWithBody(`/api/linker-admin/citation/${deleted ? "recreate" : "delete"}`, null, payload, "POST");
+      setSelectedSpan({...selectedSpan, deleted: !deleted});
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rerunLinker = async () => {
+    if (!rerunRef || !visibleRerunVersions.length) { return; }
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    setRerunStatus(`Queueing linker rerun: ${rerunRef}`);
+    try {
+      const tasks = await Promise.all(visibleRerunVersions.map(version => Sefaria.apiRequestWithBody("/api/linker-admin/segment/rerun", null, {
+          ref: rerunRef,
+          lang: version.lang,
+          versionTitle: version.versionTitle,
+        }, "POST")));
+      setRerunStatus(`Waiting for linker rerun: ${rerunRef}`);
+      await Promise.all(tasks.map(task => pollLinkerRerunTask(task.task_id || task.taskId)));
+      setMessage(`Completed linker rerun: ${rerunRef}`);
+      setRerunStatus(null);
+      alert(`Completed linker rerun: ${rerunRef}`);
+      window.location.reload();
+    } catch (e) {
+      setError(e.message || String(e));
+      setRerunStatus(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pollLinkerRerunTask = async (taskId) => {
+    if (!taskId) { throw new Error("Missing linker rerun task id"); }
+    return Sefaria.pollTask(taskId, {
+      interval: 1000,
+      onProgress: (meta) => setRerunStatus(`Waiting for linker rerun: ${rerunRef}${meta?.step || meta?.state ? ` (${meta.step || meta.state})` : ""}`),
+    });
+  };
+
+  const toggleLinkerDebugMode = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("with", "LinkerAdmin");
+    if (linkerDebugOn) {
+      url.searchParams.delete("debug_mode");
+    } else {
+      url.searchParams.set("debug_mode", "linker");
+    }
+    window.location.href = url.toString();
+  };
+
+  return (
+    <div className="linkerAdminBox sans-serif">
+      <div className="linkerAdminToggle">
+        <label htmlFor="linker-admin-debug-mode" id="linker-admin-debug-mode-label">Linker debug mode</label>
+        <ToggleSwitch
+          name="linker-admin-debug-mode"
+          isChecked={linkerDebugOn}
+          onChange={toggleLinkerDebugMode}
+        />
+      </div>
+      <div className="linkerAdminCitationActions">
+        <button className="linkerAdminActionButton" disabled={busy || !rerunRef || !visibleRerunVersions.length} onClick={rerunLinker}>
+          Re-run linker: {rerunRef || "current segment"}
+        </button>
+        <button className={classNames("linkerAdminActionButton", {danger: !selectedSpan?.deleted})} disabled={!selectedSpan?.ref || busy} onClick={toggleDeleted}>
+          {selectedSpan?.deleted ? "Recreate Link" : "Delete Link"}
+        </button>
+        {!selectedSpan?.ref ? <span className="linkerAdminMuted">Click a resolved linker debug citation to select a saved link.</span> : null}
+      </div>
+      {parsed?.input?.parts?.length ? (
+        <div className="linkerAdminParts">
+          {parsed.input.parts.map((part, i) => <LinkerPartChip key={i} part={part} />)}
+        </div>
+      ) : null}
+      <div className="linkerAdminInputRow">
+        <input
+          className="linkerAdminInput"
+          value={testString}
+          placeholder="Paste linker test string..."
+          onChange={(e) => setTestString(e.target.value)}
+        />
+        <button className="linkerAdminActionButton" disabled={busy || !testString} onClick={() => parseCitation()}>
+          Parse
+        </button>
+      </div>
+      {error ? <div className="linkerAdminError">{error}</div> : null}
+      {rerunStatus ? <div className="linkerAdminMessage">{rerunStatus}</div> : null}
+      {message ? <div className="linkerAdminMessage">{message}</div> : null}
+      <div className="linkerAdminParsingList">
+        {(parsed?.parsings || []).map((parsing, i) => (
+          <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={i}>
+            <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
+            {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
+            <LinkerPairings pairings={parsing.pairings || []} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+LinkerAdminBox.propTypes = {
+  srefs: PropTypes.array.isRequired,
+  connectionData: PropTypes.object,
+  currVersions: PropTypes.object,
+  currObjectVersions: PropTypes.object,
+  contentLang: PropTypes.string,
+  setConnectionsMode: PropTypes.func.isRequired,
+};
+
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
     const {textsData} = useContext(ReaderPanelContext);
     const editText = canEditText && textsData ? function () {
@@ -1050,12 +1320,19 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
         );
       }
     };
+    const openLinkerAdminTools = function () {
+      let url = new URL(window.location.href);
+      url.searchParams.set("debug_mode", "linker");
+      url.searchParams.set("with", "LinkerAdmin");
+      window.location.href = url.toString();
+    };
 
     return (
       <div>
         <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
         {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
+        {Sefaria.is_moderator ? (<ToolsButton en="Linker Admin Tools" he="כלי ניהול לינקר" icon="wrench" onClick={openLinkerAdminTools} />) : null}
       </div>
     );
 }

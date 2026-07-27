@@ -62,6 +62,7 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                     "ref": {"type": "string", "required": False},
                     "topicSlug": {"type": "string", "required": False},
                     "categoryPath": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
+                    "deleted": {"type": "boolean", "required": False},
                 }
             },
             "required": True
@@ -91,6 +92,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
             if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
+            if span.get("deleted"):
+                continue
             text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
@@ -166,6 +169,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         out = text
         for ispan, sp in enumerate(self.get_span_objects(reverse=True)):
+            if sp.deleted and not sp._debug:
+                continue
             start, end = sp.char_range
 
             # Clamp & sanity check
@@ -245,6 +250,7 @@ class LinkerOutput(MarkedUpTextChunk):
                     "llm_resolved_ref_but_rejected": {"type": "string", "required": False, "nullable": True},
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
+                    "deleted": {"type": "boolean", "required": False},
                     **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}
                 }
             },
@@ -263,6 +269,7 @@ class MUTCSpan(ABC):
         self.text = raw_span['text']
         self.failed = raw_span.get('failed', False)
         self.ambiguous = raw_span.get('ambiguous', False)
+        self.deleted = raw_span.get('deleted', False)
         # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
         self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
         
@@ -273,6 +280,8 @@ class MUTCSpan(ABC):
     def get_debug_css_classes(self) -> str:
         if not self._debug:
             return ""
+        if self.deleted:
+            return "mutc spanDeleted"
         if self.failed:
             return "mutc spanFailed"
         if self.ambiguous:

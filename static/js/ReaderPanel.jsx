@@ -191,6 +191,22 @@ class ReaderPanel extends Component {
       this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
+  handleLinkerAdminCitationClick(sourceRef, lang, charRange, spans) {
+    const span = spans?.[0];
+    if (!span) { return; }
+    const testString = Sefaria._getLinkerTestString(span);
+    const connectionData = {
+      linkerAdminCitation: testString,
+      linkerAdminSpan: {...span, sourceRef, lang, charRange},
+    };
+    Sefaria._linkerAdminSelectedCitation = connectionData;
+    this.openConnectionsPanel([sourceRef], {connectionsMode: "LinkerAdmin", connectionData});
+    const url = new URL(window.location.href);
+    url.searchParams.set("debug_mode", "linker");
+    url.searchParams.set("with", "LinkerAdmin");
+    url.searchParams.set("linkerAdminCitation", testString);
+    history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
+  }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
@@ -760,6 +776,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onLinkerAdminCitationClick={this.handleLinkerAdminCitationClick}
           onNamedEntityClick={this.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
