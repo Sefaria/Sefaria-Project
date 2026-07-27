@@ -34,3 +34,6 @@ LANGUAGE_CODES = {
 # Module constants that correspond to DOMAIN_MODULES keys
 LIBRARY_MODULE = "library"
 VOICES_MODULE = "voices"
+
+# Topics with fewer sources than this are hidden from the A-Z listing, category browse pages, and Google search
+MIN_SOURCES_FOR_TOPIC_DISPLAY = 3

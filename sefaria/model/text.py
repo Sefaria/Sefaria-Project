@@ -5242,7 +5242,7 @@ class Library(object):
             topic_json = {}
         else:
             children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
-            topic_json = topic.contents(minify=True, children=children, with_html=True)
+            topic_json = topic.contents(minify=True, children=children, with_html=True, min_sources_for_display=constants.MIN_SOURCES_FOR_TOPIC_DISPLAY)
             unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
                                                                                           None) not in explored
             explored.add(topic.slug)

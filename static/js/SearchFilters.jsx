@@ -69,9 +69,9 @@ class SearchFilters extends Component {
     const {searchState, type, updateAppliedOptionSort} = this.props;
     const sortOptions = SearchState.metadataByType[type].sortTypeArray.map(data => ({
       name: data.type,
-      content: <InterfaceText>{data.name}</InterfaceText>,
+      content: <InterfaceText>{data.nameId}</InterfaceText>,
       role: "radio",
-      ariaLabel: Sefaria._("Sort by") + " " + Sefaria._(data.name),
+      ariaLabel: Sefaria._("common.sort_by") + " " + Sefaria._(data.nameId),
     }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
@@ -88,7 +88,7 @@ class SearchFilters extends Component {
         <div className="searchFilters navSidebarModule">
           <div className="searchFilterGroup">
             <h2>
-              <InterfaceText>Sort by</InterfaceText>
+              <InterfaceText>common.sort_by</InterfaceText>
             </h2>
             <ToggleSet
               ariaLabel="Sort by"
@@ -132,10 +132,9 @@ class TextSearchFilters extends Component {
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
           expandable={true} />
-
         <div className="searchFilterGroup">
           <h2>
-            <InterfaceText>Options</InterfaceText>
+            <InterfaceText>common.options</InterfaceText>
           </h2>
           <SearchFilterExactBox
             selected={this.props.isExactSearch}
@@ -155,6 +154,10 @@ TextSearchFilters.propTypes = {
 };
 
 
+const SEARCH_FILTER_GROUP_IDS = {
+  "Topics": "common.topics",
+  "Collections": "search_filters.collections",
+};
 const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
   if (!filters || !filters.length) { return null; }
 
@@ -223,13 +226,13 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     updateFilters("");
   }
   // need hebrew for placeholder/title
-  const clearInputButton = <button aria-label={Sefaria._("Clear input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`Search ${name}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const clearInputButton = <button aria-label={Sefaria._("search_filters.clear_input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`search_filters.search_${name.toLowerCase()}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
       <h2>
-        <InterfaceText context="SearchFilters">{name}</InterfaceText>
+        <InterfaceText>{SEARCH_FILTER_GROUP_IDS[name] || name}</InterfaceText>
       </h2>
       {search}
       <ul className="searchFilterList">{content}</ul>
@@ -250,7 +253,7 @@ class SearchFilterExactBox extends Component {
           <label tabIndex="0" onClick={this.handleClick} onKeyDown={Util.handleEnterKey(this.handleClick)}><span></span></label>
         
          <span className={"filter-title"}>
-            <InterfaceText>Exact Matches Only</InterfaceText>
+            <InterfaceText>search_filters.exact_matches_only</InterfaceText>
           </span>
         </div>
       </li>
@@ -392,8 +395,8 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
     <>
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
-      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("See More", "SearchFilters")}>
-        <InterfaceText context="SearchFilters">See More</InterfaceText>
+      <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}} aria-label={Sefaria._("search_filters.see_more")}>
+        <InterfaceText>search_filters.see_more</InterfaceText>
       </button>
       : null}
     </>
