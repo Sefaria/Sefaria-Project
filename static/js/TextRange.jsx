@@ -229,30 +229,6 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.conditionalPlaceSegmentNumbers();
   }
-  parashahHeader(data, segment, includeAliyout=false) {
-    // Returns the English/Hebrew title to show above `segment`, if it begins a new parasha
-    // (or, when aliyot are shown, a new aliyah). Returns null otherwise.
-    // With aliyot on, every aliyah header also names its parasha, e.g. "Parashat Noach: Second".
-    if (!data) { return null; }
-    if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
-      const alt = segment.alt;
-      if (alt != null) {
-        if (includeAliyout && alt.aliyah_en) {
-          return {
-            "en": `${alt.parasha_en}: ${alt.aliyah_en}`,
-            "he": `${alt.parasha_he}: ${alt.aliyah_he}`,
-            "parashaTitle": false, // styled as an aliyah header (see .parashahHeader.aliyah)
-          };
-        }
-        if ("whole" in alt) {
-          // Aliyot off: show just the parasha name at its start.
-          return {"en": alt["en"][0], "he": alt["he"][0], "parashaTitle": true};
-        }
-      }
-    }
-    return null;
-  }
-
   render() {
     const data = this.state.data;
     let title, ref;
@@ -310,7 +286,7 @@ class TextRange extends Component {
       const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;
         if (this.props.showParashahHeaders) {
-        const parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
+        const parashahNames = Util.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
         if (parashahNames){
           const pclasses = classNames({
                     parashahHeader: 1,
