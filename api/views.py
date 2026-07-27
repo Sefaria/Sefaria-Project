@@ -4,7 +4,6 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.admin.views.decorators import staff_member_required
 
 from sefaria.client.util import jsonResponse
 from sefaria.model import *
@@ -166,11 +165,16 @@ class RefView(View):
         return jsonResponse(return_object)
 
 
-class LinkerAdminAPIView(View):
+class StaffRequiredMixin:
+    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
 
-    @method_decorator(staff_member_required)
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Staff only."}, status=403)
         return super().dispatch(request, *args, **kwargs)
+
+
+class LinkerAdminAPIView(StaffRequiredMixin, View):
 
     @staticmethod
     def _body(request):
@@ -378,15 +382,6 @@ class KnnSearch(View):
             })
 
         return jsonResponse(response)
-
-
-class StaffRequiredMixin:
-    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            return jsonResponse({"error": "Staff only."}, status=403)
-        return super().dispatch(request, *args, **kwargs)
 
 
 def _load_json_body(request):

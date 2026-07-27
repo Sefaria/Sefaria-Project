@@ -1138,7 +1138,7 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
     setMessage(null);
     try {
       const parts = linkerPartsFromSpan(span);
-      const result = await Sefaria.apiRequestWithBody("/api/linker-admin/citation/parse", null, {
+      const result = await Sefaria.apiRequestWithBody("/_api/linker-admin/citation/parse", null, {
         parts,
         lang: span.language || span.lang || (Sefaria.hebrew.isHebrew(parts.map(part => part.text).join(" ")) ? "he" : "en"),
         contextRef: span.contextRef || null,
@@ -1175,7 +1175,7 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
     setError(null);
     setMessage(null);
     try {
-      await Sefaria.apiRequestWithBody(`/api/linker-admin/citation/${deleted ? "recreate" : "delete"}`, null, payload, "POST");
+      await Sefaria.apiRequestWithBody(`/_api/linker-admin/citation/${deleted ? "recreate" : "delete"}`, null, payload, "POST");
       setSelectedSpan({...selectedSpan, deleted: !deleted});
     } catch (e) {
       setError(e.message || String(e));
@@ -1191,7 +1191,7 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
     setMessage(null);
     setRerunStatus(`Queueing linker rerun: ${rerunRef}`);
     try {
-      const tasks = await Promise.all(visibleRerunVersions.map(version => Sefaria.apiRequestWithBody("/api/linker-admin/segment/rerun", null, {
+      const tasks = await Promise.all(visibleRerunVersions.map(version => Sefaria.apiRequestWithBody("/_api/linker-admin/segment/rerun", null, {
           ref: rerunRef,
           lang: version.lang,
           versionTitle: version.versionTitle,
