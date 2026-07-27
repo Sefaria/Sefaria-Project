@@ -614,10 +614,21 @@ def _span_identity(span: dict) -> tuple:
 
 
 def _merge_deleted_spans(new_spans: list[dict], existing_spans: list[dict]) -> list[dict]:
-    deleted_spans = [span for span in existing_spans if span.get("deleted")]
+    # Collect deleted spans from existing_spans, deduped by identity — the same deleted citation
+    # can appear in more than one source (e.g. the MUTC and the LinkerOutput), and without dedup
+    # it would accumulate duplicate entries on every rerun.
+    deleted_spans = []
+    deleted_keys = set()
+    for span in existing_spans:
+        if not span.get("deleted"):
+            continue
+        key = _span_identity(span)
+        if key in deleted_keys:
+            continue
+        deleted_keys.add(key)
+        deleted_spans.append(span)
     if not deleted_spans:
         return new_spans
-    deleted_keys = {_span_identity(span) for span in deleted_spans}
     return [span for span in new_spans if _span_identity(span) not in deleted_keys] + deleted_spans
 
 

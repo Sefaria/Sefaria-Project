@@ -118,6 +118,21 @@ def test_deleted_spans_are_not_counted_as_added_links():
     assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
 
 
+def test_merge_deleted_spans_dedupes_repeated_deleted_spans():
+    # The same deleted citation can appear in more than one source (MUTC + LinkerOutput). It must
+    # not accumulate duplicate entries when merged.
+    new_spans = [
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    deleted_span = {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True}
+    existing_spans = [deleted_span, dict(deleted_span)]  # duplicated across sources
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    deleted = [span for span in merged_spans if span.get("deleted") and span.get("ref") == "Pirkei Avot 3"]
+    assert len(deleted) == 1
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
 
 
 crrd = create_raw_ref_data
