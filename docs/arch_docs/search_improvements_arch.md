@@ -108,7 +108,7 @@ The pipeline plugs into the existing reindex infrastructure rather than building
 
 **Document builders** are pure functions that turn a model object into an ES document dict:
 - *Topic builder*: reads titles, variants, descriptions, and `numSources`; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
-- *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer.
+- *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer. The book's `collective_title` — a **string** term key like `"Rashi"` or `"Chafetz Chaim"` (not a dict) — is appended to the variant list so commentaries are findable by their commentator name. *(Regression guard: an interim version treated `collective_title` as a dict (`.get('en')`) and threw on every book that had one — all commentaries, Targums, Rashi, etc. — silently dropping ~83% of Index records from the `book` index. The builder swallows per-doc errors, so this surfaced only as missing search results, not a failed reindex.)*
 
 **Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
 
@@ -120,11 +120,20 @@ Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_
 The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, `numSources`).
 
 #### Elastic Search Scoring Mechanisms
-Each query combines three scoring mechanisms, applied over English and Hebrew fields with titles weighted highest, then title variants. **Descriptions are not searched at all** — a description mention is not a meaningful entity match; description fields stay in the index only so hits can render them:
 
-- **Exact-word match (`best_fields`, ×2 boost)** — the primary scorer. Searches for the query as complete words and ranks documents by how well they match. Gets a 2× boost so a full-word hit always outranks a partial one.
-- **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. Elasticsearch treats each word as an indivisible token, so "Mos" doesn't match "Moses" in an exact search — it's not a recognized token. `phrase_prefix` solves this by treating the last word in the query as a prefix, so "Mos" matches "Moses", "Moshe", etc. Applied to title fields only.
-- **Popularity boost (`function_score` on `numSources`)** — without this, "Mos" prefix-matches Moses, Mosquitoes, and Moser with nearly identical text scores. `numSources` breaks the tie using source count: Moses has 7,074 references, Mosquitoes has 3. The score is log-scaled so the multiplier stays reasonable (≈8.9× vs ≈1.4×), and is applied as a multiplier — not an additive offset — so it consistently separates results regardless of their base text score.
+An entity query is a `bool should` that layers several **match tiers** over English and Hebrew fields, titles weighted highest, then variants. A `bool should` **sums** the matching clauses, so a document that satisfies a higher tier (which also satisfies the lower ones) accumulates a higher score. **Descriptions are not searched at all** — a description mention is not a meaningful entity match; description fields stay in the index only so hits can render them:
+
+- **Exact match (`constant_score` on the `.keyword` sub-fields)** — the decisive tier, split in two by whose name matched:
+  - **Primary-title hit** (`title_en.keyword` / `title_he.keyword`) → large fixed boost (**1000**).
+  - **Secondary hit** — a title *variant* (book `titleVariants.keyword`) or a *work the entity wrote* (author `authored_titles_*.keyword`) → smaller fixed boost (**100**).
+
+  `constant_score` makes these contributions **IDF-independent** — the same amount no matter how common the word is corpus-wide. This is what guarantees the book literally titled "Chafetz Chaim" outranks "Chafetz Chaim on Sifra" and every other work by that author: no accumulation of the partial tiers below on a longer title can *sum* past a true exact match, and an exact *variant* hit can never outrank an exact *primary* hit. (This replaced an earlier scored `term` tier whose value rode on IDF, which let an exact variant hit — scoring 85 — outscore an exact primary hit — scoring 67 — purely because the word was rarer in one field than another.)
+- **Exact phrase (`match_phrase`, titles only)** — the query as an ordered phrase.
+- **Exact-word match (`best_fields`, ×2 boost)** — all query words, best-matching field wins; the per-field boosts (`title_en^3` > `titleVariants^2` > `author_names^1.5`) are the RemoteConfig-tunable knob (see below).
+- **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. "Mos" isn't a token, so `phrase_prefix` treats the last query word as a prefix → "Moses", "Moshe", etc.
+- **Popularity boost (`function_score` on `numSources`)** — topics/authors only (books carry no `numSources`). Multiplies the text score by a gentle log-scaled source-count factor (Moses 7,074 refs ≫ Mosquitoes 3) so it breaks ties toward well-sourced entities without dominating. Skipped when an explicit sort is active.
+
+**Length normalization.** `title_en` keeps BM25 length norms **on**, so a short, focused title outscores a longer title that merely *contains* the query words for the same matched term ("Chafetz Chaim" > "Chafetz Chaim on Sifra"). `titleVariants` keeps norms **off**, so a book with a rich variant list isn't penalized on the variant tiers.
 
 **Routing:** `topic` and `author` queries both search the `topic` index, filtered by `subtype`. Book queries additionally boost `author_names` so a search for "Rambam" surfaces his works even when his name isn't in the book title.
 
@@ -134,7 +143,7 @@ A natural extension is to lift the ranking weights out of code and into a Remote
 
 The catch is that **not every ranking factor reduces to a single per-field weight.** The inputs fall into a few kinds, only one of which fits the flat model:
 
-- **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `author_names`, …). One weight per field, safe for product to edit directly.
+- **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `author_names`, …). One weight per field, safe for product to edit directly. **Scope:** RemoteConfig tunes *only* the tier-3 `best_fields` weights. The exact-match tier's `constant_score` boosts (primary **1000** / secondary **100**) and the `title_en` length-norm setting are fixed in code — they are structural guarantees ("an exact title always wins"), not ranking knobs, so they are deliberately not RemoteConfig-exposed. Overrides still validate against the default field allow-list: an unknown or misspelled field name is ignored with a warning, never added to the query.
 - **Document signals — need more structure.** Numeric properties that should lift a document *regardless of the query* — e.g. ranking authors with more `numSources` above those with fewer, or a future per-book page rank to float more-studied books to the top. These feed a `function_score`, not the field list, and a bare weight is not enough: the raw values live on very different scales (`numSources` spans 0–7,000+), so each needs a scaling modifier (e.g. log) and missing-value handling, not just a multiplier.
 - **Categorical preferences — don't fit at all.** Wanting certain categories to outrank others (e.g. surfacing Halakhah above a niche category) is a weight per *value*, not per *field* — a different shape again (`{category: weight}`), wired as filtered boost clauses.
 
@@ -168,7 +177,9 @@ The Books tab also supports a category filter: `filter=<category path>` on the A
 
 #### Author-aware book results
 
-When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Category aggregations sort to the top; individual books below. When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index.
+When the query resolves to an author, the endpoint returns that author's works aggregated by category rather than a flat list. The dozens of Mishneh Torah volumes, for example, collapse into a single "Mishneh Torah" entry. This reuses existing function Sefaria has for author topic pages - `AuthorTopic` author-works aggregation. Under the default relevance sort the rows order **eponymous work → category aggregations → remaining individual books**: the author's *eponymous work* — the book whose title exactly matches the query (e.g. the book "Chafetz Chaim" on a search for that name) — is lifted to the top, since a search for an author's name most often means the book of that name, which would otherwise be buried among the author's other works. The exact-match test is EN/HE title equality (not prefix), so only the eponymous book is lifted, not longer titles that merely begin with it ("Chafetz Chaim on Sifra"). When the query does not resolve to an author, the endpoint falls back to a flat full-text search over the `book` index (where the `constant_score` exact-match tier above already floats an exact book title to #1).
+
+> **Note — a book query for an author name takes the aggregation branch.** Because "Chafetz Chaim", "Rashi", "Rambam" etc. resolve to authors, the flat-ranking improvements (exact-match tier, length norms) do *not* apply to those queries — they hit `_author_works_response` instead, which is why the eponymous-work lift lives there too. Non-author book queries ("Bereshit", "Shalom") use the flat path.
 
 **QA escape hatch:** `aggregate=0` on the API (or appended to the search page URL, which forwards it) skips the author resolution entirely, so a book query always returns the flat list. This exists so product staff can compare the aggregated and flat views for the same query; it is ignored for types that never aggregate (topics/authors) and composes with any `sort`.
 
@@ -264,6 +275,13 @@ SEARCH_INDEX_NAME_BOOK = 'book'
 ```
 
 `settings.py` defines these for production, but `local_settings.py` does not include them by default. Without them, indexing scripts fail with `ImportError: cannot import name 'SEARCH_INDEX_NAME_TOPIC' from sefaria.settings`.
+
+**Reindex both `book` and `topic` together.** The two indices are coupled by denormalized data, so a partial reindex produces confusing, half-working results:
+
+- The **Authors tab depends on the `topic` index.** An author matches a book-title query (e.g. "Zevachim" → Rambam, Ovadiah Bartenura) through the author's `authored_titles_*` field, which lives on the `topic` index. If only `book` is rebuilt, the Authors tab returns **0** for these queries until `topic` is rebuilt too.
+- `author_names` (on `book`) and `authored_titles_*` (on `topic`) are both snapshots taken at index time, so any author rename or book-title change needs both indices refreshed to stay consistent.
+
+Rebuild a single entity index on demand with `index_all_of_type('book')` / `index_all_of_type('topic')` (blue-green: builds a fresh index, then swaps the alias). Note `index_topics` only indexes the curated **library TopicPool** (~5.5k topics/authors), so the `topic` doc count is far below an older all-topics index (~36k) — expected, not data loss.
 
 ## Showing Result Counts While Results Load
 

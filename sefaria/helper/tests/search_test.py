@@ -2,7 +2,7 @@
 import json
 import pytest
 from sefaria.helper.search import *
-from sefaria.helper.search import _author_works_response
+from sefaria.helper.search import _author_works_response, _query_matches_entity_title
 
 
 def test_extract_filter_values():
@@ -193,7 +193,8 @@ def test_author_works_response_row_shape():
                 },
             ]
 
-    response = _author_works_response(_DummyAuthor())
+    # Query matches neither title, so no eponymous work is lifted: category row stays first.
+    response = _author_works_response(_DummyAuthor(), "rambam")
 
     assert response["total"] == 2
     assert response["author_slug"] == "rambam"
@@ -203,6 +204,82 @@ def test_author_works_response_row_shape():
     assert category_row["categories"] is None
     assert not work_row["isCategory"] and work_row["categoryLabel_en"] is None
     assert work_row["categories"] == ["Jewish Thought", "Rishonim"]
+
+
+def test_author_works_response_surfaces_eponymous_work():
+    class _DummyAuthor:
+        slug = "israel-meir-kagan"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/c", "title": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Mishnah Berurah", "he": "משנה ברורה"},
+                 "categories": None, "compDate": 1900},
+                {"url": "/w1", "title": {"en": "Chafetz Chaim on Sifra", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+                {"url": "/w2", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+            ]
+
+    # The eponymous work (exact title match) leads, above the category row and the longer
+    # "... on Sifra" title that merely begins with the query.
+    response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
+    assert response["hits"][0]["title_en"] == "Chafetz Chaim"
+    assert not response["hits"][0]["isCategory"]
+
+
+def test_entity_query_obj_exact_tier_is_case_insensitive():
+    # Regression: the Tier-1 exact-match `term` clauses run against raw (un-normalized)
+    # `.keyword` sub-fields, so they must set `case_insensitive` — otherwise a lowercase
+    # query like "chafetz chaim" never fires the decisive boost against a stored title
+    # "Chafetz Chaim" and the "exact match ranks first" guarantee breaks.
+    s = get_entity_query_obj("moshe", "book").to_dict()
+    term_clauses = [c["constant_score"]["filter"]["term"]
+                    for c in s["query"]["bool"]["should"] if "constant_score" in c]
+    assert term_clauses, "expected Tier-1 constant_score term clauses"
+    for term in term_clauses:
+        (field, spec), = term.items()
+        assert spec["case_insensitive"] is True, f"{field} exact-match tier must be case-insensitive"
+
+
+def test_author_works_response_eponymous_beats_matching_category():
+    # Regression: when a category row's title happens to equal the query, it must not sort
+    # ahead of the actual eponymous (non-category) work. The eponymous tier explicitly
+    # excludes category rows so the real work still leads.
+    class _DummyAuthor:
+        slug = "israel-meir-kagan"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/cat", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "categories": None, "compDate": 1873},
+                {"url": "/work", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+            ]
+
+    response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
+    assert response["hits"][0]["title_en"] == "Chafetz Chaim"
+    assert not response["hits"][0]["isCategory"]
+    assert response["hits"][1]["isCategory"]
+
+
+def test_query_matches_entity_title_exact_only():
+    author = {"title_en": "Shalom Buzaglo", "title_he": "שלום בוזגלו", "titleVariants": []}
+    # A common given name that is only a *prefix* of the author's name must NOT match —
+    # otherwise a "Shalom" book search collapses to this one author's works.
+    assert not _query_matches_entity_title("Shalom", author)
+    # The full name (or an exact variant) still matches, keeping the author-works trigger.
+    assert _query_matches_entity_title("Shalom Buzaglo", author)
+    assert _query_matches_entity_title("shalom buzaglo", author)  # case-insensitive
+    assert _query_matches_entity_title("Chafetz Chaim",
+                                       {"title_en": "Israel Meir Kagan",
+                                        "titleVariants": ["Chafetz Chaim"]})
 
 
 def ordered(obj):
