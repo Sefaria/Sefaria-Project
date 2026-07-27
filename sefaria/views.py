@@ -258,6 +258,23 @@ def register_api(request):
     return jsonResponse(errors)
 
 
+# Maps Django's stable, language-independent error `code` (e.g. from CharField's built-in
+# "required" validation) to the SSO client's i18n key. Built-in field messages are gettext_lazy
+# and resolve to whatever language is active when read, not when raised, so matching message
+# text (as register_api/Mobile still does) silently breaks on non-English interfaces. Only
+# used for the web /register JSON path; codes with no entry here keep their message text
+# (e.g. clean_email's custom account-exists errors, which have no code and are always English).
+WEB_REGISTER_ERROR_CODES = {"required": "auth.required_field"}
+
+
+def _web_register_errors(form):
+    errors = {}
+    for field, field_errors in form.errors.as_data().items():
+        error = field_errors[0]
+        errors[field] = WEB_REGISTER_ERROR_CODES.get(error.code, str(error))
+    return errors
+
+
 def register(request):
     if request.user.is_authenticated:
         return redirect("login")
@@ -277,7 +294,7 @@ def register(request):
                 return jsonResponse({"redirect": next_url})
             return HttpResponseRedirect(next_url)
         elif "noredirect" in request.POST:
-            return jsonResponse(errors)
+            return jsonResponse(_web_register_errors(form))
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})

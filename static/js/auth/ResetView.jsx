@@ -4,7 +4,9 @@ import { InterfaceText } from '../Misc.jsx';
 import FormView from './FormView.jsx';
 import PasswordInput from './PasswordInput.jsx';
 import Button from '../common/Button.jsx';
-import { authError, checkPasswordsMatch, postJson } from './utils.js';
+import {
+  authError, checkPasswordsMatch, postJson, onBlurValidate, onChangeClear,
+} from './utils.js';
 
 const ResetView = ({ csrf, onLinkExpired, onSuccess }) => {
   const [password1, setPassword1] = useState('');
@@ -25,21 +27,20 @@ const ResetView = ({ csrf, onLinkExpired, onSuccess }) => {
   };
 
   // Only blurring Confirm (or submitting) may *set* the mismatch error — typing
-  // may only *clear* it, the instant the two fields match again. Typing that's
-  // still mismatched leaves whatever error is currently shown alone.
-  const onPasswordChange = (setter, isPassword2, fieldErrors, setFieldError) => (e) => {
-    const value = e.target.value;
-    setter(value);
-    const p1 = isPassword2 ? password1 : value;
-    const p2 = isPassword2 ? value : password2;
-    if (fieldErrors.password2 && !checkPasswordsMatch(p1, p2)) {
-      setFieldError('password2', null);
-    }
-  };
+  // may only *clear* it, the instant the two fields match again.
+  const onPasswordChange = (setter, isPassword2, fieldErrors, setFieldError) => onChangeClear(
+    'password2',
+    (e) => setter(e.target.value),
+    (value) => checkPasswordsMatch(isPassword2 ? password1 : value, isPassword2 ? value : password2),
+    fieldErrors,
+    setFieldError,
+  );
 
-  const onPassword2Blur = (setFieldError) => () => {
-    setFieldError('password2', checkPasswordsMatch(password1, password2));
-  };
+  const onPassword2Blur = (setFieldError) => onBlurValidate(
+    'password2',
+    () => checkPasswordsMatch(password1, password2),
+    setFieldError,
+  );
 
   return (
     <FormView heading={<InterfaceText>auth.reset_password</InterfaceText>} formId="reset-form" onSubmit={onSubmit}>

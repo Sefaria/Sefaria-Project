@@ -8,7 +8,9 @@ import Input from '../common/Input.jsx';
 import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 import LegalText from './LegalText.jsx';
-import { whenReady, pickFirstError, authError, postForm } from './utils.js';
+import {
+  whenReady, pickFirstError, authError, postForm, requiredFieldValidate, onBlurValidate, onChangeClear,
+} from './utils.js';
 
 // Shown in the banner (same shape LoginView's sso_only_account error already uses), not under
 // the email field — ErrorBanner already knows how to render both of these.
@@ -19,7 +21,9 @@ const EMAIL_EXISTS_ERRORS = {
 };
 
 const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', last_name: 'last' };
-const BACKEND_MESSAGES = { 'This field is required.': 'auth.required_field' };
+// 'required' is Django's stable error code (see sefaria/views.py::_web_register_errors) —
+// not the message text, which is gettext_lazy and would vary by interface language.
+const BACKEND_MESSAGES = { required: 'auth.required_field' };
 
 const RegisterView = ({
   switchFlow, fields, setField, onBack,
@@ -171,17 +175,32 @@ const RegisterView = ({
       setActiveErrorHandler={setActiveErrorHandler}
       onLinkClick={switchFlow('login')}
     >
-      {({ fieldErrors, submitting }) => (
+      {({ fieldErrors, submitting, setFieldError }) => (
         <>
           <div className="sefaria-auth-fields">
-            <EmailInput value={fields.email} setField={setField} onFocus={startRegistration} error={fieldErrors.email} />
+            <EmailInput value={fields.email}
+                   setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
+                   onFocus={startRegistration}
+                   onBlur={onBlurValidate('email', () => requiredFieldValidate(fields.email), setFieldError)}
+                   error={fieldErrors.email} />
             <PasswordInput autoComplete="new-password"
-                   value={fields.password} onChange={setField('password')} onFocus={startRegistration}
+                   value={fields.password}
+                   onChange={onChangeClear('password', setField('password'), requiredFieldValidate, fieldErrors, setFieldError)}
+                   onFocus={startRegistration}
+                   onBlur={onBlurValidate('password', () => requiredFieldValidate(fields.password), setFieldError)}
                    error={fieldErrors.password} />
             <Input label="common.first_name" placeholder={Sefaria._('common.first_name')} name="first_name"
-                   value={fields.first} onChange={setField('first')} onFocus={startRegistration} error={fieldErrors.first} />
+                   value={fields.first}
+                   onChange={onChangeClear('first', setField('first'), requiredFieldValidate, fieldErrors, setFieldError)}
+                   onFocus={startRegistration}
+                   onBlur={onBlurValidate('first', () => requiredFieldValidate(fields.first), setFieldError)}
+                   error={fieldErrors.first} />
             <Input label="common.last_name" placeholder={Sefaria._('common.last_name')} name="last_name"
-                   value={fields.last} onChange={setField('last')} onFocus={startRegistration} error={fieldErrors.last} />
+                   value={fields.last}
+                   onChange={onChangeClear('last', setField('last'), requiredFieldValidate, fieldErrors, setFieldError)}
+                   onFocus={startRegistration}
+                   onBlur={onBlurValidate('last', () => requiredFieldValidate(fields.last), setFieldError)}
+                   error={fieldErrors.last} />
           </div>
           {recaptchaSiteKey && (
             <Captcha error={captchaError}>

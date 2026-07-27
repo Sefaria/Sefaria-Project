@@ -69,6 +69,26 @@ export function checkPasswordsMatch(p1, p2) {
   return (p2 && p1 !== p2) ? 'auth.passwords_dont_match' : null;
 }
 
+export function requiredFieldValidate(value) {
+  return value.trim() ? null : 'auth.required_field';
+}
+
+// Client-side field-error convention shared by every auth form: a value is judged invalid
+// on blur (onBlurValidate sets the error), but typing may only ever *clear* an error that's
+// already showing (onChangeClear) — a value that's still invalid while typing leaves whatever
+// error is currently shown alone, and an error set elsewhere (e.g. by the server on submit)
+// is never touched.
+export function onBlurValidate(key, validate, setFieldError) {
+  return () => setFieldError(key, validate());
+}
+
+export function onChangeClear(key, onChange, validate, fieldErrors, setFieldError) {
+  return (e) => {
+    onChange(e);
+    if (fieldErrors[key] && !validate(e.target.value)) setFieldError(key, null);
+  };
+}
+
 async function postRequest(url, csrf, body, contentType) {
   try {
     const res = await fetch(url, {

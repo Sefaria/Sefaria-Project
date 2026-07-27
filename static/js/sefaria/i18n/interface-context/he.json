@@ -39,6 +39,7 @@
   "auth.reset_password": "עדכון סיסמה",
   "auth.send_reset_link": "שליחת קישור לאיפוס",
   "auth.show_password": "הצגת סיסמה",
+  "auth.social_signin_failed": "ההתחברות נכשלה. נסו שוב.",
   "auth.terms_conjunction": " ו",
   "auth.terms_of_use": "תנאי השימוש",
   "auth.terms_prefix": "המשך מהווה הסכמה ל",

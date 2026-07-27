@@ -39,6 +39,7 @@
   "auth.reset_password": "Reset Password",
   "auth.send_reset_link": "Send Reset Link",
   "auth.show_password": "Show password",
+  "auth.social_signin_failed": "Sign-in failed. Please try again.",
   "auth.terms_conjunction": " and ",
   "auth.terms_of_use": "Terms of Use",
   "auth.terms_prefix": "By continuing, you are agreeing to Sefaria's ",
