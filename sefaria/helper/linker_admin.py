@@ -64,11 +64,7 @@ def _update_deleted_marker(klass, payload: dict, deleted: bool) -> bool:
 
 
 def _delete_generated_link(source_ref: str, target_ref: str, user_id: Optional[int]) -> bool:
-    try:
-        source_ref = Ref(source_ref).normal()
-        target_ref = Ref(target_ref).normal()
-    except Exception:
-        pass
+    # Callers pass already-normalized refs (see set_linker_citation_deleted).
     link = Link().load({
         "refs": {"$all": [source_ref, target_ref]},
         "generated_by": "add_links_from_text",

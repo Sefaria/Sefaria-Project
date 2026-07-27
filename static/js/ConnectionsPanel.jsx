@@ -475,8 +475,6 @@ class ConnectionsPanel extends Component {
         connectionData={this.props.connectionData}
         currVersions={this.props.currVersions}
         currObjectVersions={this.state.currObjectVersions}
-        contentLang={this.props.contentLang}
-        setConnectionsMode={this.props.setConnectionsMode}
       />);
 
     } else if (this.props.mode === "Advanced Tools") {
@@ -1106,7 +1104,7 @@ LinkerPairings.propTypes = {
   pairings: PropTypes.array.isRequired,
 };
 
-const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions, contentLang, setConnectionsMode}) => {
+const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions}) => {
   const selectedCitationData = connectionData || Sefaria._linkerAdminSelectedCitation;
   const urlVars = Sefaria.util.getUrlVars();
   const initialTestString = selectedCitationData?.linkerAdminCitation || urlVars["linkerAdminCitation"] || "";
@@ -1282,8 +1280,6 @@ LinkerAdminBox.propTypes = {
   connectionData: PropTypes.object,
   currVersions: PropTypes.object,
   currObjectVersions: PropTypes.object,
-  contentLang: PropTypes.string,
-  setConnectionsMode: PropTypes.func.isRequired,
 };
 
 const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
