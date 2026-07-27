@@ -117,6 +117,20 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Strapi content tests (banners/modals/sidebar ads). HAR-driven and deliberately
+    // Strapi-ON: these specs bypass goToPageWithLang (which suppresses Strapi) and replay
+    // e2e-tests/fixtures/strapi-content.har via routeFromHAR. Kept as a standalone project,
+    // like chrome-newsletter, so the fixtures/clock machinery stays isolated from the
+    // PageManager suites. See e2e-tests/tests/strapi.fixtures.js.
+    {
+      name: 'chrome-strapi',
+      testDir: './e2e-tests/tests',
+      testMatch: /strapi-.*\.spec\.js/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.LIBRARY,
+      },
+    },
     // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
     // every test tagged `@sanity`, wherever it lives — the release-gate set is
     // defined by the tag, not by any folder. (The Sanity/ folder is now docs
