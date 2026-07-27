@@ -18,7 +18,7 @@
   "auth.email_exists_google": "This email address is already registered via Google Sign-In.",
   "auth.email_registered_apple": "This email address is registered via Apple.",
   "auth.email_registered_google": "This email address is registered via Google Sign-In.",
-  "auth.forgot_password": "Forgot password?",
+  "auth.forgot_password": "Forgot Password?",
   "auth.generic_error": "Something went wrong. Try again.",
   "auth.hide_password": "Hide password",
   "auth.invalid_credentials": "Email and/or password are incorrect",
