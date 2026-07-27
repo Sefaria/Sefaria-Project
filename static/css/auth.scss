@@ -100,6 +100,7 @@ $stroke-strong:   1.5px;
     @include breakpoint(mobile) {
       top: 20px;
       inset-inline-start: 20px;
+      padding: 16px;
     }
   }
 
@@ -117,6 +118,10 @@ $stroke-strong:   1.5px;
     font-weight: 400;
     text-align: center;
     color: $sef-text-primary;
+
+    @include breakpoint(mobile) {
+      font-size: 30px;
+    }
   }
 
   &-sub {

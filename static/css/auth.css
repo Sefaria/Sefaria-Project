@@ -93,6 +93,7 @@
   .sefaria-auth-card-back {
     top: 20px;
     inset-inline-start: 20px;
+    padding: 16px;
   }
 }
 .sefaria-auth-card-header {
@@ -107,6 +108,11 @@
   font-weight: 400;
   text-align: center;
   color: #121212;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-card-heading {
+    font-size: 30px;
+  }
 }
 .sefaria-auth-card-sub {
   text-align: center;
