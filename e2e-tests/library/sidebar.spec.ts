@@ -20,12 +20,12 @@ test.describe('Library Module Sidebar Tests', () => {
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
-  test('MOD-S001: Library - footer appearance and standard links', async () => {
+  test('MOD-S001: Library - footer appearance and standard links', { tag: '@sanity' }, async () => {
     await pm.onModuleSidebar().verifyFooterAppearance();
     await pm.onModuleSidebar().verifyStandardFooterLinks();
   });
 
-  test('MOD-S002: Library - A Living Library of Torah has content', async () => {
+  test('MOD-S002: Library - A Living Library of Torah has content', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').nth(0);
     await expect(section.getByRole('heading', { name: /A Living Library of Torah|A Living Library/i })).toBeVisible();
     // Ensure descriptive text exists and is not empty
@@ -33,7 +33,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(text.trim().length).toBeGreaterThan(10);
   });
 
-  test('MOD-S003: Library - Translations has language list', async () => {
+  test('MOD-S003: Library - Translations has language list', { tag: '@sanity' }, async () => {
     // Translations is the 3rd navSidebarModule in the provided markup (0-based index 2)
     const section = page.locator('aside.navSidebar .navSidebarModule').nth(2);
     await expect(section.getByRole('heading', { name: /Translations/i })).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(count).toBeGreaterThan(3);
   });
 
-  test('MOD-S004: Library - Learning Schedules lists readings', async () => {
+  test('MOD-S004: Library - Learning Schedules lists readings', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').filter({ hasText: 'Learning Schedules' }).first();
     await expect(section.getByRole('heading', { name: /Learning Schedules/i })).toBeVisible();
     // Ensure there are reading sections with links
@@ -54,7 +54,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test('MOD-S005: Library - Resources contains link list', async () => {
+  test('MOD-S005: Library - Resources contains link list', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').filter({ hasText: 'Resources' }).first();
     await expect(section.getByRole('heading', { name: /Resources/i })).toBeVisible();
     const links = section.locator('.linkList .navSidebarLink a');

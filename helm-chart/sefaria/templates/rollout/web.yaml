@@ -102,6 +102,8 @@ spec:
             value: "{{ .Values.deployEnv }}"
           - name: STACK_COMPONENT
             value: web
+          - name: APP_VERSION
+            value: "{{ .Values.web.containerImage.tag }}"
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"
@@ -157,6 +159,12 @@ spec:
           {{- end }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
+          - secretRef:
+              name: {{ template "sefaria.secrets.pgvectorPassword" . }}
+              optional: true
+          - secretRef:
+              name: {{ template "sefaria.secrets.geminiApiKey" . }}
+              optional: true
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true

@@ -47,7 +47,7 @@ class SearchPage extends Component {
     const resultCount = this.props.totalResults?.getValue() > 0 && (
       <>
         <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>Results</InterfaceText>
+        <InterfaceText>search_page.results</InterfaceText>
       </>
     );
 

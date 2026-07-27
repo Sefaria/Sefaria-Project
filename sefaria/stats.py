@@ -206,7 +206,7 @@ class SheetStats(object):
 		sheet = {
 			"title": "Top Sources in All Source Sheets - %s" % datetime.now().strftime("%B %Y"),
 			"sources": [{"ref": ref[0]} for ref in self.sorted_refs[:self.show_count]],
-			"options": {"numbered": 1, "divineNames": "noSub"}
+			"options": {"numbered": 1}
 		}
 		save_sheet(sheet, 1)
 
@@ -214,7 +214,7 @@ class SheetStats(object):
 		sheet = {
 			"title": "Top Sources by Category - %s" % datetime.now().strftime("%B %Y"),
 			"sources": [{"ref": self.sorted_refs_by_category[cat][0][0], "title": cat} for cat in self.sorted_refs_by_category],
-			"options": {"numbered": 0, "divineNames": "noSub"}
+			"options": {"numbered": 0}
 		}
 		save_sheet(sheet, 1)
 
@@ -222,7 +222,7 @@ class SheetStats(object):
 		sheet = {
 			"title": "Top Sources by Tag - %s" % datetime.now().strftime("%B %Y"),
 			"sources": [{"ref": self.sorted_refs_by_tag[tag["tag"]][0][0], "title": tag["tag"]} for tag in self.top_tags[:50]],
-			"options": {"numbered": 0, "divineNames": "noSub"}
+			"options": {"numbered": 0}
 		}
 		save_sheet(sheet, 1)
 
@@ -246,7 +246,7 @@ class SheetStats(object):
 		sheet = {
 			"title": "Top Sources in %s - %s" % (cat, datetime.now().strftime("%B %Y")),
 			"sources": sources,
-			"options": {"numbered": 1, "divineNames": "noSub"}
+			"options": {"numbered": 1}
 		}
 		save_sheet(sheet, 1)
 

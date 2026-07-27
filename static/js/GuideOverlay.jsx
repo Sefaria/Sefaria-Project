@@ -10,7 +10,7 @@ import {
 import Sefaria from "./sefaria/sefaria";
 import Cookies from "js-cookie";
 
-const localize = (str) => Sefaria._(str, "Guide");
+const localize = (str) => Sefaria._(str);
 
 /**
  * Analytics helper functions for guide overlay events
@@ -324,17 +324,17 @@ const GuideOverlay = ({
               <Arrow
                 direction="previous"
                 onClick={() => navigateCard("previous")}
-                altText={localize("Previous card")}
+                altText={localize("guide.previous_card")}
               />
               <span className="cardsPaginationNumber">
-                <InterfaceText>{`${currentCardIndex + 1} ${localize("of")} ${
+                <InterfaceText>{`${currentCardIndex + 1} ${localize("guide.of")} ${
                   guideData.cards.length
                 }`}</InterfaceText>
               </span>
               <Arrow
                 direction="next"
                 onClick={() => navigateCard("next")}
-                altText={localize("Next card")}
+                altText={localize("guide.next_card")}
               />
             </div>
           )}
@@ -365,7 +365,7 @@ const GuideOverlay = ({
                   playsInline // Added to avoid autoplay issues on mobile (even though we will likely not show this on mobile)
                 >
                   <InterfaceText>
-                    {localize("Your browser does not support the video tag.")}
+                    {localize("guide.your_browser_does_not_support_the_video_tag")}
                   </InterfaceText>
                 </video>
               ))}

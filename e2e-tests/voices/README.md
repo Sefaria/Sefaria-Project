@@ -1,6 +1,6 @@
 # Voices Module — E2E Tests
 
-End-to-end tests for the **Voices** module's own UI — its header and sidebar. Runs under the `chrome-voices` / `firefox-voices` / `safari-voices` projects with `baseURL` = `MODULE_URLS.EN.VOICES` (`voices.<sandbox-domain>`).
+End-to-end tests for the **Voices** module's own UI — its header, sidebar, and the full sheet-editing lifecycle. Runs under the `chrome-voices` / `firefox-voices` / `safari-voices` projects with `baseURL` = `MODULE_URLS.EN.VOICES` (`voices.<sandbox-domain>`).
 
 New here? Read the root [handbook](../README.md) first — it covers setup, the PageManager pattern, and the conventions every spec in this folder follows.
 
@@ -14,8 +14,11 @@ New here? Read the root [handbook](../README.md) first — it covers setup, the 
 | --- | --- | --- |
 | [header.spec.ts](header.spec.ts) | `MOD-H003`, `MOD-H011`, `MOD-H014` | Voices module header: navigation and elements, search dropdown sections/icons (Topics / Authors / Users), and the **Create New Sheet** button when logged in. |
 | [sidebar.spec.ts](sidebar.spec.ts) | `MOD-S013` – `MOD-S016` | Voices sidebar modules and buttons, the **Create** button's logged-out vs logged-in behavior, **Learn More** → sheet navigation, and **Subscribe** → newsletter. |
+| [sheet-lifecycle.spec.ts](sheet-lifecycle.spec.ts) | `SHT-001` – `SHT-010` | Full sheet lifecycle (**serial, shared state**): create → title → add source/image/YouTube/Library-reader source → publish → unpublish → add to collection → delete. **All `@sanity`** (release-gate). |
 
 The Voices header/sidebar differ from the Library ones (different links, the sheet-creation entry point), which is why these live in their own module folder and project with the `voices.*` baseURL.
+
+> **`sheet-lifecycle.spec.ts` is part of the `@sanity` release-gate suite** (see [../Sanity/README.md](../Sanity/README.md)). It's serial with shared state — `SHT-001` creates one sheet that `SHT-002` … `SHT-010` operate on, so the ten tests are all-or-nothing. `SHT-006` adds a source from the **Library** reader, so it navigates to an absolute `MODULE_URLS.EN.LIBRARY` URL rather than relying on the Voices `baseURL`.
 
 ---
 

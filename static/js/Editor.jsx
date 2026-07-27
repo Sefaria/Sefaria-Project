@@ -393,44 +393,6 @@ export const serialize = (content) => {
     return children.join('')
 };
 
-const replaceDivineNames = (str, divineName) => {
-    // Regexes for identifying divine names with or without nikkud / trop
-    // Currently ignores אֵל & צְבָאוֹת & שדי
-    const divineRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(י[\u0591-\u05C7]*ה[\u0591-\u05C7]*ו[\u0591-\u05C7]*ה[\u0591-\u05C2\u05C4-\u05C7]*|יְיָ|יי|יקוק|ה\'|ה׳)(?=[/(/[<//.,;:׃'’"\-\s]|$)/g;
-
-    // don't match אֲדֹנִי
-    const adoshemRE = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05C7]*ד[\u0591-\u05C7]*נ[\u0591-\u05B3\u05B5-\u05C7]*י[\u0591-\u05B3\u05B5-\u05C2\u05C4-\u05C7]*|אדושם)(?=[<\[\(\s.,;:׃'’"\-]|$)/g;
-
-    // only allow segol or tzere nikkud, so doesn't match אֲלֵהֶ֖ם or the like
-    const elokaiRE  = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו?[\u0591-\u05C7]*)([הק])([\u0591-\u05C7]*)((י[\u0591-\u05C2\u05C4-\u05C7]*)?[ךיוהםן][\u0591-\u05C2\u05C4-\u05C7]*|(י[\u0591-\u05C7]*)?נ[\u0591-\u05C7]*ו[\u0591-\u05C7]*|(י[\u0591-\u05C7]*)?כ[[\u0591-\u05C2\u05C4-\u05C7]*[םן])(?=[\s<\[\(.,;׃:'’"\-]|$)/g;
-
-    const elokaRE   = /([\s.,\u05BE;:'"\-]|^)([ו]?[\u0591-\u05C7]*[משהוכלב]?[\u0591-\u05C7]*)(א[\u0591-\u05AF\u05B1\u05B5\u05B6\u05BC-\u05C7]*ל[\u0591-\u05C7]*ו[\u0591-\u05C7]*)([הק])([\u0591-\u05C2\u05C4-\u05C7]*)(?=[)(?=[\s<\[\(.,;:׃'’"\-]|$)/g;
-
-    // const shadaiRE  = /([\s.,\u05BE;:'"\-]|^)([משהוכלב]?[\u0591-\u05C7]*)(ש[\u0591-\u05C7]*[דק][\u0591-\u05C7]*י[\u0591-\u05C7]*)(?=[\s.,;׃:'"\-]|$)/g;
-
-
-    const divineSubs = {
-                        "noSub": "יהוה",
-                        "yy": "יי",
-                        "ykvk": "יקוק",
-                        "h": "ה׳"
-                    };
-
-
-
-
-    const adoshemSub = divineName=="noSub" ? "אדני" : "אדושם";
-    const elokaiSub = divineName=="noSub" ? "ה" : "ק";
-
-    const newStr = str.replace(divineRE, "$1$2"+ divineSubs[divineName])
-        .replace(adoshemRE, "$1$2"+ adoshemSub)
-        .replace(elokaiRE, "$1$2$3"+ elokaiSub +"$5$6")
-        .replace(elokaRE, "$1$2$3"+ elokaiSub +"$5");
-
-    return newStr
-
-}
-
 function renderSheetItem(source) {
     const sheetItemType = Object.keys(sheet_item_els).filter(key => Object.keys(source).includes(key))[0];
 
@@ -692,7 +654,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
+const BoxedSheetElement = ({ attributes, children, element }) => {
   const parentEditor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -707,40 +669,6 @@ const BoxedSheetElement = ({ attributes, children, element, divineName }) => {
   const selected = useSelected()
   const focused = useFocused()
   const cancelEvent = (event) => event.preventDefault()
-
-
-    useEffect(() => {
-      const replacement = divineName || "noSub";
-      const editors = [sheetSourceHeEditor, sheetSourceEnEditor];
-
-      for (const editor of editors) {
-        Editor.withoutNormalizing(editor, () => {
-          for (const [node, path] of Editor.nodes(editor, {
-            at: [],                 // whole document
-            match: Text.isText,     // only text nodes
-            reverse: true           // bottom-up keeps paths stable
-          })) {
-            const newText = replaceDivineNames(node.text, replacement);
-            if (newText !== node.text) {
-              // Split out any existing marks (bold/italic/…)
-              const { text: _old, ...marks } = node;
-
-              // Remove the old leaf node
-              Transforms.removeNodes(editor, { at: path });
-
-              // Insert a new leaf with updated text + same marks
-              Transforms.insertNodes(
-                editor,
-                { text: newText, ...marks },
-                { at: path }
-              );
-            }
-          }
-        });
-      }
-    }, [divineName]);
-
-
 
   const onHeChange = (value) => {
     sheetHeSourceSetValue(value)
@@ -1054,7 +982,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
             <div className="addInterfaceInput mediaInput" title="We can process YouTube and SoundCloud links, and hosted mp3's and images" onClick={(e)=> {e.stopPropagation()}}>
                 <input
                     type="text"
-                    placeholder={Sefaria._("Paste a link to an image, video, or audio")}
+                    placeholder={Sefaria._("editor.paste_a_link_to_an_image_video_or")}
                     className="serif"
                     onClick={(e)=> {e.stopPropagation()}}
                     onChange={(e) => onMediaChange(e)}
@@ -1065,7 +993,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                     addMedia()
                 }}>Add Media</button> : null}
             </div>
-        )
+        );
     }
 
     else if (inputType === "source") {
@@ -1075,11 +1003,12 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 getSuggestions={getSuggestions}
                 inputValue={inputValue}
                 changeInputValue={setInputValue}
-                inputPlaceholder={Sefaria._("Search for a Text or Commentator.")}
+                inputPlaceholder={Sefaria._("common.search_for_a_text_or_commentator")}
                 buttonTitle="Add Source"
                 autocompleteClassNames="addInterfaceInput"
                 showSuggestionsOnSelect={true}
-            />)
+            />
+        );
     }
 
     else {return(null)}
@@ -1176,25 +1105,25 @@ const AddInterface = ({ attributes, children, element }) => {
     }
 
     return (
-      <div role="button" title={active ? Sefaria._("Close menu") : Sefaria._("Add a source, image, or other media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
-          {itemToAdd == null ? <>
-              <div role="button" title={Sefaria._("Add source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
-              <div role="button" title={Sefaria._("Add image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
-                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
-              </div>
-              <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-              <div role="button" title={Sefaria._("Add media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
-          </> :
+        <div role="button" title={active ? Sefaria._("editor.close_menu") : Sefaria._("editor.add_a_source_image_or_other_media")} contentEditable={!active} suppressContentEditableWarning={true} aria-label={active ? "Close menu" : "Add a source, image, or other media"} className={classNames(addInterfaceClasses)} onClick={(e) => toggleEditorAddInterface(e)}>
+            {itemToAdd == null ? <>
+                <div role="button" title={Sefaria._("editor.add_source")} aria-label="Add source" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addSourceClicked(e)} id="addSourceButton"></div>
+                <div role="button" title={Sefaria._("editor.add_image")} aria-label="Add image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addImageClicked(e)} id="addImageButton">
+                    <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+                </div>
+                <input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
+                <div role="button" title={Sefaria._("editor.add_media")} aria-label="Add media" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => addMediaClicked(e)} id="addMediaButton"></div>
+            </> :
 
-              <AddInterfaceInput
-                inputType={itemToAdd}
-                resetInterface={resetInterface}
-              />
+                <AddInterfaceInput
+                  inputType={itemToAdd}
+                  resetInterface={resetInterface}
+                />
 
-          }
-          <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
-      </div>
-    )
+            }
+            <div className="cursorHolder" contentEditable={true} suppressContentEditableWarning={true}>{children}</div>
+        </div>
+    );
 }
 
 const Element = (props) => {
@@ -1223,12 +1152,12 @@ const Element = (props) => {
           );
         case 'SheetSource':
             return (
-              <BoxedSheetElement {...props} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} />
             );
 
         case 'SheetOutsideBiText':
             return (
-              <BoxedSheetElement {...props} {...attributes} divineName={useSlate().divineNames} />
+              <BoxedSheetElement {...props} {...attributes} />
             );
 
 
@@ -1257,7 +1186,7 @@ const Element = (props) => {
             let mediaComponent
             let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/)|(video\/))?([0-9]+)/;
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("User uploaded media")} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} alt={Sefaria._("editor.user_uploaded_media")} />{children}</div>
             }
             else if (element.mediaUrl.match(/https?:\/\/www\.youtube\.com\/embed\/.+?rel=0(&amp;|&)showinfo=0$/i) != null) {
               mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
@@ -1690,7 +1619,7 @@ const withSefariaSheet = editor => {
             }
             catch (e) {
                 console.log(`Error at ${normalizer["name"]}`, e )
-                console.log(editor.children[0,0])
+                console.log(editor.children[(0, 0)])
             }
         }
         // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -2238,40 +2167,36 @@ const Link = ({ attributes, children, element }) => {
     const linkPopoverOpen = linkPopoverVisible || (editor.showLinkOverride && Path.isDescendant(editor.linkOverrideSelection.anchor.path, ReactEditor.findPath(editor, element)))
 
   return (
-    <div
-        {...attributes}
-        className="element-link"
-        onMouseEnter={(e) => onHover(e, element.url)}
-        onMouseLeave={(e) => onBlur(e, element.url)}
-    >
-        <a
-            href={element.url}
-            onMouseEnter={(e)=> {if (!linkPopoverOpen) {
-                setShowLinkRemoveButton(true)
-            }
-            }}
-        >
-            {children}
-        </a>
-
-      {/* Show popup on hover and also force it open when a new link is created  */}
-      {linkPopoverOpen ? (
-        <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
-          <input
-              type="text"
-              value={urlValue}
-              placeholder={Sefaria._("Enter link URL")}
-              className="sans-serif"
-              onChange={(e) => urlChange(e)}
-          />
-            {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
-        </div>
-      ) : null }
-
-
-    </div>
-
-  )
+      <div
+          {...attributes}
+          className="element-link"
+          onMouseEnter={(e) => onHover(e, element.url)}
+          onMouseLeave={(e) => onBlur(e, element.url)}
+      >
+          <a
+              href={element.url}
+              onMouseEnter={(e)=> {if (!linkPopoverOpen) {
+                  setShowLinkRemoveButton(true)
+              }
+              }}
+          >
+              {children}
+          </a>
+          {/* Show popup on hover and also force it open when a new link is created  */}
+          {linkPopoverOpen ? (
+            <div className="popup" contentEditable={false} onFocus={() => setEditingUrl(true)} onBlur={(e) => closePopup(e)}>
+              <input
+                  type="text"
+                  value={urlValue}
+                  placeholder={Sefaria._("editor.enter_link_url")}
+                  className="sans-serif"
+                  onChange={(e) => urlChange(e)}
+              />
+                {showLinkRemoveButton ? <button onClick={() => xClicked()}>✕</button> : null}
+            </div>
+          ) : null }
+      </div>
+  );
 
  }
 
@@ -2634,7 +2559,7 @@ const BlockButton = ({format, icon}) => {
 }
 
 const EditorSaveStateIndicator = ({ state }) => {
-    const localize = (inputStr) => Sefaria._(inputStr, "EditorSaveIndicator");
+    const localize = (inputStr) => Sefaria._(inputStr);
     const stateToIcon = {
         "connectionLost": "/static/icons/new_editor_saving/cloud-off-rounded.svg",
         "userUnauthenticated": "/static/icons/new_editor_saving/person-off.svg",
@@ -2643,21 +2568,21 @@ const EditorSaveStateIndicator = ({ state }) => {
         "unknownError": "/static/icons/new_editor_saving/cloud-off-rounded.svg"
         };
     const stateToTooltip = {
-        "saved": "Your sheet is saved to Sefaria",
-        "saving": "We are saving your changes to Sefaria",
-        "connectionLost": "No internet connection detected",
-        "userUnauthenticated": "You are not logged in to Sefaria",
-        "unknownError": "If this problem persists, please try again later and contact us at hello@sefaria.org"
+        "saved": "editor_save_indicator.your_sheet_is_saved_to_sefaria",
+        "saving": "editor_save_indicator.we_are_saving_your_changes_to_sefaria",
+        "connectionLost": "editor_save_indicator.no_internet_connection_detected",
+        "userUnauthenticated": "editor_save_indicator.you_are_not_logged_in_to_sefaria",
+        "unknownError": "editor_save_indicator.if_this_problem_persists_please_try_again_later"
         };
 
     // During SSR, window doesn't exist, so use empty string as fallback
     const path = Sefaria._inBrowser ? (window.location.pathname + window.location.search) : "";
     const stateToMessage = {
-        "connectionLost": "Trying to connect…",
-        "userUnauthenticated": <>{localize("User Logged out")}. <a href={`/login?next=${path}`}>{localize("Log in")}</a></>,
-        "saving": "Saving...",
-        "saved": "Saved",
-        "unknownError": "Something went wrong. Try refreshing the page."
+        "connectionLost": "editor_save_indicator.trying_to_connect",
+        "userUnauthenticated": <>{localize("editor_save_indicator.user_logged_out")}. <a href={`/login?next=${path}`}>{localize("header.log_in")}</a></>,
+        "saving": "editor_save_indicator.saving",
+        "saved": "editor_save_indicator.saved",
+        "unknownError": "editor_save_indicator.something_went_wrong_try_refreshing_the_page"
         };
     const loadedIcons = new Set();
     useEffect(() => {
@@ -2678,7 +2603,7 @@ const EditorSaveStateIndicator = ({ state }) => {
 
     return (
         <ToolTipped altText={localize(tooltip)} classes={`editorSaveStateIndicator tooltip-toggle ${state}`}>
-        {<img src={stateToIcon[state]} alt={localize(state)} />}
+        {<img src={stateToIcon[state]} alt={state} />}
         <span className="saveStateMessage" aria-live="polite" aria-label="Save status">{localize(stateToMessage[state])}</span>
         </ToolTipped>
   );
@@ -2933,36 +2858,6 @@ const SefariaEditor = (props) => {
         }, [readyForNormalize]
     )
 
-    useEffect(
-        () => {
-            const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
-            for (const [node, path] of nodes) {
-                if (node.text && props.divineNameReplacement) {
-                    const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
-                    if (newStr != node.text) {
-                        Transforms.insertText(editor, newStr, { at: path })
-                    }
-                }
-            }
-            editor.divineNames = props.divineNameReplacement
-
-            // some edit to the editor is required to show the replacement and save
-            // -- this simply just moves the cursor to the top of the doc and then back to its previous spot
-            const temp_select = editor.selection
-
-            Transforms.select(editor, {
-              anchor: {path: [0, 0], offset: 0},
-              focus: {path: [0, 0], offset: 0},
-            });
-
-            Transforms.select(editor, temp_select)
-            saveDocument(currentDocument);
-
-        },
-        [props.divineNameReplacement]
-    )
-
-
   useEffect(() => {
     editor.highlightedNode = null;
   }, []);
@@ -3007,7 +2902,7 @@ const SefariaEditor = (props) => {
                             "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
                             "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
                         },
-                        ...sheetItem.options && { options: sheetItem.options },
+                        ...(sheetItem.options && { options: sheetItem.options }),
                         "node": sheetItem.node,
                     };
                     return (source);
@@ -3026,7 +2921,7 @@ const SefariaEditor = (props) => {
                             "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
                             "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
                         },
-                        ...sheetItem.options && { options: sheetItem.options },
+                        ...(sheetItem.options && { options: sheetItem.options }),
                         "node": sheetItem.node,
 
                     };
@@ -3035,32 +2930,32 @@ const SefariaEditor = (props) => {
                 case 'SheetComment':
                     return ({
                         "comment": serialize(sheetItem),
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
                 case 'SheetOutsideText':
                    const outsideTextText = serialize(sheetItem)
                    //Add space to empty outside texts to preseve line breaks from old sheets.
                    return ({
-                        "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
-                    });
+                       "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
+                       ...(sheetItem.options && { options: sheetItem.options }),
+                       "node": sheetItem.node
+                   });
 
                 case 'SheetMedia':
-                    return({
+                    return ({
                         "media": sheetItem.mediaUrl,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
                 case 'header':
                     const headerContent = serialize(sheetItem)
-                    return({
+                    return ({
                         "outsideText": `<h1>${headerContent}</h1>`,
-                        ...sheetItem.options && { options: sheetItem.options },
-                        "node": sheetItem.node,
+                        ...(sheetItem.options && { options: sheetItem.options }),
+                        "node": sheetItem.node
                     });
 
 
@@ -3080,7 +2975,7 @@ const SefariaEditor = (props) => {
             promptedToPublish: doc.promptedToPublish,
             lastModified: lastModified,
             summary: summary,
-            options: { ...doc.options, divineNames: props.divineNameReplacement },
+            options: doc.options,
             tags: doc.tags,
             displayedCollection: doc.displayedCollection,
             title: title,

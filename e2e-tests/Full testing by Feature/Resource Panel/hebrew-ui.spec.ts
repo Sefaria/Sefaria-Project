@@ -26,7 +26,7 @@ test.describe('Resource Panel — Hebrew UI', () => {
     await pm.onResourcePanel().clickSegment('Genesis 1:1');
   });
 
-  test('RP-210: The Hebrew interface renders the app shell as RTL', async () => {
+  test('RP-210: The Hebrew interface renders the app shell as RTL', { tag: '@sanity' }, async () => {
     // The body and `.readerApp` carry direction=rtl when interface=hebrew.
     // The `.connectionsPanel` itself inherits LTR when wrapped in a
     // `.readerPanel.english` (English-content panel inside a Hebrew app).
