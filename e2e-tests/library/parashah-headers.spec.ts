@@ -23,9 +23,14 @@ import { MODULE_URLS } from '../constants';
 const enableAliyot = async (page: Page, switchName: RegExp) => {
   await hideAllModalsAndPopups(page);
   await page.locator('.readerOptions').first().click();
+  // The `<input role="switch">` (ToggleSwitch.jsx) is a visually-hidden checkbox drawn as a
+  // CSS toggle — it's never "visible" to Playwright. Wait for it in the DOM, then click its
+  // associated visible label to flip it, and confirm via aria-checked.
   const aliyotSwitch = page.getByRole('switch', { name: switchName });
-  await expect(aliyotSwitch).toBeVisible({ timeout: t(10000) });
-  await aliyotSwitch.click();
+  await aliyotSwitch.waitFor({ state: 'attached', timeout: t(10000) });
+  const switchId = await aliyotSwitch.getAttribute('id');
+  await page.locator(`label.toggle-switch-label[for="${switchId}"]`).click();
+  await expect(aliyotSwitch).toHaveAttribute('aria-checked', 'true', { timeout: t(5000) });
   // Close the dropdown so it doesn't overlay the text column.
   await page.keyboard.press('Escape');
 };
@@ -53,8 +58,9 @@ test.describe('Reader — Parashah & Aliyah headers (English)', () => {
     await expect(aliyahHeaders.first()).toBeVisible({ timeout: t(15000) });
     // The Rishon now reads "Bereshit: First".
     await expect(aliyahHeaders.first()).toContainText(/Bereshit:\s*First/i);
-    // Genesis 1 shows more than one aliyah header once aliyot are on.
-    expect(await aliyahHeaders.count()).toBeGreaterThan(1);
+    // Aliyah 1 (Rishon) spans Gen 1:1–2:3, so the Genesis 1 view holds exactly one
+    // aliyah header; later aliyot begin in ch. 2 and load on scroll.
+    expect(await aliyahHeaders.count()).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -73,6 +79,7 @@ test.describe('Reader — Parashah & Aliyah headers (Hebrew)', () => {
     await expect(aliyahHeaders.first()).toBeVisible({ timeout: t(15000) });
     // The Rishon now reads "בראשית: ראשון".
     await expect(aliyahHeaders.first()).toContainText(/בראשית:\s*ראשון/);
-    expect(await aliyahHeaders.count()).toBeGreaterThan(1);
+    // See PAR-002: only the Rishon's header falls within the Genesis 1 view.
+    expect(await aliyahHeaders.count()).toBeGreaterThanOrEqual(1);
   });
 });
