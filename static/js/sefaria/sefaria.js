@@ -681,7 +681,7 @@ Sefaria = extend(Sefaria, {
       return testStr;
   },
   _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
-      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
+      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<", "NON_CTS": "~"}
       let testStr = "";
       for (let i = 0; i < refParts.length; i++) {
           const part = refParts[i];

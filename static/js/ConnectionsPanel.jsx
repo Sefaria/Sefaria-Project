@@ -1222,12 +1222,7 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
 
   const toggleLinkerDebugMode = () => {
     const url = new URL(window.location.href);
-    url.searchParams.set("with", "LinkerAdmin");
-    if (linkerDebugOn) {
-      url.searchParams.delete("debug_mode");
-    } else {
-      url.searchParams.set("debug_mode", "linker");
-    }
+    Sefaria.util.setLinkerAdminUrlParams(url.searchParams, {debug: !linkerDebugOn});
     window.location.href = url.toString();
   };
 
@@ -1319,9 +1314,8 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       }
     };
     const openLinkerAdminTools = function () {
-      let url = new URL(window.location.href);
-      url.searchParams.set("debug_mode", "linker");
-      url.searchParams.set("with", "LinkerAdmin");
+      const url = new URL(window.location.href);
+      Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
       window.location.href = url.toString();
     };
 

@@ -182,9 +182,9 @@ class LinkerAdminAPIView(View):
             raise InputError("JSON body must be an object")
         return body
 
-    def _handle(self, request, handler):
+    def _handle(self, request, handler, status=200):
         try:
-            return jsonResponse(handler(self._body(request)))
+            return jsonResponse(handler(self._body(request)), status=status)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
@@ -216,11 +216,11 @@ class LinkerAdminParseCitationView(LinkerAdminAPIView):
 class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
 
     def post(self, request):
-        try:
-            result = linker_admin.rerun_linker_for_segment(self._body(request), request.user.id)
-        except InputError as e:
-            return jsonResponse({"error": str(e)}, status=400)
-        return jsonResponse(result, status=202)
+        return self._handle(
+            request,
+            lambda body: linker_admin.rerun_linker_for_segment(body, request.user.id),
+            status=202,
+        )
 
 
 class KnnSearch(View):

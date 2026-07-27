@@ -202,8 +202,7 @@ class ReaderPanel extends Component {
     Sefaria._linkerAdminSelectedCitation = connectionData;
     this.openConnectionsPanel([sourceRef], {connectionsMode: "LinkerAdmin", connectionData});
     const url = new URL(window.location.href);
-    url.searchParams.set("debug_mode", "linker");
-    url.searchParams.set("with", "LinkerAdmin");
+    Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
     url.searchParams.set("linkerAdminCitation", testString);
     history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
   }
