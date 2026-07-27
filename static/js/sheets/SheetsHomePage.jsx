@@ -47,8 +47,8 @@ SheetsHomePageSidebar.propTypes = {
 
 const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
 
-  const sheetsHeroBanner = <SheetsHeroBanner title={Sefaria._("Community-Powered Jewish Learning")}
-                                  message={Sefaria._("Share. Discover. Join the Conversation.")}
+  const sheetsHeroBanner = <SheetsHeroBanner title={Sefaria._("sheets_home_page.community_powered_jewish_learning")}
+                                  message={Sefaria._("sheets_home_page.share_discover_join_the_conversation")}
                                   videoOptions={["/static/img/home-video.webm", "/static/img/home-video.mp4"]}
                                   posterImg="/static/img/home-video.jpg"/>;                             
   const sheetsTopicsCalendar = <SheetsTopicsCalendar handleClick={setTopic}/>;
@@ -60,7 +60,7 @@ const SheetsHomePage = ({setNavTopic, setTopic, multiPanel}) => {
         {sheetsHeroBanner}
         <div className="sidebarLayout">
           <div className="contentInner">
-            <h1 className="voicesBodyTitle"><InterfaceText>Explore User-Created Content by Topic</InterfaceText></h1>
+            <h1 className="voicesBodyTitle"><InterfaceText>sheets_home_page.explore_user_created_content_by_topic</InterfaceText></h1>
             <div className="sheetsTopics">
             <>
             {sheetsTopicsCalendar}
