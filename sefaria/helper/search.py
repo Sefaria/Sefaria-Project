@@ -426,15 +426,19 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
     secondary_kw = _ENTITY_SECONDARY_KEYWORD_FIELDS.get(type, _ENTITY_SECONDARY_KEYWORD_FIELDS["topic"])
 
-    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive), via
+    # Tier 1 — exact literal match on the keyword sub-fields (case-insensitive), via
     # constant_score so the contribution is a fixed amount rather than an IDF-scaled score.
     # A primary-title hit gets the dominant boost; a variant / authored-work hit gets a
     # strong-but-lower one. Because these amounts are fixed, no accumulation of partial
     # (phrase/word/prefix) tiers on a longer title can sum past a true exact match, and an
     # exact variant hit can never outrank an exact primary hit (the bug this replaces).
-    tier1_primary = [Q("constant_score", filter=Q("term", **{kf: query}), boost=_ENTITY_EXACT_PRIMARY_BOOST)
+    # The `.keyword` sub-fields are raw (un-normalized), so match case-insensitively at
+    # query time — otherwise "chafetz chaim" would miss the stored "Chafetz Chaim".
+    tier1_primary = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+                       boost=_ENTITY_EXACT_PRIMARY_BOOST)
                      for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS]
-    tier1_variant = [Q("constant_score", filter=Q("term", **{kf: query}), boost=_ENTITY_EXACT_SECONDARY_BOOST)
+    tier1_variant = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+                       boost=_ENTITY_EXACT_SECONDARY_BOOST)
                      for kf in secondary_kw]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
@@ -581,10 +585,13 @@ def _author_works_response(author, query, sort="relevance"):
 
         hits.sort(key=year_key)
     else:
-        # relevance: eponymous work (exact title match) first, then category aggregations,
-        # then the rest. Stable sort preserves the original aggregation order within each group.
+        # relevance: eponymous work (exact title match on a non-category work) first, then
+        # category aggregations, then the rest. The eponymous tier explicitly excludes
+        # category rows so that a category whose title happens to equal the query can't sort
+        # ahead of the actual eponymous work. Stable sort preserves the original aggregation
+        # order within each group.
         hits.sort(key=lambda h: (
-            0 if _author_work_matches_query(query, h) else 1,
+            0 if (_author_work_matches_query(query, h) and not h.get("isCategory")) else 1,
             0 if h.get("isCategory") else 1,
         ))
     return {"hits": hits, "total": len(hits), "author_slug": author.slug}

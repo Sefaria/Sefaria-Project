@@ -231,6 +231,44 @@ def test_author_works_response_surfaces_eponymous_work():
     assert not response["hits"][0]["isCategory"]
 
 
+def test_entity_query_obj_exact_tier_is_case_insensitive():
+    # Regression: the Tier-1 exact-match `term` clauses run against raw (un-normalized)
+    # `.keyword` sub-fields, so they must set `case_insensitive` — otherwise a lowercase
+    # query like "chafetz chaim" never fires the decisive boost against a stored title
+    # "Chafetz Chaim" and the "exact match ranks first" guarantee breaks.
+    s = get_entity_query_obj("moshe", "book").to_dict()
+    term_clauses = [c["constant_score"]["filter"]["term"]
+                    for c in s["query"]["bool"]["should"] if "constant_score" in c]
+    assert term_clauses, "expected Tier-1 constant_score term clauses"
+    for term in term_clauses:
+        (field, spec), = term.items()
+        assert spec["case_insensitive"] is True, f"{field} exact-match tier must be case-insensitive"
+
+
+def test_author_works_response_eponymous_beats_matching_category():
+    # Regression: when a category row's title happens to equal the query, it must not sort
+    # ahead of the actual eponymous (non-category) work. The eponymous tier explicitly
+    # excludes category rows so the real work still leads.
+    class _DummyAuthor:
+        slug = "israel-meir-kagan"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/cat", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "categories": None, "compDate": 1873},
+                {"url": "/work", "title": {"en": "Chafetz Chaim", "he": "חפץ חיים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1873},
+            ]
+
+    response = _author_works_response(_DummyAuthor(), "Chafetz Chaim")
+    assert response["hits"][0]["title_en"] == "Chafetz Chaim"
+    assert not response["hits"][0]["isCategory"]
+    assert response["hits"][1]["isCategory"]
+
+
 def test_query_matches_entity_title_exact_only():
     author = {"title_en": "Shalom Buzaglo", "title_he": "שלום בוזגלו", "titleVariants": []}
     # A common given name that is only a *prefix* of the author's name must NOT match —
