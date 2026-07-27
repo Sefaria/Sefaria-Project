@@ -81,9 +81,27 @@ def test_parse_linker_citation_response_shape():
     assert any(parsing["ref"] == "Job 3:5" and parsing["valid"] for parsing in response["parsings"])
 
 
-def test_parse_linker_citation_malformed_crrd_raises_input_error():
+def test_parse_linker_citation_ranged_ref():
+    # A ranged citation arrives from the frontend already flattened into NUMBERED sections,
+    # a RANGE_SYMBOL, and NUMBERED toSections; RawRef._group_ranged_parts regroups it server-side.
+    response = parse_linker_citation({
+        "parts": [
+            {"text": "Genesis", "type": "NAMED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "-", "type": "RANGE_SYMBOL"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "2", "type": "NUMBERED"},
+        ],
+        "lang": "en",
+    })
+    assert response["ok"] is True
+    assert any(parsing["ref"] == "Genesis 1:1-2" and parsing["valid"] for parsing in response["parsings"])
+
+
+def test_parse_linker_citation_missing_parts_raises_input_error():
     with pytest.raises(InputError):
-        parse_linker_citation({"crrdTestString": 'crrd([-"bad"])'})
+        parse_linker_citation({"lang": "en"})
 
 
 def test_deleted_spans_are_not_counted_as_added_links():

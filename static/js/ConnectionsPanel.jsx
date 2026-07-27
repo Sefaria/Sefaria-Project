@@ -1068,28 +1068,22 @@ const getSelectedLinkerAdminSpan = (testString) => {
   return null;
 };
 
-const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).map((text, i) => ({
-  text,
-  type: span.inputRefPartTypes?.[i],
-})).filter(part => part.text && part.type);
-
-const linkerPartsFromCrrd = (testString) => {
-  const symbolTypeMap = {"@": "NAMED", "#": "NUMBERED", "*": "DH", "^": "RANGE_SYMBOL", "&": "IBID", "<": "RELATIVE", "~": "NON_CTS"};
-  const match = testString.match(/^\s*crrd\s*\(\s*\[([\s\S]*?)\]\s*(?:,|\))/);
-  if (!match) { throw new Error("Expected a crrd(...) linker test string"); }
-  const parts = [];
-  const partRegex = /(["'])((?:\\.|(?!\1)[\s\S])*)\1/g;
-  let partMatch;
-  while ((partMatch = partRegex.exec(match[1])) !== null) {
-    const rawPart = partMatch[2].replace(/\\(["'\\])/g, "$1");
-    const type = symbolTypeMap[rawPart.slice(0, 1)];
-    if (type) {
-      parts.push({text: rawPart.slice(1), type});
-    }
+const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).flatMap((text, i) => {
+  const type = span.inputRefPartTypes?.[i];
+  if (type === "RANGE") {
+    // Flatten a ranged part back into its NUMBERED sections + "-" + NUMBERED toSections so the
+    // server's RawRef._group_ranged_parts can reconstruct the RangedRawRefParts. Mirrors the range
+    // branch in Sefaria._getLinkerTestStringForParts.
+    const sections = span.inputRangeSections || [];
+    const toSections = span.inputRangeToSections || [];
+    return [
+      ...sections.map(t => ({text: t, type: "NUMBERED"})),
+      {text: "-", type: "RANGE_SYMBOL"},
+      ...toSections.map(t => ({text: t, type: "NUMBERED"})),
+    ];
   }
-  if (!parts.length) { throw new Error("No valid ref parts found in linker test string"); }
-  return parts;
-};
+  return [{text, type}];
+}).filter(part => part.text && part.type);
 
 const LinkerPairings = ({pairings}) => {
   const [open, setOpen] = useState(false);
@@ -1136,19 +1130,23 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
 
   const parseCitation = async (value = testString) => {
     if (!value) { return; }
+    const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
+    if (!span) {
+      setError("No linker debug citation found for this test string. Click a resolved citation in the text (in linker debug mode) to select it.");
+      return;
+    }
     setBusy(true);
     setError(null);
     setMessage(null);
     try {
-      const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
-      const parts = span ? linkerPartsFromSpan(span) : linkerPartsFromCrrd(value);
+      const parts = linkerPartsFromSpan(span);
       const result = await Sefaria.apiRequestWithBody("/api/linker-admin/citation/parse", null, {
         parts,
-        lang: span?.language || span?.lang || (Sefaria.hebrew.isHebrew(parts.map(part => part.text).join(" ")) ? "he" : "en"),
-        contextRef: span?.contextRef || null,
+        lang: span.language || span.lang || (Sefaria.hebrew.isHebrew(parts.map(part => part.text).join(" ")) ? "he" : "en"),
+        contextRef: span.contextRef || null,
       }, "POST");
       setParsed(result);
-      setSelectedSpan(span || null);
+      setSelectedSpan(span);
     } catch (e) {
       setError(e.message || String(e));
     } finally {

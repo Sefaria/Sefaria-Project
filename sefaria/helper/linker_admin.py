@@ -1,5 +1,3 @@
-import ast
-import re
 from typing import Any, Optional
 
 from ne_span import NEDoc
@@ -14,15 +12,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
-ENCODED_PART_TYPE_MAP = {
-    "@": RefPartType.NAMED,
-    "#": RefPartType.NUMBERED,
-    "*": RefPartType.DH,
-    "^": RefPartType.RANGE_SYMBOL,
-    "&": RefPartType.IBID,
-    "<": RefPartType.RELATIVE,
-    "~": RefPartType.NON_CTS,
-}
 REF_PART_TYPE_BY_NAME = {part_type.name: part_type for part_type in RefPartType}
 
 
@@ -142,51 +131,6 @@ def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: 
     }
 
 
-def _part_dicts_from_encoded_parts(encoded_parts: list[str]) -> list[dict]:
-    parts = []
-    for encoded_part in encoded_parts:
-        symbol, text = encoded_part[:1], encoded_part[1:]
-        if symbol == "0":
-            continue
-        part_type = ENCODED_PART_TYPE_MAP.get(symbol)
-        if part_type is None:
-            raise InputError(f"Unknown CRRD part symbol: {symbol}")
-        parts.append({"text": text, "type": part_type.name})
-    return parts
-
-
-def _parse_parts_from_crrd(crrd_test_string: str) -> tuple[list[dict], str, Optional[str], list[str]]:
-    match = re.match(r"^\s*crrd\s*\((.*)\)\s*$", crrd_test_string, flags=re.S)
-    if not match:
-        raise InputError("Expected a crrd(...) linker test string")
-    try:
-        parsed = ast.parse(f"f({match.group(1)})", mode="eval")
-    except SyntaxError as e:
-        raise InputError(f"Malformed CRRD test string: {e.msg}")
-    call = parsed.body
-    if not isinstance(call, ast.Call) or not call.args:
-        raise InputError("CRRD test string must include a parts list")
-    try:
-        args = [ast.literal_eval(arg) for arg in call.args]
-        kwargs = {kw.arg: ast.literal_eval(kw.value) for kw in call.keywords}
-    except (ValueError, TypeError, SyntaxError) as e:
-        raise InputError(f"Malformed CRRD test string: {e}")
-    parts = args[0]
-    if not isinstance(parts, list) or not all(isinstance(part, str) for part in parts):
-        raise InputError("CRRD parts must be a list of strings")
-    context_ref = args[1] if len(args) > 1 else None
-    lang = args[2] if len(args) > 2 else "he"
-    prev_trefs = args[3] if len(args) > 3 else []
-    lang = kwargs.get("lang", lang)
-    context_ref = kwargs.get("context_tref") or kwargs.get("contextRef") or context_ref
-    prev_trefs = kwargs.get("prev_trefs") or kwargs.get("prevRefs") or prev_trefs
-    if prev_trefs is None:
-        prev_trefs = []
-    if not isinstance(prev_trefs, list):
-        raise InputError("prev_trefs must be a list")
-    return _part_dicts_from_encoded_parts(parts), lang, context_ref, prev_trefs
-
-
 def _raw_ref_from_part_dicts(part_dicts: list[dict], lang: str) -> RawRef:
     if not isinstance(part_dicts, list) or not all(isinstance(part, dict) for part in part_dicts):
         raise InputError("parts must be a list of objects with text and type")
@@ -213,8 +157,6 @@ def _raw_ref_from_part_dicts(part_dicts: list[dict], lang: str) -> RawRef:
         start = cursor
         end = start + len(text_value)
         cursor = end + 1
-        if part_type is None:
-            continue
         raw_parts.append(RawRefPart(part_type, doc.subspan(slice(start, end))))
     return RawRef(doc.subspan(slice(0, len(input_str))), lang, raw_parts)
 
@@ -262,14 +204,10 @@ def _serialize_resolved_ref(resolved_ref) -> dict:
 
 
 def parse_linker_citation(payload: dict) -> dict:
-    crrd_test_string = payload.get("crrdTestString") or payload.get("testString")
-    if crrd_test_string:
-        parts, lang, context_ref, prev_trefs = _parse_parts_from_crrd(crrd_test_string)
-    else:
-        parts = _required(payload, "parts")
-        lang = payload.get("lang", "he")
-        context_ref = payload.get("contextRef")
-        prev_trefs = payload.get("prevRefs") or []
+    parts = _required(payload, "parts")
+    lang = payload.get("lang", "he")
+    context_ref = payload.get("contextRef")
+    prev_trefs = payload.get("prevRefs") or []
     raw_ref = _raw_ref_from_part_dicts(parts, lang)
     linker = library.get_linker(lang)
     ref_resolver = linker._ref_resolver
