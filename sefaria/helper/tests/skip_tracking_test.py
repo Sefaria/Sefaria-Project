@@ -9,6 +9,8 @@ building the library. The startup/reset_cache/reset_toc pathways each just call
 signal_and_reset_skip_counts() at the end of a build; the guarded loops themselves are
 exercised against the test DB by the existing TOC-rebuild tests.
 """
+import threading
+
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -178,3 +180,35 @@ class TestSignalAndReset:
         message = mock_notify.call_args[0][0]
         assert "skipped *{}* bad record(s)".format(n_skips) in message
         assert "_… 5 more_" in message
+
+
+class TestThreadSafety:
+
+    def test_concurrent_skips_and_summaries_lose_nothing(self, mock_notify):
+        """Skip-recording threads racing signal_and_reset_skip_counts(): no iteration/race
+        error, and every skip lands in exactly one summary (none reset away unreported)."""
+        n_threads, per_thread = 8, 200
+        errors = []
+
+        def record(i):
+            log = MagicMock()
+            try:
+                for j in range(per_thread):
+                    log_skip(log, "reset_toc", "op{}".format(i), "detail", record="r{}".format(j))
+            except Exception as e:
+                errors.append(e)
+
+        with patch("sefaria.helper.skip_tracking.logger") as mock_logger:
+            threads = [threading.Thread(target=record, args=(i,)) for i in range(n_threads)]
+            for t in threads:
+                t.start()
+            while any(t.is_alive() for t in threads):
+                signal_and_reset_skip_counts("reset_toc")
+            for t in threads:
+                t.join()
+            signal_and_reset_skip_counts("reset_toc")
+
+        assert errors == []
+        summarized = sum(c.kwargs["total"] for c in mock_logger.warning.call_args_list)
+        assert summarized == n_threads * per_thread
+        assert get_skip_counts() == {}
