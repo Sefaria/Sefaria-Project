@@ -10,9 +10,12 @@ const PROVIDERS = {
 /**
  * Custom provider button from Figma `Buttons [for now]` (node 185:52318).
  *
- * Google GIS does not expose a programmatic button-click API. For Google,
- * `sdkOverlayRef` hosts the transparent SDK-rendered click target above this visual.
- * Apple exposes `AppleID.auth.signIn()`, so its button uses `onClick` directly.
+ * Google's rendered button lives in a cross-origin (accounts.google.com) iframe — a click can
+ * only ever be received by that iframe's actual on-screen position, so this component doesn't
+ * handle the click itself for Google. Instead `trackingRef` forwards to the shell so the one
+ * real (invisible, elsewhere-mounted) Google button can be positioned exactly on top of it —
+ * see `useProviderTriggers` (`useSsoSignIn.jsx`). Apple exposes `AppleID.auth.signIn()`
+ * directly, so its button just uses `onClick`.
  */
 const ProviderButton = ({
   provider,
@@ -20,7 +23,7 @@ const ProviderButton = ({
   onClick,
   disabled = false,
   id,
-  sdkOverlayRef = null,
+  trackingRef = null,
 }) => {
   const config = PROVIDERS[provider];
   if (!config) return null;
@@ -37,17 +40,17 @@ const ProviderButton = ({
     </>
   );
 
-  if (sdkOverlayRef) {
+  if (trackingRef) {
     return (
       <div
         id={id}
+        ref={trackingRef}
         className={`sefaria-provider-button-shell${disabled ? ' is-disabled' : ''}`}
         tabIndex={-1}
       >
         <div className="sefaria-provider-button" aria-hidden="true">
           {content}
         </div>
-        <div ref={sdkOverlayRef} className="sefaria-provider-sdk-overlay" />
       </div>
     );
   }
@@ -71,7 +74,7 @@ ProviderButton.propTypes = {
   onClick: PropTypes.func,
   disabled: PropTypes.bool,
   id: PropTypes.string,
-  sdkOverlayRef: PropTypes.shape({ current: PropTypes.object }),
+  trackingRef: PropTypes.func,
 };
 
 export default ProviderButton;

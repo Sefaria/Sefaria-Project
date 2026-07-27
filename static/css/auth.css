@@ -174,6 +174,9 @@
   display: inline;
   margin-inline-start: 4px;
   font-weight: 400;
+  color: #c03522;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .sefaria-provider-button-shell {
@@ -196,9 +199,6 @@
 }
 .sefaria-provider-button-shell.is-disabled .sefaria-provider-button * {
   color: var(--medium-grey-legacy);
-}
-.sefaria-provider-button-shell.is-disabled .sefaria-provider-sdk-overlay {
-  pointer-events: none;
 }
 
 .sefaria-provider-button {
@@ -242,10 +242,10 @@
 }
 
 .sefaria-provider-sdk-overlay {
-  position: absolute;
-  inset: 0;
+  position: fixed;
   opacity: 0.0001;
   overflow: hidden;
+  z-index: var(--z-overlay);
 }
 .sefaria-provider-sdk-overlay > div,
 .sefaria-provider-sdk-overlay iframe {

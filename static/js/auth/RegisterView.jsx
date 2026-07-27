@@ -10,9 +10,11 @@ import Captcha from '../common/Captcha.jsx';
 import LegalText from './LegalText.jsx';
 import { whenReady, pickFirstError, authError, postForm } from './utils.js';
 
+// Shown in the banner (same shape LoginView's sso_only_account error already uses), not under
+// the email field — ErrorBanner already knows how to render both of these.
 const EMAIL_EXISTS_ERRORS = {
-  'This email address is already registered via Google Sign-In.': { message: 'auth.email_exists_google', linkText: 'auth.continue_with_google_link', provider: 'google' },
-  'This email address is already registered via Apple Sign-In.':  { message: 'auth.email_exists_apple',  linkText: 'auth.continue_with_apple_link',  provider: 'apple'  },
+  'This email address is already registered via Google Sign-In.': { code: 'sso_only_account', providers: ['google'] },
+  'This email address is already registered via Apple Sign-In.':  { code: 'sso_only_account', providers: ['apple'] },
   'An account with this email address already exists.':           { message: 'auth.email_exists_generic', linkText: 'auth.log_in_link' },
 };
 
@@ -20,8 +22,9 @@ const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', 
 const BACKEND_MESSAGES = { 'This field is required.': 'auth.required_field' };
 
 const RegisterView = ({
-  switchFlow, fields, setField, onBack, onProviderClick,
+  switchFlow, fields, setField, onBack,
   startRegistration, trackRegistration, endRegistration, next, csrf,
+  registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const [captchaError, setCaptchaError] = useState(null);
   const captchaToken = useRef('');
@@ -125,28 +128,18 @@ const RegisterView = ({
     });
     const newFieldErrors = {};
     let hasUnknownError = false;
+    let emailExistsError = null;
     for (const [key, val] of Object.entries(data || {})) {
       if (key === '_auth' || key === 'captcha') continue;
       if (FIELD_MAP[key]) {
         const raw = typeof val === 'string' ? val : String(val);
-        newFieldErrors[FIELD_MAP[key]] = BACKEND_MESSAGES[raw] || raw;
+        if (FIELD_MAP[key] === 'email' && EMAIL_EXISTS_ERRORS[raw]) {
+          emailExistsError = EMAIL_EXISTS_ERRORS[raw];
+        } else {
+          newFieldErrors[FIELD_MAP[key]] = BACKEND_MESSAGES[raw] || raw;
+        }
       } else {
         hasUnknownError = true;
-      }
-    }
-    if (newFieldErrors.email) {
-      const info = EMAIL_EXISTS_ERRORS[newFieldErrors.email];
-      if (info) {
-        newFieldErrors.email = (
-          <span>
-            <InterfaceText>{info.message}</InterfaceText>
-            {' '}
-            {info.provider
-              ? <a href="#" onClick={(e) => { e.preventDefault(); onProviderClick?.(info.provider); }}><InterfaceText>{info.linkText}</InterfaceText></a>
-              : <a href="/login" onClick={switchFlow('login')}><InterfaceText>{info.linkText}</InterfaceText></a>
-            }
-          </span>
-        );
       }
     }
     if (data?.captcha) setCaptchaError('auth.verify_not_robot');
@@ -156,7 +149,7 @@ const RegisterView = ({
     }
     const hasAuthError = !!(data?._auth?.code);
     return {
-      error: (hasAuthError || hasUnknownError) ? authError(data, message) : undefined,
+      error: emailExistsError || ((hasAuthError || hasUnknownError) ? authError(data, message) : undefined),
       fieldErrors: newFieldErrors,
     };
   };
@@ -173,7 +166,10 @@ const RegisterView = ({
           </a>
         </>
       )}
-      formId="register-form" onSubmit={onSubmit} onProviderClick={onProviderClick}
+      formId="register-form" onSubmit={onSubmit}
+      registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+      setActiveErrorHandler={setActiveErrorHandler}
+      onLinkClick={switchFlow('login')}
     >
       {({ fieldErrors, submitting }) => (
         <>
@@ -212,12 +208,14 @@ RegisterView.propTypes = {
   }).isRequired,
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
-  onProviderClick: PropTypes.func,
   startRegistration: PropTypes.func.isRequired,
   trackRegistration: PropTypes.func.isRequired,
   endRegistration: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
+  registerGoogleTarget: PropTypes.func,
+  triggerApple: PropTypes.func,
+  setActiveErrorHandler: PropTypes.func,
 };
 
 export default RegisterView;

@@ -7,7 +7,10 @@ import PasswordInput from './PasswordInput.jsx';
 import Button from '../common/Button.jsx';
 import { authError, safeNext, postJson } from './utils.js';
 
-const LoginView = ({ switchFlow, fields, setField, onBack, onProviderClick, onForgotClick, next, csrf }) => {
+const LoginView = ({
+  switchFlow, fields, setField, onBack, onForgotClick, next, csrf,
+  registerGoogleTarget, triggerApple, setActiveErrorHandler,
+}) => {
   const onSubmit = async () => {
     const { ok, data } = await postJson('/api/auth/login', { email: fields.email, password: fields.password }, csrf);
     if (ok) { window.location.href = safeNext(next); return; }
@@ -26,7 +29,9 @@ const LoginView = ({ switchFlow, fields, setField, onBack, onProviderClick, onFo
           </a>
         </>
       )}
-      formId="login-form" onSubmit={onSubmit} onProviderClick={onProviderClick}
+      formId="login-form" onSubmit={onSubmit}
+      registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+      setActiveErrorHandler={setActiveErrorHandler}
     >
       {({ submitting }) => (
         <>
@@ -52,10 +57,12 @@ LoginView.propTypes = {
   }).isRequired,
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
-  onProviderClick: PropTypes.func,
   onForgotClick: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
+  registerGoogleTarget: PropTypes.func,
+  triggerApple: PropTypes.func,
+  setActiveErrorHandler: PropTypes.func,
 };
 
 export default LoginView;

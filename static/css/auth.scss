@@ -189,10 +189,16 @@ $stroke-strong:   1.5px;
 // Pull the banner slightly closer to the field above it in email forms
 .sefaria-auth-email-form > .sefaria-auth-error { margin-bottom: -8px; }
 
+// Styles both the real Apple <a> link and the Google <span> (a pure position-tracking target
+// for the invisible iframe overlay elsewhere in the page — see .sefaria-provider-sdk-overlay
+// below) identically, so they read as the same kind of inline link either way.
 .sefaria-auth-provider-action {
   display: inline;
   margin-inline-start: 4px;
   font-weight: 400;
+  color: $sef-error;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 
@@ -221,10 +227,6 @@ $stroke-strong:   1.5px;
       * {
         color: var(--medium-grey-legacy);
       }
-    }
-
-    & .sefaria-provider-sdk-overlay {
-      pointer-events: none;
     }
   }
 }
@@ -265,13 +267,17 @@ $stroke-strong:   1.5px;
   &-icon { width: 16px; height: 16px; flex: 0 0 16px; }
 }
 
-// Google GIS injects an iframe with inline width/height; !important overrides those
-// so the transparent overlay covers the full visual button and captures clicks correctly.
+// The one real Google button on the page (useProviderTriggers/useSsoSignIn.js), invisibly
+// tracked over whichever "Continue with Google" element is currently registered — its
+// position/size come from inline styles (recomputed on scroll/resize/target-change), not CSS,
+// since it has to follow an arbitrary target anywhere on the page rather than fill a fixed
+// parent. Google GIS injects an iframe with inline width/height; !important overrides those so
+// the transparent overlay covers the full tracked area and captures clicks correctly.
 .sefaria-provider-sdk-overlay {
-  position: absolute;
-  inset: 0;
+  position: fixed;
   opacity: 0.0001;
   overflow: hidden;
+  z-index: var(--z-overlay);
 
   > div,
   iframe {

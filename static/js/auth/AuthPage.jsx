@@ -9,7 +9,8 @@ import ResetView from './ResetView.jsx';
 import ResetExpiredView from './ResetExpiredView.jsx';
 import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
-import { makeFlowId, focusProvider, pathToFlow, flowToPath, nextFromPath } from './utils.js';
+import { makeFlowId, pathToFlow, flowToPath, nextFromPath } from './utils.js';
+import { useProviderTriggers } from './useSsoSignIn.jsx';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -49,6 +50,9 @@ const AuthPage = ({
   }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
+  const {
+    googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+  } = useProviderTriggers({ next });
   const fieldsRef = useRef(fields);
   const registrationAnalytics = useRef({
     flowId: makeFlowId(),
@@ -127,7 +131,6 @@ const AuthPage = ({
 
   // ---- views --------------------------------------------------------------
   const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
-  const onProviderClick = (p) => { setView('choose'); focusProvider(p); };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
   const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
@@ -137,18 +140,22 @@ const AuthPage = ({
     content = (
       <RegisterView
         switchFlow={switchFlow} fields={fields} setField={setField}
-        onBack={() => setView('choose')} onProviderClick={onProviderClick}
+        onBack={() => setView('choose')}
         startRegistration={startRegistration}
         trackRegistration={trackRegistration} endRegistration={endRegistration}
         next={next} csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'email') {
     content = (
       <LoginView
         switchFlow={switchFlow} fields={fields} setField={setField}
-        onBack={() => setView('choose')} onProviderClick={onProviderClick}
+        onBack={() => setView('choose')}
         onForgotClick={onForgotClick} next={next} csrf={csrf}
+        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'forgot') {
@@ -182,12 +189,20 @@ const AuthPage = ({
     content = (
       <ChooseView
         flow={flow} switchFlow={switchFlow}
-        next={next} onEmailClick={() => setView('email')}
+        onEmailClick={() => setView('email')}
+        googleReady={googleReady} appleReady={appleReady}
+        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   }
 
-  return <div className="sefaria-auth-page">{content}</div>;
+  return (
+    <div className="sefaria-auth-page">
+      {content}
+      {overlayNode}
+    </div>
+  );
 };
 
 AuthPage.propTypes = {
