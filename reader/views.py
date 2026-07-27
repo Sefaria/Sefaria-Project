@@ -344,6 +344,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "countryCode": request.country_code,
         "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
@@ -4678,7 +4679,7 @@ def translations_api(request, lang=None):
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
 
     aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
-                                            "index.title": 1, "index.order": 1,
+                                            "index.title": 1, "index.order": 1, "languageFamilyName": 1,
                                             "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
                                             "priority": 1, "vstate.first_section_ref": 1}},
                               {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
@@ -4726,7 +4727,10 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    version_param = f'{my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
+                    params = urllib.parse.urlencode({'ven': version_param, "lang": "bi"})
+                    to_add["url"] = f'/{ref}?{params}'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
