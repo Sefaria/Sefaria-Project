@@ -32,6 +32,7 @@ from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict, FileResponse
 from django.urls import Resolver404, resolve
+from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
@@ -759,13 +760,6 @@ def _extract_version_title_param(request, key: str) -> str | None:
     return params
 
 
-def _social_image_urlconf_for_module(module: str) -> str:
-    # The same path can mean different things on different Sefaria modules.
-    # Resolve against the module's URLConf so /topics, /sheets, etc. are
-    # classified the same way Django would classify them for that host.
-    return "sefaria.urls_sheets" if module == VOICES_MODULE else "sefaria.urls_library"
-
-
 def _social_image_text_target(tref: str) -> SocialImageTarget:
     """Book-level refs (e.g. "Genesis") are TOC pages; segment refs are quote images."""
     try:
@@ -837,7 +831,13 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
 
     path = f"/{tref.lstrip('/')}"
     try:
-        match = resolve(path, urlconf=_social_image_urlconf_for_module(module))
+        # The same path can mean different things on different Sefaria modules.
+        # Resolve against the module's own URLConf so /topics, /sheets, etc. are
+        # classified the same way Django would classify them for that host.
+        # get_host(module) looks up the django-hosts entry whose name is the
+        # module (see sefaria/hosts.py) so the module -> URLConf mapping stays in
+        # one place instead of being duplicated here.
+        match = resolve(path, urlconf=get_host(module).urlconf)
     except Resolver404:
         # Unknown paths get the module fallback instead of raising an error.
         # This keeps images available for unknown situations.
