@@ -8,8 +8,8 @@ import { MODULE_URLS } from '../constants';
  * The Library Assistant promo (ChatbotExperimentBanner in SiteWideBanner.jsx)
  * is normally hidden from anonymous first-session visitors — it only shows to
  * returning visitors. The `showPromo=la` URL param (used by email campaigns)
- * forces it for first-session visitors too, while still respecting a prior
- * explicit dismissal.
+ * forces it for first-session visitors too, and also overrides a prior
+ * dismissal — campaign-link visitors came specifically to see it.
  *
  * Every test here uses a fresh anonymous context, i.e. a first-session
  * visitor, the exact audience the param exists for.
@@ -38,7 +38,7 @@ test.describe('Library LA promo — showPromo URL param', () => {
     await pm.onSitePromoBanner().expectHidden();
   });
 
-  test('LAP-003: showPromo=la still respects a prior dismissal', async ({ context }) => {
+  test('LAP-003: showPromo=la overrides a prior dismissal', async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts?showPromo=la`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
 
@@ -48,6 +48,18 @@ test.describe('Library LA promo — showPromo URL param', () => {
 
     // Land again from the campaign link — same visitor, same session.
     await page.goto(`${MODULE_URLS.EN.LIBRARY}/texts?showPromo=la`, { waitUntil: 'domcontentloaded' });
+    await hideAllModalsAndPopups(page);
+
+    await pm.onSitePromoBanner().expectVisible();
+  });
+
+  test('LAP-005: a dismissal still hides the banner on visits without the param', async ({ context }) => {
+    page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts?showPromo=la`, LANGUAGES.EN);
+    pm = new PageManager(page, LANGUAGES.EN);
+
+    await pm.onSitePromoBanner().dismissWithMaybeLater();
+
+    await page.goto(`${MODULE_URLS.EN.LIBRARY}/texts`, { waitUntil: 'domcontentloaded' });
     await hideAllModalsAndPopups(page);
 
     await pm.onSitePromoBanner().expectHidden();

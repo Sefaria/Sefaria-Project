@@ -12,8 +12,8 @@ const NUDGE_SCHEDULE = {
 };
 
 // A promo can be forced to show with a `showPromo=<name>` URL param (e.g. from an
-// email campaign). Forcing bypasses only audience gates like the returning-visitor
-// check — a prior explicit dismissal is still respected.
+// email campaign). Forcing bypasses the returning-visitor audience gate and any
+// prior dismissal — visitors following a campaign link came to see the promo.
 const isPromoForcedByUrl = (promoName) => Sefaria.util.getUrlVars()["showPromo"] === promoName;
 
 const getPromoStorageKeys = (cookieName) => {
@@ -109,6 +109,7 @@ const SiteWideBanner = ({
   enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
+  forceShow,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
@@ -182,7 +183,7 @@ const SiteWideBanner = ({
     trackBannerInteraction("close");
   };
 
-  return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
+  return ((forceShow || !isDismissed()) && <div className={`siteWideBanner ${bannerVisibility}`}>
     <div className="siteWideBannerContent">
       <div className="siteWideBannerTextBox">
         <span className="bannerMainText">{mainText}</span>
@@ -236,6 +237,7 @@ SiteWideBanner.propTypes = {
   enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
+  forceShow: PropTypes.bool,
 };
 
 const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
@@ -294,6 +296,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       enableBackoffDismissal={true}
       nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
       promoSessionLengthSeconds={promoSessionLengthSeconds}
+      forceShow={isForcedByUrl}
     />
   );
 };
