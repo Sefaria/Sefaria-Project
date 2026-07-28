@@ -6,6 +6,11 @@ WORKDIR /app/
 COPY requirements.txt /app/requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
+ARG DD_CUSTOM_BIN=https://dd-trace-py-builds.s3.amazonaws.com/118305716/install-manylinux2014_x86_64.sh
+# temp debugging binary for datadog investigation
+RUN curl $DD_CUSTOM_BIN | bash
+ENV DD_PROFILING_TAGS=custom_binary_url:$DD_CUSTOM_BIN
+
 COPY package*.json /app/
 RUN npm install --unsafe-perm
 
