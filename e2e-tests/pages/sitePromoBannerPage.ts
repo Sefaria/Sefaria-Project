@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { t } from '../globals';
 
@@ -14,10 +14,6 @@ import { t } from '../globals';
  * assertions here are safe after the standard entry-point helpers.
  */
 export class SitePromoBannerPage extends HelperBase {
-  constructor(page: Page, language: string) {
-    super(page, language);
-  }
-
   private get banner() {
     return this.page.locator('.siteWideBanner:not(.hidden) .siteWideBannerContent');
   }
