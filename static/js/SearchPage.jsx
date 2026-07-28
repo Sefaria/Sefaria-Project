@@ -275,7 +275,10 @@ class SearchPage extends Component {
   // how many hits we've accumulated so far.
   makeEntityEntry(data, prevHits = []) {
     const hits = prevHits.concat(data.hits);
-    return {hits, total: data.total, moreToLoad: hits.length < data.total, isLoadingMore: false};
+    // Cap at ES's default max_result_window so infinite scroll stops before sending an offset
+    // that ES would reject. `total` is kept intact for the count badge.
+    const loadableTotal = Math.min(data.total, 10000);
+    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
   }
 
   loadNextEntityPage(type) {

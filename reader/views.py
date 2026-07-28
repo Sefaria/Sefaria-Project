@@ -4904,12 +4904,12 @@ def entity_search_api(request):
         )
 
     try:
-        size = min(int(request.GET.get("size", 20)), 100)
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
     except (TypeError, ValueError):
         size = 20
 
     try:
-        start = max(int(request.GET.get("start", 0)), 0)
+        start = max(0, min(int(request.GET.get("start", 0)), 10000 - size))
     except (TypeError, ValueError):
         start = 0
 

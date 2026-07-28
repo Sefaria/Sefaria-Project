@@ -27,15 +27,24 @@ const InfiniteScroll = ({ className, hasMore, isLoading, isLoadingMore, loadMore
                           scrollableSelector = '.content', children }) => {
   const ref = useRef(null);
   const latest = useRef({});
+  const pending = useRef(false);
   latest.current = { hasMore, isLoading, loadMore };
+
+  // Clear the pending guard once the parent acknowledges the request by flipping isLoading on,
+  // then back off. Without this, rapid scroll events between the loadMore() call and the next
+  // render (when isLoading becomes true) can dispatch duplicate page fetches.
+  useEffect(() => {
+    if (!isLoading) { pending.current = false; }
+  }, [isLoading]);
 
   useEffect(() => {
     const $scrollable = $(ref.current).closest(scrollableSelector);
     if (!$scrollable.length) { return; }
     const onScroll = () => {
       const { hasMore, isLoading, loadMore } = latest.current;
-      if (!hasMore || isLoading) { return; }
+      if (!hasMore || isLoading || pending.current) { return; }
       if ($scrollable.scrollTop() + $scrollable.innerHeight() + SCROLL_MARGIN >= $scrollable[0].scrollHeight) {
+        pending.current = true;
         loadMore();
       }
     };
