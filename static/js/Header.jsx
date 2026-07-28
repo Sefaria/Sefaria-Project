@@ -28,7 +28,7 @@ const AuthNavLink = ({flow, openURL, close, children}) => {
   return (
     <a className='interfaceLinks-option int-bi dropdownItem'
        href={href}
-       onClick={(e) => { e.preventDefault(); openURL(href); close?.(); }}>
+       onClick={(e) => { e.preventDefault(); openURL(href, undefined, undefined, undefined, 'nav_bar'); close?.(); }}>
       {children}
     </a>
   );
@@ -634,9 +634,11 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <Button className="auto-width-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
-      <InterfaceText>common.sign_up</InterfaceText>
-    </Button>
+    <span data-signup-source="nav_bar" style={{ display: 'contents' }}>
+      <Button className="auto-width-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
+        <InterfaceText>common.sign_up</InterfaceText>
+      </Button>
+    </span>
   );
 }
 

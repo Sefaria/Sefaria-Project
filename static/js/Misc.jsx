@@ -1973,7 +1973,7 @@ class LoginPrompt extends Component {
           <span className="int-en">Log In</span>
           <span className="int-he">התחברות</span>
         </a>
-        <a className="button" href={"/register" + nextParam}>
+        <a className="button" href={"/register" + nextParam} data-signup-source="login_prompt">
           <span className="int-en">Sign Up</span>
           <span className="int-he">הרשמה</span>
         </a>
@@ -1983,6 +1983,22 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+const MODAL_KIND_TRACKING_NAME = {
+  [SignUpModalKind.AddConnection]: 'add_connection',
+  [SignUpModalKind.ViewHistory]: 'view_history',
+  [SignUpModalKind.AddToSheet]: 'add_to_sheet',
+  [SignUpModalKind.AddTranslation]: 'add_translation',
+  [SignUpModalKind.Follow]: 'follow',
+  [SignUpModalKind.Notes]: 'notes',
+  [SignUpModalKind.Save]: 'save',
+  [SignUpModalKind.Default]: 'default',
+};
+
+// Sign-up funnel analytics `source` value for the SignUpModal CTA, e.g. "signup_modal_add_to_sheet".
+function sourceForModalKind(signUpModalKind) {
+  return `signup_modal_${MODAL_KIND_TRACKING_NAME[signUpModalKind] || MODAL_KIND_TRACKING_NAME[SignUpModalKind.Default]}`;
+}
 
 class SignUpModal extends Component {
   render() {
@@ -2018,7 +2034,8 @@ class SignUpModal extends Component {
           <div className="sefariaModalInnerContent">
             { innerContent }
           </div>
-          <a className="button white control-elem" href={"/register" + nextParam}>
+          <a className="button white control-elem" href={"/register" + nextParam}
+             data-signup-source={sourceForModalKind(this.props.modalContentKind)}>
             <InterfaceText>common.sign_up</InterfaceText>
           </a>
           <div className="sefariaModalBottomContent">

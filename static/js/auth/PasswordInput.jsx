@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Input from '../common/Input.jsx';
 
 const PasswordInput = ({
-  label, name, autoComplete, value, onChange, onBlur, onFocus, trailingLink, error,
+  label, name, autoComplete, value, onChange, onBlur, trailingLink, error,
 }) => (
   <Input
     label={label}
@@ -15,7 +15,6 @@ const PasswordInput = ({
     value={value}
     onChange={onChange}
     onBlur={onBlur}
-    onFocus={onFocus}
     trailingLink={trailingLink}
     error={error}
   />
@@ -28,7 +27,6 @@ PasswordInput.propTypes = {
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   onBlur: PropTypes.func,
-  onFocus: PropTypes.func,
   trailingLink: PropTypes.object,
   error: PropTypes.node,
 };

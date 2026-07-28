@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { whenReady, makeFlowId, safeNext, authError, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
+import { whenReady, makeUuid, safeNext, authError, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
+import { persistPendingAttempt, SIGNUP_METHOD } from './signupAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -21,7 +22,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  * is currently mounted register its own local `setError` as where that failure should surface,
  * so it shows in place rather than forcing a navigation to ChooseView.
  */
-export function useProviderTriggers({ next }) {
+export function useProviderTriggers({ next, tracking }) {
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
   const [rect, setRect] = useState(null);
@@ -31,6 +32,11 @@ export function useProviderTriggers({ next }) {
   const activeErrorHandlerRef = useRef(() => {});
   const nextRef = useRef(next);
   nextRef.current = next;
+  // tracking is a fresh object every AuthPage render (not memoized) — keep it in a ref,
+  // same as nextRef, so it doesn't force the Google/Apple SDK-init effects below to
+  // re-run just because e.g. an unrelated form field changed.
+  const trackingRef = useRef(tracking);
+  trackingRef.current = tracking;
 
   const setActiveErrorHandler = useCallback((handler) => {
     activeErrorHandlerRef.current = handler || (() => {});
@@ -66,6 +72,11 @@ export function useProviderTriggers({ next }) {
   const { googleClientId } = Sefaria;
 
   const onGoogleResult = useCallback(async (resp) => {
+    // Earliest available signal for Google popup mode — the cross-origin iframe gives
+    // no earlier "clicked"/"shown" notification, so method_chosen/process_started are
+    // synthesized here, right as Google hands back a credential.
+    trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
+    trackingRef.current.startProcess();
     try {
       const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
         method: 'POST',
@@ -77,9 +88,15 @@ export function useProviderTriggers({ next }) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) { window.location.href = safeNext(nextRef.current); }
-      else { activeErrorHandlerRef.current(authError(data, 'auth.generic_error')); }
+      if (res.ok) {
+        trackingRef.current.endProcess('success', null);
+        window.location.href = safeNext(nextRef.current);
+      } else {
+        trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
+        activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
+      }
     } catch (e) {
+      trackingRef.current.endProcess('failure', 'network_error');
       activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
     }
   }, [googleClientId]);
@@ -117,8 +134,18 @@ export function useProviderTriggers({ next }) {
     return stopWaiting;
   }, [googleClientId, onGoogleResult]);
 
+  // Google gives no click signal, so we can't tell which beforeunload is "the" attempt —
+  // suppress flow_ended for any departure while Google is ready; resolved later on return
+  // (resumePendingSignUpAttempt). Apple's click is observable, so it gets its own precise
+  // suppress in triggerApple instead of this coarse one.
+  // OR'd with its current value so a re-render here can't clobber the one-shot
+  // true that triggerApple sets right before its own redirect.
+  if (tracking) {
+    tracking.suppressFlowEndRef.current = tracking.suppressFlowEndRef.current || (Sefaria.ssoUseRedirect() && googleReady);
+  }
+
   const { appleClientId } = Sefaria;
-  const ssoRedirectState = useRef(makeFlowId()).current;
+  const ssoRedirectState = useRef(makeUuid()).current;
 
   const failApple = useCallback(() => {
     activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
@@ -145,14 +172,24 @@ export function useProviderTriggers({ next }) {
             id_token: a.id_token, first_name: n.firstName || '', last_name: n.lastName || '', email: u.email || '',
           }),
         });
-        if (res.ok) { window.location.href = safeNext(nextRef.current); }
-        else { failApple(); }
+        if (res.ok) {
+          trackingRef.current.endProcess('success', null);
+          window.location.href = safeNext(nextRef.current);
+        } else {
+          trackingRef.current.endProcess('failure', 'apple_callback_failed');
+          failApple();
+        }
       } catch (e) {
+        trackingRef.current.endProcess('failure', 'network_error');
         failApple();
       }
     };
     const onFail = (ev) => {
-      if (ev.detail?.error !== 'popup_closed_by_user') failApple();
+      const err = ev.detail?.error || 'unknown';
+      // Fire tracking even when popup_closed_by_user suppresses the on-screen error —
+      // the attempt was still abandoned and should still show up in the funnel.
+      trackingRef.current.endProcess('failure', err);
+      if (err !== 'popup_closed_by_user') failApple();
     };
     document.addEventListener('AppleIDSignInOnSuccess', onOk);
     document.addEventListener('AppleIDSignInOnFailure', onFail);
@@ -180,7 +217,13 @@ export function useProviderTriggers({ next }) {
 
   const triggerApple = useCallback(() => {
     if (!appleReady) return;
+    // We *do* control this call (unlike Google's iframe-driven button), so method_chosen/
+    // process_started can fire synchronously right here for both popup and redirect mode.
+    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.APPLE);
+    trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
+      trackingRef.current.suppressFlowEndRef.current = true;
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.APPLE });
       window.location.href = `/accounts/apple/login/?next=${encodeURIComponent(safeNext(nextRef.current))}`;
       return;
     }
@@ -189,10 +232,12 @@ export function useProviderTriggers({ next }) {
       const signIn = window.AppleID.auth.signIn();
       if (signIn && typeof signIn.catch === 'function') {
         signIn.catch((err) => {
+          trackingRef.current.endProcess('failure', err?.error || 'unknown');
           if (err?.error !== 'popup_closed_by_user') failApple();
         });
       }
     } catch (err) {
+      trackingRef.current.endProcess('failure', err?.error || 'unknown');
       failApple();
     }
   }, [appleReady, failApple]);

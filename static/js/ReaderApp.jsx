@@ -33,7 +33,7 @@ import {
   CookiesNotification,
 } from './Misc';
 import Button from './common/Button';
-import GoogleOneTap from './common/GoogleOneTap';
+import GoogleOneTap from './auth/GoogleOneTap';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -43,6 +43,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext } from './auth/utils.js';
+import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -128,13 +129,16 @@ class ReaderApp extends Component {
       notificationCount: props.notificationCount || 0,
       showAuth: isAuthPath(window.location.pathname.replace(/\/$/, '')) || !!props.authResetUid,
       authPath: window.location.pathname + window.location.search,
+      // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
+      // legitimately has no attributable source.
+      authSource: null,
     };
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
-  handleAuthNavigate(path) {
-    this.setState({ showAuth: true, authPath: path });
+  handleAuthNavigate(path, source = null) {
+    this.setState({ showAuth: true, authPath: path, authSource: source });
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -231,6 +235,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
+    resumePendingSignUpAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -1162,10 +1167,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     
     const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.VOICES_MODULE or Sefaria.LIBRARY_MODULE or null
+    // which CTA led to /register, for sign-up funnel analytics — closest(), not getAttribute(),
+    // so a plain wrapper element can carry this for components that don't expose it as a prop
+    const signupSource = linkTarget.closest('[data-signup-source]')?.getAttribute('data-signup-source') || null;
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true, false, moduleTarget);
+      const handled = this.openURL(href, true, false, moduleTarget, signupSource);
       if (handled) {
         e.preventDefault();
       }
@@ -1175,7 +1183,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isSheet = !!(linkTarget.closest(".sheetItem"));
     const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
       e.preventDefault();
     }
@@ -1264,7 +1272,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.updateModuleLinkHref(link);
   }
 
-  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null, signupSource=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
         return true;
@@ -1303,7 +1311,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     if (isAuthPath(path)) {
       const next = params.get('next') || Sefaria.util.currentPath();
-      this.handleAuthNavigate(withNext(path, next));
+      this.handleAuthNavigate(withNext(path, next), signupSource);
       return true;
     }
 
@@ -2499,6 +2507,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {this.state.showAuth ? (
                   <AuthPage
                     initialPath={this.state.authPath}
+                    authSource={this.state.authSource}
                     resetValid={this.props.authResetValid}
                     onNavigate={this.handleAuthNavigate}
                   />

@@ -27,7 +27,7 @@ const BACKEND_MESSAGES = { required: 'auth.required_field' };
 
 const RegisterView = ({
   switchFlow, fields, setField, onBack,
-  startRegistration, trackRegistration, endRegistration, next, csrf,
+  endProcess, next, csrf,
   registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const [captchaError, setCaptchaError] = useState(null);
@@ -102,8 +102,6 @@ const RegisterView = ({
 
   const onSubmit = async () => {
     setCaptchaError(null);
-    startRegistration();
-    trackRegistration('form_submit');
     // Reuse the existing /register view's JSON ("noredirect") mode — keeps the
     // server-side captcha validation and full onboarding side effects.
     const body = new URLSearchParams();
@@ -116,20 +114,16 @@ const RegisterView = ({
     body.set('noredirect', '1');
     const { data, networkError } = await postForm('/register', body, csrf);
     if (networkError) {
-      trackRegistration('form_submit_result', { status: 'failure', error: 'network_error' });
+      endProcess('failure', 'network_error');
       return { error: authError(null, 'auth.generic_error') };
     }
     if (data?.redirect) {
-      trackRegistration('form_submit_result', { status: 'success' });
-      endRegistration('success');
+      endProcess('success', null);
       window.location.href = data.redirect;
       return;
     }
     const message = pickFirstError(data) || 'auth.generic_error';
-    trackRegistration('form_submit_result', {
-      status: 'failure',
-      error: Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '),
-    });
+    endProcess('failure', Object.keys(data || {}).filter((key) => key !== '_auth').map((key) => `${key}: ${data[key]}`).join(' | '));
     const newFieldErrors = {};
     let hasUnknownError = false;
     let emailExistsError = null;
@@ -180,25 +174,21 @@ const RegisterView = ({
           <div className="sefaria-auth-fields">
             <EmailInput value={fields.email}
                    setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onFocus={startRegistration}
                    onBlur={onBlurValidate('email', () => requiredFieldValidate(fields.email), setFieldError)}
                    error={fieldErrors.email} />
             <PasswordInput autoComplete="new-password"
                    value={fields.password}
                    onChange={onChangeClear('password', setField('password'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onFocus={startRegistration}
                    onBlur={onBlurValidate('password', () => requiredFieldValidate(fields.password), setFieldError)}
                    error={fieldErrors.password} />
             <Input label="common.first_name" placeholder={Sefaria._('common.first_name')} name="first_name"
                    value={fields.first}
                    onChange={onChangeClear('first', setField('first'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onFocus={startRegistration}
                    onBlur={onBlurValidate('first', () => requiredFieldValidate(fields.first), setFieldError)}
                    error={fieldErrors.first} />
             <Input label="common.last_name" placeholder={Sefaria._('common.last_name')} name="last_name"
                    value={fields.last}
                    onChange={onChangeClear('last', setField('last'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onFocus={startRegistration}
                    onBlur={onBlurValidate('last', () => requiredFieldValidate(fields.last), setFieldError)}
                    error={fieldErrors.last} />
           </div>
@@ -227,9 +217,7 @@ RegisterView.propTypes = {
   }).isRequired,
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
-  startRegistration: PropTypes.func.isRequired,
-  trackRegistration: PropTypes.func.isRequired,
-  endRegistration: PropTypes.func.isRequired,
+  endProcess: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
   registerGoogleTarget: PropTypes.func,

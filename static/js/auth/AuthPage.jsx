@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 import ChooseView from './ChooseView.jsx';
@@ -9,8 +9,10 @@ import ResetView from './ResetView.jsx';
 import ResetExpiredView from './ResetExpiredView.jsx';
 import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
-import { makeFlowId, pathToFlow, flowToPath, nextFromPath } from './utils.js';
+import { pathToFlow, flowToPath, nextFromPath } from './utils.js';
 import { useProviderTriggers } from './useSsoSignIn.jsx';
+import { useSignUpTracking } from './useSignUpTracking.js';
+import { SIGNUP_METHOD } from './signupAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -28,6 +30,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  */
 const AuthPage = ({
   initialPath = '/login',
+  authSource = null,
   resetValid = null,
   onNavigate,
 }) => {
@@ -50,16 +53,11 @@ const AuthPage = ({
   }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
+  const tracking = useSignUpTracking({ flow, source: authSource });
   const {
     googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
-  } = useProviderTriggers({ next });
+  } = useProviderTriggers({ next, tracking });
   const fieldsRef = useRef(fields);
-  const registrationAnalytics = useRef({
-    flowId: makeFlowId(),
-    started: false,
-    ended: false,
-    status: 'failure',
-  });
   fieldsRef.current = fields;
 
   const setField = (k) => (e) => {
@@ -68,72 +66,21 @@ const AuthPage = ({
   };
   const switchFlow = (f) => (e) => {
     e?.preventDefault();
+    const source = e?.currentTarget?.getAttribute?.('data-signup-source') || undefined;
     setView('choose');
-    onNavigate?.(flowToPath(f, next));
+    onNavigate?.(flowToPath(f, next), source);
   };
-
-  const trackRegistration = useCallback((name, extra = {}) => {
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
-    const filledFields = [
-      ['email', fieldsRef.current.email],
-      ['first_name', fieldsRef.current.first],
-      ['last_name', fieldsRef.current.last],
-      ['password1', fieldsRef.current.password],
-    ].filter(([, value]) => value).map(([field]) => field);
-    const from = new URLSearchParams(window.location.search).get('from') || undefined;
-    window.gtag('event', name, {
-      project: 'site_registration',
-      feature_name: 'site_registration_form',
-      flow_id: registrationAnalytics.current.flowId,
-      from,
-      text: filledFields.length ? filledFields.join('|') : null,
-      transport_type: 'beacon',
-      ...extra,
-    });
-  }, []);
-
-  const startRegistration = useCallback(() => {
-    if (registrationAnalytics.current.started) return;
-    registrationAnalytics.current.started = true;
-    trackRegistration('form_start');
-  }, [trackRegistration]);
-
-  const endRegistration = useCallback((status=null) => {
-    const analytics = registrationAnalytics.current;
-    if (!analytics.started || analytics.ended) return;
-    analytics.ended = true;
-    if (status) analytics.status = status;
-    trackRegistration('form_end', { status: analytics.status });
-  }, [trackRegistration]);
-
-  useEffect(() => {
-    window.addEventListener('beforeunload', endRegistration);
-    window.addEventListener('popstate', endRegistration);
-    return () => {
-      window.removeEventListener('beforeunload', endRegistration);
-      window.removeEventListener('popstate', endRegistration);
-    };
-  }, [endRegistration]);
-
-  useEffect(() => {
-    const active = flow === 'register' && view === 'email';
-    if (active) {
-      registrationAnalytics.current = {
-        flowId: makeFlowId(),
-        started: false,
-        ended: false,
-        status: 'failure',
-      };
-      return;
-    }
-    endRegistration();
-  }, [flow, view, endRegistration]);
 
   // ---- views --------------------------------------------------------------
   const onForgotClick = (e) => { e.preventDefault(); setView('forgot'); };
   // The rare "link doesn't resolve to any account" fallback routes to the
   // existing manual-email-entry ForgotView rather than building a new one.
   const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
+  const onEmailClick = () => {
+    tracking.chooseMethod(SIGNUP_METHOD.EMAIL);
+    tracking.startProcess();
+    setView('email');
+  };
 
   let content;
   if (view === 'email' && flow === 'register') {
@@ -141,8 +88,7 @@ const AuthPage = ({
       <RegisterView
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
-        startRegistration={startRegistration}
-        trackRegistration={trackRegistration} endRegistration={endRegistration}
+        endProcess={tracking.endProcess}
         next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
@@ -189,7 +135,7 @@ const AuthPage = ({
     content = (
       <ChooseView
         flow={flow} switchFlow={switchFlow}
-        onEmailClick={() => setView('email')}
+        onEmailClick={onEmailClick}
         googleReady={googleReady} appleReady={appleReady}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
@@ -207,6 +153,7 @@ const AuthPage = ({
 
 AuthPage.propTypes = {
   initialPath: PropTypes.string,
+  authSource: PropTypes.string,
   resetValid: PropTypes.bool,
   onNavigate: PropTypes.func,
 };
