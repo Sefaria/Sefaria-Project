@@ -2582,7 +2582,7 @@
             }
           },
           "name": "index_title",
-          "description": "A title of a valid Sefaria `Index`. For a complete list of works in the [Sefaria](sefaria.org) library, as well as their index titles, query the [api/index](https://www.sefaria.org/api/index/) endpoint. ",
+          "description": "A title of a valid Sefaria `Index`. For a complete list of works in the [Sefaria](https://www.sefaria.org) library, as well as their index titles, query the [api/index](https://www.sefaria.org/api/index/) endpoint. ",
           "schema": {
             "type": "string",
             "default": "Genesis"
@@ -19765,7 +19765,7 @@
             "type": "string"
           },
           "url": {
-            "description": "If `type=ref`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
+            "description": "If `type=ref`, this returns the URL path to link to the submitted text on [Sefaria.org](https://www.sefaria.org)",
             "type": "string"
           },
           "index": {
@@ -24461,7 +24461,7 @@
       },
       "OrderTopicLinkJSON": {
         "title": "Root Type for OrderTopicLinkJSON",
-        "description": "This JSON includes the various metrics that are relevant for ordering the link on a topics page. We use these metrics at [Sefaria.org](sefaria.org) to change the order on the topics page.",
+        "description": "This JSON includes the various metrics that are relevant for ordering the link on a topics page. We use these metrics at [Sefaria.org](https://www.sefaria.org) to change the order on the topics page.",
         "type": "object",
         "properties": {
           "tfidf": {
@@ -25437,7 +25437,7 @@
       },
       "MediaJSON": {
         "title": "Root Type for MediaJSON",
-        "description": "JSON containing metadata for media linked to `Ref`s on [Sefaria](sefaria.org)",
+        "description": "JSON containing metadata for media linked to `Ref`s on [Sefaria](https://www.sefaria.org)",
         "type": "object",
         "properties": {
           "media_url": {
@@ -25643,7 +25643,7 @@
       },
       "SheetsJSON": {
         "title": "Root Type for SheetsJSON",
-        "description": "JSON containing metadata relating for a given source sheet on [Sefaria](sefaria.org).",
+        "description": "JSON containing metadata relating for a given source sheet on [Sefaria](https://www.sefaria.org).",
         "type": "object",
         "properties": {
           "owner": {
@@ -25652,7 +25652,7 @@
             "type": "integer"
           },
           "id": {
-            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Sefaria](sefaria.org) at [sefaria.org/sheets/1](sefaria.org/sheets/1).",
+            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Sefaria](https://www.sefaria.org) at [sefaria.org/sheets/1](https://www.sefaria.org/sheets/1).",
             "type": "string"
           },
           "public": {
