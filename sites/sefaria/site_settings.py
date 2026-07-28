@@ -23,6 +23,20 @@ SITE_SETTINGS = {
 		"TRANSLATION_PREFERENCE_HE": "https://help.sefaria.org/hc/he/articles/18613593620636-%D7%91%D7%97%D7%99%D7%A8%D7%AA-%D7%AA%D7%A8%D7%92%D7%95%D7%9D-%D7%9E%D7%95%D7%A2%D7%93%D7%A3"
 	},
 	
+	"ABOUT_SIDEBAR_PAGES": [
+		{"path": "about",                "en": "What is Sefaria?",   "he": "מהי ספריא"},
+		{"path": "team",                 "en": "Team",               "he": "צוות ספריא"},
+		{"path": "jobs",                 "en": "Jobs at Sefaria",    "he": "משרות פנויות בספריא"},
+		{"path": "products",             "en": "Sefaria's Products", "he": "המוצרים של ספריא"},
+		{"path": "ai",                   "en": "AI on Sefaria",      "he": "השימוש ב-AI בספריא"},
+		{"path": "supporters",           "en": "Our Supporters",     "he": "התומכים שלנו"},
+		{"path": "testimonials",         "en": "Testimonials",       "he": "המלצות על ספריא"},
+		{"path": "metrics",              "en": "Metrics",            "he": "מדדים"},
+		{"path": "updates",              "en": "New Additions",      "he": "עדכונים"},
+		{"path": "link-to-annual-report","en": "Annual Report",      "he": 'דו"ח שנתי'},
+		{"path": "terms",                "en": "Terms of Use",       "he": "תנאי שימוש"},
+		{"path": "privacy-policy",       "en": "Privacy Policy",     "he": "מדיניות פרטיות"},
+	],
 	"WHAT_ARE_VOICES_PATHS": {
 		"en": "/sheets/674324",
 		"he": "/sheets/674327"
