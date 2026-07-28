@@ -11,6 +11,13 @@ const NUDGE_SCHEDULE = {
   2: { sessions: 4, days: 21 },
 };
 
+// A promo can be forced to show with a `showPromo=<name>` URL param (e.g. from an
+// email campaign). Forcing bypasses only audience gates like the returning-visitor
+// check — a prior explicit dismissal is still respected.
+const isPromoForcedByUrl = (promoName) => {
+  return Sefaria.util.getUrlVars()["showPromo"] === promoName;
+};
+
 const getPromoStorageKeys = (cookieName) => {
   const storagePrefix = `promo_backoff_${cookieName}`;
   return {
@@ -237,6 +244,7 @@ const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
+const LA_PROMO_NAME = "la";
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
@@ -257,7 +265,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
   };
 
   const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
+  if (!isLoggedIn && !Sefaria.isReturningVisitor() && !isPromoForcedByUrl(LA_PROMO_NAME)) {
     return null;
   }
   // Route anon login/register through the Library Assistant opt-in landing so that,
