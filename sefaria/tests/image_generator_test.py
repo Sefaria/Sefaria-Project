@@ -481,3 +481,26 @@ def test_hebrew_text_uses_bidi_fallback_without_pillow_rtl_support(monkeypatch):
 
     assert image_generator.prepare_text_for_drawing(text, "he") == get_display(text)
     assert image_generator.get_text_direction("he") is None
+
+
+def test_english_direction_is_ltr_when_pillow_supports_rtl(monkeypatch):
+    monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: True)
+
+    # When Raqm is available it does the layout; the "ltr" hint tells it the
+    # paragraph base direction so neutral chars at English/Hebrew boundaries
+    # (a comma after an embedded Hebrew word) stay on the English side.
+    text = "the name יהוה, spoken"
+    assert image_generator.get_text_direction("en") == "ltr"
+    assert image_generator.prepare_text_for_drawing(text, "en") == text
+
+
+def test_english_with_hebrew_uses_ltr_base_dir_without_pillow_rtl_support(monkeypatch):
+    monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: False)
+
+    # English passage with an embedded Hebrew word. Reordering with an LTR base
+    # direction keeps the comma resolved on the English side — distinct from the
+    # RTL base direction used for Hebrew-primary text.
+    text = "the name יהוה, spoken"
+    assert image_generator.prepare_text_for_drawing(text, "en") == get_display(text, base_dir="L")
+    assert image_generator.prepare_text_for_drawing(text, "en") != get_display(text, base_dir="R")
+    assert image_generator.get_text_direction("en") is None
