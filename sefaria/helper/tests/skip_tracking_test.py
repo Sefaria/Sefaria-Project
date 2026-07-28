@@ -9,6 +9,7 @@ building the library. The startup/reset_cache/reset_toc pathways each just call
 signal_and_reset_skip_counts() at the end of a build; the guarded loops themselves are
 exercised against the test DB by the existing TOC-rebuild tests.
 """
+import sys
 import threading
 
 import pytest
@@ -184,6 +185,26 @@ class TestSignalAndReset:
 
 class TestThreadSafety:
 
+    @pytest.fixture(autouse=True)
+    def tight_switch_interval(self):
+        """Force the GIL to hand off aggressively for the duration of each race test.
+
+        At CPython's default 5ms switch interval these races essentially never win — a
+        thread runs its whole log_skip (or signal_and_reset's snapshot-format-post-reset
+        window) inside one time slice, so the tests below pass identically with and
+        without `_lock` and would not catch its removal. At 1e-6 they fail reliably
+        against unlocked code and pass cleanly against the locked code.
+
+        setswitchinterval is process-global, so always restore it — leaving it at 1e-6
+        would slow every subsequent test in the suite.
+        """
+        original = sys.getswitchinterval()
+        sys.setswitchinterval(1e-6)
+        try:
+            yield
+        finally:
+            sys.setswitchinterval(original)
+
     def test_concurrent_skips_and_summaries_lose_nothing(self, mock_notify):
         """Skip-recording threads racing signal_and_reset_skip_counts(): no iteration/race
         error, and every skip lands in exactly one summary (none reset away unreported)."""
@@ -212,3 +233,45 @@ class TestThreadSafety:
         summarized = sum(c.kwargs["total"] for c in mock_logger.warning.call_args_list)
         assert summarized == n_threads * per_thread
         assert get_skip_counts() == {}
+
+    def test_lock_is_not_held_while_posting_to_slack(self, mock_notify):
+        """signal_and_reset_skip_counts() snapshots-and-resets under the lock, then formats
+        and posts from the snapshot. Widening the `with _lock:` block to cover delivery
+        would deadlock startup on any re-entrant path (threading.Lock is not reentrant) and
+        would also reset away skips recorded mid-delivery. Assert both halves of that
+        promise from inside the notify call itself. See the comment on the `with _lock:`
+        block in skip_tracking.signal_and_reset_skip_counts() for why the split exists.
+        """
+        observed = {}
+
+        def during_delivery(message, level=None):
+            # Non-blocking so a regression fails the assertion below instead of hanging
+            # the suite on a deadlock.
+            acquired = skip_tracking._lock.acquire(blocking=False)
+            observed["lock_free"] = acquired
+            if acquired:
+                skip_tracking._lock.release()
+                # A skip recorded while the summary is in flight must survive into the
+                # NEXT summary rather than being reset away unreported.
+                log_skip(MagicMock(), "reset_toc", "during-delivery", "recorded mid-post")
+
+        mock_notify.side_effect = during_delivery
+        log_skip(MagicMock(), "reset_toc", "op", "detail")
+        signal_and_reset_skip_counts("reset_toc")
+
+        assert observed["lock_free"] is True
+        assert get_skip_counts() == {"reset_toc": {"during-delivery": 1}}
+
+    # Deliberately NOT tested here: racing readers (get_skip_counts/get_skip_records)
+    # against writers, and racing the MAX_STORED_PER_GROUP check-then-append. Both were
+    # written and measured against a no-op-lock build of this module and neither could be
+    # made to fail — even at a 1e-6 switch interval with 8 threads x 20,000 mutations.
+    # The reads are `dict(...)`/`list(...)` copies, which CPython performs on a C fast
+    # path that no thread switch can interleave, and on 3.12 a bare `x += 1` across 8
+    # threads x 20,000 does not lose an update either. So `_lock` is genuinely load-bearing
+    # only for the WIDE window in signal_and_reset_skip_counts (covered above); around the
+    # narrow mutations it is defensive and forward-compatible (e.g. free-threaded builds),
+    # not something a test on CPython can pin. Adding those tests would have re-created the
+    # exact problem this class had before: green assertions that pass with the lock deleted.
+    # The storage bound itself is covered single-threaded by
+    # TestSignalAndReset::test_stored_records_bounded_but_counts_complete.

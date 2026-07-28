@@ -52,9 +52,10 @@ _skip_group_counts = defaultdict(int)
 # Guards all reads/writes of the shared skip state above. Builds are normally serialized
 # (startup runs before the process serves requests), but reset_cache/reset_toc are
 # staff-triggered views and gunicorn can run multiple threads per worker, so two builds —
-# or a build and its summary — can overlap in one process. Never held during network I/O:
-# signal_and_reset_skip_counts() snapshots-and-resets under the lock, then posts from the
-# snapshot.
+# or a build and its summary — can overlap in one process.
+#
+# Not reentrant, and deliberately never held across the Slack post — see the comment in
+# signal_and_reset_skip_counts().
 _lock = threading.Lock()
 
 
@@ -119,9 +120,17 @@ def signal_and_reset_skip_counts(pathway):
     during the build was error-level, else "warning". Never raises — notify_engineering_signal
     swallows its own failures.
     """
-    # Snapshot and reset atomically; format/log/post from the snapshot so the lock is
-    # never held during network I/O and skips recorded during delivery land in the next
-    # summary instead of being reset away unreported.
+    # Snapshot and reset atomically, then format/log/post from the snapshot with the lock
+    # released. The split looks like it could be collapsed into one `with _lock:` block
+    # covering the whole function; it can't:
+    #
+    #   1. `_lock` is a plain threading.Lock, which is NOT reentrant. Anything reached from
+    #      notify_engineering_signal() that records a skip would call _note_skip() and block
+    #      on a lock this same thread already holds — a permanent hang, on the startup path.
+    #   2. It would hold the lock across a network call (up to the 3s Slack timeout),
+    #      stalling every other thread trying to record a skip.
+    #   3. Resetting after the post rather than before it would wipe skips recorded while
+    #      the summary was in flight; snapshotting first lets them land in the next summary.
     with _lock:
         group_counts = dict(_skip_group_counts)
         records = list(skip_records)
