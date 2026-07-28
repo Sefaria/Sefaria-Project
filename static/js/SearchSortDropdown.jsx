@@ -31,9 +31,20 @@ export const sortEntityHits = (hits, type, sortKey) => {
       (a.title_en || a.title_he || '').localeCompare(b.title_en || b.title_he || '')
     );
   }
+  // Some author records carry their years as numeric strings ('1804') rather than ints,
+  // so coerce before comparing — string subtraction happens to work, but '' would coerce
+  // to 0 and sort as year zero.
+  const toYear = (val) => {
+    if (val === null || val === undefined || val === '') { return null; }
+    const num = Number(val);
+    return Number.isFinite(num) ? num : null;
+  };
   const getYear = (hit) => {
-    if (type === 'book')   return hit.compDate;
-    if (type === 'author') return hit.birthYear;
+    if (type === 'book')   return toYear(hit.compDate);
+    // An author with only a death year is still a dated author: the card shows that year
+    // (see authorLifespan), so sorting must use it too, or the entry reads as undated and
+    // sinks into the undated tail while displaying a date.
+    if (type === 'author') return toYear(hit.birthYear) ?? toYear(hit.deathYear);
     return null;
   };
   const asc = sortKey.endsWith('_asc');
