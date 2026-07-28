@@ -14,9 +14,7 @@ const NUDGE_SCHEDULE = {
 // A promo can be forced to show with a `showPromo=<name>` URL param (e.g. from an
 // email campaign). Forcing bypasses only audience gates like the returning-visitor
 // check — a prior explicit dismissal is still respected.
-const isPromoForcedByUrl = (promoName) => {
-  return Sefaria.util.getUrlVars()["showPromo"] === promoName;
-};
+const isPromoForcedByUrl = (promoName) => Sefaria.util.getUrlVars()["showPromo"] === promoName;
 
 const getPromoStorageKeys = (cookieName) => {
   const storagePrefix = `promo_backoff_${cookieName}`;
@@ -248,6 +246,10 @@ const LA_PROMO_NAME = "la";
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
+  // Captured once at mount: the reader's history management strips unknown
+  // query params from the URL shortly after load, and the banner should not
+  // disappear on the re-render that follows.
+  const [isForcedByUrl] = useState(() => isPromoForcedByUrl(LA_PROMO_NAME));
   // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
 
   const handleJoin = async () => {
@@ -265,7 +267,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
   };
 
   const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn && !Sefaria.isReturningVisitor() && !isPromoForcedByUrl(LA_PROMO_NAME)) {
+  if (!isLoggedIn && !Sefaria.isReturningVisitor() && !isForcedByUrl) {
     return null;
   }
   // Route anon login/register through the Library Assistant opt-in landing so that,
