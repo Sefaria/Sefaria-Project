@@ -24,6 +24,7 @@ import { VoicesTopicPage } from "./voicesTopicPage"
 import { LibraryTopicPage } from "./libraryTopicPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
+import { SitePromoBannerPage } from "./sitePromoBannerPage"
 
 
 export class PageManager {
@@ -51,6 +52,7 @@ export class PageManager {
     private readonly libraryTopicPage: LibraryTopicPage
     private readonly voicesBookmarksPage: VoicesBookmarksPage
     private readonly interfaceStringsPage: InterfaceStringsPage
+    private readonly sitePromoBannerPage: SitePromoBannerPage
 
 
 
@@ -79,6 +81,7 @@ export class PageManager {
         this.libraryTopicPage = new LibraryTopicPage(page, language)
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
+        this.sitePromoBannerPage = new SitePromoBannerPage(page, language)
 
     }
 
@@ -173,6 +176,10 @@ export class PageManager {
 
     onInterfaceStrings() {
         return this.interfaceStringsPage
+    }
+
+    onSitePromoBanner() {
+        return this.sitePromoBannerPage
     }
 
 
