@@ -242,7 +242,12 @@ export class ReaderScrollPage extends HelperBase {
     await expect(seg).toBeVisible({ timeout: t(30000) });
     await seg.tap();
     await expect(this.connectionsOverlay).toBeVisible({ timeout: t(15000) });
-    await expect(this.segment(ref)).toHaveClass(/highlight/, { timeout: t(10000) });
+    // `invisibleHighlight` is the class always applied to a highlighted segment;
+    // the bare `highlight` class only appears when showHighlight is on. The
+    // previous `/highlight/` pattern is case-sensitive and therefore does NOT
+    // match "invisibleHighlight" — it failed against a real branch build. Match
+    // the same pair expectHighlightedSegmentInViewport already uses.
+    await expect(this.segment(ref)).toHaveClass(/invisibleHighlight|highlight/, { timeout: t(10000) });
   }
 
   /**
@@ -268,5 +273,315 @@ export class ReaderScrollPage extends HelperBase {
   async expectBookTitleAtTop() {
     await expect(this.bookTitleBlock).toBeVisible({ timeout: t(30000) });
     await expect(this.topLoadingIndicator).toHaveCount(0);
+  }
+
+  // ===========================================================================
+  // SC-30249 regression additions — see e2e-tests/test-plans/sc-30249-regression.md
+  // ===========================================================================
+
+  /** Chrome this diff pinned: fixed `.headerInner` (R3) + sticky `.readerControlsOuter` (R4). */
+  private get topChrome() {
+    return this.page.locator('.readerApp .header .headerInner, .readerControlsOuter');
+  }
+
+  /** Lowest edge of any pinned top chrome currently on screen. */
+  async getTopChromeBottom(): Promise<number> {
+    return this.topChrome.evaluateAll((els) =>
+      els
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          if (style.display === 'none' || style.visibility === 'hidden') return false;
+          if (!['fixed', 'sticky'].includes(style.position)) return false;
+          const rect = el.getBoundingClientRect();
+          return rect.height > 0 && rect.top <= 1;
+        })
+        .reduce((max, el) => Math.max(max, el.getBoundingClientRect().bottom), 0)
+    );
+  }
+
+  /**
+   * MW-019 (R3 + R4): the now-fixed header and the sticky reader controls must
+   * stack, not overlap. Both are pinned to `top: 0` by the new CSS, so an
+   * ordering/height mistake hides one behind the other.
+   */
+  async expectTopChromeDoesNotOverlap() {
+    const boxes = await this.topChrome.evaluateAll((els) =>
+      els
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          if (style.display === 'none' || style.visibility === 'hidden') return false;
+          return ['fixed', 'sticky'].includes(style.position);
+        })
+        .map((el) => {
+          const rect = el.getBoundingClientRect();
+          return { cls: el.className, top: rect.top, bottom: rect.bottom };
+        })
+        .sort((a, b) => a.top - b.top)
+    );
+
+    for (let i = 1; i < boxes.length; i++) {
+      expect(
+        boxes[i].top,
+        `pinned chrome overlaps: "${boxes[i - 1].cls}" ends at ${boxes[i - 1].bottom}px ` +
+          `but "${boxes[i].cls}" starts at ${boxes[i].top}px`
+      ).toBeGreaterThanOrEqual(boxes[i - 1].bottom - 1);
+    }
+  }
+
+  /**
+   * MW-019: at scrollY 0 the first segment must be fully readable, not tucked
+   * under the fixed header / sticky controls.
+   */
+  async expectFirstSegmentBelowTopChrome() {
+    const first = this.page.locator('.basetext .segment').first();
+    await expect(first).toBeVisible({ timeout: t(30000) });
+    const ref = await first.getAttribute('data-ref');
+    expect(ref, 'the first segment has no data-ref to anchor on').not.toBeNull();
+    await this.expectSegmentBelowTopChrome(ref!);
+  }
+
+  /**
+   * MW-021 (R11): a deep-linked segment must land *below* the pinned chrome, not
+   * merely inside the viewport. `setInitialScrollPosition` computes its target
+   * from `$highlighted.position().top` (relative to the offsetParent, which the
+   * new CSS makes `#panelWrapBox`) while `setScrollTop` adds the `.textColumn`'s
+   * own document offset — so an off-by-the-gap landing is the specific risk here.
+   */
+  async expectSegmentBelowTopChrome(ref: string) {
+    const seg = this.segment(ref);
+    await expect(seg).toBeVisible({ timeout: t(30000) });
+    const chromeBottom = await this.getTopChromeBottom();
+    const top = await seg.evaluate((el) => el.getBoundingClientRect().top);
+    expect(
+      top,
+      `segment ${ref} sits at ${top}px, underneath pinned chrome ending at ${chromeBottom}px`
+    ).toBeGreaterThanOrEqual(chromeBottom - 1);
+  }
+
+  /** DW-013 / DW-015: the desktop column's own scroll geometry. */
+  async getColumnScrollMetrics() {
+    return this.textColumn.evaluate((el) => ({
+      scrollTop: el.scrollTop,
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+      atHardBottom: el.scrollTop + el.clientHeight >= el.scrollHeight - 2,
+    }));
+  }
+
+  /** MW-017: the mobile document's scroll geometry vs. the column's own height. */
+  async getDocumentScrollMetrics() {
+    return this.page.evaluate(() => {
+      const col = document.querySelector<HTMLElement>('.textColumn');
+      return {
+        scrollY: window.pageYOffset || document.documentElement.scrollTop,
+        docScrollHeight: document.documentElement.scrollHeight,
+        innerHeight: window.innerHeight,
+        // TextColumn's guard on mobile: getScrollHeight() is the column's
+        // offsetHeight, getClientHeight() is window.innerHeight (TextColumn.jsx:70-73).
+        columnOffsetHeight: col ? col.offsetHeight : 0,
+        guardWouldEarlyReturn: col ? col.offsetHeight <= window.innerHeight : true,
+      };
+    });
+  }
+
+  async scrollColumnToBottom() {
+    await this.textColumn.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  }
+
+  /**
+   * DW-013 (R9): infinite scroll down must fire *before* the column reaches its
+   * hard bottom. The diff swapped `$container.outerHeight()` for
+   * `node.clientHeight` in adjustInfiniteScroll (TextColumn.jsx:302), shifting
+   * the trigger threshold by the border/scrollbar delta — a shift far enough in
+   * the wrong direction leaves the reader parked at a dead bottom.
+   *
+   * Scrolls in three-quarter-viewport steps and records whether the column ever
+   * bottomed out before the next section attached.
+   */
+  async expectNextSectionLoadsBeforeHardBottom(ref: string, maxSteps = 20) {
+    const target = this.section(ref);
+    let bottomedOutBeforeLoad = false;
+
+    for (let i = 0; i < maxSteps; i++) {
+      if ((await target.count()) > 0) break;
+      const metrics = await this.getColumnScrollMetrics();
+      if (metrics.atHardBottom) bottomedOutBeforeLoad = true;
+      await this.textColumn.evaluate((el) => { el.scrollTop += el.clientHeight * 0.75; });
+      await this.page.waitForTimeout(t(500));
+    }
+
+    await expect(target.first()).toBeAttached({ timeout: t(30000) });
+    expect(
+      bottomedOutBeforeLoad,
+      `${ref} only loaded after the column hit its hard bottom — the reader shows a dead stop ` +
+        'before the next section appears (adjustInfiniteScroll threshold regression)'
+    ).toBe(false);
+  }
+
+  /**
+   * DW-014 (R10): which segment is actually at the middle of the reading
+   * viewport. Highlight detection moved from jQuery `.offset()` to
+   * `getBoundingClientRect()` in this diff, for both layouts.
+   *
+   * Measures inside the `.textColumn` frame on multiPanel (the column is fixed at
+   * the viewport) and viewport-relative on singlePanel (the document scrolls) —
+   * mirroring adjustHighlightedAndVisible's own branch.
+   */
+  async getSegmentRefAtViewportMiddle(): Promise<string | null> {
+    return this.page.evaluate(() => {
+      const isMultiPanel = !!document.querySelector('.readerApp.multiPanel');
+      const col = document.querySelector<HTMLElement>('.textColumn');
+      if (!col) return null;
+      const colRect = col.getBoundingClientRect();
+      const middle = isMultiPanel
+        ? colRect.top + Math.min(colRect.height, window.innerHeight) / 2
+        : window.innerHeight / 2;
+
+      const segments = Array.from(col.querySelectorAll<HTMLElement>('.basetext .segment'));
+      const hit = segments.find((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.top <= middle && rect.bottom >= middle;
+      });
+      return hit ? hit.getAttribute('data-ref') : null;
+    });
+  }
+
+  /** DW-017 / DW-018 / MW-020: which segments the reader can currently see. */
+  async getVisibleSegmentRefs(): Promise<string[]> {
+    return this.page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>('.textColumn .basetext .segment'))
+        .filter((el) => {
+          const rect = el.getBoundingClientRect();
+          return rect.bottom > 0 && rect.top < window.innerHeight;
+        })
+        .map((el) => el.getAttribute('data-ref') ?? '')
+        .filter(Boolean)
+    );
+  }
+
+  /**
+   * Reading position is preserved across a re-layout if *any* of the previously
+   * visible segments is still on screen. Deliberately looser than an exact
+   * scrollTop match: restoreScrollPositionAfterLayoutChange restores by
+   * percentage, so a small drift is by design — a jump to the top is not.
+   */
+  async expectReadingPositionPreserved(before: string[]) {
+    expect(before.length, 'no segments were visible before the layout change').toBeGreaterThan(0);
+    await expect
+      .poll(
+        async () => {
+          const after = await this.getVisibleSegmentRefs();
+          return after.some((ref) => before.includes(ref));
+        },
+        { timeout: t(15000) }
+      )
+      .toBe(true);
+  }
+
+  /**
+   * MW-018 (R5): the connections overlay went from in-flow inside a fixed shell
+   * to `position: fixed; height: 54vh; bottom: 0`. It must sit flush with the
+   * bottom of the viewport and stay pinned there while the document scrolls
+   * beneath it.
+   *
+   * NOTE: whether the document *should* be scroll-locked behind the overlay is a
+   * product question raised by the plan, not asserted here.
+   */
+  async expectConnectionsOverlayPinnedToBottom() {
+    const before = await this.connectionsOverlay.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { position: getComputedStyle(el).position, top: rect.top, bottom: rect.bottom, innerHeight: window.innerHeight };
+    });
+    expect(before.position).toBe('fixed');
+    expect(Math.abs(before.bottom - before.innerHeight)).toBeLessThanOrEqual(1);
+
+    await this.scrollWindowBy(400);
+    await this.page.waitForTimeout(t(300));
+
+    const after = await this.connectionsOverlay.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom };
+    });
+    expect(
+      Math.abs(after.top - before.top),
+      'the connections overlay drifted while the document scrolled — it is not pinned'
+    ).toBeLessThanOrEqual(1);
+  }
+
+  /**
+   * DW-016 (R1 + R8): with the connections sidebar open on desktop, the window
+   * must still never scroll and `.textColumn` must remain the only scroller.
+   */
+  async expectColumnScrollsWithoutMovingWindow() {
+    const startScrollTop = await this.getColumnScrollTop();
+    await this.scrollColumnBy(600);
+    await this.page.waitForTimeout(t(300));
+    expect(await this.getColumnScrollTop()).toBeGreaterThan(startScrollTop);
+    expect(await this.getWindowScrollY(), 'the window scrolled on a multiPanel layout').toBe(0);
+  }
+
+  /** Is the reader currently in window-scroll (singlePanel) mode? */
+  async isSinglePanel(): Promise<boolean> {
+    return this.page.evaluate(() => !!document.querySelector('.readerApp.singlePanel'));
+  }
+
+  /**
+   * Open the reader's display-settings menu and pick a source/translation mode —
+   * a re-layout that makes restoreScrollPositionAfterLayoutChange run.
+   *
+   * Locators are grounded in the component source rather than roles: the toggle
+   * is a `<span className="readerOptions">` inside a ToolTipped (Misc.jsx:1284),
+   * NOT a `role="button"`, and the options are `<input type="radio">` whose
+   * `value` is the English string while the visible label is i18n'd
+   * (SourceTranslationsButtons.jsx:24-26, common/RadioButton.jsx:24) — so `value`
+   * is the interface-language-invariant anchor per CLAUDE.md rule 15.
+   */
+  async setSourceTranslationMode(value: 'Source' | 'Translation' | 'Source with Translation') {
+    const toggle = this.page.locator('.readerOptions').first();
+    await expect(toggle).toBeVisible({ timeout: t(15000) });
+    await toggle.click();
+
+    const menu = this.page.locator('.texts-properties-menu[role="dialog"]');
+    await expect(menu).toBeVisible({ timeout: t(10000) });
+    await menu.locator(`input[type="radio"][value="${value}"]`).check();
+  }
+
+  /**
+   * The live scroller responds to input. Which one is live is decided by
+   * `multiPanel`, a prop the server sets from the User-Agent (reader/views.py:344)
+   * and which never changes client-side — see expectLayoutSurvivesResize.
+   */
+  async expectActiveScrollerResponds() {
+    if (await this.isSinglePanel()) {
+      await this.scrollWindowBy(600);
+      await expect.poll(() => this.getWindowScrollY(), { timeout: t(10000) }).toBeGreaterThan(0);
+    } else {
+      await this.scrollColumnBy(600);
+      await expect.poll(() => this.getColumnScrollTop(), { timeout: t(10000) }).toBeGreaterThan(0);
+    }
+  }
+
+  /**
+   * DW-019 (R8), revised after the first run against the branch.
+   *
+   * The original row assumed a viewport resize across 843px flips the layout, so
+   * that TextColumn's never-rebound scroll listener (bound once at
+   * componentDidMount, TextColumn.jsx:43) would end up on the wrong target. It
+   * does not: `multiPanel` is decided SERVER-SIDE from the User-Agent
+   * (reader/views.py:344) and passed as a prop that nothing recomputes —
+   * ReaderApp's only resize listener adjusts the panel cap (ReaderApp.jsx:197).
+   *
+   * So this pins the behavior that actually exists: the layout a page loaded with
+   * survives a resize, and the scroller it bound at mount keeps working. That
+   * also means the CSS (`.readerApp.singlePanel`) and the JS (`isWindowScroll()`)
+   * read the same constant and cannot disagree mid-session.
+   */
+  async expectLayoutSurvivesResize(expectedSinglePanel: boolean) {
+    expect(
+      await this.isSinglePanel(),
+      'the layout flipped on resize — multiPanel is no longer a load-time constant, ' +
+        'which re-opens the never-rebound scroll listener risk (R8)'
+    ).toBe(expectedSinglePanel);
+    await this.expectActiveScrollerResponds();
   }
 }

@@ -23,6 +23,7 @@ import { MobileHamburgerPage } from "./mobileHamburgerPage"
 import { VoicesTopicPage } from "./voicesTopicPage"
 import { LibraryTopicPage } from "./libraryTopicPage"
 import { ReaderScrollPage } from "./readerScrollPage"
+import { MobileSurfacesPage } from "./mobileSurfacesPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 
@@ -51,6 +52,7 @@ export class PageManager {
     private readonly voicesTopicPage: VoicesTopicPage
     private readonly libraryTopicPage: LibraryTopicPage
     private readonly readerScrollPage: ReaderScrollPage
+    private readonly mobileSurfacesPage: MobileSurfacesPage
     private readonly voicesBookmarksPage: VoicesBookmarksPage
     private readonly interfaceStringsPage: InterfaceStringsPage
 
@@ -80,6 +82,7 @@ export class PageManager {
         this.voicesTopicPage = new VoicesTopicPage(page, language)
         this.libraryTopicPage = new LibraryTopicPage(page, language)
         this.readerScrollPage = new ReaderScrollPage(page, language)
+        this.mobileSurfacesPage = new MobileSurfacesPage(page, language)
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
 
@@ -172,6 +175,10 @@ export class PageManager {
 
     onReaderScroll() {
         return this.readerScrollPage
+    }
+
+    onMobileSurfaces() {
+        return this.mobileSurfacesPage
     }
 
     onVoicesBookmarks() {

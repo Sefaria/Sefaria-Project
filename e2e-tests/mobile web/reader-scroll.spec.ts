@@ -24,6 +24,14 @@ import { MODULE_URLS } from '../constants';
  *   MW-012 — hamburger drawer scroll (drawer already covered in hamburger-menu.spec.ts)
  *   MW-013 — back/forward scroll restoration
  *   MW-014 — portrait/landscape rotation
+ *   MW-022 — tablet rotation across the 843px breakpoint (real device; the
+ *            emulated half of this hook is automated as DW-019)
+ *   MW-023 — iOS Safari 15 `overflow-x: clip` fallback (real device / BrowserStack)
+ *   MW-024 — browsers without `:has()` support (real device / BrowserStack)
+ *
+ * MW-017…MW-021 are regression rows from
+ * e2e-tests/test-plans/sc-30249-regression.md, derived from the diff rather than
+ * the feature description; the R-hooks in their comments index that plan's risk table.
  *
  * KNOWN FAILURE (2026-07-15, validated against a local build of this branch):
  * MW-004 and MW-006 fail because infinite-scroll-down never fires in
@@ -39,6 +47,12 @@ import { MODULE_URLS } from '../constants';
 const GENESIS_1 = `${MODULE_URLS.EN.LIBRARY}/Genesis.1`;
 const GENESIS_5 = `${MODULE_URLS.EN.LIBRARY}/Genesis.5`;
 const GENESIS_3_5 = `${MODULE_URLS.EN.LIBRARY}/Genesis.3.5`;
+// Two verses — shorter than a mobile viewport, so TextColumn's
+// `getScrollHeight() <= getClientHeight()` guard early-returns (R12).
+const PSALMS_117 = `${MODULE_URLS.EN.LIBRARY}/Psalms.117`;
+// A segment far enough down a long chapter that setInitialScrollPosition must
+// actually scroll to reach it (R11).
+const GENESIS_24_40 = `${MODULE_URLS.EN.LIBRARY}/Genesis.24.40`;
 
 test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
   let page: Page;
@@ -144,5 +158,72 @@ test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
     await pm.onReaderScroll().waitForSection('Genesis 1');
     await pm.onReaderScroll().scrollWindowToTop();
     await pm.onReaderScroll().expectBookTitleAtTop();
+  });
+
+  // ==========================================================================
+  // Regression rows from e2e-tests/test-plans/sc-30249-regression.md.
+  // Hook IDs (R3, R5, R11, R12) refer to that plan's risk table.
+  // ==========================================================================
+
+  test('MW-017: a text shorter than the viewport renders without scroll errors (R12)', async ({ context }) => {
+    const pageErrors: Error[] = [];
+    await openReader(context, PSALMS_117);
+    page.on('pageerror', (err) => pageErrors.push(err));
+    await pm.onReaderScroll().waitForSection('Psalms 117');
+
+    // Measured on the branch (Pixel 5, innerHeight 727): even a two-verse text
+    // produces a .textColumn taller than the viewport once the book-title block
+    // and reader chrome are counted, so TextColumn's early-return guard
+    // (offsetHeight <= innerHeight, TextColumn.jsx:296) does not actually trigger
+    // for real mobile texts. Asserting on that guard would be asserting on an
+    // unreachable branch, so this row asserts the user-visible contract instead:
+    // the shortest text in the library still renders coherently and quietly.
+    const metrics = await pm.onReaderScroll().getDocumentScrollMetrics();
+    expect(
+      metrics.columnOffsetHeight,
+      'the text column has no height at all — the short-text path is broken'
+    ).toBeGreaterThan(0);
+    await expect(page).toHaveURL(/Psalms\.117/, { timeout: t(30000) });
+    await pm.onReaderScroll().expectNoHorizontalOverflow();
+    expect(pageErrors, `JS errors on a short text: ${pageErrors.map(e => e.message).join('; ')}`).toHaveLength(0);
+  });
+
+  test('MW-018: the connections overlay is pinned to the bottom of the viewport (R5)', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().tapSegmentToOpenConnections('Genesis 1:1');
+    // .textList went from in-flow inside a fixed shell to position:fixed / 54vh /
+    // bottom:0. It must sit flush with the viewport bottom and stay there.
+    await pm.onReaderScroll().expectConnectionsOverlayPinnedToBottom();
+  });
+
+  test('MW-019: fixed header and sticky controls stack without covering the text (R3, R4)', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().scrollWindowToTop();
+    await pm.onReaderScroll().expectTopChromeDoesNotOverlap();
+    await pm.onReaderScroll().expectFirstSegmentBelowTopChrome();
+  });
+
+  test('MW-020: a content-language change keeps the reading position (R11)', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().scrollWindowBy(1200);
+
+    const before = await pm.onReaderScroll().getVisibleSegmentRefs();
+    await pm.onReaderScroll().setSourceTranslationMode('Source with Translation');
+    await pm.onReaderScroll().expectReadingPositionPreserved(before);
+  });
+
+  test('MW-021: a deep-linked segment lands below the fixed chrome, not under it (R11)', async ({ context }) => {
+    await openReader(context, GENESIS_24_40);
+    // MW-007 already proves the segment is *somewhere* in the viewport. This row
+    // is stricter, because setInitialScrollPosition measures its target with
+    // $highlighted.position().top — relative to #panelWrapBox, which the new CSS
+    // makes the offsetParent — while setScrollTop adds the .textColumn's own
+    // document offset. If those two frames disagree the segment lands under the
+    // pinned header.
+    await pm.onReaderScroll().expectHighlightedSegmentInViewport('Genesis 24:40');
+    await pm.onReaderScroll().expectSegmentBelowTopChrome('Genesis 24:40');
   });
 });
