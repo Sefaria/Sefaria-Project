@@ -344,10 +344,36 @@ def create_index(index_name, type, force=False):
                         "language": "English"
                     }
                 }
+            },
+            "similarity": {
+                # Scoring for "alias bag" fields: a multi-valued list of alternate names
+                # for the same entity (titleVariants), as opposed to prose.
+                #
+                # Term frequency is meaningless in such a field, because the values are
+                # not independent statements — they are spelling/aliasing permutations of
+                # one name, and Sefaria generates them combinatorially. "Bartenura on
+                # Mishnah Berakhot" carries 32 variants (4 author aliases x 8 tractate
+                # spellings), so the word "Mishnah" occurs 11 times there. Under default
+                # BM25 that TF is the single strongest signal in the field, which ranked
+                # Bartenura's commentaries above the Mishnah itself on q="Mishnah", and
+                # "Mishneh Torah, Torah Study" (6 occurrences of "Talmud" across its
+                # variants, none in its title) above every tractate on q="Talmud".
+                #
+                # k1=0 collapses BM25's TF component to a constant: score = idf, so a
+                # variant either matches or it does not, and a longer alias list confers
+                # no advantage. Unlike `index_options: docs` — the other way to drop TF —
+                # this keeps positions indexed, which tiers 2 and 4 of the entity query
+                # (match_phrase / match_phrase_prefix over titleVariants) require.
+                # `b` is only ever applied as a multiplier on k1, so it is moot here.
+                "alias_bag": {
+                    "type": "BM25",
+                    "k1": 0.0,
+                    "b": 0.0
+                }
             }
         }
     }
-    
+
     logger.debug(f"Creating index with settings - index_name: {index_name}")
     
     try:
@@ -544,9 +570,13 @@ def put_topic_mapping(index_name):
                     'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
                 },
             },
+            # An alias bag, not prose: term frequency across the variant list is a
+            # cataloging artifact, so score on idf alone (see the `alias_bag`
+            # similarity in create_index). Norms are moot under k1=0.
             'titleVariants': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
+                'similarity': 'alias_bag',
             },
             'description_en': {
                 'type': 'text',
@@ -605,8 +635,9 @@ def put_book_mapping(index_name):
             # Length norms are intentionally ON for the primary title fields: a short,
             # focused title ("Chafetz Chaim") should outscore a longer title that merely
             # contains the query words ("Chafetz Chaim on Sifra") for the same matched
-            # term. titleVariants keeps norms OFF so a book with many title variants isn't
-            # penalized on the variant tiers by its own richer variant list.
+            # term. titleVariants is scored by the `alias_bag` similarity instead, which
+            # neutralizes both term frequency and length (see create_index): a book is
+            # neither penalized nor rewarded for the size of its variant list.
             'title_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
@@ -626,6 +657,7 @@ def put_book_mapping(index_name):
                 'type': 'text',
                 'analyzer': 'stemmed_english',
                 'norms': False,
+                'similarity': 'alias_bag',
                 'fields': {
                     'keyword': {'type': 'keyword'},
                 },
