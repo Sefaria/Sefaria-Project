@@ -460,6 +460,28 @@ class LinkerEditorNonUniqueTermView(StaffRequiredMixin, View):
             return jsonResponse({"error": str(e)}, status=400)
 
 
+class LinkerEditorNonUniqueTermCreateView(StaffRequiredMixin, View):
+    """Create a new NonUniqueTerm from a list of titles (POST)."""
+
+    def post(self, request):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            return jsonResponse(linker_editor.create_non_unique_term(body.get("titles", [])))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+
+class LinkerEditorNonUniqueTermTitlesView(StaffRequiredMixin, View):
+    """Bulk map of slug -> primary en/he titles for MatchTemplate badges (GET ?slugs=a,b,c)."""
+
+    def get(self, request):
+        raw = request.GET.get("slugs", "")
+        slugs = [s for s in raw.split(",") if s]
+        return jsonResponse({"titles": linker_editor.get_non_unique_term_titles(slugs)})
+
+
 class LinkerEditorNonUniqueTermSearchView(StaffRequiredMixin, View):
     """Autocomplete search over NonUniqueTerms (GET ?q=...)."""
 

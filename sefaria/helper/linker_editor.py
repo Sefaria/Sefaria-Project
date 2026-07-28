@@ -176,11 +176,12 @@ def set_address_types(title: str, node_key_path: str, address_types: List[str]) 
 # ---------------------------------------------------------------------------
 
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
-    """Search NonUniqueTerms by title text (case-insensitive) for autocomplete."""
+    """Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete."""
     q = (q or "").strip()
     if not q:
         return []
-    query = {"titles.text": {"$regex": re.escape(q), "$options": "i"}}
+    regex = {"$regex": re.escape(q), "$options": "i"}
+    query = {"$or": [{"titles.text": regex}, {"slug": regex}]}
     results = []
     for term in NonUniqueTermSet(query, limit=limit):
         results.append({
@@ -189,6 +190,20 @@ def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
             "primary_he": term.get_primary_title("he"),
         })
     return results
+
+
+def get_non_unique_term_titles(slugs: List[str]) -> dict:
+    """Map each slug to its primary en/he titles, for rendering MatchTemplate badges."""
+    unique_slugs = list({s for s in slugs if s})
+    if not unique_slugs:
+        return {}
+    titles = {}
+    for term in NonUniqueTermSet({"slug": {"$in": unique_slugs}}):
+        titles[term.slug] = {
+            "primary_en": term.get_primary_title("en"),
+            "primary_he": term.get_primary_title("he"),
+        }
+    return titles
 
 
 def get_non_unique_term_detail(slug: str) -> dict:
@@ -201,6 +216,38 @@ def get_non_unique_term_detail(slug: str) -> dict:
         "titles": term.get_titles_object(),
         "usages": nut_index.get_term_usages(slug),
     }
+
+
+def create_non_unique_term(titles: List[dict]) -> dict:
+    """
+    Create a new NonUniqueTerm from a list of {lang, text} titles (at least one
+    non-blank title is required). The first title of each language becomes its primary.
+    Returns the new term's detail, including the slug generated on save.
+    """
+    if not isinstance(titles, list):
+        raise InputError("titles must be a list.")
+    cleaned = []
+    for title in titles:
+        if not isinstance(title, dict):
+            raise InputError("Each title must be an object.")
+        lang = title.get("lang")
+        text = (title.get("text") or "").strip()
+        if lang not in ("en", "he"):
+            raise InputError("Title lang must be 'en' or 'he'.")
+        if text:
+            cleaned.append((lang, text))
+    if not cleaned:
+        raise InputError("At least one title (English or Hebrew) is required.")
+
+    # Seed the slug from the primary English title, falling back to the first title.
+    slug_seed = next((text for lang, text in cleaned if lang == "en"), cleaned[0][1])
+    term = NonUniqueTerm({"slug": slug_seed, "titles": []})
+    primary_langs = set()
+    for lang, text in cleaned:
+        term.title_group.add_title(text, lang, primary=(lang not in primary_langs))
+        primary_langs.add(lang)
+    term.save()
+    return get_non_unique_term_detail(term.slug)
 
 
 def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
