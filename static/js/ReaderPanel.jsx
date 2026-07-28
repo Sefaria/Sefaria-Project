@@ -1349,7 +1349,7 @@ class ReaderControls extends Component {
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
-        title = heTitle = Sefaria._("Loading...");
+        title = heTitle = Sefaria._("common.loading");
       } else {
         title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }

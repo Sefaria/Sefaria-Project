@@ -50,7 +50,7 @@ class SheetSource extends Component {
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet_content_segments.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
         </div>
@@ -84,7 +84,7 @@ class SheetComment extends Component {
           {this.props.source.addedBy ?
           <div className="addedBy">
             <small><em>
-              {Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span>
+              {Sefaria._("sheet_content_segments.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span>
             </em></small>
           </div>
           : null }
@@ -153,7 +153,7 @@ class SheetOutsideText extends Component {
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet_content_segments.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
         </div>
@@ -189,7 +189,7 @@ class SheetOutsideBiText extends Component {
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>{Sefaria._("sheet_content_segments.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
           </div>
           : null }
         </div>
@@ -216,7 +216,7 @@ class SheetMedia extends Component {
     }
 
     if (this.isImage()) {
-      mediaLink = '<img class="addedMedia" src="' + mediaURL + '" alt="' + Sefaria._("User uploaded image") + '" />';
+      mediaLink = '<img class="addedMedia" src="' + mediaURL + '" alt="' + Sefaria._("sheet_content_segments.user_uploaded_image") + '" />';
     }
     else if (mediaURL.match(/(?:https?:)?\/\/(?:www\.)?youtube\.com\/embed\/.+/i) != null) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
@@ -279,7 +279,7 @@ class SheetMedia extends Component {
           <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
+            <div className="addedBy"><small><em>{Sefaria._("sheet_content_segments.added_by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
             : null }
         </div>
         {this.isImage() && this.props.addToSheetButton}
