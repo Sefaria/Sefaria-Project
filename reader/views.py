@@ -11,7 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
-from enum import Enum
+from typing import assert_never
 import pytz
 from html import unescape
 import redis
@@ -112,30 +112,35 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class SocialImagePageType(Enum):
-    """Kinds of social images supported by /api/img-gen/."""
-    REF = "ref"
-    STATIC = "static"
-    TOC = "toc"
-    MODULE_FALLBACK = "module_fallback"
+@dataclass(frozen=True)
+class PassageTarget:
+    """Segment/section ref (e.g. Genesis.1.1) -> quote image. Body fetched later."""
+    oref: Ref
 
 
 @dataclass(frozen=True)
-class SocialImageTarget:
-    """
-    Routing result for /api/img-gen/.
-
-    The endpoint receives one path string, but that string may point to a ref,
-    a static page, a text TOC page, a category TOC page, or a module page. Keep
-    those facts together so the view does not need to re-derive them later.
-    """
-    page_type: SocialImagePageType
-    title_en: str | None = None
-    title_he: str | None = None
+class TocTarget:
+    """Book-level ref or category page -> TOC image. Covers text-TOC and category-TOC."""
+    title_en: str
+    title_he: str
+    category: str | None
+    category_path: tuple[str, ...]
     subtitle_en: str | None = None
     subtitle_he: str | None = None
-    category: str | None = None
-    category_path: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class StaticTarget:
+    """Module-shared static/about page -> neutral Sefaria image."""
+
+
+@dataclass(frozen=True)
+class ModuleFallbackTarget:
+    """No custom renderer (topics, sheets, unknown) -> module-branded fallback."""
+
+
+# A classified /api/img-gen/ path is exactly one of these; the class is the tag.
+SocialImageTarget = PassageTarget | TocTarget | StaticTarget | ModuleFallbackTarget
 
 
 class PageTypes:
@@ -762,31 +767,24 @@ def _social_image_urlconf_for_module(module: str) -> str:
 
 
 def _social_image_text_target(tref: str) -> SocialImageTarget:
-    """
-    Classify a Library catchall path as either a text preview ref or a text TOC.
-
-    Whole-book refs like "Genesis" are table-of-contents pages in ReaderApp.
-    Segment/section refs like "Genesis.1.1" still use the existing quote image.
-    """
+    """Book-level refs (e.g. "Genesis") are TOC pages; segment refs are quote images."""
     try:
         ref = Ref(tref)
     except InputError:
-        return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+        return ModuleFallbackTarget()
 
     if not ref.is_book_level():
-        return SocialImageTarget(SocialImagePageType.REF)
+        return PassageTarget(oref=ref)
 
     index = ref.index
-    category_path = tuple(index.categories)
     primary_category = index.get_primary_category()
-    return SocialImageTarget(
-        SocialImagePageType.TOC,
+    return TocTarget(
         title_en=index.get_title("en"),
         title_he=index.get_title("he"),
         subtitle_en=primary_category,
         subtitle_he=hebrew_term(primary_category),
         category=primary_category,
-        category_path=category_path,
+        category_path=tuple(index.categories),
     )
 
 
@@ -798,18 +796,17 @@ def _social_image_category_target(cats: str | None) -> SocialImageTarget:
     That keeps this aligned with the real Library table of contents.
     """
     if not cats:
-        return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+        return ModuleFallbackTarget()
 
     category_path = tuple(
         part for part in urllib.parse.unquote(cats).split("/") if part
     )
     toc_node = library.get_toc_tree().lookup(category_path)
     if toc_node is None:
-        return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+        return ModuleFallbackTarget()
 
     parent_categories = category_path[:-1]
-    return SocialImageTarget(
-        SocialImagePageType.TOC,
+    return TocTarget(
         title_en=toc_node.primary_title("en"),
         title_he=toc_node.primary_title("he"),
         subtitle_en=" / ".join(parent_categories) if parent_categories else None,
@@ -836,7 +833,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     if not tref:
         # /api/img-gen/ with no path is valid. It means "give me the default
         # fallback image for the current host/module."
-        return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+        return ModuleFallbackTarget()
 
     path = f"/{tref.lstrip('/')}"
     try:
@@ -844,7 +841,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     except Resolver404:
         # Unknown paths get the module fallback instead of raising an error.
         # This keeps images available for unknown situations.
-        return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+        return ModuleFallbackTarget()
 
     # Every view function in this set must serve a module-shared static page (no per-module branding).
     # serve_static handles both plain and by-language static pages (the latter via a {"by_lang": True}
@@ -852,7 +849,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     # If you wrap serve_static in a new decorator that produces a different function object at import time, add the wrapped function here too;
     # otherwise static pages will silently fall through to MODULE_FALLBACK and start rendering Library/Voices branding instead of the shared Sefaria image.
     if match.func in {serve_static, annual_report}:
-        return SocialImageTarget(SocialImagePageType.STATIC)
+        return StaticTarget()
 
     if module == LIBRARY_MODULE and match.func == texts_category_list:
         return _social_image_category_target(match.kwargs.get("cats"))
@@ -868,7 +865,44 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     # Default: topics, sheets, and other module pages have no custom image
     # builder yet, so they use the module fallback image. Any unknown view
     # function also lands here, which keeps the endpoint safe-by-default.
-    return SocialImageTarget(SocialImagePageType.MODULE_FALLBACK)
+    return ModuleFallbackTarget()
+
+
+def resolve_passage(target: PassageTarget, lang: str, version: str | None) -> tuple[str | None, str, str | None]:
+    """Fetch the passage body for a PassageTarget. Owns the lang+version I/O."""
+    ref_str = target.oref.normal() if lang == "en" else target.oref.he_normal()
+    tf = TextFamily(target.oref, stripItags=True, lang=lang, version=version,
+                    context=0, commentary=False).contents()
+    body = tf["text"] if lang == "en" else tf["he"]
+    text = " ".join(body if isinstance(body, list) else [body])
+    return text, ref_str, tf["primary_category"]
+
+
+def make_social_image_response(target: SocialImageTarget, lang, platform, module, version):
+    """Render a classified target into an HTTP image response."""
+    match target:
+        case StaticTarget():
+            return make_static_img_http_response(platform)
+        case ModuleFallbackTarget():
+            return make_module_fallback_img_http_response(lang, platform, module)
+        case TocTarget() as t:
+            title = t.title_he if lang == "he" else t.title_en
+            subtitle = t.subtitle_he if lang == "he" else t.subtitle_en
+            return make_toc_img_http_response(title, subtitle, t.category, lang,
+                                              platform, module, category_path=t.category_path)
+        case PassageTarget() as p:
+            # Broad-but-logged: any failure to fetch/render a quote must yield a
+            # module fallback (this endpoint is crawler-facing and must never 500).
+            # Mirrors make_img_http_response's own render-failure fallback.
+            try:
+                text, ref_str, cat = resolve_passage(p, lang, version)
+            except Exception:
+                logger.exception("social_passage_resolve_failed", tref=p.oref.normal(),
+                                 lang=lang, platform=platform, module=module)
+                return make_module_fallback_img_http_response(lang, platform, module)
+            return make_img_http_response(text, cat, ref_str, lang, platform, module)
+        case _:
+            assert_never(target)
 
 
 @sanitize_get_params
@@ -2002,40 +2036,7 @@ def social_image_api(request, tref):
         platform = "facebook"
     module = normalize_social_image_module(getattr(request, "active_module", None))
     target = _classify_social_image_path(tref, module)
-
-    if target.page_type == SocialImagePageType.STATIC:
-        return make_static_img_http_response(platform)
-
-    if target.page_type == SocialImagePageType.MODULE_FALLBACK:
-        return make_module_fallback_img_http_response(lang, platform, module)
-
-    if target.page_type == SocialImagePageType.TOC:
-        title = target.title_he if lang == "he" else target.title_en
-        subtitle = target.subtitle_he if lang == "he" else target.subtitle_en
-        return make_toc_img_http_response(title, subtitle, target.category, lang, platform, module, category_path=target.category_path)
-
-    try:
-        ref = Ref(tref)
-        ref_str = ref.normal() if lang == "en" else ref.he_normal()
-
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
-        text = en if lang == "en" else he
-        text = ' '.join(text)
-        cat = tf["primary_category"]
-
-    except:
-        text = None
-        cat = None
-        ref_str = None
-
-
-    res = make_img_http_response(text, cat, ref_str, lang, platform, module)
-
-    return res
+    return make_social_image_response(target, lang, platform, module, version)
 
 
 @catch_error_as_json

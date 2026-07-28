@@ -77,7 +77,14 @@ def _request(path, active_module=None, host=None):
     return request
 
 
-def _capture_social_image_call(monkeypatch, path, active_module=None, host=None, tref="Genesis.1.1", book_level=None):
+def _capture_social_image_call(
+    monkeypatch,
+    path,
+    active_module=None,
+    host=None,
+    tref="Genesis.1.1",
+    book_level=None,
+):
     # Replace the image builders with small recorders. These tests care about
     # which kind of image the view chooses, not about Pillow drawing pixels.
     captured = {}
@@ -147,7 +154,9 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host=None,
     monkeypatch.setattr(views, "Ref", fake_ref)
     monkeypatch.setattr(views, "TextFamily", DummyTextFamily)
     monkeypatch.setattr(views, "make_img_http_response", fake_response)
-    monkeypatch.setattr(views, "make_module_fallback_img_http_response", fake_module_fallback)
+    monkeypatch.setattr(
+        views, "make_module_fallback_img_http_response", fake_module_fallback
+    )
     monkeypatch.setattr(views, "make_static_img_http_response", fake_static)
     monkeypatch.setattr(views, "make_toc_img_http_response", fake_toc)
 
@@ -165,8 +174,12 @@ def test_social_image_path_classification_caches_common_paths(monkeypatch):
 
     monkeypatch.setattr(views, "resolve", counting_resolve)
 
-    assert views._classify_social_image_path("jobs", LIBRARY_MODULE).page_type == views.SocialImagePageType.STATIC
-    assert views._classify_social_image_path("jobs", LIBRARY_MODULE).page_type == views.SocialImagePageType.STATIC
+    assert isinstance(
+        views._classify_social_image_path("jobs", LIBRARY_MODULE), views.StaticTarget
+    )
+    assert isinstance(
+        views._classify_social_image_path("jobs", LIBRARY_MODULE), views.StaticTarget
+    )
     assert len(resolve_calls) == 1
     assert views._classify_social_image_path.cache_info().maxsize == 512
     views._classify_social_image_path.cache_clear()
@@ -257,7 +270,9 @@ def test_social_image_api_defaults_empty_lang_to_english(monkeypatch):
 
 
 def test_social_image_api_defaults_invalid_lang_to_host_language(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?lang=english")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1?lang=english"
+    )
 
     assert result["lang"] == "en"
     assert result["text"] == "In the beginning"
@@ -287,25 +302,33 @@ def test_social_image_api_preserves_hebrew_lang(monkeypatch):
 
 
 def test_social_image_api_defaults_empty_platform_to_facebook(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1?platform="
+    )
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_defaults_invalid_platform_to_facebook(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=linkedin")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1?platform=linkedin"
+    )
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_preserves_facebook_platform(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=facebook")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1?platform=facebook"
+    )
 
     assert result["platform"] == "facebook"
 
 
 def test_social_image_api_preserves_twitter_platform(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1?platform=twitter"
+    )
 
     assert result["platform"] == "twitter"
 
@@ -317,14 +340,18 @@ def test_social_image_api_defaults_missing_module_to_library(monkeypatch):
 
 
 def test_social_image_api_uses_request_active_module(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module=VOICES_MODULE)
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1", active_module=VOICES_MODULE
+    )
 
     assert result["kind"] == "module_fallback"
     assert result["module"] == VOICES_MODULE
 
 
 def test_social_image_api_defaults_invalid_active_module_to_library(monkeypatch):
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis.1.1", active_module="something-else")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis.1.1", active_module="something-else"
+    )
 
     assert result["kind"] == "ref"
     assert result["module"] == LIBRARY_MODULE
@@ -357,7 +384,9 @@ def test_social_image_api_book_level_ref_uses_toc_image_on_library(monkeypatch):
     # A whole-book path like /Genesis is a valid ReaderApp TOC page, but it is
     # not a segment ref with preview text. Render the title/category instead.
     views._classify_social_image_path.cache_clear()
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis", tref="Genesis")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis", tref="Genesis"
+    )
 
     assert result["kind"] == "toc"
     assert result["title"] == "Genesis"
@@ -368,7 +397,9 @@ def test_social_image_api_book_level_ref_uses_toc_image_on_library(monkeypatch):
 
 def test_social_image_api_book_level_ref_uses_hebrew_title_when_requested(monkeypatch):
     views._classify_social_image_path.cache_clear()
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/Genesis?lang=he", tref="Genesis")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/Genesis?lang=he", tref="Genesis"
+    )
 
     assert result["kind"] == "toc"
     assert result["title"] == "בראשית"
@@ -388,7 +419,9 @@ def test_social_image_api_category_toc_path_uses_toc_image(monkeypatch):
             return DummyTocNode()
 
     monkeypatch.setattr(views.library, "get_toc_tree", lambda: DummyTocTree())
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/texts/Talmud", tref="texts/Talmud")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/texts/Talmud", tref="texts/Talmud"
+    )
 
     assert result["kind"] == "toc"
     assert result["title"] == "Talmud"
@@ -396,7 +429,9 @@ def test_social_image_api_category_toc_path_uses_toc_image(monkeypatch):
     assert result["category"] == "Talmud"
 
 
-def test_social_image_api_nested_category_toc_path_uses_specific_category_color(monkeypatch):
+def test_social_image_api_nested_category_toc_path_uses_specific_category_color(
+    monkeypatch,
+):
     views._classify_social_image_path.cache_clear()
 
     class DummyTocNode:
@@ -422,7 +457,9 @@ def test_social_image_api_nested_category_toc_path_uses_specific_category_color(
     assert result["category"] == "Targum"
 
 
-def test_social_image_api_nested_category_toc_uses_hebrew_subtitle_when_requested(monkeypatch):
+def test_social_image_api_nested_category_toc_uses_hebrew_subtitle_when_requested(
+    monkeypatch,
+):
     views._classify_social_image_path.cache_clear()
 
     class DummyTocNode:
@@ -474,7 +511,9 @@ def test_social_image_api_category_toc_path_decodes_url_encoded_spaces(monkeypat
 def test_social_image_api_topics_page_uses_module_fallback(monkeypatch):
     # Topic pages have module-specific branding, but they do not have a custom
     # image renderer yet. They should fall back to the module image.
-    result = _capture_social_image_call(monkeypatch, "/api/img-gen/topics", tref="topics")
+    result = _capture_social_image_call(
+        monkeypatch, "/api/img-gen/topics", tref="topics"
+    )
 
     assert result["kind"] == "module_fallback"
     assert result["module"] == LIBRARY_MODULE
@@ -501,7 +540,10 @@ def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatc
     )
     result = _capture_social_image_call(monkeypatch, path)
 
-    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
+    assert (
+        result["text_family_kwargs"]["version"]
+        == "The Contemporary Torah, Jewish Publication Society, 2006"
+    )
 
 
 def test_social_image_api_extracts_hebrew_version_title_from_vhe(monkeypatch):
@@ -511,8 +553,113 @@ def test_social_image_api_extracts_hebrew_version_title_from_vhe(monkeypatch):
     assert result["text_family_kwargs"]["version"] == "Tanach with Ta'amei Hamikra"
 
 
-def test_social_image_api_accepts_legacy_version_title_without_language_prefix(monkeypatch):
+def test_social_image_api_accepts_legacy_version_title_without_language_prefix(
+    monkeypatch,
+):
     path = "/api/img-gen/Genesis.1.1?lang=en&ven=The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
     result = _capture_social_image_call(monkeypatch, path)
 
-    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
+    assert (
+        result["text_family_kwargs"]["version"]
+        == "The Contemporary Torah, Jewish Publication Society, 2006"
+    )
+
+
+# --- make_social_image_response dispatcher (match/case) unit tests ---
+
+
+class _StubRef:
+    def normal(self):
+        return "Genesis 1:1"
+
+
+def test_dispatch_static_target_calls_static(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(
+        views,
+        "make_static_img_http_response",
+        lambda platform: seen.update(platform=platform) or "STATIC",
+    )
+    result = views.make_social_image_response(
+        views.StaticTarget(), "en", "facebook", "library", None
+    )
+    assert result == "STATIC"
+    assert seen["platform"] == "facebook"
+
+
+def test_dispatch_module_fallback_target_calls_fallback(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(
+        views,
+        "make_module_fallback_img_http_response",
+        lambda lang, platform, module: seen.update(args=(lang, platform, module))
+        or "FALLBACK",
+    )
+    result = views.make_social_image_response(
+        views.ModuleFallbackTarget(), "he", "twitter", "voices", None
+    )
+    assert result == "FALLBACK"
+    assert seen["args"] == ("he", "twitter", "voices")
+
+
+def test_dispatch_toc_target_picks_hebrew_title(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(
+        views,
+        "make_toc_img_http_response",
+        lambda title, subtitle, category, lang, platform, module, category_path: seen.update(
+            title=title, subtitle=subtitle, category=category, path=category_path
+        )
+        or "TOC",
+    )
+    target = views.TocTarget(
+        title_en="Genesis",
+        title_he="בראשית",
+        category="Tanakh",
+        category_path=("Tanakh",),
+        subtitle_en="Tanakh",
+        subtitle_he="תנ״ך",
+    )
+    result = views.make_social_image_response(target, "he", "facebook", "library", None)
+    assert result == "TOC"
+    assert seen["title"] == "בראשית" and seen["subtitle"] == "תנ״ך"
+    assert seen["category"] == "Tanakh" and seen["path"] == ("Tanakh",)
+
+
+def test_dispatch_passage_any_failure_falls_back(monkeypatch):
+    # Broad catch: ANY exception during resolve -> module fallback (never 500).
+    def _boom(*args, **kwargs):
+        raise RuntimeError("unexpected fetch failure")
+
+    monkeypatch.setattr(views, "resolve_passage", _boom)
+    seen = {}
+    monkeypatch.setattr(
+        views,
+        "make_module_fallback_img_http_response",
+        lambda lang, platform, module: seen.update(hit=True) or "FALLBACK",
+    )
+    target = views.PassageTarget(oref=_StubRef())
+    result = views.make_social_image_response(target, "en", "facebook", "library", None)
+    assert result == "FALLBACK"
+    assert seen["hit"] is True
+
+
+def test_dispatch_passage_success_calls_img_response(monkeypatch):
+    monkeypatch.setattr(
+        views,
+        "resolve_passage",
+        lambda p, lang, version: ("the text", "Genesis 1:1", "Tanakh"),
+    )
+    seen = {}
+    monkeypatch.setattr(
+        views,
+        "make_img_http_response",
+        lambda text, cat, ref_str, lang, platform, module: seen.update(
+            text=text, cat=cat, ref_str=ref_str
+        )
+        or "IMG",
+    )
+    target = views.PassageTarget(oref=_StubRef())
+    result = views.make_social_image_response(target, "en", "facebook", "library", None)
+    assert result == "IMG"
+    assert seen == {"text": "the text", "cat": "Tanakh", "ref_str": "Genesis 1:1"}
