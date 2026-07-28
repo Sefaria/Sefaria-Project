@@ -130,7 +130,7 @@ TextSearchFilters.propTypes = {
 
 const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
 const SEARCH_FILTER_GROUP_IDS = {
-  "Texts": "header.texts",
+  "Texts": "search_filters.title",
   "Topics": "common.topics",
   "Collections": "search_filters.collections",
 };
