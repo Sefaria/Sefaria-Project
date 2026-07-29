@@ -237,6 +237,14 @@ const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register"];
+
+// The Library Assistant opens automatically after login/registration, so promoting
+// it on the auth screens themselves would be redundant.
+const isChatbotBannerExcludedPath = (path) => {
+  const pathname = path.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
+  return CHATBOT_BANNER_EXCLUDED_PATHS.includes(pathname);
+};
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
@@ -256,6 +264,9 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
     }
   };
 
+  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath())) {
+    return null;
+  }
   const isLoggedIn = !!Sefaria._uid;
   if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
     return null;
@@ -294,4 +305,4 @@ ChatbotExperimentBanner.propTypes = {
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner };
+export { SiteWideBanner, ChatbotExperimentBanner, isChatbotBannerExcludedPath };
