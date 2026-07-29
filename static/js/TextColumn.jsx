@@ -300,9 +300,14 @@ class TextColumn extends Component {
 
     const windowTop = this.getLocalScrollTop();
     const windowHeight = this.getClientHeight();
-    const lastTop = $lastText.position().top;
-    const lastBottom = lastTop + $lastText.outerHeight();
-    
+    // Measure the last section's bottom in the same frame as windowHeight.
+    // In multiPanel the .textColumn is the scroller, so measure within its frame
+    // (equivalent to the old .position().top, since .textColumn is position:relative).
+    // In singlePanel the document scrolls, so measure viewport-relative directly --
+    // there .position().top is scroll-invariant and could never satisfy the test below.
+    const containerRectTop = this.isWindowScroll() ? 0 : this.node.getBoundingClientRect().top;
+    const lastBottom = $lastText[0].getBoundingClientRect().bottom - containerRectTop;
+
     // Check if we need to load content above (user scrolled near top)
     if (windowTop < 75 && !this.loadingContentAtTop && !downOnly) {
       this.handleInfiniteScrollUp();

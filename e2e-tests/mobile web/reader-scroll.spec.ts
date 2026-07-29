@@ -31,13 +31,13 @@ import { MODULE_URLS } from '../constants';
  * e2e-tests/test-plans/sc-30249-regression.md, derived from the diff rather than
  * the feature description; the R-hooks in their comments index that plan's risk table.
  *
- * KNOWN FAILURE (2026-07-15, validated against a local build of this branch):
- * MW-004 and MW-006 fail because infinite-scroll-down never fires in
- * window-scroll mode — adjustInfiniteScroll compares $lastText.position().top
- * (document-relative, constant while the window scrolls) against
- * getClientHeight(); the up-branch works because it uses getLocalScrollTop().
- * These tests encode the test plan's expected behavior and will pass once
- * TextColumn.jsx's down-branch measures viewport-relative.
+ * RESOLVED (2026-07-29): MW-004 and MW-006 previously failed because
+ * infinite-scroll-down never fired in window-scroll mode — adjustInfiniteScroll
+ * compared $lastText.position().top (scroll-invariant when the document is the
+ * scroller, since .textColumn is its offsetParent and scrolls with it) against
+ * getClientHeight(); the up-branch always worked because it uses
+ * getLocalScrollTop(). TextColumn.adjustInfiniteScroll now measures the last
+ * section's bottom viewport-relative, in the same frame as getClientHeight().
  *
  * Runs under playwright.mobileweb.config.ts (Pixel 5 / iPhone 13, < 843px).
  */
@@ -91,8 +91,11 @@ test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
     await openReader(context, GENESIS_1);
     await pm.onReaderScroll().waitForSection('Genesis 1');
     await pm.onReaderScroll().scrollWindowUntilSectionLoads('Genesis 2', 'down');
-    // Once Genesis 2 is at the top of the viewport the highlight-tracking loop
-    // (adjustHighlightedAndVisible) must update the address-bar ref.
+    // Infinite scroll attaches Genesis 2 below the fold but leaves the viewport
+    // on Genesis 1:31, so put it at the top of the viewport explicitly. Once it
+    // is there the highlight-tracking loop (adjustHighlightedAndVisible) must
+    // update the address-bar ref.
+    await pm.onReaderScroll().scrollSectionIntoView('Genesis 2');
     await expect(page).toHaveURL(/Genesis\.2/, { timeout: t(30000) });
   });
 

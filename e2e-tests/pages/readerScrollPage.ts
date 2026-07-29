@@ -179,6 +179,25 @@ export class ReaderScrollPage extends HelperBase {
     await expect(target.first()).toBeAttached({ timeout: t(30000) });
   }
 
+  /**
+   * Bring an already-loaded section to the top of the viewport.
+   *
+   * Infinite scroll only *attaches* the next section below the fold — it does
+   * not scroll into it. The header/URL track the section that is actually
+   * visible (TextColumn.adjustHighlightedAndVisible), so any URL assertion
+   * after a `scroll*UntilSectionLoads` call needs this step to be deliberate
+   * instead of depending on where the load happened to leave the viewport.
+   * Works in both scroll modes: `scrollIntoView` targets the nearest scrollable
+   * ancestor, which is `.textColumn` on multiPanel and the document on singlePanel.
+   */
+  async scrollSectionIntoView(ref: string) {
+    const target = this.section(ref).first();
+    await expect(target).toBeAttached({ timeout: t(30000) });
+    await target.evaluate((el) => el.scrollIntoView({ block: 'start' }));
+    // Pacing, not state-waiting: let the debounced scroll handler (100ms) run.
+    await this.page.waitForTimeout(t(300));
+  }
+
   async scrollColumnBy(deltaY: number) {
     await this.textColumn.evaluate((el, dy) => { el.scrollTop += dy; }, deltaY);
   }
@@ -657,22 +676,6 @@ export class ReaderScrollPage extends HelperBase {
       'scrolling one panel moved the other — the panels share a scroll container'
     ).toBe(otherBefore);
     expect(await this.getWindowScrollY(), 'the window scrolled on a multiPanel layout').toBe(0);
-  }
-
-  /**
-   * MW-012: while the mobile nav drawer is open the page behind it must stay put.
-   * More likely to break now that the document — not an inner div — is the
-   * scroller, so nothing structurally prevents the scroll from bleeding through.
-   */
-  async expectDocumentDoesNotScrollBehindOverlay() {
-    const before = await this.getWindowScrollY();
-    await this.scrollWindowBy(600);
-    await this.page.waitForTimeout(t(400));
-    const after = await this.getWindowScrollY();
-    expect(
-      Math.abs(after - before),
-      `the page behind the overlay scrolled from ${before} to ${after} — scroll is bleeding through`
-    ).toBeLessThanOrEqual(1);
   }
 
   async expectLayoutSurvivesResize(expectedSinglePanel: boolean) {

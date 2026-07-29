@@ -61,6 +61,9 @@ test.describe('Desktop Reader — scroll regression (SC-30249)', () => {
     await openReader(context, GENESIS_1);
     await pm.onReaderScroll().waitForSection('Genesis 1');
     await pm.onReaderScroll().scrollColumnUntilSectionLoads('Genesis 2', 'down');
+    // Attaching Genesis 2 is not the same as viewing it; scroll into it so the
+    // URL assertion tests highlight-tracking rather than incidental geometry.
+    await pm.onReaderScroll().scrollSectionIntoView('Genesis 2');
     await expect(page).toHaveURL(/Genesis\.2/, { timeout: t(30000) });
   });
 
