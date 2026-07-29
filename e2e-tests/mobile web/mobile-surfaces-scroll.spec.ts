@@ -163,6 +163,23 @@ test.describe('Mobile surfaces — document-level scrolling (SC-30249 regression
       .toBeGreaterThan(0);
   });
 
+  test('MW-012: the surface behind the nav drawer does not scroll', async ({ context }) => {
+    // From the story's original plan. Its steps said "the text column behind",
+    // but a live probe showed the mobile *reader* renders no header and no
+    // hamburger — only `.readerControlsOuter` — so the drawer is only reachable
+    // from a nav surface. Same invariant, on a page where it can be exercised.
+    await openAnon(context, TEXTS);
+    await pm.onMobileSurfaces().waitForNavBlocks();
+    await pm.onMobileSurfaces().scrollToDocumentEnd(3);
+    const before = await pm.onMobileSurfaces().getScrollY();
+    expect(before, 'the page did not scroll, so the lock check proves nothing').toBeGreaterThan(0);
+
+    await pm.onMobileHamburger().waitForHeaderReady();
+    await pm.onMobileHamburger().openMenu();
+    await pm.onMobileSurfaces().expectDocumentDoesNotScrollBehindOverlay();
+    await pm.onMobileHamburger().closeMenu();
+  });
+
   test('MWS-009: the cookies/consent chrome positions correctly with #s2 static (R1, R3)', async ({ context }) => {
     // Deliberately does NOT call hideAllModalsAndPopups first — the point is that
     // overlays land in the right place now that #s2 no longer establishes a

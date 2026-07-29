@@ -37,6 +37,7 @@ const GENESIS_1 = `${MODULE_URLS.EN.LIBRARY}/Genesis.1`;
 const GENESIS_5 = `${MODULE_URLS.EN.LIBRARY}/Genesis.5`;
 const GENESIS_3_5 = `${MODULE_URLS.EN.LIBRARY}/Genesis.3.5`;
 const RUTH_1 = `${MODULE_URLS.EN.LIBRARY}/Ruth.1`;
+const EXODUS_1 = `${MODULE_URLS.EN.LIBRARY}/Exodus.1`;
 // Two verses — shorter than any desktop column viewport, so it exercises the
 // `getScrollHeight() <= getClientHeight()` early-return branch (R12).
 const PSALMS_117 = `${MODULE_URLS.EN.LIBRARY}/Psalms.117`;
@@ -171,14 +172,89 @@ test.describe('Desktop Reader — scroll regression (SC-30249)', () => {
     await pm.onReaderScroll().expectColumnScrollsWithoutMovingWindow();
   });
 
+  test('DW-006b: two text panels open side by side and scroll independently (R1, R8)', async ({ context }) => {
+    // The original plan's DW-006 in full: open a connection as a real second TEXT
+    // panel, not just the sidebar. The UI path (category row → commentator row →
+    // "Open") was probed against a live build; it pushes `p2=` and mounts a second
+    // .textColumn. DW-016 keeps the narrower sidebar-only variant.
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onSourceTextPage().clickSegment('Genesis 1:1');
+    await expect(page.locator(READER_SELECTORS.CONNECTIONS_PANEL)).toBeVisible({ timeout: t(15000) });
+
+    await pm.onReaderScroll().openSecondTextPanelFromConnections();
+    await pm.onReaderScroll().expectPanelsScrollIndependently();
+  });
+
+  test('DW-007: the connections panel tracks the highlighted segment while scrolling', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onSourceTextPage().clickSegment('Genesis 1:1');
+    await expect(page.locator(READER_SELECTORS.CONNECTIONS_PANEL)).toBeVisible({ timeout: t(15000) });
+
+    // The per-category counts are computed for the highlighted segment, so they
+    // are the user-visible proof that the sidebar follows the highlight — which is
+    // driven by adjustHighlightedAndVisible, the function this diff rewrote from
+    // jQuery offset() to getBoundingClientRect().
+    const countsAtFirstSegment = await pm.onReaderScroll().getConnectionCategoryCounts();
+    expect(countsAtFirstSegment.length, 'no connection categories rendered').toBeGreaterThan(0);
+
+    await pm.onReaderScroll().scrollColumnBy(1500);
+    await expect(page).toHaveURL(/Genesis\.1\.\d+/, { timeout: t(30000) });
+
+    await expect
+      .poll(async () => (await pm.onReaderScroll().getConnectionCategoryCounts()).join('|'), { timeout: t(20000) })
+      .not.toBe(countsAtFirstSegment.join('|'));
+  });
+
+  test('DW-008: reading position is preserved across a window resize', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().scrollColumnBy(1500);
+    const before = await pm.onReaderScroll().getVisibleSegmentRefs();
+
+    // Changing the window width changes the text column's width, which is the ONLY
+    // trigger for restoreScrollPositionByPercentage (TextColumn.jsx:107-109) — and
+    // that method calls both getScrollHeight() and setScrollTop(), two of the
+    // functions this diff rewrote. No other row reaches this path.
+    await page.setViewportSize({ width: 980, height: 800 });
+    await page.waitForTimeout(t(1500));
+    await pm.onReaderScroll().expectReadingPositionPreserved(before);
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForTimeout(t(1500));
+    await pm.onReaderScroll().expectReadingPositionPreserved(before);
+  });
+
+  test('DW-010: browser Back restores the reading position', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().scrollColumnBy(1500);
+    await expect(page).toHaveURL(/Genesis\.1\.\d+/, { timeout: t(30000) });
+    const before = await pm.onReaderScroll().getVisibleSegmentRefs();
+
+    await page.goto(EXODUS_1);
+    await hideAllModalsAndPopups(page);
+    await pm.onReaderScroll().waitForSection('Exodus 1');
+
+    await page.goBack();
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    // Position is carried by the deep ref the highlight loop wrote into the URL,
+    // so this also covers that the URL tracking survives a history round-trip.
+    await pm.onReaderScroll().expectReadingPositionPreserved(before);
+  });
+
   test('DW-017: a content-language change keeps the reading position (R9, R10)', async ({ context }) => {
     await openReader(context, GENESIS_1);
     await pm.onReaderScroll().waitForSection('Genesis 1');
     await pm.onReaderScroll().scrollColumnBy(1200);
 
     const before = await pm.onReaderScroll().getVisibleSegmentRefs();
-    // Re-layout via the display-settings menu; restoreScrollPositionAfterLayoutChange
-    // reads prevScrollPercentage from getLocalScrollTop()/getScrollHeight().
+    // A content-language change takes componentDidUpdate's `settings.language`
+    // branch → scrollToHighlighted(false) (TextColumn.jsx:103-106). It does NOT
+    // exercise restoreScrollPositionByPercentage, which only fires on
+    // layoutWidthChanged (TextColumn.jsx:107-109) — that path is still uncovered;
+    // see the DW-008 row in the regression plan.
     await pm.onReaderScroll().setSourceTranslationMode('Source with Translation');
     await pm.onReaderScroll().expectReadingPositionPreserved(before);
   });

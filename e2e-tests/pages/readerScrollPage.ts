@@ -462,8 +462,9 @@ export class ReaderScrollPage extends HelperBase {
   /**
    * Reading position is preserved across a re-layout if *any* of the previously
    * visible segments is still on screen. Deliberately looser than an exact
-   * scrollTop match: restoreScrollPositionAfterLayoutChange restores by
-   * percentage, so a small drift is by design — a jump to the top is not.
+   * scrollTop match: both restore paths (scrollToHighlighted on a content change,
+   * restoreScrollPositionByPercentage on a width change) reposition
+   * approximately, so a small drift is by design — a jump to the top is not.
    */
   async expectReadingPositionPreserved(before: string[]) {
     expect(before.length, 'no segments were visible before the layout change').toBeGreaterThan(0);
@@ -527,7 +528,7 @@ export class ReaderScrollPage extends HelperBase {
 
   /**
    * Open the reader's display-settings menu and pick a source/translation mode —
-   * a re-layout that makes restoreScrollPositionAfterLayoutChange run.
+   * a re-layout that makes restoreScrollPositionByPercentage run.
    *
    * Locators are grounded in the component source rather than roles: the toggle
    * is a `<span className="readerOptions">` inside a ToolTipped (Misc.jsx:1284),
@@ -576,6 +577,104 @@ export class ReaderScrollPage extends HelperBase {
    * also means the CSS (`.readerApp.singlePanel`) and the JS (`isWindowScroll()`)
    * read the same constant and cannot disagree mid-session.
    */
+  // ---------------------------------------------------------------------------
+  // Rows adopted from the story's original test plan (DW-006 two-panel, DW-007,
+  // DW-008, DW-010, MW-012, MW-013). Locators below were probed against a live
+  // branch build before being written (CLAUDE.md rule 10 / rule 14).
+  // ---------------------------------------------------------------------------
+
+  /** Connection category rows in the desktop sidebar, e.g. "Commentary (698)". */
+  private get connectionCategoryFilters() {
+    return this.page.locator('.readerPanelBox.sidebar .categoryFilter');
+  }
+
+  private get connectionTextFilters() {
+    return this.page.locator('.readerPanelBox.sidebar .textFilter');
+  }
+
+  /** The "Open" affordance on a connection — opens it as a second text panel. */
+  private get connectionOpenLinks() {
+    return this.page.locator('.readerPanelBox.sidebar .connection-button.panel-open-link');
+  }
+
+  private get textColumns() {
+    return this.page.locator('.textColumn');
+  }
+
+  /**
+   * DW-007: the sidebar's per-category connection counts are computed for the
+   * currently highlighted segment, so they are the observable proof that the
+   * connections panel is tracking the highlight. Verified live: Genesis 1:1 shows
+   * "Commentary (698)", Genesis 1:12 shows "Commentary (82)".
+   */
+  async getConnectionCategoryCounts(): Promise<string[]> {
+    await expect(this.connectionCategoryFilters.first()).toBeVisible({ timeout: t(30000) });
+    return this.connectionCategoryFilters.evaluateAll((els) =>
+      els.map((el) => (el.textContent ?? '').trim().slice(0, 30))
+    );
+  }
+
+  /**
+   * DW-006 (their version): open a connection as a genuine SECOND TEXT PANEL.
+   * Path probed live: category row → commentator row → "Open" button, which
+   * pushes `p2=` onto the URL and mounts a second `.textColumn`.
+   */
+  async openSecondTextPanelFromConnections() {
+    await this.connectionCategoryFilters.first().click();
+    await expect(this.connectionTextFilters.first()).toBeVisible({ timeout: t(20000) });
+    await this.connectionTextFilters.first().click();
+
+    const open = this.connectionOpenLinks.first();
+    await expect(open).toBeVisible({ timeout: t(20000) });
+    await open.click();
+
+    await expect(this.textColumns).toHaveCount(2, { timeout: t(30000) });
+    await expect(this.page).toHaveURL(/p2=/, { timeout: t(20000) });
+  }
+
+  async getColumnScrollTopAt(index: number): Promise<number> {
+    return this.textColumns.nth(index).evaluate((el) => el.scrollTop);
+  }
+
+  async scrollColumnAt(index: number, deltaY: number) {
+    await this.textColumns.nth(index).evaluate((el, dy) => { el.scrollTop += dy; }, deltaY);
+  }
+
+  /**
+   * DW-006: with two text panels open, each must remain its own scroll container
+   * and the window must still never move.
+   */
+  async expectPanelsScrollIndependently() {
+    await expect(this.textColumns).toHaveCount(2, { timeout: t(15000) });
+    const otherBefore = await this.getColumnScrollTopAt(1);
+
+    await this.scrollColumnAt(0, 800);
+    await this.page.waitForTimeout(t(500));
+
+    expect(await this.getColumnScrollTopAt(0), 'the first panel did not scroll').toBeGreaterThan(0);
+    expect(
+      await this.getColumnScrollTopAt(1),
+      'scrolling one panel moved the other — the panels share a scroll container'
+    ).toBe(otherBefore);
+    expect(await this.getWindowScrollY(), 'the window scrolled on a multiPanel layout').toBe(0);
+  }
+
+  /**
+   * MW-012: while the mobile nav drawer is open the page behind it must stay put.
+   * More likely to break now that the document — not an inner div — is the
+   * scroller, so nothing structurally prevents the scroll from bleeding through.
+   */
+  async expectDocumentDoesNotScrollBehindOverlay() {
+    const before = await this.getWindowScrollY();
+    await this.scrollWindowBy(600);
+    await this.page.waitForTimeout(t(400));
+    const after = await this.getWindowScrollY();
+    expect(
+      Math.abs(after - before),
+      `the page behind the overlay scrolled from ${before} to ${after} — scroll is bleeding through`
+    ).toBeLessThanOrEqual(1);
+  }
+
   async expectLayoutSurvivesResize(expectedSinglePanel: boolean) {
     expect(
       await this.isSinglePanel(),

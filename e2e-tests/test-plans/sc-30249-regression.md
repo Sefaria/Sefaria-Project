@@ -43,7 +43,7 @@ Runs under `playwright.config.ts`, folder `library/`. Extends the existing DW se
 | DW-014 | Regression | P0 | R10 | Open `/Genesis.1` desktop. Scroll until a known segment (e.g. `Genesis 1:15`) sits at the vertical middle of the column. **Expected:** header ref and URL report `Genesis.1`, and the `.invisibleHighlight` segment is the one at the middle — not one screen off. | Automated |
 | DW-015 | Regression | P1 | R12 | Open a text shorter than the column viewport (e.g. `/Psalms.117`, 2 verses) on desktop. **Expected:** page renders, no infinite-scroll attempts, no console errors, no scroll jitter. Early-return path (`getScrollHeight() <= getClientHeight()`) exercised. | Automated |
 | DW-016 | Regression | P1 | R1, R8 | ~~Open a second text panel~~ → **revised at Stage 2:** open `/Genesis.1`, open the connections sidebar, scroll the column. **Expected:** the column's `scrollTop` advances while `window.scrollY` stays 0. *There is no documented URL or POM path for a second text panel in this suite; guessing one is how generated tests rot (CLAUDE.md rule 10), so the row was narrowed to the invariant it actually cares about. Second-text-panel coverage stays open as a follow-up.* | Automated |
-| DW-017 | Regression | P1 | R9, R10 | Open `/Genesis.1` desktop, scroll to mid-chapter, then toggle layout (Continuous ↔ Segmented) or change font size. **Expected:** reading position preserved within ~1 screen (`restoreScrollPositionAfterLayoutChange` via `prevScrollPercentage`). | Automated |
+| DW-017 | Regression | P1 | R9, R10 | Open `/Genesis.1` desktop, scroll to mid-chapter, then toggle layout (Continuous ↔ Segmented) or change font size. **Expected:** reading position preserved within ~1 screen (`restoreScrollPositionByPercentage` via `prevScrollPercentage`). | Automated |
 | DW-018 | Regression | P1 | R10 | Open `/Genesis.1` + connections panel, scroll to mid-chapter, close the connections panel. **Expected:** the same segment is still on screen. | Automated |
 | DW-019 | Regression | P2 | R8 | Open `/Genesis.1` on a desktop viewport, then resize the browser below 843 px **without reloading**, scroll, then resize back. **Expected:** reader scrolls in both states, no console errors, no frozen scroll. This is the direct probe for the never-rebound listener. | Automated |
 | DW-020 | Regression | P1 | R10 | Repeat DW-014 with Hebrew interface on the `.org.il` domain (RTL). **Expected:** identical highlight/URL tracking; no horizontal overflow. | Automated |
@@ -102,6 +102,24 @@ emulation. These rows are the physical-device pass; run once before merge.
 | BR-007 | Regression | P1 | On each of BR-001/BR-003: repeat one row from Series C (e.g. MWS-003 search) to confirm non-reader surfaces behave on real chrome. |
 
 ---
+
+## 5a. Series E — adopted from the story's original plan (2026-07-28)
+
+Six rows the original 28-case sheet specified but never automated. They cover behavior none of
+Series A–D reaches, so they were implemented rather than merely indexed in §6.
+
+| TC ID | Type | Pri | Steps / Expected | Method | Result |
+| --- | --- | --- | --- | --- | --- |
+| DW-006b | Regression | P0 | Open `/Genesis.1`, tap a segment, drill category → commentator → **Open**, which mounts a second `.textColumn` and pushes `p2=`. **Expected:** both panels scroll independently; `window.scrollY` stays 0. *Restores the original DW-006's full intent; DW-016 keeps the narrower sidebar-only variant. The UI path was probed live before being written.* | Automated | **Pass** |
+| DW-007 | Regression | P0 | Open the connections sidebar on `Genesis 1:1`, scroll the column. **Expected:** the URL advances to a later segment and the per-category connection counts change with it. *Counts are computed for the highlighted segment — verified live: 1:1 → "Commentary (698)", 1:12 → "Commentary (82)" — making them the user-visible proof that the sidebar follows `adjustHighlightedAndVisible`, the function this diff rewrote.* | Automated | **Pass** |
+| DW-008 | Regression | P1 | Scroll mid-chapter, resize the window narrower, then wider. **Expected:** reading position preserved. *`layoutWidthChanged` is the **only** trigger for `restoreScrollPositionByPercentage` (TextColumn.jsx:107-109), which calls both `getScrollHeight()` and `setScrollTop()` — two functions this diff rewrote. No other row in any series reaches that path.* | Automated | **Pass** |
+| DW-010 | Regression | P1 | Scroll `/Genesis.1` until the URL carries a deep ref, navigate to `/Exodus.1`, press Back. **Expected:** reading position restored. | Automated | **Pass** |
+| MW-012 | Regression | P1 | Scroll `/texts` on mobile, open the nav drawer, attempt to scroll. **Expected:** the surface behind stays put. *The original row said "the text column behind", but a live probe showed the mobile **reader renders no `.headerInner` and no hamburger** — only `.readerControlsOuter` — so the drawer is only reachable from a nav surface. Same invariant, on a page where it runs. See §11.6.* | Automated | **Pass** |
+| MW-013 | Regression | P1 | Mobile twin of DW-010. **Expected:** position restored. *On mobile the saved position is a window offset rather than a column `scrollTop` — the substitution this diff made.* | Automated | **Pass** |
+
+Rows from the original plan deliberately **not** adopted: DW-004 (near-duplicate of DW-003 — same
+restore mechanism, different chapter), DW-012 (covered in substance by DW-017 / MW-020), MW-014
+(rotation — manual, tracked as MW-022).
 
 ## 6. Already covered — do not duplicate
 
@@ -260,6 +278,20 @@ fixture for the R12 early-return path.
 
 5. **`playwright.mobileweb.config.ts` has no `globalSetup`.** Logged-in mobile tests silently
    depend on a prior desktop-config run to have written `auth_*.json`.
+
+6. **The mobile reader renders no site header at all.** A live probe of `/Genesis.1` on a Pixel 5
+   found no `.headerInner` and no hamburger button — only `.readerControlsOuter` (font size,
+   translations). Two consequences: the diff's `.readerApp.singlePanel > .header .headerInner
+   { position: fixed }` rule (R3) has no effect on the reader and only matters on nav surfaces;
+   and any assertion pairing `.headerInner` with `.readerControlsOuter` is exercising only the
+   latter on reader pages. MW-011 and MW-019 still hold — they pin the sticky controls — but
+   their header half is vacuous there. R3 is genuinely tested by the MWS series, not the reader
+   series.
+
+7. **The original plan's MW-001 precondition is unsafe.** It permits "Chrome DevTools mobile
+   emulation" for verifying URL-bar collapse. Emulation cannot observe real browser chrome, so
+   that row would report a false pass on the story's single most important case. It must be a
+   physical-device check (Series D, BR-001/BR-003).
 
 ## 10. Exit criteria
 

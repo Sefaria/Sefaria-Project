@@ -21,8 +21,6 @@ import { MODULE_URLS } from '../constants';
  *
  * Not automated (manual / follow-up):
  *   MW-001, MW-002 — real browser chrome behavior (emulation can't observe it)
- *   MW-012 — hamburger drawer scroll (drawer already covered in hamburger-menu.spec.ts)
- *   MW-013 — back/forward scroll restoration
  *   MW-014 — portrait/landscape rotation
  *   MW-022 — tablet rotation across the 843px breakpoint (real device; the
  *            emulated half of this hook is automated as DW-019)
@@ -53,6 +51,7 @@ const PSALMS_117 = `${MODULE_URLS.EN.LIBRARY}/Psalms.117`;
 // A segment far enough down a long chapter that setInitialScrollPosition must
 // actually scroll to reach it (R11).
 const GENESIS_24_40 = `${MODULE_URLS.EN.LIBRARY}/Genesis.24.40`;
+const EXODUS_1 = `${MODULE_URLS.EN.LIBRARY}/Exodus.1`;
 
 test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
   let page: Page;
@@ -225,5 +224,34 @@ test.describe('Mobile Reader — document-level scrolling (SC-30249)', () => {
     // pinned header.
     await pm.onReaderScroll().expectHighlightedSegmentInViewport('Genesis 24:40');
     await pm.onReaderScroll().expectSegmentBelowTopChrome('Genesis 24:40');
+  });
+
+  // ==========================================================================
+  // Rows adopted from the story's original test plan.
+  // ==========================================================================
+
+  // MW-012 (nav drawer scroll-lock) is NOT here: probing a live mobile build
+  // showed the reader renders no `.headerInner` and no hamburger button at all —
+  // only `.readerControlsOuter`. The drawer is reachable from nav surfaces, so the
+  // row lives in mobile-surfaces-scroll.spec.ts where it can actually run.
+
+  test('MW-013: browser Back restores the reading position on mobile', async ({ context }) => {
+    await openReader(context, GENESIS_1);
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    await pm.onReaderScroll().scrollWindowBy(1500);
+    await expect
+      .poll(() => pm.onReaderScroll().getWindowScrollY(), { timeout: t(10000) })
+      .toBeGreaterThan(0);
+    const before = await pm.onReaderScroll().getVisibleSegmentRefs();
+
+    await page.goto(EXODUS_1);
+    await hideAllModalsAndPopups(page);
+    await pm.onReaderScroll().waitForSection('Exodus 1');
+
+    await page.goBack();
+    await pm.onReaderScroll().waitForSection('Genesis 1');
+    // On mobile the saved position is a window scroll offset, not a column
+    // scrollTop — the substitution this diff made. This is its history round-trip.
+    await pm.onReaderScroll().expectReadingPositionPreserved(before);
   });
 });

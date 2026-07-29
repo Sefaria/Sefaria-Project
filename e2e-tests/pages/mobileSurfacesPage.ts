@@ -304,6 +304,22 @@ export class MobileSurfacesPage extends HelperBase {
     ).toBeGreaterThanOrEqual(chromeBottom - 1);
   }
 
+  /**
+   * MW-012: while the nav drawer is open, the surface behind it must stay put.
+   * More likely to break now that the document — not an inner div — is the
+   * scroller, so nothing structurally prevents scroll from bleeding through.
+   */
+  async expectDocumentDoesNotScrollBehindOverlay() {
+    const before = await this.getScrollY();
+    await this.page.evaluate(() => window.scrollBy(0, 600));
+    await this.page.waitForTimeout(t(400));
+    const after = await this.getScrollY();
+    expect(
+      Math.abs(after - before),
+      `the page behind the overlay scrolled from ${before} to ${after} — scroll is bleeding through`
+    ).toBeLessThanOrEqual(1);
+  }
+
   /** Lowest edge of any pinned top chrome currently on screen. */
   async getTopChromeBottom(): Promise<number> {
     return this.topChrome.evaluateAll((els) =>
