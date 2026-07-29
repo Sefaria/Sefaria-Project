@@ -7,6 +7,7 @@ from django.test import TestCase, Client
 
 sys._called_from_test = True
 
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 
 from sso.adapters import SefariaSocialAccountAdapter, SefariaAccountAdapter
@@ -104,6 +105,47 @@ class PopulateUsernameTest(TestCase):
         self.assertEqual(user.username, 'u@test.com')
 
 
+class SsoNextCookieRedirectTest(TestCase):
+    """
+    Google's redirect-mode SSO can't carry `next` on login_uri (Google requires an
+    exact-match registered redirect URI, no query string), so the client stashes it in
+    a cookie instead (see static/js/auth/useSsoSignIn.jsx) and SefariaAccountAdapter
+    reads it back here. is_safe_url() depends on allauth's own request-scoped context
+    binding, which a bare mock request doesn't satisfy — so we stub it directly to
+    isolate exactly the new logic (cookie present + safe -> use it; otherwise -> the
+    existing default), rather than re-testing allauth's own safe-url validation.
+    """
+    def _adapter(self, cookie_value=None, safe=True):
+        adapter = SefariaAccountAdapter()
+        adapter.is_safe_url = MagicMock(return_value=safe)
+        request = MagicMock()
+        request.COOKIES = {adapter.SSO_NEXT_COOKIE: cookie_value} if cookie_value is not None else {}
+        return adapter, request
+
+    def test_login_redirect_uses_cookie_when_safe(self):
+        adapter, request = self._adapter('/some/next/path', safe=True)
+        self.assertEqual(adapter.get_login_redirect_url(request), '/some/next/path')
+
+    def test_login_redirect_falls_back_when_no_cookie(self):
+        adapter, request = self._adapter(None)
+        with patch.object(DefaultAccountAdapter, 'get_login_redirect_url', return_value='/home-fallback'):
+            self.assertEqual(adapter.get_login_redirect_url(request), '/home-fallback')
+
+    def test_login_redirect_falls_back_when_cookie_unsafe(self):
+        adapter, request = self._adapter('https://evil.example.com/', safe=False)
+        with patch.object(DefaultAccountAdapter, 'get_login_redirect_url', return_value='/home-fallback'):
+            self.assertEqual(adapter.get_login_redirect_url(request), '/home-fallback')
+
+    def test_signup_redirect_uses_cookie_when_safe(self):
+        adapter, request = self._adapter('/welcome', safe=True)
+        self.assertEqual(adapter.get_signup_redirect_url(request), '/welcome')
+
+    def test_signup_redirect_falls_back_when_no_cookie(self):
+        adapter, request = self._adapter(None)
+        with patch.object(DefaultAccountAdapter, 'get_signup_redirect_url', return_value='/signup-fallback'):
+            self.assertEqual(adapter.get_signup_redirect_url(request), '/signup-fallback')
+
+
 class AppleCallbackTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -169,3 +211,29 @@ class AppleCallbackTest(TestCase):
 
         self.assertEqual(sl.user.first_name, 'Bob')
         self.assertEqual(sl.user.last_name, 'Jones')
+
+
+class ClearSsoNextCookieMiddlewareTest(TestCase):
+    """
+    sso.adapters.SefariaAccountAdapter.get_login_redirect_url / get_signup_redirect_url
+    are the only two call sites in the codebase that read the sefaria_sso_next cookie
+    (email login/register/password-reset are all fully custom views that never touch
+    that adapter machinery) — so clearing it whenever these two specific endpoints
+    respond, regardless of outcome, is sufficient; see ClearSsoNextCookieMiddleware.
+    """
+    def test_clears_cookie_on_google_redirect_path(self):
+        self.client.cookies['sefaria_sso_next'] = '/some/path'
+        res = self.client.post('/api/auth/google/redirect', data={})
+        self.assertIn('sefaria_sso_next', res.cookies)
+        self.assertEqual(res.cookies['sefaria_sso_next'].value, '')
+
+    def test_clears_cookie_on_apple_callback_finish_path(self):
+        self.client.cookies['sefaria_sso_next'] = '/some/path'
+        res = self.client.get('/accounts/apple/login/callback/finish/')
+        self.assertIn('sefaria_sso_next', res.cookies)
+        self.assertEqual(res.cookies['sefaria_sso_next'].value, '')
+
+    def test_does_not_touch_cookie_on_unrelated_path(self):
+        self.client.cookies['sefaria_sso_next'] = '/some/path'
+        res = self.client.get('/api/auth/login')
+        self.assertNotIn('sefaria_sso_next', res.cookies)

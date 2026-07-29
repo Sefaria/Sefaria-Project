@@ -59,9 +59,26 @@ def import_gravatar(profile):
 
 
 class SefariaAccountAdapter(DefaultAccountAdapter):
+    # Google's redirect-mode SSO (static/js/auth/useSsoSignIn.jsx) can't carry `next` as
+    # a query param on login_uri — Google requires an exact-match registered redirect
+    # URI with no query string — so the client stashes it in this short-lived cookie
+    # instead. Apple's OAuth2 flow already threads `next` via allauth's own `state`
+    # mechanism and never reaches these fallbacks. Keep this name in sync with the JS.
+    SSO_NEXT_COOKIE = "sefaria_sso_next"
+
     def populate_username(self, request, user):
         # emailusernames requires username == email
         user.username = user.email
+
+    def _next_from_cookie(self, request):
+        next_url = request.COOKIES.get(self.SSO_NEXT_COOKIE)
+        return next_url if next_url and self.is_safe_url(next_url) else None
+
+    def get_login_redirect_url(self, request):
+        return self._next_from_cookie(request) or super().get_login_redirect_url(request)
+
+    def get_signup_redirect_url(self, request):
+        return self._next_from_cookie(request) or super().get_signup_redirect_url(request)
 
 
 class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):

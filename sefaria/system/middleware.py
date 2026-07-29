@@ -479,3 +479,26 @@ class ModuleMiddleware(MiddlewareURLMixin):
         if hasattr(response, 'context_data') and response.context_data is not None:
             response.context_data['active_module'] = request.active_module
         return response
+
+
+class ClearSsoNextCookieMiddleware(MiddlewareMixin):
+    """
+    Deletes the `sefaria_sso_next` cookie (written by static/js/auth/useSsoSignIn.jsx,
+    read by sso.adapters.SefariaAccountAdapter) as soon as one of the two views that
+    might consume it responds, success or failure, so it can't be reused by a later,
+    unrelated SSO attempt within its own max-age window. These are the only two call
+    sites in the codebase that reach SefariaAccountAdapter.get_login_redirect_url /
+    get_signup_redirect_url — email login/register/password-reset are all fully custom
+    Sefaria views that never touch that adapter machinery. Keep this cookie name in
+    sync with sso.adapters.SefariaAccountAdapter.SSO_NEXT_COOKIE.
+    """
+    SSO_NEXT_COOKIE = 'sefaria_sso_next'
+    SSO_CALLBACK_PATHS = {
+        '/api/auth/google/redirect',
+        '/accounts/apple/login/callback/finish/',
+    }
+
+    def process_response(self, request, response):
+        if request.path in self.SSO_CALLBACK_PATHS:
+            response.delete_cookie(self.SSO_NEXT_COOKIE)
+        return response

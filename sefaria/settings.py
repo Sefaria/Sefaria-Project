@@ -141,6 +141,7 @@ MIDDLEWARE = [
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'sefaria.system.middleware.ClearSsoNextCookieMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
