@@ -101,6 +101,46 @@ def test_add_non_unique_term_titles(monkeypatch):
     assert detail["usages"] == []
 
 
+def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatch):
+    """Titles are stored normalized the same way the linker normalizes input text."""
+    class FakeTerm:
+        slug = "__le_test_term__"
+
+        def __init__(self):
+            self.titles = []
+
+        def add_title(self, text, lang):
+            self.titles.append({"text": text, "lang": lang})
+
+        def save(self):
+            pass
+
+        def get_titles_object(self):
+            return self.titles
+
+    term = FakeTerm()
+
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return term if slug == term.slug else None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+    monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
+
+    detail = le.add_non_unique_term_titles(term.slug, [
+        # unidecode diacritic + collapsed double space + surrounding whitespace
+        {"text": "  Ḥagigah   ha  ", "lang": "en"},
+        # vowel/cantillation marks stripped for Hebrew (the linker's "cantillation"
+        # normalizer range covers nikud too): בְּרֵאשִׁ֑ית -> בראשית
+        {"text": "בְּרֵאשִׁ֑ית", "lang": "he"},
+    ])
+
+    stored = {t["text"] for t in detail["titles"]}
+    assert "Hagigah ha" in stored
+    assert "בראשית" in stored
+
+
 def test_add_non_unique_term_titles_validation(monkeypatch):
     class FakeNonUniqueTerm:
         @staticmethod
@@ -220,6 +260,43 @@ def test_search_non_unique_terms_by_slug():
     # so a hit here can only come from matching the slug itself.
     results = le.search_non_unique_terms("a-collection-on-prophets", 5)
     assert "a-collection-on-prophets" in [t["slug"] for t in results]
+
+
+def test_search_non_unique_terms_normalizes_query(monkeypatch):
+    captured = []
+
+    class FakeTerm:
+        slug = "__le_test_term__"
+
+        def get_primary_title(self, lang):
+            return "Primary" if lang == "en" else "עיקרי"
+
+    class FakeNonUniqueTermSet:
+        def __init__(self, query, limit=None):
+            captured.append((query, limit))
+
+        def __iter__(self):
+            return iter([FakeTerm()])
+
+    monkeypatch.setattr(le, "NonUniqueTermSet", FakeNonUniqueTermSet)
+
+    assert le.search_non_unique_terms("  Ḥagigah   ha  ", 7) == [{
+        "slug": "__le_test_term__",
+        "primary_en": "Primary",
+        "primary_he": "עיקרי",
+    }]
+    regex = {"$regex": le.re.escape("Hagigah ha"), "$options": "i"}
+    assert captured[0] == (
+        {"$or": [{"titles.text": regex}, {"slug": regex}]},
+        7,
+    )
+
+    le.search_non_unique_terms("בְּרֵאשִׁ֑ית", 5)
+    regex = {"$regex": le.re.escape("בראשית"), "$options": "i"}
+    assert captured[1] == (
+        {"$or": [{"titles.text": regex}, {"slug": regex}]},
+        5,
+    )
 
 
 def test_create_non_unique_term():

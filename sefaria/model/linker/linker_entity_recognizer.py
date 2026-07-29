@@ -10,6 +10,22 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
+def get_linker_normalizer(lang: str) -> NormalizerComposer:
+    """
+    The normalizer the linker applies to input text server-side before recognition.
+    See ML Repo library_exporter.py:TextWalker.__init__() which uses the same normalization;
+    important that normalization is equivalent to normalization done at training time.
+
+    Exposed as a module-level function so other server-side code (e.g. the linker editor,
+    when storing NonUniqueTerm titles) can normalize strings identically to what the linker
+    sees at match time.
+    """
+    normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
+    if lang == 'he':
+        normalizer_steps += ['maqaf', 'cantillation']
+    return NormalizerComposer(normalizer_steps)
+
+
 class LinkerEntityRecognizer:
     """
     Wrapper around AbstractNER
@@ -29,12 +45,7 @@ class LinkerEntityRecognizer:
         self._normalizer = self.__init_normalizer()
 
     def __init_normalizer(self) -> NormalizerComposer:
-        # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
-        # important that normalization is equivalent to normalization done at training time
-        normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
-        if self._lang == 'he':
-            normalizer_steps += ['maqaf', 'cantillation']
-        return NormalizerComposer(normalizer_steps)
+        return get_linker_normalizer(self._lang)
     
     @property
     def normalizer(self) -> AbstractNormalizer:

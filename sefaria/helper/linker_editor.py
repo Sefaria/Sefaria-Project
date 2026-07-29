@@ -11,6 +11,7 @@ from typing import List, Optional
 from sefaria.model import library
 from sefaria.model.schema import NonUniqueTerm, NonUniqueTermSet, AddressType
 from sefaria.model.linker.match_template import MatchTemplate
+from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
 import sefaria.model.linker.nonuniqueterm_index as nut_index
 from sefaria.system.exceptions import InputError
 
@@ -177,7 +178,7 @@ def set_address_types(title: str, node_key_path: str, address_types: List[str]) 
 
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
     """Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete."""
-    q = (q or "").strip()
+    q = get_linker_normalizer("he").normalize(q or "").strip()
     if not q:
         return []
     regex = {"$regex": re.escape(q), "$options": "i"}
@@ -262,9 +263,11 @@ def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
         if not isinstance(title, dict):
             raise InputError("Each title must be an object.")
         lang = title.get("lang")
-        text = (title.get("text") or "").strip()
         if lang not in ("en", "he"):
             raise InputError("Title lang must be 'en' or 'he'.")
+        # Normalize the title with the same normalizer the linker applies to input text
+        # server-side, so stored titles match what the linker sees at match time.
+        text = get_linker_normalizer(lang).normalize(title.get("text") or "").strip()
         if not text:
             raise InputError("Title text may not be blank.")
         term.add_title(text, lang)
