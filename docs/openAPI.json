@@ -25643,7 +25643,7 @@
       },
       "SheetsJSON": {
         "title": "Root Type for SheetsJSON",
-        "description": "JSON containing metadata relating for a given source sheet on [Sefaria](https://www.sefaria.org).",
+        "description": "JSON containing metadata relating for a given source sheet on [Voices on Sefaria](https://voices.sefaria.org).",
         "type": "object",
         "properties": {
           "owner": {
@@ -25652,7 +25652,7 @@
             "type": "integer"
           },
           "id": {
-            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Sefaria](https://www.sefaria.org) at [sefaria.org/sheets/1](https://www.sefaria.org/sheets/1).",
+            "description": "The `id` of the sheet. This is used in the URL to retrieve sheets, for example, a sheet with an `id` of 1, would be accessible on [Voices on Sefaria](https://voices.sefaria.org) at [voices.sefaria.org/sheets/1](https://voices.sefaria.org/sheets/1).",
             "type": "string"
           },
           "public": {
