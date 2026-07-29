@@ -1,35 +1,59 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import { InterfaceText } from './Misc';
 
 const NO_RESULTS_CONTENT = {
   sources: {
-    heading: (query) => `No sources found for “${query}”`,
-    body:    'Try a different spelling or shorter search term, or browse the library',
-    ctaText: 'Browse the library',
-    ctaHref: '/texts',
+    h1Key:     'search.null.sources.h1',
+    bodyKey:   'search.null.sources.body',
+    buttonKey: 'search.null.sources.button',
+    captionKey:'search.null.sources.caption',
+    ctaHref:   '/texts',
   },
   books: {
-    heading: (query) => `No books found for “${query}”`,
-    body:    'Try a different spelling or shorter search term, or browse through all of our books',
-    ctaText: 'Browse the library',
-    ctaHref: '/texts',
+    h1Key:     'search.null.books.h1',
+    bodyKey:   'search.null.books.body',
+    buttonKey: 'search.null.books.button',
+    captionKey:'search.null.books.caption',
+    ctaHref:   '/texts',
   },
   authors: {
-    heading: (query) => '',
-    body:    'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    ctaText: '',
-    ctaHref: '',
+    h1Key:     'search.null.authors.h1',
+    bodyKey:   'search.null.authors.body',
+    buttonKey: 'search.null.authors.button',
+    captionKey:'search.null.authors.caption',
+    ctaHref:   '/people',
   },
   topics: {
-    heading: (query) => `No topics found for “${query}”`,
-    body:    'Try a different or shorter search term, or browse topics.',
-    ctaText: 'Browse Topics',
-    ctaHref: '/topics',
+    h1Key:     'search.null.topics.h1',
+    bodyKey:   'search.null.topics.body',
+    buttonKey: 'search.null.topics.button',
+    captionKey:'search.null.topics.caption',
+    ctaHref:   '/topics',
   },
 };
 
+// The caption key value is "Something seem wrong? Report a bug or contact us."
+// We split around the two link phrases to keep them clickable.
+const CAPTION_LINK_PATTERN = /(Report a bug|contact us)/;
+
+function renderCaption(captionKey) {
+  const parts = Sefaria._(captionKey).split(CAPTION_LINK_PATTERN);
+  return (
+    <p className="noSearchResults-caption">
+      {parts.map((part, i) =>
+        part === 'Report a bug' || part === 'contact us'
+          ? <a key={i} href="#" className="noSearchResults-captionLink">{part}</a>
+          : part
+      )}
+    </p>
+  );
+}
+
 function NoSearchResults({ mode, query }) {
-  const { heading: getHeading, body, ctaText, ctaHref } = NO_RESULTS_CONTENT[mode] || {};
+  const { h1Key, bodyKey, buttonKey, captionKey, ctaHref } = NO_RESULTS_CONTENT[mode] || {};
+  const heading = Sefaria._(h1Key).replace('[query]', query);
 
   return (
     <div className="noSearchResults">
@@ -41,19 +65,15 @@ function NoSearchResults({ mode, query }) {
       />
       <div className="noSearchResults-content">
         <div className="noSearchResults-textGroup">
-          <p className="noSearchResults-heading serif">{getHeading?.(query)}</p>
-          <p className="noSearchResults-body">{body}</p>
+          <p className="noSearchResults-heading serif">{heading}</p>
+          <p className="noSearchResults-body">
+            <InterfaceText>{bodyKey}</InterfaceText>
+          </p>
         </div>
         <a href={ctaHref} className="noSearchResults-cta">
-          {ctaText}
+          <InterfaceText>{buttonKey}</InterfaceText>
         </a>
-        <p className="noSearchResults-caption">
-          {'Something seem wrong? '}
-          <a href="#" className="noSearchResults-captionLink">{'Report a bug'}</a>
-          {' or '}
-          <a href="#" className="noSearchResults-captionLink">{'contact us'}</a>
-          {'.'}
-        </p>
+        {renderCaption(captionKey)}
       </div>
     </div>
   );

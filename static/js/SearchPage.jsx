@@ -139,11 +139,12 @@ class SearchPage extends Component {
       return searchResultList;
     }
 
+    const nullTabCount = this.props.query ? "0" : null;
     const tabs = [
-      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() ?? null},
-      {id: "books",   title: "Books",   count: null},
-      {id: "authors", title: "Authors", count: null},
-      {id: "topics",  title: "Topics",  count: null},
+      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() ?? nullTabCount},
+      {id: "books",   title: "Books",   count: nullTabCount},
+      {id: "authors", title: "Authors", count: nullTabCount},
+      {id: "topics",  title: "Topics",  count: nullTabCount},
     ];
 
     return (
@@ -177,7 +178,7 @@ class SearchPage extends Component {
                         {resultCount}
                       </div>
                       <div>
-                        {makeSortFilterControls(false)}
+                        {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
                       </div>
                     </div>
                     {/* Search results temporarily removed while the page is rebuilt
