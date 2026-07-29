@@ -308,6 +308,17 @@ export const MOBILE_PAGE_URLS = {
   MORE_FROM_SEFARIA: /\/products(\/|$|\?)/,
 } as const;
 
+/**
+ * Library search-results URL for a query, optionally deep-linked to a results tab.
+ *
+ * `search_tab` (not `tab`) selects sources/books/authors/topics — on a search URL
+ * `tab` already means the text-vs-sheet search type. See `get_search_params` in
+ * reader/views.py:1066.
+ */
+export const librarySearchUrl = (query: string, searchTab?: string) =>
+  `${MODULE_URLS.EN.LIBRARY}/search?q=${encodeURIComponent(query)}`
+  + (searchTab ? `&search_tab=${encodeURIComponent(searchTab)}` : '');
+
 export const SEARCH_DROPDOWN = {
   CONTAINER: '.autocomplete-dropdown',
   SECTIONS: {
