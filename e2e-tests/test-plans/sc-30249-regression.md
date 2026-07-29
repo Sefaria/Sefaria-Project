@@ -79,7 +79,7 @@ current SC-30249 specs. New series prefix `MWS-` ("mobile web surface"); all run
 | MWS-004 | Regression | P1 | R6 | A topic page (`/topics/torah` — the slug the Library Topics suite already uses) on mobile: scroll to the bottom. **Expected:** full content reachable; sticky sub-nav (if any) behaves. | Automated |
 | MWS-004b | Regression | P1 | R6 | *(added at Stage 2 — the landing page and a topic page are different components)* `/topics` landing on mobile: scroll to the bottom. | Automated |
 | MWS-005 | Regression | P0 | R1, R6 | **Revised at Stage 2:** `.homeFeedWrapper` is `UserStats` — the Torah Tracker page (`/torahtracker`, UserStats.jsx:53, ReaderApp.jsx:1317), not a "home feed". Logged-in mobile: scroll it to the end. **Expected:** `.homeFeedWrapper` computes `position: static`; all content reachable. | Automated (logged-in) |
-| MWS-006 | Regression | P1 | R6 | Logged-in mobile `/saved` and `/history` (both **Voices**-module surfaces rendered by `UserHistoryPanel`): scroll each to the end. **Expected:** all content reachable; no fixed-height clipping. *Profile and notifications remain unautomated — profile needs a stable slug for the test account.* | Automated (saved + history); Manual (profile, notifications) |
+| MWS-006 | Regression | P1 | R6 | Logged-in mobile `/saved` and `/history` (both rendered by `UserHistoryPanel`, which is a `.readerNavMenu`): scroll each to the end. **Expected:** all content reachable; no fixed-height clipping. *Corrected 2026-07-29 — these run on the **Library** host, not Voices: both modules serve both paths identically, R6 is about the shared container rather than module-specific content (MWS-011 covers Voices), and staying on the login host lets the row run locally. Profile and notifications remain unautomated — profile needs a stable slug for the test account.* | Automated (saved + history); Manual (profile, notifications) |
 | MWS-007 | Regression | P0 | R7 | Mobile sheet reader: scroll a long sheet to the end. Then open the sheet editor, focus a text block and type. **Expected:** sheet scrolls fully; the on-screen keyboard does not leave the fixed header floating over the caret; the page does not jump on focus. | Automated (reader) + Manual (editor, real device) |
 | MWS-008 | Regression | P0 | R1, R2, R3 | Mobile hamburger drawer: open, scroll it, close. **Expected:** drawer renders above the document, is not clipped by `overflow-x: clip` on `#s2`, scrolls internally, and the page behind does not lose its scroll position on close. Existing `HAM-*` suite must stay green. | Automated (re-run `mobile web/hamburger-menu.spec.ts` as the gate) |
 | MWS-009 | Regression | P1 | R1, R3 | Mobile overlays: cookies banner, sign-up modal, login redirect, GuideOverlay. **Expected:** each positions correctly with `#s2` static — no modal stranded off-screen or scrolled away with the document. | Automated |
@@ -140,19 +140,31 @@ restore mechanism, different chapter), DW-012 (covered in substance by DW-017 / 
 
 ---
 
-## 7. Known open defect (must close before this plan can pass)
+## 7. Product defect — FIXED 2026-07-29
 
-`adjustInfiniteScroll`'s down-branch compares `$lastText.position().top`
-([TextColumn.jsx:303](../../static/js/TextColumn.jsx#L303)) — document-relative and therefore
-**constant while the window scrolls** — against `getClientHeight() + 80`
-([TextColumn.jsx:311](../../static/js/TextColumn.jsx#L311)). The up-branch works because it uses
-`getLocalScrollTop()`. The spec file header records MW-004 / MW-006 as failing for this reason
-as of 2026-07-15, and the code still reads `position().top` on the current branch — re-confirm
-at Stage 3b rather than assuming.
+`adjustInfiniteScroll`'s down-branch compared `$lastText.position().top` against
+`getClientHeight() + 80`, mixing two coordinate frames. `.textColumn` is `position: relative`
+([s2.css:1212](../../static/css/s2.css#L1212)) and the singlePanel block overrides only
+`height`/`overflow-y`, so it stays the `offsetParent` in both modes. That makes `position().top`
+equal to `elemRect.top - columnRect.top` — which shrinks as a *column* scrolls, but is
+**scroll-invariant** when the *document* scrolls and the column moves with it. On mobile the
+value sat at ≈8,951px against a ≈807px threshold at every scroll position, so the branch was
+unreachable. The up-branch was always fine: it uses `getLocalScrollTop()`.
 
-**Consequence for this plan:** MW-004, MW-006, and DW-013 all depend on the down-branch. Fix
-direction is to measure the last text viewport-relative (`getBoundingClientRect().bottom`) when
-`isWindowScroll()`. Until then, Series A/B cannot reach a clean pass.
+**Fix** ([TextColumn.jsx:301-309](../../static/js/TextColumn.jsx#L301-L309)): measure the last
+section's bottom in the same frame as `getClientHeight()`, using the `containerRectTop` idiom
+the diff already uses in `adjustHighlightedAndVisible`
+([TextColumn.jsx:415-421](../../static/js/TextColumn.jsx#L415-L421)):
+
+```js
+const containerRectTop = this.isWindowScroll() ? 0 : this.node.getBoundingClientRect().top;
+const lastBottom = $lastText[0].getBoundingClientRect().bottom - containerRectTop;
+```
+
+Arithmetically identical on desktop (`rect.bottom - columnRect.top` ≡ `position().top +
+outerHeight()` given `position: relative` and no border), so DW-013 is the guard that desktop
+did not change. Verified: mobile `lastBottom` now moves 8951 → 7540 while scrolling; desktop
+numbers are unchanged from before the patch. See §8b.
 
 ---
 
@@ -192,12 +204,18 @@ contain `isWindowScroll`. Chromium / Pixel 5 for mobile.
 attaching after 20 scroll passes to the document bottom — infinite-scroll-down does not fire in
 window-scroll mode. MW-006 fails downstream of it. Unchanged since 2026-07-15.
 
-**MWS-006 is environment-blocked, not a product failure.** It lands on "Log in to Sefaria":
-the session cookie set for `localhost` is not sent to `voices.localhost`, because the two share
-no registrable domain in Chromium's cookie model, so `fixCookieDomainsForCrossSubdomain` has
-nothing to rewrite. It should pass on a cauldron. Related gap: `playwright.mobileweb.config.ts`
-declares no `globalSetup`, so mobile runs never provision `auth_*.json` themselves — logged-in
-mobile rows depend on a prior desktop-config run having written them.
+**MWS-006 failed — and the diagnosis recorded here on 2026-07-28 was wrong.** It was written up
+as environment-blocked (session cookie not carrying from `localhost` to `voices.localhost`, so
+"it should pass on a cauldron"). The cookie mechanics were accurate but irrelevant: the row
+never needed the Voices host. Both modules serve `/saved` and `/history` identically — verified
+by `curl`, both 302 to `/login` on their own host — so pointing the row at the Library host,
+where the login happens, makes it pass locally with no loss of coverage. Corrected 2026-07-29;
+see §8b. The lesson is procedural: an "environment-blocked" verdict on a test we wrote should
+first ask why the test is reaching for that environment at all.
+
+Still true and still worth fixing: `playwright.mobileweb.config.ts` declares no `globalSetup`,
+so mobile runs never provision `auth_*.json` themselves — logged-in mobile rows depend on a
+prior desktop-config run having written them.
 
 **Six test defects the run caught and fixed** (each was the test being wrong, not the product):
 

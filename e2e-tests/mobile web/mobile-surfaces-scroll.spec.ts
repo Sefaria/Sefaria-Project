@@ -47,10 +47,13 @@ const TOPICS_LANDING = `${LIB}/topics`;
 // UserStats — the only `.homeFeedWrapper` in the app (UserStats.jsx:53,
 // ReaderApp.jsx:1317). Logged-in surface.
 const TORAH_TRACKER = `${LIB}/torahtracker`;
-// /saved and /history are Voices-module surfaces (both rendered by
-// UserHistoryPanel, which is a `.readerNavMenu`) — see the Voices Bookmarks suite.
-const SAVED = `${VOICES}/saved`;
-const HISTORY = `${VOICES}/history`;
+// Both are rendered by UserHistoryPanel, which is a `.readerNavMenu` — the
+// container R6 re-flows. Served identically on either module host, so use the
+// Library host: R6 is about the shared container, not module-specific content
+// (MWS-011 covers the Voices module separately), and keeping this on the login
+// host means the suite runs against a local server as well as a sandbox.
+const SAVED = `${LIB}/saved`;
+const HISTORY = `${LIB}/history`;
 // Public sheet, 41 sources (verified via /api/sheets/5156 — CLAUDE.md §2A), long
 // enough to require scrolling on a phone. Read-only, so it does not collide with
 // the Bookmarks suite's ownership of this id (that rule is about state mutation).
