@@ -184,6 +184,10 @@ DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 
+# Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
+# Empty in local dev, where no deploy has happened.
+APP_VERSION = os.environ.get("APP_VERSION", "")
+
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'

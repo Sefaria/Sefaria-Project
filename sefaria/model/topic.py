@@ -5,7 +5,7 @@ from .text import Ref, IndexSet, AbstractTextRecord, Index, Term
 from .category import Category
 from django_topics.models import Topic as DjangoTopic
 from django_topics.models import TopicPool, PoolType
-from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, DuplicateRecordError, SluggedMongoRecordMissingError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.validators import validate_url
 from sefaria.model.portal import Portal
@@ -393,8 +393,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
+    def should_display(self, min_sources: int = 1) -> bool:
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) >= min_sources or self.has_description() or getattr(self, "data_source", "") == "sefaria")
 
     def has_description(self) -> bool:
         """
@@ -545,9 +545,10 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             d.update(super(Topic, self).contents(**kwargs))
         else:
             children = kwargs.get("children", [])
+            min_sources = kwargs.get("min_sources_for_display", 1)
             d.update({
                 'slug': self.slug,
-                "shouldDisplay": True if len(children) > 0 else self.should_display(),
+                "shouldDisplay": True if len(children) > 0 else self.should_display(min_sources=min_sources),
                 "displayOrder": getattr(self, "displayOrder", 10000),
                 "pools": self.get_pools()})
             if getattr(self, "categoryDescription", False):
@@ -1210,15 +1211,42 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
     objs = RefTopicLinkSet({"$or": queries})
     for o in objs:
         o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        # Rewrite each matching link independently. A single malformed link (e.g. one
+        # whose topic no longer exists) must not abort the rename cascade and strand the
+        # remaining links. We swallow the bad-record error families that save()/its topic
+        # recompute can raise for a corrupt link — InputError (and subclasses like
+        # DuplicateRecordError), AssertionError (from _validate's type asserts), and
+        # SluggedMongoRecordMissingError (missing toTopic/linkType slug). Systemic failures
+        # (Mongo/Postgres down surface as other exception types) still abort loudly.
         try:
             o.save()
-        except InputError:
-            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+        except (InputError, AssertionError, SluggedMongoRecordMissingError) as e:
+            logger.warning("Failed to convert ref topic link '{}' on topic '{}' from '{}' to '{}': {}".format(
+                getattr(o, 'ref', '?'), getattr(o, 'toTopic', '?'), kwargs['old'], kwargs['new'], e))
 
 def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
-    RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+    # Delete each matching link independently rather than via the set's bulk loop:
+    # RefTopicLink.delete() recomputes the topic's pools/numSources, and if one link's
+    # topic is itself malformed and fails to save, the set loop would abort and leave the
+    # remaining orphaned links behind. Isolate each deletion so one bad record can't strand
+    # the rest. We swallow the bad-record error families the delete + topic recompute can
+    # raise for a corrupt link — InputError (and subclasses), AssertionError (from _validate's
+    # type/subclass asserts), and SluggedMongoRecordMissingError. Systemic failures (Mongo/
+    # Postgres down surface as other exception types) still abort loudly.
+    total, failed = 0, 0
+    for link in RefTopicLinkSet({"ref": {"$regex": pattern}}):
+        total += 1
+        try:
+            link.delete()
+        except (InputError, AssertionError, SluggedMongoRecordMissingError) as e:
+            failed += 1
+            logger.warning("Failed to delete ref topic link '{}' on topic '{}' while deleting index '{}': {}".format(
+                getattr(link, 'ref', '?'), getattr(link, 'toTopic', '?'), indx.title, e))
+    if failed:
+        logger.error("Deleting index '{}' left {} of {} ref topic links undeleted; orphaned links remain.".format(
+            indx.title, failed, total))
 
 def process_topic_delete(topic):
     RefTopicLinkSet({"toTopic": topic.slug}).delete()

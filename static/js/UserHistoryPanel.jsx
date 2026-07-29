@@ -47,15 +47,15 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
         data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE} 
         className={"navTitleTab" + (menuOpen === 'saved' ? ' current' : '') }
         onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-          <img src="/static/icons/bookmark.svg" alt={Sefaria._("Saved")} />
-          <InterfaceText>Saved</InterfaceText>
+          <img src="/static/icons/bookmark.svg" alt={Sefaria._("common.saved")} />
+          <InterfaceText>common.saved</InterfaceText>
       </a>
       <a href="/history" 
         className={"navTitleTab" + (menuOpen === 'history' ? ' current' : '')}
         data-target-module={Sefaria.activeModule === 'library' ? Sefaria.LIBRARY_MODULE : Sefaria.VOICES_MODULE}
         onKeyDown={(e) => Util.handleKeyboardClick(e)}>
-          <img src="/static/icons/clock.svg" alt={Sefaria._("History")} />
-          <InterfaceText>History</InterfaceText>
+          <img src="/static/icons/clock.svg" alt={Sefaria._("common.history")} />
+          <InterfaceText>common.history</InterfaceText>
       </a>
       { Sefaria.activeModule === "library" &&
         <a 
@@ -63,8 +63,8 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
            className={"navTitleTab" + (menuOpen === 'notes' ? ' current' : '')}
            onKeyDown={(e) => Util.handleKeyboardClick(e)}
         >
-          <img src="/static/icons/notes-icon.svg" alt={Sefaria._("Notes")} />
-          <InterfaceText>Notes</InterfaceText>
+          <img src="/static/icons/notes-icon.svg" alt={Sefaria._("user_history_panel.notes")} />
+          <InterfaceText>user_history_panel.notes</InterfaceText>
         </a> }
     </span>
   );
@@ -183,8 +183,8 @@ const UserHistoryList = ({store, scrollableRef, menuOpen, toggleSignUpModal}) =>
     return (
       <div className="savedHistoryMessage sans-serif">
         {menuOpen === 'history' ?
-        <InterfaceText>Texts and sheets that you read will be available for you to see here.</InterfaceText>
-        : <InterfaceText>Click the bookmark icon on texts or sheets to save them here.</InterfaceText>}
+        <InterfaceText>user_history_panel.texts_and_sheets_that_you_read_will_be</InterfaceText>
+        : <InterfaceText>user_history_panel.click_the_bookmark_icon_on_texts_or_sheets</InterfaceText>}
       </div>
     );
   }

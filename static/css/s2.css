@@ -12857,7 +12857,8 @@ cursor: pointer;
 .interface-hebrew .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 4px 0 0;
 }
-.profile-page .aboutText {
+.profile-page .aboutText,
+.profile-page .aboutText * {
   margin-top: 20px;
   font-size: 18px;
   line-height: 1.4;
@@ -15318,6 +15319,15 @@ span.ref-link-color-3 {color: blue}
 .dropdownItem:hover {
   background-color: var(--highlight-blue);
   text-decoration: none;
+}
+
+/* Static account name rows are rendered as anchors without hrefs; avoid making them look clickable. */
+.dropdownItem:not([href]) {
+  cursor: default;
+}
+
+.dropdownItem:not([href]):hover {
+  background-color: transparent;
 }
 
 .dropdownLogoItem {
