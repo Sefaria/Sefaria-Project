@@ -234,6 +234,33 @@ prior desktop-config run having written them.
 any of this work. Now matches `/invisibleHighlight|highlight/`, consistent with
 `expectHighlightedSegmentInViewport`.
 
+## 8b. Stage 3b re-run after the §7 fix — 2026-07-29
+
+Environment: local `runserver` on the branch, `SANDBOX_URL=http://localhost:8000`, bundle
+rebuilt and verified to contain the fix (`grep containerRectTop static/bundles/client/client-*.js`).
+
+| Suite | Result |
+| --- | --- |
+| `library/reader-scroll-desktop.spec.ts` (chrome-library) | **20 / 20 pass** |
+| `mobile web/reader-scroll.spec.ts` (chrome-mobile-library) | **17 / 17 pass** — MW-004 and MW-006 now green |
+| `mobile web/mobile-surfaces-scroll.spec.ts` (chrome-mobile-library) | **13 / 13 pass** |
+
+**50 / 50, entirely against a local server.** The suite no longer needs a cauldron to reach a
+clean pass — though Stage 4 should still run it against one before merge.
+
+**Two test defects this run caught:**
+
+| Row | What the run showed | Fix |
+| --- | --- | --- |
+| MW-006 / DW-001 | Both asserted the URL tracks the visible section immediately after `scroll*UntilSectionLoads`, but that helper `break`s the moment the section *attaches* — the viewport is still on Genesis 1:31. DW-001 passed anyway on incidental desktop geometry; MW-006 would have failed even with §7 fixed. | New `scrollSectionIntoView()` on the POM, called by both rows before the URL assertion, so they test highlight-tracking rather than where the load happened to leave the viewport. |
+| MWS-006 | Pointed at the Voices host for no reason the row required; failed locally with a misleading "`.readerNavMenu` not found" that reads as a layout bug. | Repointed at the Library host. See §8a. |
+
+**Note on `MODULE_URLS` and localhost.** [constants.ts:60-77](../constants.ts#L60-L77) has an
+`isLocalSandbox` branch, so `SANDBOX_URL=http://localhost:8000` works and the throwaway-script
+workaround recorded elsewhere is unnecessary. The one real limit is that `localhost` is a public
+suffix, so a session cookie cannot cross to `voices.localhost` — which affects any *future* row
+that genuinely needs a logged-in session on the Voices host.
+
 ## 9. Execution
 
 ```bash
@@ -311,9 +338,19 @@ fixture for the R12 early-return path.
    that row would report a false pass on the story's single most important case. It must be a
    physical-device check (Series D, BR-001/BR-003).
 
+8. **`overflow-y` is not a usable signal for which scroll mode a surface is in.** The singlePanel
+   block sets `.textColumn { overflow-y: visible }`, but the base rule at
+   [s2.css:1210](../../static/css/s2.css#L1210) carries `overflow-x: hidden`, and CSS promotes a
+   `visible` on one axis to `auto` when the other axis is not visible. So `.textColumn` computes
+   `overflow-y: auto` on mobile even though it never scrolls (its height is auto). Harmless for
+   the product — `TextColumn` branches on `props.multiPanel`, not on computed style — but any
+   test or debugging script that sniffs computed overflow to detect the scroll mode will be
+   wrong. Detect via `.readerApp.singlePanel` instead. Same root cause as finding 3.
+
 ## 10. Exit criteria
 
-1. Every P0 row passes on the branch cauldron, and the §7 defect is fixed.
+1. Every P0 row passes on the branch cauldron. ✅ §7 defect fixed 2026-07-29; 50/50 pass
+   locally (§8b) — the cauldron run remains outstanding.
 2. Every P1 row passes or has a filed, triaged ticket.
 3. Series D (BR-001 … BR-007) checked off on physical devices by the developer.
 4. The `@sanity` suite passes on both the desktop and mobile configs.
