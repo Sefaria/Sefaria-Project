@@ -137,7 +137,7 @@ class ReaderApp extends Component {
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
-  handleAuthNavigate(path, source = null) {
+  handleAuthNavigate = (path, source = null) => {
     this.setState({ showAuth: true, authPath: path, authSource: source });
   }
   makePanelState(state) {
