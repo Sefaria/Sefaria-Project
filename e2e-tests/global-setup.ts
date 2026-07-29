@@ -78,11 +78,14 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
 
     const page = await context.newPage();
     await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: t(30000) });
-    await page.locator('input[name="email"]').first()
+    // /login lands on AuthPage's ChooseView first (provider buttons + "Continue
+    // with Email") — wait for that, not the email field, which only exists once
+    // LoginPage.loginAs() clicks through it below.
+    await page.getByRole('button', { name: 'Continue with Email' }).first()
       .waitFor({ state: 'visible', timeout: t(15000) });
 
     // If geo still redirected us off-domain, fail loudly rather than time out
-    // on getByPlaceholder.
+    // on getByLabel.
     if (new URL(page.url()).hostname !== baseHost) {
       throw new Error(
         `[global-setup] /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +
@@ -147,7 +150,10 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
 
     const page = await context.newPage();
     await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: t(30000) });
-    await page.locator('input[name="email"]').first().waitFor({ state: 'visible', timeout: t(15000) });
+    // /login lands on AuthPage's ChooseView first — reuse LoginPage's helper
+    // rather than re-deriving the Hebrew button label here.
+    const loginPage = new LoginPage(page, LANGUAGES.HE);
+    await loginPage.clickContinueWithEmail();
 
     if (new URL(page.url()).hostname !== baseHost) {
       throw new Error(

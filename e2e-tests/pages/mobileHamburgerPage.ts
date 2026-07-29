@@ -535,20 +535,23 @@ export class MobileHamburgerPage extends HelperBase {
   // Auth-flow actions
   // ---------------------------------------------------------------------------
   //
-  // Source of truth for the login / register / password-reset pages:
-  //   Sefaria-Project/templates/registration/login.html
-  //   Sefaria-Project/templates/registration/register.html
-  //   Sefaria-Project/templates/registration/password_reset_form.html
+  // Source of truth for the login / register / password-reset UI: the React
+  // `AuthPage` state machine (static/js/auth/AuthPage.jsx and siblings under
+  // static/js/auth/), which replaced the old server-rendered
+  // templates/registration/{login,register}.html. `/login` and `/register` both
+  // land on `ChooseView` (provider buttons + "Continue with Email") before any
+  // email/password form is on screen.
   //
   // The Log in / Sign up links in the mobile menu are wrapped in
   // `NextRedirectAnchor`, which flips `href` to `#` at hydration and routes via
   // JS. Tapping them performs a full-page navigation to `/login` / `/register`.
 
   /**
-   * Tap "Log in" in the open hamburger menu and assert the user lands on the
-   * Django login page. Anchored on heading text + URL for redundancy — login
-   * may live at `/login` or `/login/` depending on Django's trailing-slash
-   * behavior.
+   * Tap "Log in" in the open hamburger menu and assert the user lands on
+   * AuthPage's ChooseView for the login flow. Anchored on heading text + URL
+   * for redundancy — login may live at `/login` or `/login/` depending on
+   * Django's trailing-slash behavior. Heading is `header.log_in` ("Log in"),
+   * not a full-sentence document title.
    */
   async clickLogInAndExpectLoginPage(): Promise<void> {
     await expect(this.loginLink).toBeVisible({ timeout: t(5000) });
@@ -556,20 +559,24 @@ export class MobileHamburgerPage extends HelperBase {
     await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(/\/login/, { timeout: t(15000) });
     await expect(
-      this.page.getByRole('heading', { name: /Log in to Sefaria/i }),
+      this.page.getByRole('heading', { name: /^Log in$/i }),
     ).toBeVisible({ timeout: t(10000) });
   }
 
   /**
-   * Tap "Sign up" in the open hamburger menu and assert the user lands on the
-   * Django register page. Used when a test wants to start from the signup
-   * page rather than via the login → "Create a new account" path.
+   * Tap "Sign up" in the open hamburger menu and assert the user lands on
+   * AuthPage's ChooseView for the register flow (heading "Create Account").
+   * Used when a test wants to start from the signup page rather than via the
+   * login → "Sign up" crosslink path.
    */
   async clickSignUpAndExpectRegisterPage(): Promise<void> {
     await expect(this.signupLink).toBeVisible({ timeout: t(5000) });
     await this.signupLink.tap();
     await this.page.waitForLoadState('domcontentloaded');
     await expect(this.page).toHaveURL(/\/register/, { timeout: t(15000) });
+    await expect(
+      this.page.getByRole('heading', { name: /^Create Account$/i }),
+    ).toBeVisible({ timeout: t(10000) });
   }
 
   /**
