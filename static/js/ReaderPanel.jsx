@@ -944,6 +944,8 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     searchState={this.state['searchState']}
                     resetSearchFilters={this.props.resetSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}

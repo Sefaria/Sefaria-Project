@@ -1,7 +1,6 @@
 from functools import wraps
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
-from sefaria.model import Ref
 from sefaria.system.exceptions import InputError
 from remote_config import remoteConfigCache
 from remote_config.keys import (
@@ -9,10 +8,15 @@ from remote_config.keys import (
     SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
     SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
 )
-import logging
+import structlog
 import re
 
-logger = logging.getLogger(__name__)
+# This module must not import sefaria.model at module level: it is imported by
+# sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
+# (for the ES cascade handlers below), so a top-level model import would be circular.
+# Model imports live inside the functions that need them instead.
+
+logger = structlog.get_logger(__name__)
 
 
 def default_list(param):
@@ -178,6 +182,8 @@ def normalize_linked_ref_filters(refs):
     """
     Expand raw refs into normalized segment refs for linked_refs search filters.
     """
+    from sefaria.model import Ref
+
     segment_refs = []
     for ref in refs:
         try:
@@ -251,20 +257,18 @@ _ENTITY_YEAR_SORT_FIELDS = {"author": "birthYear", "book": "compDate"}
 
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,
-# authored titles on authors) -> description.
+# authored titles on authors). Descriptions are deliberately excluded from search
+# entirely — a description mention is not a meaningful entity match.
 #
 # These defaults double as the *allow-list* of valid field names. A RemoteConfig
 # override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
 # any of these boosts at runtime without a deploy, but a key that isn't listed here —
 # e.g. a misspelled "titel_en" — is ignored, never added to the query.
 _DEFAULT_ENTITY_FIELD_BOOSTS = {
-    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2,
-              "description_en": 1, "description_he": 1},
+    "topic": {"title_en": 3, "title_he": 3, "titleVariants": 2},
     "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
-               "authored_titles_en": 1.5, "authored_titles_he": 1.5,
-               "description_en": 1, "description_he": 1},
-    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5,
-             "description_en": 1, "description_he": 1},
+               "authored_titles_en": 1.5, "authored_titles_he": 1.5},
+    "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5},
 }
 
 # RemoteConfig key holding the per-field boost overrides for each entity type. Each key
@@ -314,21 +318,36 @@ def _resolve_entity_field_boosts(type):
     return [field if boost == 1 else f"{field}^{boost}" for field, boost in boosts.items()]
 
 
-# Phrase/prefix tiers run over these "title" fields only, to avoid description noise.
+# Phrase/prefix tiers run over these "title" fields only.
 # For authors we also include authored_titles so a book title matches its author.
 _ENTITY_TITLE_FIELDS = {
     "topic": ["title_en", "title_he", "titleVariants"],
     "author": ["title_en", "title_he", "titleVariants", "authored_titles_en", "authored_titles_he"],
     "book": ["title_en", "title_he", "titleVariants"],
 }
-# Keyword sub-fields for tier-1 exact-match. Authors add authored_titles.keyword so the
-# author of an exactly-titled work (e.g. "Guide for the Perplexed") outranks its commentators.
-_ENTITY_KEYWORD_FIELDS = {
-    "topic": ["title_en.keyword", "title_he.keyword"],
-    "author": ["title_en.keyword", "title_he.keyword",
-               "authored_titles_en.keyword", "authored_titles_he.keyword"],
-    "book": ["title_en.keyword", "title_he.keyword"],
+# Keyword sub-fields for the exact-match tier. Split into two groups with different
+# decisive boosts (see get_entity_query_obj):
+#   - PRIMARY: the entity's *own* primary title. An exact hit here must win outright —
+#     the book literally titled "Chafetz Chaim" beats "Chafetz Chaim on Sifra" and every
+#     work by the Chafetz Chaim.
+#   - SECONDARY: exact hits that are strong but not the entity's own name — a title
+#     *variant* (books) or the title of a work the entity *wrote* (authors, so the author
+#     of "Guide for the Perplexed" still surfaces on that query, just below the book).
+_ENTITY_PRIMARY_KEYWORD_FIELDS = ["title_en.keyword", "title_he.keyword"]
+_ENTITY_SECONDARY_KEYWORD_FIELDS = {
+    "topic": [],
+    "author": ["authored_titles_en.keyword", "authored_titles_he.keyword"],
+    "book": ["titleVariants.keyword"],
 }
+
+# Exact-match boosts are applied via constant_score (below), so they are IDF-independent:
+# an exact primary-title hit contributes a fixed, dominant amount that a longer title merely
+# *containing* the query words — or an exact hit on a variant — can never sum past. This is
+# what makes exact matches decisive and stable regardless of how common a word is corpus-wide
+# (the previous scored `term` let an exact *variant* hit outscore an exact *primary* hit purely
+# because the word was rarer in one field than another).
+_ENTITY_EXACT_PRIMARY_BOOST = 1000
+_ENTITY_EXACT_SECONDARY_BOOST = 100
 
 
 def _entity_sort_clauses(type, sort):
@@ -358,14 +377,20 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                          category_paths=None):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
-    index. Layers five match-type tiers as `should` clauses with descending boosts
+    index. Layers match-type tiers as `should` clauses with descending boosts
     (a `bool should` sums matching clauses, so a higher tier — which also satisfies the
     lower tiers — accumulates a higher score and ranks above a partial match):
 
-      1. Exact match   — `term` on the `.keyword` title sub-fields (highest boost).
+      1. Exact match   — `constant_score` on the `.keyword` title sub-fields, split into a
+                         dominant *primary-title* boost and a lower *variant / authored-work*
+                         boost. constant_score makes these contributions fixed (IDF-independent),
+                         so an exact primary-title hit always wins outright: no pile-up of the
+                         partial tiers below on a longer title, and no exact *variant* hit, can
+                         sum past it.
       2. Exact phrase  — `match_phrase` on title fields.
       3. All words     — `multi_match best_fields` over the per-type field list (with
-                         per-field ^N boosts: title > variants > name/works > description).
+                         per-field ^N boosts: title > variants > name/works; descriptions
+                         are not searched).
       4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
       5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
 
@@ -399,17 +424,30 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
-    keyword_fields = _ENTITY_KEYWORD_FIELDS.get(type, _ENTITY_KEYWORD_FIELDS["topic"])
+    secondary_kw = _ENTITY_SECONDARY_KEYWORD_FIELDS.get(type, _ENTITY_SECONDARY_KEYWORD_FIELDS["topic"])
 
-    # Tier 1 — exact literal match on the keyword sub-fields (case-sensitive).
-    tier1_exact = [Q("term", **{kf: {"value": query, "boost": 8}}) for kf in keyword_fields]
+    # Tier 1 — exact literal match on the keyword sub-fields (case-insensitive), via
+    # constant_score so the contribution is a fixed amount rather than an IDF-scaled score.
+    # A primary-title hit gets the dominant boost; a variant / authored-work hit gets a
+    # strong-but-lower one. Because these amounts are fixed, no accumulation of partial
+    # (phrase/word/prefix) tiers on a longer title can sum past a true exact match, and an
+    # exact variant hit can never outrank an exact primary hit (the bug this replaces).
+    # The `.keyword` sub-fields are raw (un-normalized), so match case-insensitively at
+    # query time — otherwise "chafetz chaim" would miss the stored "Chafetz Chaim".
+    tier1_primary = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+                       boost=_ENTITY_EXACT_PRIMARY_BOOST)
+                     for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS]
+    tier1_variant = [Q("constant_score", filter=Q("term", **{kf: {"value": query, "case_insensitive": True}}),
+                       boost=_ENTITY_EXACT_SECONDARY_BOOST)
+                     for kf in secondary_kw]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
     # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
     tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
     # Tier 4 — prefix / begins-with on titles only.
     tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
-    text_query = Q("bool", should=[*tier1_exact, tier2_phrase, tier3_words, tier4_prefix], minimum_should_match=1)
+    text_query = Q("bool", should=[*tier1_primary, *tier1_variant, tier2_phrase, tier3_words, tier4_prefix],
+                   minimum_should_match=1)
 
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
@@ -453,19 +491,21 @@ def _total_from_response(response):
 
 def _query_matches_entity_title(query, hit):
     """
-    True if `query` directly matches the entity's title or a title variant (not merely
-    a description mention). Guards the author-works view from triggering when an author
-    name only appears in some book's description.
+    True only if `query` is an *exact* (case-insensitive) match for the entity's title or a
+    title variant. Guards the author-works view: a book search flips to an author's collapsed
+    works only when the query really is that author's name.
+
+    Exact match, not prefix, on purpose. A prefix test (`title.startswith(query)`) hijacks any
+    common given-name query — e.g. "Shalom" is a prefix of the author "Shalom Buzaglo", so the
+    whole book search would collapse to his single work instead of returning Shalom Aleichem,
+    She'ilat Shalom, etc. The intended trigger is a full name ("Chafetz Chaim", "Rashi",
+    "Rambam"), which always matches a primary title or variant exactly.
     """
     q = (query or "").strip().lower()
     if not q:
         return False
     candidates = [hit.get("title_en", ""), hit.get("title_he", "")] + (hit.get("titleVariants") or [])
-    for c in candidates:
-        c = (c or "").strip().lower()
-        if c and (q == c or c.startswith(q) or q.startswith(c)):
-            return True
-    return False
+    return any(q == (c or "").strip().lower() for c in candidates)
 
 
 def _resolve_author(query, es_client):
@@ -487,10 +527,41 @@ def _resolve_author(query, es_client):
     return AuthorTopic.init(slug)
 
 
-def _author_works_response(author):
+def _author_work_matches_query(query, hit):
+    """
+    True if an aggregated author-works row's title is exactly `query` (case-insensitive,
+    EN or HE). Used to surface an author's *eponymous* work — the book that shares the
+    author's name (e.g. the book "Chafetz Chaim" by the Chafetz Chaim) — at the very top of
+    that author's works. Exact equality (not prefix) so only the eponymous work is lifted,
+    not longer titles that merely begin with it ("Chafetz Chaim on Sifra").
+    """
+    q = (query or "").strip().lower()
+    if not q:
+        return False
+    return q == (hit.get("title_en") or "").strip().lower() or q == (hit.get("title_he") or "").strip().lower()
+
+
+def _author_works_response(author, query, sort="relevance", start=0, size=None):
     """
     Build the aggregated author-works response: the author's works collapsed by
-    category (reusing AuthorTopic aggregation), category entries sorted to the top.
+    category (reusing AuthorTopic aggregation).
+
+    The rows are built and sorted in full, then sliced by `start`/`size` for pagination;
+    `total` always reports the full row count so the tab badge and "more to load" checks
+    stay correct regardless of how many pages have been fetched. `size=None` returns every
+    row from `start` onward.
+
+    Every row carries a `compDate`: an individual work's own composition year, or — for a
+    category row, which collapses many works and dates into one entry — the average year
+    of its dated works (see AuthorCategoryAggregation.get_comp_date). That key lets the
+    explicit sorts order the aggregated rows in code, mirroring the ES sort semantics of
+    the flat search ("alpha" A-Z on lowercased English title, "year_asc"/"year_desc" on
+    compDate, missing values last in either direction).
+
+    The default "relevance" sort surfaces the author's eponymous work (the one whose title
+    exactly matches the query) first, then category entries, then the remaining works — so a
+    search for "Chafetz Chaim" leads with the book of that name rather than burying it among
+    the author's other works. Explicit alpha/year sorts are left as pure orderings.
     """
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
@@ -500,15 +571,40 @@ def _author_works_response(author):
             "isCategory": agg["isCategory"],
             "categoryLabel_en": agg["categoryLabel"]["en"],
             "categoryLabel_he": agg["categoryLabel"]["he"],
+            "categories": agg["categories"],
             "url": agg["url"],
             "description_en": agg["description"]["en"],
             "description_he": agg["description"]["he"],
+            "compDate": agg["compDate"],
         })
-    hits.sort(key=lambda h: 0 if h.get("isCategory") else 1)  # category aggregations first
-    return {"hits": hits, "total": len(hits), "author_slug": author.slug}
+    if sort == "alpha":
+        hits.sort(key=lambda h: (h.get("title_en") or "").lower())
+    elif sort in ("year_asc", "year_desc"):
+        descending = sort == "year_desc"
+
+        def year_key(h):
+            date = h.get("compDate")
+            missing = date is None
+            return (missing, 0 if missing else (-date if descending else date),
+                    (h.get("title_en") or "").lower())
+
+        hits.sort(key=year_key)
+    else:
+        # relevance: eponymous work (exact title match on a non-category work) first, then
+        # category aggregations, then the rest. The eponymous tier explicitly excludes
+        # category rows so that a category whose title happens to equal the query can't sort
+        # ahead of the actual eponymous work. Stable sort preserves the original aggregation
+        # order within each group.
+        hits.sort(key=lambda h: (
+            0 if (_author_work_matches_query(query, h) and not h.get("isCategory")) else 1,
+            0 if h.get("isCategory") else 1,
+        ))
+    total = len(hits)
+    hits = hits[start:] if size is None else hits[start:start + size]
+    return {"hits": hits, "total": total, "author_slug": author.slug}
 
 
-def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None):
+def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
@@ -518,11 +614,15 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
       `category_paths` (books only) restricts hits to books at/under any of the given
       category paths.
 
-    A non-relevance `sort` or a category filter always runs the flat search — the
-    author-works aggregation is skipped even when the query resolves to an author,
-    because its category entries collapse many works into one row, so they carry no
-    per-row sort key or per-book path. Sorting and filtering operate on individual
-    documents by design.
+    Explicit sorts keep the aggregation: each aggregated row carries a `compDate` (a
+    category row averages the dates of its collapsed works), and the rows are sorted in
+    code with the same semantics as the flat ES sorts (see _author_works_response). A
+    category filter still runs the flat search — a category row spans many per-book
+    paths, so it can't be filtered as a unit.
+
+    `aggregate=False` skips the author resolution entirely, so a book query always
+    returns the flat list — a QA escape hatch for comparing the two views side by side.
+    Only books aggregate, so the flag is a no-op for other types.
 
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
@@ -537,10 +637,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if sort == "relevance" and not category_paths:
+        if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author)
+                return _author_works_response(author, query, sort=sort, start=start, size=size)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
@@ -571,3 +671,124 @@ def get_elasticsearch_client_for_indexer():
         retry_on_timeout=True,
         max_retries=3,
     )
+
+
+# --------------------------------------------------------------------------- #
+#  ES cascade handlers                                                        #
+#                                                                             #
+#  Model dependency listeners, subscribed in sefaria/model/dependencies.py,   #
+#  that keep the search indices in sync when Mongo records change. Guarded    #
+#  by SEARCH_INDEX_ON_SAVE; single-doc helpers live in sefaria/search.py.     #
+# --------------------------------------------------------------------------- #
+
+def process_index_title_change_in_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.model import library, text
+        from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
+        index_names = get_new_and_current_index_names("text")
+        search_index_name = index_names.get("current") if index_names else None
+        if not search_index_name:
+            logger.error(
+                "process_index_title_change_in_search: could not resolve current text index name",
+                old_title=kwargs.get("old"),
+                new_title=kwargs.get("new"),
+            )
+            return
+        old_title, new_title = kwargs.get("old"), kwargs.get("new")
+        text_index = library.get_index(new_title)
+        # This callback is subscribed after process_index_title_change_in_versions, so
+        # the book's versions already carry the new title in Mongo. The stale ES docs,
+        # however, have ids built from old-title refs — delete_version(old_title=...)
+        # rewrites each ref's title prefix to target them.
+        versions = text.VersionSet({"title": new_title}).array()
+        for ver in versions:
+            delete_version(text_index, ver.versionTitle, ver.language, old_title=old_title)
+        failed = []
+        for ver in versions:
+            for ref in text_index.all_segment_refs():
+                # Best-effort reindex, same rationale as process_version_title_change_in_search
+                # in sefaria/model/dependencies.py: the rename is already committed to Mongo,
+                # so one bad segment must not abort the rest. Collect failures and surface
+                # them so search can be re-synced.
+                try:
+                    TextIndexer.index_ref(search_index_name, ref, ver.versionTitle, ver.language,
+                                          getattr(ver, 'languageFamilyName', None), getattr(ver, 'isPrimary', False))
+                except Exception as e:
+                    failed.append((ref.normal(), ver.versionTitle))
+                    logger.warning(
+                        "process_index_title_change_in_search: failed to index segment",
+                        index=new_title,
+                        versionTitle=ver.versionTitle,
+                        language=ver.language,
+                        ref=ref.normal(),
+                        error=str(e),
+                    )
+        if failed:
+            logger.error(
+                "process_index_title_change_in_search: some segments failed to reindex",
+                index=new_title,
+                old_title=old_title,
+                failed_count=len(failed),
+                failed_refs=failed,
+            )
+
+
+# Entity search (`topic` and `book` indices behind /api/entity-search).
+# One entity = one ES doc with a deterministic id (book: English title, topic: slug),
+# so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
+# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
+# deliberately NOT chased here — the weekly full rebuild reconciles them.
+
+def process_index_title_change_in_book_search(indx, **kwargs):
+    # A rename changes the book doc's ES id. Only the stale doc is deleted here:
+    # save() emits attributeChange notifications before the "save" notification,
+    # so process_index_save_in_book_search upserts the new-id doc right after.
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(kwargs.get("old"))
+
+
+def process_index_save_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_book_doc
+        index_book_doc(indx)
+
+
+def process_index_delete_in_book_search(indx, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_book_doc
+        delete_book_doc(indx.title)
+
+
+def process_topic_save_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import index_topic_doc
+        index_topic_doc(topic_obj)
+
+
+def process_topic_delete_in_topic_search(topic_obj, **kwargs):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import delete_topic_doc
+        delete_topic_doc(topic_obj.slug)
+
+
+def process_category_path_change_in_book_search(cat, **kwargs):
+    # Must be subscribed AFTER category.process_category_path_change: that hook
+    # cascades the new path into the affected Index records in Mongo, which this
+    # hook re-reads. (It saves them with override_dependencies=True, so
+    # process_index_save_in_book_search never fires for those books — this hook is
+    # their only path back into the book index.)
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.model import text
+        from sefaria.search import index_book_docs
+        new_path = kwargs.get("new") or []
+        if not new_path:  # an empty path would match every book in the library
+            return
+        index_book_docs(text.IndexSet({f"categories.{i}": p for i, p in enumerate(new_path)}))

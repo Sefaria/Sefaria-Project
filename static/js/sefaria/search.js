@@ -572,6 +572,32 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
+    entitySearch(query, type, start = 0) {
+        // Fetches one page of entity results (from `start`), so the tab panels can lazily
+        // load more on scroll. Each page is cached separately by `start`; `total` reports the
+        // full match count so the count badges and "more to load" checks stay correct.
+        // QA escape hatch: appending &aggregate=0 to the search page URL turns off the
+        // author-works aggregation on the Books tab (flat book hits instead of category
+        // rows). Forwarded on every tab's request; the API ignores it for types that
+        // never aggregate.
+        const noAggregate = typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).get("aggregate") === "0";
+        const cacheKey = `entitySearch|${type}|${query}|${start}${noAggregate ? "|noAggregate" : ""}`;
+        const cacheResult = this.cache(cacheKey);
+        if (cacheResult !== undefined) {
+            return Promise.resolve(cacheResult);
+        }
+        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}`;
+        if (noAggregate) { url += "&aggregate=0"; }
+        // Wrapped in a real Promise because jQuery 2's Deferred has no .catch()
+        return new Promise((resolve, reject) => {
+            $.getJSON(url).then(data => {
+                if (data.error) { reject(new Error(data.error)); return; }
+                this.cache(cacheKey, data);
+                resolve(data);
+            }, reject);
+        });
+    }
 }
 
 

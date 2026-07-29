@@ -11,28 +11,34 @@ import {
   InterfaceText,
   LoadingMessage,
   CloseButton,
-  ToggleSet,
 } from './Misc';
 
-class SearchFilters extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isExactSearch: props.searchState.field === props.searchState.fieldExact
-    }
-  }
-  componentWillReceiveProps(newProps) {
-    // Save current filters
-    // todo: check for cases when we want to rebuild / not
-    const { field, fieldExact } = this.props.searchState;
-    if ((newProps.query != this.props.query)
-        || (newProps.searchState.availableFilters.length !== this.props.searchState.availableFilters.length)) {
+const SortRadioList = ({options, value, onChange}) => (
+  <ul className="sortRadioList">
+    {options.map(opt => (
+      <li key={opt.type} className="sortRadioItem">
+        <label>
+          <input
+            type="radio"
+            name="sortType"
+            value={opt.type}
+            checked={value === opt.type}
+            onChange={() => onChange(opt.type)}
+          />
+          <span className="sortRadioLabel">
+            {opt.heName
+              ? <InterfaceText text={{en: opt.name, he: opt.heName}} />
+              : <InterfaceText>{opt.name}</InterfaceText>
+            }
+          </span>
+        </label>
+      </li>
+    ))}
+  </ul>
+);
 
-      this.setState({
-        isExactSearch: field === fieldExact
-      });
-    }
-  }
+
+class SearchFilters extends Component {
   getSelectedTitles(lang) {
     let results = [];
     for (let i = 0; i < this.props.searchState.availableFilters.length; i++) {
@@ -41,24 +47,11 @@ class SearchFilters extends Component {
     }
     return results;
   }
-  toggleExactSearch() {
-    let newExactSearch = !this.state.isExactSearch;
-    if (newExactSearch) {
-      this.props.updateAppliedOptionField(this.props.searchState.fieldExact);
-    } else {
-      this.props.updateAppliedOptionField(this.props.searchState.fieldBroad);
-    }
-    this.setState({isExactSearch: newExactSearch});
-  }
   render() {
     const filters = (this.props.type === 'text' ?
       <TextSearchFilters
-        toggleExactSearch={this.toggleExactSearch}
-        openedCategory={this.state.openedCategory}
-        openedCategoryBooks={this.state.openedCategoryBooks}
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
-        isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
       /> :
       <SheetSearchFilters
         updateAppliedFilter={this.props.updateAppliedFilter}
@@ -67,12 +60,6 @@ class SearchFilters extends Component {
     );
 
     const {searchState, type, updateAppliedOptionSort} = this.props;
-    const sortOptions = SearchState.metadataByType[type].sortTypeArray.map(data => ({
-      name: data.type,
-      content: <InterfaceText>{data.nameId}</InterfaceText>,
-      role: "radio",
-      ariaLabel: Sefaria._("common.sort_by") + " " + Sefaria._(data.nameId),
-    }));
 
     return Sefaria.multiPanel && !this.props.compare ? (
       <div className="searchFilters navSidebarModule">
@@ -82,28 +69,27 @@ class SearchFilters extends Component {
       <>
         <div className="mobileSearchFiltersHeader sans-serif">
           <CloseButton onClick={this.props.closeMobileFilters} />
-          <InterfaceText>Filters</InterfaceText>
+          <InterfaceText>common.filters</InterfaceText>
           <div></div>
         </div>
         <div className="searchFilters navSidebarModule">
+          {this.props.topSection}
           <div className="searchFilterGroup">
             <h2>
               <InterfaceText>common.sort_by</InterfaceText>
             </h2>
-            <ToggleSet
-              ariaLabel="Sort by"
-              name="sortBy"
-              options={sortOptions}
-              setOption={(set, sortType) => updateAppliedOptionSort(sortType)}
-              currentValue={searchState.sortType}
-              blueStyle={true} />
+            <SortRadioList
+              options={SearchState.metadataByType[type].sortTypeArray}
+              value={searchState.sortType}
+              onChange={updateAppliedOptionSort}
+            />
           </div>
 
           {filters}
         </div>
         <div className="mobileSearchFiltersFooter">
           <div className="button fillWidth" onClick={this.props.closeMobileFilters}>
-            <InterfaceText>Show Results</InterfaceText>
+            <InterfaceText>common.show_results</InterfaceText>
           </div>
         </div>
       </>
@@ -111,14 +97,14 @@ class SearchFilters extends Component {
   }
 }
 SearchFilters.propTypes = {
-  query:                    PropTypes.string,
-  searchState:              PropTypes.object,
-  total:                    PropTypes.number,
-  updateAppliedFilter:      PropTypes.func,
-  updateAppliedOptionField: PropTypes.func,
-  updateAppliedOptionSort:  PropTypes.func,
-  isQueryRunning:           PropTypes.bool,
-  type:                     PropTypes.string,
+  query:                   PropTypes.string,
+  searchState:             PropTypes.object,
+  total:                   PropTypes.number,
+  updateAppliedFilter:     PropTypes.func,
+  updateAppliedOptionSort: PropTypes.func,
+  topSection:              PropTypes.node,
+  isQueryRunning:          PropTypes.bool,
+  type:                    PropTypes.string,
 };
 
 
@@ -132,33 +118,22 @@ class TextSearchFilters extends Component {
           filters={this.props.availableFilters}
           updateSelected={this.props.updateAppliedFilter}
           expandable={true} />
-        <div className="searchFilterGroup">
-          <h2>
-            <InterfaceText>common.options</InterfaceText>
-          </h2>
-          <SearchFilterExactBox
-            selected={this.props.isExactSearch}
-            checkBoxClick={this.props.toggleExactSearch} />
-        </div>
       </div>
     );
   }
 }
 TextSearchFilters.propTypes = {
   availableFilters:    PropTypes.array,
-  openedCategory:      PropTypes.object,
   updateAppliedFilter: PropTypes.func,
-  openedCategoryBooks: PropTypes.array,
-  isExactSearch:       PropTypes.bool,
-  toggleExactSearch:   PropTypes.func,
 };
 
 
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
 const SEARCH_FILTER_GROUP_IDS = {
+  "Texts": "search_filters.title",
   "Topics": "common.topics",
   "Collections": "search_filters.collections",
 };
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable}) => {
   if (!filters || !filters.length) { return null; }
 
   useEffect(() => {
@@ -206,18 +181,11 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
 
   const updateFilters = text => {
     if (text && text !== "") {
-      if (!expandable) {
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)).sort(sortFiltersBySelected));
-      } else { // don't sort
-        setFilters(filters.filter(x => hasWordStartingWithOrSelected(x, text)));
-      }
+      const matched = filters.filter(x => hasWordStartingWithOrSelected(x, text));
+      setFilters(!expandable && !preserveOrder ? [...matched].sort(sortFiltersBySelected) : matched);
       setShowClearInputButton(true);
     } else {
-      if (!expandable) {
-        setFilters(filters.sort(sortFiltersBySelected));
-      } else {
-        setFilters(filters);
-      }
+      setFilters(!expandable && !preserveOrder ? [...filters].sort(sortFiltersBySelected) : filters);
       setShowClearInputButton(false);
     }
   }
@@ -227,7 +195,7 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
   }
   // need hebrew for placeholder/title
   const clearInputButton = <button aria-label={Sefaria._("search_filters.clear_input")} onClick={clearInput}><img src="/static/icons/heavy-x.svg" className="searchFilterIcon" aria-hidden="true" tabIndex="0"></img></button>;
-  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={Sefaria._(`search_filters.search_${name.toLowerCase()}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
+  const search = searchable ? <div className="searchBox"><input id={`filter${name}`} className="searchFiltersInput" placeholder={searchPlaceholder || Sefaria._(`search_filters.search_${name.toLowerCase()}`)} title={`Type to Filter ${name} Shown`} onChange={e => updateFilters(e.target.value)}></input>{showClearInputButton ? clearInputButton : null}</div>  : null;
 
   return (
     <div className="searchFilterGroup">
@@ -239,30 +207,15 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
     </div>
   );
 };
-
-
-class SearchFilterExactBox extends Component {
-  handleClick() {
-    this.props.checkBoxClick();
-  }
-  render() {
-    return (
-      <li>
-        <div className="checkboxAndText">
-          <input type="checkbox" id="searchFilterExactBox" className="filter" checked={this.props.selected} onChange={this.handleClick}/>
-          <label tabIndex="0" onClick={this.handleClick} onKeyDown={Util.handleEnterKey(this.handleClick)}><span></span></label>
-        
-         <span className={"filter-title"}>
-            <InterfaceText>search_filters.exact_matches_only</InterfaceText>
-          </span>
-        </div>
-      </li>
-    );
-  }
-}
-SearchFilterExactBox.propTypes = {
-  selected:      PropTypes.bool,
-  checkBoxClick: PropTypes.func
+SearchFilterGroup.propTypes = {
+  name:              PropTypes.string.isRequired,
+  filters:           PropTypes.array.isRequired,
+  updateSelected:    PropTypes.func.isRequired,
+  expandable:        PropTypes.bool,
+  paged:             PropTypes.bool,
+  searchable:        PropTypes.bool,
+  preserveOrder:     PropTypes.bool,
+  searchPlaceholder: PropTypes.string,
 };
 
 
@@ -332,7 +285,8 @@ class SearchFilter extends Component {
               tabIndex={expandable ? "0" : null}
               aria-label={expandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
-              <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span>
+              {filter.docCount !== undefined ?
+                <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span> : null}
             </span>
           </div>
           {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
@@ -356,6 +310,57 @@ SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   expandable:     PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
+};
+
+
+const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
+  const filterContent = (
+    <div className="searchFilterBoxes">
+      <SearchFilterGroup
+        name="Texts"
+        searchable={true}
+        filters={filters}
+        updateSelected={updateSelected}
+        preserveOrder={true}
+        searchPlaceholder={Sefaria._("common.search")} />
+    </div>
+  );
+
+  if (!mobileSortProps) {
+    return (
+      <div className="searchFilters navSidebarModule">
+        {filterContent}
+      </div>
+    );
+  }
+
+  const {sortOptions, sortType, onSortChange, onClose} = mobileSortProps;
+  return (
+    <>
+      <div className="mobileSearchFiltersHeader sans-serif">
+        <CloseButton onClick={onClose} />
+        <InterfaceText>common.filter</InterfaceText>
+        <div></div>
+      </div>
+      <div className="searchFilters navSidebarModule">
+        <div className="searchFilterGroup">
+          <h2><InterfaceText>common.sort_by</InterfaceText></h2>
+          <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
+        </div>
+        {filterContent}
+      </div>
+      <div className="mobileSearchFiltersFooter">
+        <button type="button" className="button fillWidth" onClick={onClose}>
+          <InterfaceText>common.show_results</InterfaceText>
+        </button>
+      </div>
+    </>
+  );
+};
+BookSearchFilters.propTypes = {
+  filters:        PropTypes.array.isRequired,
+  updateSelected: PropTypes.func.isRequired,
+  mobileSortProps: PropTypes.object,
 };
 
 
@@ -404,4 +409,33 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
 };
 
 
+const EntitySortPanel = ({sortOptions, sortType, onSortChange, onClose}) => (
+  <>
+    <div className="mobileSearchFiltersHeader sans-serif">
+      <CloseButton onClick={onClose} />
+      <InterfaceText>common.sort</InterfaceText>
+      <div></div>
+    </div>
+    <div className="searchFilters navSidebarModule">
+      <div className="searchFilterGroup">
+        <h2><InterfaceText>common.sort_by</InterfaceText></h2>
+        <SortRadioList options={sortOptions} value={sortType} onChange={onSortChange} />
+      </div>
+    </div>
+    <div className="mobileSearchFiltersFooter">
+      <button type="button" className="button fillWidth" onClick={onClose}>
+        <InterfaceText>common.show_results</InterfaceText>
+      </button>
+    </div>
+  </>
+);
+EntitySortPanel.propTypes = {
+  sortOptions:  PropTypes.array.isRequired,
+  sortType:     PropTypes.string.isRequired,
+  onSortChange: PropTypes.func.isRequired,
+  onClose:      PropTypes.func.isRequired,
+};
+
+
 export default SearchFilters;
+export { BookSearchFilters, EntitySortPanel };

@@ -18,13 +18,14 @@ from elastic_transport import ConnectionError as ESConnectionError, ConnectionTi
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
+from django_topics.models import Topic as DjangoTopic, PoolType
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.utils.util import strip_tags
+from sefaria.utils.util import strip_tags, strip_markdown
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
@@ -60,26 +61,38 @@ PROGRESS_LOG_EVERY_N = 100
 
 
 def delete_text(oref, version, lang):
+    delete_text_by_ref_string(oref.normal(), version, lang)
+
+
+def delete_text_by_ref_string(tref, version, lang):
+    # Takes the ref as a plain string so callers can delete docs whose refs can no
+    # longer be parsed into an Ref (e.g. refs built from a book's pre-rename title).
     try:
         index_names = get_new_and_current_index_names('text')
         if not index_names:
-            logger.error(f"Could not get index names for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            logger.error(f"Could not get index names for text - ref: {tref}, version: {version}, lang: {lang}")
             return
-        
+
         curr_index = index_names.get('current')
         if not curr_index:
-            logger.error(f"No current index found for text - ref: {oref.normal()}, version: {version}, lang: {lang}")
+            logger.error(f"No current index found for text - ref: {tref}, version: {version}, lang: {lang}")
             return
 
-        id = make_text_doc_id(oref.normal(), version, lang)
+        id = make_text_doc_id(tref, version, lang)
         es_client.delete(index=curr_index, id=id)
     except NotFoundError:
-        logger.warning(f"Document not found when deleting - ref: {oref.normal()}, version: {version}, lang: {lang}")
+        logger.warning(f"Document not found when deleting - ref: {tref}, version: {version}, lang: {lang}")
     except Exception as e:
-        logger.error(f"Failed to delete text - ref: {oref.normal()}, version: {version}, lang: {lang}, error: {e}")
+        logger.error(f"Failed to delete text - ref: {tref}, version: {version}, lang: {lang}, error: {e}")
 
 
-def delete_version(index, version, lang):
+def delete_version(index, version, lang, old_title=None):
+    """
+    Delete the ES docs of every segment of `version`/`lang` of `index`.
+    :param old_title: pass the book's previous title when `index` was just renamed —
+        the stale docs' ids were built from refs under that title, so the title prefix
+        of each current ref is swapped for `old_title` before computing the doc id.
+    """
     assert isinstance(index, AbstractIndex)
 
     refs = []
@@ -93,7 +106,10 @@ def delete_version(index, version, lang):
     refs += index.all_segment_refs()
 
     for ref in refs:
-        delete_text(ref, version, lang)
+        tref = ref.normal()
+        if old_title:
+            tref = old_title + tref[len(index.title):]
+        delete_text_by_ref_string(tref, version, lang)
 
 
 def delete_sheet(index_name, id):
@@ -552,11 +568,13 @@ def put_topic_mapping(index_name):
                 'type': 'integer',
             },
             # Denormalized titles of the books this author wrote (analyzed text, split
-            # by language) so an author is findable by a work they authored — the
-            # mirror image of `author_names` on the book index. `norms: false` so a
-            # prolific author (a large title list) isn't penalized by field-length
-            # normalization; the `keyword` sub-field powers exact-match (tier 1), which
-            # is what ranks the true author of an exactly-titled work above its commentators.
+            # by language, incl. English title variants — the same title set the book
+            # index carries) so an author is findable by any name of a work they
+            # authored — the mirror image of `author_names` on the book index.
+            # `norms: false` so a prolific author (a large title list) isn't penalized
+            # by field-length normalization; the `keyword` sub-field powers exact-match
+            # (tier 1), which is what ranks the true author of an exactly-titled work
+            # above its commentators.
             'authored_titles_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
@@ -584,6 +602,11 @@ def put_book_mapping(index_name):
     """
     book_mapping = {
         'properties': {
+            # Length norms are intentionally ON for the primary title fields: a short,
+            # focused title ("Chafetz Chaim") should outscore a longer title that merely
+            # contains the query words ("Chafetz Chaim on Sifra") for the same matched
+            # term. titleVariants keeps norms OFF so a book with many title variants isn't
+            # penalized on the variant tiers by its own richer variant list.
             'title_en': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
@@ -602,6 +625,10 @@ def put_book_mapping(index_name):
             'titleVariants': {
                 'type': 'text',
                 'analyzer': 'stemmed_english',
+                'norms': False,
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
             },
             'categories': {
                 'type': 'keyword',
@@ -974,6 +1001,8 @@ class TextIndexer(object):
         categories = cls.curr_index.categories
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)
+        if not doc:  # segment is empty in this version — nothing to index
+            return
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index=index_name, document=doc, id=id)
 
@@ -1191,6 +1220,51 @@ def _without_none(doc):
     return {k: v for k, v in doc.items() if v is not None}
 
 
+def library_topic_slugs():
+    """
+    Slugs of the topics curated into the `library` TopicPool (Postgres, via
+    django_topics). Entity search only indexes these: the full Mongo TopicSet
+    carries ~40k topics, most of them auto-generated noise that was never
+    curated for the library.
+    """
+    return list(DjangoTopic.objects.get_topic_slugs_by_pool(PoolType.LIBRARY.value))
+
+def _book_title_variants(index, lang):
+    """
+    The book-level title variants of an Index: the root node's own title group.
+    Not `Index.all_titles()` — that walks the whole schema tree for ref resolution,
+    so on complex texts it returns every chapter/section title crossed with every
+    root variant (e.g. "Moreh Nevukhim, Prefatory Remarks"), which are not book titles.
+    """
+    if not index.nodes:
+        return []
+    return index.nodes.title_group.all_titles(lang) or []
+
+
+def _authored_index_titles(index):
+    """
+    The searchable titles of one authored Index for the author's `authored_titles`
+    fields: the primary EN title plus every English title variant, and the primary HE
+    title — the same title set `make_book_index_document` indexes for the book itself
+    (`title_en` + `titleVariants` + `title_he`). Mirroring it keeps author↔book search
+    symmetric: any query that returns a book by one of its titles also returns that
+    book's author (e.g. "Moreh Nevukhim", a variant of "Guide for the Perplexed",
+    finds Rambam).
+
+    :return: (en_titles, he_titles), primary title first, de-duped downstream
+    """
+    en_titles = []
+    primary_en = index.get_title('en')
+    if primary_en:
+        en_titles.append(primary_en)
+    en_titles += [t for t in _book_title_variants(index, 'en') if t != primary_en]
+    try:
+        he = index.get_title('he')
+    except Exception:
+        he = None
+    return en_titles, ([he] if he else [])
+
+
 def _build_authored_titles_map():
     """
     Map every author slug to the titles of their works in one `IndexSet()` pass:
@@ -1205,16 +1279,10 @@ def _build_authored_titles_map():
         author_slugs = getattr(index, 'authors', None) or []
         if not author_slugs:
             continue
-        en = index.get_title('en')
-        try:
-            he = index.get_title('he')
-        except Exception:
-            he = None
+        en_titles, he_titles = _authored_index_titles(index)
         for slug in author_slugs:
-            if en:
-                titles_by_slug[slug]['en'].append(en)
-            if he:
-                titles_by_slug[slug]['he'].append(he)
+            titles_by_slug[slug]['en'] += en_titles
+            titles_by_slug[slug]['he'] += he_titles
     return titles_by_slug
 
 
@@ -1265,8 +1333,8 @@ def make_topic_index_document(topic, authored_titles_map=None):
         'title_en': title_en or None,
         'title_he': title_he or None,
         'titleVariants': variants,
-        'description_en': description.get('en', ''),
-        'description_he': description.get('he', ''),
+        'description_en': strip_markdown(description.get('en', '')),
+        'description_he': strip_markdown(description.get('he', '')),
         'numSources': getattr(topic, 'numSources', 0) or 0,
     }
 
@@ -1278,23 +1346,19 @@ def make_topic_index_document(topic, authored_titles_map=None):
         doc['era'] = topic.get_property('era')
         doc['birthYear'] = topic.get_property('birthYear')
         doc['deathYear'] = topic.get_property('deathYear')
-        # Denormalize the titles of this author's works (EN + HE) so the author is
-        # searchable by a book they wrote (e.g. "Mishneh Torah" -> Maimonides).
+        # Denormalize the titles of this author's works (EN incl. variants + HE, the
+        # same title set the book index carries — see _authored_index_titles) so the
+        # author is searchable by any name of a book they wrote (e.g. "Mishneh Torah"
+        # -> Maimonides, "Moreh Nevukhim" -> Rambam).
         if authored_titles_map is not None:
             authored = authored_titles_map.get(slug, {'en': [], 'he': []})
             authored_en, authored_he = authored['en'], authored['he']
         else:
             authored_en, authored_he = [], []
             for authored_index in IndexSet({"authors": slug}):
-                en = authored_index.get_title('en')
-                if en:
-                    authored_en.append(en)
-                try:
-                    he = authored_index.get_title('he')
-                except Exception:
-                    he = None
-                if he:
-                    authored_he.append(he)
+                en_titles, he_titles = _authored_index_titles(authored_index)
+                authored_en += en_titles
+                authored_he += he_titles
         doc['authored_titles_en'] = list(dict.fromkeys(authored_en))  # de-dup, preserve order
         doc['authored_titles_he'] = list(dict.fromkeys(authored_he))
 
@@ -1343,7 +1407,13 @@ def make_book_index_document(index, author_name_cache=None):
         title_he = None
 
     categories = getattr(index, 'categories', None) or []
-    variants = [t for t in (index.all_titles('en') or []) if t != title_en]
+    variants = [t for t in _book_title_variants(index, 'en') if t != title_en]
+    # collective_title is a plain string term key (e.g. "Rashi", "Chafetz Chaim"), not a
+    # dict — see Index._saveable_attr_keys / Index.contents(). Treat it as the English
+    # collective title directly; the Hebrew side is resolved via hebrew_term() elsewhere.
+    collective_en = getattr(index, 'collective_title', None)
+    if collective_en and collective_en not in variants:
+        variants.append(collective_en)
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
     # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
@@ -1361,8 +1431,8 @@ def make_book_index_document(index, author_name_cache=None):
         'titleVariants': variants,
         'categories': categories,
         'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        'description_en': getattr(index, 'enShortDesc', '') or '',
-        'description_he': getattr(index, 'heShortDesc', '') or '',
+        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or ''),
+        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or ''),
         'compDate': comp_date,
         'era': getattr(index, 'era', None),
         'authors': author_slugs,
@@ -1396,17 +1466,21 @@ def _bulk_index_entities(index_name, actions, entity_label):
 
 def index_topics(index_name):
     """
-    Index every Topic (and AuthorTopic) into `index_name`, keyed by slug (idempotent).
+    Index every Topic (and AuthorTopic) in the `library` TopicPool into `index_name`,
+    keyed by slug (idempotent). Topics outside the pool are not indexed at all.
     Skipped slugs (no title / no slug) are collected into the returned summary.
     """
     logger.info(f"Starting index_topics - index_name: {index_name}")
     skipped = []
     total = 0
+    pool_slugs = library_topic_slugs()
+    if not pool_slugs:
+        raise RuntimeError("index_topics: library TopicPool is empty; refusing to build an empty topic index")
     authored_titles_map = _build_authored_titles_map()
 
     def actions():
         nonlocal total
-        for topic in TopicSet():
+        for topic in TopicSet({"slug": {"$in": pool_slugs}}):
             total += 1
             doc = make_topic_index_document(topic, authored_titles_map)
             if doc is None:
@@ -1451,6 +1525,128 @@ def index_books(index_name):
     if skipped:
         logger.info(f"index_books skipped {len(skipped)} books (sample): {skipped[:20]}")
     return result
+
+
+# --------------------------------------------------------------------------- #
+#  Entity search: single-doc updates                                          #
+#                                                                             #
+#  Incremental counterparts to index_topics/index_books, called from the      #
+#  model dependency hooks in sefaria/model/dependencies.py when a book or     #
+#  topic is saved, renamed, or deleted. Doc ids are deterministic (topic      #
+#  slug / book English title) so a save is a plain upsert; only an id change  #
+#  or a delete needs an explicit doc deletion. All of these are best-effort:  #
+#  they log and swallow failures, because they run after the change has       #
+#  already been committed to Mongo — the weekly full rebuild reconciles any   #
+#  docs missed here.                                                          #
+# --------------------------------------------------------------------------- #
+
+def _current_entity_index_name(entity_type):
+    index_names = get_new_and_current_index_names(entity_type)
+    if not index_names or not index_names.get('current'):
+        logger.error(f"Could not resolve current index name - entity_type: {entity_type}")
+        return None
+    return index_names['current']
+
+
+def index_topic_doc(topic):
+    """
+    Upsert the ES doc for a single topic (doc id = slug) in the live `topic` index.
+    """
+    slug = getattr(topic, 'slug', '<no-slug>')
+    try:
+        index_name = _current_entity_index_name('topic')
+        if not index_name:
+            return
+        # No authored_titles_map: for a single author topic the per-slug IndexSet
+        # fallback inside the builder is the right trade-off (see its docstring).
+        doc = make_topic_index_document(topic)
+        if not doc:
+            return
+        es_client.index(index=index_name, document=doc, id=doc['slug'])
+    except Exception as e:
+        logger.error(f"Failed to index topic doc - slug: {slug}, error: {e}")
+
+
+def delete_topic_doc(slug):
+    """
+    Delete the ES doc for a single topic (doc id = slug) from the live `topic` index.
+    """
+    try:
+        index_name = _current_entity_index_name('topic')
+        if not index_name:
+            return
+        es_client.delete(index=index_name, id=slug)
+    except NotFoundError:
+        # Expected for topics that never made it into the index (no titles,
+        # oversized slug, or indexed while SEARCH_INDEX_ON_SAVE was off).
+        logger.warning(f"Topic doc not found when deleting - slug: {slug}")
+    except Exception as e:
+        logger.error(f"Failed to delete topic doc - slug: {slug}, error: {e}")
+
+
+def index_book_doc(index):
+    """
+    Upsert the ES doc for a single book (doc id = English title) in the live `book` index.
+    """
+    title = getattr(index, 'title', '<no-title>')
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        doc = make_book_index_document(index)
+        if not doc:
+            return
+        es_client.index(index=index_name, document=doc, id=doc['title_en'])
+    except Exception as e:
+        logger.error(f"Failed to index book doc - title: {title}, error: {e}")
+
+
+def delete_book_doc(title_en):
+    """
+    Delete the ES doc for a single book (doc id = English title) from the live `book` index.
+    """
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        es_client.delete(index=index_name, id=title_en)
+    except NotFoundError:
+        logger.warning(f"Book doc not found when deleting - title: {title_en}")
+    except Exception as e:
+        logger.error(f"Failed to delete book doc - title: {title_en}, error: {e}")
+
+
+def index_book_docs(indexes):
+    """
+    Re-upsert the ES book docs for an iterable of Index records in one bulk request.
+    The incremental counterpart to index_books for a bounded set — e.g. every book
+    under a category whose path just changed. Doc ids are the (unchanged) English
+    titles, so existing docs are overwritten in place; per-doc build failures are
+    logged and skipped so one bad record can't block the rest.
+    """
+    try:
+        index_name = _current_entity_index_name('book')
+        if not index_name:
+            return
+        author_name_cache = {}
+        actions = []
+        for index in indexes:
+            try:
+                doc = make_book_index_document(index, author_name_cache)
+            except Exception as e:
+                logger.warning(f"index_book_docs: failed building doc for '{getattr(index, 'title', '<unknown>')}': {e}")
+                continue
+            if doc is None:
+                continue
+            actions.append({"_index": index_name, "_id": doc['title_en'], "_source": doc})
+        if not actions:
+            return
+        succeeded, errors = bulk(es_client, actions, raise_on_error=False)
+        if errors:
+            logger.warning(f"index_book_docs bulk errors - count: {len(errors)}, sample: {errors[:5]}")
+        logger.info(f"index_book_docs - index_name: {index_name}, succeeded: {succeeded}, errors: {len(errors)}")
+    except Exception as e:
+        logger.error(f"index_book_docs failed - error: {e}")
 
 
 def clear_index(index_name):

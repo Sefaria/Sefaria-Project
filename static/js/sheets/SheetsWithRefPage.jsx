@@ -29,7 +29,7 @@ const SheetsWithRefLayout = ({query, hits, searchState, sortTypeArray, totalResu
     const resultCount = totalResults?.getValue() > 0 && (
       <>
         <InterfaceText>{totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>Results</InterfaceText>
+        <InterfaceText>search_page.results</InterfaceText>
       </>
     );
 
@@ -53,7 +53,7 @@ const SheetsWithRefLayout = ({query, hits, searchState, sortTypeArray, totalResu
                 <div className="searchTopLine">
                   <div className="searchTopLineInner">
                     <h1 className="serif">
-                      <InterfaceText>Sheets With</InterfaceText>&nbsp;
+                      <InterfaceText>search_page.sheets_with</InterfaceText>&nbsp;
                       <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}}/>
                       {query}
                       <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}}/>

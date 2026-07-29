@@ -35,6 +35,7 @@ from elasticsearch.helpers import bulk
 from sefaria.model import TopicSet, IndexSet
 from sefaria.search import (
     create_index,
+    library_topic_slugs,
     make_topic_index_document,
     make_book_index_document,
     _indexer_es_client,
@@ -48,7 +49,10 @@ logger = logging.getLogger(__name__)
 def _populate_topics(limit):
     create_index(SEARCH_INDEX_NAME_TOPIC, 'topic', force=True)
     actions, skipped = [], 0
-    for topic in TopicSet(limit=limit):
+    # Restrict to the `library` TopicPool before applying `limit`, matching the full
+    # indexer — otherwise the sample would be mostly uncurated topics that the real
+    # index excludes.
+    for topic in TopicSet({"slug": {"$in": library_topic_slugs()}}, limit=limit):
         doc = make_topic_index_document(topic)
         if doc is None:
             skipped += 1

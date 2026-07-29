@@ -5,10 +5,15 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import ComparePanelHeader from './ComparePanelHeader';
-import SearchFilters from './SearchFilters';
+import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters';
+import FilterNode from './sefaria/FilterNode';
+import SearchState from './sefaria/searchState';
 import Component from 'react-class';
-import {SearchSortBox, SearchFilterButton} from './SearchResultList';
+import {MobileFilterIconButton, SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
+import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
+import SearchResultCard from './SearchResultCard';
+import InfiniteScroll from './InfiniteScroll';
 import NoSearchResults from './NoSearchResults';
 import {
   CategoryColorLine,
@@ -16,6 +21,9 @@ import {
   LoadingMessage,
   TabView,
 } from './Misc';
+import SearchLoadSkeleton from './SearchLoadSkeleton';
+import SearchToggle from './SearchToggle';
+import SearchTabsMobileWeb from './SearchTabsMobileWeb';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -33,7 +41,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
       <img
           className="searchIcon"
           src="/static/icons/search_mdl.svg"
-          alt={Sefaria._("Search")}
+          alt={Sefaria._("common.search")}
           role="button"
           tabIndex="0"
           onClick={submit}
@@ -48,17 +56,17 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           type="text"
           className="serif"
           value={value}
-          placeholder={Sefaria._("Search")}
-          aria-label={Sefaria._("Search for Texts or Keywords Here")}
+          placeholder={Sefaria._("common.search")}
+          aria-label={Sefaria._("common.search_for_texts_or_keywords_here")}
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
       />
-      {value.length &&
+      {value.length ?
           <img
               className="searchBarClearButton"
               src="/static/icons/heavy-x.svg"
-              alt={Sefaria._("Clear")}
+              alt={Sefaria._("common.clear")}
               role="button"
               tabIndex="0"
               onClick={() => setValue("")}
@@ -68,9 +76,128 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
                   setValue("");
                 }
               }}
-          />
-          }
+          /> : null }
     </div>
+  );
+};
+
+
+const formatEntityYear = (year) => {
+  if (year === null || year === undefined) { return null; }
+  const abs = Math.abs(year);
+  return year < 0
+      ? {en: `${abs} BCE`, he: `${abs} לפנה״ס`}
+      : {en: `${abs} CE`, he: `${abs} לספירה`};
+};
+
+
+const authorLifespan = (hit) => {
+  const {birthYear, deathYear} = hit;
+  if (birthYear == null || deathYear == null) {
+    return formatEntityYear(birthYear ?? deathYear);
+  }
+  const birth = formatEntityYear(birthYear);
+  const death = formatEntityYear(deathYear);
+  if ((birthYear < 0) === (deathYear < 0)) {
+    // Same era — spell it out once: "1135 – 1204 CE", not "1135 CE – 1204 CE".
+    return {en: `${Math.abs(birthYear)} – ${death.en}`, he: `${Math.abs(birthYear)} – ${death.he}`};
+  }
+  return {en: `${birth.en} – ${death.en}`, he: `${birth.he} – ${death.he}`};
+};
+
+
+const topicHitCardProps = (hit, query) => ({
+  mode: 'topics',
+  type: 'topic',
+  name: hit.title_en || hit.title_he,
+  hebrewName: hit.title_he || hit.title_en,
+  description: hit.description_en,
+  hebrewDescription: hit.description_he,
+  href: `/topics/${hit.slug}`,
+  query,
+});
+
+
+const authorHitCardProps = (hit, query) => {
+  const lifespan = authorLifespan(hit);
+  return {
+    ...topicHitCardProps(hit, query),  // authors are topics: same slug-based href and title/description fields
+    mode: 'authors',
+    type: 'author',
+    secondaryDate: lifespan?.en,
+    hebrewSecondaryDate: lifespan?.he,
+  };
+};
+
+
+const categoryPathCrumbs = (categories) => categories.map((cat, i) => ({
+  label: cat,
+  hebrewLabel: Sefaria.hebrewTerm(cat),
+  href: `/texts/${categories.slice(0, i + 1).join("/")}`,
+}));
+
+
+const bookHitCardProps = (hit, query) => {
+  const date = formatEntityYear(hit.compDate);
+  const common = {
+    mode: 'books',
+    name: hit.title_en || hit.title_he,
+    hebrewName: hit.title_he || hit.title_en,
+    secondaryDate: date?.en,
+    hebrewSecondaryDate: date?.he,
+    description: hit.description_en,
+    hebrewDescription: hit.description_he,
+    query,
+  };
+  if (hit.url) {
+    // An author-works aggregation row (see entity_search): it carries its own url.
+    // An individual work carries its category path; a category row collapses many
+    // works (and paths) into one entry, so it's represented by its own label instead.
+    return {
+      ...common,
+      type: hit.isCategory ? 'collection' : 'text',
+      href: hit.url,
+      crumbs: hit.categories?.length
+        ? categoryPathCrumbs(hit.categories)
+        : hit.categoryLabel_en ? [{label: hit.categoryLabel_en, hebrewLabel: hit.categoryLabel_he}] : undefined,
+    };
+  }
+  return {
+    ...common,
+    type: 'text',
+    href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
+    crumbs: categoryPathCrumbs(hit.categories || []),
+    secondaryAuthor: hit.author_names?.[0],
+  };
+};
+
+
+const ENTITY_CARD_PROP_BUILDERS = {
+  topic: topicHitCardProps,
+  author: authorHitCardProps,
+  book: bookHitCardProps,
+};
+
+
+const EntitySearchResults = ({type, data, query, loadMore}) => {
+  if (!data) {
+    return <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
+  }
+  if (!data.hits.length) {
+    return <NoSearchResults mode={type + 's'} query={query} />;
+  }
+  return (
+    <InfiniteScroll
+      className="entitySearchResults"
+      hasMore={data.moreToLoad}
+      isLoading={data.isLoadingMore}
+      isLoadingMore={data.isLoadingMore}
+      loadMore={loadMore}>
+      {data.hits.map(hit => {
+        const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
+        return <SearchResultCard key={cardProps.href} {...cardProps} />;
+      })}
+    </InfiniteScroll>
   );
 };
 
@@ -81,12 +208,116 @@ class SearchPage extends Component {
     this.state = {
       totalResults: null,
       mobileFiltersOpen: false,
-      activeTab: "sources",
+      entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
+      entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
+      bookCategoryFilters: this.makeBookCategoryFilters(),
     };
   }
 
-  setTab(tab) {
-    this.setState({activeTab: tab});
+  makeBookCategoryFilters() {
+    return Sefaria.toc.map(cat => new FilterNode({
+      title: cat.category,
+      heTitle: cat.heCategory,
+      aggKey: cat.category,
+      aggType: "categories",
+    }));
+  }
+
+  setEntitySort(type, sortKey) {
+    this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}));
+  }
+
+  getSortedEntityData(type) {
+    const data = this.state.entityData[type];
+    if (!data) return null;
+    const sortKey = this.state.entitySort[type];
+    let hits = sortEntityHits(data.hits, type, sortKey);
+    if (type === 'book') {
+      const selectedCategories = this.state.bookCategoryFilters
+        .filter(f => f.isSelected())
+        .map(f => f.aggKey);
+      if (selectedCategories.length > 0) {
+        hits = hits.filter(hit => hit.categories && selectedCategories.includes(hit.categories[0]));
+      }
+    }
+    return {...data, hits};
+  }
+
+  toggleBookCategoryFilter(filter) {
+    filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
+    this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]});
+  }
+
+  componentDidMount() {
+    this.fetchEntityResults();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.query !== this.props.query) {
+      this.setState({entityData: {topic: null, author: null, book: null}});
+      this.fetchEntityResults();
+    }
+  }
+
+  fetchEntityResults() {
+    const query = this.props.query;
+    if (!query || this.props.searchInBook) { return; }
+    ["topic", "author", "book"].forEach(type => {
+      Sefaria.search.entitySearch(query, type)
+          .then(data => {
+            if (this.props.query !== query) { return; }  // a newer query superseded this one
+            this.setState(prev => ({entityData: {...prev.entityData, [type]: this.makeEntityEntry(data)}}));
+          })
+          .catch(() => {});  // count badge stays at "0", panel stays on the loading message
+    });
+  }
+
+  // Normalize an API page into the paging entry the tab panels read. `total` is the full
+  // match count (so the badge and "more to load" stay correct), `moreToLoad` compares it to
+  // how many hits we've accumulated so far.
+  makeEntityEntry(data, prevHits = []) {
+    const hits = prevHits.concat(data.hits);
+    // Cap at ES's default max_result_window so infinite scroll stops before sending an offset
+    // that ES would reject. `total` is kept intact for the count badge.
+    const loadableTotal = Math.min(data.total, 10000);
+    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
+  }
+
+  loadNextEntityPage(type) {
+    const query = this.props.query;
+    const cur = this.state.entityData[type];
+    if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
+    this.setState(prev => ({
+      entityData: {...prev.entityData, [type]: {...prev.entityData[type], isLoadingMore: true}},
+    }));
+    Sefaria.search.entitySearch(query, type, cur.hits.length)
+        .then(data => {
+          if (this.props.query !== query) { return; }  // a newer query superseded this one
+          this.setState(prev => {
+            const prevEntry = prev.entityData[type];
+            if (!prevEntry) { return null; }  // query was reset while this page was in flight
+            return {entityData: {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}};
+          });
+        })
+        .catch(() => {
+          this.setState(prev => {
+            const prevEntry = prev.entityData[type];
+            if (!prevEntry) { return null; }
+            return {entityData: {...prev.entityData, [type]: {...prevEntry, isLoadingMore: false}}};
+          });
+        });
+  }
+
+  formatEntityCount(count) {
+    if (count === null || count === undefined) { return ""; }
+    return count >= 10000 ? "10,000+" : count.addCommas();
+  }
+
+  setTab(tab, replaceHistory) {
+    // The active tab lives in panel state (this.props.tab) so it is serialized
+    // into the URL and history; back/forward restores it via handlePopState.
+    this.setState({mobileFiltersOpen: false});
+    this.props.setTab(tab, replaceHistory);
   }
 
   renderTab(tab) {
@@ -115,13 +346,6 @@ class SearchPage extends Component {
         topics={this.props.topics}
     />;
 
-    const resultCount = this.props.totalResults?.getValue() > 0 && (
-      <>
-        <InterfaceText>{this.props.totalResults.asString()}</InterfaceText>&nbsp;
-        <InterfaceText>search_page.results</InterfaceText>
-      </>
-    );
-
     const makeSortFilterControls = (disabled = false) =>
       Sefaria.multiPanel && !this.props.compare
         ? <SearchSortBox
@@ -139,12 +363,139 @@ class SearchPage extends Component {
       return searchResultList;
     }
 
-    const nullTabCount = this.props.query ? "0" : null;
+    const isValidTab = ["sources", "books", "authors", "topics"].includes(this.props.tab);
+    const activeTab = isValidTab ? this.props.tab : "sources";
+    const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
+
+    // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
+    // category list, Authors/Topics get a sort-only panel on mobile.
+    let sidebar = null;
+    if (activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+      sidebar = <SearchFilters
+          query={this.props.query}
+          searchState={this.props.searchState}
+          updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          closeMobileFilters={closeMobileFilters}
+          compare={this.props.compare}
+          type={this.props.type}/>;
+    } else if (activeTab === "books") {
+      sidebar = <BookSearchFilters
+          filters={this.state.bookCategoryFilters}
+          updateSelected={this.toggleBookCategoryFilter}
+          mobileSortProps={!Sefaria.multiPanel ? {
+            sortOptions: ENTITY_SORT_OPTIONS.books,
+            sortType: this.state.entitySort.book,
+            onSortChange: (key) => this.setEntitySort('book', key),
+            onClose: closeMobileFilters,
+          } : null}
+      />;
+    } else if (!Sefaria.multiPanel) {
+      if (activeTab === "authors") {
+        sidebar = <EntitySortPanel
+            sortOptions={ENTITY_SORT_OPTIONS.authors}
+            sortType={this.state.entitySort.author}
+            onSortChange={(key) => this.setEntitySort('author', key)}
+            onClose={closeMobileFilters}
+        />;
+      } else if (activeTab === "topics") {
+        sidebar = <EntitySortPanel
+            sortOptions={ENTITY_SORT_OPTIONS.topics}
+            sortType={this.state.entitySort.topic}
+            onSortChange={(key) => this.setEntitySort('topic', key)}
+            onClose={closeMobileFilters}
+        />;
+      }
+    }
+
+    const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
+    const handleExactMatchChange = (val) => {
+      const defaultField = SearchState.metadataByType[this.props.type]?.field;
+      this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
+    };
+
     const tabs = [
-      {id: "sources", title: "Sources", count: this.props.totalResults?.asString() ?? nullTabCount},
-      {id: "books",   title: "Books",   count: nullTabCount},
-      {id: "authors", title: "Authors", count: nullTabCount},
-      {id: "topics",  title: "Topics",  count: nullTabCount},
+      {id: "sources", title: "common.sources", count: this.props.totalResults?.asString() || ""},
+      {id: "books",   title: "common.books",   count: this.formatEntityCount(this.state.entityData.book?.total)},
+      {id: "authors", title: "common.authors", count: this.formatEntityCount(this.state.entityData.author?.total)},
+      {id: "topics",  title: "common.topics",  count: this.formatEntityCount(this.state.entityData.topic?.total)},
+    ];
+
+    const tabPanels = [
+      <div className="searchTabPanel" key="sources">
+        <div className="searchTopMatter">
+          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
+            <SearchToggle
+              options={[
+                {name: "all",   en: "All results",  he: "כל התוצאות"},
+                {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
+              ]}
+              selected={isExactSearch ? "exact" : "all"}
+              onChange={handleExactMatchChange}
+            />
+          )}
+          <div>
+            {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
+          </div>
+        </div>
+        {this.props.totalResults && !this.props.totalResults.getValue()
+          ? <NoSearchResults mode="sources" query={this.props.query} />
+          : searchResultList}
+      </div>,
+      <div className="searchTabPanel" key="books">
+        <div className="searchSortBar">
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.books}
+                sortType={this.state.entitySort.book}
+                onSortChange={(key) => this.setEntitySort('book', key)}
+                disabled={!this.getSortedEntityData('book')?.hits?.length}
+              />
+            : <MobileFilterIconButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.getSortedEntityData('book')?.hits?.length}
+              />
+          }
+        </div>
+        <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('book')}/>
+      </div>,
+      <div className="searchTabPanel" key="authors">
+        <div className="searchSortBar">
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.authors}
+                sortType={this.state.entitySort.author}
+                onSortChange={(key) => this.setEntitySort('author', key)}
+                disabled={!this.getSortedEntityData('author')?.hits?.length}
+              />
+            : <MobileFilterIconButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.getSortedEntityData('author')?.hits?.length}
+              />
+          }
+        </div>
+        <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('author')}/>
+      </div>,
+      <div className="searchTabPanel" key="topics">
+        <div className="searchSortBar">
+          {Sefaria.multiPanel
+            ? <SearchSortDropdown
+                options={ENTITY_SORT_OPTIONS.topics}
+                sortType={this.state.entitySort.topic}
+                onSortChange={(key) => this.setEntitySort('topic', key)}
+                disabled={!this.getSortedEntityData('topic')?.hits?.length}
+              />
+            : <MobileFilterIconButton
+                openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.getSortedEntityData('topic')?.hits?.length}
+              />
+          }
+        </div>
+        <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('topic')}/>
+      </div>,
     ];
 
     return (
@@ -166,67 +517,36 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
-                <TabView
-                    tabs={tabs}
-                    currTabName={this.state.activeTab}
-                    setTab={this.setTab}
-                    renderTab={this.renderTab}
-                    containerClasses={"largeTabs"}>
-                  <div className="searchTabPanel" key="sources">
-                    <div className="searchTopMatter">
-                      <div className="searchResultCount">
-                        {resultCount}
-                      </div>
-                      <div>
-                        {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
-                      </div>
-                    </div>
-                    {/* Search results temporarily removed while the page is rebuilt
-                        to match the multi-entity search designs (sc-45480).
-                    {searchResultList}
-                    */}
-                    <NoSearchResults mode="sources" query={this.props.query} />
-                  </div>
-                  <div className="searchTabPanel" key="books">
-                    <div className="searchTopMatter">
-                      <div />
-                      <div>{makeSortFilterControls(true)}</div>
-                    </div>
-                    <NoSearchResults mode="books" query={this.props.query} />
-                  </div>
-                  <div className="searchTabPanel" key="authors">
-                    <div className="searchTopMatter">
-                      <div />
-                      <div>{makeSortFilterControls(true)}</div>
-                    </div>
-                    <NoSearchResults mode="authors" query={this.props.query} />
-                  </div>
-                  <div className="searchTabPanel" key="topics">
-                    <div className="searchTopMatter">
-                      <div />
-                      <div>{makeSortFilterControls(true)}</div>
-                    </div>
-                    <NoSearchResults mode="topics" query={this.props.query} />
-                  </div>
-                </TabView>
+                {this.props.isQueryRunning && !this.props.hits.length
+                  ? <SearchLoadSkeleton />
+                  : Sefaria.multiPanel
+                    ? <TabView
+                          tabs={tabs}
+                          currTabName={isValidTab ? this.props.tab : null}
+                          setTab={this.setTab}
+                          renderTab={this.renderTab}
+                          containerClasses={"largeTabs"}>
+                        {tabPanels}
+                      </TabView>
+                    : <>
+                        <SearchTabsMobileWeb
+                            tabs={tabs}
+                            currTabName={activeTab}
+                            setTab={this.setTab}/>
+                        {tabPanels[tabs.findIndex(t => t.id === activeTab)]}
+                      </>
+                }
               </div>
 
-              {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
-                  <div
-                      className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-                    {this.props.totalResults?.getValue() > 0 ?
-                        <SearchFilters
-                            query={this.props.query}
-                            searchState={this.props.searchState}
-                            updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
-                            updateAppliedOptionField={this.props.updateAppliedOptionField}
-                            updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                            closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
-                            compare={this.props.compare}
-                            type={this.props.type}/>
-                        : null}
+              {Sefaria.multiPanel && !this.props.compare ?
+                  <div className="navSidebar">
+                    {sidebar}
                   </div>
-                  : null}
+                  : this.state.mobileFiltersOpen && sidebar ?
+                      <div className="mobileSearchFilters">
+                        {sidebar}
+                      </div>
+                      : null}
             </div>
           </div>
         </div>
@@ -236,6 +556,8 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  tab:                      PropTypes.string,
+  setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),
   searchState:              PropTypes.object,
   settings:                 PropTypes.object,

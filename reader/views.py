@@ -632,6 +632,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1062,6 +1063,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
+        # on the search page (sources/books/authors/topics).
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1102,6 +1106,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4853,7 +4858,10 @@ def entity_search_api(request):
     Entity search endpoint powering the Topics / Authors / Books tabs.
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
-                          &filter=<category path>
+                          &filter=<category path>&aggregate=<1|0>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
 
     `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
     `book` searches the `book` index, or — when the query resolves to an author — returns
@@ -4864,11 +4872,13 @@ def entity_search_api(request):
     year, so they only accept relevance/alpha).
 
     `filter` (books only, repeatable) restricts hits to books at or under a category path
-    (e.g. filter=Tanakh/Torah); multiple filters OR together.
+    (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
+    flat list — category rows collapse many books, so they carry no per-row path.
+    Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
 
-    Any explicit sort or filter returns the flat list — on the books tab it bypasses the
-    author-works aggregation (category rows collapse many books, so they carry no
-    per-row sort key or path).
+    `aggregate=0` turns the author-works aggregation off, so a book query always returns
+    the flat list — a QA escape hatch for comparing the two views. Ignored for types
+    that never aggregate (topic/author).
     """
     from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS
 
@@ -4876,6 +4886,7 @@ def entity_search_api(request):
     entity_type = request.GET.get("type", "topic").strip()
     sort = request.GET.get("sort", "relevance").strip()
     category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
+    aggregate = request.GET.get("aggregate", "").strip().lower() not in ("0", "false")
     callback = request.GET.get("callback", None)
 
     if not query:
@@ -4897,14 +4908,20 @@ def entity_search_api(request):
         )
 
     try:
-        size = min(int(request.GET.get("size", 20)), 100)
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
     except (TypeError, ValueError):
         size = 20
 
     try:
-        results = entity_search(query, entity_type, size=size, sort=sort, category_paths=category_paths)
+        start = max(0, min(int(request.GET.get("start", 0)), 10000 - size))
+    except (TypeError, ValueError):
+        start = 0
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths,
+                                aggregate=aggregate)
     except Exception as e:
-        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, aggregate: {aggregate}, error: {e}", exc_info=True)
         return jsonResponse({"error": "Error running entity search."}, callback=callback)
 
     return jsonResponse(results, callback=callback)
