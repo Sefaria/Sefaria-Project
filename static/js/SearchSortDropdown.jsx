@@ -41,10 +41,7 @@ export const sortEntityHits = (hits, type, sortKey) => {
   };
   const getYear = (hit) => {
     if (type === 'book')   return toYear(hit.compDate);
-    // An author with only a death year is still a dated author: the card shows that year
-    // (see authorLifespan), so sorting must use it too, or the entry reads as undated and
-    // sinks into the undated tail while displaying a date.
-    if (type === 'author') return toYear(hit.birthYear) ?? toYear(hit.deathYear);
+    if (type === 'author') return toYear(hit.deathYear) ?? toYear(hit.birthYear);
     return null;
   };
   const asc = sortKey.endsWith('_asc');
