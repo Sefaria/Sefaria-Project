@@ -219,7 +219,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         if not form.is_valid():
             return jsonResponse({k: v[0] for k, v in form.errors.items()}, status=400)
         form.save()
-        del request.session[INTERNAL_RESET_SESSION_TOKEN]
+        request.session.pop(INTERNAL_RESET_SESSION_TOKEN, None)
         return jsonResponse({})
 
 def process_register_form(request, auth_method='session'):
