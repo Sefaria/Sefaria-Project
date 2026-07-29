@@ -1,5 +1,6 @@
 import sys
 import json
+import urllib.parse
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
@@ -125,6 +126,17 @@ class SsoNextCookieRedirectTest(TestCase):
     def test_login_redirect_uses_cookie_when_safe(self):
         adapter, request = self._adapter('/some/next/path', safe=True)
         self.assertEqual(adapter.get_login_redirect_url(request), '/some/next/path')
+
+    def test_login_redirect_decodes_percent_encoded_cookie(self):
+        # Mirrors the real client write (encodeURIComponent in useSsoSignIn.jsx) — Python's
+        # cookie parser never percent-decodes values, so the raw cookie value arrives still
+        # encoded (e.g. "%2Fsheets%2F123") and must be decoded before use, not passed
+        # through as-is (that mangled string previously still passed is_safe_url and became
+        # a broken redirect target).
+        encoded = urllib.parse.quote('/sheets/123?query=a b', safe='')
+        adapter, request = self._adapter(encoded, safe=True)
+        self.assertEqual(adapter.get_login_redirect_url(request), '/sheets/123?query=a b')
+        adapter.is_safe_url.assert_called_once_with('/sheets/123?query=a b')
 
     def test_login_redirect_falls_back_when_no_cookie(self):
         adapter, request = self._adapter(None)

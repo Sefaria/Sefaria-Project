@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import structlog
@@ -71,8 +72,13 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         user.username = user.email
 
     def _next_from_cookie(self, request):
-        next_url = request.COOKIES.get(self.SSO_NEXT_COOKIE)
-        return next_url if next_url and self.is_safe_url(next_url) else None
+        raw_next_url = request.COOKIES.get(self.SSO_NEXT_COOKIE)
+        if not raw_next_url:
+            return None
+        # Python's cookie parser never percent-decodes values, so the encodeURIComponent()
+        # applied client-side (useSsoSignIn.jsx) has to be undone here explicitly.
+        next_url = urllib.parse.unquote(raw_next_url)
+        return next_url if self.is_safe_url(next_url) else None
 
     def get_login_redirect_url(self, request):
         return self._next_from_cookie(request) or super().get_login_redirect_url(request)
