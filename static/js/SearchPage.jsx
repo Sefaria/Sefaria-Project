@@ -122,16 +122,18 @@ class SearchPage extends Component {
       </>
     );
 
-    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
-      <SearchSortBox
-          type={this.props.type}
-          sortTypeArray={this.props.sortTypeArray}
-          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-          sortType={this.props.searchState.sortType}/>
-      :
-      <SearchFilterButton
-          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-          nFilters={this.props.searchState.appliedFilters.length}/>;
+    const makeSortFilterControls = (disabled = false) =>
+      Sefaria.multiPanel && !this.props.compare
+        ? <SearchSortBox
+              type={this.props.type}
+              sortTypeArray={this.props.sortTypeArray}
+              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+              sortType={this.props.searchState.sortType}
+              disabled={disabled} />
+        : <SearchFilterButton
+              openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+              nFilters={this.props.searchState.appliedFilters.length}
+              disabled={disabled} />;
 
     if (this.props.searchInBook) {
       return searchResultList;
@@ -175,7 +177,7 @@ class SearchPage extends Component {
                         {resultCount}
                       </div>
                       <div>
-                        {sortFilterControls}
+                        {makeSortFilterControls(false)}
                       </div>
                     </div>
                     {/* Search results temporarily removed while the page is rebuilt
@@ -185,12 +187,24 @@ class SearchPage extends Component {
                     <NoSearchResults mode="sources" query={this.props.query} />
                   </div>
                   <div className="searchTabPanel" key="books">
+                    <div className="searchTopMatter">
+                      <div />
+                      <div>{makeSortFilterControls(true)}</div>
+                    </div>
                     <NoSearchResults mode="books" query={this.props.query} />
                   </div>
                   <div className="searchTabPanel" key="authors">
+                    <div className="searchTopMatter">
+                      <div />
+                      <div>{makeSortFilterControls(true)}</div>
+                    </div>
                     <NoSearchResults mode="authors" query={this.props.query} />
                   </div>
                   <div className="searchTabPanel" key="topics">
+                    <div className="searchTopMatter">
+                      <div />
+                      <div>{makeSortFilterControls(true)}</div>
+                    </div>
                     <NoSearchResults mode="topics" query={this.props.query} />
                   </div>
                 </TabView>

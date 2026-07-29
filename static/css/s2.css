@@ -4177,6 +4177,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-button.buttonStyle:hover {
   text-decoration: none;
 }
+.dropdown-button.buttonStyle.disabled {
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
 .message-modal {
   position: fixed;
   text-align: center;
@@ -4807,6 +4813,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
+  padding-top: 16px;
 }
 
 .noSearchResults-image {

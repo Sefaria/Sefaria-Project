@@ -167,8 +167,17 @@ SearchResultList.propTypes = {
     topics:           PropTypes.array
 };
 
-const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray}) => {
+const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, disabled}) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    if (disabled) {
+      return (
+        <div className="dropdown-button buttonStyle disabled" aria-disabled="true">
+          <InterfaceText text={{en: "Sort", he: "מיון"}} />
+          <img src="/static/img/arrow-down.png" alt="" aria-hidden="true" />
+        </div>
+      );
+    }
 
     const handleClick = (newSortType) => {
         if (sortType === newSortType) {
@@ -202,17 +211,19 @@ SearchSortBox.propTypes = {
   type:                    PropTypes.string.isRequired,
   updateAppliedOptionSort: PropTypes.func,
   sortType:                PropTypes.string,
+  disabled:                PropTypes.bool,
 };
 
 
-const SearchFilterButton = ({openMobileFilters, nFilters}) => (
-  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters})} 
-       onClick={openMobileFilters} 
-       role="button" 
-       tabIndex="0" 
-       aria-label={`Open filters${nFilters ? ` (${nFilters} active)` : ''}`}>
+const SearchFilterButton = ({openMobileFilters, nFilters, disabled}) => (
+  <div className={classNames({button: 1, extraSmall: 1, grey: !nFilters || disabled, disabled})}
+       onClick={disabled ? undefined : openMobileFilters}
+       role="button"
+       tabIndex={disabled ? -1 : 0}
+       aria-label={disabled ? undefined : `Open filters${nFilters ? ` (${nFilters} active)` : ''}`}
+       aria-disabled={disabled || undefined}>
     <InterfaceText>Filter</InterfaceText>
-    {!!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+    {!disabled && !!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
   </div>
 );
 
