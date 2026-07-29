@@ -500,5 +500,7 @@ class ClearSsoNextCookieMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         if request.path in self.SSO_CALLBACK_PATHS:
-            response.delete_cookie(self.SSO_NEXT_COOKIE)
+            # samesite must match the original cookie's (SameSite=None) for browsers to
+            # treat this as the same cookie being cleared.
+            response.delete_cookie(self.SSO_NEXT_COOKIE, samesite='None')
         return response

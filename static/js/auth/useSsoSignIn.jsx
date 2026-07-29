@@ -124,7 +124,10 @@ export function useProviderTriggers({ next, tracking }) {
             // the tab, or Google's own page, before completing) — nothing fires in that
             // case to clear it (ClearSsoNextCookieMiddleware only runs on an actual
             // response), so keep this short: just long enough for a real attempt.
-            document.cookie = `sefaria_sso_next=${encodeURIComponent(safeNext(nextRef.current))}; path=/; max-age=300; SameSite=Lax`;
+            // SameSite=None (+ mandatory Secure) because GIS's redirect POST back to
+            // login_uri is a cross-site request from accounts.google.com — SameSite=Lax
+            // explicitly excludes cross-site POST, only GET-like top-level navigations.
+            document.cookie = `sefaria_sso_next=${encodeURIComponent(safeNext(nextRef.current))}; path=/; max-age=300; SameSite=None; Secure`;
           } else {
             config.callback = onGoogleResult;
           }
