@@ -127,8 +127,8 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
-      showAuth: isAuthPath(window.location.pathname.replace(/\/$/, '')) || !!props.authResetUid,
-      authPath: window.location.pathname + window.location.search,
+      showAuth: (typeof window !== 'undefined' && isAuthPath(window.location.pathname.replace(/\/$/, ''))) || !!props.authResetUid,
+      authPath: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : props.initialPath,
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
       authSource: null,
