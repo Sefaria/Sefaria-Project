@@ -94,6 +94,17 @@ class StaticViewMixin:
 class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        from reader.models import user_has_experiments, _set_user_experiments
+        user = self.request.user
+        # Users who have never made a Library Assistant choice are enrolled at login,
+        # so the assistant opens for them automatically. Users with an existing
+        # preference (enabled or disabled) are left untouched.
+        if not user_has_experiments(user):
+            _set_user_experiments(user, True)
+        return response
+
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
 
