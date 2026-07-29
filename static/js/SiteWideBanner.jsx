@@ -257,9 +257,6 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
   };
 
   const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
-    return null;
-  }
   // Route anon login/register through the Library Assistant opt-in landing so that,
   // once they authenticate, they're auto-enrolled in the experiment and returned here —
   // the assistant then appears on reload with no extra "Join" click.
