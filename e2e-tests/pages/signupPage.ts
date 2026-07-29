@@ -15,8 +15,7 @@ export class SignUpPage extends HelperBase{
     }
 
     // This class will be good to validate error messages associated with sign-up.
-    // RegisterView (static/js/auth/RegisterView.jsx) has no educator checkbox —
-    // that field was dropped when the registration form was rebuilt for SSO.
+    // RegisterView (static/js/auth/RegisterView.jsx) has no educator checkbox.
     async fillNewUser(email: string, password: string, firstName: string, lastName: string){
         const labels = this.language === LANGUAGES.HE
             ? { email: 'דוא״ל', password: 'סיסמה', first: 'שם פרטי', last: 'שם משפחה' }

@@ -115,18 +115,14 @@ export function useProviderTriggers({ next, tracking }) {
           };
           if (useRedirect) {
             config.login_uri = `${window.location.origin}/api/auth/google/redirect`;
-            // Google's login_uri must exactly match a pre-registered redirect URI (no
-            // query strings allowed), so `next` can't travel in the URL — stash it in a
-            // short-lived cookie instead; read by SefariaAccountAdapter.get_login_redirect_url
-            // / get_signup_redirect_url (sso/adapters.py), which fall back to the site
-            // default otherwise. Keep the cookie name in sync with that file.
-            // Backstop for if the user abandons before ever reaching our callback (closes
-            // the tab, or Google's own page, before completing) — nothing fires in that
-            // case to clear it (ClearSsoNextCookieMiddleware only runs on an actual
-            // response), so keep this short: just long enough for a real attempt.
-            // SameSite=None (+ mandatory Secure) because GIS's redirect POST back to
-            // login_uri is a cross-site request from accounts.google.com — SameSite=Lax
-            // explicitly excludes cross-site POST, only GET-like top-level navigations.
+            // login_uri must exactly match a pre-registered URI with no query string, so
+            // `next` travels via this cookie instead — read by SefariaAccountAdapter
+            // .get_login_redirect_url / .get_signup_redirect_url (sso/adapters.py); keep
+            // the cookie name in sync with that file.
+            // max-age=300 is just a backstop for an abandoned attempt (closed tab, etc.) —
+            // ClearSsoNextCookieMiddleware clears it on a real response.
+            // SameSite=None+Secure because GIS's redirect POST back here is cross-site
+            // (from accounts.google.com), which SameSite=Lax would block.
             document.cookie = `sefaria_sso_next=${encodeURIComponent(safeNext(nextRef.current))}; path=/; max-age=300; SameSite=None; Secure`;
           } else {
             config.callback = onGoogleResult;

@@ -25,7 +25,7 @@ import { getCsrfToken } from '../sefaria/csrf';
  * The card's own back button returns to `choose`; the browser URL stays /login, /register,
  * or the reset-confirm URL (for `flow === 'reset'`, pushed by ReaderApp via `onNavigate`).
  *
- * SSO uses the existing backend callbacks (/api/auth/{google,apple}/callback). Email
+ * SSO endpoints/flow differ by provider and mode — see `useSsoSignIn.jsx`. Email
  * login/register use JSON+session endpoints (/api/auth/login, /register).
  */
 const AuthPage = ({

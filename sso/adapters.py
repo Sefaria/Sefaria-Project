@@ -125,8 +125,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
         After the base implementation creates the Django User and SocialAccount
         row, we:
         1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
-        2. Register the user in Salesforce CRM — outside try/except so a CRM
-           outage does not roll back the user or profile that were just created
+        2. Register the user in Salesforce CRM — wrapped in its own try/except
+           so a CRM outage doesn't affect the user or profile already created above
         """
         user = super().save_user(request, sociallogin, form)
 

@@ -84,8 +84,8 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
     await page.getByRole('button', { name: 'Continue with Email' }).first()
       .waitFor({ state: 'visible', timeout: t(15000) });
 
-    // If geo still redirected us off-domain, fail loudly rather than time out
-    // on getByLabel.
+    // If geo still redirected us off-domain, fail loudly here rather than
+    // time out later waiting for the email/password form.
     if (new URL(page.url()).hostname !== baseHost) {
       throw new Error(
         `[global-setup] /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +

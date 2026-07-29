@@ -2,11 +2,10 @@
  * AUTH PAGE — ChooseView / LoginView / RegisterView / ForgotView (UMN-A0NN)
  *
  * Coverage for the React AuthPage state machine (static/js/auth/AuthPage.jsx
- * and siblings) introduced by the SSO branch, which replaced the old
- * server-rendered login/register templates. UMN-001 in user-menu.spec.ts
- * already covers the golden-path login (via the now ChooseView-aware
- * LoginPage.loginAs) — this file covers the surrounding flows: navigation
- * between login/register, client-side validation, and error states.
+ * and siblings). UMN-001 in user-menu.spec.ts already covers the golden-path
+ * login (via the ChooseView-aware LoginPage.loginAs) — this file covers the
+ * surrounding flows: navigation between login/register, client-side
+ * validation, and error states.
  *
  * A real Google/Apple SSO round-trip and a real captcha-gated registration
  * both need live third-party credentials this suite doesn't have — see

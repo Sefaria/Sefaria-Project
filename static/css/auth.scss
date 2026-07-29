@@ -271,7 +271,7 @@ $stroke-strong:   1.5px;
   &-icon { width: 16px; height: 16px; flex: 0 0 16px; }
 }
 
-// The one real Google button on the page (useProviderTriggers/useSsoSignIn.js), invisibly
+// The one real Google button on the page (useProviderTriggers/useSsoSignIn.jsx), invisibly
 // tracked over whichever "Continue with Google" element is currently registered — its
 // position/size come from inline styles (recomputed on scroll/resize/target-change), not CSS,
 // since it has to follow an arbitrary target anywhere on the page rather than fill a fixed

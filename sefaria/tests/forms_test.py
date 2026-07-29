@@ -1,12 +1,11 @@
 """
-Tests for sefaria/forms.py::SefariaNewUserForm.clean_email — the SSO branch
-replaced a single generic "already exists" ValidationError with provider-
-specific messaging (Google/Apple/generic) based on the existing user's
-SocialAccount rows, inside the pre-existing User-Seed bypass. Exercised
-directly against clean_email() rather than through full form validation,
-since is_valid() would also require a real reCAPTCHA response — the
-"no existing user" short-circuit above this branching predates the SSO
-branch and isn't retested here.
+Tests for sefaria/forms.py::SefariaNewUserForm.clean_email — an existing
+email raises a provider-specific "already exists" ValidationError
+(Google/Apple/generic) based on the existing user's SocialAccount rows,
+inside the User-Seed bypass. Exercised directly against clean_email()
+rather than through full form validation, since is_valid() would also
+require a real reCAPTCHA response — the "no existing user" short-circuit
+above this branching isn't retested here.
 """
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError

@@ -24,7 +24,8 @@ import { InterfaceText } from '../Misc.jsx';
  * @param name           input name (also used as id fallback)
  * @param id             input id (defaults to name)
  * @param placeholder    placeholder (raw string — HTML attribute, not localized via InterfaceText)
- * @param error          error message (keyed string ID), or null/empty for no error
+ * @param error          error message: a keyed string ID (wrapped in InterfaceText), a
+ *                       pre-rendered node, or null/empty for no error
  * @param disabled       disables the field
  * @param required       marks the field required
  * @param inputDir       "ltr" | "rtl" — direction for the control value only (e.g. "ltr" for email/password in RTL layouts)

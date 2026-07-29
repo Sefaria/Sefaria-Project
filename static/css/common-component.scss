@@ -4,7 +4,8 @@
  * and the auth-primary Button variant.
  *
  * No font-family or dir rules — these are inherited from the site.
- * No !important except where noted (Google SDK overlay inline style override).
+ * No !important rules (see auth.scss for the one exception, the Google SDK
+ * overlay's inline-style override).
  */
 
 // ── SCSS vars ────────────────────────────────────────────────────────────────

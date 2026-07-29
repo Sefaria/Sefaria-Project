@@ -1,6 +1,6 @@
 """
 Tests for sefaria/views.py::CustomPasswordResetConfirmView — the JSON POST
-behavior added for the React AuthPage (ResetView.jsx / ResetExpiredView.jsx),
+behavior used by the React AuthPage (ResetView.jsx / ResetExpiredView.jsx),
 layered on top of Django's PasswordResetConfirmView.
 
 Only the JSON (POST) branches are covered here. The plain-GET page-load

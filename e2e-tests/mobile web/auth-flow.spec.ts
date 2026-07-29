@@ -9,9 +9,8 @@ import { MODULE_URLS } from '../constants';
  *
  * Covers the hamburger → Log in / Sign up / Forgot-password / Logout journey.
  * Source of truth is the React `AuthPage` state machine
- * (static/js/auth/AuthPage.jsx and siblings under static/js/auth/), which
- * replaced the old server-rendered templates/registration/{login,register}.html.
- * Both `/login` and `/register` land on `ChooseView` (provider buttons +
+ * (static/js/auth/AuthPage.jsx and siblings under static/js/auth/). Both
+ * `/login` and `/register` land on `ChooseView` (provider buttons +
  * "Continue with Email") before any email/password form is on screen.
  *
  * Each test starts anonymous in `beforeEach` so cases stay independent. The

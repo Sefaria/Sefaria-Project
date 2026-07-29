@@ -537,14 +537,14 @@ export class MobileHamburgerPage extends HelperBase {
   //
   // Source of truth for the login / register / password-reset UI: the React
   // `AuthPage` state machine (static/js/auth/AuthPage.jsx and siblings under
-  // static/js/auth/), which replaced the old server-rendered
-  // templates/registration/{login,register}.html. `/login` and `/register` both
-  // land on `ChooseView` (provider buttons + "Continue with Email") before any
-  // email/password form is on screen.
+  // static/js/auth/). `/login` and `/register` both land on `ChooseView`
+  // (provider buttons + "Continue with Email") before any email/password
+  // form is on screen.
   //
-  // The Log in / Sign up links in the mobile menu are wrapped in
-  // `NextRedirectAnchor`, which flips `href` to `#` at hydration and routes via
-  // JS. Tapping them performs a full-page navigation to `/login` / `/register`.
+  // The Log in / Sign up links in the mobile menu are `AuthNavLink`
+  // (Header.jsx) — real `/login` / `/register` hrefs whose onClick calls
+  // `openURL` to swap in AuthPage as an in-app transition, not a full-page
+  // navigation.
 
   /**
    * Tap "Log in" in the open hamburger menu and assert the user lands on

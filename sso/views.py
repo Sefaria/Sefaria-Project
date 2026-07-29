@@ -205,9 +205,9 @@ def email_login(request):
     Body (JSON): { email, password }
 
     Returns:
-      200 {}                                       — success, session set
-      401 { error }                                — wrong credentials
-      401 { code: 'sso_only_account', providers }  — account has no password
+      200 {}                                                          — success, session set
+      401 { error }                                                   — wrong credentials
+      401 { error, _auth: { code: 'sso_only_account', providers } }   — account has no password
     """
     try:
         data = json.loads(request.body)

@@ -2,12 +2,9 @@
 Tests for sefaria/system/middleware.py::LanguageSettingsMiddleware on
 "excluded" paths (/api/, /interface/, static, etc.).
 
-The SSO branch extracted the cookie/cf-ipcountry/Accept-Language resolution
-into _interface_from_request_signals and reused it on the excluded-path
-branch, which previously hardcoded request.interfaceLang = "english"
-unconditionally. That's a real behavior change bundled into what reads like a
-pure refactor: excluded paths (most notably every /api/ request) now honor
-the same language signals as regular page requests. These tests pin that
+Excluded paths resolve interfaceLang via _interface_from_request_signals —
+the same cookie/cf-ipcountry/Accept-Language logic used on regular page
+requests — rather than being hardcoded to English. These tests pin that
 behavior down directly, independent of the rest of the middleware chain.
 """
 import pytest
