@@ -146,7 +146,7 @@ class SaveUserTest(TestCase):
         profile = mock_profile_cls.return_value
         profile.assign_slug.assert_called_once()
         profile.join_invited_collections.assert_called_once()
-        self.assertEqual(profile.settings['interface_language'], 'english')
+        profile.settings.__setitem__.assert_called_once_with('interface_language', 'english')
         mock_import_gravatar.assert_called_once_with(profile)
         profile.save.assert_called_once()
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(

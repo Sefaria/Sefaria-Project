@@ -216,7 +216,8 @@ class GoogleMobileTest(TestCase):
         self.assertIn('refresh', data)
         # The pre-existing session must actually be gone, not just never created.
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertNotIn('sessionid', res.cookies)
+        # A flushed session cookie is deleted by resending it empty with Max-Age=0, not omitted.
+        self.assertEqual(res.cookies['sessionid'].value, '')
         # The account issued tokens for genuinely has no password to steal.
         self.assertFalse(User.objects.get(pk=user.pk).has_usable_password())
 
@@ -294,7 +295,7 @@ class AppleMobileTest(TestCase):
         self.assertEqual(sl.user.first_name, 'Alice')
         self.assertEqual(sl.user.last_name, 'Smith')
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertNotIn('sessionid', res.cookies)
+        self.assertEqual(res.cookies['sessionid'].value, '')
         self.assertFalse(User.objects.get(pk=user.pk).has_usable_password())
 
 

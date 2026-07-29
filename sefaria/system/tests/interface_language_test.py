@@ -18,6 +18,11 @@ def factory():
     return RequestFactory()
 
 
+def _middleware():
+    # get_response is required but never invoked since process_request is called directly.
+    return LanguageSettingsMiddleware(lambda request: None)
+
+
 def _excluded_path_request(factory, cookie=None, cf_ipcountry=None):
     request = factory.get('/api/texts/Genesis.1.1')
     request.COOKIES = {'interfaceLang': cookie} if cookie else {}
@@ -31,14 +36,14 @@ def _excluded_path_request(factory, cookie=None, cf_ipcountry=None):
 
 def test_excluded_path_defaults_to_english_with_no_signals(factory):
     request = _excluded_path_request(factory)
-    LanguageSettingsMiddleware().process_request(request)
+    _middleware().process_request(request)
     assert request.interfaceLang == 'english'
     assert request.LANGUAGE_CODE == 'en'
 
 
 def test_excluded_path_honors_interfaceLang_cookie(factory):
     request = _excluded_path_request(factory, cookie='hebrew')
-    LanguageSettingsMiddleware().process_request(request)
+    _middleware().process_request(request)
     assert request.interfaceLang == 'hebrew'
     assert request.LANGUAGE_CODE == 'he'
 
@@ -47,7 +52,7 @@ def test_excluded_path_honors_cf_ipcountry_header(factory):
     # Cloudflare geolocates the request and sets this header; 'IL' maps to
     # Hebrew the same way it does on non-excluded paths.
     request = _excluded_path_request(factory, cf_ipcountry='IL')
-    LanguageSettingsMiddleware().process_request(request)
+    _middleware().process_request(request)
     assert request.interfaceLang == 'hebrew'
 
 
@@ -55,11 +60,11 @@ def test_excluded_path_rejects_unsupported_language(factory):
     # Only english/hebrew are handled; anything else (e.g. a stray cookie
     # value) must fall back to english rather than leaking through.
     request = _excluded_path_request(factory, cookie='french')
-    LanguageSettingsMiddleware().process_request(request)
+    _middleware().process_request(request)
     assert request.interfaceLang == 'english'
 
 
 def test_excluded_path_cookie_takes_precedence_over_geo_header(factory):
     request = _excluded_path_request(factory, cookie='english', cf_ipcountry='IL')
-    LanguageSettingsMiddleware().process_request(request)
+    _middleware().process_request(request)
     assert request.interfaceLang == 'english'
