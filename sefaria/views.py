@@ -271,7 +271,7 @@ def _web_register_errors(form):
     errors = {}
     for field, field_errors in form.errors.as_data().items():
         error = field_errors[0]
-        errors[field] = WEB_REGISTER_ERROR_CODES.get(error.code, str(error))
+        errors[field] = WEB_REGISTER_ERROR_CODES.get(error.code, error.messages[0])
     return errors
 
 
