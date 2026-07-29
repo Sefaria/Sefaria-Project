@@ -23,7 +23,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
@@ -312,13 +311,6 @@ def register(request):
 def maintenance_message(request):
     resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
-
-
-def accounts(request):
-    return render_template(request,"registration/accounts.html", None, {
-        "createForm": UserCreationForm(),
-        "loginForm": AuthenticationForm()
-    })
 
 
 @csrf_exempt
