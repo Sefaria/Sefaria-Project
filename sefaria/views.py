@@ -238,6 +238,7 @@ def process_register_form(request, auth_method='session'):
             p.save()
 
         import_gravatar(p)
+        p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
 
         if auth_method == 'session':
             auth_login(request, user)
