@@ -55,9 +55,10 @@ export function fireFlowEnded(flowId, status, error = null) {
 // provider always lands on allauth's bare default templates (authentication_error.html /
 // login_cancelled.html), which extend allauth's own generic layout and never load
 // Sefaria's JS bundle at all — so our code cannot run, at all, on a failed/cancelled
-// redirect, by any mechanism. Only success lands somewhere our JS loads again (Apple:
-// the original `next` URL, honored; Google: always `home`, a separate pre-existing bug
-// that ignores `next`). That means reaching either resumption branch below is
+// redirect, by any mechanism. Only success lands somewhere our JS loads again — the
+// original `next` URL for both providers (Google via the sefaria_sso_next cookie, see
+// sso/adapters.py; Apple via allauth's own OAuth2 `state`). That means reaching either
+// resumption branch below is
 // structurally only possible on success — `document.referrer` is checked anyway as
 // cheap defense-in-depth, not because failure could otherwise reach here.
 const PENDING_MAX_AGE_MS = 10 * 60 * 1000;
