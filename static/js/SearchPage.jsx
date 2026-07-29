@@ -12,6 +12,7 @@ import {MobileFilterIconButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
 import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
+import InfiniteScroll from './InfiniteScroll';
 import {
   CategoryColorLine,
   InterfaceText,
@@ -176,7 +177,7 @@ const ENTITY_CARD_PROP_BUILDERS = {
 };
 
 
-const EntitySearchResults = ({type, data, query}) => {
+const EntitySearchResults = ({type, data, query, loadMore}) => {
   if (!data) {
     return <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
   }
@@ -184,12 +185,17 @@ const EntitySearchResults = ({type, data, query}) => {
     return <LoadingMessage message="0 results." heMessage="0 תוצאות." />;
   }
   return (
-    <div className="entitySearchResults">
+    <InfiniteScroll
+      className="entitySearchResults"
+      hasMore={data.moreToLoad}
+      isLoading={data.isLoadingMore}
+      isLoadingMore={data.isLoadingMore}
+      loadMore={loadMore}>
       {data.hits.map(hit => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
         return <SearchResultCard key={cardProps.href} {...cardProps} />;
       })}
-    </div>
+    </InfiniteScroll>
   );
 };
 
@@ -258,10 +264,46 @@ class SearchPage extends Component {
       Sefaria.search.entitySearch(query, type)
           .then(data => {
             if (this.props.query !== query) { return; }  // a newer query superseded this one
-            this.setState(prev => ({entityData: {...prev.entityData, [type]: data}}));
+            this.setState(prev => ({entityData: {...prev.entityData, [type]: this.makeEntityEntry(data)}}));
           })
           .catch(() => {});  // count badge stays at "0", panel stays on the loading message
     });
+  }
+
+  // Normalize an API page into the paging entry the tab panels read. `total` is the full
+  // match count (so the badge and "more to load" stay correct), `moreToLoad` compares it to
+  // how many hits we've accumulated so far.
+  makeEntityEntry(data, prevHits = []) {
+    const hits = prevHits.concat(data.hits);
+    // Cap at ES's default max_result_window so infinite scroll stops before sending an offset
+    // that ES would reject. `total` is kept intact for the count badge.
+    const loadableTotal = Math.min(data.total, 10000);
+    return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
+  }
+
+  loadNextEntityPage(type) {
+    const query = this.props.query;
+    const cur = this.state.entityData[type];
+    if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
+    this.setState(prev => ({
+      entityData: {...prev.entityData, [type]: {...prev.entityData[type], isLoadingMore: true}},
+    }));
+    Sefaria.search.entitySearch(query, type, cur.hits.length)
+        .then(data => {
+          if (this.props.query !== query) { return; }  // a newer query superseded this one
+          this.setState(prev => {
+            const prevEntry = prev.entityData[type];
+            if (!prevEntry) { return null; }  // query was reset while this page was in flight
+            return {entityData: {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}};
+          });
+        })
+        .catch(() => {
+          this.setState(prev => {
+            const prevEntry = prev.entityData[type];
+            if (!prevEntry) { return null; }
+            return {entityData: {...prev.entityData, [type]: {...prevEntry, isLoadingMore: false}}};
+          });
+        });
   }
 
   formatEntityCount(count) {
@@ -422,7 +464,8 @@ class SearchPage extends Component {
               />
           }
         </div>
-        <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}/>
+        <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('book')}/>
       </div>,
       <div className="searchTabPanel" key="authors">
         <div className="searchSortBar">
@@ -437,7 +480,8 @@ class SearchPage extends Component {
               />
           }
         </div>
-        <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}/>
+        <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('author')}/>
       </div>,
       <div className="searchTabPanel" key="topics">
         <div className="searchSortBar">
@@ -452,7 +496,8 @@ class SearchPage extends Component {
               />
           }
         </div>
-        <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}/>
+        <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}
+                             loadMore={() => this.loadNextEntityPage('topic')}/>
       </div>,
     ];
 
@@ -475,7 +520,7 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
-                {this.props.isQueryRunning
+                {this.props.isQueryRunning && !this.props.hits.length
                   ? <SearchLoadSkeleton />
                   : Sefaria.multiPanel
                     ? <TabView

@@ -376,6 +376,7 @@
   "search_filters.title": "Filters",
   "search_page.chronological": "Chronological",
   "search_page.date_created": "Date Created",
+  "search_page.loading_more_results": "Loading more results...",
   "search_page.relevance": "Relevance",
   "search_page.results": "Results",
   "search_page.results_for": "Results for",

@@ -4858,7 +4858,10 @@ def entity_search_api(request):
     Entity search endpoint powering the Topics / Authors / Books tabs.
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
-                          &filter=<category path>&aggregate=<1|0>
+                          &filter=<category path>&aggregate=<1|0>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
 
     `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
     `book` searches the `book` index, or — when the query resolves to an author — returns
@@ -4905,12 +4908,17 @@ def entity_search_api(request):
         )
 
     try:
-        size = min(int(request.GET.get("size", 20)), 100)
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
     except (TypeError, ValueError):
         size = 20
 
     try:
-        results = entity_search(query, entity_type, size=size, sort=sort, category_paths=category_paths,
+        start = max(0, min(int(request.GET.get("start", 0)), 10000 - size))
+    except (TypeError, ValueError):
+        start = 0
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths,
                                 aggregate=aggregate)
     except Exception as e:
         logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, aggregate: {aggregate}, error: {e}", exc_info=True)

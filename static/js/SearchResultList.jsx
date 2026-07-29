@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import extend from 'extend';
 import classNames from 'classnames';
-import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchState from './sefaria/searchState';
 import SearchResultCard from './SearchResultCard';
+import InfiniteScroll from './InfiniteScroll';
 import {
   DropdownModal,
   DropdownButton,
@@ -74,22 +73,6 @@ class SearchResultList extends Component {
     constructor(props) {
       super(props);
     }
-    componentDidMount() {
-        $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
-    }
-    componentWillUnmount() {
-        $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
-    }
-    handleScroll() {
-      if (!this.props.moreToLoad) { return; }
-      if (this.props.isQueryRunning) { return; }
-
-      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
-      var margin = 300;
-      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-        this.props.loadNextPage();
-      }
-    }
     render () {
         if (!(this.props.query)) {  // Push this up? Thought is to choose on the SearchPage level whether to show a ResultList or an EmptySearchMessage.
             return null;
@@ -126,18 +109,26 @@ class SearchResultList extends Component {
           );
         }
 
-        const loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
-        const queryFullyLoaded = !this.props.moreToLoad && !this.props.isQueryRunning;
+        // "Searching..." only shows on an initial load with no results yet (e.g. sidebar
+        // search-in-book, which renders this list directly without the page skeleton). Once
+        // results exist, a running query is a scroll-triggered next page, so the shared
+        // InfiniteScroll shows its "Loading more results..." message instead.
+        const initialLoadingMessage = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         const haveResults      = !!results.length;
-        results                = haveResults ? results : noResultsMessage;
 
         return (
           <div>
-              <div className="searchResultList">
-                  {queryFullyLoaded || haveResults ? results : null}
-                  {this.props.isQueryRunning ? loadingMessage : null}
-              </div>
+              <InfiniteScroll
+                  className="searchResultList"
+                  hasMore={this.props.moreToLoad}
+                  isLoading={this.props.isQueryRunning}
+                  isLoadingMore={this.props.isQueryRunning && haveResults}
+                  loadMore={this.props.loadNextPage}>
+                  {haveResults ? results : null}
+                  {!haveResults && this.props.isQueryRunning ? initialLoadingMessage : null}
+                  {!haveResults && !this.props.isQueryRunning ? noResultsMessage : null}
+              </InfiniteScroll>
           </div>
         );
     }
