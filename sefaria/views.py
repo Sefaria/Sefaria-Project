@@ -195,6 +195,11 @@ def process_register_form(request, auth_method='session'):
                 logger.warning("Error communicating with Google Storage Manager. {}".format(e))
             p.save()
 
+            # New users are enrolled in the Library Assistant automatically;
+            # the account settings toggle remains the way to opt out.
+            from reader.models import _set_user_experiments
+            _set_user_experiments(user, True)
+
         if auth_method == 'session':
             auth_login(request, user)
         elif auth_method == 'jwt':
