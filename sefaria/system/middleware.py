@@ -1,3 +1,4 @@
+import os
 import resource
 import sys
 import tempfile
@@ -67,13 +68,18 @@ class LocationSettingsMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         loc = request.headers.get("cf-ipcountry", None)
-        if not loc:
+        if not loc or loc.upper() == "XX":
+            # Cloudflare sets cf-ipcountry to "XX" when it can't determine the visitor's country --
+            # treat that the same as a missing header rather than passing "XX" on as a real country.
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
                 loc = PINNED_IPCOUNTRY
-            except:
-                loc = "us"
-        request.diaspora = False if loc in ("il", "IL", "Il") else True
+            except ImportError:
+                # Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, which the
+                # chart-generated local_settings.py may not expose as a Django setting.
+                loc = os.environ.get("PINNED_IPCOUNTRY") or "us"
+        request.country_code = loc.lower()
+        request.diaspora = request.country_code != "il"
 
 
 class LanguageSettingsMiddleware(MiddlewareMixin):

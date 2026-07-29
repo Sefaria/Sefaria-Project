@@ -1585,8 +1585,8 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
             logger.error(
                 f"Strapi GraphQL query returned errors: {parsed['errors']}"
             )
-            # Do not cache error responses. 
-            # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL. 
+            # Do not cache error responses.
+            # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL.
             # Still return the body so the client can degrade gracefully — the frontend renders nothing when there is no data.
             return HttpResponse(result_json, content_type="application/json")
 
