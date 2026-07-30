@@ -2,7 +2,7 @@
 import {
   SIGNUP_EVENT, SIGNUP_METHOD, SSO_REFERRER_ORIGIN,
   fireFlowStarted,
-  persistPendingAttempt, persistActiveFlow, clearActiveFlow,
+  persistPendingAttempt, persistActiveFlow, clearActiveFlow, clearPendingAttempt,
   resumePendingSignUpAttempt,
 } from '../signupAnalytics.js';
 
@@ -63,6 +63,22 @@ describe('persistPendingAttempt / persistActiveFlow', () => {
 
     clearActiveFlow();
     expect(sessionStorage.getItem(ACTIVE_FLOW_KEY)).toBeNull();
+  });
+});
+
+describe('clearPendingAttempt', () => {
+  it('removes a stored pending attempt', () => {
+    persistPendingAttempt({ flowId: 'flow-1', attemptId: 'attempt-1', method: SIGNUP_METHOD.GOOGLE });
+    expect(sessionStorage.getItem(PENDING_ATTEMPT_KEY)).not.toBeNull();
+
+    clearPendingAttempt();
+
+    expect(sessionStorage.getItem(PENDING_ATTEMPT_KEY)).toBeNull();
+  });
+
+  it('is a safe no-op when nothing is stored', () => {
+    expect(() => clearPendingAttempt()).not.toThrow();
+    expect(sessionStorage.getItem(PENDING_ATTEMPT_KEY)).toBeNull();
   });
 });
 

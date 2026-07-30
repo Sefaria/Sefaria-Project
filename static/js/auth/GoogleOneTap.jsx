@@ -64,10 +64,19 @@ export default function GoogleOneTap({ googleClientId }) {
             fireFlowStarted(flowId, 'one_tap');
             fireMethodChosen(flowId, attemptId, SIGNUP_METHOD.GOOGLE_ONE_TAP);
             fireProcessStarted(flowId, attemptId);
-          } else if (notification.isDismissedMoment?.() || notification.isSkippedMoment?.() || notification.isNotDisplayed?.()) {
+          } else if (notification.isDismissedMoment?.()) {
+            const reason = notification.getDismissedReason?.();
+            // isDismissedMoment() is also true when a credential was successfully returned
+            // (reason 'credential_returned') — that credential is already being handled by
+            // handleCredential's own success/failure path, so firing here too would race a
+            // spurious failure event against the real success event for the same login.
+            if (reason === 'credential_returned') return;
+            concluded = true;
+            fireFlowEnded(flowId, 'failure', reason || 'dismissed');
+          } else if (notification.isSkippedMoment?.() || notification.isNotDisplayed?.()) {
             concluded = true;
             fireFlowEnded(flowId, 'failure',
-              notification.getDismissedReason?.() || notification.getNotDisplayedReason?.() || 'not_displayed');
+              notification.getSkippedReason?.() || notification.getNotDisplayedReason?.() || 'not_displayed');
           }
         });
         markShown();

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { makeUuid } from './utils.js';
 import {
-  persistActiveFlow, clearActiveFlow,
+  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
   fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
 } from './signupAnalytics.js';
 
@@ -20,19 +20,24 @@ export function useSignUpTracking({ flow, source }) {
   const attemptRef = useRef(null);
   const flowEndedRef = useRef(true);
   const prevIsRegisterRef = useRef(false);
-  // Continuously reflects "mobile SSO redirect is live on this page" (set by
-  // useSsoSignIn.jsx) — not a one-shot pre-navigation flag. Google's redirect button
-  // gives no click signal at all, so there's no way to tell *which* beforeunload is the
-  // SSO one; while it's live, beforeunload is suppressed entirely and the flow's fate is
-  // resolved later by resumePendingSignUpAttempt (via a persisted flowId + checking
-  // document.referrer on the next page load). popstate is unaffected — going back is
-  // never a redirect-to-provider, so it always still concludes the flow normally.
+  // Set precisely at click time by useSsoSignIn.jsx (both Google's click_listener and
+  // Apple's triggerApple) right before a mobile SSO redirect navigates away, so the
+  // beforeunload that follows isn't mistaken for an ordinary abandoned visit — the flow's
+  // fate is instead resolved later, either by resumePendingSignUpAttempt (a persisted
+  // attempt + checking document.referrer on the next page load) or by the pageshow/bfcache
+  // handler below if the user comes back via Back instead of completing the redirect.
+  // Reset back to false at the start of every new flow (startFlow) so it never survives
+  // into an attempt it wasn't set for. popstate is unaffected — going back within the app
+  // (not to/from a provider) always still concludes the flow normally.
   const suppressFlowEndRef = useRef(false);
 
   function startFlow(src) {
     flowIdRef.current = makeUuid();
     attemptRef.current = null;
     flowEndedRef.current = false;
+    // A prior attempt (this flow or an earlier one on the same mount) may have left this
+    // suppressed for a redirect that's now over — a fresh flow must never start pre-suppressed.
+    suppressFlowEndRef.current = false;
     persistActiveFlow({ flowId: flowIdRef.current });
     fireFlowStarted(flowIdRef.current, src);
   }
@@ -70,6 +75,10 @@ export function useSignUpTracking({ flow, source }) {
     if (flowEndedRef.current) return;
     flowEndedRef.current = true;
     clearActiveFlow();
+    // Any not-yet-resolved redirect marker for this flow is moot once it's concluded by any
+    // means — left in place, it could otherwise be picked up by a later, unrelated page load's
+    // resumePendingSignUpAttempt() within its 10-minute window and double-reported as a failure.
+    clearPendingAttempt();
     const attempt = attemptRef.current;
     if (attempt?.started && !attempt.ended) {
       endProcess('failure', 'left_page');
@@ -106,14 +115,33 @@ export function useSignUpTracking({ flow, source }) {
       endFlow();
     };
     const onPopState = () => endFlow();
+    // persisted:true fires only when this exact document is restored from the back-forward
+    // cache after a real navigation away and back (e.g. Back from Google/Apple's page). A
+    // successful SSO redirect never returns to this exact document that way — success lands
+    // on a different callback URL instead — so reaching this handler at all already proves
+    // whatever redirect was in flight did not succeed. That's why, unlike beforeunload, it
+    // doesn't check suppressFlowEndRef: checking it here would just recreate the original
+    // "which departure was the SSO one" problem for the one case where we now actually know
+    // the answer. Still on /register, so re-arm a fresh flow for whatever happens next.
+    const onPageShow = (e) => {
+      if (!e.persisted) return;
+      const attempt = attemptRef.current;
+      if (attempt?.started && !attempt.ended) {
+        endProcess('failure', 'back_navigation');
+      }
+      endFlow();
+      startFlow(source);
+    };
     window.addEventListener('beforeunload', onBeforeUnload);
     window.addEventListener('popstate', onPopState);
+    window.addEventListener('pageshow', onPageShow);
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload);
       window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('pageshow', onPageShow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flow]);
+  }, [flow, source]);
 
   // Unmount-cleanup: ReaderApp.openURL can unmount AuthPage via a pure SPA
   // transition (showAuth:false) with no beforeunload/popstate ever firing.

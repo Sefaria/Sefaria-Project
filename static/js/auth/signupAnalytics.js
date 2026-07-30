@@ -85,7 +85,7 @@ function readPendingAttempt() {
   }
 }
 
-function clearPendingAttempt() {
+export function clearPendingAttempt() {
   try { sessionStorage.removeItem(PENDING_ATTEMPT_KEY); } catch (e) { /* noop */ }
 }
 

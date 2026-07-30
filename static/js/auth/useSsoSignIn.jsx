@@ -42,6 +42,25 @@ export function useProviderTriggers({ next, tracking }) {
     activeErrorHandlerRef.current = handler || (() => {});
   }, []);
 
+  // Google popup-mode abandonment detection (see onGoogleButtonClicked below). Mutually
+  // exclusive with the redirect-mode path — only ever touched when Sefaria.ssoUseRedirect()
+  // is false. 'awaiting_close' (clicked) -> 'processing' (Google's own callback fired, our
+  // backend fetch is in flight) -> 'done' (that fetch resolved).
+  const googlePopupStateRef = useRef('idle');
+  const popupFocusHandlerRef = useRef(null);
+  const popupFocusTimeoutRef = useRef(null);
+
+  const clearPopupWatch = useCallback(() => {
+    if (popupFocusHandlerRef.current) {
+      window.removeEventListener('focus', popupFocusHandlerRef.current);
+      popupFocusHandlerRef.current = null;
+    }
+    if (popupFocusTimeoutRef.current) {
+      clearTimeout(popupFocusTimeoutRef.current);
+      popupFocusTimeoutRef.current = null;
+    }
+  }, []);
+
   const measure = useCallback(() => {
     const el = targetElRef.current;
     setRect(el ? el.getBoundingClientRect() : null);
@@ -72,11 +91,13 @@ export function useProviderTriggers({ next, tracking }) {
   const { googleClientId } = Sefaria;
 
   const onGoogleResult = useCallback(async (resp) => {
-    // Earliest available signal for Google popup mode — the cross-origin iframe gives
-    // no earlier "clicked"/"shown" notification, so method_chosen/process_started are
-    // synthesized here, right as Google hands back a credential.
-    trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
-    trackingRef.current.startProcess();
+    // click_listener (onGoogleButtonClicked below) now fires chooseMethod/startProcess
+    // synchronously at click time — this callback only fires on a real credential, so it
+    // must not call them again (that would end the click-time attempt as
+    // "abandoned_for_new_attempt" and open a second one for the same login).
+    // Google's own callback just fired, so a real fetch to our backend is now in flight —
+    // the popup-abandonment watch below must not treat this as "closed without a credential".
+    googlePopupStateRef.current = 'processing';
     try {
       const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
         method: 'POST',
@@ -88,6 +109,7 @@ export function useProviderTriggers({ next, tracking }) {
         }),
       });
       const data = await res.json().catch(() => ({}));
+      googlePopupStateRef.current = 'done';
       if (res.ok) {
         trackingRef.current.endProcess('success', null);
         window.location.href = safeNext(nextRef.current);
@@ -96,13 +118,51 @@ export function useProviderTriggers({ next, tracking }) {
         activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
       }
     } catch (e) {
+      googlePopupStateRef.current = 'done';
       trackingRef.current.endProcess('failure', 'network_error');
       activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
     }
   }, [googleClientId]);
 
+  // Mirrors triggerApple below: click is now a real, observable signal for Google too (GIS's
+  // click_listener, see renderButton config), so method_chosen/process_started fire
+  // synchronously here instead of being synthesized in onGoogleResult.
+  const onGoogleButtonClicked = useCallback(() => {
+    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
+    trackingRef.current.startProcess();
+    if (Sefaria.ssoUseRedirect()) {
+      trackingRef.current.suppressFlowEndRef.current = true;
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.GOOGLE });
+      return;
+    }
+    // Popup mode: GIS gives no cancellation callback at all, so watch for focus returning to
+    // our window instead — that only happens once the popup is actually gone, whether closed
+    // or completed, so a long deliberation with the popup still open never triggers this.
+    clearPopupWatch();
+    googlePopupStateRef.current = 'awaiting_close';
+    const onFocus = () => {
+      popupFocusHandlerRef.current = null;
+      popupFocusTimeoutRef.current = setTimeout(() => {
+        popupFocusTimeoutRef.current = null;
+        // Margin for Google's own callback hand-off, NOT for our network round trip:
+        // 'processing'/'done' both mean something already came back from Google, and
+        // 'processing' must be left to resolve on its own however long our backend takes —
+        // no artificial deadline is imposed on a real in-flight request.
+        if (googlePopupStateRef.current === 'awaiting_close') {
+          trackingRef.current.endProcess('failure', 'popup_closed_by_user');
+        }
+        // NB: if the user closes the popup AND leaves/closes this tab within this ~1200ms
+        // window, nothing fires at all — an accepted, irreducible limit of a client-side-only
+        // approach (Google's button flow has no cancellation callback of its own).
+      }, 1200);
+    };
+    popupFocusHandlerRef.current = onFocus;
+    window.addEventListener('focus', onFocus, { once: true });
+  }, [clearPopupWatch]);
+
   useEffect(() => {
     setGoogleReady(false);
+    googlePopupStateRef.current = 'idle';
     if (!googleClientId) return undefined;
     const useRedirect = Sefaria.ssoUseRedirect();
     const stopWaiting = whenReady(
@@ -135,23 +195,17 @@ export function useProviderTriggers({ next, tracking }) {
             type: 'standard', theme: 'outline', size: 'large',
             text: 'continue_with', shape: 'rectangular', logo_alignment: 'center', width,
             locale: Sefaria.interfaceLang === 'hebrew' ? 'iw' : 'en',
+            click_listener: onGoogleButtonClicked,
           });
           setGoogleReady(true);
         } catch (e) { /* ignore */ }
       },
     );
-    return stopWaiting;
-  }, [googleClientId, onGoogleResult]);
-
-  // Google gives no click signal, so we can't tell which beforeunload is "the" attempt —
-  // suppress flow_ended for any departure while Google is ready; resolved later on return
-  // (resumePendingSignUpAttempt). Apple's click is observable, so it gets its own precise
-  // suppress in triggerApple instead of this coarse one.
-  // OR'd with its current value so a re-render here can't clobber the one-shot
-  // true that triggerApple sets right before its own redirect.
-  if (tracking) {
-    tracking.suppressFlowEndRef.current = tracking.suppressFlowEndRef.current || (Sefaria.ssoUseRedirect() && googleReady);
-  }
+    return () => {
+      stopWaiting();
+      clearPopupWatch();
+    };
+  }, [googleClientId, onGoogleResult, onGoogleButtonClicked, clearPopupWatch]);
 
   const { appleClientId } = Sefaria;
   const ssoRedirectState = useRef(makeUuid()).current;

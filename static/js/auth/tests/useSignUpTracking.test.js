@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { useSignUpTracking } from '../useSignUpTracking.js';
 import {
-  persistActiveFlow, clearActiveFlow,
+  persistActiveFlow, clearActiveFlow, clearPendingAttempt,
   fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
 } from '../signupAnalytics.js';
 import { makeUuid } from '../utils.js';
@@ -15,6 +15,7 @@ import { makeUuid } from '../utils.js';
 jest.mock('../signupAnalytics.js', () => ({
   persistActiveFlow: jest.fn(),
   clearActiveFlow: jest.fn(),
+  clearPendingAttempt: jest.fn(),
   fireFlowStarted: jest.fn(),
   fireMethodChosen: jest.fn(),
   fireProcessStarted: jest.fn(),
@@ -119,6 +120,9 @@ describe('endFlow status/error derivation', () => {
     rerender({ flow: 'login', source: 'nav_bar' }); // flow-transition effect calls endFlow
     expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
     expect(clearActiveFlow).toHaveBeenCalled();
+    // any dangling redirect marker for this flow is moot once it's concluded by any means —
+    // left in place, a later unrelated page load could pick it up and double-report it
+    expect(clearPendingAttempt).toHaveBeenCalled();
   });
 
   it('an attempt started but never ended is reported as failure / left_page', () => {
@@ -169,5 +173,77 @@ describe('popstate', () => {
     act(() => { window.dispatchEvent(new Event('popstate')); });
 
     expect(fireFlowEnded).not.toHaveBeenCalled();
+  });
+});
+
+function pageShowEvent(persisted) {
+  const evt = new Event('pageshow');
+  Object.defineProperty(evt, 'persisted', { value: persisted });
+  return evt;
+}
+
+describe('pageshow (bfcache restore)', () => {
+  it('persisted:false is a no-op', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    hookApi.chooseMethod('google');
+    hookApi.startProcess();
+
+    act(() => { window.dispatchEvent(pageShowEvent(false)); });
+
+    expect(fireProcessEnded).not.toHaveBeenCalled();
+    expect(fireFlowEnded).not.toHaveBeenCalled();
+  });
+
+  it('persisted:true ends an in-flight attempt as back_navigation, then re-arms a fresh flow', () => {
+    mount({ flow: 'register', source: 'nav_bar' }); // startFlow consumes 'id-1' as the flowId
+    const attemptId = hookApi.chooseMethod('google'); // chooseMethod consumes 'id-2' as the attemptId
+    hookApi.startProcess();
+
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', attemptId, 'failure', 'back_navigation');
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'back_navigation');
+    // still on /register — a fresh flow is re-armed under a new id ('id-3': the re-arm's
+    // startFlow is the third makeUuid() call overall, after the initial flowId and the attemptId)
+    expect(fireFlowStarted).toHaveBeenCalledWith('id-3', 'nav_bar');
+    expect(hookApi.getIds()).toEqual({ flowId: 'id-3' });
+  });
+
+  it('persisted:true with no attempt in progress still concludes and restarts cleanly', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
+    expect(fireFlowStarted).toHaveBeenCalledWith('id-2', 'nav_bar');
+  });
+
+  it('bypasses suppressFlowEndRef (unlike beforeunload)', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    hookApi.suppressFlowEndRef.current = true; // simulates a redirect in flight
+
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'no_attempt');
+  });
+
+  it('does nothing outside the register flow (no listener attached)', () => {
+    mount({ flow: 'login', source: 'nav_bar' });
+
+    act(() => { window.dispatchEvent(pageShowEvent(true)); });
+
+    expect(fireFlowEnded).not.toHaveBeenCalled();
+  });
+});
+
+describe('suppressFlowEndRef reset', () => {
+  it('a fresh startFlow (re-entering register) resets a stale suppression back to false', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    hookApi.suppressFlowEndRef.current = true;
+
+    rerender({ flow: 'login', source: 'nav_bar' });
+    rerender({ flow: 'register', source: 'nav_bar' }); // re-triggers startFlow
+
+    expect(hookApi.suppressFlowEndRef.current).toBe(false);
   });
 });
