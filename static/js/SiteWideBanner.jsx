@@ -237,15 +237,14 @@ const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
-const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register"];
-const PASSWORD_RESET_PATH = "/password/reset";
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path) => {
-  const pathname = path.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
-  return CHATBOT_BANNER_EXCLUDED_PATHS.includes(pathname) ||
-    pathname === PASSWORD_RESET_PATH ||
-    pathname.startsWith(`${PASSWORD_RESET_PATH}/`);
+  const pathname = new URL(path, "https://www.sefaria.org").pathname;
+  return CHATBOT_BANNER_EXCLUDED_PATHS.some(
+    excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
+  );
 };
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
