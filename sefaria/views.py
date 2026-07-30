@@ -72,7 +72,7 @@ from sefaria import tracker
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
-from reader.models import _set_user_experiments
+from reader import models as reader_models
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
@@ -198,7 +198,7 @@ def process_register_form(request, auth_method='session'):
 
             # New users are enrolled in the Library Assistant automatically;
             # the account settings toggle remains the way to opt out.
-            _set_user_experiments(user, True)
+            reader_models._set_user_experiments(user, True)
 
         if auth_method == 'session':
             auth_login(request, user)
