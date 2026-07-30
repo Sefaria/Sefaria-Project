@@ -241,7 +241,15 @@ const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"]
 
 // Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path, moduleUrl) => {
-  const pathname = new URL(path, moduleUrl).pathname;
+  let pathname;
+  try {
+    // moduleUrl can be false (getModuleURL falls back to apiHost, which is empty
+    // during server-side rendering); only the pathname matters here, so any valid
+    // base keeps URL parsing from throwing mid-render.
+    pathname = new URL(path, moduleUrl || "https://www.sefaria.org").pathname;
+  } catch (e) {
+    return false;
+  }
   return CHATBOT_BANNER_EXCLUDED_PATHS.some(
     excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
   );

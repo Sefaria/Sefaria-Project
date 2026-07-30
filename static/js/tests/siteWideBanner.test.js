@@ -36,4 +36,15 @@ describe("isChatbotBannerExcludedPath", function () {
   ])("does not exclude %s", function (path) {
     expect(isChatbotBannerExcludedPath(path, moduleUrl)).toBe(false);
   });
+
+  // getModuleURL returns false when it cannot build a URL (e.g. server-side
+  // rendering, where apiHost is empty) — the helper must not throw.
+  it.each([false, undefined, ""])("still excludes /login when moduleUrl is %s", function (badModuleUrl) {
+    expect(isChatbotBannerExcludedPath("/login", badModuleUrl)).toBe(true);
+    expect(isChatbotBannerExcludedPath("/texts", badModuleUrl)).toBe(false);
+  });
+
+  it("returns false instead of throwing on an unparseable path", function () {
+    expect(isChatbotBannerExcludedPath("http://", false)).toBe(false);
+  });
 });
