@@ -6,8 +6,9 @@ describe('keyed interface strings', () => {
   const interfaceHe = require('../i18n/interface/he.json');
   const contextEn = require('../i18n/interface-context/en.json');
   const contextHe = require('../i18n/interface-context/he.json');
-  // Keep in sync with Sefaria._keyedStringIdRegex in sefaria.js.
-  const ID_RE = /^[a-z0-9_][a-zA-Z0-9_]*(\.[a-z0-9_][a-zA-Z0-9_]*)+$/;
+  // The router's own regex, not a copy: the contract is that every key is
+  // resolvable by Sefaria._(), so this must track whatever the router uses.
+  const ID_RE = Sefaria._keyedStringIdRegex;
 
   test('every key in every map is an ID matching the router regex', () => {
     [interfaceEn, interfaceHe, contextEn, contextHe].forEach(map =>
