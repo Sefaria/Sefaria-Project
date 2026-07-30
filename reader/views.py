@@ -126,8 +126,11 @@ class TocTarget:
     title_he: str
     category: str | None
     category_path: tuple[str, ...]
-    subtitle_en: str | None = None
+    subtitle_en: str | None = None      # footer context line (breadcrumb)
     subtitle_he: str | None = None
+    desc_en: str | None = None          # short description
+    desc_he: str | None = None
+    is_primary_category: bool = False     # top-level category landing page
 
 
 @dataclass(frozen=True)
@@ -772,13 +775,17 @@ def _social_image_text_target(tref: str) -> SocialImageTarget:
 
     index = ref.index
     primary_category = index.get_primary_category()
+    categories = tuple(index.categories)
     return TocTarget(
         title_en=index.get_title("en"),
         title_he=index.get_title("he"),
-        subtitle_en=primary_category,
-        subtitle_he=hebrew_term(primary_category),
+        subtitle_en=" / ".join(categories) if categories else None,
+        subtitle_he=" / ".join(hebrew_term(c) for c in categories) if categories else None,
+        desc_en=getattr(index, "enShortDesc", "") or None,
+        desc_he=getattr(index, "heShortDesc", "") or None,
         category=primary_category,
-        category_path=tuple(index.categories),
+        category_path=categories,
+        is_primary_category=False,
     )
 
 
@@ -807,8 +814,11 @@ def _social_image_category_target(cats: str | None) -> SocialImageTarget:
         subtitle_he=" / ".join(hebrew_term(category) for category in parent_categories)
         if parent_categories
         else None,
+        desc_en=getattr(toc_node, "enShortDesc", "") or None,
+        desc_he=getattr(toc_node, "heShortDesc", "") or None,
         category=social_image_color_category_for_path(category_path),
         category_path=category_path,
+        is_primary_category=len(category_path) == 1,
     )
 
 
@@ -832,11 +842,8 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     path = f"/{tref.lstrip('/')}"
     try:
         # The same path can mean different things on different Sefaria modules.
-        # Resolve against the module's own URLConf so /topics, /sheets, etc. are
-        # classified the same way Django would classify them for that host.
-        # get_host(module) looks up the django-hosts entry whose name is the
-        # module (see sefaria/hosts.py) so the module -> URLConf mapping stays in
-        # one place instead of being duplicated here.
+        # Resolve against the module's own URLConf so /topics, /sheets, etc. are classified the same way Django would classify them for that host.
+        # get_host(module) looks up the django-hosts entry whose name is the module (see sefaria/hosts.py) so the module -> URLConf mapping stays in one place instead of being duplicated here.
         match = resolve(path, urlconf=get_host(module).urlconf)
     except Resolver404:
         # Unknown paths get the module fallback instead of raising an error.
@@ -844,10 +851,8 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
         return ModuleFallbackTarget()
 
     # Every view function in this set must serve a module-shared static page (no per-module branding).
-    # serve_static handles both plain and by-language static pages (the latter via a {"by_lang": True}
-    # URL kwarg), so the resolved function object is serve_static in both cases.
-    # If you wrap serve_static in a new decorator that produces a different function object at import time, add the wrapped function here too;
-    # otherwise static pages will silently fall through to MODULE_FALLBACK and start rendering Library/Voices branding instead of the shared Sefaria image.
+    # serve_static handles both plain and by-language static pages (the latter via a {"by_lang": True} URL kwarg), so the resolved function object is serve_static in both cases.
+    # If you wrap serve_static in a new decorator that produces a different function object at import time, add the wrapped function here too; otherwise static pages will silently fall through to MODULE_FALLBACK and start rendering Library/Voices branding instead of the shared Sefaria image.
     if match.func in {serve_static, annual_report}:
         return StaticTarget()
 
@@ -856,15 +861,13 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
 
     # Catchall handles text refs on Library AND sheets on Voices
     # The module gate is what disambiguates them.
-    # If a non-ref Library route is ever added that also resolves to catchall (e.g. a vanity URL above the catchall pattern):
-    # it will be misclassified as REF and produce a broken text image.
+    # If a non-ref Library route is ever added that also resolves to catchall (e.g. a vanity URL above the catchall pattern): it will be misclassified as REF and produce a broken text image.
     # Add an explicit STATIC/MODULE_FALLBACK case for that route before this check.
     if module == LIBRARY_MODULE and match.func == catchall:
         return _social_image_text_target(tref)
 
-    # Default: topics, sheets, and other module pages have no custom image
-    # builder yet, so they use the module fallback image. Any unknown view
-    # function also lands here, which keeps the endpoint safe-by-default.
+    # Default: topics, sheets, and other module pages have no custom image builder yet, so they use the module fallback image.
+    # Any unknown view function also lands here, which keeps the endpoint safe-by-default.
     return ModuleFallbackTarget()
 
 
@@ -888,11 +891,12 @@ def make_social_image_response(target: SocialImageTarget, lang, platform, module
         case TocTarget() as t:
             title = t.title_he if lang == "he" else t.title_en
             subtitle = t.subtitle_he if lang == "he" else t.subtitle_en
+            desc = t.desc_he if lang == "he" else t.desc_en
             return make_toc_img_http_response(title, subtitle, t.category, lang,
-                                              platform, module, category_path=t.category_path)
+                                              platform, module, category_path=t.category_path,
+                                              desc=desc, is_primary_category=t.is_primary_category)
         case PassageTarget() as p:
-            # Broad-but-logged: any failure to fetch/render a quote must yield a
-            # module fallback (this endpoint is crawler-facing and must never 500).
+            # Broad-but-logged: any failure to fetch/render a quote must yield a module fallback (this endpoint is crawler-facing and must never 500).
             # Mirrors make_img_http_response's own render-failure fallback.
             try:
                 text, ref_str, cat = resolve_passage(p, lang, version)
@@ -2024,8 +2028,7 @@ def social_image_api(request, tref):
     # mode yet, so it falls back to the host language.
     domain_lang = current_domain_lang(request)
     default_lang = "he" if domain_lang == "hebrew" else "en"
-    # lang=bi is not a real image mode; the set check folds it into default_lang
-    # alongside any other unsupported value.
+    # lang=bi is not a real image mode; the set check folds it into default_lang alongside any other unsupported value.
     lang = request.GET.get("lang") or default_lang
     if lang not in {"en", "he"}:
         lang = default_lang

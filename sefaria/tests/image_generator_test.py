@@ -193,8 +193,7 @@ def test_generate_toc_social_image_uses_category_color_and_header_logo():
 
 
 def test_generate_toc_primary_category_uses_larger_centered_text():
-    # Primary category pages (/texts/Tanakh) use larger fonts and vertically
-    # centered layout vs. the standard quote-image positioning.
+    # Primary category pages (/texts/Tanakh) use larger fonts and vertically centered layout vs. the standard quote-image positioning.
     img_primary = generate_toc_image(
         title="Tanakh",
         subtitle=None,
@@ -203,6 +202,7 @@ def test_generate_toc_primary_category_uses_larger_centered_text():
         platform="facebook",
         module=LIBRARY_MODULE,
         category_path=("Tanakh",),
+        is_primary_category=True,
     )
     img_standard = generate_toc_image(
         title="Tanakh",
@@ -212,6 +212,7 @@ def test_generate_toc_primary_category_uses_larger_centered_text():
         platform="facebook",
         module=LIBRARY_MODULE,
         category_path=("Tanakh", "Torah"),
+        is_primary_category=False,
     )
 
     assert img_primary.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
@@ -486,9 +487,7 @@ def test_hebrew_text_uses_bidi_fallback_without_pillow_rtl_support(monkeypatch):
 def test_english_direction_is_ltr_when_pillow_supports_rtl(monkeypatch):
     monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: True)
 
-    # When Raqm is available it does the layout; the "ltr" hint tells it the
-    # paragraph base direction so neutral chars at English/Hebrew boundaries
-    # (a comma after an embedded Hebrew word) stay on the English side.
+    # When Raqm is available it does the layout; the "ltr" hint tells it the paragraph base direction so neutral chars at English/Hebrew boundaries (a comma after an embedded Hebrew word) stay on the English side.
     text = "the name יהוה, spoken"
     assert image_generator.get_text_direction("en") == "ltr"
     assert image_generator.prepare_text_for_drawing(text, "en") == text
@@ -497,10 +496,99 @@ def test_english_direction_is_ltr_when_pillow_supports_rtl(monkeypatch):
 def test_english_with_hebrew_uses_ltr_base_dir_without_pillow_rtl_support(monkeypatch):
     monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: False)
 
-    # English passage with an embedded Hebrew word. Reordering with an LTR base
-    # direction keeps the comma resolved on the English side — distinct from the
-    # RTL base direction used for Hebrew-primary text.
+    # English passage with an embedded Hebrew word.
+    # Reordering with an LTR base direction keeps the comma resolved on the English side — distinct from the RTL base direction used for Hebrew-primary text.
     text = "the name יהוה, spoken"
     assert image_generator.prepare_text_for_drawing(text, "en") == get_display(text, base_dir="L")
     assert image_generator.prepare_text_for_drawing(text, "en") != get_display(text, base_dir="R")
     assert image_generator.get_text_direction("en") is None
+
+
+# --- width-aware truncation helpers ---
+
+def _ref_font(size=30):
+    from PIL import ImageFont
+    return ImageFont.truetype("static/fonts/Roboto-Regular.ttf", size)
+
+
+def test_fit_line_to_width_leaves_short_text_untouched():
+    font = _ref_font()
+    assert image_generator._fit_line_to_width("Short title", font, 10000) == "Short title"
+
+
+def test_fit_line_to_width_truncates_long_text_with_ellipsis():
+    font = _ref_font()
+    text = "The Babylonian Talmud is the central text of Rabbinic Judaism and law"
+    out = image_generator._fit_line_to_width(text, font, 300)
+    assert out.endswith("…")
+    assert font.getlength(out) <= 300
+    assert out != text
+
+
+def test_fit_breadcrumb_keeps_leading_segments():
+    font = _ref_font()
+    segs = ["Tanakh", "Rishonim on Tanakh", "Ramban", "Bereshit"]
+    out = image_generator._fit_breadcrumb_to_width(segs, font, 260)
+    assert out.startswith("Tanakh")
+    assert out.endswith("…")
+    assert font.getlength(out) <= 260
+
+
+def test_fit_breadcrumb_full_when_it_fits():
+    font = _ref_font()
+    segs = ["Talmud", "Bavli"]
+    assert image_generator._fit_breadcrumb_to_width(segs, font, 10000) == "Talmud / Bavli"
+
+
+def test_fit_breadcrumb_single_oversized_segment_char_truncates():
+    font = _ref_font()
+    segs = ["Supercalifragilisticexpialidocious Rishonim Commentary Collection"]
+    out = image_generator._fit_breadcrumb_to_width(segs, font, 200)
+    assert out.endswith("…")
+    assert font.getlength(out) <= 200
+
+
+# --- TOC image layout (Mockup A) render smoke tests ---
+
+def _toc_kwargs(**over):
+    base = dict(title="Bavli", subtitle="Talmud", category="Talmud", lang="en",
+                platform="facebook", module="library", category_path=("Talmud", "Bavli"),
+                desc="The Babylonian Talmud, the central text of rabbinic law and lore.",
+                is_primary_category=False)
+    base.update(over)
+    return base
+
+
+def test_toc_image_renders_valid_png_with_description_and_breadcrumb():
+    img = image_generator.generate_toc_image(**_toc_kwargs())
+    assert img.size == (1200, 630)
+
+
+def test_toc_image_primary_category_renders_valid_png():
+    img = image_generator.generate_toc_image(**_toc_kwargs(
+        title="Talmud", subtitle=None, category_path=("Talmud",), is_primary_category=True))
+    assert img.size == (1200, 630)
+
+
+def test_toc_image_survives_overlong_description_and_breadcrumb():
+    img = image_generator.generate_toc_image(**_toc_kwargs(
+        subtitle="Talmud / Bavli / Rishonim on Talmud / Ramban / Chiddushei HaRamban",
+        desc=("An extremely long description that keeps going well beyond two lines "
+              "so that the width-aware truncation and the two-line cap both have to "
+              "engage in order to keep everything inside the fixed image canvas.")))
+    assert img.size == (1200, 630)
+
+
+def test_description_line_limit_more_when_footerless():
+    # Footered pages cap the description at 3 lines; footerless (top-level category) pages have the bottom band free, so they allow a 4th line.
+    assert image_generator._description_line_limit(has_footer=True) == 3
+    assert image_generator._description_line_limit(has_footer=False) == 4
+
+
+def test_wrap_and_cap_caps_lines_with_ellipsis():
+    font = _ref_font()
+    text = " ".join(["word"] * 200)  # wraps to far more than 4 lines
+    out3 = image_generator._wrap_and_cap(text, font, 300, max_lines=3)
+    out4 = image_generator._wrap_and_cap(text, font, 300, max_lines=4)
+    assert out3.count("\n") == 2 and out3.endswith("…")   # exactly 3 lines
+    assert out4.count("\n") == 3 and out4.endswith("…")   # exactly 4 lines

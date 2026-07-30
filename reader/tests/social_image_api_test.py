@@ -29,9 +29,8 @@ class DummyRef:
         self.tref = tref
         self.index = DummyIndex()
         # Real Ref.is_book_level() inspects section structure, not string shape.
-        # The dot heuristic holds for standard refs but breaks for Talmud-style
-        # refs like "Sukkah 2a" (space, no dot). Pass book_level explicitly for
-        # those cases via _capture_social_image_call(book_level=...).
+        # The dot heuristic holds for standard refs but breaks for Talmud-style refs like "Sukkah 2a" (space, no dot).
+        # Pass book_level explicitly for those cases via _capture_social_image_call(book_level=...).
         self._book_level = ("." not in tref) if book_level is None else book_level
 
     def normal(self):
@@ -48,6 +47,8 @@ class DummyRef:
 
 class DummyIndex:
     categories = ["Tanakh", "Torah"]
+    enShortDesc = "Creation and the stories of the patriarchs."
+    heShortDesc = "בריאת העולם וסיפורי האבות."
 
     def get_title(self, lang="en"):
         return "בראשית" if lang == "he" else "Genesis"
@@ -131,7 +132,8 @@ def _capture_social_image_call(
         )
         return captured
 
-    def fake_toc(title, subtitle, category, lang, platform, module, category_path=()):
+    def fake_toc(title, subtitle, category, lang, platform, module,
+                category_path=(), desc=None, is_primary_category=False):
         captured.update(
             {
                 "kind": "toc",
@@ -142,6 +144,8 @@ def _capture_social_image_call(
                 "platform": platform,
                 "module": module,
                 "category_path": category_path,
+                "desc": desc,
+                "is_primary_category": is_primary_category,
             }
         )
         return captured
@@ -381,8 +385,8 @@ def test_social_image_api_static_page_uses_static_image_on_voices(monkeypatch):
 
 
 def test_social_image_api_book_level_ref_uses_toc_image_on_library(monkeypatch):
-    # A whole-book path like /Genesis is a valid ReaderApp TOC page, but it is
-    # not a segment ref with preview text. Render the title/category instead.
+    # A whole-book path like /Genesis is a valid ReaderApp TOC page, but it is not a segment ref with preview text.
+    # Render the title/category instead.
     views._classify_social_image_path.cache_clear()
     result = _capture_social_image_call(
         monkeypatch, "/api/img-gen/Genesis", tref="Genesis"
@@ -390,9 +394,32 @@ def test_social_image_api_book_level_ref_uses_toc_image_on_library(monkeypatch):
 
     assert result["kind"] == "toc"
     assert result["title"] == "Genesis"
-    assert result["subtitle"] == "Tanakh"
+    assert result["subtitle"] == "Tanakh / Torah"   # full breadcrumb, not primary category
     assert result["category"] == "Tanakh"
+    assert result["desc"] == "Creation and the stories of the patriarchs."
+    assert result["is_primary_category"] is False
     assert result["module"] == LIBRARY_MODULE
+
+
+def test_single_category_book_is_not_primary(monkeypatch):
+    # A book whose index has a single category must NOT be treated as a top-level category landing page (the old len(category_path)==1 heuristic false-positived here).
+    class OneCatIndex(DummyIndex):
+        categories = ["Reference"]
+
+        def get_primary_category(self):
+            return "Reference"
+
+    def fake_ref(tref):
+        r = DummyRef(tref, book_level=True)
+        r.index = OneCatIndex()
+        return r
+
+    monkeypatch.setattr(views, "Ref", fake_ref)
+    target = views._social_image_text_target("Some Dictionary")
+    assert isinstance(target, views.TocTarget)
+    assert target.is_primary_category is False
+    assert target.subtitle_en == "Reference"
+    assert target.desc_en == "Creation and the stories of the patriarchs."
 
 
 def test_social_image_api_book_level_ref_uses_hebrew_title_when_requested(monkeypatch):
@@ -607,8 +634,9 @@ def test_dispatch_toc_target_picks_hebrew_title(monkeypatch):
     monkeypatch.setattr(
         views,
         "make_toc_img_http_response",
-        lambda title, subtitle, category, lang, platform, module, category_path: seen.update(
-            title=title, subtitle=subtitle, category=category, path=category_path
+        lambda title, subtitle, category, lang, platform, module, category_path, desc=None, is_primary_category=False: seen.update(
+            title=title, subtitle=subtitle, category=category, path=category_path,
+            desc=desc, is_primary_category=is_primary_category,
         )
         or "TOC",
     )

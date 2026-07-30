@@ -25,7 +25,8 @@ SOCIAL_IMAGE_FALLBACK_BG_COLORS = {
     VOICES_MODULE: "#518159",
 }
 
-# Per-language render settings. spacing_key, when set, indexes into platforms[platform] for an extra inter-line spacing nudge needed by Hebrew. 
+# Per-language render settings.
+# spacing_key, when set, indexes into platforms[platform] for an extra inter-line spacing nudge needed by Hebrew.
 # cat_border_side selects which edge of the image gets the colored category accent stripe.
 LANG_RENDER_CONFIG = {
     "en": {
@@ -111,10 +112,9 @@ def get_category_colors(category: str | None) -> CategoryColors:
 
 
 def social_image_color_category_for_path(category_path: list[str] | tuple[str, ...]) -> str | None:
-    # Use the most specific category that has an explicit image color. This
-    # lets /texts/Tanakh/Targum use the Targum color while /texts/Tanakh uses
-    # Tanakh. If no category is configured, get_category_colors() will use a
-    # stable fallback color based on the returned category name.
+    # Use the most specific category that has an explicit image color.
+    # This lets /texts/Tanakh/Targum use the Targum color while /texts/Tanakh uses Tanakh.
+    # If no category is configured, get_category_colors() will use a stable fallback color based on the returned category name.
     for category in reversed(category_path):
         if category in palette:
             return category
@@ -214,8 +214,8 @@ def generate_centered_logo_image(
 def add_social_image_header(
     img: Image.Image, lang: str, platform: SocialImagePlatform, module: str | None
 ) -> Image.Image:
-    # All non-fallback social images share the same white header. Keeping this
-    # in one helper prevents the quote and TOC renderers from drifting apart.
+    # All non-fallback social images share the same white header.
+    # Keeping this in one helper prevents the quote and TOC renderers from drifting apart.
     width, height = img.size
     draw = ImageDraw.Draw(im=img)
     draw.line(
@@ -304,6 +304,8 @@ def generate_toc_image(
     platform: SocialImagePlatform,
     module: str | None = LIBRARY_MODULE,
     category_path: tuple[str, ...] = (),
+    desc: str | None = None,
+    is_primary_category: bool = False,
 ) -> Image.Image:
     bg_color, text_color = get_category_colors(category)
     width = platforms[platform]["width"]
@@ -316,65 +318,63 @@ def generate_toc_image(
     spacing_key = lang_config["spacing_key"]
     spacing = platforms[platform][spacing_key] if spacing_key else 0
 
-    # Primary category pages (/texts/Tanakh, /texts/Mishnah, etc.) get larger,
-    # vertically-centered text. Nested categories and book-level TOC pages use
-    # the standard quote-image layout.
-    is_primary_category = len(category_path) == 1
+    content_width = width - platforms[platform]["padding"]
 
-    if is_primary_category:
-        title_font = ImageFont.truetype(
-            font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=90
-        )
-        subtitle_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=38)
-    else:
-        title_font = ImageFont.truetype(
-            font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=72
-        )
-        subtitle_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=30)
+    title_size = 90 if is_primary_category else 72
+    body_size = 38 if is_primary_category else 30
+    title_font = ImageFont.truetype(font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=title_size)
+    body_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=body_size)
 
-    title_text = prepare_text_for_drawing(title or "", lang)
-    subtitle_text = prepare_text_for_drawing((subtitle or "").upper(), lang)
+    # Fit each slot to the content width before drawing (see spec truncation rules).
+    title_fitted = _wrap_and_cap(title or "", title_font, content_width, max_lines=2)
+    # 3 description lines with a breadcrumb footer, 4 when footerless (see _description_line_limit).
+    # The centered block clears the footer even for a 2-line title + 3-line description.
+    desc_max_lines = _description_line_limit(has_footer=bool(subtitle))
+    desc_fitted = _wrap_and_cap(desc or "", body_font, content_width, max_lines=desc_max_lines)
+    breadcrumb_fitted = _fit_breadcrumb_to_width(
+        (subtitle or "").split(" / "), body_font, content_width
+    )
 
-    if is_primary_category:
+    title_text = prepare_text_for_drawing(title_fitted, lang)
+    desc_text = prepare_text_for_drawing(desc_fitted, lang)
+    footer_text = prepare_text_for_drawing(breadcrumb_fitted.upper(), lang)
 
-        def _bbox_h(text, font):
-            b = font.getbbox(text)
-            return b[3] - b[1]
-
-        title_h = _bbox_h(title_text, title_font) if title_text else 0
-        sub_h = _bbox_h(subtitle_text, subtitle_font) if subtitle_text else 0
-        gap = int(height * 0.04) if subtitle_text else 0
-        block_h = title_h + gap + sub_h
-        content_center_y = (height * 0.1 + height) / 2
-        block_top = content_center_y - block_h / 2
-        title_y = block_top + title_h / 2
-        subtitle_y = block_top + title_h + gap + sub_h / 2
-    else:
-        title_y = height * 0.47
-        subtitle_y = height * 0.61
+    # The description reads better centered with a little extra breathing room between its wrapped lines than the title/footer's tighter default spacing.
+    desc_spacing = spacing + int(body_size * 0.4)
 
     draw = ImageDraw.Draw(im=img)
-    draw.text(
-        xy=(width / 2, title_y),
-        text=title_text,
-        font=title_font,
-        spacing=spacing,
-        align=align,
-        fill=text_color,
-        anchor="mm",
-        direction=direction,
-    )
-    if subtitle_text:
-        draw.text(
-            xy=(width / 2, subtitle_y),
-            text=subtitle_text,
-            font=subtitle_font,
-            spacing=spacing,
-            align=align,
-            fill=text_color,
-            anchor="mm",
-            direction=direction,
-        )
+
+    def _draw(text, font, y, line_spacing=spacing):
+        if not text:
+            return
+        draw.text(xy=(width / 2, y), text=text, font=font, spacing=line_spacing,
+                  align=align, fill=text_color, anchor="mm", direction=direction)
+
+    def _bbox_h(text, font):
+        if not text:
+            return 0
+        b = font.getbbox(text)
+        return b[3] - b[1]
+
+    # Title + description form one block, vertically centered between the header and the footer breadcrumb (or the whole canvas when there is no breadcrumb), so the whitespace above and below the block stays balanced.
+    # The breadcrumb stays pinned in the footer slot (where the ref citation sits on quote images).
+    footer_y = height * 0.88
+    region_bottom = (footer_y - height * 0.04) if footer_text else height
+    block_center_y = (height * 0.1 + region_bottom) / 2
+
+    title_h = _bbox_h(title_text, title_font)
+    desc_lines = desc_text.count("\n") + 1 if desc_text else 0
+    desc_h = _bbox_h(desc_text.replace("\n", " "), body_font) * desc_lines + desc_spacing * max(0, desc_lines - 1)
+    # Give the title room to breathe above the description while keeping the two associated as a unit (rather than floating the description to mid-canvas).
+    gap = int(height * 0.10) if desc_text else 0
+    block_h = title_h + gap + desc_h
+    block_top = block_center_y - block_h / 2
+
+    _draw(title_text, title_font, block_top + title_h / 2)
+    if desc_text:
+        _draw(desc_text, body_font, block_top + title_h + gap + desc_h / 2, line_spacing=desc_spacing)
+    if footer_text:
+        _draw(footer_text, body_font, footer_y)
 
     cat_border_x = 0 if lang_config["cat_border_side"] == "left" else width
     draw.line(
@@ -396,6 +396,8 @@ def make_toc_img_http_response(
     platform: SocialImagePlatform,
     module: str | None = LIBRARY_MODULE,
     category_path: tuple[str, ...] = (),
+    desc: str | None = None,
+    is_primary_category: bool = False,
 ) -> HttpResponse:
     try:
         img = generate_toc_image(
@@ -406,6 +408,8 @@ def make_toc_img_http_response(
             platform,
             module,
             category_path=category_path,
+            desc=desc,
+            is_primary_category=is_primary_category,
         )
     except Exception:
         logger.exception(
@@ -477,12 +481,71 @@ def wrap_text_preserving_linebreaks(text: str, width: int) -> str:
     Passing the whole string to ``textwrap.fill`` would collapse those intentional breaks.
     Instead this function splits on ``"\\n"`` first, wraps each segment independently, then rejoins them so the original paragraph structure survives.
     """
-    # HTML cleanup turns <br> and block boundaries into "\n". Wrap each line
-    # independently so those intentional breaks survive textwrap's whitespace handling.
+    # HTML cleanup turns <br> and block boundaries into "\n".
+    # Wrap each line independently so those intentional breaks survive textwrap's whitespace handling.
     return "\n".join(
         textwrap.fill(text=line, width=width, replace_whitespace=False)
         for line in text.split("\n")
     )
+
+
+def _fit_line_to_width(text: str, font: ImageFont.FreeTypeFont, max_width: float, suffix: str = "…") -> str:
+    """Truncate a single line to fit ``max_width`` px, preferring word boundaries, adding ``suffix`` when trimmed."""
+    if not text or font.getlength(text) <= max_width:
+        return text
+    words = text.split(" ")
+    for n in range(len(words), 0, -1):
+        candidate = " ".join(words[:n]) + suffix
+        if font.getlength(candidate) <= max_width:
+            return candidate
+    # Even the first word plus the suffix is too wide: trim characters.
+    trimmed = words[0]
+    while trimmed and font.getlength(trimmed + suffix) > max_width:
+        trimmed = trimmed[:-1]
+    return trimmed + suffix if trimmed else suffix
+
+
+def _fit_breadcrumb_to_width(segments, font: ImageFont.FreeTypeFont, max_width: float,
+                             sep: str = " / ", suffix: str = "…") -> str:
+    """Fit a breadcrumb on one line, keeping the leading (outermost) segments and dropping trailing ones with ``suffix``."""
+    segments = [s for s in segments if s]
+    if not segments:
+        return ""
+    full = sep.join(segments)
+    if font.getlength(full) <= max_width:
+        return full
+    for n in range(len(segments) - 1, 0, -1):
+        candidate = sep.join(segments[:n]) + sep + suffix
+        if font.getlength(candidate) <= max_width:
+            return candidate
+    # Even the first segment alone overflows: char-trim it.
+    return _fit_line_to_width(segments[0], font, max_width, suffix)
+
+
+def _wrap_and_cap(text: str, font: ImageFont.FreeTypeFont, max_width: float,
+                  max_lines: int = 2, suffix: str = "…") -> str:
+    """Wrap ``text`` to ``max_width`` and cap at ``max_lines``, ellipsizing the last kept line on overflow."""
+    if not text:
+        return ""
+    per_line = calc_letters_per_line(text, font, int(max_width))
+    wrapped = wrap_text_preserving_linebreaks(text, per_line)
+    lines = wrapped.split("\n")
+    if len(lines) <= max_lines:
+        return wrapped
+    kept = lines[:max_lines]
+    last = kept[-1]
+    # Signal truncation with the suffix, trimming trailing words (then chars) off the last kept line until it fits WITH the suffix appended.
+    while last and font.getlength(last + suffix) > max_width:
+        last = last[:last.rfind(" ")] if " " in last else last[:-1]
+    kept[-1] = (last + suffix) if last else suffix
+    return "\n".join(kept)
+
+
+def _description_line_limit(has_footer: bool) -> int:
+    """Max description lines before truncation. A breadcrumb footer occupies the
+    bottom band (3 lines); footerless pages (top-level categories) have that room
+    free, so they get a 4th line."""
+    return 3 if has_footer else 4
 
 
 def supports_rtl_text_layout() -> bool:
@@ -580,9 +643,8 @@ def cleanup_and_format_text(text: str | None) -> str:
     these are decorative in the source text but make social image text harder to read.
     4. Truncates to 180 characters at a word boundary via ``smart_truncate``.
     """
-    # Removes HTML tags/entities according to canonical web copy behavior,
-    # then removes nikkudot and taamim. The cantillation strip is Hebrew-specific
-    # but a safe no-op on English text since the regex only matches Hebrew/CJK ranges.
+    # Removes HTML tags/entities according to canonical web copy behavior, then removes nikkudot and taamim.
+    # The cantillation strip is Hebrew-specific but a safe no-op on English text since the regex only matches Hebrew/CJK ranges.
     text = html_to_text_canonical(text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
