@@ -3617,7 +3617,7 @@ _media: {},
     return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
   },
   _keyedString: function(id, lang) {
-    // Resolve a keyed string ID from i18n/interface*/*.json; falls back to
+    // Resolve a keyed string ID from i18n/interface/*.json; falls back to
     // English, then to the ID itself.
     const maps = Sefaria._i18nInterfaceStrings;
     if (lang === "he" && id in maps.he) {
@@ -3663,8 +3663,8 @@ _media: {},
   /**
    * Translates interface strings to the current interface language.
    * Takes a keyed string ID (e.g. "header.log_in", resolved via the JSON maps
-   * in i18n/interface and i18n/interface-context). Non-ID strings pass through
-   * unchanged in English and fall back to the terms dictionary in Hebrew.
+   * in i18n/interface). Non-ID strings pass through unchanged in English and
+   * fall back to the terms dictionary in Hebrew.
    * Add new strings to i18n/interface/en.json + he.json.
    * For displaying interface text you should use <InterfaceText> which calls this function automatically.
    */

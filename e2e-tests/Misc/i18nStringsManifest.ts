@@ -9,7 +9,7 @@
  * keyed ID leaked into the page.
  *
  * IDs and their English/Hebrew values live in
- * static/js/sefaria/i18n/{interface,interface-context}/{en,he}.json — the manifest stores only IDs, so
+ * static/js/sefaria/i18n/interface/{en,he}.json — the manifest stores only IDs, so
  * translator edits in Weblate never break these tests.
  *
  * Every ID listed here was verified in component source to render
