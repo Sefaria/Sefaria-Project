@@ -253,7 +253,7 @@ ENTITY_SORTS = {
     "book": ("relevance", "alpha", "year_asc", "year_desc"),
 }
 _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see put_*_mapping)
-_ENTITY_YEAR_SORT_FIELDS = {"author": "birthYear", "book": "compDate"}
+_ENTITY_YEAR_SORT_FIELDS = {"author": "deathYear", "book": "compDate"}
 
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,
