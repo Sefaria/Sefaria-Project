@@ -56,10 +56,10 @@ class RegisterAutoEnrollTest(TestCase):
             response = self.client.post("/register/", self.form_data)
 
         self.assertEqual(response.status_code, 302)
+        user = self._assert_enrolled()
         mock_dispatch.assert_not_called()
         self.assertEqual(len(callbacks), 1)
         callbacks[0]()
-        user = self._assert_enrolled()
         mock_dispatch.assert_called_once()
         self.assertEqual(mock_dispatch.call_args[0][0], user.email)
         self.assertTrue(mock_dispatch.call_args[0][1])
