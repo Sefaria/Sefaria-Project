@@ -240,8 +240,8 @@ const PROJECT = 'Library Assistant';
 const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
-const isChatbotBannerExcludedPath = (path) => {
-  const pathname = new URL(path, "https://www.sefaria.org").pathname;
+const isChatbotBannerExcludedPath = (path, moduleUrl) => {
+  const pathname = new URL(path, moduleUrl).pathname;
   return CHATBOT_BANNER_EXCLUDED_PATHS.some(
     excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
   );
@@ -265,7 +265,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
     }
   };
 
-  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath())) {
+  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
     return null;
   }
   const isLoggedIn = !!Sefaria._uid;

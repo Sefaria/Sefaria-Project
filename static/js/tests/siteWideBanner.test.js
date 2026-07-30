@@ -2,6 +2,8 @@
 import { isChatbotBannerExcludedPath } from "../SiteWideBanner";
 
 describe("isChatbotBannerExcludedPath", function () {
+  const moduleUrl = new URL("https://www.sefaria.org.il");
+
   it.each([
     "/login",
     "/login/",
@@ -16,7 +18,7 @@ describe("isChatbotBannerExcludedPath", function () {
     "/password/reset/complete/",
     "/password/reset/confirm/user-id/token/",
   ])("excludes %s", function (path) {
-    expect(isChatbotBannerExcludedPath(path)).toBe(true);
+    expect(isChatbotBannerExcludedPath(path, moduleUrl)).toBe(true);
   });
 
   it.each([
@@ -32,6 +34,6 @@ describe("isChatbotBannerExcludedPath", function () {
     "/password/resetting",
     "/texts?next=%2Flogin",
   ])("does not exclude %s", function (path) {
-    expect(isChatbotBannerExcludedPath(path)).toBe(false);
+    expect(isChatbotBannerExcludedPath(path, moduleUrl)).toBe(false);
   });
 });
