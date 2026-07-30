@@ -52,9 +52,13 @@ class RegisterAutoEnrollTest(TestCase):
         return user
 
     def test_web_form_registration_enrolls_user(self, mock_dispatch, _mock_captcha, _mock_urlopen):
-        response = self.client.post("/register/", self.form_data)
+        with self.captureOnCommitCallbacks() as callbacks:
+            response = self.client.post("/register/", self.form_data)
 
         self.assertEqual(response.status_code, 302)
+        mock_dispatch.assert_not_called()
+        self.assertEqual(len(callbacks), 1)
+        callbacks[0]()
         user = self._assert_enrolled()
         mock_dispatch.assert_called_once()
         self.assertEqual(mock_dispatch.call_args[0][0], user.email)
@@ -73,7 +77,8 @@ class RegisterAutoEnrollTest(TestCase):
             password2=self.form_data["password1"],
             mobile_app_key=MOBILE_APP_KEY,
         )
-        response = self.client.post("/api/register/", api_data)
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post("/api/register/", api_data)
 
         self.assertEqual(response.status_code, 200)
         self._assert_enrolled()

@@ -198,7 +198,12 @@ def process_register_form(request, auth_method='session'):
 
             # New users are enrolled in the Library Assistant automatically;
             # the account settings toggle remains the way to opt out.
-            reader_models._set_user_experiments(user, True)
+            # Wait for the user transaction to commit before writing to Mongo or
+            # dispatching the CRM webhook, neither of which can be rolled back here.
+            transaction.on_commit(
+                lambda: reader_models._set_user_experiments(user, True),
+                robust=True,
+            )
 
         if auth_method == 'session':
             auth_login(request, user)
