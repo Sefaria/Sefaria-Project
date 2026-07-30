@@ -3610,7 +3610,7 @@ _media: {},
         return name;
     }
   },
-  _keyedStringIdRegex: /^[a-z0-9_][a-zA-Z0-9_]*(\.[a-z0-9_][a-zA-Z0-9_]*)+$/,
+  _keyedStringIdRegex: /^[a-z0-9_][a-zA-Z0-9_]*(\.[a-z0-9_][a-zA-Z0-9_]*)+$/,  //matches snake_case or camelCase
   _isKeyedStringId: function(inputStr) {
     // Keyed interface string IDs look like "header.log_in" or "search.exactMatchToggle.allResults";
     // snake_case and camelCase segments are both allowed. Segments must not *start* with an
