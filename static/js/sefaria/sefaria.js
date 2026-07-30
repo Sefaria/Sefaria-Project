@@ -3610,10 +3610,12 @@ _media: {},
         return name;
     }
   },
-  _keyedStringIdRegex: /^[a-z0-9_]+(\.[a-z0-9_]+)+$/,
+  _keyedStringIdRegex: /^[a-z0-9_][a-zA-Z0-9_]*(\.[a-z0-9_][a-zA-Z0-9_]*)+$/,
   _isKeyedStringId: function(inputStr) {
-    // Keyed interface string IDs look like "header.log_in"; no legacy English
-    // interface string matches this shape.
+    // Keyed interface string IDs look like "header.log_in" or "search.exactMatchToggle.allResults";
+    // snake_case and camelCase segments are both allowed. Segments must not *start* with an
+    // uppercase letter: that is what keeps capitalized data values (e.g. "Gen.1", "b.Berakhot")
+    // from being mistaken for IDs, since no legacy English interface string matches this shape.
     return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
   },
   _keyedString: function(id, lang) {

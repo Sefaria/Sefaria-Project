@@ -6,12 +6,23 @@ describe('keyed interface strings', () => {
   const interfaceHe = require('../i18n/interface/he.json');
   const contextEn = require('../i18n/interface-context/en.json');
   const contextHe = require('../i18n/interface-context/he.json');
-  const ID_RE = /^[a-z0-9_]+(\.[a-z0-9_]+)+$/;
+  // Keep in sync with Sefaria._keyedStringIdRegex in sefaria.js.
+  const ID_RE = /^[a-z0-9_][a-zA-Z0-9_]*(\.[a-z0-9_][a-zA-Z0-9_]*)+$/;
 
   test('every key in every map is an ID matching the router regex', () => {
     [interfaceEn, interfaceHe, contextEn, contextHe].forEach(map =>
       Object.keys(map).forEach(id => expect(id).toMatch(ID_RE))
     );
+  });
+
+  test('ID shape accepts snake_case and camelCase but not capitalized data values', () => {
+    ['header.log_in', 'sheets.1_person_likes_this_sheet',
+     'search.exactMatchToggle.allResults'].forEach(id =>
+      expect(Sefaria._isKeyedStringId(id)).toBe(true));
+    // Capitalized data values reach Sefaria._() too; they must not route as IDs.
+    ['Gen.1', 'b.Berakhot', 'Mishnah Berakhot', 'Some untranslated string',
+     'common', 'e.g.'].forEach(s =>
+      expect(Sefaria._isKeyedStringId(s)).toBe(false));
   });
 
   test('en.json and he.json cover the same IDs in each map', () => {
