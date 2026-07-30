@@ -243,6 +243,10 @@ class SearchPage extends Component {
     return {...data, hits};
   }
 
+  hasEntityResults(type) {
+    return !!this.getSortedEntityData(type)?.hits?.length;
+  }
+
   toggleBookCategoryFilter(filter) {
     filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
     this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]});
@@ -449,11 +453,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.books}
                 sortType={this.state.entitySort.book}
                 onSortChange={(key) => this.setEntitySort('book', key)}
-                disabled={!this.getSortedEntityData('book')?.hits?.length}
+                disabled={!this.hasEntityResults('book')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                disabled={!this.getSortedEntityData('book')?.hits?.length}
+                disabled={!this.hasEntityResults('book')}
               />
           }
         </div>
@@ -467,11 +471,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.authors}
                 sortType={this.state.entitySort.author}
                 onSortChange={(key) => this.setEntitySort('author', key)}
-                disabled={!this.getSortedEntityData('author')?.hits?.length}
+                disabled={!this.hasEntityResults('author')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                disabled={!this.getSortedEntityData('author')?.hits?.length}
+                disabled={!this.hasEntityResults('author')}
               />
           }
         </div>
@@ -485,11 +489,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.topics}
                 sortType={this.state.entitySort.topic}
                 onSortChange={(key) => this.setEntitySort('topic', key)}
-                disabled={!this.getSortedEntityData('topic')?.hits?.length}
+                disabled={!this.hasEntityResults('topic')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                disabled={!this.getSortedEntityData('topic')?.hits?.length}
+                disabled={!this.hasEntityResults('topic')}
               />
           }
         </div>

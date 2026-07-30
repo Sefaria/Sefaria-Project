@@ -37,9 +37,9 @@ function renderCaption() {
   return (
     <p className="noSearchResults-caption">
       {before}
-      <a href="mailto:hello@sefaria.org" className="noSearchResults-captionLink">{reportBugText}</a>
+      <a href={Sefaria._('search.null.caption.report_bug.href')} className="noSearchResults-captionLink">{reportBugText}</a>
       {middle}
-      <a href="mailto:hello@sefaria.org" className="noSearchResults-captionLink">{contactUsText}</a>
+      <a href={Sefaria._('search.null.caption.contact_us.href')} className="noSearchResults-captionLink">{contactUsText}</a>
       {after}
     </p>
   );
