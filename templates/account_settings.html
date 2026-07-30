@@ -106,6 +106,30 @@
 	</div>
 	{% endif %}
     {% if experiments_available %}
+    <div id="libraryAssistantSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">Library Assistant</span>
+			<span class="int-he">עוזר הספרייה</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="experiments" data-value=true class="toggleOption {% if profile.experiments %} on{% endif %}" tabindex="{% if profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-name="experiments" data-value=false class="toggleOption {% if not profile.experiments %} on{% endif %}" tabindex="{% if not profile.experiments %}0{% else %}-1{% endif %}" aria-checked="{% if not profile.experiments %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+    {% endif %}
+
+	{# The generic "Experiments" toggle is hidden while the Library Assistant is the only #}
+	{# experiment — it is exposed above under its own name instead. Both toggles wrote to #}
+	{# the same profile.experiments field, so only one may be shown at a time. Restore     #}
+	{# this block (and re-point the JS selectors below) when a second experiment ships.    #}
+	{% comment %}
+    {% if experiments_available %}
     <div id="experimentsSetting" class="section">
 		<label class="control-elem">
             <span class="int-en">Experiments</span>
@@ -123,6 +147,7 @@
 		</div>
 	</div>
     {% endif %}
+	{% endcomment %}
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
@@ -204,7 +229,7 @@
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
-		    const $curExperiments = $("#experimentsSetting .toggleOption.on").attr("data-value");
+		    const $curExperiments = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
@@ -240,7 +265,7 @@
                         translation_language_preference_suggested: true,
                     }
 				};
-                const $experimentsToggle = $("#experimentsSetting .toggleOption.on");
+                const $experimentsToggle = $("#libraryAssistantSetting .toggleOption.on");
                 if ($experimentsToggle.length) {
                     profile.experiments = $experimentsToggle.attr("data-value") === "true";
                 }

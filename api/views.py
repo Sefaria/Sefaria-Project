@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -10,6 +11,9 @@ from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
 from .api_warnings import *
+
+
+logger = logging.getLogger(__name__)
 
 
 class Text(View):
@@ -181,10 +185,19 @@ class KnnSearch(View):
     # - LIMIT: number of semantic hits used internally to build the link graph.
     # - DEPTH: graph hops to traverse from each semantic hit.
     # - STD_THRESHOLD/MIN_COUNT: outlier rule count >= max(min_count, mean + k*std).
+    # - FULL_TEXT_CHAR_LIMIT: linked refs larger than this are replaced with
+    #   semantic chunks to avoid oversized tool responses. Patot caps chunks at
+    #   500 BEREL tokens; recent output sampling put that near 1,300 chars, so
+    #   this threshold approximates one maximal chunk and keeps linked-ref
+    #   augmentation away from Claude Code's 50K-char tool persistence limit.
+    # - SEMANTIC_CHUNK_LIMIT: number of top filtered chunks returned for each
+    #   oversized linked ref.
     LINKED_REF_ENHANCEMENT_LIMIT = 50
     LINKED_REF_ENHANCEMENT_DEPTH = 1
     LINKED_REF_ENHANCEMENT_STD_THRESHOLD = 2
     LINKED_REF_ENHANCEMENT_MIN_COUNT = 3
+    LINKED_REF_FULL_TEXT_CHAR_LIMIT = 1300
+    LINKED_REF_SEMANTIC_CHUNK_LIMIT = 2
 
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
@@ -221,12 +234,115 @@ class KnnSearch(View):
         except Exception:
             return ""
 
+    @staticmethod
+    def _semantic_chunk_filters(base_filters, ref_filter):
+        filters = dict(base_filters or {})
+        filters.update(ref_filter)
+        return filters
+
+    @staticmethod
+    def _segment_ref_filter_for_linked_ref(ref):
+        oref = Ref(ref)
+        if not (oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())):
+            return None, []
+
+        segment_refs = [segment_ref.normal() for segment_ref in oref.all_segment_refs()]
+        if not segment_refs:
+            return None, []
+        if len(segment_refs) == 1:
+            return {"ref": segment_refs[0]}, segment_refs
+        return {"ref__in": segment_refs}, segment_refs
+
+    @staticmethod
+    def _is_supported_linked_ref(ref):
+        try:
+            oref = Ref(ref)
+        except Exception:
+            return False
+        return oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())
+
     @classmethod
-    def _serialize_linked_ref(cls, ref, include_text):
+    def _semantic_chunks_for_linked_ref(cls, ref, query_embedding, base_filters):
+        from semantic_search.search import semantic_search_by_embedding
+
+        ref_filter, segment_refs = cls._segment_ref_filter_for_linked_ref(ref)
+        if ref_filter is None:
+            return [], None
+
+        vector_filters = cls._semantic_chunk_filters(base_filters, ref_filter)
+        chunks = semantic_search_by_embedding(
+            query_embedding,
+            filters=vector_filters,
+            limit=cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+        )
+        if chunks:
+            return chunks, next(iter(ref_filter.keys()))
+        return [], None
+
+    @classmethod
+    def _serialize_linked_ref(cls, ref, include_text, query_embedding=None, filters=None):
         serialized = {"ref": ref}
         if include_text:
-            serialized["text"] = cls._ref_text(ref)
+            if not cls._is_supported_linked_ref(ref):
+                serialized.update({
+                    "text": "",
+                    "text_source": "omitted_unsupported_linked_ref",
+                })
+                return serialized
+            text = cls._ref_text(ref)
+            if len(text) > cls.LINKED_REF_FULL_TEXT_CHAR_LIMIT and query_embedding is not None:
+                chunks, ref_field = cls._semantic_chunks_for_linked_ref(ref, query_embedding, filters)
+                if chunks:
+                    logger.info(
+                        "Replaced oversized linked ref text with semantic chunks",
+                        extra={
+                            "ref": ref,
+                            "original_text_char_count": len(text),
+                            "semantic_chunk_count": len(chunks),
+                            "semantic_chunk_filter_field": ref_field,
+                        },
+                    )
+                    return [
+                        {
+                            **cls._serialize_search_result(chunk, include_text=True),
+                            "text_source": "linked_ref_semantic_chunk",
+                            "linked_ref_parent": ref,
+                            "linked_ref_chunk_number": chunk_number,
+                            "linked_ref_chunk_count": len(chunks),
+                            "original_text_char_count": len(text),
+                            "semantic_chunk_limit": cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+                            "semantic_chunk_filter_field": ref_field,
+                        }
+                        for chunk_number, chunk in enumerate(chunks, start=1)
+                    ]
+                else:
+                    logger.warning(
+                        "Omitted oversized linked ref text because no semantic chunks were found",
+                        extra={
+                            "ref": ref,
+                            "original_text_char_count": len(text),
+                        },
+                    )
+                    serialized.update({
+                        "text": "",
+                        "text_source": "omitted_oversized_linked_ref",
+                        "original_text_char_count": len(text),
+                        "semantic_chunk_limit": cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+                    })
+                    return serialized
+            serialized["text"] = text
         return serialized
+
+    @classmethod
+    def _serialize_linked_refs(cls, refs, include_text, query_embedding=None, filters=None):
+        serialized_refs = []
+        for ref in refs:
+            serialized = cls._serialize_linked_ref(ref, include_text, query_embedding, filters)
+            if isinstance(serialized, list):
+                serialized_refs.extend(serialized)
+            else:
+                serialized_refs.append(serialized)
+        return serialized_refs
 
     @staticmethod
     def _top_linked_refs(enhancement, limit):
@@ -280,15 +396,17 @@ class KnnSearch(View):
         except ValueError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
-        from semantic_search.search import semantic_search
         from semantic_search.embedder import EmbeddingError
 
         if not getattr(settings, "GEMINI_API_KEY", ""):
             return jsonResponse({"error": "Semantic search is not configured"}, status=503)
 
         try:
+            from semantic_search.search import get_query_embedding, semantic_search_by_embedding
+
             search_limit = max(result_limit, self.LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
-            search_results = semantic_search(query, filters=filters, limit=search_limit)
+            query_embedding = get_query_embedding(query)
+            search_results = semantic_search_by_embedding(query_embedding, filters=filters, limit=search_limit)
         except EmbeddingError as e:
             return jsonResponse({"error": str(e)}, status=502)
         results = search_results[:result_limit]
@@ -311,10 +429,7 @@ class KnnSearch(View):
             )
             top_linked_refs = self._top_linked_refs(enhancement, linked_ref_limit)
             response.update({
-                "linked_refs": [
-                    self._serialize_linked_ref(ref, include_text)
-                    for ref in top_linked_refs
-                ],
+                "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
             })
 
         return jsonResponse(response)
