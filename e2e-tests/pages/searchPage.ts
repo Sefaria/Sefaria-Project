@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test"
-import { LANGUAGES, t } from "../globals"
+import { t } from "../globals"
 import { HelperBase } from "./helperBase"
 
 /**
@@ -119,6 +119,30 @@ export class SearchPage extends HelperBase{
     async resultCardNames(): Promise<string[]> {
         const names = await this.resultCardNameCells.allTextContents();
         return names.map(n => n.trim());
+    }
+
+    // ---------------------------------------------------------------------
+    // Sheet results ("Sheets With <ref>")
+    // ---------------------------------------------------------------------
+
+    /**
+     * Sheet hits render as `.result.sheetResult` (SearchSheetResult.jsx:43), not
+     * as the `.searchResultCard` used by the entity tabs — different component,
+     * different class. Same `.content.searchContent` wrapper, though, because
+     * `SheetsWithRefLayout` copied it from SearchPage.jsx.
+     */
+    private get sheetResults() {
+        return this.searchContent.locator('.result.sheetResult');
+    }
+
+    /** Wait for at least one sheet result to actually render (CLAUDE.md §2.11). */
+    async waitForSheetResults() {
+        await expect(this.searchContent).toBeVisible({ timeout: t(20000) });
+        await expect(this.sheetResults.first()).toBeVisible({ timeout: t(30000) });
+    }
+
+    async sheetResultCount(): Promise<number> {
+        return this.sheetResults.count();
     }
 
     // ---------------------------------------------------------------------

@@ -41,6 +41,16 @@ New here? Read the root [handbook](../../README.md) first — it covers setup, t
 | `SRCH-041` | No further requests once `hits.length` reaches `total`. |
 | `SRCH-042` | Five back-to-back scroll events still fetch page 2 exactly once. |
 
+### Sheets With ref — regression smoke ([sheets-with-ref.spec.ts](sheets-with-ref.spec.ts))
+
+| Test ID | Asserts |
+| --- | --- |
+| `SRCH-050` | `/sheets-with-ref/<ref>` on Voices mounts and renders at least one sheet result. |
+
+`SheetsWithRefPage.jsx` used to render through `SearchPage`; the results rewrite forked that layout into a local `SheetsWithRefLayout` so search UX changes stop restyling it. Nothing else in the suite loads this page — `Resource Panel/sheets.spec.ts` (RP-101) only asserts the URL opens, then closes the tab. SRCH-050 is the tripwire for the fork breaking outright. It uses real data (`Ezra.2.29`, verified via `GET /api/related/`) rather than the entity-search mock, which does not serve sheet results.
+
+**Still uncovered on this page:** the sort box, filter sidebar, AI-ranking badge, and result count.
+
 ---
 
 ## Mocking `/api/entity-search`
@@ -61,7 +71,7 @@ Two consequences worth knowing:
 ## Conventions for this folder
 
 - **Entry point:** `goToPageWithLang(context, MODULE_URLS.EN.LIBRARY | .VOICES, LANGUAGES.EN)`. For the results page, build the URL with `librarySearchUrl(query, searchTab?)` from [../../constants.ts](../../constants.ts) — note the tab param is `search_tab`, since `tab` already means the text/sheet search type.
-- **ID scheme:** `SRCH-###`. `001`–`006` header autocomplete + submit, `030`–`036` entity sort/filter, `040`–`042` infinite scroll.
+- **ID scheme:** `SRCH-###`. `001`–`006` header autocomplete + submit, `030`–`036` entity sort/filter, `040`–`042` infinite scroll, `050`+ Sheets With ref.
 - **Page object:** dropdown section/icon assertions go through [pm.onModuleHeader()](../../pages/moduleHeaderPage.ts) (`testSearchDropdown`, `testSearchDropdownIcons`); section/icon/term constants live in `SEARCH_DROPDOWN` ([../../constants.ts](../../constants.ts)). Results-page interactions go through [pm.onSearchPage()](../../pages/searchPage.ts) (`selectTab`, `setSort`, `toggleBookCategoryFilter`, `resultCardNames`, `scrollResultsToBottom`).
 
 ## Running
