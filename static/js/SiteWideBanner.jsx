@@ -238,12 +238,14 @@ const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://h
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register"];
+const PASSWORD_RESET_PATH = "/password/reset";
 
-// The Library Assistant opens automatically after login/registration, so promoting
-// it on the auth screens themselves would be redundant.
+// Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path) => {
   const pathname = path.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
-  return CHATBOT_BANNER_EXCLUDED_PATHS.includes(pathname);
+  return CHATBOT_BANNER_EXCLUDED_PATHS.includes(pathname) ||
+    pathname === PASSWORD_RESET_PATH ||
+    pathname.startsWith(`${PASSWORD_RESET_PATH}/`);
 };
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {

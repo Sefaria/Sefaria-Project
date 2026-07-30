@@ -2,29 +2,36 @@
 import { isChatbotBannerExcludedPath } from "../SiteWideBanner";
 
 describe("isChatbotBannerExcludedPath", function () {
-  it("excludes the login page", function () {
-    expect(isChatbotBannerExcludedPath("/login")).toBe(true);
+  it.each([
+    "/login",
+    "/login/",
+    "/login?next=%2Ftexts",
+    "/register",
+    "/register/",
+    "/register/?next=%2Ftexts#top",
+    "/password/reset",
+    "/password/reset/",
+    "/password/reset?next=%2Ftexts",
+    "/password/reset/done/",
+    "/password/reset/complete/",
+    "/password/reset/confirm/user-id/token/",
+  ])("excludes %s", function (path) {
+    expect(isChatbotBannerExcludedPath(path)).toBe(true);
   });
 
-  it("excludes the register page", function () {
-    expect(isChatbotBannerExcludedPath("/register")).toBe(true);
-  });
-
-  it("tolerates trailing slashes", function () {
-    expect(isChatbotBannerExcludedPath("/login/")).toBe(true);
-    expect(isChatbotBannerExcludedPath("/register/")).toBe(true);
-  });
-
-  it("ignores query strings and hashes", function () {
-    expect(isChatbotBannerExcludedPath("/login?next=%2Ftexts")).toBe(true);
-    expect(isChatbotBannerExcludedPath("/register/?next=%2Ftexts#top")).toBe(true);
-  });
-
-  it("does not exclude other pages", function () {
-    expect(isChatbotBannerExcludedPath("/")).toBe(false);
-    expect(isChatbotBannerExcludedPath("/texts")).toBe(false);
-    expect(isChatbotBannerExcludedPath("/Genesis.1")).toBe(false);
-    expect(isChatbotBannerExcludedPath("/logout")).toBe(false);
-    expect(isChatbotBannerExcludedPath("/texts?next=%2Flogin")).toBe(false);
+  it.each([
+    "/",
+    "/texts",
+    "/Genesis.1",
+    "/about",
+    "/logout",
+    "/login-help",
+    "/register-interest",
+    "/password",
+    "/passwords/reset",
+    "/password/resetting",
+    "/texts?next=%2Flogin",
+  ])("does not exclude %s", function (path) {
+    expect(isChatbotBannerExcludedPath(path)).toBe(false);
   });
 });
