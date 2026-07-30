@@ -283,11 +283,10 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
     };
     const aiBadgeText = searchState?.sortType?.toLowerCase?.() === 'relevance'
         ? 'ai_info_tooltip.these_sheet_results_are_ranked_by_ai' : undefined;
-    return <SearchPage
+    return <SheetsWithRefLayout
           key={"sheetsPage"}
           isQueryRunning={loading}
           sortTypeArray={sortTypeArray}
-          searchTopMsg="search_page.sheets_with"
           hits={sortedSheets}
           query={displayRef}
           totalResults={new SearchTotal({value: sortedSheets.length})}
@@ -300,4 +299,5 @@ const SheetsWithRefPage = ({srefs, searchState, updateSearchState, updateApplied
           aiBadgeText={aiBadgeText}
     />
 }
+
 export default SheetsWithRefPage;
