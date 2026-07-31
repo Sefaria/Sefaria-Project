@@ -213,10 +213,10 @@ class AutoCompleter(object):
                 if is_category_boundary(child.primary_title("en")):
                     for grandchild in child.children:            # harvest one level
                         if isinstance(grandchild, TocCategory) and not is_category_boundary(grandchild.primary_title("en")):
-                            cats += [grandchild]
+                            cats.append(grandchild)
                     continue                                     # never descend past a boundary
                 if len(child.children) >= 2:
-                    cats += [child]
+                    cats.append(child)
                 walk(child)
 
         walk(otoc)
