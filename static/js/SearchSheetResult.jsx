@@ -5,6 +5,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 import { ProfilePic } from "./ProfilePic";
+import { InterfaceText } from './Misc';
 
 
 class SearchSheetResult extends Component {
@@ -44,6 +45,14 @@ class SearchSheetResult extends Component {
                 <a href={href} onClick={this.handleSheetClick} data-target-module={Sefaria.VOICES_MODULE}>
                     <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>
                         <span dir={titleIsHe ? "rtl" : "ltr"}>{clean_title}</span>
+                        {s.is_community_book && (
+                          <span className="communityBookBadge">
+                            <svg className="badgeIcon" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M6 2C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>
+                            </svg>
+                            <InterfaceText text={{ en: "Community Book", he: "ספר קהילתי" }} />
+                          </span>
+                        )}
                     </div>
                     <div className={snippetClasses}>
                         <span dir={snippetMarkup.lang === 'he' ? "rtl" : "ltr"}

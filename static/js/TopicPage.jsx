@@ -29,6 +29,8 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 import { TopicTOCCard } from "./common/TopicTOCCard";
+import CommunityBookBlock from './CommunityBookBlock';
+import { getBulkCommunityBooks } from './communityBooksApi';
 
 
 
@@ -77,6 +79,23 @@ const fetchBulkSheet = inSheets => {
   });
 }
 
+const fetchBulkCommunityBook = inBooks => {
+  const ids = inBooks.map(x => {
+    if (isNaN(x.ref)) {
+      return parseInt(x.ref.replace('CommunityBook ', ''));
+    }
+    return x.ref;
+  });
+  return getBulkCommunityBooks(ids).then(outBooks => {
+    for (let tempBook of inBooks) {
+      if (outBooks[tempBook.ref]) {
+        outBooks[tempBook.ref].order = tempBook.order;
+      }
+    }
+    return Object.values(outBooks);
+  });
+};
+
 
 const refFilter = (currFilter, ref) => {
   const n = text => !!text ? text.toLowerCase() : '';
@@ -94,6 +113,15 @@ const sheetFilter = (currFilter, sheet) => {
   for (let field of ['sheet_title', 'sheet_summary', 'publisher_name', 'publisher_position', 'publisher_organization']) {
     if (n(sheet[field]).indexOf(currFilter) > -1) { return true; }
   }
+};
+
+const communityBookFilter = (currFilter, book) => {
+  const n = text => !!text ? text.toLowerCase() : '';
+  currFilter = n(currFilter);
+  for (let field of ['sheet_title', 'sheet_summary', 'publisher_name']) {
+    if (n(book[field]).indexOf(currFilter) > -1) { return true; }
+  }
+  return false;
 };
 
 
@@ -158,6 +186,21 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
+const communityBookSort = (currSortOption, a, b) => {
+  if (!a.order && !b.order) { return 0; }
+  if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
+  if (currSortOption === 'Views') {
+    return b.order.views - a.order.views;
+  } else if (currSortOption === 'Newest') {
+    if (b.order.dateCreated < a.order.dateCreated) { return -1; }
+    if (a.order.dateCreated < b.order.dateCreated) { return 1; }
+    return 0;
+  } else {
+    if (b.order.relevance === a.order.relevance) { return b.order.views - a.order.views; }
+    return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
+  }
+};
+
 const hasPrompts = (description) => {
     /**
      * returns true if description has a title
@@ -215,6 +258,10 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPr
 
 const sheetRenderWrapper = (toggleSignUpModal) => item => (
   <SheetBlock key={item.sheet_id} sheet={item} toggleSignUpModal={toggleSignUpModal}/>
+);
+
+const communityBookRenderWrapper = (toggleSignUpModal) => item => (
+  <CommunityBookBlock key={item.sheet_id || item.sheet_title} book={item} />
 );
 
 
@@ -503,6 +550,14 @@ const useAllPossibleSourceTabs = (translationLanguagePreference) => {
       filterFunc: sheetFilter,
       sortFunc: sheetSort,
       renderWrapper: sheetRenderWrapper,
+    },
+    {
+      key: 'community-books',
+      fetcher: fetchBulkCommunityBook,
+      sortOptions: ['Relevance', 'Views', 'Newest'],
+      filterFunc: communityBookFilter,
+      sortFunc: communityBookSort,
+      renderWrapper: communityBookRenderWrapper,
     }
   ], [translationLanguagePreference]);
   return getSourceTabData();

@@ -33,6 +33,7 @@ import Hebrew from './sefaria/hebrew.js';
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
+import CommunityBookStatusBanner from './CommunityBookStatusBanner';
 import { getCsrfToken } from "./sefaria/csrf";
 
 
@@ -149,10 +150,11 @@ class BookPage extends Component {
   render() {
     const title     = this.props.title;
     const index     = Sefaria.index(title);
+    const communityStatus = index ? index.submissionStatus : null;
     const heTitle   = index ? index.heTitle : title;
     const category  = this.props.category;
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
-    const categories = Sefaria.index(this.props.title).categories;
+    const categories = index ? index.categories : [];
     let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {
@@ -217,6 +219,13 @@ class BookPage extends Component {
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
+        {communityStatus && (
+          <CommunityBookStatusBanner
+            submissionStatus={communityStatus}
+            rejectionReason={index.rejectionReason}
+            submittedBy={index.submittedBy}
+          />
+        )}
         {this.props.compare ?
         <>
           <div className="readerControls">

@@ -842,6 +842,13 @@ const CreateSheetsButton = () => {
     </Button>
   ) 
 }
+const CreateBookButton = () => {
+  return (
+    <Button icon={"book"} href="/community-upload" targetModule={Sefaria.VOICES_MODULE}>
+      <InterfaceText text={{'en': 'Add Book', 'he': 'הוספת ספר'}} />
+    </Button>
+  )
+}
 const CreateASheet = () => {
     const textId = Sefaria.multiPanel ?
         'nav_sidebar.mix_and_match_sources_to_share_digitally' :
@@ -853,6 +860,7 @@ const CreateASheet = () => {
                     text={{'en': enText,
                         'he': heText}}>
             {Sefaria.multiPanel && <CreateSheetsButton/>}
+            {Sefaria.multiPanel && <CreateBookButton/>}
         </TitledText>
     );
 }

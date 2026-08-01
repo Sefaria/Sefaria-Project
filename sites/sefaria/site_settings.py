@@ -15,6 +15,7 @@ SITE_SETTINGS = {
 	"PROFILES_BUCKET": 'sefaria-profile-pictures',
 	"UGC_BUCKET": 'sheet-user-uploaded-media',
 	"TOPICS_BUCKET": 'img.sefaria.org',
+	"COMMUNITY_BOOKS_BUCKET": "sefaria-community-books",
 	"HELP_CENTER_URLS": {
 		"EN_US": "https://help.sefaria.org/hc/en-us",
 		"HE": "https://help.sefaria.org/hc/he",

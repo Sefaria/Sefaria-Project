@@ -207,6 +207,17 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Community Book Upload tests — Voices module. `e2e-tests/tests/` was
+    // previously a dead testDir (no project pointed at it); this registers it
+    // so community-books.spec.ts is actually discovered and run.
+    {
+      name: 'chrome-community-books',
+      testDir: './e2e-tests/tests',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: MODULE_URLS.EN.VOICES,
+      },
+    },
 
     // Firefox - Library-specific modularization tests
     {
