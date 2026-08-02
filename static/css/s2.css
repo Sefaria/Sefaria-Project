@@ -6528,6 +6528,23 @@ But not to use a display block directive that might break continuous mode for ot
     color: #333;
     font-size: 14px;
 }
+.linkerAdminCurrentRef {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 14px;
+    overflow-wrap: anywhere;
+}
+.linkerAdminSection {
+    margin-bottom: 14px;
+}
+.linkerAdminSectionTitle {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+    margin-bottom: 8px;
+}
 .linkerAdminCitationActions,
 .linkerAdminInputRow {
     display: flex;
@@ -6590,20 +6607,15 @@ But not to use a display block directive that might break continuous mode for ot
     border: 1px solid #ccc;
     padding: 8px;
 }
-.linkerAdminActionButton {
-    border: 1px solid #999;
-    background: #fff;
-    color: #333;
-    padding: 8px 12px;
-    cursor: pointer;
+.linkerAdminCitationActions .button,
+.linkerAdminInputRow .button {
+    margin: 0;
 }
-.linkerAdminActionButton.danger {
-    border-color: #b71c1c;
-    color: #b71c1c;
+.button.linkerAdminDanger {
+    background-color: #b71c1c;
 }
-.linkerAdminActionButton:disabled {
-    cursor: default;
-    opacity: 0.5;
+.button.linkerAdminDanger:hover {
+    background-color: #a01818;
 }
 .linkerAdminMuted,
 .linkerAdminPartType,
@@ -6616,7 +6628,6 @@ But not to use a display block directive that might break continuous mode for ot
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 14px;
 }
 .linkerAdminPartChip {
     display: inline-flex;

@@ -192,7 +192,9 @@ class ReaderPanel extends Component {
     }
   }
   handleLinkerAdminCitationClick(sourceRef, lang, charRange, spans) {
-    const span = spans?.[0];
+    // For ambiguous citations several spans share a charRange; prefer the option the disambiguator
+    // kept (llm_ambiguous_option_valid !== false) rather than blindly taking the first.
+    const span = spans?.find(s => s.llm_ambiguous_option_valid !== false) || spans?.[0];
     if (!span) { return; }
     const testString = Sefaria._getLinkerTestString(span);
     const connectionData = {

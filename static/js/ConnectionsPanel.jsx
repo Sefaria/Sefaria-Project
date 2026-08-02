@@ -472,6 +472,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "LinkerAdmin") {
       content = (<LinkerAdminBox
         srefs={this.props.srefs}
+        currentlyVisibleRef={this.props.currentlyVisibleRef}
         connectionData={this.props.connectionData}
         currVersions={this.props.currVersions}
         currObjectVersions={this.state.currObjectVersions}
@@ -1057,7 +1058,9 @@ LinkerPartChip.propTypes = {
 const getSelectedLinkerAdminSpan = (testString) => {
   if (!testString) { return null; }
   for (let [key, spans] of Object.entries(Sefaria._linkerOutputMap || {})) {
-    const match = (spans || []).find(span => span.type === "citation" && Sefaria._getLinkerTestString(span) === testString);
+    // For ambiguous citations several spans share a test string; skip options the disambiguator
+    // marked invalid (llm_ambiguous_option_valid === false) so we select the option it kept.
+    const match = (spans || []).find(span => span.type === "citation" && span.llm_ambiguous_option_valid !== false && Sefaria._getLinkerTestString(span) === testString);
     if (match) {
       const [sourceRef, lang, charRange] = key.split("|");
       return {...match, sourceRef, lang, charRange};
@@ -1110,7 +1113,7 @@ LinkerPairings.propTypes = {
   pairings: PropTypes.array.isRequired,
 };
 
-const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions}) => {
+const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersions, currObjectVersions}) => {
   const selectedCitationData = connectionData || Sefaria._linkerAdminSelectedCitation;
   const urlVars = Sefaria.util.getUrlVars();
   const initialTestString = selectedCitationData?.linkerAdminCitation || urlVars["linkerAdminCitation"] || "";
@@ -1122,7 +1125,9 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
   const [rerunStatus, setRerunStatus] = useState(null);
   const [busy, setBusy] = useState(false);
   const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
-  const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || srefs?.[0];
+  // Fall back to the ref currently visible in the reader (updates as you scroll) rather than the
+  // panel's static srefs, so "Current Ref" tracks the reader when no citation is selected.
+  const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || currentlyVisibleRef || srefs?.[0];
   const selectedSpanLang = selectedSpan?.language || selectedSpan?.lang;
   // The disambiguator resolved this citation to a concrete ref, distinct from the (ambiguous /
   // non-segment) ref the linker originally caught (which lives on selectedSpan.ref).
@@ -1172,6 +1177,10 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
   const toggleDeleted = async () => {
     if (!selectedSpan) { return; }
     const deleted = !!selectedSpan.deleted;
+    if (!deleted && !window.confirm(
+      "This will permanently delete this link and prevent it from being recreated, even when the linker is re-run.\n\n" +
+      "The link will remain visible in grey in linker debug mode, and can be recreated from there."
+    )) { return; }
     const payload = {
       ref: selectedSpan.refContext || selectedSpan.sourceRef,
       versionTitle: selectedSpan.versionTitle,
@@ -1243,16 +1252,16 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
           onChange={toggleLinkerDebugMode}
         />
       </div>
+      {rerunRef ? <div className="linkerAdminCurrentRef">Current Ref: {rerunRef}</div> : null}
       <div className="linkerAdminCitationActions">
-        <button className="linkerAdminActionButton" disabled={busy || !rerunRef || !visibleRerunVersions.length} onClick={rerunLinker}>
-          Re-run linker: {rerunRef || "current segment"}
+        <button className={classNames("button", "small", {disabled: busy || !rerunRef || !visibleRerunVersions.length})} disabled={busy || !rerunRef || !visibleRerunVersions.length} onClick={rerunLinker}>
+          Re-run linker
         </button>
-        <button className={classNames("linkerAdminActionButton", {danger: !selectedSpan?.deleted})} disabled={!selectedSpan?.ref || busy} onClick={toggleDeleted}>
+        <button className={classNames("button", "small", {disabled: !selectedSpan?.ref || busy, linkerAdminDanger: !selectedSpan?.deleted && selectedSpan?.ref && !busy})} disabled={!selectedSpan?.ref || busy} onClick={toggleDeleted}>
           {selectedSpan?.deleted ? "Recreate Link" : "Delete Link"}
         </button>
-        {!selectedSpan?.ref ? <span className="linkerAdminMuted">Click a resolved linker debug citation to select a saved link.</span> : null}
       </div>
-      {selectedSpan?.ref ? (
+      {disambiguatedRef ? (
         <div className="linkerAdminSelectedSpan">
           {selectedSpan.text ? <div className="linkerAdminSpanText">&ldquo;{selectedSpan.text}&rdquo;</div> : null}
           <div className="linkerAdminRefFlow">
@@ -1260,21 +1269,20 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
               <span className="linkerAdminRefTag">Linker</span>
               <span className="linkerAdminRefValue">{selectedSpan.ref}</span>
             </div>
-            {disambiguatedRef ? (
-              <>
-                <span className="linkerAdminRefArrow">→</span>
-                <div className="linkerAdminRefItem disambiguated">
-                  <span className="linkerAdminRefTag">Disambiguator</span>
-                  <span className="linkerAdminRefValue">{disambiguatedRef}</span>
-                </div>
-              </>
-            ) : null}
+            <span className="linkerAdminRefArrow">→</span>
+            <div className="linkerAdminRefItem disambiguated">
+              <span className="linkerAdminRefTag">Disambiguator</span>
+              <span className="linkerAdminRefValue">{disambiguatedRef}</span>
+            </div>
           </div>
         </div>
       ) : null}
       {parsed?.input?.parts?.length ? (
-        <div className="linkerAdminParts">
-          {parsed.input.parts.map((part, i) => <LinkerPartChip key={i} part={part} />)}
+        <div className="linkerAdminSection">
+          <div className="linkerAdminSectionTitle">Ref Parts</div>
+          <div className="linkerAdminParts">
+            {parsed.input.parts.map((part, i) => <LinkerPartChip key={i} part={part} />)}
+          </div>
         </div>
       ) : null}
       <div className="linkerAdminInputRow">
@@ -1284,34 +1292,40 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
           placeholder="Paste linker test string..."
           onChange={(e) => setTestString(e.target.value)}
         />
-        <button className="linkerAdminActionButton" disabled={busy || !testString} onClick={() => parseCitation()}>
+        <button className={classNames("button", "small", {disabled: busy || !testString})} disabled={busy || !testString} onClick={() => parseCitation()}>
           Parse
         </button>
       </div>
       {error ? <div className="linkerAdminError">{error}</div> : null}
       {rerunStatus ? <div className="linkerAdminMessage">{rerunStatus}</div> : null}
       {message ? <div className="linkerAdminMessage">{message}</div> : null}
-      <div className="linkerAdminParsingList">
-        {(parsed?.parsings || [])
-          .map((parsing, i) => ({parsing, i}))
-          // Sort valid (green) parsings to the top; stable sort preserves original order within each group.
-          .sort((a, b) => (a.parsing.valid === b.parsing.valid) ? 0 : (a.parsing.valid ? -1 : 1))
-          .map(({parsing, i}) => (
-            // Key includes the citation text so switching to a new citation remounts each parsing
-            // (and its LinkerPairings disclosure), resetting it to the collapsed state.
-            <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${parsed?.input?.text || ""}-${i}`}>
-              <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
-              {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
-              <LinkerPairings pairings={parsing.pairings || []} />
-            </div>
-          ))}
-      </div>
+      {parsed?.parsings?.length ? (
+        <div className="linkerAdminSection">
+          <div className="linkerAdminSectionTitle">Options considered</div>
+          <div className="linkerAdminParsingList">
+            {parsed.parsings
+              .map((parsing, i) => ({parsing, i}))
+              // Sort valid (green) parsings to the top; stable sort preserves original order within each group.
+              .sort((a, b) => (a.parsing.valid === b.parsing.valid) ? 0 : (a.parsing.valid ? -1 : 1))
+              .map(({parsing, i}) => (
+                // Key includes the citation text so switching to a new citation remounts each parsing
+                // (and its LinkerPairings disclosure), resetting it to the collapsed state.
+                <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${parsed?.input?.text || ""}-${i}`}>
+                  <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
+                  {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
+                  <LinkerPairings pairings={parsing.pairings || []} />
+                </div>
+              ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
 
 LinkerAdminBox.propTypes = {
   srefs: PropTypes.array.isRequired,
+  currentlyVisibleRef: PropTypes.string,
   connectionData: PropTypes.object,
   currVersions: PropTypes.object,
   currObjectVersions: PropTypes.object,
