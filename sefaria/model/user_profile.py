@@ -402,6 +402,9 @@ class UserProfile(object):
             "textual_custom" : "sephardi",
             "reading_history" : True,
             "translation_language_preference": None,
+            # The Library Assistant is on unless the user turns it off. See
+            # sefaria.helper.library_assistant for everything that reads this key.
+            "library_assistant": True,
         }
         self.version_preferences_by_corpus = {}
 

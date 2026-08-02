@@ -23,7 +23,7 @@ from functools import lru_cache
 
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
-from sefaria.system.context_processors import _is_user_in_experiment
+from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
 from rest_framework.decorators import api_view, permission_classes
@@ -303,6 +303,7 @@ def base_props(request):
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
             "experiments": profile.experiments,
+            "library_assistant": library_assistant.is_enabled(profile),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -325,6 +326,7 @@ def base_props(request):
             "is_editor": False,
             "is_sustainer": False,
             "experiments": False,
+            "library_assistant": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -382,11 +384,9 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
-        chatbot_data["in_chatbot_experiment"] = True
-        if _is_user_in_experiment(request):
-            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-            chatbot_data["chatbot_enabled"] = True
+    if user_data["library_assistant"]:
+        chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+        chatbot_data["chatbot_enabled"] = True
     user_data.update(chatbot_data)
     return user_data
 
@@ -4075,10 +4075,18 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # The experiments program is still whitelist-gated; the Library Assistant is not.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
+        la_key = library_assistant.SETTING_KEY
+        la_posted = la_key in profileUpdate.get("settings", {})
+        if la_posted:
+            # Public API — coerce so a posted "false" can't read as truthy.
+            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+
         profile = UserProfile(id=request.user.id)
+        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
 
         error = profile.errors()
@@ -4089,6 +4097,8 @@ def profile_api(request, slug=None):
             profile.save()
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
+            if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
+                library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4112,10 +4122,12 @@ def enable_library_assistant(request):
     """
     Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
     The promo points login/register's ?next= here, so once authentication
-    completes the user lands here; we enroll them in the experiments whitelist and
-    bounce them back to where they were. On that reload the Library Assistant appears
-    with no extra "Join" click. Normal logins (which don't route through here) are
-    unaffected.
+    completes the user lands here; we turn the assistant on and bounce them back to
+    where they were. On that reload the Library Assistant appears with no extra
+    "Join" click.
+
+    The assistant is on by default, so this is usually a no-op — it still matters for
+    a user who had previously turned it off and is now re-opting in via the promo.
     """
     next_url = request.GET.get("next") or "/"
     if not url_has_allowed_host_and_scheme(
@@ -4130,7 +4142,7 @@ def enable_library_assistant(request):
 
     # Prevent cross-site enrollment via GET.
     if request.headers.get("Sec-Fetch-Site") != "cross-site":
-        _set_user_experiments(request.user, True)
+        library_assistant.set_enabled(request.user, True)
 
     # The register flow appends ?welcome=to-sefaria to its redirect target; forward
     # it onto the final destination so the new-user welcome still shows after the hop.

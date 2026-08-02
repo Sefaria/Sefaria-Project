@@ -2330,7 +2330,7 @@ const Banner = ({ onClose }) => {
       !strapi.banner.locales.includes("he")
     )
       return false;
-    if (Sefaria.experiments) return false;
+    if (Sefaria.library_assistant) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
     if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;

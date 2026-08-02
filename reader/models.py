@@ -2,10 +2,17 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
-
 
 class UserExperimentSettings(models.Model):
+    """
+    Membership in the experiments program: the row's existence means the user is
+    eligible to see experimental features, the flag means they currently want them.
+
+    This used to double as the Library Assistant's on/off switch, back when the
+    assistant was the program's only member. The assistant is now a permanent feature
+    with a plain user setting — see sefaria.helper.library_assistant — leaving this
+    model free to gate whatever experiment comes next.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="experiment_settings")
     experiments = models.BooleanField(default=True)
 
@@ -26,8 +33,7 @@ def _get_user_experiments(user):
 
 def _set_user_experiments(user, value):
     experiments_enabled = bool(value)
-    settings, created = UserExperimentSettings.objects.get_or_create(user=user)
-    changed = created or (experiments_enabled != settings.experiments)
+    settings, _created = UserExperimentSettings.objects.get_or_create(user=user)
     settings.experiments = experiments_enabled
     settings.save(update_fields=["experiments"])
 
@@ -35,10 +41,6 @@ def _set_user_experiments(user, value):
     profile = UserProfile(id=user.id)
     profile.experiments = experiments_enabled
     profile.save()
-
-    if changed:
-        interface_language = profile.settings.get("interface_language", "english")
-        dispatch_chatbot_opt_in_webhook(user.email, experiments_enabled, interface_language)
 
 
 if not hasattr(User, "experiments"):
