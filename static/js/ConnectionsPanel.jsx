@@ -1069,6 +1069,25 @@ const getSelectedLinkerAdminSpan = (testString) => {
   return null;
 };
 
+// All citation spans sharing this span's charRange. For an unambiguous citation that's just the
+// one span; for an ambiguous citation it's every option the linker considered (the disambiguator
+// keeps one and marks the rest llm_ambiguous_option_valid === false). Falls back to [span] when the
+// output map isn't populated (e.g. selection came from a URL param rather than a debug-mode click).
+const getLinkerAdminOptions = (span) => {
+  if (!span) { return []; }
+  const sourceRef = span.refContext || span.sourceRef;
+  const lang = span.language || span.lang;
+  const charRange = Array.isArray(span.charRange) ? span.charRange.join("-") : span.charRange;
+  const options = Sefaria._linkerOutputMap?.[`${sourceRef}|${lang}|${charRange}`];
+  const citationOptions = (options || []).filter(s => s.type === "citation");
+  if (!citationOptions.length) { return [span]; }
+  // Push disambiguator-rejected options to the bottom; stable within each group.
+  return citationOptions
+    .map((option, i) => ({option, i}))
+    .sort((a, b) => (a.option.llm_ambiguous_option_valid === false ? 1 : 0) - (b.option.llm_ambiguous_option_valid === false ? 1 : 0))
+    .map(({option}) => option);
+};
+
 const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).flatMap((text, i) => {
   const type = span.inputRefPartTypes?.[i];
   if (type === "RANGE") {
@@ -1129,9 +1148,10 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
   // panel's static srefs, so "Current Ref" tracks the reader when no citation is selected.
   const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || currentlyVisibleRef || srefs?.[0];
   const selectedSpanLang = selectedSpan?.language || selectedSpan?.lang;
-  // The disambiguator resolved this citation to a concrete ref, distinct from the (ambiguous /
-  // non-segment) ref the linker originally caught (which lives on selectedSpan.ref).
-  const disambiguatedRef = selectedSpan?.llm_resolved_ref_non_segment || selectedSpan?.llm_resolved_ref_ambiguous;
+  // Every ref the linker found for this citation. One entry for an unambiguous citation, several
+  // (stacked) for an ambiguous one. Each option carries its own disambiguated ref (if any), so the
+  // Disambiguator arrow is drawn per-option — only on the option the disambiguator actually resolved.
+  const spanOptions = getLinkerAdminOptions(selectedSpan);
   const visibleRerunVersions = selectedSpan?.versionTitle && selectedSpanLang ? [{
     lang: selectedSpanLang,
     versionTitle: selectedSpan.versionTitle,
@@ -1261,19 +1281,40 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           {selectedSpan?.deleted ? "Recreate Link" : "Delete Link"}
         </button>
       </div>
-      {disambiguatedRef ? (
+      {selectedSpan ? (
         <div className="linkerAdminSelectedSpan">
+          <div className="linkerAdminSectionTitle">
+            {spanOptions.some(option => option.llm_resolved_ref_non_segment || option.llm_resolved_ref_ambiguous)
+              ? "Linker Resolution (Disambiguated)"
+              : (spanOptions.length > 1 || selectedSpan.ambiguous)
+                ? "Linker Resolutions (Ambiguous)"
+                : "Linker Resolution"}
+          </div>
           {selectedSpan.text ? <div className="linkerAdminSpanText">&ldquo;{selectedSpan.text}&rdquo;</div> : null}
-          <div className="linkerAdminRefFlow">
-            <div className="linkerAdminRefItem">
-              <span className="linkerAdminRefTag">Linker</span>
-              <span className="linkerAdminRefValue">{selectedSpan.ref}</span>
-            </div>
-            <span className="linkerAdminRefArrow">→</span>
-            <div className="linkerAdminRefItem disambiguated">
-              <span className="linkerAdminRefTag">Disambiguator</span>
-              <span className="linkerAdminRefValue">{disambiguatedRef}</span>
-            </div>
+          <div className="linkerAdminOptions">
+            {spanOptions.map((option, i) => {
+              const optionDisambiguatedRef = option.llm_resolved_ref_non_segment || option.llm_resolved_ref_ambiguous;
+              const rejected = option.llm_ambiguous_option_valid === false;
+              return (
+                <div className={classNames("linkerAdminRefFlow", {rejected})} key={i}>
+                  <div className="linkerAdminRefItem">
+                    <span className="linkerAdminRefTag">Linker</span>
+                    {option.ref
+                      ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(option.ref)}`} target="_blank">{option.ref}</a>
+                      : <span className="linkerAdminRefValue">No Ref</span>}
+                  </div>
+                  {optionDisambiguatedRef ? (
+                    <React.Fragment>
+                      <span className="linkerAdminRefArrow">→</span>
+                      <div className="linkerAdminRefItem disambiguated">
+                        <span className="linkerAdminRefTag">Disambiguator</span>
+                        <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(optionDisambiguatedRef)}`} target="_blank">{optionDisambiguatedRef}</a>
+                      </div>
+                    </React.Fragment>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : null}
