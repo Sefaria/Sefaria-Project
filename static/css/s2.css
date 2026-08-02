@@ -6509,6 +6509,9 @@ But not to use a display block directive that might break continuous mode for ot
 .mutc.spanAmbiguous {
     background: #fff8e1;
 }
+.mutc.spanDisambiguated {
+    background: #e3f2fd;
+}
 .mutc.spanDeleted {
     background: #e0e0e0;
     border-color: #9e9e9e;
@@ -6531,6 +6534,55 @@ But not to use a display block directive that might break continuous mode for ot
     gap: 8px;
     align-items: center;
     margin-bottom: 14px;
+}
+.linkerAdminSelectedSpan {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 14px;
+}
+.linkerAdminSpanText {
+    color: #222;
+    font-style: italic;
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+}
+.linkerAdminRefFlow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.linkerAdminRefItem {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    padding: 5px 8px;
+    max-width: 100%;
+}
+.linkerAdminRefItem.disambiguated {
+    border-color: #1e88e5;
+    background: #e3f2fd;
+}
+.linkerAdminRefTag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+}
+.linkerAdminRefItem.disambiguated .linkerAdminRefTag {
+    color: #1565c0;
+}
+.linkerAdminRefValue {
+    color: #222;
+    overflow-wrap: anywhere;
+}
+.linkerAdminRefArrow {
+    color: #1e88e5;
+    font-size: 18px;
+    line-height: 1;
 }
 .linkerAdminInput {
     flex: 1 1 auto;

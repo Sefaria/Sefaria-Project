@@ -1118,6 +1118,9 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
   const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
   const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || srefs?.[0];
   const selectedSpanLang = selectedSpan?.language || selectedSpan?.lang;
+  // The disambiguator resolved this citation to a concrete ref, distinct from the (ambiguous /
+  // non-segment) ref the linker originally caught (which lives on selectedSpan.ref).
+  const disambiguatedRef = selectedSpan?.llm_resolved_ref_non_segment || selectedSpan?.llm_resolved_ref_ambiguous;
   const visibleRerunVersions = selectedSpan?.versionTitle && selectedSpanLang ? [{
     lang: selectedSpanLang,
     versionTitle: selectedSpan.versionTitle,
@@ -1243,6 +1246,26 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
         </button>
         {!selectedSpan?.ref ? <span className="linkerAdminMuted">Click a resolved linker debug citation to select a saved link.</span> : null}
       </div>
+      {selectedSpan?.ref ? (
+        <div className="linkerAdminSelectedSpan">
+          {selectedSpan.text ? <div className="linkerAdminSpanText">&ldquo;{selectedSpan.text}&rdquo;</div> : null}
+          <div className="linkerAdminRefFlow">
+            <div className="linkerAdminRefItem">
+              <span className="linkerAdminRefTag">Linker</span>
+              <span className="linkerAdminRefValue">{selectedSpan.ref}</span>
+            </div>
+            {disambiguatedRef ? (
+              <>
+                <span className="linkerAdminRefArrow">→</span>
+                <div className="linkerAdminRefItem disambiguated">
+                  <span className="linkerAdminRefTag">Disambiguator</span>
+                  <span className="linkerAdminRefValue">{disambiguatedRef}</span>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       {parsed?.input?.parts?.length ? (
         <div className="linkerAdminParts">
           {parsed.input.parts.map((part, i) => <LinkerPartChip key={i} part={part} />)}

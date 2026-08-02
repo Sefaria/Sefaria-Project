@@ -270,13 +270,16 @@ class MUTCSpan(ABC):
         self.failed = raw_span.get('failed', False)
         self.ambiguous = raw_span.get('ambiguous', False)
         self.deleted = raw_span.get('deleted', False)
+        # The LLM disambiguator writes one of these when it resolves an ambiguous or non-segment
+        # citation to a concrete ref. Only citation spans ever carry them, so .get() is None otherwise.
+        self.disambiguated_ref = raw_span.get('llm_resolved_ref_non_segment') or raw_span.get('llm_resolved_ref_ambiguous')
         # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
         self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
-        
+
     @property
     def char_range_str(self) -> str:
         return f"{self.char_range[0]}-{self.char_range[1]}"
-    
+
     def get_debug_css_classes(self) -> str:
         if not self._debug:
             return ""
@@ -284,6 +287,8 @@ class MUTCSpan(ABC):
             return "mutc spanDeleted"
         if self.failed:
             return "mutc spanFailed"
+        if self.disambiguated_ref:
+            return "mutc spanDisambiguated"
         if self.ambiguous:
             return "mutc spanAmbiguous"
         return "mutc spanSucceeded"
@@ -299,13 +304,17 @@ class CitationMUTCSpan(MUTCSpan):
         super().__init__(raw_span)
         tref = raw_span.get('ref')
         self.ref = Ref(tref) if tref else None
-    
+        # When the disambiguator resolved this citation, the link should target the resolved ref
+        # rather than the (ambiguous / non-segment) ref the linker originally caught.
+        self.resolved_ref = Ref(self.disambiguated_ref) if self.disambiguated_ref else None
+
     def wrap_span_in_a_tag(self) -> str:
         href, tref = "", ""
-        if self.ref:
-            href = self.ref.url()
-            tref = self.ref.normal()
-            if not self._debug and self.ref.is_book_level():
+        link_ref = self.resolved_ref or self.ref
+        if link_ref:
+            href = link_ref.url()
+            tref = link_ref.normal()
+            if not self._debug and link_ref.is_book_level():
                 return self.text  # don't link book-level refs in non-debug mode
         return (f'<a class="refLink {self.get_debug_css_classes()}"'
                 f' href="{href}" data-ref="{escape(tref)}"'
