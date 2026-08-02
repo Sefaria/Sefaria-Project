@@ -192,6 +192,7 @@ def _serialize_resolved_ref(resolved_ref) -> dict:
             {
                 "parts": [_serialize_part(part) for part in part_node_match.parts],
                 "node": _serialize_node(part_node_match.node),
+                "ref": part_node_match.ref.normal() if part_node_match.ref else None,
                 "canMatchOutOfOrder": part_node_match.can_match_out_of_order,
             }
             for part_node_match in resolved_ref.ref_part_and_node_matches

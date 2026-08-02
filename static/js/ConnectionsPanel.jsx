@@ -1093,7 +1093,7 @@ const LinkerPairings = ({pairings}) => {
       {open ? pairings.map((pairing, i) => (
         <div className="linkerAdminPairing" key={i}>
           <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} />)}</div>
-          <div className="linkerAdminNode">{pairing.node?.ref || pairing.node?.key || "No node"}</div>
+          <div className="linkerAdminNode">{pairing.ref || pairing.node?.ref || pairing.node?.key || "No node"}</div>
         </div>
       )) : null}
     </div>
