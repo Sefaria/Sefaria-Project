@@ -6648,11 +6648,26 @@ But not to use a display block directive that might break continuous mode for ot
     margin-bottom: 6px;
 }
 .linkerAdminDisclosure {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     border: 0;
     background: transparent;
     padding: 4px 0;
     cursor: pointer;
     color: #333;
+}
+.linkerAdminDisclosureChevron {
+    width: 12px;
+    height: 12px;
+    transform: rotate(-90deg);
+    transition: transform 0.15s ease;
+}
+.interface-hebrew .linkerAdminDisclosureChevron {
+    transform: rotate(90deg);
+}
+.linkerAdminDisclosureChevron.open {
+    transform: rotate(0deg);
 }
 .linkerAdminPairing {
     margin-top: 8px;

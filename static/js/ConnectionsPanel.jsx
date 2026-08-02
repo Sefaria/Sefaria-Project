@@ -1087,8 +1087,14 @@ const LinkerPairings = ({pairings}) => {
   const [open, setOpen] = useState(false);
   return (
     <div className="linkerAdminPairings">
-      <button className="linkerAdminDisclosure" onClick={() => setOpen(!open)}>
-        {open ? "v" : ">"} Ref Part / Node Pairings
+      <button className="linkerAdminDisclosure" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <img
+          src="/static/icons/chevron-down.svg"
+          className={classNames("linkerAdminDisclosureChevron", {open})}
+          alt=""
+          aria-hidden={true}
+        />
+        Ref Part / Node Pairings
       </button>
       {open ? pairings.map((pairing, i) => (
         <div className="linkerAdminPairing" key={i}>
@@ -1286,13 +1292,19 @@ const LinkerAdminBox = ({srefs, connectionData, currVersions, currObjectVersions
       {rerunStatus ? <div className="linkerAdminMessage">{rerunStatus}</div> : null}
       {message ? <div className="linkerAdminMessage">{message}</div> : null}
       <div className="linkerAdminParsingList">
-        {(parsed?.parsings || []).map((parsing, i) => (
-          <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={i}>
-            <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
-            {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
-            <LinkerPairings pairings={parsing.pairings || []} />
-          </div>
-        ))}
+        {(parsed?.parsings || [])
+          .map((parsing, i) => ({parsing, i}))
+          // Sort valid (green) parsings to the top; stable sort preserves original order within each group.
+          .sort((a, b) => (a.parsing.valid === b.parsing.valid) ? 0 : (a.parsing.valid ? -1 : 1))
+          .map(({parsing, i}) => (
+            // Key includes the citation text so switching to a new citation remounts each parsing
+            // (and its LinkerPairings disclosure), resetting it to the collapsed state.
+            <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${parsed?.input?.text || ""}-${i}`}>
+              <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
+              {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
+              <LinkerPairings pairings={parsing.pairings || []} />
+            </div>
+          ))}
       </div>
     </div>
   );
