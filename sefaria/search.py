@@ -585,9 +585,13 @@ def put_topic_mapping(index_name):
             'description_he': {
                 'type': 'text',
             },
-            'numSources': {
-                'type': 'integer',
-            },
+            # No `numSources`. It was indexed only to drive a popularity function_score on
+            # relevance, which was never specced and has been removed; nothing in the entity
+            # search pipeline reads it (no ranking, no filter, and the frontend never
+            # displays it). Re-add it here *and* in make_topic_index_document if a
+            # source-count filter is ever specced — that needs a reindex, not just a query
+            # change. The Mongo `Topic.numSources` field is untouched and still drives topic
+            # pages / the topics TOC / the autocompleter via Topic.should_display().
             'era': {
                 'type': 'keyword',
             },
@@ -1367,7 +1371,6 @@ def make_topic_index_document(topic, authored_titles_map=None):
         'titleVariants': variants,
         'description_en': strip_markdown(description.get('en', '')),
         'description_he': strip_markdown(description.get('he', '')),
-        'numSources': getattr(topic, 'numSources', 0) or 0,
     }
 
     if is_author:

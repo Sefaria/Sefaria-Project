@@ -60,7 +60,6 @@ One document per Topic **in the `library` TopicPool**. Pool membership (curated 
 | `titleVariants` | `text` | `stemmed_english` | Alternate titles — the main recall driver |
 | `description_en` | `text` | `stemmed_english` | Returned for display only; **not searched** |
 | `description_he` | `text` | plain `text` | Returned for display only; **not searched** |
-| `numSources` | `integer` | — | Source count; returned for display and available for filtering. **Not used in ranking** |
 | `era` | `keyword` | — | Author-only: historical period |
 | `birthYear` | `integer` | — | Author-only: for display and filtering |
 | `deathYear` | `integer` | — | Author-only: for display and filtering |
@@ -98,7 +97,7 @@ Two structural choices:
 - **Title and description fields** use a `stemmed_english` analyzer so queries match on stems; Hebrew fields are plain `text`.
 - **Title fields also expose a `keyword` sub-field** for exact-match and sort use cases.
 - **Identifiers and facets are `keyword`**: `slug`, `subtype`, `categories`, `path`, `authors`, `era`, `order`.
-- **Numeric fields** (`numSources`, `birthYear`, `deathYear`, `compDate`) are integers, usable for ranking and range logic.
+- **Numeric fields** (`birthYear`, `deathYear`, `compDate`) are integers, usable for ranking and range logic.
 
 The analyzers (`stemmed_english`, `exact_english`) are the same family already defined for the `text` index.
 
@@ -107,7 +106,7 @@ The analyzers (`stemmed_english`, `exact_english`) are the same family already d
 The pipeline plugs into the existing reindex infrastructure rather than building a parallel one.
 
 **Document builders** are pure functions that turn a model object into an ES document dict:
-- *Topic builder*: reads titles, variants, descriptions, and `numSources`; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
+- *Topic builder*: reads titles, variants, and descriptions; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
 - *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer. The book's `collective_title` — a **string** term key like `"Rashi"` or `"Chafetz Chaim"` (not a dict) — is appended to the variant list so commentaries are findable by their commentator name. *(Regression guard: an interim version treated `collective_title` as a dict (`.get('en')`) and threw on every book that had one — all commentaries, Targums, Rashi, etc. — silently dropping ~83% of Index records from the `book` index. The builder swallows per-doc errors, so this surfaced only as missing search results, not a failed reindex.)*
 
 **Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
@@ -117,7 +116,7 @@ Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_
 
 ### Query path
 
-The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, `numSources`).
+The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, and the author-only year/era fields).
 
 #### Elastic Search Scoring Mechanisms
 
@@ -133,7 +132,9 @@ An entity query is a `bool should` that layers several **match tiers** over Engl
 - **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. "Mos" isn't a token, so `phrase_prefix` treats the last query word as a prefix → "Moses", "Moshe", etc.
 **Relevance is purely textual.** The tiers above are the entire score — no document signal (popularity, page rank, etc.) is layered on top, for any entity type.
 
-> **Removed: the `numSources` popularity boost.** An earlier iteration wrapped topic/author queries in a `function_score` that multiplied the text score by a log-scaled source-count factor (`1 + log10(1 + numSources) * 0.2` — roughly a 1.7× lift at ~7,000 sources), nudging results toward well-sourced entities (Moses 7,074 refs ≫ Mosquitoes 3). It was never a specced requirement, so it was taken out rather than left as an untracked thumb on the scale. `numSources` remains indexed — it is returned for display and is the field the open ["topic results with no sources"](#open-questions) question would filter on — it is simply not scored on. Any future document-signal ranking should come in deliberately, via the structured `signal_boosts` shape sketched under [Product-configurable ranking](#product-configurable-ranking-remoteconfig), not as an implicit default.
+> **Removed: the `numSources` popularity boost — and the field itself.** An earlier iteration wrapped topic/author queries in a `function_score` that multiplied the text score by a log-scaled source-count factor (`1 + log10(1 + numSources) * 0.2` — roughly a 1.7× lift at ~7,000 sources), nudging results toward well-sourced entities (Moses 7,074 refs ≫ Mosquitoes 3). It was never a specced requirement, so it was taken out rather than left as an untracked thumb on the scale. That left `numSources` with no reader anywhere in the pipeline — not ranking, not filtering, and the frontend never displayed it — so it was dropped from the topic mapping and the document builder too, rather than kept as a field nothing consumes.
+>
+> **Consequence:** re-introducing any source-count behavior (see the open ["topic results with no sources"](#open-questions) question) now needs a **reindex**, not just a query change — the data is no longer in the index. The Mongo `Topic.numSources` field is untouched and still drives topic pages, the topics TOC, and the autocompleter via `Topic.should_display()`. Any future document-signal ranking should come in deliberately, via the structured `signal_boosts` shape sketched under [Product-configurable ranking](#product-configurable-ranking-remoteconfig), not as an implicit default.
 
 **Length normalization.** `title_en` keeps BM25 length norms **on**, so a short, focused title outscores a longer title that merely *contains* the query words for the same matched term ("Chafetz Chaim" > "Chafetz Chaim on Sifra"). `titleVariants` keeps norms **off**, so a book with a rich variant list isn't penalized on the variant tiers.
 
@@ -209,7 +210,6 @@ GET /api/entity-search?q=Rambam&type=author
       "title_he": "רמב\"ם",
       "titleVariants": ["Rambam", "Moses Maimonides", "Moses ben Maimon"],
       "description_en": "Rabbi Moshe ben Maimon (1138–1204), prolific halakhic authority and philosopher.",
-      "numSources": 7074,
       "era": "RI",
       "birthYear": 1138,
       "deathYear": 1204
@@ -339,7 +339,7 @@ This resolves the open **"eager vs. lazy entity search"** question (see [Open Qu
 - **Topic descriptions** — how much do we display? (The search side is decided: descriptions are never searched, only displayed.)
 - **Ref queries ("Genesis 1:1")** — it's unclear whether a ref-shaped query should trigger a search or directly load that ref in the reader. Needs a product decision before building: these are fundamentally different UX flows.
 - **Hebrew text analysis** — entity search uses a built-in `stemmed_english` analyzer for English fields and plain `text` for Hebrew. Hebrew morphology is complex (prefixes, root-based stems) and plain tokenization may hurt recall for Hebrew queries. Worth considering a dedicated Hebrew analyzer, though this may be out of scope for the initial MVP.
-- **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). The `numSources` field is already indexed; the question is where to apply the filter — as a hard `must` filter in the query, a minimum `numSources` threshold, or at render time.
+- **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). Note this is now a **larger change than it was**: `numSources` is no longer indexed (see [Elastic Search Scoring Mechanisms](#elastic-search-scoring-mechanisms)), so building this means re-adding the field to the mapping and builder *and* running a reindex, on top of deciding where the filter applies (a hard `must`/`range` filter in the query, a threshold, or at render time — render time being the worst option, since it desynchronizes the `total` the count badges read). Also worth settling: whether the rule is a bare count or the richer `Topic.should_display()` semantics used elsewhere in the codebase, which admits a topic with few sources if it has a description. Partly mitigated already — only the curated ~5.5k `library` TopicPool is indexed, so the worst auto-generated zero-source noise never reaches the index.
 - **When to Call the Entity Search** - either on every search (what was implemented on the POC) or only on tab switch. POC queries all three in parallel so results are ready before the user switches tabs. 
 
 ## Localization (Weblate)

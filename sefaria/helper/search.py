@@ -397,8 +397,8 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     Relevance is *purely textual* — the match tiers above are the whole score. Topic/author
     results were briefly multiplied by a log-scaled `numSources` popularity factor; that was
     never a specced requirement and is removed, so a well-sourced entity no longer outranks a
-    better textual match. `numSources` stays indexed (it is returned for display and is the
-    field a future "hide sourceless topics" filter would use), it is just not scored on.
+    better textual match. `numSources` is no longer indexed at all (see put_topic_mapping) —
+    re-adding any source-count behavior needs a reindex, not just a query change.
 
     A non-relevance `sort` ("alpha" / "year_asc" / "year_desc") keeps the same match set
     but orders it by the sort field instead of score (see _entity_sort_clauses).
@@ -719,8 +719,9 @@ def process_index_title_change_in_search(indx, **kwargs):
 # Entity search (`topic` and `book` indices behind /api/entity-search).
 # One entity = one ES doc with a deterministic id (book: English title, topic: slug),
 # so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
-# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
-# deliberately NOT chased here — the weekly full rebuild reconciles them.
+# doc deletion. Aggregate fields that drift continuously are deliberately NOT chased
+# here — the weekly full rebuild reconciles them. (The one such field these indices
+# carried, numSources, is no longer indexed at all.)
 
 def process_index_title_change_in_book_search(indx, **kwargs):
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:

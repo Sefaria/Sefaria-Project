@@ -162,6 +162,9 @@ class _FakeAuthorTopic:
     slug = "rambam"
     subclass = "author"
     description = {"en": "", "he": ""}
+    # numSources is deliberately still set here even though the builder no longer reads it:
+    # it lets test_make_topic_index_document_omits_num_sources prove the omission is real
+    # rather than an artifact of the fixture not having the attribute.
     numSources = 100
 
     def get_primary_title(self, lang):
@@ -195,6 +198,19 @@ def test_make_topic_index_document_authored_titles_from_map():
     doc = make_topic_index_document(_FakeAuthorTopic(), titles_map)
     assert doc["authored_titles_en"] == ["Mishneh Torah", "Yad HaChazakah"]
     assert doc["authored_titles_he"] == ["משנה תורה"]
+
+
+def test_make_topic_index_document_omits_num_sources():
+    """
+    numSources is no longer indexed. The topic it is built from *does* carry the attribute
+    (see _FakeAuthorTopic), so this asserts a deliberate omission, not a missing input.
+
+    It backed the popularity function_score on relevance, which was never specced and was
+    removed; nothing else in the entity pipeline reads it. Re-adding it means editing both
+    put_topic_mapping and make_topic_index_document, plus a reindex.
+    """
+    doc = make_topic_index_document(_FakeAuthorTopic(), {"rambam": {"en": [], "he": []}})
+    assert "numSources" not in doc
 
 
 @pytest.mark.parametrize("bad_exc", [
