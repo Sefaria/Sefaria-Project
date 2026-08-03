@@ -211,42 +211,35 @@ def test_user():
 
 @pytest.fixture
 def test_user_with_profile(test_user):
-    """User with experiments access and a MongoDB profile."""
-    from reader.models import UserExperimentSettings
+    """User with a MongoDB profile and the Library Assistant switched on."""
+    from sefaria.helper.library_assistant import SETTING_KEY
     from sefaria.system.database import db
-
-    UserExperimentSettings.objects.create(user=test_user, experiments=True)
 
     db.profiles.delete_many({"id": test_user.id})
     db.profiles.insert_one({
         "id": test_user.id,
         "slug": f"test-{test_user.id}",
-        "experiments": True,
+        "settings": {SETTING_KEY: True},
     })
     yield test_user
     db.profiles.delete_many({"id": test_user.id})
 
 
 @pytest.mark.django_db
-class TestExperimentsOptInWebhook:
+class TestExperimentsOptInEndpoint:
+    """
+    The experiments program no longer carries the Library Assistant, so enrolling in it
+    must not report a chatbot opt-in to the CRM.
+    """
 
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_opt_in_fires_webhook(self, mock_dispatch, client, test_user):
+    @mock.patch("sefaria.helper.crm.tasks.dispatch_chatbot_opt_in_webhook")
+    def test_opt_in_does_not_fire_chatbot_webhook(self, mock_dispatch, client, test_user):
         client.login(email=test_user.email, password="testpass123")
 
         response = client.post("/api/profile/experiments/opt-in")
 
         assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(test_user.email, True, "english")
-
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_repeated_opt_in_does_not_refire(self, mock_dispatch, client, test_user):
-        client.login(email=test_user.email, password="testpass123")
-
-        client.post("/api/profile/experiments/opt-in")
-        client.post("/api/profile/experiments/opt-in")
-
-        mock_dispatch.assert_called_once()
+        mock_dispatch.assert_not_called()
 
     def test_get_request_rejected(self, client, test_user):
         client.login(email=test_user.email, password="testpass123")
@@ -258,30 +251,33 @@ class TestExperimentsOptInWebhook:
 
 
 @pytest.mark.django_db
-class TestProfileExperimentsToggleWebhook:
+class TestLibraryAssistantToggleWebhook:
 
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_toggle_off_fires_webhook(self, mock_dispatch, client, test_user_with_profile):
+    @staticmethod
+    def _post(client, enabled):
+        from sefaria.helper.library_assistant import SETTING_KEY
+        return client.post(
+            "/api/profile",
+            {"json": json.dumps({"settings": {SETTING_KEY: enabled}})},
+        )
+
+    @mock.patch("sefaria.helper.library_assistant.notify_crm_of_change")
+    def test_toggle_off_fires_webhook(self, mock_notify, client, test_user_with_profile):
         user = test_user_with_profile
         client.login(email=user.email, password="testpass123")
 
-        response = client.post(
-            "/api/profile",
-            {"json": json.dumps({"experiments": False})},
-        )
+        response = self._post(client, False)
 
         assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(user.email, False, "english")
+        assert mock_notify.call_count == 1
+        assert mock_notify.call_args[0][1] is False
 
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_same_value_does_not_fire_webhook(self, mock_dispatch, client, test_user_with_profile):
+    @mock.patch("sefaria.helper.library_assistant.notify_crm_of_change")
+    def test_same_value_does_not_fire_webhook(self, mock_notify, client, test_user_with_profile):
         user = test_user_with_profile
         client.login(email=user.email, password="testpass123")
 
-        response = client.post(
-            "/api/profile",
-            {"json": json.dumps({"experiments": True})},
-        )
+        response = self._post(client, True)
 
         assert response.status_code == 200
-        mock_dispatch.assert_not_called()
+        mock_notify.assert_not_called()
