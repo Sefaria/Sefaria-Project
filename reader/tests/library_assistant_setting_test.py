@@ -84,13 +84,17 @@ class ProfileApiTest(LibraryAssistantUserTestCase):
         self.assertTrue(library_assistant.is_enabled(UserProfile(id=self.user.id)))
 
     def test_crm_hears_once_per_change(self):
+        # A never-enrolled user is already off, so only a real flip counts.
         with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.post_setting(False)
+            self.post_setting(True)
             self.assertEqual(notify.call_count, 1)
 
             # Re-posting the same value is not a change.
-            self.post_setting(False)
+            self.post_setting(True)
             self.assertEqual(notify.call_count, 1)
+
+            self.post_setting(False)
+            self.assertEqual(notify.call_count, 2)
 
     def test_crm_does_not_hear_when_a_legacy_user_saves_the_value_they_already_had(self):
         self.enroll_in_experiments(True)
@@ -127,8 +131,14 @@ class ProfileSyncApiTest(LibraryAssistantUserTestCase):
 
     def test_crm_hears_about_a_change(self):
         with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.sync_settings({SETTING_KEY: False})
+            self.sync_settings({SETTING_KEY: True})
             self.assertEqual(notify.call_count, 1)
+
+    def test_crm_stays_quiet_when_the_value_does_not_change(self):
+        # The user is already off; syncing "off" is not a change.
+        with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
+            self.sync_settings({SETTING_KEY: False})
+            self.assertEqual(notify.call_count, 0)
 
     def test_crm_stays_quiet_for_unrelated_settings(self):
         with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
