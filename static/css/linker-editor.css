@@ -248,3 +248,137 @@
 }
 .usageNodeTitle { font-weight: 600; min-width: 220px; }
 .usageTemplate { color: #777; flex: 1; }
+
+/* Node properties editor (collapsed by default) */
+.nodePropertiesEditor { margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
+.nodePropertiesToggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #999;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nodePropertiesToggle:hover { color: #555; }
+.nodePropertiesBody { margin-top: 8px; display: flex; flex-direction: column; gap: 12px; }
+.nodePropertyRow {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.nodePropertyLabel { display: flex; align-items: center; gap: 5px; padding-top: 4px; }
+.nodePropertyName { font-family: monospace; font-size: 12px; color: #334; word-break: break-word; }
+.nodePropertyControl { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.nodePropertiesMsg { font-size: 12px; }
+.nodePropertiesMsg.ok { color: #2c6e2c; }
+.nodePropertiesMsg.err { color: #b00; }
+
+/* Help "?" tips */
+.linkerHelpTip { position: relative; display: inline-flex; }
+.linkerHelpTipIcon {
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #bbb;
+  background: #f4f4f4;
+  color: #666;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+.linkerHelpTipIcon:hover { background: #e6ecf9; border-color: #99a; color: #223; }
+.linkerHelpTipPopover {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  z-index: 60;
+  width: 300px;
+  background: #fff;
+  border: 1px solid #cdd3e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #333;
+  text-transform: none;
+  letter-spacing: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.linkerHelpTipExample { color: #555; }
+.linkerHelpTipExample em { color: #888; }
+
+/* Segmented control (referenceable) */
+.segmentedControl { display: inline-flex; border: 1px solid #ccc; border-radius: 5px; overflow: hidden; }
+.segmentedControl .segment {
+  background: #fff;
+  border: none;
+  border-left: 1px solid #ddd;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+}
+.segmentedControl .segment:first-child { border-left: none; }
+.segmentedControl .segment:hover { background: #f4f4f4; }
+.segmentedControl .segment.active { background: #212e50; color: #fff; }
+.segmentedControl .segment:disabled { opacity: 0.5; cursor: default; }
+
+/* On/off toggle */
+.linkerToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  color: #666;
+}
+.linkerToggle .linkerToggleKnob {
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: #ccc;
+  position: relative;
+  transition: background 0.15s;
+  flex: none;
+}
+.linkerToggle .linkerToggleKnob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+.linkerToggle.on .linkerToggleKnob { background: #3a6ea5; }
+.linkerToggle.on .linkerToggleKnob::after { left: 18px; }
+.linkerToggle:disabled { opacity: 0.5; cursor: default; }
+
+/* referenceableSections per-section checkboxes */
+.referenceableSections { display: flex; flex-wrap: wrap; gap: 12px; }
+.referenceableSectionItem { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #444; }
+
+/* List controls (regexes / skipped addresses) */
+.linkerListControl { display: flex; flex-direction: column; gap: 6px; }
+.linkerListRow { display: flex; align-items: center; gap: 6px; }
+.linkerListRow .linkerEditorTermInput { width: 260px; }
+.linkerListActions { display: flex; gap: 8px; align-items: center; }
+.linkerEditorTermInput.numberInput { width: 120px; }

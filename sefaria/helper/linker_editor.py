@@ -173,6 +173,143 @@ def set_address_types(title: str, node_key_path: str, address_types: List[str]) 
 
 
 # ---------------------------------------------------------------------------
+# Node property editing (referenceable, numeric_equivalent, ...)
+# ---------------------------------------------------------------------------
+
+# Linker-relevant node properties the editor exposes. Which ones actually apply to a
+# given node is decided by that node class's `optional_param_keys` (see below).
+EDITABLE_NODE_PROPERTIES = (
+    "referenceable",
+    "numeric_equivalent",
+    "referenceableSections",
+    "isSegmentLevelDiburHamatchil",
+    "diburHamatchilRegexes",
+    "skipped_addresses",
+    "isMapReferenceable",
+)
+
+
+def _node_supports_property(node, prop: str) -> bool:
+    """A property applies to a node iff its class lists it in optional_param_keys."""
+    return prop in set(getattr(type(node), "optional_param_keys", []))
+
+
+def _remove_property(node, prop: str) -> None:
+    if hasattr(node, prop):
+        delattr(node, prop)
+
+
+def _apply_node_property(node, prop: str, value) -> None:
+    """Validate `value` for `prop` and set it on `node` (or remove it to restore the default)."""
+    if prop == "referenceable":
+        if value is None:
+            _remove_property(node, prop)
+        elif value in (True, False, "optional"):
+            node.referenceable = value
+        else:
+            raise InputError("referenceable must be true, false, or 'optional'.")
+
+    elif prop == "numeric_equivalent":
+        if value is None or value == "":
+            _remove_property(node, prop)
+        else:
+            try:
+                node.numeric_equivalent = int(value)
+            except (TypeError, ValueError):
+                raise InputError("numeric_equivalent must be an integer.")
+
+    elif prop == "referenceableSections":
+        if value is None:
+            _remove_property(node, prop)
+        else:
+            if not isinstance(value, list) or not all(isinstance(x, bool) for x in value):
+                raise InputError("referenceableSections must be a list of booleans.")
+            depth = getattr(node, "depth", None)
+            if depth is not None and len(value) != depth:
+                raise InputError("referenceableSections must have length {} (node depth), got {}.".format(depth, len(value)))
+            if all(value):  # all-referenceable is the default; keep the schema clean
+                _remove_property(node, prop)
+            else:
+                node.referenceableSections = list(value)
+
+    elif prop == "isSegmentLevelDiburHamatchil":
+        if value is None or value is False:  # False is the default
+            _remove_property(node, prop)
+        elif value is True:
+            node.isSegmentLevelDiburHamatchil = True
+        else:
+            raise InputError("isSegmentLevelDiburHamatchil must be a boolean.")
+
+    elif prop == "diburHamatchilRegexes":
+        if not value:  # None or []
+            _remove_property(node, prop)
+        else:
+            if not isinstance(value, list) or not all(isinstance(x, str) and x.strip() for x in value):
+                raise InputError("diburHamatchilRegexes must be a list of non-empty strings.")
+            for pattern in value:
+                try:
+                    re.compile(pattern)
+                except re.error as e:
+                    raise InputError("Invalid regex '{}': {}".format(pattern, e))
+            node.diburHamatchilRegexes = list(value)
+
+    elif prop == "skipped_addresses":
+        if not value:  # None or []
+            _remove_property(node, prop)
+        else:
+            if not isinstance(value, list):
+                raise InputError("skipped_addresses must be a list of integers.")
+            try:
+                node.skipped_addresses = [int(x) for x in value]
+            except (TypeError, ValueError):
+                raise InputError("skipped_addresses must be a list of integers.")
+
+    elif prop == "isMapReferenceable":
+        if value is None or value is True:  # True is the default
+            _remove_property(node, prop)
+        elif value is False:
+            node.isMapReferenceable = False
+        else:
+            raise InputError("isMapReferenceable must be a boolean.")
+
+    else:
+        raise InputError("Property '{}' is not editable.".format(prop))
+
+
+def serialize_node_properties(node) -> dict:
+    """Current values of the editable properties that apply to this node (None when unset)."""
+    return {
+        prop: getattr(node, prop, None)
+        for prop in EDITABLE_NODE_PROPERTIES
+        if _node_supports_property(node, prop)
+    }
+
+
+def set_node_properties(title: str, node_key_path: str, properties: dict) -> dict:
+    """
+    Update linker-relevant properties on a schema node. `properties` is a partial map of
+    {property_name: value}; a value of null removes the property (restoring its default).
+    """
+    if not isinstance(properties, dict) or not properties:
+        raise InputError("'properties' must be a non-empty object.")
+
+    index = library.get_index(title)
+    node, _ = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
+    if node is None:
+        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+
+    for prop, value in properties.items():
+        if prop not in EDITABLE_NODE_PROPERTIES:
+            raise InputError("Property '{}' is not editable.".format(prop))
+        if not _node_supports_property(node, prop):
+            raise InputError("Property '{}' does not apply to a {}.".format(prop, type(node).__name__))
+        _apply_node_property(node, prop, value)
+
+    index.save()
+    return serialize_node_properties(node)
+
+
+# ---------------------------------------------------------------------------
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------
 

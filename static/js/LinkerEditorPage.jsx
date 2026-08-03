@@ -110,6 +110,8 @@ const editorApi = {
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'DELETE'),
   setAddressTypes: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/address-type`, {}, payload, 'PUT'),
+  setNodeProperties: (title, path, payload) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/properties`, {}, payload, 'PUT'),
   rebuildLinker: () => Sefaria.apiRequestWithBody('/admin/reset/linker', {}, {}, 'POST'),
 };
 
@@ -312,6 +314,286 @@ const AddressTypeEditor = ({ node, title, keyPath, addressTypeOptions, onChanged
 };
 
 // ---------------------------------------------------------------------------
+// Node properties editor (referenceable, numeric_equivalent, ...)
+// ---------------------------------------------------------------------------
+
+// Order here is the display order. Each property carries a plain-language explanation
+// of what it does and a concrete example of when you'd set it.
+const NODE_PROPERTIES = [
+  {
+    key: 'referenceable',
+    label: 'referenceable',
+    what: "Whether the linker can cite this node directly. On (the default for most nodes): the node is matchable and its children are traversed. Off: the node itself is skipped and only its referenceable descendants are used. Optional: the node is BOTH matchable by name AND transparent, so its children flatten up — a citation can land on the node or descend straight into it.",
+    example: "Mark a Zohar sub-section like “Saba DeMishpatim” as Optional so a bare daf citation (זח\"ב צה.) can resolve into it, while the sub-section is still citable by its own name.",
+  },
+  {
+    key: 'numeric_equivalent',
+    label: 'numeric_equivalent',
+    what: "The integer this named node stands in for, so a numeric citation can match it. Set it on a named (usually alt-structure) node that corresponds to a number.",
+    example: "An alt-struct perek node titled “Chapter 2” gets numeric_equivalent = 2, so both “Chapter 2” and a bare “2” resolve to it.",
+  },
+  {
+    key: 'referenceableSections',
+    label: 'referenceableSections',
+    what: "Per-depth flags marking which section levels of this node can be cited by number. Turn a level off to stop the linker from matching a number at that depth. Defaults to all-on.",
+    example: "On a commentary stored as Daf → Line, turn off the “Line” level so citations resolve to the daf but never to a specific line.",
+  },
+  {
+    key: 'isSegmentLevelDiburHamatchil',
+    label: 'isSegmentLevelDiburHamatchil',
+    what: "When on, the deepest section is matched by its opening words (dibur hamatchil) instead of by a number.",
+    example: "A commentary whose comments are quoted by their opening phrase — “Rashi ד\"ה בראשית” — rather than “Rashi 1:3”.",
+  },
+  {
+    key: 'diburHamatchilRegexes',
+    label: 'diburHamatchilRegexes',
+    what: "Ordered list of regular expressions used to extract the dibur hamatchil (opening phrase) from each segment's text. Used together with isSegmentLevelDiburHamatchil.",
+    example: "^(<b>.*?</b>) to grab the bolded lemma at the start of each comment as its citable opening phrase.",
+  },
+  {
+    key: 'skipped_addresses',
+    label: 'skipped_addresses',
+    what: "Address numbers that don't exist in this map and should be skipped when numbering its entries. Keeps a daf/page map aligned when some pages are missing.",
+    example: "A daf-based map where daf 245 doesn't exist — add 245 so the entries after it map to daf 246 and onward correctly.",
+  },
+  {
+    key: 'isMapReferenceable',
+    label: 'isMapReferenceable',
+    what: "Whether this alt-structure map can be reached by the linker at all (default on). Turn off to keep the mapping for display/navigation while hiding it from citation resolution.",
+    example: "A supplementary cross-reference map you want shown in the sidebar but never matched as a citation target.",
+  },
+];
+
+// Which properties apply to a given (raw) node, mirroring each node class's
+// optional_param_keys on the backend. `nodeType` is absent on plain structural nodes.
+const nodePropertyApplies = (node, key) => {
+  const nodeType = node.nodeType;
+  const isJagged = nodeType === 'JaggedArrayNode';
+  const isMap = nodeType === 'ArrayMapNode';
+  const hasSections = Array.isArray(node.sectionNames) && node.sectionNames.length > 0;
+  switch (key) {
+    case 'referenceable':
+    case 'numeric_equivalent':
+      return true;
+    case 'referenceableSections':
+    case 'isSegmentLevelDiburHamatchil':
+    case 'diburHamatchilRegexes':
+      return (isJagged || isMap) && hasSections;
+    case 'skipped_addresses':
+    case 'isMapReferenceable':
+      return isMap;
+    default:
+      return false;
+  }
+};
+
+const HelpTip = ({ what, example }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="linkerHelpTip">
+      <button
+        type="button"
+        className="linkerHelpTipIcon"
+        aria-label={Sefaria._('What is this?')}
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+      >?</button>
+      {open && (
+        <span className="linkerHelpTipPopover" role="tooltip">
+          <span className="linkerHelpTipWhat">{what}</span>
+          <span className="linkerHelpTipExample"><em>{Sefaria._('Example')}:</em> {example}</span>
+        </span>
+      )}
+    </span>
+  );
+};
+
+const PropertyRow = ({ meta, children }) => (
+  <div className="nodePropertyRow">
+    <div className="nodePropertyLabel">
+      <span className="nodePropertyName">{meta.label}</span>
+      <HelpTip what={meta.what} example={meta.example} />
+    </div>
+    <div className="nodePropertyControl">{children}</div>
+  </div>
+);
+
+// A referenceable value is tri-state (true / false / "optional") plus "unset" (default).
+const ReferenceableControl = ({ value, disabled, onChange }) => {
+  const options = [
+    { v: null, label: Sefaria._('default') },
+    { v: true, label: Sefaria._('on') },
+    { v: false, label: Sefaria._('off') },
+    { v: 'optional', label: Sefaria._('optional') },
+  ];
+  const current = value === undefined ? null : value;
+  return (
+    <div className="segmentedControl">
+      {options.map(opt => (
+        <button
+          key={String(opt.v)}
+          type="button"
+          disabled={disabled}
+          className={'segment' + (current === opt.v ? ' active' : '')}
+          onClick={() => onChange(opt.v)}
+        >{opt.label}</button>
+      ))}
+    </div>
+  );
+};
+
+const ToggleControl = ({ value, defaultValue, disabled, onChange }) => {
+  const on = value === undefined || value === null ? defaultValue : value;
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={'linkerToggle' + (on ? ' on' : '')}
+      aria-pressed={on}
+      onClick={() => onChange(!on)}
+    >
+      <span className="linkerToggleKnob" />
+      <span className="linkerToggleLabel">{on ? Sefaria._('on') : Sefaria._('off')}</span>
+    </button>
+  );
+};
+
+const NumberControl = ({ value, disabled, onSave }) => {
+  const [draft, setDraft] = useState(value ?? '');
+  useEffect(() => { setDraft(value ?? ''); }, [value]);
+  const commit = () => {
+    const trimmed = String(draft).trim();
+    onSave(trimmed === '' ? null : Number(trimmed));
+  };
+  return (
+    <input
+      className="linkerEditorTermInput numberInput"
+      type="number"
+      value={draft}
+      disabled={disabled}
+      placeholder={Sefaria._('unset')}
+      onChange={e => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === 'Enter') { e.target.blur(); } }}
+    />
+  );
+};
+
+// Per-section on/off toggles, one per address depth, labelled by sectionName.
+const ReferenceableSectionsControl = ({ node, value, disabled, onChange }) => {
+  const sectionNames = node.sectionNames || [];
+  const current = sectionNames.map((_, i) => (Array.isArray(value) ? value[i] !== false : true));
+  const setAt = (idx, on) => {
+    const next = current.slice();
+    next[idx] = on;
+    onChange(next);
+  };
+  return (
+    <div className="referenceableSections">
+      {sectionNames.map((name, i) => (
+        <label key={i} className="referenceableSectionItem">
+          <input type="checkbox" disabled={disabled} checked={current[i]} onChange={e => setAt(i, e.target.checked)} />
+          <span>{name}</span>
+        </label>
+      ))}
+    </div>
+  );
+};
+
+// Editable list of free-text rows (used for regexes and, in numeric mode, skipped addresses).
+const ListControl = ({ value, disabled, numeric, placeholder, onSave }) => {
+  const [rows, setRows] = useState(() => (Array.isArray(value) ? value.map(String) : []));
+  useEffect(() => { setRows(Array.isArray(value) ? value.map(String) : []); }, [JSON.stringify(value)]);
+  const dirty = JSON.stringify(rows) !== JSON.stringify((value || []).map(String));
+  const setAt = (i, v) => setRows(rows.map((r, j) => (j === i ? v : r)));
+  const save = () => {
+    const cleaned = rows.map(r => r.trim()).filter(r => r !== '');
+    onSave(cleaned.length ? (numeric ? cleaned.map(Number) : cleaned) : null);
+  };
+  return (
+    <div className="linkerListControl">
+      {rows.map((row, i) => (
+        <div className="linkerListRow" key={i}>
+          <input
+            className="linkerEditorTermInput"
+            type={numeric ? 'number' : 'text'}
+            value={row}
+            disabled={disabled}
+            placeholder={placeholder}
+            onChange={e => setAt(i, e.target.value)}
+          />
+          <button type="button" className="linkerEditorBtn small danger" disabled={disabled} onClick={() => setRows(rows.filter((_, j) => j !== i))}>×</button>
+        </div>
+      ))}
+      <div className="linkerListActions">
+        <button type="button" className="linkerEditorBtn small" disabled={disabled} onClick={() => setRows([...rows, ''])}>+ {Sefaria._('add')}</button>
+        {dirty && <button type="button" className="linkerEditorBtn small" disabled={disabled} onClick={save}>{Sefaria._('Save')}</button>}
+      </div>
+    </div>
+  );
+};
+
+const NodePropertiesEditor = ({ node, title, keyPath, onChanged }) => {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const path = pathString(keyPath);
+  const applicable = NODE_PROPERTIES.filter(meta => nodePropertyApplies(node, meta.key));
+  if (!applicable.length) { return null; }
+
+  const saveProperty = async (key, value) => {
+    setBusy(true); setMsg(null);
+    try {
+      await editorApi.setNodeProperties(title, path, { properties: { [key]: value } });
+      setMsg({ ok: true, text: Sefaria._('Saved') });
+      await onChanged();
+    } catch (e) {
+      setMsg({ ok: false, text: e.message || String(e) });
+    }
+    setBusy(false);
+  };
+
+  const controlFor = (meta) => {
+    const value = node[meta.key];
+    switch (meta.key) {
+      case 'referenceable':
+        return <ReferenceableControl value={value} disabled={busy} onChange={v => saveProperty('referenceable', v)} />;
+      case 'numeric_equivalent':
+        return <NumberControl value={value} disabled={busy} onSave={v => saveProperty('numeric_equivalent', v)} />;
+      case 'referenceableSections':
+        return <ReferenceableSectionsControl node={node} value={value} disabled={busy} onChange={v => saveProperty('referenceableSections', v)} />;
+      case 'isSegmentLevelDiburHamatchil':
+        return <ToggleControl value={value} defaultValue={false} disabled={busy} onChange={v => saveProperty('isSegmentLevelDiburHamatchil', v)} />;
+      case 'diburHamatchilRegexes':
+        return <ListControl value={value} disabled={busy} placeholder={Sefaria._('regex')} onSave={v => saveProperty('diburHamatchilRegexes', v)} />;
+      case 'skipped_addresses':
+        return <ListControl value={value} disabled={busy} numeric={true} placeholder={Sefaria._('address #')} onSave={v => saveProperty('skipped_addresses', v)} />;
+      case 'isMapReferenceable':
+        return <ToggleControl value={value} defaultValue={true} disabled={busy} onChange={v => saveProperty('isMapReferenceable', v)} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="nodePropertiesEditor">
+      <button className="nodePropertiesToggle" onClick={() => setOpen(o => !o)}>
+        <span className="expandToggle">{open ? '▾' : '▸'}</span>
+        {Sefaria._('Properties')}
+      </button>
+      {open && (
+        <div className="nodePropertiesBody">
+          {applicable.map(meta => (
+            <PropertyRow key={meta.key} meta={meta}>{controlFor(meta)}</PropertyRow>
+          ))}
+          {msg && <span className={'nodePropertiesMsg' + (msg.ok ? ' ok' : ' err')}>{msg.text}</span>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Recursive schema node card
 // ---------------------------------------------------------------------------
 
@@ -386,6 +668,13 @@ const SchemaNodeCard = ({
           title={title}
           keyPath={keyPath}
           addressTypeOptions={addressTypeOptions}
+          onChanged={onChanged}
+        />
+
+        <NodePropertiesEditor
+          node={node}
+          title={title}
+          keyPath={keyPath}
           onChanged={onChanged}
         />
       </div>}

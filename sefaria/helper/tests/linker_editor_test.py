@@ -168,6 +168,125 @@ def test_add_non_unique_term_titles_validation(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# Node property editing — pure logic (no index.save())
+# ---------------------------------------------------------------------------
+
+class _FakeNode:
+    """Minimal stand-in for a schema node: class-level optional_param_keys + attrs."""
+    optional_param_keys = []
+
+    def __init__(self, **attrs):
+        for k, v in attrs.items():
+            setattr(self, k, v)
+
+
+class _FakeJaggedArrayNode(_FakeNode):
+    optional_param_keys = ["referenceable", "numeric_equivalent", "referenceableSections",
+                           "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]
+
+
+class _FakeArrayMapNode(_FakeNode):
+    optional_param_keys = _FakeJaggedArrayNode.optional_param_keys + ["skipped_addresses", "isMapReferenceable"]
+
+
+class _FakeAltStructNode(_FakeNode):
+    optional_param_keys = ["referenceable", "numeric_equivalent"]
+
+
+def test_node_supports_property():
+    ja, amap, alt = _FakeJaggedArrayNode(), _FakeArrayMapNode(), _FakeAltStructNode()
+    assert le._node_supports_property(amap, "skipped_addresses")
+    assert le._node_supports_property(amap, "isMapReferenceable")
+    assert not le._node_supports_property(ja, "skipped_addresses")
+    assert not le._node_supports_property(alt, "referenceableSections")
+    for prop in ("referenceable", "numeric_equivalent"):
+        assert le._node_supports_property(alt, prop)
+
+
+def test_apply_referenceable():
+    node = _FakeAltStructNode()
+    le._apply_node_property(node, "referenceable", "optional")
+    assert node.referenceable == "optional"
+    le._apply_node_property(node, "referenceable", False)
+    assert node.referenceable is False
+    le._apply_node_property(node, "referenceable", None)  # None removes -> default
+    assert not hasattr(node, "referenceable")
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "referenceable", "bogus")
+
+
+def test_apply_numeric_equivalent():
+    node = _FakeAltStructNode()
+    le._apply_node_property(node, "numeric_equivalent", "5")  # coerced from string
+    assert node.numeric_equivalent == 5
+    le._apply_node_property(node, "numeric_equivalent", None)
+    assert not hasattr(node, "numeric_equivalent")
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "numeric_equivalent", "abc")
+
+
+def test_apply_referenceable_sections():
+    node = _FakeJaggedArrayNode(depth=2)
+    le._apply_node_property(node, "referenceableSections", [False, True])
+    assert node.referenceableSections == [False, True]
+    # All-true equals the default, so it is removed rather than stored.
+    le._apply_node_property(node, "referenceableSections", [True, True])
+    assert not hasattr(node, "referenceableSections")
+    # Length must match node depth.
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "referenceableSections", [True])
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "referenceableSections", [1, 0])  # not booleans
+
+
+def test_apply_dibur_hamatchil_regexes():
+    node = _FakeArrayMapNode()
+    le._apply_node_property(node, "diburHamatchilRegexes", ["^(<b>.*?</b>)"])
+    assert node.diburHamatchilRegexes == ["^(<b>.*?</b>)"]
+    le._apply_node_property(node, "diburHamatchilRegexes", [])  # empty removes
+    assert not hasattr(node, "diburHamatchilRegexes")
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "diburHamatchilRegexes", ["(unterminated"])  # invalid regex
+
+
+def test_apply_skipped_addresses():
+    node = _FakeArrayMapNode()
+    le._apply_node_property(node, "skipped_addresses", ["245", 246])
+    assert node.skipped_addresses == [245, 246]
+    le._apply_node_property(node, "skipped_addresses", [])
+    assert not hasattr(node, "skipped_addresses")
+    with pytest.raises(InputError):
+        le._apply_node_property(node, "skipped_addresses", ["nope"])
+
+
+def test_apply_boolean_defaults_are_removed():
+    node = _FakeArrayMapNode()
+    # isSegmentLevelDiburHamatchil default is False -> storing False removes it.
+    le._apply_node_property(node, "isSegmentLevelDiburHamatchil", True)
+    assert node.isSegmentLevelDiburHamatchil is True
+    le._apply_node_property(node, "isSegmentLevelDiburHamatchil", False)
+    assert not hasattr(node, "isSegmentLevelDiburHamatchil")
+    # isMapReferenceable default is True -> storing True removes it.
+    le._apply_node_property(node, "isMapReferenceable", False)
+    assert node.isMapReferenceable is False
+    le._apply_node_property(node, "isMapReferenceable", True)
+    assert not hasattr(node, "isMapReferenceable")
+
+
+def test_serialize_node_properties():
+    node = _FakeArrayMapNode(referenceable="optional", skipped_addresses=[3])
+    props = le.serialize_node_properties(node)
+    # Only editable props that apply to an ArrayMapNode appear.
+    assert set(props) == set(le.EDITABLE_NODE_PROPERTIES)
+    assert props["referenceable"] == "optional"
+    assert props["skipped_addresses"] == [3]
+    assert props["isMapReferenceable"] is None  # unset
+
+    alt_props = le.serialize_node_properties(_FakeAltStructNode())
+    assert set(alt_props) == {"referenceable", "numeric_equivalent"}
+
+
+# ---------------------------------------------------------------------------
 # Redis usage index — surgical add/remove (cache only)
 # ---------------------------------------------------------------------------
 

@@ -434,6 +434,23 @@ class LinkerEditorAddressTypeView(StaffRequiredMixin, View):
         return jsonResponse({"status": "ok", "address_types": result})
 
 
+class LinkerEditorNodePropertiesView(StaffRequiredMixin, View):
+    """Update linker-relevant node properties (referenceable, numeric_equivalent, ...) (PUT)."""
+
+    def put(self, request, title, node_key_path):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        properties = body.get("properties")
+        if not isinstance(properties, dict):
+            return jsonResponse({"error": "'properties' must be an object."}, status=400)
+        try:
+            result = linker_editor.set_node_properties(title, node_key_path, properties)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"status": "ok", "properties": result})
+
+
 class LinkerEditorAddressTypesListView(StaffRequiredMixin, View):
     """List all valid addressType names for the editor dropdown (GET)."""
 
