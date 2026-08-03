@@ -188,6 +188,10 @@ def _serialize_resolved_ref(resolved_ref) -> dict:
         "ref": resolved_ref.ref.normal() if resolved_ref.ref else None,
         "valid": not bool(resolved_ref.disqualification_reason),
         "disqualificationReason": resolved_ref.disqualification_reason,
+        # Context parts in the pairings below were injected from this context (a single
+        # CURRENT_BOOK / IBID source per parsing); the frontend labels them accordingly.
+        "contextType": resolved_ref.context_type.name if resolved_ref.context_type else None,
+        "contextRef": resolved_ref.context_ref.normal() if resolved_ref.context_ref else None,
         "pairings": [
             {
                 "parts": [_serialize_part(part) for part in part_node_match.parts],

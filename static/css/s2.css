@@ -6650,6 +6650,11 @@ But not to use a display block directive that might break continuous mode for ot
     color: #222;
     overflow-wrap: anywhere;
 }
+.linkerAdminPartContext {
+    color: #1565c0;
+    font-size: 11px;
+    font-style: italic;
+}
 .linkerAdminParsing {
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 6px;

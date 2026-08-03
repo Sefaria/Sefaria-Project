@@ -1044,15 +1044,29 @@ const LINKER_PART_COLORS = {
   NON_CTS: "#f3f4f6",
 };
 
-const LinkerPartChip = ({part}) => (
-  <span className="linkerAdminPartChip" style={{backgroundColor: LINKER_PART_COLORS[part.type] || "#f3f4f6"}}>
-    <span className="linkerAdminPartText">{part.text}</span>
-    <span className="linkerAdminPartType">{part.type}</span>
-  </span>
-);
+// Parts injected from context (rather than the citation text itself) are these RawRefPart subclasses.
+const CONTEXT_PART_CLASSES = ["ContextPart", "TermContext", "SectionContext"];
+const CONTEXT_TYPE_LABELS = {
+  CURRENT_BOOK: "curr. book",
+  IBID: "ibid",
+};
+
+const LinkerPartChip = ({part, contextType}) => {
+  const contextLabel = contextType && CONTEXT_PART_CLASSES.includes(part.class)
+    ? (CONTEXT_TYPE_LABELS[contextType] || contextType)
+    : null;
+  return (
+    <span className="linkerAdminPartChip" style={{backgroundColor: LINKER_PART_COLORS[part.type] || "#f3f4f6"}}>
+      <span className="linkerAdminPartText">{part.text}</span>
+      <span className="linkerAdminPartType">{part.type}</span>
+      {contextLabel ? <span className="linkerAdminPartContext">from {contextLabel}</span> : null}
+    </span>
+  );
+};
 
 LinkerPartChip.propTypes = {
   part: PropTypes.object.isRequired,
+  contextType: PropTypes.string,
 };
 
 const getSelectedLinkerAdminSpan = (testString) => {
@@ -1105,7 +1119,7 @@ const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).flatMap((text,
   return [{text, type}];
 }).filter(part => part.text && part.type);
 
-const LinkerPairings = ({pairings}) => {
+const LinkerPairings = ({pairings, contextType}) => {
   const [open, setOpen] = useState(false);
   return (
     <div className="linkerAdminPairings">
@@ -1120,7 +1134,7 @@ const LinkerPairings = ({pairings}) => {
       </button>
       {open ? pairings.map((pairing, i) => (
         <div className="linkerAdminPairing" key={i}>
-          <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} />)}</div>
+          <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
           <div className="linkerAdminNode">{pairing.ref || pairing.node?.ref || pairing.node?.key || "No node"}</div>
         </div>
       )) : null}
@@ -1130,6 +1144,7 @@ const LinkerPairings = ({pairings}) => {
 
 LinkerPairings.propTypes = {
   pairings: PropTypes.array.isRequired,
+  contextType: PropTypes.string,
 };
 
 const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersions, currObjectVersions}) => {
@@ -1354,7 +1369,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
                 <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${parsed?.input?.text || ""}-${i}`}>
                   <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
                   {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
-                  <LinkerPairings pairings={parsing.pairings || []} />
+                  <LinkerPairings pairings={parsing.pairings || []} contextType={parsing.contextType} />
                 </div>
               ))}
           </div>
