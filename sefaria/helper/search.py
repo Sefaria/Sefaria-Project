@@ -394,14 +394,14 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
       4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
       5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
 
-    Topic/author results are then multiplied by a gentle log-scaled `numSources`
-    popularity factor (>= 1, so it breaks ties toward well-sourced entities without
-    zeroing or dominating a strong text match). Books carry no `numSources`.
+    Relevance is *purely textual* — the match tiers above are the whole score. Topic/author
+    results were briefly multiplied by a log-scaled `numSources` popularity factor; that was
+    never a specced requirement and is removed, so a well-sourced entity no longer outranks a
+    better textual match. `numSources` stays indexed (it is returned for display and is the
+    field a future "hide sourceless topics" filter would use), it is just not scored on.
 
     A non-relevance `sort` ("alpha" / "year_asc" / "year_desc") keeps the same match set
-    but orders it by the sort field instead of score (see _entity_sort_clauses). The
-    popularity function_score is skipped in that case — score is then only a tie-breaker,
-    and the tier boosts already provide that without the script cost.
+    but orders it by the sort field instead of score (see _entity_sort_clauses).
 
     `category_paths` (books only) restricts hits to books whose `path` sits at or under
     any of the given category paths — the same path-regexp semantics as text search
@@ -419,8 +419,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     sort_clauses = _entity_sort_clauses(type, sort)
     if search_obj is None:
         search_obj = Search()
-    is_book = type == "book"
-    if category_paths and not is_book:
+    if category_paths and type != "book":
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
@@ -459,25 +458,8 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     else:
         base_query = text_query
 
-    if is_book or sort_clauses is not None:
-        search_obj.query = base_query
-    else:
-        # Multiply the text score by a gentle popularity factor: 1 + log10(1 + numSources)*w.
-        # A zero-source entity keeps its text score unchanged (factor 1.0); a heavily-sourced
-        # one is nudged up (~1.7x at ~7000 sources). It breaks ties without dominating and,
-        # unlike field_value_factor(log1p), never zeroes a sourceless-but-relevant match.
-        search_obj.query = {
-            "function_score": {
-                "query": base_query.to_dict(),
-                "script_score": {
-                    "script": {
-                        "source": "1 + Math.log10(1 + (doc['numSources'].size() == 0 ? 0 : doc['numSources'].value)) * params.weight",
-                        "params": {"weight": 0.2},
-                    }
-                },
-                "boost_mode": "multiply",
-            }
-        }
+    # Score is the tiered text match, nothing else — no document-signal (popularity) boost.
+    search_obj.query = base_query
 
     if sort_clauses is not None:
         search_obj = search_obj.sort(*sort_clauses)
