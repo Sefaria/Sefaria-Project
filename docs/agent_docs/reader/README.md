@@ -141,9 +141,7 @@ Many functions handle legacy URL redirects (old sheet URLs, old profile URLs, mo
 
 ### models.py
 
-Contains a single model:
-
-- **`UserExperimentSettings`** -- Vestigial. The experiments program's whitelist, whose only member was ever the Library Assistant; nothing reads it. The table is dropped in the deploy following its removal from the code.
+Empty. It held `UserExperimentSettings`, the experiments program's whitelist, whose only member was ever the Library Assistant; the model and its table are gone (`reader/migrations/0002`), and the rows were archived to CSV first.
 
 ### startup.py
 
