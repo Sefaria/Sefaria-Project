@@ -6545,11 +6545,10 @@ But not to use a display block directive that might break continuous mode for ot
     color: #666;
     margin-bottom: 8px;
 }
-.linkerAdminCitationActions,
-.linkerAdminInputRow {
-    display: flex;
+.linkerAdminCitationActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
-    align-items: center;
     margin-bottom: 14px;
 }
 .linkerAdminSelectedSpan {
@@ -6609,15 +6608,11 @@ But not to use a display block directive that might break continuous mode for ot
     font-size: 18px;
     line-height: 1;
 }
-.linkerAdminInput {
-    flex: 1 1 auto;
-    min-width: 0;
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-.linkerAdminCitationActions .button,
-.linkerAdminInputRow .button {
+.linkerAdminCitationActions .button {
     margin: 0;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
 }
 .button.linkerAdminDanger {
     background-color: #b71c1c;

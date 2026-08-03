@@ -1186,11 +1186,9 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     versionTitle: currVersions?.[lang]?.versionTitle || currObjectVersions?.[lang]?.versionTitle,
   })).filter(version => version.versionTitle);
 
-  const parseCitation = async (value = testString) => {
-    if (!value) { return; }
-    const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
+  const parseSpan = async (span) => {
     if (!span) {
-      setError("No linker debug citation found for this test string. Click a resolved citation in the text (in linker debug mode) to select it.");
+      setError("No linker debug citation found. Click a resolved citation in the text (in linker debug mode) to select it.");
       return;
     }
     setBusy(true);
@@ -1210,6 +1208,16 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     } finally {
       setBusy(false);
     }
+  };
+
+  const parseCitation = (value = testString) => {
+    if (!value) { return; }
+    const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
+    return parseSpan(span);
+  };
+
+  const openLinkerEditor = () => {
+    window.open("/linker-editor", "_blank", "noopener");
   };
 
   useEffect(() => {
@@ -1306,6 +1314,12 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
         <button className={classNames("button", "small", {disabled: !selectedSpan?.ref || busy, linkerAdminDanger: !selectedSpan?.deleted && selectedSpan?.ref && !busy})} disabled={!selectedSpan?.ref || busy} onClick={toggleDeleted}>
           {selectedSpan?.deleted ? "Recreate Link" : "Delete Link"}
         </button>
+        <button className="button small" onClick={openLinkerEditor}>
+          Linker editor
+        </button>
+        <button className={classNames("button", "small", {disabled: busy || !selectedSpan})} disabled={busy || !selectedSpan} onClick={() => parseSpan(selectedSpan)}>
+          Parse
+        </button>
       </div>
       {selectedSpan ? (
         <div className="linkerAdminSelectedSpan">
@@ -1352,17 +1366,6 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           </div>
         </div>
       ) : null}
-      <div className="linkerAdminInputRow">
-        <input
-          className="linkerAdminInput"
-          value={testString}
-          placeholder="Paste linker test string..."
-          onChange={(e) => setTestString(e.target.value)}
-        />
-        <button className={classNames("button", "small", {disabled: busy || !testString})} disabled={busy || !testString} onClick={() => parseCitation()}>
-          Parse
-        </button>
-      </div>
       {error ? <div className="linkerAdminError">{error}</div> : null}
       {rerunStatus ? <div className="linkerAdminMessage">{rerunStatus}</div> : null}
       {message ? <div className="linkerAdminMessage">{message}</div> : null}
