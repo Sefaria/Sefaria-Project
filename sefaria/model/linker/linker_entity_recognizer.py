@@ -169,12 +169,12 @@ class LinkerEntityRecognizer:
     def _get_dh_continuation(ispan: int, ipart: int, named_entities: list[RawNamedEntity], part_span_list: list[NESpan], span: NESpan, part_span: NESpan) -> Optional[NESpan]:
         if ipart == len(part_span_list) - 1:
             curr_doc = span.doc
-            _, span_end = span.range
+            _, part_span_end = part_span.range
             if ispan == len(named_entities) - 1:
-                dh_cont = curr_doc.subspan(slice(span_end, None))
+                dh_cont = curr_doc.subspan(slice(part_span_end, None))
             else:
                 next_span_start, _ = named_entities[ispan + 1].span.range
-                dh_cont = curr_doc.subspan(slice(span_end, next_span_start))
+                dh_cont = curr_doc.subspan(slice(part_span_end, next_span_start))
         else:
             _, part_span_end = part_span.range
             next_part_span_start, _ = part_span_list[ipart + 1].range
