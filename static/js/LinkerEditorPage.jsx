@@ -890,6 +890,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
               className="linkerEditorTermInput"
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !savingTitles && newTitle.trim()) { addTitles(); } }}
               placeholder={Sefaria._('Alternate title')}
             />
             <button
