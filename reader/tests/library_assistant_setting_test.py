@@ -1,11 +1,10 @@
 import json
 import re
-import uuid
 from unittest import mock
 
-from django.contrib.auth.models import User
 from django.test import TestCase
 
+from reader.conftest import create_test_user, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
@@ -17,16 +16,11 @@ class LibraryAssistantUserTestCase(TestCase):
     databases = "__all__"
 
     def setUp(self):
-        token = uuid.uuid4().hex
-        self.user = User.objects.create_user(
-            username=f"la-{token}",
-            email=f"la-{token}@example.com",
-            password="password",
-        )
-        db.profiles.delete_many({"id": self.user.id})
+        self.user = create_test_user("la")
+        purge_test_profiles(self.user)
 
     def tearDown(self):
-        db.profiles.delete_many({"id": self.user.id})
+        purge_test_profiles(self.user)
         UserExperimentSettings.objects.filter(user=self.user).delete()
 
     def stored_setting(self):

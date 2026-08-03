@@ -1,9 +1,8 @@
-import uuid
 from unittest import mock
 
-from django.contrib.auth.models import User
 from django.test import TestCase
 
+from reader.conftest import create_test_user, purge_test_profiles
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
@@ -21,16 +20,11 @@ class EnableLibraryAssistantViewTest(TestCase):
     url = "/enable-library-assistant"
 
     def setUp(self):
-        token = uuid.uuid4().hex
-        self.user = User.objects.create_user(
-            username=f"la-optin-{token}",
-            email=f"la-optin-{token}@example.com",
-            password="password",
-        )
-        db.profiles.delete_many({"id": self.user.id})
+        self.user = create_test_user("la-optin")
+        purge_test_profiles(self.user)
 
     def tearDown(self):
-        db.profiles.delete_many({"id": self.user.id})
+        purge_test_profiles(self.user)
 
     def assertAssistantOn(self):
         self.assertTrue(library_assistant.is_enabled(UserProfile(id=self.user.id)))
