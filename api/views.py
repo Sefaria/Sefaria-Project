@@ -573,6 +573,17 @@ class LinkerEditorAddressTypesListView(StaffRequiredMixin, View):
         return jsonResponse({"address_types": linker_editor.all_address_type_names()})
 
 
+class LinkerEditorRebuildDiburHamatchilView(StaffRequiredMixin, View):
+    """Enqueue an async rebuild of one index's dibur_hamatchils (POST). Poll via /api/async/<task_id>."""
+
+    def post(self, request, title):
+        try:
+            task_id = linker_editor.enqueue_rebuild_dibur_hamatchils(title)
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"task_id": task_id}, status=202)
+
+
 class LinkerEditorNonUniqueTermView(StaffRequiredMixin, View):
     """Term titles + cross-usages for a single NonUniqueTerm (GET); add alternate titles (POST)."""
 

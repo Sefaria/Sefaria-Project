@@ -932,6 +932,23 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
     return sig.apply_async()
 
 
+@app.task(name="linker.rebuild_dibur_hamatchils", bind=True)
+def rebuild_dibur_hamatchils_task(self, title: str) -> dict:
+    """
+    Recompute the dibur_hamatchils for a single index after linker-editor edits.
+    Runs on a worker (its own process/library cache), so reload the index fresh from
+    the DB and refresh it in the cache before extracting, to pick up just-saved
+    diburHamatchilRegexes / isSegmentLevelDiburHamatchil changes.
+    """
+    from sefaria.helper.linker_index_converter import DiburHamatchilAdder
+    logger.info("rebuild_dibur_hamatchils:start", title=title, task_id=self.request.id)
+    index = library.get_index(title)
+    library.refresh_index_record_in_cache(index)
+    count = DiburHamatchilAdder().rebuild_index_dibur_hamatchils(index)
+    logger.info("rebuild_dibur_hamatchils:complete", title=title, count=count, task_id=self.request.id)
+    return {"title": title, "count": count}
+
+
 @app.task(name="linker.process_ambiguous_resolution")
 def process_ambiguous_resolution(resolution_data: dict) -> None:
     """

@@ -114,7 +114,28 @@ const editorApi = {
   setNodeProperties: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/properties`, {}, payload, 'PUT'),
   rebuildLinker: () => Sefaria.apiRequestWithBody('/admin/reset/linker', {}, {}, 'POST'),
+  rebuildDiburHamatchils: (title) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/rebuild-dibur-hamatchils`, {}, {}, 'POST'),
 };
+
+// True if any node in the raw index (default or alt structure) is a segment-level
+// dibur-hamatchil node — i.e. the index has dibur hamatchils worth (re)building.
+const indexHasDiburHamatchil = (rawIndex) => {
+  if (!rawIndex) { return false; }
+  let found = false;
+  const walk = (node) => {
+    if (!node || found) { return; }
+    if (node.isSegmentLevelDiburHamatchil) { found = true; return; }
+    (node.nodes || []).forEach(walk);
+  };
+  walk(rawIndex.schema);
+  altStructRoots(rawIndex).forEach(({ nodes }) => nodes.forEach(walk));
+  return found;
+};
+
+// Editing either of these on any node changes what the dibur-hamatchil extraction
+// produces, so the stored dibur_hamatchils go stale until a rebuild is run.
+const DIBUR_HAMATCHIL_PROPS = new Set(['isSegmentLevelDiburHamatchil', 'diburHamatchilRegexes']);
 
 // ---------------------------------------------------------------------------
 // NonUniqueTerm autocomplete (used by the MatchTemplate editor)
@@ -365,6 +386,16 @@ const NODE_PROPERTIES = [
   },
 ];
 
+// Common diburHamatchilRegexes, offered as one-click presets. These mirror
+// delimiter_to_regex() in scripts/linker_books/bulk_commentary.py — the saved
+// value must match those strings exactly, so mind the string escaping here
+// (doubled backslashes so the stored regex is `^(.+?)[\-–]` / `^(.*?)\.`).
+const DH_REGEX_PRESETS = [
+  { label: 'Bold',   regex: '^<b>(.+?)</b>' },
+  { label: 'Dash',   regex: '^(.+?)[\\-–]' },
+  { label: 'Period', regex: '^(.*?)\\.' },
+];
+
 // Which properties apply to a given (raw) node, mirroring each node class's
 // optional_param_keys on the backend. `nodeType` is absent on plain structural nodes.
 const nodePropertyApplies = (node, key) => {
@@ -502,17 +533,36 @@ const ReferenceableSectionsControl = ({ node, value, disabled, onChange }) => {
 };
 
 // Editable list of free-text rows (used for regexes and, in numeric mode, skipped addresses).
-const ListControl = ({ value, disabled, numeric, placeholder, onSave }) => {
+const ListControl = ({ value, disabled, numeric, placeholder, presets, onSave }) => {
   const [rows, setRows] = useState(() => (Array.isArray(value) ? value.map(String) : []));
   useEffect(() => { setRows(Array.isArray(value) ? value.map(String) : []); }, [JSON.stringify(value)]);
   const dirty = JSON.stringify(rows) !== JSON.stringify((value || []).map(String));
   const setAt = (i, v) => setRows(rows.map((r, j) => (j === i ? v : r)));
+  const addPreset = (regex) => { if (!rows.includes(regex)) setRows([...rows, regex]); };
   const save = () => {
     const cleaned = rows.map(r => r.trim()).filter(r => r !== '');
     onSave(cleaned.length ? (numeric ? cleaned.map(Number) : cleaned) : null);
   };
   return (
     <div className="linkerListControl">
+      {presets && presets.length > 0 && (
+        <div className="linkerListPresets">
+          <span className="linkerListPresetsLabel">{Sefaria._('Presets')}:</span>
+          {presets.map(p => {
+            const added = rows.includes(p.regex);
+            return (
+              <button
+                type="button"
+                key={p.label}
+                className="linkerEditorBtn small preset"
+                disabled={disabled || added}
+                title={p.regex}
+                onClick={() => addPreset(p.regex)}
+              >{added ? '✓ ' : '+ '}{Sefaria._(p.label)}</button>
+            );
+          })}
+        </div>
+      )}
       {rows.map((row, i) => (
         <div className="linkerListRow" key={i}>
           <input
@@ -534,7 +584,7 @@ const ListControl = ({ value, disabled, numeric, placeholder, onSave }) => {
   );
 };
 
-const NodePropertiesEditor = ({ node, title, keyPath, onChanged }) => {
+const NodePropertiesEditor = ({ node, title, keyPath, onChanged, onDhChanged }) => {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -547,6 +597,7 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged }) => {
     try {
       await editorApi.setNodeProperties(title, path, { properties: { [key]: value } });
       setMsg({ ok: true, text: Sefaria._('Saved') });
+      if (DIBUR_HAMATCHIL_PROPS.has(key) && onDhChanged) { onDhChanged(); }
       await onChanged();
     } catch (e) {
       setMsg({ ok: false, text: e.message || String(e) });
@@ -566,7 +617,7 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged }) => {
       case 'isSegmentLevelDiburHamatchil':
         return <ToggleControl value={value} defaultValue={false} disabled={busy} onChange={v => saveProperty('isSegmentLevelDiburHamatchil', v)} />;
       case 'diburHamatchilRegexes':
-        return <ListControl value={value} disabled={busy} placeholder={Sefaria._('regex')} onSave={v => saveProperty('diburHamatchilRegexes', v)} />;
+        return <ListControl value={value} disabled={busy} presets={DH_REGEX_PRESETS} placeholder={Sefaria._('regex')} onSave={v => saveProperty('diburHamatchilRegexes', v)} />;
       case 'skipped_addresses':
         return <ListControl value={value} disabled={busy} numeric={true} placeholder={Sefaria._('address #')} onSave={v => saveProperty('skipped_addresses', v)} />;
       case 'isMapReferenceable':
@@ -610,6 +661,7 @@ const SchemaNodeCard = ({
   termTitles,
   onTermClick,
   onChanged,
+  onDhChanged,
   altStructRootEntries=[],
   collapseBranchBodyWhenCollapsed=false,
   ancestorCrumbs=[],
@@ -683,6 +735,7 @@ const SchemaNodeCard = ({
           title={title}
           keyPath={keyPath}
           onChanged={onChanged}
+          onDhChanged={onDhChanged}
         />
       </div>}
 
@@ -702,6 +755,7 @@ const SchemaNodeCard = ({
               termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
+              onDhChanged={onDhChanged}
               collapseBranchBodyWhenCollapsed={collapseBranchBodyWhenCollapsed}
               ancestorCrumbs={childAncestorCrumbs}
               jumpToPath={jumpToPath}
@@ -725,6 +779,7 @@ const SchemaNodeCard = ({
               termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
+              onDhChanged={onDhChanged}
               jumpToPath={jumpToPath}
             />
           ))}
@@ -734,7 +789,7 @@ const SchemaNodeCard = ({
   );
 };
 
-const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onChanged, jumpToPath }) => {
+const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onChanged, onDhChanged, jumpToPath }) => {
   const path = pathString(['__alt__', structName]);
   const expanded = expandedPaths.has(path);
 
@@ -762,6 +817,7 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
               termTitles={termTitles}
               onTermClick={onTermClick}
               onChanged={onChanged}
+              onDhChanged={onDhChanged}
               collapseBranchBodyWhenCollapsed={true}
               ancestorCrumbs={[
                 { label: structName, path },
@@ -991,6 +1047,13 @@ const LinkerEditorPage = () => {
   const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
   const [rebuilding, setRebuilding] = useState(false);
+  // Dibur-hamatchil rebuild state: dirty = a DH-relevant edit was made since the last
+  // rebuild, so the stored dibur_hamatchils are stale until "Rebuild Dibur Hamatchils".
+  const [dhDirty, setDhDirty] = useState(false);
+  const [dhRebuilding, setDhRebuilding] = useState(false);
+  const [dhMsg, setDhMsg] = useState(null);
+
+  const markDhDirty = useCallback(() => { setDhDirty(true); setDhMsg(null); }, []);
 
   const openTerm = useCallback((slug) => { setAddingTerm(false); setTermSlug(slug); }, []);
   const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); }, []);
@@ -1007,6 +1070,7 @@ const LinkerEditorPage = () => {
 
   const loadIndex = useCallback((indexTitle) => {
     setLoading(true); setError(null); setRawIndex(null); setTitle(indexTitle);
+    setDhDirty(false); setDhMsg(null);
     editorApi.loadRawIndex(indexTitle)
       .then(d => {
         if (d.error) { setError(d.error); }
@@ -1072,8 +1136,45 @@ const LinkerEditorPage = () => {
     setRebuilding(false);
   };
 
+  const rebuildDiburHamatchils = async () => {
+    if (!title) { return; }
+    setDhRebuilding(true); setDhMsg(null);
+    try {
+      const { task_id } = await editorApi.rebuildDiburHamatchils(title);
+      const result = await Sefaria.pollTask(task_id, { interval: 2000 });
+      const count = result && typeof result.count === 'number' ? result.count : null;
+      setDhDirty(false);
+      setDhMsg({ ok: true, text: Sefaria._('Dibur hamatchils rebuilt') + (count === null ? '' : ` (${count})`) });
+    } catch (e) {
+      setDhMsg({ ok: false, text: e.message || String(e) });
+    }
+    setDhRebuilding(false);
+  };
+
+  // Confirm before leaving an index (new search) with unbuilt DH changes. Returns
+  // true if it's safe to proceed.
+  const confirmLeaveIfDhDirty = () => {
+    if (!dhDirty) { return true; }
+    return confirm(Sefaria._('You changed Dibur Hamatchil settings for this index but haven’t rebuilt them yet. Leave without rebuilding?'));
+  };
+
+  const leaveIndex = () => {
+    if (!confirmLeaveIfDhDirty()) { return; }
+    setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
+  };
+
+  // Warn on tab close / navigation away while DH changes are unbuilt (browser shows
+  // its own generic prompt; the text can't be customized).
+  useEffect(() => {
+    if (!dhDirty) { return undefined; }
+    const handler = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dhDirty]);
+
   const schema = rawIndex && rawIndex.schema;
   const altStructRootEntries = rawIndex ? altStructRoots(rawIndex) : [];
+  const showDhRebuild = indexHasDiburHamatchil(rawIndex) || dhDirty;
 
   return (
     <div className="readerNavMenu linkerEditorNavMenu sans-serif">
@@ -1082,7 +1183,7 @@ const LinkerEditorPage = () => {
           <div className="linkerEditorTopBar">
             <h1><InterfaceText>Linker Editor</InterfaceText></h1>
             <div className="linkerEditorTopActions">
-              {title && <button className="linkerEditorBtn" onClick={() => { setTitle(null); setRawIndex(null); }}>{Sefaria._('New search')}</button>}
+              {title && <button className="linkerEditorBtn" onClick={leaveIndex}>{Sefaria._('New search')}</button>}
               <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
               <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
                 {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
@@ -1094,7 +1195,25 @@ const LinkerEditorPage = () => {
 
           {title && (
             <div className="linkerEditorTreeWrap">
-              <h2 className="linkerEditorIndexTitle">{title}</h2>
+              <div className="linkerEditorIndexTitleRow">
+                <h2 className="linkerEditorIndexTitle">{title}</h2>
+                {showDhRebuild && (
+                  <span className="linkerDhRebuildControl">
+                    <button
+                      className={'linkerEditorBtn small' + (dhDirty ? ' dhDirty' : '')}
+                      disabled={dhRebuilding}
+                      onClick={rebuildDiburHamatchils}
+                    >
+                      {dhRebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild Dibur Hamatchils')}
+                    </button>
+                    <HelpTip
+                      what={Sefaria._('Re-extracts each segment’s dibur hamatchil (opening phrase) from its text using this index’s diburHamatchilRegexes, and replaces the stored dibur hamatchils the linker matches against. Run this after changing isSegmentLevelDiburHamatchil or diburHamatchilRegexes on any node, otherwise the linker keeps matching the old phrases. Runs in the background.')}
+                      example={Sefaria._('You add a Bold regex to a Rashi commentary so comments are cited by their bolded lemma — rebuild to (re)generate those dibur hamatchils.')}
+                    />
+                  </span>
+                )}
+                {dhMsg && <span className={'linkerDhMsg' + (dhMsg.ok ? ' ok' : ' err')}>{dhMsg.text}</span>}
+              </div>
               {loading && <LoadingMessage />}
               {error && <div className="linkerEditorError">{error}</div>}
               {schema && (
@@ -1110,6 +1229,7 @@ const LinkerEditorPage = () => {
                   termTitles={termTitles}
                   onTermClick={openTerm}
                   onChanged={reload}
+                  onDhChanged={markDhDirty}
                   altStructRootEntries={altStructRootEntries}
                   collapseBranchBodyWhenCollapsed={true}
                   jumpToPath={jumpToPath}

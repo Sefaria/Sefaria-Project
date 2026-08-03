@@ -310,6 +310,27 @@ def set_node_properties(title: str, node_key_path: str, properties: dict) -> dic
 
 
 # ---------------------------------------------------------------------------
+# Dibur Hamatchil rebuild
+# ---------------------------------------------------------------------------
+
+def enqueue_rebuild_dibur_hamatchils(title: str) -> str:
+    """
+    Enqueue a Celery task to recompute the dibur_hamatchils for one index (after
+    diburHamatchilRegexes / isSegmentLevelDiburHamatchil edits). Validates the title
+    up front so a bad title fails fast with an InputError instead of inside the worker.
+    Returns the async task id; poll it via /api/async/<task_id>.
+    """
+    index = library.get_index(title)  # raises BookNameError (an InputError) if unknown
+    from sefaria.helper.linker.tasks import rebuild_dibur_hamatchils_task
+    from sefaria.celery_setup.config import CeleryQueue
+    async_result = rebuild_dibur_hamatchils_task.apply_async(
+        args=(index.title,),
+        queue=CeleryQueue.TASKS.value,
+    )
+    return async_result.id
+
+
+# ---------------------------------------------------------------------------
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------
 

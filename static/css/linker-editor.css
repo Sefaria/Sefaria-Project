@@ -74,7 +74,17 @@
 .linkerEditorSuggestion .termTitles { font-size: 12px; color: #777; }
 
 /* Tree */
-.linkerEditorIndexTitle { font-size: 20px; margin: 0 0 16px; }
+.linkerEditorIndexTitleRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; }
+.linkerEditorIndexTitle { font-size: 20px; line-height: 1.2; margin: 0; }
+/* Button + help icon travel together, centered to each other; the group's baseline
+   aligns to the book title's text baseline. */
+.linkerDhRebuildControl { display: inline-flex; align-items: center; gap: 6px; }
+/* DH rebuild button turns red once a dibur-hamatchil setting changes and needs rebuilding. */
+.linkerEditorBtn.dhDirty { background: #b00; color: #fff; border-color: #b00; }
+.linkerEditorBtn.dhDirty:hover { background: #900; }
+.linkerDhMsg { font-size: 13px; }
+.linkerDhMsg.ok { color: #297a29; }
+.linkerDhMsg.err { color: #b00; }
 .linkerEditorError,
 .termDetailError { color: #b00; padding: 8px 0; }
 
@@ -381,4 +391,6 @@
 .linkerListRow { display: flex; align-items: center; gap: 6px; }
 .linkerListRow .linkerEditorTermInput { width: 260px; }
 .linkerListActions { display: flex; gap: 8px; align-items: center; }
+.linkerListPresets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.linkerListPresetsLabel { font-size: 12px; color: #666; }
 .linkerEditorTermInput.numberInput { width: 120px; }

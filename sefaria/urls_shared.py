@@ -112,6 +112,7 @@ shared_patterns = [
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/match-templates', api_views.LinkerEditorMatchTemplateView.as_view()),
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/address-type', api_views.LinkerEditorAddressTypeView.as_view()),
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/properties', api_views.LinkerEditorNodePropertiesView.as_view()),
+    path('_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils', api_views.LinkerEditorRebuildDiburHamatchilView.as_view()),
     path('_api/linker-admin/citation/delete', api_views.LinkerAdminDeleteCitationView.as_view()),
     path('_api/linker-admin/citation/recreate', api_views.LinkerAdminRecreateCitationView.as_view()),
     path('_api/linker-admin/citation/parse', api_views.LinkerAdminParseCitationView.as_view()),
