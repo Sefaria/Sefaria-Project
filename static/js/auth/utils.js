@@ -47,6 +47,16 @@ export function isAuthPath(pathname) {
   return /^\/(login|register)\/?$/.test(pathname);
 }
 
+// ReaderApp's initial showAuth/authPath: window.location on the client, initialPath
+// (Django's request.get_full_path()) during Node SSR, where window doesn't exist.
+export function resolveInitialAuthState(initialPath, authResetUid) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : initialPath.split('?')[0];
+  return {
+    showAuth: isAuthPath(pathname.replace(/\/$/, '')) || !!authResetUid,
+    authPath: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : initialPath,
+  };
+}
+
 // Interprets a path (pathname + optional search) into which AuthPage flow it represents.
 export function pathToFlow(path) {
   if (/^\/password\/reset\/confirm\//.test(path)) return 'reset';

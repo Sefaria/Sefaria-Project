@@ -42,7 +42,7 @@ import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
-import { isAuthPath, withNext } from './auth/utils.js';
+import { isAuthPath, withNext, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
 
 class ReaderApp extends Component {
@@ -113,6 +113,7 @@ class ReaderApp extends Component {
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
     const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
+    const { showAuth, authPath } = resolveInitialAuthState(props.initialPath, props.authResetUid);
 
     this.state = {
       panels: panels,
@@ -127,8 +128,8 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
-      showAuth: (typeof window !== 'undefined' && isAuthPath(window.location.pathname.replace(/\/$/, ''))) || !!props.authResetUid,
-      authPath: typeof window !== 'undefined' ? (window.location.pathname + window.location.search) : props.initialPath,
+      showAuth,
+      authPath,
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
       authSource: null,

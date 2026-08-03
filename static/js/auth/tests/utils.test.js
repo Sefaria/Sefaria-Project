@@ -2,7 +2,7 @@
 import {
   safeNext, pathToFlow, flowToPath, withNext, nextFromPath,
   checkPasswordsMatch, requiredFieldValidate, onBlurValidate, onChangeClear,
-  pickFirstError, authError, postJson, postForm,
+  pickFirstError, authError, postJson, postForm, resolveInitialAuthState,
 } from '../utils.js';
 
 describe('safeNext', () => {
@@ -42,6 +42,35 @@ describe('pathToFlow', () => {
   it('defaults to login for everything else, including /login itself', () => {
     expect(pathToFlow('/login')).toBe('login');
     expect(pathToFlow('/texts/Genesis')).toBe('login');
+  });
+});
+
+describe('resolveInitialAuthState', () => {
+  const realWindow = global.window;
+  afterEach(() => {
+    global.window = realWindow;
+    window.history.pushState({}, '', '/');
+  });
+
+  it('reads window.location on the client', () => {
+    window.history.pushState({}, '', '/register?next=%2Fsheets%2F1');
+    expect(resolveInitialAuthState('/texts/Genesis')).toEqual({
+      showAuth: true,
+      authPath: '/register?next=%2Fsheets%2F1',
+    });
+  });
+
+  it('falls back to initialPath during SSR, where window does not exist', () => {
+    delete global.window;
+    expect(resolveInitialAuthState('/register?next=%2Fsheets%2F1')).toEqual({
+      showAuth: true,
+      authPath: '/register?next=%2Fsheets%2F1',
+    });
+    expect(resolveInitialAuthState('/texts/Genesis')).toEqual({
+      showAuth: false,
+      authPath: '/texts/Genesis',
+    });
+    expect(resolveInitialAuthState('/password/reset/confirm/abc/tok/', 'abc').showAuth).toBe(true);
   });
 });
 
