@@ -17,6 +17,7 @@ const SCOPES = ['combined', 'alone', 'any'];
 // ---------------------------------------------------------------------------
 
 const nodePrimaryTitle = (node) => {
+  if (node.default) { return '<Default Node>'; }
   const titles = node.titles || [];
   const primaryEn = titles.find(t => t.lang === 'en' && t.primary);
   if (primaryEn) { return primaryEn.text; }
