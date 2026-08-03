@@ -620,6 +620,10 @@ const SchemaNodeCard = ({
   const hasChildren = children.length > 0;
   const expanded = forceExpanded || expandedPaths.has(path);
   const matchTemplates = node.match_templates || [];
+  // A default node is reached by falling through from its parent, never matched by
+  // name, so its own MatchTemplates are never consulted by the linker. Don't offer to
+  // add them; still show any existing (legacy) ones so they can be deleted.
+  const isDefault = !!node.default;
   const childKeyPath = (child, index) => keyPath[0] === '__alt__' ? [...keyPath, String(index)] : [...keyPath, child.key];
   const childAncestorCrumbs = [...ancestorCrumbs, { label: nodePrimaryTitle(node), path }];
   const showBody = forceExpanded || expanded || !hasChildren || !collapseBranchBodyWhenCollapsed;
@@ -647,22 +651,24 @@ const SchemaNodeCard = ({
       </div>
 
       {showBody && <div className="schemaNodeBody">
-        <div className="matchTemplatesSection">
-          <span className="cardLabel">{Sefaria._('MatchTemplates')}</span>
-          {matchTemplates.length === 0 && <span className="emptyNote">{Sefaria._('none')}</span>}
-          {matchTemplates.map((mt, i) => (
-            <MatchTemplateRow
-              key={i}
-              template={{ term_slugs: mt.term_slugs || [], scope: mt.scope || 'combined' }}
-              title={title}
-              keyPath={keyPath}
-              termTitles={termTitles}
-              onTermClick={onTermClick}
-              onChanged={onChanged}
-            />
-          ))}
-          <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} />
-        </div>
+        {(!isDefault || matchTemplates.length > 0) && (
+          <div className="matchTemplatesSection">
+            <span className="cardLabel">{Sefaria._('MatchTemplates')}</span>
+            {matchTemplates.length === 0 && <span className="emptyNote">{Sefaria._('none')}</span>}
+            {matchTemplates.map((mt, i) => (
+              <MatchTemplateRow
+                key={i}
+                template={{ term_slugs: mt.term_slugs || [], scope: mt.scope || 'combined' }}
+                title={title}
+                keyPath={keyPath}
+                termTitles={termTitles}
+                onTermClick={onTermClick}
+                onChanged={onChanged}
+              />
+            ))}
+            {!isDefault && <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} />}
+          </div>
+        )}
 
         <AddressTypeEditor
           node={node}
