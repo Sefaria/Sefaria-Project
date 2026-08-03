@@ -42,6 +42,7 @@ from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
@@ -173,6 +174,9 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
+            # New accounts get the Library Assistant, written explicitly so they never
+            # depend on the pre-migration fallback or on the backfill having run.
+            p.settings[library_assistant.SETTING_KEY] = True
 
 
             # auto-add profile pic from gravatar if exists
