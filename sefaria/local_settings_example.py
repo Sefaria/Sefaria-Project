@@ -48,7 +48,8 @@ DATABASES = {
 
 
 ################ User-defined Settings ###########################################################################
-#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error',
+#                          'django_recaptcha.recaptcha_test_key_error']
 
 DOMAIN_MODULES = {
     "en": {

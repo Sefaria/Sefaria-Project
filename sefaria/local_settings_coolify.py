@@ -1,6 +1,7 @@
 import os
 
-SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error',
+                          'django_recaptcha.recaptcha_test_key_error']
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://*.sefaria.org']
 
