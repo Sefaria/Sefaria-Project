@@ -1119,6 +1119,10 @@ const linkerPartsFromSpan = (span) => (span?.inputRefParts || []).flatMap((text,
   return [{text, type}];
 }).filter(part => part.text && part.type);
 
+// Total number of ref parts matched across a parsing's Ref Part / Node Pairings — used to rank
+// the "Options considered" list (a resolution that consumed more parts is a stronger match).
+const matchedPartCount = (parsing) => (parsing.pairings || []).reduce((n, pairing) => n + (pairing.parts?.length || 0), 0);
+
 const LinkerPairings = ({pairings, contextType}) => {
   const [open, setOpen] = useState(false);
   return (
@@ -1132,12 +1136,19 @@ const LinkerPairings = ({pairings, contextType}) => {
         />
         Ref Part / Node Pairings
       </button>
-      {open ? pairings.map((pairing, i) => (
-        <div className="linkerAdminPairing" key={i}>
-          <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
-          <div className="linkerAdminNode">{pairing.ref || pairing.node?.ref || pairing.node?.key || "No node"}</div>
-        </div>
-      )) : null}
+      {open ? pairings.map((pairing, i) => {
+        const pairingRef = pairing.ref || pairing.node?.ref;
+        return (
+          <div className="linkerAdminPairing" key={i}>
+            <div>{pairing.parts.map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
+            <div className="linkerAdminNode">
+              {pairingRef
+                ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(pairingRef)}`} target="_blank">{pairingRef}</a>
+                : (pairing.node?.key || "No node")}
+            </div>
+          </div>
+        );
+      }) : null}
     </div>
   );
 };
@@ -1361,8 +1372,11 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           <div className="linkerAdminParsingList">
             {parsed.parsings
               .map((parsing, i) => ({parsing, i}))
-              // Sort valid (green) parsings to the top; stable sort preserves original order within each group.
-              .sort((a, b) => (a.parsing.valid === b.parsing.valid) ? 0 : (a.parsing.valid ? -1 : 1))
+              // Valid (green) parsings first; within each group, options that matched more ref
+              // parts come first. Stable sort preserves original order on ties.
+              .sort((a, b) => (a.parsing.valid === b.parsing.valid)
+                ? (matchedPartCount(b.parsing) - matchedPartCount(a.parsing))
+                : (a.parsing.valid ? -1 : 1))
               .map(({parsing, i}) => (
                 // Key includes the citation text so switching to a new citation remounts each parsing
                 // (and its LinkerPairings disclosure), resetting it to the collapsed state.
