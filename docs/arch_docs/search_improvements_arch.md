@@ -388,3 +388,34 @@ The infrastructure (Coolify instance, Google SSO, machine user) is **already sto
 - Book matching - if index matches query add relevance
 - **Chronological Ordering** - Add an ability to sort sources by chronology (i.e. current view is relevance, add a toggle for chronology)
 - **Date of Death** - Show author date of death next to name if relevant
+
+### Categories as first-class search entities
+
+**The gap.** Some of the most likely queries a user will type — "Talmud", "Mishnah", "Halakhah", "Kabbalah", "Midrash" — name a *category* in Sefaria's text tree, not an `Index` record. The `book` index has one document per `Index`, and `categories` / `path` are `keyword` fields used for filtering only; they are not in the searchable field list. So the corpus a user is asking for has no document to match. Measured against the cauldron (`/api/entity-search?type=book`):
+
+| Query | Result |
+|---|---|
+| `Bavli` | **0 hits** — the token appears in no title anywhere |
+| `Talmud Bavli` | byte-identical to `Talmud`; "Bavli" contributes nothing |
+| `Halakhah` | **22 hits**, in a category holding thousands of books |
+| `Kabbalah` | **1 hit** |
+| `Talmud` | 579 hits, none of which is the Talmud |
+
+Note that these same terms *do* resolve correctly on the Topics tab (`talmud`, 747 sources; `mishnah`; `kabbalah` all rank #1), so the concept is already represented in the `topic` index. The gap is specific to Books.
+
+**Rejected: making `categories` a searchable text field.** The cheap fix — add `categories` to `_DEFAULT_ENTITY_FIELD_BOOSTS["book"]` — converts "0 results for Bavli" into "7,000 undifferentiated Talmud books". A user typing "Talmud" wants *one thing*, not the corpus flattened. Useful only as a weak recall signal underneath a real solution (see below).
+
+**Proposed: reuse the author-works pattern.** This system already solves this exact shape once — an author query does not return a flat list; `_resolve_author` → `_author_works_response` returns a collapsed aggregate. Categories should mirror it.
+
+- **Storage.** Add a second document type to the existing `book` index, discriminated by a `doctype` field (`"book" | "category"`) — the same move the `topic` index already makes with `subtype` for topics vs. authors. Keeping it in one index means one query, one `total`, and a category row that interleaves into the ranked list. No new `SEARCH_INDEX_NAME_*` setting, no new blue-green target, no new cron wiring.
+- **Source data is favorable.** `Category` (`sefaria/model/category.py`) subclasses `AbstractTitledOrTermedObject`, so it carries `titles` / `sharedTitle` natively — real EN+HE title variants without a curated map — plus `enDesc`/`heDesc`/`enShortDesc`, `path`, `depth`, and `order`. Document id = the `path` string, so reindexing stays idempotent. The category set is ~1,000 nodes, so the added reindex cost is negligible.
+- **Ranking needs no new machinery.** Tier 1 is already a `constant_score` exact match on `title_en.keyword` at boost 1000. Once a category document titled "Talmud" exists, `q=Talmud` matches it exactly and it wins outright over every book — no new tier, no new weights. And because tier 1 is `constant_score` rather than scored, a *non*-exact category match only competes at tiers 2–4 like anything else, so category documents cannot swamp partial queries.
+- **Collapse to children, not leaves.** When a query resolves to a category (reusing `_query_matches_entity_title` unchanged), return the category's **direct children** via `library.get_toc_tree().lookup(path)` — `Talmud` → Bavli, Yerushalmi, Rishonim on Talmud — rather than thousands of leaf books. This mirrors both `_author_works_response` and Sefaria's own TOC UX.
+- **Frontend contract is already in place.** Rows would carry `isCategory` and `categoryLabel`, which already exist from the author-works aggregation. The only addition needed is a `url` pointing at `/texts/<path>`.
+- **Where it slots in.** The `book` branch of `entity_search` becomes a resolution chain: `_resolve_category` → `_resolve_author` → flat book search. *Then*, underneath that, `categories` can be added as a weak searchable text field (~0.5 boost) for recall on queries like "talmud commentary" — now harmless, because the exact-match category document owns the head of the list.
+
+**Open questions to settle with product before building:**
+
+- **Author/category collision.** "Rashi" is both an author and a category (`Talmud/Bavli/Rishonim on Talmud/Rashi`). Author probably should win — a person is the likelier intent — but this should be tested against real queries rather than assumed.
+- **Duplication with the Topics tab.** Since "Talmud" already ranks #1 as a topic, adding a category document means the query returns a strong result on *two* tabs. That may be correct (corpus on Books, concept on Topics) or may read as redundant; worth deciding deliberately rather than discovering post-build.
+- **Counting.** Does a category row count toward the Books tab result badge (see [Showing Result Counts While Results Load](#showing-result-counts-while-results-load))? Same collapsed-vs-raw ambiguity already flagged for author works.
