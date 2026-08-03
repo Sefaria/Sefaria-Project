@@ -6608,7 +6608,9 @@ But not to use a display block directive that might break continuous mode for ot
     font-size: 18px;
     line-height: 1;
 }
-.linkerAdminCitationActions .button {
+/* Beat `.button.small`'s width: fit-content (same specificity, defined later) so each
+   button fills its grid cell rather than shrinking to its label. */
+.linkerAdminCitationActions .button.small {
     margin: 0;
     width: 100%;
     text-align: center;

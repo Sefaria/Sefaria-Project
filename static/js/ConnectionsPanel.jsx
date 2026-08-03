@@ -1318,7 +1318,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           Linker editor
         </button>
         <button className={classNames("button", "small", {disabled: busy || !selectedSpan})} disabled={busy || !selectedSpan} onClick={() => parseSpan(selectedSpan)}>
-          Parse
+          Re-parse
         </button>
       </div>
       {selectedSpan ? (
