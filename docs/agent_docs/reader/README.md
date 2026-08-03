@@ -114,7 +114,6 @@ These functions build the data structures that define what the React reader disp
 | `notifications_api` | ~3104 | Get notifications |
 | `user_history_api` | ~4197 | Reading history |
 | `profile_sync_api` | ~4049 | Sync user settings/history |
-| `experiments_opt_in_api` | ~3927 | Opt in/out of experiments |
 | `delete_user_account_api` | ~4139 | Account deletion |
 | `profile_upload_photo` | ~4025 | Profile photo upload |
 
@@ -144,16 +143,7 @@ Many functions handle legacy URL redirects (old sheet URLs, old profile URLs, mo
 
 Contains a single model:
 
-- **`UserExperimentSettings`** -- A one-to-one extension of Django's `User` model tracking whether a user is opted into experiments (feature flags). The `experiments` boolean is also monkey-patched onto the `User` model as a property via `User.add_to_class()`.
-- **`_set_user_experiments(user, value)`** -- Sets the flag on both the Django model and the MongoDB `UserProfile`, and dispatches a CRM webhook.
-- **`user_has_experiments(user)`** -- Checks if a user has an experiment settings record.
-
-### admin.py
-
-Registers `UserExperimentSettings` in Django admin with:
-- CSV upload for bulk-enabling experiments by email
-- Custom `UserAdmin` subclass that adds an "Experiments" checkbox to the user edit form
-- Search by email, username, name
+- **`UserExperimentSettings`** -- Vestigial. The experiments program's whitelist, whose only member was ever the Library Assistant; nothing reads it. The table is dropped in the deploy following its removal from the code.
 
 ### startup.py
 
@@ -236,8 +226,5 @@ Add it to the `base_props()` function. It will be available as a prop in `Reader
 ### Adding data to a specific page
 Add it to the `app_props` dict in that page's view function before calling `render_template()`.
 
-### Managing feature flags
-Use `UserExperimentSettings` via Django admin. Bulk-enable via CSV upload. Check with `user_has_experiments(request.user)` or `request.user.experiments` in views.
-
 ### The Library Assistant switch
-Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant`. Until every profile has been backfilled, an absent key falls back to the old rule (`UserExperimentSettings` row exists AND `profile.experiments`), so never read the key directly — call `is_enabled(profile)` / `is_enabled_for_user(user)`.
+A per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant` -- call `is_enabled(profile)` / `is_enabled_for_user(user)` rather than reading the key. On for everyone unless they turn it off in account settings; see [the naming decision](../../decisions/library_assistant_naming.md) for why `chatbot` names persist alongside it.

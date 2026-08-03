@@ -78,7 +78,6 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
-from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -302,7 +301,6 @@ def base_props(request):
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "is_sustainer": profile.is_sustainer,
-            "experiments": profile.experiments,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -324,7 +322,6 @@ def base_props(request):
             "is_moderator": False,
             "is_editor": False,
             "is_sustainer": False,
-            "experiments": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -382,15 +379,9 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if request.user.is_authenticated:
-        if library_assistant.is_enabled(profile):
-            chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
-            chatbot_data["chatbot_enabled"] = True
-        # `in_chatbot_experiment` suppresses the "try the Library Assistant" promo banner
-        # for users who have already made a choice about the assistant — whether they are
-        # using it or deliberately turned it off.
-        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
-            chatbot_data["in_chatbot_experiment"] = True
+    if request.user.is_authenticated and library_assistant.is_enabled(profile):
+        chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+        chatbot_data["chatbot_enabled"] = True
     user_data.update(chatbot_data)
     return user_data
 
@@ -4079,9 +4070,6 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
-        if "experiments" in profileUpdate and not user_has_experiments(request.user):
-            profileUpdate.pop("experiments", None)
-
         la_key = library_assistant.SETTING_KEY
         la_posted = la_key in profileUpdate.get("settings", {})
         if la_posted:
@@ -4098,27 +4086,11 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
-            if "experiments" in profileUpdate:
-                _set_user_experiments(request.user, profile.experiments)
             if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
                 library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
-def experiments_opt_in_api(request):
-    """
-    API endpoint for users to self-enroll in the experiments whitelist.
-    This enables the experiments toggle in their settings menu.
-    """
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."})
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to join experiments.")})
-    _set_user_experiments(request.user, True)
-    return jsonResponse({"status": "ok"})
 
 
 def enable_library_assistant(request):
@@ -4484,13 +4456,9 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
-        'experiments_available': experiments_available,
-        # The toggle must render the *effective* value: a user who is on through the
-        # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),

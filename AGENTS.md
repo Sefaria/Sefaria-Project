@@ -8,7 +8,7 @@
 Sefaria is a Django + MongoDB + React web application serving a digital library of Jewish texts with translations, commentary, source sheets, topics, and cross-references. The core abstraction is the **Ref** — a canonical citation (e.g. `"Genesis 1:1"`, `"Rashi on Genesis 1:1:1"`) — and nearly every feature is either producing, resolving, or rendering refs.
 
 ### Stack
-- **Backend**: Django (Python 3), MongoDB (primary store — texts, sheets, topics, links, history, etc.), Postgres (all Django-native ORM: auth, sessions, admin-managed content for Chatbot, Guides, Remote Config, Sites, Topic Pool Management, Reader experiments), Redis (pub/sub + cache), Elasticsearch (search), Varnish (HTTP cache), Celery (async tasks)
+- **Backend**: Django (Python 3), MongoDB (primary store — texts, sheets, topics, links, history, etc.), Postgres (all Django-native ORM: auth, sessions, admin-managed content for Chatbot, Guides, Remote Config, Sites, Topic Pool Management), Redis (pub/sub + cache), Elasticsearch (search), Varnish (HTTP cache), Celery (async tasks)
 - **Frontend**: React (no Redux — component state + Context + `Sefaria` JS singleton), server-side rendered via Django templates, hydrated on the client
 - **Infra**: Multiple app servers coordinated via Redis pub/sub; Varnish in front for HTTP caching; Cloudflare for static assets
 

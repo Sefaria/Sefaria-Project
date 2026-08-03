@@ -432,7 +432,6 @@ class UserProfile(object):
 
         # Fundraising
         self.is_sustainer = False
-        self.experiments = False
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
@@ -703,7 +702,6 @@ class UserProfile(object):
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps":      self.attr_time_stamps,
             "is_sustainer":          self.is_sustainer,
-            "experiments":           self.experiments,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
@@ -744,7 +742,6 @@ class UserProfile(object):
         other_info = {
             "pinned_sheets":         self.pinned_sheets,
             "is_sustainer":          self.is_sustainer,
-            "experiments":           self.experiments,
         }
         dictionary.update(other_info)
         return dictionary

@@ -42,7 +42,6 @@ shared_patterns = [
     path('api/profile/user_history', reader_views.user_history_api),
     path('api/profile/sync', reader_views.profile_sync_api),
     path('api/profile/upload-photo', reader_views.profile_upload_photo),
-    path('api/profile/experiments/opt-in', reader_views.experiments_opt_in_api),
     path('api/profile', reader_views.profile_api),
     path('api/profile/<str:slug>', reader_views.profile_api),
     re_path(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),

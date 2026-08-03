@@ -238,7 +238,7 @@ const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://h
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
+const LibraryAssistantPromoBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
   // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
 
@@ -275,6 +275,8 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
+      // The storage key keeps its original name on purpose: renaming it would reset
+      // every logged-in user's dismissal history and start nagging them again.
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
       enableBackoffDismissal={true}
@@ -284,10 +286,10 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
   );
 };
 
-ChatbotExperimentBanner.propTypes = {
+LibraryAssistantPromoBanner.propTypes = {
   promoLearnMoreUrls: PropTypes.object,
   promoMaybeLaterJSON: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner };
+export { SiteWideBanner, LibraryAssistantPromoBanner };

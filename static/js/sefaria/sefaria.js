@@ -2780,9 +2780,6 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
-  experimentsOptInAPI: () => {
-    return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
-  },
   followAPI: (slug, ftype) => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
@@ -3934,7 +3931,6 @@ Sefaria.unpackBaseProps = function(props){
       "is_moderator",
       "is_editor",
       "is_sustainer",
-      "experiments",
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
@@ -3959,7 +3955,6 @@ Sefaria.unpackBaseProps = function(props){
       "_debug_mode",
       "remoteConfig",
       "chatbot_enabled",
-      "in_chatbot_experiment",
       "chatbot_user_token",
       "chatbot_api_base_url",
       "chatbot_version",

@@ -149,7 +149,7 @@ Skipped because they require `@login_required` and we do not distribute API keys
 - `GET/POST/DELETE /api/sheets/{id}.{node_id}` (also internal-shaped)
 - `GET /api/sheets/{id}/visualize` (no auth, but tightly coupled to internal renderer)
 - `POST /api/collections`, `POST/DELETE /api/collections/{slug}`, `POST /api/collections/upload`, `GET /api/collections/for-sheet/{id}`, `POST /api/collections/{slug}/set-role/{uid}/{role}`, `POST /api/collections/{slug}/invite/{uid_or_email}` (and uninvite), `POST /api/collections/{slug}/(add|remove)/{id}`, `POST /api/collections/{slug}/pin-sheet/{id}`
-- `GET /api/profile` (own profile), `POST /api/profile/{slug}`, `GET /api/profile/user_history`, `POST /api/profile/sync`, `POST /api/profile/upload-photo`, `POST /api/profile/experiments/opt-in`
+- `GET /api/profile` (own profile), `POST /api/profile/{slug}`, `GET /api/profile/user_history`, `POST /api/profile/sync`, `POST /api/profile/upload-photo`
 - `GET /api/notes/all`, `GET/POST/DELETE /api/notes/{id_or_ref}`
 - `GET /api/notifications/`, `POST /api/notifications/read`
 - `POST /api/(follow|unfollow)/{uid}`, `GET /api/(followers|followees)/{uid}`, `POST /api/(block|unblock)/{uid}`

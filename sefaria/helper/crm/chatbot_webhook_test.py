@@ -1,12 +1,9 @@
 import json
-import uuid
 from unittest import mock
 from unittest.mock import patch, MagicMock
 
 import pytest
 import requests
-from django.contrib.auth.models import User
-from django.test import Client
 
 from sefaria.helper.crm.tasks import (
     send_chatbot_opt_in_webhook,
@@ -186,102 +183,3 @@ def test_dispatch_empty_email_is_noop():
         dispatch_chatbot_opt_in_webhook(None, True)  # type: ignore[arg-type]  # intentionally testing runtime guard against out-of-contract callers
 
     mock_post.assert_not_called()
-
-
-# ---------------------------------------------------------------------------
-# Integration tests: full Django request → view → webhook dispatch
-# ---------------------------------------------------------------------------
-
-@pytest.fixture
-def client():
-    return Client()
-
-
-@pytest.fixture
-def test_user():
-    token = uuid.uuid4().hex
-    email = f"webhook-test-{token}@example.com"
-    user = User.objects.create_user(
-        username=email,
-        email=email,
-        password="testpass123",
-    )
-    yield user
-
-
-@pytest.fixture
-def test_user_with_profile(test_user):
-    """User with experiments access and a MongoDB profile."""
-    from reader.models import UserExperimentSettings
-    from sefaria.system.database import db
-
-    UserExperimentSettings.objects.create(user=test_user, experiments=True)
-
-    db.profiles.delete_many({"id": test_user.id})
-    db.profiles.insert_one({
-        "id": test_user.id,
-        "slug": f"test-{test_user.id}",
-        "experiments": True,
-    })
-    yield test_user
-    db.profiles.delete_many({"id": test_user.id})
-
-
-@pytest.mark.django_db
-class TestExperimentsOptInWebhook:
-
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_opt_in_fires_webhook(self, mock_dispatch, client, test_user):
-        client.login(email=test_user.email, password="testpass123")
-
-        response = client.post("/api/profile/experiments/opt-in")
-
-        assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(test_user.email, True, "english")
-
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_repeated_opt_in_does_not_refire(self, mock_dispatch, client, test_user):
-        client.login(email=test_user.email, password="testpass123")
-
-        client.post("/api/profile/experiments/opt-in")
-        client.post("/api/profile/experiments/opt-in")
-
-        mock_dispatch.assert_called_once()
-
-    def test_get_request_rejected(self, client, test_user):
-        client.login(email=test_user.email, password="testpass123")
-
-        response = client.get("/api/profile/experiments/opt-in")
-
-        data = json.loads(response.content)
-        assert "error" in data
-
-
-@pytest.mark.django_db
-class TestProfileExperimentsToggleWebhook:
-
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_toggle_off_fires_webhook(self, mock_dispatch, client, test_user_with_profile):
-        user = test_user_with_profile
-        client.login(email=user.email, password="testpass123")
-
-        response = client.post(
-            "/api/profile",
-            {"json": json.dumps({"experiments": False})},
-        )
-
-        assert response.status_code == 200
-        mock_dispatch.assert_called_once_with(user.email, False, "english")
-
-    @mock.patch("reader.models.dispatch_chatbot_opt_in_webhook")
-    def test_same_value_does_not_fire_webhook(self, mock_dispatch, client, test_user_with_profile):
-        user = test_user_with_profile
-        client.login(email=user.email, password="testpass123")
-
-        response = client.post(
-            "/api/profile",
-            {"json": json.dumps({"experiments": True})},
-        )
-
-        assert response.status_code == 200
-        mock_dispatch.assert_not_called()
