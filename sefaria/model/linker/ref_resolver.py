@@ -578,10 +578,17 @@ class RefResolver:
 
     def refine_ref_part_matches(self, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef], keep_disqualified: bool = False) -> List[ResolvedRef]:
         temp_matches = []
-        refs_matched = {match.ref.normal() for match in matches}
+        refs_matched = {match.ref.normal() for match in matches if match.ref is not None}
         for unrefined_match in matches:
             unused_parts = list(set(unrefined_match.raw_entity.parts_to_match) - set(unrefined_match.resolved_parts))
             context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
+
+            if unrefined_match.ref is None:
+                # Non-referenceable intermediate node (e.g. an AltStructNode matched by a lone
+                # term like זח"ב). It can't be a final ref or anchor context; it's only useful as
+                # a stepping stone into its children, which the recursion above already refined.
+                temp_matches += [match for match in context_free_matches if match.ref is not None]
+                continue
 
             # context
             # if unrefined_match already used context, make sure it continues to use it

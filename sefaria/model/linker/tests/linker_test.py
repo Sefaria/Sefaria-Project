@@ -371,6 +371,10 @@ def test_multiple_ambiguities():
     [crrd(['@זוה"ק', '#ח"א','@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    # A lone term matching an intermediate AltStructNode (here a Zohar volume, whose ref() is
+    # None) used to crash the unrefined-match pruner. It should instead descend through the
+    # volume's (optional) parsha/sub-section structure and refine the daf to a concrete ref.
+    [crrd(['@זח"ב', '#צה.']), ['Zohar, Mishpatim 3:14-23']],
 
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
