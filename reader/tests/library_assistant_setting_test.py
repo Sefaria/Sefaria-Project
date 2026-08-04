@@ -8,6 +8,7 @@ from reader.conftest import create_test_user, purge_test_profiles
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.context_processors import chatbot_user_token
 from sefaria.system.database import db
 
 
@@ -66,18 +67,10 @@ class ProfileApiTest(LibraryAssistantUserTestCase):
 
         self.assertEqual(UserProfile(id=self.user.id).settings.get("interface_language"), "hebrew")
 
-    def test_crm_hears_once_per_change(self):
-        # A never-enrolled user is already off, so only a real flip counts.
-        with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.post_setting(True)
-            self.assertEqual(notify.call_count, 1)
+    def test_saving_unrelated_settings_leaves_the_key_alone(self):
+        self.post_profile({"settings": {"interface_language": "hebrew"}})
 
-            # Re-posting the same value is not a change.
-            self.post_setting(True)
-            self.assertEqual(notify.call_count, 1)
-
-            self.post_setting(False)
-            self.assertEqual(notify.call_count, 2)
+        self.assertEqual(self.stored_setting(), "<absent>")
 
 
 class ProfileSyncApiTest(LibraryAssistantUserTestCase):
@@ -103,22 +96,6 @@ class ProfileSyncApiTest(LibraryAssistantUserTestCase):
 
         self.assertIs(self.stored_setting(), True)
 
-    def test_crm_hears_about_a_change(self):
-        with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.sync_settings({SETTING_KEY: True})
-            self.assertEqual(notify.call_count, 1)
-
-    def test_crm_stays_quiet_when_the_value_does_not_change(self):
-        # The user is already off; syncing "off" is not a change.
-        with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.sync_settings({SETTING_KEY: False})
-            self.assertEqual(notify.call_count, 0)
-
-    def test_crm_stays_quiet_for_unrelated_settings(self):
-        with mock.patch("sefaria.helper.library_assistant.notify_crm_of_change") as notify:
-            self.sync_settings({"interface_language": "hebrew"})
-            self.assertEqual(notify.call_count, 0)
-
 
 class ScriptTagGateTest(LibraryAssistantUserTestCase):
     """
@@ -127,7 +104,6 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
     """
 
     def context(self):
-        from sefaria.system.context_processors import chatbot_user_token
         request = mock.Mock()
         request.user = self.user
         request.path = "/Genesis.1"  # the @user_only decorator skips /api/ and friends
@@ -139,9 +115,14 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
         self.assertIsNone(self.context()["chatbot_script_url"])
 
     def test_setting_on_gets_the_script(self):
-        library_assistant.set_enabled(self.user, True, notify_crm=False)
+        library_assistant.set_enabled(self.user, True)
 
         self.assertIsNotNone(self.context()["chatbot_script_url"])
+
+    def test_setting_off_gets_no_script(self):
+        library_assistant.set_enabled(self.user, False)
+
+        self.assertIsNone(self.context()["chatbot_script_url"])
 
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):
@@ -167,11 +148,11 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertToggleShows(self.get_page(), on=False)
 
     def test_setting_on_shows_on(self):
-        library_assistant.set_enabled(self.user, True, notify_crm=False)
+        library_assistant.set_enabled(self.user, True)
 
         self.assertToggleShows(self.get_page(), on=True)
 
     def test_setting_off_shows_off(self):
-        library_assistant.set_enabled(self.user, False, notify_crm=False)
+        library_assistant.set_enabled(self.user, False)
 
         self.assertToggleShows(self.get_page(), on=False)

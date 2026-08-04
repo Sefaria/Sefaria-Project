@@ -4071,13 +4071,11 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
         la_key = library_assistant.SETTING_KEY
-        la_posted = la_key in profileUpdate.get("settings", {})
-        if la_posted:
+        if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
             profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
-        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
 
         error = profile.errors()
@@ -4086,11 +4084,6 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
-            # The once-per-genuine-change CRM detection stays wired, but the webhook
-            # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
-            # sefaria/helper/crm/tasks.py.
-            if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
-                library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4264,8 +4257,6 @@ def profile_sync_api(request):
         annotate = bool(int(request.GET.get("annotate", 0)))
         profile = UserProfile(id=request.user.id)
         la_key = library_assistant.SETTING_KEY
-        la_posted = False
-        la_was_enabled = library_assistant.is_enabled(profile)
         ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
@@ -4285,7 +4276,6 @@ def profile_sync_api(request):
                     field_data[la_key] = library_assistant.normalize(field_data[la_key])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
-                    la_posted = la_key in field_data
                     profile.attr_time_stamps.update({field: settings_time_stamp})
                     settingsInDB = profile.settings
                     settingsInDB.update(field_data)
@@ -4330,11 +4320,6 @@ def profile_sync_api(request):
                 profile_updated = True
         if profile_updated:
             profile.save()
-        # The once-per-genuine-change CRM detection stays wired, but the webhook
-        # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
-        # sefaria/helper/crm/tasks.py.
-        if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
-            library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})

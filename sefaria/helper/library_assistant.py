@@ -7,16 +7,17 @@ The assistant is a plain per-user setting living at
 module — views, templates, context processors and scripts all call in here rather than
 touching the key directly.
 
-The key is written for every account:
-``scripts/migrations/migrate_experiments_to_library_assistant.py`` backfilled the
-existing ones and registration writes it for new ones. A profile without the key reads
-as off; re-run the migration if any turn up.
+The key is written for every account: registration writes it for new accounts, and
+``scripts/migrations/migrate_experiments_to_library_assistant.py`` backfills any profile
+missing it. A profile without the key reads as off; re-run the migration if any turn up.
 
 Deliberately *not* done: adding the key to ``UserProfile``'s settings defaults. A default
 of ``True`` would silently override a real opt-out on any profile that lost the key, and
 ``UserProfile.update()`` deep-merges settings, so the wrong value would then be written
 back on the user's next profile save. Absent means absent.
 """
+
+from sefaria.model.user_profile import UserProfile
 
 SETTING_KEY = "library_assistant"
 
@@ -48,42 +49,16 @@ def is_enabled_for_user(user):
     """
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    from sefaria.model.user_profile import UserProfile
     return is_enabled(UserProfile(user_obj=user))
 
 
-def set_enabled(user, enabled, notify_crm=True):
+def set_enabled(user, enabled):
     """
     Set the preference for `user` and persist it. Returns the new value.
-
-    `notify_crm` is False for automated writes (the migration backfill), where firing an
-    opt-in webhook per user would flood Salesforce with events no user triggered.
     """
-    from sefaria.model.user_profile import UserProfile
-
     enabled = normalize(enabled)
     profile = UserProfile(id=user.id)
-    previously = is_enabled(profile)
     profile.update({"settings": {SETTING_KEY: enabled}})
     profile.save()
 
-    if notify_crm and previously != enabled:
-        notify_crm_of_change(profile, enabled)
-
     return enabled
-
-
-def notify_crm_of_change(profile, enabled):
-    """
-    Report an opt-in/opt-out to Salesforce. Kept separate from `set_enabled` so callers
-    that write the profile by other means (the settings API, which saves the whole
-    profile in one go) can still fire exactly one webhook per genuine change.
-
-    The webhook itself is currently deactivated at the dispatch layer — comms has no
-    use for the signal while the assistant is on by default. This seam and its
-    once-per-change contract stay wired so reactivating is a one-flag change; see
-    CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in sefaria/helper/crm/tasks.py.
-    """
-    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
-    interface_language = profile.settings.get("interface_language", "english")
-    dispatch_chatbot_opt_in_webhook(profile.email, enabled, interface_language)

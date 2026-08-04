@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-The Library Assistant setting's decision logic: how a profile reads, how a posted value
-is coerced, and when the CRM hears about a change.
+The Library Assistant setting's decision logic: how a profile reads and how a posted
+value is coerced.
 """
 
 from unittest import mock
@@ -48,7 +48,7 @@ def test_no_profile_is_not_enabled():
 
 
 def test_absent_key_is_not_enabled():
-    # Every account is backfilled; a profile without the key has not been migrated.
+    # Every account carries the key; a profile without it has yet to be migrated.
     assert library_assistant.is_enabled(FakeProfile(settings={})) is False
 
 
@@ -72,42 +72,15 @@ class _SaveableProfile(FakeProfile):
 @pytest.fixture
 def saveable_profile():
     profile = _SaveableProfile()
-    with mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile):
+    with mock.patch("sefaria.helper.library_assistant.UserProfile", return_value=profile):
         yield profile
 
 
 def test_set_enabled_writes_the_key(saveable_profile):
-    library_assistant.set_enabled(mock.Mock(id=1), False, notify_crm=False)
+    library_assistant.set_enabled(mock.Mock(id=1), False)
     assert saveable_profile.settings[SETTING_KEY] is False
 
 
 def test_set_enabled_coerces_before_writing(saveable_profile):
-    library_assistant.set_enabled(mock.Mock(id=1), "false", notify_crm=False)
+    library_assistant.set_enabled(mock.Mock(id=1), "false")
     assert saveable_profile.settings[SETTING_KEY] is False
-
-
-def test_crm_hears_about_a_real_change(saveable_profile):
-    with mock.patch.object(library_assistant, "notify_crm_of_change") as notify:
-        library_assistant.set_enabled(mock.Mock(id=1), True)
-        assert notify.call_count == 1
-
-
-def test_crm_does_not_hear_about_a_no_op(saveable_profile):
-    saveable_profile.settings[SETTING_KEY] = True
-    with mock.patch.object(library_assistant, "notify_crm_of_change") as notify:
-        library_assistant.set_enabled(mock.Mock(id=1), True)
-        assert notify.call_count == 0
-
-
-def test_crm_hears_once_per_change(saveable_profile):
-    with mock.patch.object(library_assistant, "notify_crm_of_change") as notify:
-        library_assistant.set_enabled(mock.Mock(id=1), True)
-        library_assistant.set_enabled(mock.Mock(id=1), True)
-        library_assistant.set_enabled(mock.Mock(id=1), False)
-        assert notify.call_count == 2
-
-
-def test_backfill_does_not_notify_the_crm(saveable_profile):
-    with mock.patch.object(library_assistant, "notify_crm_of_change") as notify:
-        library_assistant.set_enabled(mock.Mock(id=1), True, notify_crm=False)
-        assert notify.call_count == 0
