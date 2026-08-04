@@ -12,15 +12,16 @@ from sefaria.system.database import db
 @mock.patch("sefaria.helper.library_assistant.notify_crm_of_change")
 class EnableLibraryAssistantViewTest(TestCase):
     """
-    Anon users who arrive via the Library Assistant promo CTA should have the assistant
-    turned on once login/register completes, then be bounced back to where they were —
-    no extra "Join" click.
+    The promo CTA sends anon users through login/register with this view as the ?next=
+    target. Landing here must write settings.library_assistant = True for the now-
+    authenticated user and bounce them back to where they were, so the assistant
+    appears on that reload with no extra "Join" click.
     """
     databases = "__all__"
     url = "/enable-library-assistant"
 
     def setUp(self):
-        self.user = create_test_user("la-optin")
+        self.user = create_test_user("la-enable")
         purge_test_profiles(self.user)
 
     def tearDown(self):
@@ -60,7 +61,7 @@ class EnableLibraryAssistantViewTest(TestCase):
 
     def test_welcome_param_forwarded_to_destination(self, _mock_notify):
         # The register flow appends ?welcome=to-sefaria to its redirect target;
-        # the opt-in hop must forward it so the new-user welcome still shows.
+        # the hop through this view must forward it so the new-user welcome still shows.
         self.client.force_login(self.user)
         response = self.client.get(self.url, {"next": "/Genesis.1", "welcome": "to-sefaria"})
 

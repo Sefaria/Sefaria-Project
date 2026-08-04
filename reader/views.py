@@ -4095,11 +4095,12 @@ def profile_api(request, slug=None):
 
 def enable_library_assistant(request):
     """
-    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
-    The promo points login/register's ?next= here, so once authentication
-    completes the user lands here; we turn the assistant on for them and bounce them
-    back to where they were. On that reload the Library Assistant appears with no extra
-    "Join" click. Normal logins (which don't route through here) are unaffected.
+    Turns the Library Assistant on after a promo-driven login or registration.
+    The promo CTA points login/register's ?next= here, so once authentication
+    completes the user lands here; we write settings.library_assistant = True for them
+    and bounce them back to where they were. On that reload the Library Assistant
+    appears with no extra "Join" click. Normal logins (which don't route through here)
+    are unaffected.
     """
     next_url = request.GET.get("next") or "/"
     if not url_has_allowed_host_and_scheme(
@@ -4112,7 +4113,7 @@ def enable_library_assistant(request):
     if not request.user.is_authenticated:
         return redirect_to_login(request.get_full_path())
 
-    # Prevent cross-site enrollment via GET.
+    # Prevent a cross-site request from turning the setting on via GET.
     if request.headers.get("Sec-Fetch-Site") != "cross-site":
         library_assistant.set_enabled(request.user, True)
 
