@@ -430,11 +430,8 @@ body.hasBannerMessage #s2.headerOnly {
   box-shadow: revert;
   white-space: nowrap;
 }
-.siteWideBanner .button.small:not(.siteWideBannerMaybeLater) {
-  background-color: white;
-  color: var(--mussar-purple);
-}
-.siteWideBanner .button.small:not(.siteWideBannerMaybeLater):hover {
+.siteWideBanner .button.white,
+.siteWideBanner .button.white:hover {
   color: var(--mussar-purple);
 }
 .siteWideBanner .logInToTry {

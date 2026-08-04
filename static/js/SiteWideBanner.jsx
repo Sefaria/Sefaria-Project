@@ -239,10 +239,8 @@ SiteWideBanner.propTypes = {
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
+const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  // No learn-more link in the copy or as a separate CTA — the promo intentionally
-  // does not link out to the Help Center article.
 
   const handleJoin = async () => {
     setIsActionPending(true);
@@ -271,11 +269,11 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
       secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
       icon="/static/icons/ai-double-star.svg"
       actionButtons={(track) => isLoggedIn ? (
-        <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+        <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
         </button>
       ) : (<>
-        <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
+        <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
@@ -289,7 +287,6 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 };
 
 ChatbotExperimentBanner.propTypes = {
-  promoLearnMoreUrls: PropTypes.object,
   promoMaybeLaterJSON: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
