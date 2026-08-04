@@ -147,6 +147,90 @@ export const installOverlaySuppression = async (context: BrowserContext) => {
   ]);
 };
 
+/** One captured `/api/entity-search` call, in the order the page made it. */
+export interface EntitySearchRequest {
+  type: string;
+  start: number;
+  query: string;
+  url: string;
+}
+
+/** Handle returned by `installEntitySearchMock`, for asserting on traffic. */
+export interface EntitySearchMock {
+  /** Every captured request, in order. */
+  requests: EntitySearchRequest[];
+  /** Just the requests for one entity type (`topic` | `author` | `book`). */
+  requestsFor(type: string): EntitySearchRequest[];
+}
+
+export interface EntitySearchMockOptions {
+  /** Hits per page. Mirrors the API's own default (reader/views.py:4900). */
+  pageSize?: number;
+  /**
+   * Override the reported `total` per type. Defaults to the fixture length.
+   * Useful for driving the "10,000+" badge cap without shipping 10k fixtures.
+   */
+  totals?: Record<string, number>;
+  /**
+   * Simulated latency in ms before fulfilling. Set this when a test needs an
+   * observable in-flight window (e.g. proving the infinite-scroll guard blocks
+   * a duplicate fetch). Deliberately NOT wrapped in `t()` — this models network
+   * latency inside the mock, not a wait for page state.
+   */
+  delayMs?: number;
+}
+
+/**
+ * Serve `/api/entity-search` from fixtures instead of Elasticsearch.
+ *
+ * Registered on the CONTEXT (not the page) so it is live before
+ * `goToPageWithLang` creates the page and navigates — the same reason
+ * `installOverlaySuppression` routes at context level.
+ *
+ * Paging mirrors the real endpoint: the client sends `start` and the server
+ * returns a slice plus the FULL `total` (see `entitySearch` in
+ * static/js/sefaria/search.js and `makeEntityEntry` in SearchPage.jsx:276).
+ *
+ * Note this covers the Books / Authors / Topics tabs only. The Sources tab is
+ * served by the text-search API and is untouched by this mock.
+ */
+export const installEntitySearchMock = async (
+  context: BrowserContext,
+  hitsByType: Record<string, unknown[]>,
+  options: EntitySearchMockOptions = {},
+): Promise<EntitySearchMock> => {
+  const { pageSize = 20, totals = {}, delayMs = 0 } = options;
+  const requests: EntitySearchRequest[] = [];
+
+  await context.route('**/api/entity-search*', async (route) => {
+    const requestUrl = route.request().url();
+    const params = new URL(requestUrl).searchParams;
+    const type = params.get('type') || 'topic';
+    const start = Number.parseInt(params.get('start') || '0', 10) || 0;
+    const query = params.get('q') || '';
+
+    requests.push({ type, start, query, url: requestUrl });
+
+    const all = hitsByType[type] ?? [];
+    const total = totals[type] ?? all.length;
+
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ hits: all.slice(start, start + pageSize), total }),
+    });
+  });
+
+  return {
+    requests,
+    requestsFor: (type: string) => requests.filter((r) => r.type === type),
+  };
+};
+
 /**
  * Click-through fallback for the residual non-Strapi overlays — layer 2 of
  * the overlay-suppression model. Strapi-driven banners (`Sustainer` modal,
