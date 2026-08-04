@@ -383,11 +383,16 @@ body.hasBannerMessage #s2.headerOnly {
   flex: 1;
   align-items: center;
   justify-content: space-between;
-  color: black;
-  border: 1px solid #d2dcff;
+  color: white;
   border-radius: 10px;
   padding: 20px;
-  background: #f0f7ff;
+  background: #653259;
+}
+.siteWideBanner .siteWideBannerIcon {
+  width: 28px;
+  height: auto;
+  flex-shrink: 0;
+  margin-inline-end: 16px;
 }
 .siteWideBanner .siteWideBannerTextBox {
   flex: 1;
@@ -414,7 +419,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .siteWideBannerMaybeLater,
 .siteWideBanner .siteWideBannerMaybeLater:hover {
-  color:#18345D;
+  color: white;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-style: normal;
@@ -424,6 +429,13 @@ body.hasBannerMessage #s2.headerOnly {
   border-radius: 0px;
   box-shadow: revert;
   white-space: nowrap;
+}
+.siteWideBanner .button.small:not(.siteWideBannerMaybeLater) {
+  background-color: white;
+  color: #653259;
+}
+.siteWideBanner .button.small:not(.siteWideBannerMaybeLater):hover {
+  color: #653259;
 }
 .siteWideBanner .logInToTry {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;

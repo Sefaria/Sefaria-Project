@@ -104,6 +104,7 @@ const SiteWideBanner = ({
   enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
+  icon,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
@@ -179,6 +180,7 @@ const SiteWideBanner = ({
 
   return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
     <div className="siteWideBannerContent">
+      {icon && <img className="siteWideBannerIcon" src={icon} alt="" aria-hidden="true" />}
       <div className="siteWideBannerTextBox">
         <span className="bannerMainText">{mainText}</span>
         {secondaryText && (
@@ -231,16 +233,16 @@ SiteWideBanner.propTypes = {
   enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
+  icon: PropTypes.string,
 };
 
-const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
-const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
+  // No learn-more link in the copy or as a separate CTA — the promo intentionally
+  // does not link out to the Help Center article.
 
   const handleJoin = async () => {
     setIsActionPending(true);
@@ -265,8 +267,9 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 
   return (
     <SiteWideBanner
-      mainText={Sefaria._("site_wide_banner.enhance_your_learning_experience")}
-      secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
+      mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
+      secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
+      icon="/static/icons/ai-double-star.svg"
       actionButtons={(track) => isLoggedIn ? (
         <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
