@@ -52,6 +52,7 @@ const sourceHitCardProps = (hit, query) => {
     type: 'text',
     name: s.ref,
     hebrewName: s.heRef,
+    tref: s.ref,
     href,
     query,
     snippet,

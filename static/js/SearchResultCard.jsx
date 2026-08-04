@@ -32,6 +32,7 @@ function SearchResultCard({
   icon,
   type = 'text',
   href,
+  tref,
   onResultClick,
   query,
   accentColor,
@@ -48,7 +49,7 @@ function SearchResultCard({
     if (onResultClick) {
       e.preventDefault();
       Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
-      onResultClick(href, null, null); // matches handleNavigationClick(ref, currVersions, options)
+      onResultClick(tref ?? href, null, null); // matches handleNavigationClick(ref, currVersions, options)
     }
   };
 
@@ -195,6 +196,7 @@ SearchResultCard.propTypes = {
   icon:                 PropTypes.string,
   type:                 PropTypes.oneOf(['author', 'topic', 'text', 'collection']),
   href:                 PropTypes.string.isRequired,
+  tref:                 PropTypes.string,
   onResultClick:        PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
