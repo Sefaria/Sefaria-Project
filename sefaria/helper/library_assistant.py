@@ -27,6 +27,8 @@ Absent means absent.
 The fallback (and this note) come out once every profile carries the key.
 """
 
+from sefaria.model.user_profile import UserProfile
+
 SETTING_KEY = "library_assistant"
 
 
@@ -59,7 +61,6 @@ def is_enabled_for_user(user):
     """
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    from sefaria.model.user_profile import UserProfile
     return is_enabled(UserProfile(user_obj=user))
 
 
@@ -70,6 +71,8 @@ def _legacy_enabled(profile):
     TEMPORARY (goes with the experiments framework), once every profile carries the
     setting key.
     """
+    # Imported here, not at the top: the import serves only this TEMPORARY
+    # fallback and disappears with it.
     from reader.models import user_has_experiments
     user = getattr(profile, "user", None)
     if user is None:
@@ -77,38 +80,13 @@ def _legacy_enabled(profile):
     return user_has_experiments(user) and bool(getattr(profile, "experiments", False))
 
 
-def set_enabled(user, enabled, notify_crm=True):
+def set_enabled(user, enabled):
     """
     Set the preference for `user` and persist it. Returns the new value.
-
-    `notify_crm` is False for automated writes (the migration backfill), where firing an
-    opt-in webhook per user would flood Salesforce with events no user triggered.
     """
-    from sefaria.model.user_profile import UserProfile
-
     enabled = normalize(enabled)
     profile = UserProfile(id=user.id)
-    previously = is_enabled(profile)
     profile.update({"settings": {SETTING_KEY: enabled}})
     profile.save()
 
-    if notify_crm and previously != enabled:
-        notify_crm_of_change(profile, enabled)
-
     return enabled
-
-
-def notify_crm_of_change(profile, enabled):
-    """
-    Report an opt-in/opt-out to Salesforce. Kept separate from `set_enabled` so callers
-    that write the profile by other means (the settings API, which saves the whole
-    profile in one go) can still fire exactly one webhook per genuine change.
-
-    The webhook itself is currently deactivated at the dispatch layer — comms has no
-    use for the signal while the assistant is on by default. This seam and its
-    once-per-change contract stay wired so reactivating is a one-flag change; see
-    CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in sefaria/helper/crm/tasks.py.
-    """
-    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
-    interface_language = profile.settings.get("interface_language", "english")
-    dispatch_chatbot_opt_in_webhook(profile.email, enabled, interface_language)

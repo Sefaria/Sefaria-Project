@@ -30,7 +30,7 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 
 - `CrmMediator` is the single entry point from Django views/signals. Callers include the user registration flow and profile email update flow.
 - `CrmInfoStore` is coupled to `sefaria.model.user_profile.UserProfile` and directly queries `db.profiles`.
-- `tasks.py` is invoked via `dispatch_chatbot_opt_in_webhook(email, opt_in, interface_language)`, called from `sefaria.helper.library_assistant.notify_crm_of_change` whenever a user's effective Library Assistant setting genuinely changes (and, until the experiments framework is removed, from the legacy `_set_user_experiments` path in `reader/models.py`); it does not go through `CrmMediator`.
+- `tasks.py` is invoked via `dispatch_chatbot_opt_in_webhook(email, opt_in, interface_language)`; the only caller is the experiments-whitelist write path (`_set_user_experiments` in `reader/models.py`), and the deactivation flag makes even that a no-op. It does not go through `CrmMediator`.
 - `CrmFactory` reads `django.conf.settings.CRM_TYPE`. Salesforce auth additionally needs `SALESFORCE_BASE_URL`, `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET`.
 
 ## Common Tasks
@@ -39,4 +39,4 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 - **Debug why a user isn't in Salesforce:** check `settings.CRM_TYPE == "SALESFORCE"`; check OAuth creds; remember exceptions are swallowed — enable logging before the `except` in `SalesforceConnectionManager.add_user_to_crm`.
 - **Add a new mailing list:** managed in Salesforce metadata (`AC_to_SF_List_Mapping__mdt`). No code change needed; `get_available_lists` picks them up.
 - **Test locally:** set `CRM_TYPE = "NONE"` (or leave unset) — everything becomes a no-op via `DummyConnectionManager`.
-- **Report a Library Assistant on/off change:** call `sefaria.helper.library_assistant.notify_crm_of_change(profile, enabled)` — it wraps `dispatch_chatbot_opt_in_webhook` and keeps the once-per-genuine-change contract; only call the task directly for a non-profile-based event.
+- **Fire a chatbot opt-in event:** flip `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED` to `False` in `tasks.py` and call `dispatch_chatbot_opt_in_webhook(email, opt_in, interface_language)`.

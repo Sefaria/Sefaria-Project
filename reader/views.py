@@ -389,8 +389,7 @@ def base_props(request):
         # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
         # suppresses the "try the Library Assistant" promo banner for users who have
         # already made a choice about the assistant — whether they are using it or
-        # deliberately turned it off. Once every profile carries the setting key, the
-        # prop and the whitelist check are both meaningless and get removed.
+        # deliberately turned it off.
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
@@ -4082,18 +4081,16 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
         # TEMPORARY (goes with the experiments framework): legacy handling of the
-        # `experiments` field, which the Library Assistant no longer reads or writes.
+        # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
         la_key = library_assistant.SETTING_KEY
-        la_posted = la_key in profileUpdate.get("settings", {})
-        if la_posted:
+        if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
             profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
-        la_was_enabled = library_assistant.is_enabled(profile)
         profile.update(profileUpdate)
 
         error = profile.errors()
@@ -4106,11 +4103,6 @@ def profile_api(request, slug=None):
             # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
-            # The once-per-genuine-change CRM detection stays wired, but the webhook
-            # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
-            # sefaria/helper/crm/tasks.py.
-            if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
-                library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4122,8 +4114,7 @@ def experiments_opt_in_api(request):
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
 
-    TEMPORARY (goes with the experiments framework): the Library Assistant no longer
-    enrolls through here, which leaves this endpoint with no first-party caller.
+    TEMPORARY (goes with the experiments framework): no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4301,8 +4292,6 @@ def profile_sync_api(request):
         annotate = bool(int(request.GET.get("annotate", 0)))
         profile = UserProfile(id=request.user.id)
         la_key = library_assistant.SETTING_KEY
-        la_posted = False
-        la_was_enabled = library_assistant.is_enabled(profile)
         ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
@@ -4322,7 +4311,6 @@ def profile_sync_api(request):
                     field_data[la_key] = library_assistant.normalize(field_data[la_key])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
-                    la_posted = la_key in field_data
                     profile.attr_time_stamps.update({field: settings_time_stamp})
                     settingsInDB = profile.settings
                     settingsInDB.update(field_data)
@@ -4367,11 +4355,6 @@ def profile_sync_api(request):
                 profile_updated = True
         if profile_updated:
             profile.save()
-        # The once-per-genuine-change CRM detection stays wired, but the webhook
-        # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
-        # sefaria/helper/crm/tasks.py.
-        if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
-            library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
         return jsonResponse(ret)
 
     return jsonResponse({"error": "Unsupported HTTP method."})

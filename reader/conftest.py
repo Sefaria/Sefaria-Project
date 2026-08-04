@@ -44,9 +44,8 @@ def _block_salesforce_webhook():
     """
     Prevent any test from making real HTTP calls to the Salesforce webhook.
 
-    Mirrors the fixture in sefaria/conftest.py; autouse fixtures only apply to tests
-    under their own conftest's directory, and these tests exercise the profile write
-    paths that dispatch the webhook.
+    sefaria/conftest.py carries the same guard; autouse fixtures only apply to tests
+    under their own conftest's directory, so each tree needs its own.
     """
     with patch("sefaria.helper.crm.tasks.requests.post") as mock_post:
         mock_post.return_value = MagicMock(
