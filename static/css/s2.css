@@ -378,6 +378,9 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew .siteWideBanner {
   direction: rtl;
 }
+/* Design specified the mussar purple token itself for this promo, rather than a
+   banner-specific color that happens to match it. Keep them in step: if the
+   mussar token moves, this banner is meant to move with it. */
 .siteWideBanner .siteWideBannerContent {
   display: flex;
   flex: 1;

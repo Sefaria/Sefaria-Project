@@ -104,7 +104,7 @@ const SiteWideBanner = ({
   enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
-  icon,
+  imgSrc,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
@@ -180,7 +180,7 @@ const SiteWideBanner = ({
 
   return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
     <div className="siteWideBannerContent">
-      {icon && <img className="siteWideBannerIcon" src={icon} alt="" aria-hidden="true" />}
+      {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
       <div className="siteWideBannerTextBox">
         <span className="bannerMainText">{mainText}</span>
         {secondaryText && (
@@ -233,7 +233,7 @@ SiteWideBanner.propTypes = {
   enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
-  icon: PropTypes.string,
+  imgSrc: PropTypes.string,
 };
 
 const CAMPAIGN_ID = "LA Stand Alone Promo";
@@ -267,7 +267,7 @@ const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSecond
     <SiteWideBanner
       mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
       secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
-      icon="/static/icons/ai-double-star.svg"
+      imgSrc="/static/icons/ai-double-star.svg"
       actionButtons={(track) => isLoggedIn ? (
         <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
