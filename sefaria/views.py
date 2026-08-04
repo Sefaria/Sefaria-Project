@@ -174,9 +174,9 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant on. Written explicitly: an
-            # absent key would fall back to the experiments-whitelist rule, which no
-            # new account is part of.
+            # New accounts get the Library Assistant on. Written explicitly: the key is
+            # deliberately absent from the settings defaults, so a new account starts
+            # with no value at all unless one is written here.
             p.settings[library_assistant.SETTING_KEY] = True
 
 

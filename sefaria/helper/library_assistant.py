@@ -7,24 +7,24 @@ The assistant is a plain per-user setting living at
 module — views, templates, context processors and scripts all call in here rather than
 touching the key directly.
 
-Two rules, and the second one is temporary:
+Two rules:
 
-1. **Key present** — obey it. This is the durable rule.
-2. **Key absent** — fall back to the legacy rule the assistant shipped with: the user is
-   on the experiments whitelist (a ``UserExperimentSettings`` row exists) *and*
-   ``profile.experiments`` is true.
-
-The fallback is what makes deploying this module behaviorally inert: until the migration
-in ``scripts/migrations/migrate_experiments_to_library_assistant.py`` writes the key,
-every user reads exactly as they do today. The migration run — not the deploy — is the
-moment the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
+1. **Key present** — obey it.
+2. **Key absent** — fall back to the experiments rule: the user is on the experiments
+   whitelist (a ``UserExperimentSettings`` row exists) *and* ``profile.experiments`` is
+   true.
 
 Deliberately *not* done: adding the key to ``UserProfile``'s settings defaults. A default
-of ``True`` would make an un-migrated opt-out read as on, and ``UserProfile.update()``
-deep-merges settings, so the wrong value would be written back on their next profile save.
-Absent means absent.
+of ``True`` would make a profile with no key of its own read as on, and
+``UserProfile.update()`` deep-merges settings, so that value would then be written back on
+the profile's next save. Absent means absent.
 
-The fallback (and this note) come out once every profile carries the key.
+TEMPORARY (goes with the experiments framework) — rule 2, the fallback implementing it
+below, and this paragraph. The fallback is what makes deploying this module behaviorally
+inert: until the migration in
+``scripts/migrations/migrate_experiments_to_library_assistant.py`` writes the key, every
+user reads exactly as they do today. The migration run — not the deploy — is the moment
+the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
 from sefaria.model.user_profile import UserProfile
@@ -68,8 +68,8 @@ def _legacy_enabled(profile):
     """
     The pre-migration rule: on the experiments whitelist and opted in.
 
-    TEMPORARY (goes with the experiments framework), once every profile carries the
-    setting key.
+    TEMPORARY (goes with the experiments framework): remove once every profile carries
+    the setting key.
     """
     # Imported here, not at the top: the import serves only this TEMPORARY
     # fallback and disappears with it.
