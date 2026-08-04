@@ -63,10 +63,11 @@ One document per Topic **in the `library` TopicPool**. Pool membership (curated 
 | `era` | `keyword` | — | Author-only: historical period |
 | `birthYear` | `integer` | — | Author-only: for display and filtering |
 | `deathYear` | `integer` | — | Author-only: for display and filtering |
+| `sortYear` | `integer` | — | Author-only: the derived year the chronological sort keys on — `deathYear`, falling back to `birthYear` (see Sorting) |
 | `authored_titles_en` | `text` + `keyword` | `stemmed_english` | Author-only: denormalized titles of the author's works, **including English title variants** — the same title set the book doc indexes (`title_en` + `titleVariants`), so any query that returns a book in the Books tab also returns its author in the Authors tab (e.g. "Moreh Nevukhim" → Rambam) |
 | `authored_titles_he` | `text` + `keyword` | plain `text` | Author-only: Hebrew primary titles of the author's works (mirrors the book doc's `title_he`) |
 
-Author-only fields (`era`, `birthYear`, `deathYear`, `authored_titles_*`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
+Author-only fields (`era`, `birthYear`, `deathYear`, `sortYear`, `authored_titles_*`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
 
 **`book` index — Index (book) records**
 
@@ -160,7 +161,7 @@ Each entity tab offers explicit sort orders in addition to the default relevance
 |---|---|---|
 | Sources | *no change* | — |
 | Books | Relevance · Publication Year (Oldest/Newest First) · A-Z | `compDate` |
-| Authors | Relevance · Year (Oldest/Newest First) · A-Z | `deathYear`, falling back to `birthYear` |
+| Authors | Relevance · Year (Oldest/Newest First) · A-Z | `sortYear` (= `deathYear`, falling back to `birthYear`) |
 | Topics | Relevance · A-Z | — |
 
 The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a sort invalid for the type (e.g. a year sort on topics) is rejected. Mechanics:
@@ -168,7 +169,7 @@ The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a
 - **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. Because relevance carries no score wrapper, the query is now byte-identical under every sort — the sort clause is the only difference.
 - **A-Z is case-insensitive.** Sorting uses a `title_en.sort` keyword sub-field with a `lowercase` normalizer (a raw `keyword` sort would put "iggeret" after "Zohar"). Both title fields on both indices carry the sub-field, so a Hebrew-interface א-ת sort on `title_he.sort` needs no reindex later.
 - **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
-- **An entity's year is a single derived number, and it must be the year the card displays.** A book collapses Mongo's `compDate` *list* to one sortable int at index time (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author's year is `deathYear`, **falling back to `birthYear` when there is no death year**. 
+- **An entity's year is a single derived number, and it must be the year the card displays.** Both types derive that number **at index time**, so the ES sort is always a plain field sort with no per-query fallback logic. A book collapses Mongo's `compDate` *list* to one sortable int (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author collapses to a **`sortYear`** field: `deathYear`, **falling back to `birthYear` when there is no death year** (`_author_sort_year`; raw `birthYear`/`deathYear` are still indexed separately for display). Sorting authors on the raw `deathYear` instead — as the query briefly did — pushes every author who has only a birth year into the `missing: "_last"` undated tail while their card still shows a year; the client-side re-sort in `sortEntityHits` cannot compensate, because it only reorders the page of hits already returned. Changing either derivation requires a **reindex**, not just a query change.
 
 - **Explicit sorts keep the author-works aggregation.** On the Books tab, a query that resolves to an author returns category-aggregated works (see below) under every sort, not just relevance. To make that sortable, each aggregated row carries a `compDate`: an individual work's own composition year, or — for a category row, which collapses many works and dates into one entry — the **average year of its dated works** (`AuthorCategoryAggregation.get_comp_date`). The rows are then sorted in code with the same semantics as the flat ES sorts (A-Z on lowercased English title; year sorts on `compDate`; missing keys last in either direction). An earlier iteration bypassed the aggregation on explicit sorts to expose each book's individual date; product preferred preserving the collapsed view, with a representative date per category. (Alternative considered: keying a category by its *first* work's date rather than the average — rejected because "first" follows canonical library order, not chronology.)
 
@@ -212,7 +213,8 @@ GET /api/entity-search?q=Rambam&type=author
       "description_en": "Rabbi Moshe ben Maimon (1138–1204), prolific halakhic authority and philosopher.",
       "era": "RI",
       "birthYear": 1138,
-      "deathYear": 1204
+      "deathYear": 1204,
+      "sortYear": 1204
     }
   ],
   "total": 1
@@ -390,6 +392,7 @@ The infrastructure (Coolify instance, Google SSO, machine user) is **already sto
 - Book matching - if index matches query add relevance
 - **Chronological Ordering** - Add an ability to sort sources by chronology (i.e. current view is relevance, add a toggle for chronology)
 - **Date of Death** - Show author date of death next to name if relevant
+- **Send the entity `sort` to the API** — the sort orders described under [Sorting](#sorting-entity-tabs-only) are implemented and tested on the backend, but the search page never requests them: `entitySearch` (`static/js/sefaria/search.js`) builds its URL from `q`, `type` and `start` only, and `setEntitySort` (`static/js/SearchPage.jsx`) just sets React state. So every request uses the default `sort=relevance`, and the dropdown selection is applied client-side by `sortEntityHits` to the hits already in memory. Two consequences: the server-side sort clauses are currently unreachable from the UI, and — because the tabs page in more hits on scroll in *relevance* order — "Year (Oldest First)" returns the oldest of an arbitrary loaded subset rather than the oldest authors, reshuffling as the user scrolls. An author who ranks poorly on relevance never surfaces near the top no matter how old they are. The fix is to thread `sort` through `entitySearch` (URL **and** cache key), refetch from `start=0` with the accumulated hits cleared whenever the sort changes, and then retire `sortEntityHits` — leaving a second sort implementation in the client is what let the author year rule drift from the server's in the first place.
 
 ### Categories as first-class search entities
 

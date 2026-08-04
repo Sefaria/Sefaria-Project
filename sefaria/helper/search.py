@@ -244,7 +244,8 @@ ENTITY_TYPES = ("topic", "author", "book")
 
 # Sort options per entity type. "relevance" is the scored default; the others impose an
 # explicit field order: "alpha" A-Z on the lowercased English title, "year_asc"/"year_desc"
-# chronological on the per-type year field (books: composition date; authors: birth year).
+# chronological on the per-type year field (books: composition date; authors: death year,
+# falling back to birth year — see _ENTITY_YEAR_SORT_FIELDS).
 # Topics have no year, so they only offer relevance and A-Z. Sources (the `text` index) are
 # a separate query path and are deliberately untouched.
 ENTITY_SORTS = {
@@ -253,7 +254,13 @@ ENTITY_SORTS = {
     "book": ("relevance", "alpha", "year_asc", "year_desc"),
 }
 _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see put_*_mapping)
-_ENTITY_YEAR_SORT_FIELDS = {"author": "deathYear", "book": "compDate"}
+# Both year fields are *derived at index time* into a single sortable int, so the sort is a
+# plain field sort with no per-query fallback logic: books collapse Mongo's `compDate` list
+# via `best_time_period`, authors collapse death-year-else-birth-year via `_author_sort_year`
+# (both in sefaria/search.py). Sorting authors on the raw `deathYear` instead would push every
+# author who has only a birth year into the `missing: _last` undated tail, disagreeing with
+# the year their result card displays. Changing either derivation needs a reindex.
+_ENTITY_YEAR_SORT_FIELDS = {"author": "sortYear", "book": "compDate"}
 
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,

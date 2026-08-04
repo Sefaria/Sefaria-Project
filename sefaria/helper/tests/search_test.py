@@ -109,14 +109,16 @@ def test_entity_query_obj_alpha_sort():
 
 
 def test_entity_query_obj_year_sorts():
-    # books sort by composition date, authors by *death* year; missing values always last.
-    # The ES clause is a bare deathYear sort — the "fall back to birthYear when there is no
-    # death year" rule lives client-side in sortEntityHits (static/js/SearchSortDropdown.jsx),
-    # not here, so an author with only a birth year lands in the undated tail server-side.
+    # Both types sort on a single year derived at index time, never on a raw property:
+    # books on `compDate` (Mongo's compDate list collapsed by best_time_period), authors on
+    # `sortYear` (death year, falling back to birth year — see _author_sort_year). Sorting
+    # authors on a bare `deathYear` would drop every birth-year-only author into the
+    # missing-value tail even though their card shows a year. Missing values always last.
     s = get_entity_query_obj("rambam", "book", sort="year_desc").to_dict()
     assert s["sort"][0] == {"compDate": {"order": "desc", "missing": "_last"}}
     s = get_entity_query_obj("rambam", "author", sort="year_asc").to_dict()
-    assert s["sort"][0] == {"deathYear": {"order": "asc", "missing": "_last"}}
+    assert s["sort"][0] == {"sortYear": {"order": "asc", "missing": "_last"}}
+    assert s["sort"][0] != {"deathYear": {"order": "asc", "missing": "_last"}}
 
 
 def test_entity_query_obj_sort_keeps_match_set():
