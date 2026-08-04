@@ -100,7 +100,6 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  max-width: 348px;
 }
 .sefaria-auth-card-heading {
   margin: 0;
@@ -122,7 +121,7 @@
 .sefaria-auth-card-sub a {
   color: var(--sefaria-blue);
 }
-.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
+.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header):not(.sefaria-auth-card-sub) {
   width: 100%;
   max-width: 348px;
 }

@@ -109,7 +109,6 @@ $stroke-strong:   1.5px;
     align-items: center;
     gap: 12px;
     width: 100%;
-    max-width: 348px;
   }
 
   &-heading {
@@ -133,7 +132,7 @@ $stroke-strong:   1.5px;
   }
 
   // Direct children except the back button and header are capped at 348px
-  > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header) {
+  > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header):not(.sefaria-auth-card-sub) {
     width: 100%;
     max-width: 348px;
   }
