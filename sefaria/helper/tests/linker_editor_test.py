@@ -239,6 +239,115 @@ def test_add_non_unique_term_titles_validation(monkeypatch):
         le.add_non_unique_term_titles("__le_test_term__", [{"text": "   ", "lang": "en"}])
 
 
+def test_delete_non_unique_term_rejects_terms_with_usages(monkeypatch):
+    class FakeTerm:
+        deleted = False
+
+        def delete(self):
+            self.deleted = True
+
+    term = FakeTerm()
+
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return term if slug == "__le_test_term__" else None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+    monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [{"index_title": "Fake"}])
+
+    with pytest.raises(InputError) as e:
+        le.delete_non_unique_term("__le_test_term__")
+
+    assert "use Swap" in str(e.value)
+    assert not term.deleted
+
+
+def test_delete_non_unique_term_deletes_unused_term_and_clears_usage_cache(monkeypatch):
+    calls = []
+
+    class FakeTerm:
+        def delete(self):
+            calls.append("delete")
+
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return FakeTerm() if slug == "__le_test_term__" else None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+    monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
+    monkeypatch.setattr(le.nut_index, "set_term_usages", lambda slug, usages: calls.append(("set", slug, usages)))
+
+    le.delete_non_unique_term("__le_test_term__")
+
+    assert calls == ["delete", ("set", "__le_test_term__", [])]
+
+
+def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            if slug in {"old", "new"}:
+                return object()
+            return None
+
+    usages = [
+        {
+            "index_title": "Fake",
+            "node_key_path": ["Fake"],
+            "term_slugs": ["old", "keep"],
+            "scope": "combined",
+        },
+        {
+            "index_title": "Other",
+            "node_key_path": ["__alt__", "Parasha", "0"],
+            "term_slugs": ["prefix", "old"],
+            "scope": "alone",
+        },
+    ]
+    replacements = []
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+    monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: usages)
+    monkeypatch.setattr(le, "replace_match_template", lambda title, path, old, new: replacements.append((title, path, old, new)))
+    monkeypatch.setattr(le, "get_non_unique_term_detail", lambda slug: {"slug": slug, "usages": []})
+
+    result = le.swap_non_unique_term_usages("old", "new")
+
+    assert result["updated_usages"] == 2
+    assert replacements == [
+        (
+            "Fake",
+            "Fake",
+            {"term_slugs": ["old", "keep"], "scope": "combined"},
+            {"term_slugs": ["new", "keep"], "scope": "combined"},
+        ),
+        (
+            "Other",
+            "__alt__.Parasha.0",
+            {"term_slugs": ["prefix", "old"], "scope": "alone"},
+            {"term_slugs": ["prefix", "new"], "scope": "alone"},
+        ),
+    ]
+
+
+def test_swap_non_unique_term_usages_validation(monkeypatch):
+    class FakeNonUniqueTerm:
+        @staticmethod
+        def init(slug):
+            return object() if slug == "old" else None
+
+    monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
+
+    with pytest.raises(InputError):
+        le.swap_non_unique_term_usages("old", "old")
+    with pytest.raises(InputError):
+        le.swap_non_unique_term_usages("old", "missing")
+    with pytest.raises(InputError):
+        le.swap_non_unique_term_usages("missing", "old")
+
+
 # ---------------------------------------------------------------------------
 # Node property editing — pure logic (no index.save())
 # ---------------------------------------------------------------------------

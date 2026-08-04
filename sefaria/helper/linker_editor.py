@@ -472,6 +472,58 @@ def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
     return get_non_unique_term_detail(slug)
 
 
+def delete_non_unique_term(slug: str) -> None:
+    """Delete a NonUniqueTerm only when it has no MatchTemplate usages."""
+    term = NonUniqueTerm.init(slug)
+    if term is None:
+        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+
+    usages = nut_index.get_term_usages(slug)
+    if len(usages) > 0:
+        raise InputError(
+            "Cannot delete NonUniqueTerm '{}' because it has {} usage(s). "
+            "Delete the other usages first or use Swap to replace them with another term.".format(slug, len(usages))
+        )
+
+    term.delete()
+    nut_index.set_term_usages(slug, [])
+
+
+def swap_non_unique_term_usages(slug: str, new_slug: str) -> dict:
+    """Replace every MatchTemplate usage of `slug` with `new_slug`."""
+    old_term = NonUniqueTerm.init(slug)
+    if old_term is None:
+        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+    new_term = NonUniqueTerm.init(new_slug)
+    if new_term is None:
+        raise InputError("No NonUniqueTerm with slug '{}'.".format(new_slug))
+    if slug == new_slug:
+        raise InputError("Choose a different NonUniqueTerm to swap with.")
+
+    usages = list(nut_index.get_term_usages(slug))
+    changed = 0
+    for usage in usages:
+        old_slugs = list(usage.get("term_slugs", []))
+        if slug not in old_slugs:
+            continue
+        new_slugs = [new_slug if term_slug == slug else term_slug for term_slug in old_slugs]
+        replace_match_template(
+            usage["index_title"],
+            ".".join(usage.get("node_key_path", [])),
+            {"term_slugs": old_slugs, "scope": usage.get("scope", "combined")},
+            {"term_slugs": new_slugs, "scope": usage.get("scope", "combined")},
+        )
+        changed += 1
+
+    return {
+        "old_slug": slug,
+        "new_slug": new_slug,
+        "updated_usages": changed,
+        "old_term": get_non_unique_term_detail(slug),
+        "new_term": get_non_unique_term_detail(new_slug),
+    }
+
+
 def _normalize_non_unique_term_title(text: Optional[str], lang: str) -> str:
     """
     Normalize titles with the same normalizer the linker applies to input text

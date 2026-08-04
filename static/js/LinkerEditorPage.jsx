@@ -90,6 +90,10 @@ const editorApi = {
     Sefaria.apiRequestWithBody('/_api/linker-editor/non-unique-term', {}, payload, 'POST'),
   addTermTitles: (slug, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, payload, 'POST'),
+  deleteTerm: (slug) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}`, {}, {}, 'DELETE'),
+  swapTerm: (slug, payload) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/non-unique-term/${encPath(slug)}/swap`, {}, payload, 'POST'),
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
   addMatchTemplate: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'POST'),
@@ -820,11 +824,15 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
 // NonUniqueTerm detail panel (bottom slide-up)
 // ---------------------------------------------------------------------------
 
-const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, onJump }) => {
+const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, onJump, onChanged }) => {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [savingTitles, setSavingTitles] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
+  const [swapTarget, setSwapTarget] = useState(null);
+  const [swapping, setSwapping] = useState(false);
   // Create-mode state: primary English / Hebrew titles for a brand-new term.
   const [newEn, setNewEn] = useState('');
   const [newHe, setNewHe] = useState('');
@@ -869,6 +877,38 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
       setError(e.message || String(e));
     }
     setSavingTitles(false);
+  };
+
+  const deleteTerm = async () => {
+    const usageCount = (detail?.usages || []).length;
+    if (usageCount > 0) {
+      alert(Sefaria._('This term is still used by MatchTemplates. Delete the other usages first or use Swap to replace them with another term.'));
+      return;
+    }
+    if (!confirm(Sefaria._('Permanently delete this NonUniqueTerm? This action cannot be undone.'))) { return; }
+    setDeleting(true); setError(null);
+    try {
+      await editorApi.deleteTerm(slug);
+      onClose();
+    } catch (e) {
+      setError(e.message || String(e));
+    }
+    setDeleting(false);
+  };
+
+  const saveSwap = async () => {
+    if (!swapTarget || swapTarget.slug === slug) { return; }
+    setSwapping(true); setError(null);
+    try {
+      const result = await editorApi.swapTerm(slug, { new_slug: swapTarget.slug });
+      setDetail(result.old_term);
+      setSwapOpen(false);
+      setSwapTarget(null);
+      if (onChanged) { await onChanged(); }
+    } catch (e) {
+      setError(e.message || String(e));
+    }
+    setSwapping(false);
   };
 
   if (createMode) {
@@ -919,6 +959,39 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
       {!detail && !error && <LoadingMessage />}
       {detail && (
         <div className="termDetailBody">
+          <div className="termDetailActions">
+            <button
+              className="linkerEditorBtn small danger termDeleteBtn"
+              disabled={deleting}
+              onClick={deleteTerm}
+            >
+              {deleting ? Sefaria._('Deleting…') : Sefaria._('Delete NonUniqueTerm')}
+            </button>
+            <button
+              className="linkerEditorBtn small"
+              disabled={swapping}
+              onClick={() => setSwapOpen(!swapOpen)}
+            >
+              {Sefaria._('Swap')}
+            </button>
+            {swapOpen && (
+              <div className="termSwapForm">
+                <TermAutocomplete
+                  onSelect={setSwapTarget}
+                  placeholder={Sefaria._('Swap to term…')}
+                  autoFocus={true}
+                />
+                {swapTarget && <span className="termSwapTarget">{swapTarget.slug}</span>}
+                <button
+                  className="linkerEditorBtn small"
+                  disabled={swapping || !swapTarget || swapTarget.slug === slug}
+                  onClick={saveSwap}
+                >
+                  {swapping ? Sefaria._('Saving…') : Sefaria._('Save')}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="termTitlesList">
             <span className="cardLabel">{Sefaria._('Titles')}</span>
             {(detail.titles || []).map((t, i) => (
@@ -1029,6 +1102,7 @@ const LinkerEditorPage = () => {
   const [addressTypeOptions, setAddressTypeOptions] = useState([]);
   const [termSlug, setTermSlug] = useState(null);
   const [addingTerm, setAddingTerm] = useState(false);
+  const [searchingTerm, setSearchingTerm] = useState(false);
   const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
   const [rebuilding, setRebuilding] = useState(false);
@@ -1040,8 +1114,9 @@ const LinkerEditorPage = () => {
 
   const markDhDirty = useCallback(() => { setDhDirty(true); setDhMsg(null); }, []);
 
-  const openTerm = useCallback((slug) => { setAddingTerm(false); setTermSlug(slug); }, []);
+  const openTerm = useCallback((slug) => { setAddingTerm(false); setSearchingTerm(false); setTermSlug(slug); }, []);
   const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); }, []);
+  const openSearchedTerm = useCallback((term) => { openTerm(term.slug); }, [openTerm]);
 
   useEffect(() => {
     editorApi.addressTypes().then(d => setAddressTypeOptions(d.address_types || []));
@@ -1170,6 +1245,16 @@ const LinkerEditorPage = () => {
             <div className="linkerEditorTopActions">
               {title && <button className="linkerEditorBtn" onClick={leaveIndex}>{Sefaria._('New search')}</button>}
               <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
+              <button className="linkerEditorBtn" onClick={() => setSearchingTerm(!searchingTerm)}>{Sefaria._('Search Term')}</button>
+              {searchingTerm && (
+                <div className="linkerEditorHeaderTermSearch">
+                  <TermAutocomplete
+                    onSelect={openSearchedTerm}
+                    placeholder={Sefaria._('Search terms…')}
+                    autoFocus={true}
+                  />
+                </div>
+              )}
               <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
                 {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
               </button>
@@ -1231,6 +1316,7 @@ const LinkerEditorPage = () => {
               onClose={closeTermDrawer}
               onCreated={openTerm}
               onJump={jumpToNode}
+              onChanged={reload}
             />
           )}
         </div>

@@ -108,6 +108,7 @@ shared_patterns = [
     path('_api/linker-editor/address-types', api_views.LinkerEditorAddressTypesListView.as_view()),
     path('_api/linker-editor/non-unique-term', api_views.LinkerEditorNonUniqueTermCreateView.as_view()),
     path('_api/linker-editor/non-unique-term-titles', api_views.LinkerEditorNonUniqueTermTitlesView.as_view()),
+    path('_api/linker-editor/non-unique-term/<str:slug>/swap', api_views.LinkerEditorNonUniqueTermSwapView.as_view()),
     path('_api/linker-editor/non-unique-term/<str:slug>', api_views.LinkerEditorNonUniqueTermView.as_view()),
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/match-templates', api_views.LinkerEditorMatchTemplateView.as_view()),
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/address-type', api_views.LinkerEditorAddressTypeView.as_view()),
