@@ -2,8 +2,9 @@
   /* colors */
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
-  --sheets-green: #518159; 
-  --devportal-purple: #7C416F; /* same as --mussar-purple but serves a different purpose so separate */
+  --sefaria-purple: #7C416F;
+  --sheets-green: #518159;
+  --devportal-purple: var(--sefaria-purple); /* a distinct name for a distinct purpose, sharing the one purple */
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --highlight-green-light: #F1FCF5;
@@ -30,7 +31,7 @@
   --philosophy-purple: #7F85A9;
   --taanitic-green: #00827F;
   --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
+  --mussar-purple: var(--sefaria-purple);
   --responsa-red: #CB6158;
   --apocrypha-pink: #C6A7B4;
   --modern-works-blue: #B8D4D3;
