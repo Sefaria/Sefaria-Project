@@ -237,6 +237,23 @@ const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.
 const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
+
+// Keep authentication and password-recovery screens focused on the task at hand.
+const isChatbotBannerExcludedPath = (path, moduleUrl) => {
+  let pathname;
+  try {
+    // moduleUrl can be false (getModuleURL falls back to apiHost, which is empty
+    // during server-side rendering); only the pathname matters here, so any valid
+    // base keeps URL parsing from throwing mid-render.
+    pathname = new URL(path, moduleUrl || "https://www.sefaria.org").pathname;
+  } catch (e) {
+    return false;
+  }
+  return CHATBOT_BANNER_EXCLUDED_PATHS.some(
+    excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
+  );
+};
 
 const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
@@ -256,6 +273,9 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
     }
   };
 
+  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
+    return null;
+  }
   const isLoggedIn = !!Sefaria._uid;
   // Route anon login/register through the Library Assistant opt-in landing so that,
   // once they authenticate, they're auto-enrolled in the experiment and returned here —
@@ -291,4 +311,4 @@ ChatbotExperimentBanner.propTypes = {
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner };
+export { SiteWideBanner, ChatbotExperimentBanner, isChatbotBannerExcludedPath };
