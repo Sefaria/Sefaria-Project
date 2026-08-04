@@ -137,6 +137,11 @@ $stroke-strong:   1.5px;
     max-width: 348px;
   }
 
+  // MessageView (terminal-message cards) wants more breathing room between title and sub
+  &.sefaria-message-view .sefaria-auth-card-header {
+    gap: 32px;
+  }
+
   @include breakpoint(mobile) {
     min-height: 0;
     border-radius: 16px;

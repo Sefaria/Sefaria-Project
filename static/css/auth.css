@@ -125,6 +125,9 @@
   width: 100%;
   max-width: 348px;
 }
+.sefaria-auth-card.sefaria-message-view .sefaria-auth-card-header {
+  gap: 32px;
+}
 @media (max-width: 842px) {
   .sefaria-auth-card {
     min-height: 0;
