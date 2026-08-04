@@ -105,7 +105,7 @@ const editorApi = {
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/address-type`, {}, payload, 'PUT'),
   setNodeProperties: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/properties`, {}, payload, 'PUT'),
-  rebuildLinker: () => Sefaria.apiRequestWithBody('/admin/reset/linker', {}, {}, 'POST'),
+  rebuildLinkerResolvers: (langs) => Sefaria.apiRequestWithBody('/admin/reset/linker-resolvers', {}, { langs }, 'POST'),
   rebuildDiburHamatchils: (title) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/rebuild-dibur-hamatchils`, {}, {}, 'POST'),
 };
@@ -1105,7 +1105,7 @@ const LinkerEditorPage = () => {
   const [searchingTerm, setSearchingTerm] = useState(false);
   const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
-  const [rebuilding, setRebuilding] = useState(false);
+  const [rebuildingResolver, setRebuildingResolver] = useState(null);
   // Dibur-hamatchil rebuild state: dirty = a DH-relevant edit was made since the last
   // rebuild, so the stored dibur_hamatchils are stale until "Rebuild Dibur Hamatchils".
   const [dhDirty, setDhDirty] = useState(false);
@@ -1187,13 +1187,13 @@ const LinkerEditorPage = () => {
     }, 0);
   }, [title, loadIndex]);
 
-  const rebuildLinker = async () => {
-    setRebuilding(true);
+  const rebuildLinkerResolvers = async (langs, label) => {
+    setRebuildingResolver(label);
     try {
-      await editorApi.rebuildLinker();
-      alert(Sefaria._('Linker rebuilt.'));
+      await editorApi.rebuildLinkerResolvers(langs);
+      alert(Sefaria._('RefResolver rebuilt.'));
     } catch (e) { alert(e.message || String(e)); }
-    setRebuilding(false);
+    setRebuildingResolver(null);
   };
 
   const rebuildDiburHamatchils = async () => {
@@ -1255,9 +1255,30 @@ const LinkerEditorPage = () => {
                   />
                 </div>
               )}
-              <button className="linkerEditorBtn primary" disabled={rebuilding} onClick={rebuildLinker}>
-                {rebuilding ? Sefaria._('Rebuilding…') : Sefaria._('Rebuild linker')}
-              </button>
+              <div className="linkerEditorRebuildResolverControl">
+                <span className="linkerEditorRebuildResolverLabel">{Sefaria._('Rebuild RefResolver')}</span>
+                <button
+                  className="linkerEditorBtn small primary"
+                  disabled={!!rebuildingResolver}
+                  onClick={() => rebuildLinkerResolvers(['he'], 'he')}
+                >
+                  {rebuildingResolver === 'he' ? Sefaria._('Rebuilding…') : Sefaria._('He')}
+                </button>
+                <button
+                  className="linkerEditorBtn small primary"
+                  disabled={!!rebuildingResolver}
+                  onClick={() => rebuildLinkerResolvers(['en'], 'en')}
+                >
+                  {rebuildingResolver === 'en' ? Sefaria._('Rebuilding…') : Sefaria._('En')}
+                </button>
+                <button
+                  className="linkerEditorBtn small primary"
+                  disabled={!!rebuildingResolver}
+                  onClick={() => rebuildLinkerResolvers(['he', 'en'], 'both')}
+                >
+                  {rebuildingResolver === 'both' ? Sefaria._('Rebuilding…') : Sefaria._('Both')}
+                </button>
+              </div>
             </div>
           </div>
 

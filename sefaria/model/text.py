@@ -5765,6 +5765,20 @@ class Library(object):
         for lang in langs:
             self.build_linker(lang)
 
+    def rebuild_linker_resolvers(self, langs=("en", "he")):
+        """
+        Rebuild only the linker components affected by linker-editor metadata:
+        RefResolver and CategoryResolver. If a linker for a language has not been
+        initialized in this process, build the full linker once.
+        """
+        for lang in langs:
+            linker = self._linker_by_lang.get(lang)
+            if not linker:
+                self.build_linker(lang)
+                continue
+            linker._ref_resolver = self._build_ref_resolver(lang)
+            linker._cat_resolver = self._build_category_resolver(lang)
+
     def build_linker(self, lang: str):
         from sefaria.model.linker.linker import Linker
 

@@ -270,6 +270,7 @@ shared_patterns = [
     re_path(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     re_path(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     re_path(r'^admin/reset/linker$', sefaria_views.rebuild_linker),
+    re_path(r'^admin/reset/linker-resolvers$', sefaria_views.rebuild_linker_resolvers),
     re_path(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     re_path(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     re_path(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),

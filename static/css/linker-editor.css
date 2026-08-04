@@ -32,6 +32,19 @@
   width: 260px;
 }
 .linkerEditorHeaderTermSearch .linkerEditorTermInput { width: 100%; }
+.linkerEditorRebuildResolverControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.linkerEditorRebuildResolverLabel {
+  color: #555;
+  font-size: 13px;
+  margin-right: 2px;
+}
+.linkerEditorRebuildResolverControl .linkerEditorBtn {
+  min-width: 44px;
+}
 
 .linkerEditorBtn {
   background: #fff;

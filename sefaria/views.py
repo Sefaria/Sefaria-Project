@@ -751,6 +751,37 @@ def rebuild_linker(request):
 
 
 @staff_member_required
+def rebuild_linker_resolvers(request):
+    """
+    Rebuild only RefResolver and CategoryResolver for selected linker languages.
+    Used by /linker-editor after linker metadata edits.
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except ValueError:
+        return jsonResponse({"error": "Invalid JSON."}, status=400)
+
+    langs = body.get("langs", ["en", "he"])
+    if isinstance(langs, str):
+        langs = [langs]
+    if not isinstance(langs, list) or not langs:
+        return jsonResponse({"error": "langs must be a non-empty list."}, status=400)
+
+    valid_langs = {"en", "he"}
+    langs = list(dict.fromkeys(langs))
+    invalid_langs = [lang for lang in langs if lang not in valid_langs]
+    if invalid_langs:
+        return jsonResponse({"error": "Invalid linker language(s): {}.".format(", ".join(invalid_langs))}, status=400)
+
+    model.library.rebuild_linker_resolvers(langs)
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild_linker_resolvers", [langs])
+
+    return jsonResponse({"status": "ok", "langs": langs})
+
+
+@staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
