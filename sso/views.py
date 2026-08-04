@@ -13,7 +13,10 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from rest_framework import exceptions
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from emailusernames.utils import user_exists, get_user
 from sefaria.forms import SefariaPasswordResetForm
@@ -24,6 +27,59 @@ logger = structlog.get_logger(__name__)
 def _jwt_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {"access": str(refresh.access_token), "refresh": str(refresh)}
+
+
+def sso_only_account_info(email):
+    """
+    Return the list of SSO provider ids linked to `email`'s account if that
+    account is SSO-only (no usable password), or None if the account can
+    (also) sign in with a password, or doesn't exist.
+
+    Shared by email_login (web, session-based) and MobileTokenObtainPairView
+    (mobile, JWT-based) so both surface the same 'this account only has
+    Google/Apple sign-in' signal on a failed credential check.
+    """
+    if not user_exists(email):
+        return None
+    user = get_user(email)
+    if user.has_usable_password() or not user.socialaccount_set.exists():
+        return None
+    return list(user.socialaccount_set.values_list("provider", flat=True))
+
+
+class SSOAwareTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    SimpleJWT's TokenObtainPairSerializer with SSO-only-account detection
+    layered onto the failure path. On success, behaves identically to the
+    stock serializer (returns {access, refresh}). On failure, if the account
+    turns out to be SSO-only, raises AuthenticationFailed with a structured
+    detail mirroring email_login's JSON shape instead of SimpleJWT's generic
+    'no active account' message. Any other failure is re-raised unchanged.
+    """
+
+    def validate(self, attrs):
+        try:
+            return super().validate(attrs)
+        except exceptions.AuthenticationFailed:
+            providers = sso_only_account_info(attrs.get(self.username_field, ""))
+            if providers:
+                raise exceptions.AuthenticationFailed(
+                    {
+                        "error": "auth.generic_error",
+                        "_auth": {"code": "sso_only_account", "providers": providers},
+                    }
+                )
+            raise
+
+
+class MobileTokenObtainPairView(TokenObtainPairView):
+    """
+    api/login/ -- the JWT login endpoint used by the mobile app. Identical to
+    SimpleJWT's stock TokenObtainPairView except for SSO-only-account
+    detection on the failure path; see SSOAwareTokenObtainPairSerializer.
+    """
+
+    serializer_class = SSOAwareTokenObtainPairSerializer
 
 
 def _clean_name(value):
@@ -200,7 +256,9 @@ def password_reset_api(request):
 def email_login(request):
     """
     JSON email/password login for the SSO auth page. Session-based (not JWT).
-    The existing /login form view and /api/login JWT endpoint are unchanged.
+    The existing /login form view is unchanged; /api/login (mobile, JWT) uses
+    the same SSO-only-account detection via sso_only_account_info -- see
+    MobileTokenObtainPairView.
 
     Body (JSON): { email, password }
 
@@ -219,17 +277,15 @@ def email_login(request):
 
     user = authenticate(request, username=email, password=password)
     if user is None:
-        if user_exists(email):
-            u = get_user(email)
-            if not u.has_usable_password() and u.socialaccount_set.exists():
-                providers = list(u.socialaccount_set.values_list("provider", flat=True))
-                return JsonResponse(
-                    {
-                        "error": "auth.generic_error",
-                        "_auth": {"code": "sso_only_account", "providers": providers},
-                    },
-                    status=401,
-                )
+        providers = sso_only_account_info(email)
+        if providers:
+            return JsonResponse(
+                {
+                    "error": "auth.generic_error",
+                    "_auth": {"code": "sso_only_account", "providers": providers},
+                },
+                status=401,
+            )
         return JsonResponse(
             {"error": "auth.invalid_credentials"}, status=401
         )
