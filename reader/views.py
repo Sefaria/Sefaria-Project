@@ -23,7 +23,7 @@ from functools import lru_cache
 
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
-from sefaria.system.context_processors import _is_user_in_experiment
+from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
 from rest_framework.decorators import api_view, permission_classes
@@ -382,11 +382,16 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
-        chatbot_data["in_chatbot_experiment"] = True
-        if _is_user_in_experiment(request):
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
     return user_data
 
@@ -4080,8 +4085,15 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # TEMPORARY (goes with the experiments framework): legacy handling of the
+        # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
+
+        la_key = library_assistant.SETTING_KEY
+        if la_key in profileUpdate.get("settings", {}):
+            # Public endpoint — coerce so a posted "false" can't read as truthy.
+            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -4092,6 +4104,8 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # TEMPORARY (goes with the experiments framework): keep the Postgres
+            # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
@@ -4104,6 +4118,8 @@ def experiments_opt_in_api(request):
     """
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
+
+    TEMPORARY (goes with the experiments framework): no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4115,12 +4131,12 @@ def experiments_opt_in_api(request):
 
 def enable_library_assistant(request):
     """
-    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
-    The promo points login/register's ?next= here, so once authentication
-    completes the user lands here; we enroll them in the experiments whitelist and
-    bounce them back to where they were. On that reload the Library Assistant appears
-    with no extra "Join" click. Normal logins (which don't route through here) are
-    unaffected.
+    Turns the Library Assistant on after a promo-driven login or registration.
+    The promo CTA points login/register's ?next= here, so once authentication
+    completes the user lands here; we write settings.library_assistant = True for them
+    and bounce them back to where they were. On that reload the Library Assistant
+    appears with no extra "Join" click. Normal logins (which don't route through here)
+    are unaffected.
     """
     next_url = request.GET.get("next") or "/"
     if not url_has_allowed_host_and_scheme(
@@ -4133,9 +4149,9 @@ def enable_library_assistant(request):
     if not request.user.is_authenticated:
         return redirect_to_login(request.get_full_path())
 
-    # Prevent cross-site enrollment via GET.
+    # Prevent a cross-site request from turning the setting on via GET.
     if request.headers.get("Sec-Fetch-Site") != "cross-site":
-        _set_user_experiments(request.user, True)
+        library_assistant.set_enabled(request.user, True)
 
     # The register flow appends ?welcome=to-sefaria to its redirect target; forward
     # it onto the final destination so the new-user welcome still shows after the hop.
@@ -4294,6 +4310,9 @@ def profile_sync_api(request):
                 except ValueError as e:
                     logger.warning(f'profile_sync_api: {e}')
                     continue
+                if library_assistant.SETTING_KEY in field_data:
+                    # Public endpoint — coerce so a posted "false" can't read as truthy.
+                    field_data[library_assistant.SETTING_KEY] = library_assistant.normalize(field_data[library_assistant.SETTING_KEY])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
@@ -4468,11 +4487,16 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    # TEMPORARY (goes with the experiments framework): only gates the parked
+    # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        # The toggle must render the *effective* value: a user who is on through the
+        # legacy rule has no setting key yet, and must still see "On".
+        'library_assistant_enabled': library_assistant.is_enabled(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
