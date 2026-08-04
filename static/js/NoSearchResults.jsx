@@ -3,31 +3,11 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 
-const NO_RESULTS_CONTENT = {
-  sources: {
-    h1Key:     'search.null.sources.h1',
-    bodyKey:   'search.null.sources.body',
-    buttonKey: 'search.null.sources.button',
-    ctaHref:   '/texts',
-  },
-  books: {
-    h1Key:     'search.null.books.h1',
-    bodyKey:   'search.null.books.body',
-    buttonKey: 'search.null.books.button',
-    ctaHref:   '/texts',
-  },
-  authors: {
-    h1Key:     'search.null.authors.h1',
-    bodyKey:   'search.null.authors.body',
-    buttonKey: 'search.null.authors.button',
-    ctaHref:   '/people',
-  },
-  topics: {
-    h1Key:     'search.null.topics.h1',
-    bodyKey:   'search.null.topics.body',
-    buttonKey: 'search.null.topics.button',
-    ctaHref:   '/topics',
-  },
+const CTA_HREFS = {
+  sources: '/texts',
+  books:   '/texts',
+  authors: '/people',
+  topics:  '/topics',
 };
 
 function renderCaption() {
@@ -46,8 +26,8 @@ function renderCaption() {
 }
 
 function NoSearchResults({ mode, query }) {
-  const { h1Key, bodyKey, buttonKey, ctaHref } = NO_RESULTS_CONTENT[mode] || {};
-  const heading = Sefaria._(h1Key).replace('[query]', query);
+  const key = (type) => `search.null.${mode}.${type}`;
+  const heading = Sefaria._(key('h1')).replace('[query]', query);
 
   return (
     <div className="noSearchResults">
@@ -61,11 +41,11 @@ function NoSearchResults({ mode, query }) {
         <div className="noSearchResults-textGroup">
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body">
-            <InterfaceText>{bodyKey}</InterfaceText>
+            <InterfaceText>{key('body')}</InterfaceText>
           </p>
         </div>
-        <a href={ctaHref} className="noSearchResults-cta">
-          <InterfaceText>{buttonKey}</InterfaceText>
+        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+          <InterfaceText>{key('button')}</InterfaceText>
         </a>
         {renderCaption()}
       </div>
