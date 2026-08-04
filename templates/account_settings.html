@@ -255,6 +255,7 @@
 			// Single handler for all save buttons using class selector
             $(".saveAccountSettingsBtn").click(function(){
 			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
+			    const $newLibraryAssistant = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
 				let profile = {
                     settings: {
                         email_notifications: $("#emailNotifications .toggleOption.on").attr("data-value"),
@@ -263,9 +264,15 @@
                         reading_history: $("#readingHistory .toggleOption.on").attr("data-value") === "true" ? true : false,
                         translation_language_preference: $newTransLangPref,
                         translation_language_preference_suggested: true,
-                        library_assistant: $("#libraryAssistantSetting .toggleOption.on").attr("data-value") === "true",
                     }
 				};
+				// Only send library_assistant when the toggle was actually changed. The toggle
+				// renders the *effective* value, so submitting it unconditionally would persist
+				// the setting for users whose profiles don't carry the key yet — and a profile
+				// that has the key is skipped by the opt-out migration.
+				if ($newLibraryAssistant !== $curLibraryAssistant) {
+				    profile.settings.library_assistant = $newLibraryAssistant === "true";
+				}
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
                 $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
                 $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
@@ -279,7 +286,7 @@
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
 						}
 						// Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
-						if ($newLang != $curLang || String(profile.settings.library_assistant) !== $curLibraryAssistant) {
+						if ($newLang != $curLang || $newLibraryAssistant !== $curLibraryAssistant) {
 							window.location.reload();
 							return;
 						}
