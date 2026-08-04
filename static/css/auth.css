@@ -12,7 +12,7 @@
 
 .sefaria-auth-page {
   position: absolute;
-  top: var(--header-height);
+  top: var(--header-offset);
   left: 0;
   right: 0;
   bottom: 0;

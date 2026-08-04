@@ -29,7 +29,7 @@ $stroke-strong:   1.5px;
 .sefaria-auth-page {
   // Mirror #panelWrapBox pattern: position absolute so height is truly constrained → overflow-y works
   position: absolute;
-  top: var(--header-height);
+  top: var(--header-offset); // 0 when a siteWideBanner already pushed #main down (see #main in s2.css)
   left: 0;
   right: 0;
   bottom: 0;
