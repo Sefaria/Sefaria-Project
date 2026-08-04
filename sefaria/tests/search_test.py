@@ -162,6 +162,9 @@ class _FakeAuthorTopic:
     slug = "rambam"
     subclass = "author"
     description = {"en": "", "he": ""}
+    # numSources is deliberately still set here even though the builder no longer reads it:
+    # it lets test_make_topic_index_document_omits_num_sources prove the omission is real
+    # rather than an artifact of the fixture not having the attribute.
     numSources = 100
 
     def get_primary_title(self, lang):
@@ -195,6 +198,91 @@ def test_make_topic_index_document_authored_titles_from_map():
     doc = make_topic_index_document(_FakeAuthorTopic(), titles_map)
     assert doc["authored_titles_en"] == ["Mishneh Torah", "Yad HaChazakah"]
     assert doc["authored_titles_he"] == ["משנה תורה"]
+
+
+def test_make_topic_index_document_omits_num_sources():
+    """
+    numSources is no longer indexed. The topic it is built from *does* carry the attribute
+    (see _FakeAuthorTopic), so this asserts a deliberate omission, not a missing input.
+
+    It backed the popularity function_score on relevance, which was never specced and was
+    removed; nothing else in the entity pipeline reads it. Re-adding it means editing both
+    put_topic_mapping and make_topic_index_document, plus a reindex.
+    """
+    doc = make_topic_index_document(_FakeAuthorTopic(), {"rambam": {"en": [], "he": []}})
+    assert "numSources" not in doc
+
+
+class _FakeYearAuthorTopic(_FakeAuthorTopic):
+    """_FakeAuthorTopic with its year properties swapped out per test case."""
+
+    def __init__(self, **properties):
+        self._properties = properties
+
+    def get_property(self, key):
+        return self._properties.get(key)
+
+
+class _FakePlainTopic:
+    """A non-author topic: no year properties, so no sortYear."""
+    slug = "prayer"
+    subclass = "topic"
+    description = {"en": "", "he": ""}
+
+    def get_primary_title(self, lang):
+        return "תפילה" if lang == "he" else "Prayer"
+
+    def get_titles(self, lang, with_disambiguation=False):
+        return ["Prayer"]
+
+    def get_property(self, key):
+        return None
+
+
+@pytest.mark.parametrize("properties, expected", [
+    # the ordinary case: a death year wins outright
+    ({"birthYear": 1138, "deathYear": 1204}, 1204),
+    # the bug this field exists to fix — a birth-year-only author used to sort on a missing
+    # deathYear and land in the undated tail, even though their card displays 1138
+    ({"birthYear": 1138}, 1138),
+    ({"deathYear": 1204}, 1204),
+    # years are free-form Topic properties, so numeric strings must coerce...
+    ({"birthYear": "1138", "deathYear": "1204"}, 1204),
+    # ...and unusable values must fall through to the next candidate rather than poison the sort
+    ({"birthYear": 1138, "deathYear": ""}, 1138),
+    ({"birthYear": 1138, "deathYear": "c. 1204"}, 1138),
+    # BCE years are negative and year 0 is a real value: both must survive a truthiness-free check
+    ({"deathYear": -50}, -50),
+    ({"deathYear": 0}, 0),
+])
+def test_make_topic_index_document_sort_year(properties, expected):
+    """
+    sortYear is the single derived year the chronological sort keys on: deathYear, falling
+    back to birthYear. The arch doc specced this fallback but the ES sort was a bare
+    deathYear field sort, so it only ever happened client-side (and only within one page of
+    hits). Deriving it at index time makes the server sort agree with the displayed year.
+    """
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
+                                    {"rambam": {"en": [], "he": []}})
+    assert doc["sortYear"] == expected
+
+
+@pytest.mark.parametrize("properties", [{}, {"birthYear": None, "deathYear": ""}])
+def test_make_topic_index_document_omits_unusable_sort_year(properties):
+    """
+    An author with no usable year gets no sortYear key at all (_without_none drops it),
+    rather than a null or a 0 that would sort as year zero. Such authors then trail via the
+    sort clause's `missing: "_last"`, in both directions.
+    """
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
+                                    {"rambam": {"en": [], "he": []}})
+    assert "sortYear" not in doc
+
+
+def test_make_topic_index_document_no_sort_year_on_plain_topics():
+    """Only authors carry years; topics have no year sort at all (see ENTITY_SORTS)."""
+    doc = make_topic_index_document(_FakePlainTopic())
+    assert "sortYear" not in doc
 
 
 @pytest.mark.parametrize("bad_exc", [

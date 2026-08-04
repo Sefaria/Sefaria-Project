@@ -244,7 +244,8 @@ ENTITY_TYPES = ("topic", "author", "book")
 
 # Sort options per entity type. "relevance" is the scored default; the others impose an
 # explicit field order: "alpha" A-Z on the lowercased English title, "year_asc"/"year_desc"
-# chronological on the per-type year field (books: composition date; authors: birth year).
+# chronological on the per-type year field (books: composition date; authors: death year,
+# falling back to birth year — see _ENTITY_YEAR_SORT_FIELDS).
 # Topics have no year, so they only offer relevance and A-Z. Sources (the `text` index) are
 # a separate query path and are deliberately untouched.
 ENTITY_SORTS = {
@@ -253,7 +254,13 @@ ENTITY_SORTS = {
     "book": ("relevance", "alpha", "year_asc", "year_desc"),
 }
 _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see put_*_mapping)
-_ENTITY_YEAR_SORT_FIELDS = {"author": "deathYear", "book": "compDate"}
+# Both year fields are *derived at index time* into a single sortable int, so the sort is a
+# plain field sort with no per-query fallback logic: books collapse Mongo's `compDate` list
+# via `best_time_period`, authors collapse death-year-else-birth-year via `_author_sort_year`
+# (both in sefaria/search.py). Sorting authors on the raw `deathYear` instead would push every
+# author who has only a birth year into the `missing: _last` undated tail, disagreeing with
+# the year their result card displays. Changing either derivation needs a reindex.
+_ENTITY_YEAR_SORT_FIELDS = {"author": "sortYear", "book": "compDate"}
 
 # Default per-field match boosts for the tier-3 best_fields multi_match, in priority
 # order: title -> title variants -> the name/works fields (author names on books,
@@ -394,14 +401,14 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
       4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
       5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
 
-    Topic/author results are then multiplied by a gentle log-scaled `numSources`
-    popularity factor (>= 1, so it breaks ties toward well-sourced entities without
-    zeroing or dominating a strong text match). Books carry no `numSources`.
+    Relevance is *purely textual* — the match tiers above are the whole score. Topic/author
+    results were briefly multiplied by a log-scaled `numSources` popularity factor; that was
+    never a specced requirement and is removed, so a well-sourced entity no longer outranks a
+    better textual match. `numSources` is no longer indexed at all (see put_topic_mapping) —
+    re-adding any source-count behavior needs a reindex, not just a query change.
 
     A non-relevance `sort` ("alpha" / "year_asc" / "year_desc") keeps the same match set
-    but orders it by the sort field instead of score (see _entity_sort_clauses). The
-    popularity function_score is skipped in that case — score is then only a tie-breaker,
-    and the tier boosts already provide that without the script cost.
+    but orders it by the sort field instead of score (see _entity_sort_clauses).
 
     `category_paths` (books only) restricts hits to books whose `path` sits at or under
     any of the given category paths — the same path-regexp semantics as text search
@@ -419,8 +426,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     sort_clauses = _entity_sort_clauses(type, sort)
     if search_obj is None:
         search_obj = Search()
-    is_book = type == "book"
-    if category_paths and not is_book:
+    if category_paths and type != "book":
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
@@ -459,25 +465,8 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     else:
         base_query = text_query
 
-    if is_book or sort_clauses is not None:
-        search_obj.query = base_query
-    else:
-        # Multiply the text score by a gentle popularity factor: 1 + log10(1 + numSources)*w.
-        # A zero-source entity keeps its text score unchanged (factor 1.0); a heavily-sourced
-        # one is nudged up (~1.7x at ~7000 sources). It breaks ties without dominating and,
-        # unlike field_value_factor(log1p), never zeroes a sourceless-but-relevant match.
-        search_obj.query = {
-            "function_score": {
-                "query": base_query.to_dict(),
-                "script_score": {
-                    "script": {
-                        "source": "1 + Math.log10(1 + (doc['numSources'].size() == 0 ? 0 : doc['numSources'].value)) * params.weight",
-                        "params": {"weight": 0.2},
-                    }
-                },
-                "boost_mode": "multiply",
-            }
-        }
+    # Score is the tiered text match, nothing else — no document-signal (popularity) boost.
+    search_obj.query = base_query
 
     if sort_clauses is not None:
         search_obj = search_obj.sort(*sort_clauses)
@@ -737,8 +726,9 @@ def process_index_title_change_in_search(indx, **kwargs):
 # Entity search (`topic` and `book` indices behind /api/entity-search).
 # One entity = one ES doc with a deterministic id (book: English title, topic: slug),
 # so a save is a plain upsert; only a rename (id change) or a delete needs an explicit
-# doc deletion. Aggregate fields that drift continuously (numSources etc.) are
-# deliberately NOT chased here — the weekly full rebuild reconciles them.
+# doc deletion. Aggregate fields that drift continuously are deliberately NOT chased
+# here — the weekly full rebuild reconciles them. (The one such field these indices
+# carried, numSources, is no longer indexed at all.)
 
 def process_index_title_change_in_book_search(indx, **kwargs):
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:

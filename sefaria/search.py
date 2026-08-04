@@ -585,9 +585,13 @@ def put_topic_mapping(index_name):
             'description_he': {
                 'type': 'text',
             },
-            'numSources': {
-                'type': 'integer',
-            },
+            # No `numSources`. It was indexed only to drive a popularity function_score on
+            # relevance, which was never specced and has been removed; nothing in the entity
+            # search pipeline reads it (no ranking, no filter, and the frontend never
+            # displays it). Re-add it here *and* in make_topic_index_document if a
+            # source-count filter is ever specced — that needs a reindex, not just a query
+            # change. The Mongo `Topic.numSources` field is untouched and still drives topic
+            # pages / the topics TOC / the autocompleter via Topic.should_display().
             'era': {
                 'type': 'keyword',
             },
@@ -595,6 +599,16 @@ def put_topic_mapping(index_name):
                 'type': 'integer',
             },
             'deathYear': {
+                'type': 'integer',
+            },
+            # The author's single derived year for the chronological sort: `deathYear`,
+            # falling back to `birthYear` when there is no death year (see
+            # `_author_sort_year`). Sorting on the raw `deathYear` instead would drop
+            # every birth-year-only author into the `missing: _last` undated tail, which
+            # contradicts the year the card actually displays (SearchPage.jsx). This
+            # mirrors the book index, whose `compDate` is likewise collapsed to one
+            # sortable int at index time rather than derived per query.
+            'sortYear': {
                 'type': 'integer',
             },
             # Denormalized titles of the books this author wrote (analyzed text, split
@@ -1318,6 +1332,36 @@ def _build_authored_titles_map():
     return titles_by_slug
 
 
+def _as_year_int(value):
+    """
+    Coerce a stored year property to an int, or None if it isn't a usable number.
+
+    Author years come from free-form `Topic.properties`, so a year can arrive as an int
+    (1204), a numeric string ('1204'), an empty string, or an unparseable scrap like
+    'c. 1204'. Anything that isn't a plain number is treated as absent so it can fall
+    through to the next candidate year rather than poison the sort.
+    """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _author_sort_year(topic):
+    """
+    The single year an author sorts by: `deathYear`, falling back to `birthYear`, or
+    None when neither is usable (that author then trails via the sort's `missing: _last`).
+
+    Note the `is not None` check rather than truthiness: year 0 is a real (if unlikely)
+    value, and BCE years are stored negative, so both must survive the fallback.
+    """
+    for prop in ('deathYear', 'birthYear'):
+        year = _as_year_int(topic.get_property(prop))
+        if year is not None:
+            return year
+    return None
+
+
 def make_topic_index_document(topic, authored_titles_map=None):
     """
     Build an Elasticsearch document for a Topic (or AuthorTopic) for the `topic` index.
@@ -1367,7 +1411,6 @@ def make_topic_index_document(topic, authored_titles_map=None):
         'titleVariants': variants,
         'description_en': strip_markdown(description.get('en', '')),
         'description_he': strip_markdown(description.get('he', '')),
-        'numSources': getattr(topic, 'numSources', 0) or 0,
     }
 
     if is_author:
@@ -1378,6 +1421,10 @@ def make_topic_index_document(topic, authored_titles_map=None):
         doc['era'] = topic.get_property('era')
         doc['birthYear'] = topic.get_property('birthYear')
         doc['deathYear'] = topic.get_property('deathYear')
+        # birthYear/deathYear above are indexed raw for display; `sortYear` is the derived
+        # single year the chronological sort keys on (death year, else birth year). It is
+        # computed here rather than in the query so the sort stays a plain field sort.
+        doc['sortYear'] = _author_sort_year(topic)
         # Denormalize the titles of this author's works (EN incl. variants + HE, the
         # same title set the book index carries — see _authored_index_titles) so the
         # author is searchable by any name of a book they wrote (e.g. "Mishneh Torah"

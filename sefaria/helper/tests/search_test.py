@@ -90,15 +90,13 @@ def test_text_filter_default_agg_type():
 
 
 def test_entity_query_obj_relevance_default():
-    # relevance (the default): scored order — no sort clause; topic/author queries are
-    # wrapped in the numSources popularity function_score.
-    s = get_entity_query_obj("moshe", "topic").to_dict()
-    assert "sort" not in s
-    assert "function_score" in s["query"]
-    # books have no numSources, so no function_score even on relevance
-    s = get_entity_query_obj("moshe", "book").to_dict()
-    assert "sort" not in s
-    assert "function_score" not in s["query"]
+    # relevance (the default): scored order — no sort clause. Relevance is purely the text
+    # match tiers; no document-signal boost wraps the query for any entity type. (The
+    # numSources popularity function_score was removed — it was never a specced requirement.)
+    for entity_type in ("topic", "author", "book"):
+        s = get_entity_query_obj("moshe", entity_type).to_dict()
+        assert "sort" not in s
+        assert "function_score" not in s["query"]
 
 
 def test_entity_query_obj_alpha_sort():
@@ -107,24 +105,29 @@ def test_entity_query_obj_alpha_sort():
         {"title_en.sort": {"order": "asc", "missing": "_last"}},
         {"_score": {"order": "desc"}},
     ]
-    # an explicit sort drops the popularity function_score (score is only a tie-breaker)
     assert "function_score" not in s["query"]
 
 
 def test_entity_query_obj_year_sorts():
-    # books sort by composition date, authors by birth year; missing values always last
+    # Both types sort on a single year derived at index time, never on a raw property:
+    # books on `compDate` (Mongo's compDate list collapsed by best_time_period), authors on
+    # `sortYear` (death year, falling back to birth year — see _author_sort_year). Sorting
+    # authors on a bare `deathYear` would drop every birth-year-only author into the
+    # missing-value tail even though their card shows a year. Missing values always last.
     s = get_entity_query_obj("rambam", "book", sort="year_desc").to_dict()
     assert s["sort"][0] == {"compDate": {"order": "desc", "missing": "_last"}}
     s = get_entity_query_obj("rambam", "author", sort="year_asc").to_dict()
-    assert s["sort"][0] == {"birthYear": {"order": "asc", "missing": "_last"}}
+    assert s["sort"][0] == {"sortYear": {"order": "asc", "missing": "_last"}}
+    assert s["sort"][0] != {"deathYear": {"order": "asc", "missing": "_last"}}
 
 
 def test_entity_query_obj_sort_keeps_match_set():
-    # sorting reorders the same match set: the text query is identical to relevance's
-    # unwrapped bool query (for a type with no popularity wrapper)
-    relevance = get_entity_query_obj("moshe", "book").to_dict()
-    alpha = get_entity_query_obj("moshe", "book", sort="alpha").to_dict()
-    assert ordered(alpha["query"]) == ordered(relevance["query"])
+    # sorting reorders the same match set: the text query is byte-identical to relevance's.
+    # Now that nothing wraps the relevance query, this holds for every entity type.
+    for entity_type in ("topic", "author", "book"):
+        relevance = get_entity_query_obj("moshe", entity_type).to_dict()
+        alpha = get_entity_query_obj("moshe", entity_type, sort="alpha").to_dict()
+        assert ordered(alpha["query"]) == ordered(relevance["query"])
 
 
 def test_entity_query_obj_category_filter():

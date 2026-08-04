@@ -60,14 +60,14 @@ One document per Topic **in the `library` TopicPool**. Pool membership (curated 
 | `titleVariants` | `text` | `stemmed_english` | Alternate titles — the main recall driver |
 | `description_en` | `text` | `stemmed_english` | Returned for display only; **not searched** |
 | `description_he` | `text` | plain `text` | Returned for display only; **not searched** |
-| `numSources` | `integer` | — | Popularity signal for `function_score` ranking |
 | `era` | `keyword` | — | Author-only: historical period |
 | `birthYear` | `integer` | — | Author-only: for display and filtering |
 | `deathYear` | `integer` | — | Author-only: for display and filtering |
+| `sortYear` | `integer` | — | Author-only: the derived year the chronological sort keys on — `deathYear`, falling back to `birthYear` (see Sorting) |
 | `authored_titles_en` | `text` + `keyword` | `stemmed_english` | Author-only: denormalized titles of the author's works, **including English title variants** — the same title set the book doc indexes (`title_en` + `titleVariants`), so any query that returns a book in the Books tab also returns its author in the Authors tab (e.g. "Moreh Nevukhim" → Rambam) |
 | `authored_titles_he` | `text` + `keyword` | plain `text` | Author-only: Hebrew primary titles of the author's works (mirrors the book doc's `title_he`) |
 
-Author-only fields (`era`, `birthYear`, `deathYear`, `authored_titles_*`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
+Author-only fields (`era`, `birthYear`, `deathYear`, `sortYear`, `authored_titles_*`) are sparse on topic documents. Document id = topic `slug`, so reindexing is idempotent.
 
 **`book` index — Index (book) records**
 
@@ -98,7 +98,7 @@ Two structural choices:
 - **Title and description fields** use a `stemmed_english` analyzer so queries match on stems; Hebrew fields are plain `text`.
 - **Title fields also expose a `keyword` sub-field** for exact-match and sort use cases.
 - **Identifiers and facets are `keyword`**: `slug`, `subtype`, `categories`, `path`, `authors`, `era`, `order`.
-- **Numeric fields** (`numSources`, `birthYear`, `deathYear`, `compDate`) are integers, usable for ranking and range logic.
+- **Numeric fields** (`birthYear`, `deathYear`, `compDate`) are integers, usable for ranking and range logic.
 
 The analyzers (`stemmed_english`, `exact_english`) are the same family already defined for the `text` index.
 
@@ -107,7 +107,7 @@ The analyzers (`stemmed_english`, `exact_english`) are the same family already d
 The pipeline plugs into the existing reindex infrastructure rather than building a parallel one.
 
 **Document builders** are pure functions that turn a model object into an ES document dict:
-- *Topic builder*: reads titles, variants, descriptions, and `numSources`; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
+- *Topic builder*: reads titles, variants, and descriptions; sets `subtype`; adds author-only fields for `AuthorTopic`. Returns `None` for topics missing a slug and title in at least one language (many are Hebrew-only).
 - *Book builder*: reads titles, variants, categories, descriptions, `compDate`, era, and authors; computes `path`; resolves each author slug to display names for `author_names`. Author-name resolution is cached (one author appears on many books). `compDate` is stored in Mongo as a list; the builder collapses it to a single sortable integer. The book's `collective_title` — a **string** term key like `"Rashi"` or `"Chafetz Chaim"` (not a dict) — is appended to the variant list so commentaries are findable by their commentator name. *(Regression guard: an interim version treated `collective_title` as a dict (`.get('en')`) and threw on every book that had one — all commentaries, Targums, Rashi, etc. — silently dropping ~83% of Index records from the `book` index. The builder swallows per-doc errors, so this surfaced only as missing search results, not a failed reindex.)*
 
 **Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
@@ -117,7 +117,7 @@ Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_
 
 ### Query path
 
-The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, `numSources`).
+The endpoint accepts a query string and a `type` of `topic`, `author`, or `book`. Hits return self-contained documents (titles, descriptions, and the author-only year/era fields).
 
 #### Elastic Search Scoring Mechanisms
 
@@ -131,7 +131,11 @@ An entity query is a `bool should` that layers several **match tiers** over Engl
 - **Exact phrase (`match_phrase`, titles only)** — the query as an ordered phrase.
 - **Exact-word match (`best_fields`, ×2 boost)** — all query words, best-matching field wins; the per-field boosts (`title_en^3` > `titleVariants^2` > `author_names^1.5`) are the RemoteConfig-tunable knob (see below).
 - **Prefix match (`phrase_prefix`, titles only)** — handles mid-typing. "Mos" isn't a token, so `phrase_prefix` treats the last query word as a prefix → "Moses", "Moshe", etc.
-- **Popularity boost (`function_score` on `numSources`)** — topics/authors only (books carry no `numSources`). Multiplies the text score by a gentle log-scaled source-count factor (Moses 7,074 refs ≫ Mosquitoes 3) so it breaks ties toward well-sourced entities without dominating. Skipped when an explicit sort is active.
+**Relevance is purely textual.** The tiers above are the entire score — no document signal (popularity, page rank, etc.) is layered on top, for any entity type.
+
+> **Removed: the `numSources` popularity boost — and the field itself.** An earlier iteration wrapped topic/author queries in a `function_score` that multiplied the text score by a log-scaled source-count factor (`1 + log10(1 + numSources) * 0.2` — roughly a 1.7× lift at ~7,000 sources), nudging results toward well-sourced entities (Moses 7,074 refs ≫ Mosquitoes 3). It was never a specced requirement, so it was taken out rather than left as an untracked thumb on the scale. That left `numSources` with no reader anywhere in the pipeline — not ranking, not filtering, and the frontend never displayed it — so it was dropped from the topic mapping and the document builder too, rather than kept as a field nothing consumes.
+>
+> **Consequence:** re-introducing any source-count behavior (see the open ["topic results with no sources"](#open-questions) question) now needs a **reindex**, not just a query change — the data is no longer in the index. The Mongo `Topic.numSources` field is untouched and still drives topic pages, the topics TOC, and the autocompleter via `Topic.should_display()`. Any future document-signal ranking should come in deliberately, via the structured `signal_boosts` shape sketched under [Product-configurable ranking](#product-configurable-ranking-remoteconfig), not as an implicit default.
 
 **Length normalization.** `title_en` keeps BM25 length norms **on**, so a short, focused title outscores a longer title that merely *contains* the query words for the same matched term ("Chafetz Chaim" > "Chafetz Chaim on Sifra"). `titleVariants` keeps norms **off**, so a book with a rich variant list isn't penalized on the variant tiers.
 
@@ -144,7 +148,7 @@ A natural extension is to lift the ranking weights out of code and into a Remote
 The catch is that **not every ranking factor reduces to a single per-field weight.** The inputs fall into a few kinds, only one of which fits the flat model:
 
 - **Match boosts — configurable.** Weights on the searchable text fields (`title_en`, `titleVariants`, `author_names`, …). One weight per field, safe for product to edit directly. **Scope:** RemoteConfig tunes *only* the tier-3 `best_fields` weights. The exact-match tier's `constant_score` boosts (primary **1000** / secondary **100**) and the `title_en` length-norm setting are fixed in code — they are structural guarantees ("an exact title always wins"), not ranking knobs, so they are deliberately not RemoteConfig-exposed. Overrides still validate against the default field allow-list: an unknown or misspelled field name is ignored with a warning, never added to the query.
-- **Document signals — need more structure.** Numeric properties that should lift a document *regardless of the query* — e.g. ranking authors with more `numSources` above those with fewer, or a future per-book page rank to float more-studied books to the top. These feed a `function_score`, not the field list, and a bare weight is not enough: the raw values live on very different scales (`numSources` spans 0–7,000+), so each needs a scaling modifier (e.g. log) and missing-value handling, not just a multiplier.
+- **Document signals — need more structure. None are active today.** Numeric properties that would lift a document *regardless of the query* — e.g. ranking authors with more `numSources` above those with fewer, or a future per-book page rank to float more-studied books to the top. The `numSources` version of exactly this was built and then removed (see [Elastic Search Scoring Mechanisms](#elastic-search-scoring-mechanisms)) because it was never specced; the lesson is that this class of factor needs a product decision, not a default. These feed a `function_score`, not the field list, and a bare weight is not enough: the raw values live on very different scales (`numSources` spans 0–7,000+), so each needs a scaling modifier (e.g. log) and missing-value handling, not just a multiplier.
 - **Categorical preferences — don't fit at all.** Wanting certain categories to outrank others (e.g. surfacing Halakhah above a niche category) is a weight per *value*, not per *field* — a different shape again (`{category: weight}`), wired as filtered boost clauses.
 
 In short, the match-boost weights are a clean, low-risk knob to hand to product via RemoteConfig, but signal- and category-based factors require purpose-built structure in the query builder and can't be collapsed into the same flat field→weight map. A RemoteConfig schema for this should therefore separate these concerns (e.g. a `match_boosts` map distinct from `signal_boosts`) rather than expose one undifferentiated dictionary — and should validate keys against the real index fields, since a typo'd field name would silently boost nothing.
@@ -157,15 +161,15 @@ Each entity tab offers explicit sort orders in addition to the default relevance
 |---|---|---|
 | Sources | *no change* | — |
 | Books | Relevance · Publication Year (Oldest/Newest First) · A-Z | `compDate` |
-| Authors | Relevance · Year (Oldest/Newest First) · A-Z | `deathYear`, falling back to `birthYear` |
+| Authors | Relevance · Year (Oldest/Newest First) · A-Z | `sortYear` (= `deathYear`, falling back to `birthYear`) |
 | Topics | Relevance · A-Z | — |
 
 The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a sort invalid for the type (e.g. a year sort on topics) is rejected. Mechanics:
 
-- **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. The `numSources` popularity `function_score` is skipped when a field sort is active (score is then only a tie-breaker; the tier boosts provide that without the script cost).
+- **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. Because relevance carries no score wrapper, the query is now byte-identical under every sort — the sort clause is the only difference.
 - **A-Z is case-insensitive.** Sorting uses a `title_en.sort` keyword sub-field with a `lowercase` normalizer (a raw `keyword` sort would put "iggeret" after "Zohar"). Both title fields on both indices carry the sub-field, so a Hebrew-interface א-ת sort on `title_he.sort` needs no reindex later.
 - **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
-- **An entity's year is a single derived number, and it must be the year the card displays.** A book collapses Mongo's `compDate` *list* to one sortable int at index time (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author's year is `deathYear`, **falling back to `birthYear` when there is no death year**. 
+- **An entity's year is a single derived number, and it must be the year the card displays.** Both types derive that number **at index time**, so the ES sort is always a plain field sort with no per-query fallback logic. A book collapses Mongo's `compDate` *list* to one sortable int (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author collapses to a **`sortYear`** field: `deathYear`, **falling back to `birthYear` when there is no death year** (`_author_sort_year`; raw `birthYear`/`deathYear` are still indexed separately for display). Sorting authors on the raw `deathYear` instead — as the query briefly did — pushes every author who has only a birth year into the `missing: "_last"` undated tail while their card still shows a year; the client-side re-sort in `sortEntityHits` cannot compensate, because it only reorders the page of hits already returned. Changing either derivation requires a **reindex**, not just a query change.
 
 - **Explicit sorts keep the author-works aggregation.** On the Books tab, a query that resolves to an author returns category-aggregated works (see below) under every sort, not just relevance. To make that sortable, each aggregated row carries a `compDate`: an individual work's own composition year, or — for a category row, which collapses many works and dates into one entry — the **average year of its dated works** (`AuthorCategoryAggregation.get_comp_date`). The rows are then sorted in code with the same semantics as the flat ES sorts (A-Z on lowercased English title; year sorts on `compDate`; missing keys last in either direction). An earlier iteration bypassed the aggregation on explicit sorts to expose each book's individual date; product preferred preserving the collapsed view, with a representative date per category. (Alternative considered: keying a category by its *first* work's date rather than the average — rejected because "first" follows canonical library order, not chronology.)
 
@@ -207,10 +211,10 @@ GET /api/entity-search?q=Rambam&type=author
       "title_he": "רמב\"ם",
       "titleVariants": ["Rambam", "Moses Maimonides", "Moses ben Maimon"],
       "description_en": "Rabbi Moshe ben Maimon (1138–1204), prolific halakhic authority and philosopher.",
-      "numSources": 7074,
       "era": "RI",
       "birthYear": 1138,
-      "deathYear": 1204
+      "deathYear": 1204,
+      "sortYear": 1204
     }
   ],
   "total": 1
@@ -337,7 +341,7 @@ This resolves the open **"eager vs. lazy entity search"** question (see [Open Qu
 - **Topic descriptions** — how much do we display? (The search side is decided: descriptions are never searched, only displayed.)
 - **Ref queries ("Genesis 1:1")** — it's unclear whether a ref-shaped query should trigger a search or directly load that ref in the reader. Needs a product decision before building: these are fundamentally different UX flows.
 - **Hebrew text analysis** — entity search uses a built-in `stemmed_english` analyzer for English fields and plain `text` for Hebrew. Hebrew morphology is complex (prefixes, root-based stems) and plain tokenization may hurt recall for Hebrew queries. Worth considering a dedicated Hebrew analyzer, though this may be out of scope for the initial MVP.
-- **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). The `numSources` field is already indexed; the question is where to apply the filter — as a hard `must` filter in the query, a minimum `numSources` threshold, or at render time.
+- **Topic results with no sources** — topics with zero associated sources should probably not appear in results (a topic with no sources is not useful to a user). Note this is now a **larger change than it was**: `numSources` is no longer indexed (see [Elastic Search Scoring Mechanisms](#elastic-search-scoring-mechanisms)), so building this means re-adding the field to the mapping and builder *and* running a reindex, on top of deciding where the filter applies (a hard `must`/`range` filter in the query, a threshold, or at render time — render time being the worst option, since it desynchronizes the `total` the count badges read). Also worth settling: whether the rule is a bare count or the richer `Topic.should_display()` semantics used elsewhere in the codebase, which admits a topic with few sources if it has a description. Partly mitigated already — only the curated ~5.5k `library` TopicPool is indexed, so the worst auto-generated zero-source noise never reaches the index.
 - **When to Call the Entity Search** - either on every search (what was implemented on the POC) or only on tab switch. POC queries all three in parallel so results are ready before the user switches tabs. 
 
 ## Localization (Weblate)
@@ -388,6 +392,7 @@ The infrastructure (Coolify instance, Google SSO, machine user) is **already sto
 - Book matching - if index matches query add relevance
 - **Chronological Ordering** - Add an ability to sort sources by chronology (i.e. current view is relevance, add a toggle for chronology)
 - **Date of Death** - Show author date of death next to name if relevant
+- **Send the entity `sort` to the API** — the sort orders described under [Sorting](#sorting-entity-tabs-only) are implemented and tested on the backend, but the search page never requests them: `entitySearch` (`static/js/sefaria/search.js`) builds its URL from `q`, `type` and `start` only, and `setEntitySort` (`static/js/SearchPage.jsx`) just sets React state. So every request uses the default `sort=relevance`, and the dropdown selection is applied client-side by `sortEntityHits` to the hits already in memory. Two consequences: the server-side sort clauses are currently unreachable from the UI, and — because the tabs page in more hits on scroll in *relevance* order — "Year (Oldest First)" returns the oldest of an arbitrary loaded subset rather than the oldest authors, reshuffling as the user scrolls. An author who ranks poorly on relevance never surfaces near the top no matter how old they are. The fix is to thread `sort` through `entitySearch` (URL **and** cache key), refetch from `start=0` with the accumulated hits cleared whenever the sort changes, and then retire `sortEntityHits` — leaving a second sort implementation in the client is what let the author year rule drift from the server's in the first place.
 
 ### Categories as first-class search entities
 

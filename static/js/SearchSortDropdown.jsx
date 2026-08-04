@@ -31,17 +31,23 @@ export const sortEntityHits = (hits, type, sortKey) => {
       (a.title_en || a.title_he || '').localeCompare(b.title_en || b.title_he || '')
     );
   }
-  // Some author records carry their years as numeric strings ('1804') rather than ints,
-  // so coerce before comparing — string subtraction happens to work, but '' would coerce
-  // to 0 and sort as year zero.
+  // Years reach us from free-form Mongo properties, so a record can carry one as a numeric
+  // string ('1804') rather than an int; coerce before comparing — string subtraction happens
+  // to work, but '' would coerce to 0 and sort as year zero.
   const toYear = (val) => {
     if (val === null || val === undefined || val === '') { return null; }
     const num = Number(val);
     return Number.isFinite(num) ? num : null;
   };
+  // Both types sort on the single year the *backend* derived at index time, never on the raw
+  // properties: books on `compDate` (Mongo's compDate list collapsed by best_time_period),
+  // authors on `sortYear` (deathYear, falling back to birthYear — see _author_sort_year in
+  // sefaria/search.py). Re-deriving the author fallback here as `deathYear ?? birthYear` is
+  // what let this rule drift out of sync with the server sort, which keyed on a bare
+  // deathYear and dropped birth-year-only authors into its undated tail.
   const getYear = (hit) => {
     if (type === 'book')   return toYear(hit.compDate);
-    if (type === 'author') return toYear(hit.deathYear) ?? toYear(hit.birthYear);
+    if (type === 'author') return toYear(hit.sortYear);
     return null;
   };
   const asc = sortKey.endsWith('_asc');
