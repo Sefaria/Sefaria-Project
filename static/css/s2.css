@@ -405,9 +405,6 @@ body.hasBannerMessage #s2.headerOnly {
   opacity: 0.85;
   margin-top: 4px;
 }
-.siteWideBanner .bannerSecondaryText a {
-  text-decoration: underline;
-}
 .siteWideBanner .siteWideBannerButtonBox {
   display: flex;
   align-items: center;
