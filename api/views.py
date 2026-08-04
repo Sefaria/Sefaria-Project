@@ -231,6 +231,26 @@ class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
         )
 
 
+class LinkerAdminAddRefDatasetView(LinkerAdminAPIView):
+
+    def post(self, request):
+        return self._handle(
+            request,
+            lambda body: linker_admin.add_ref_dataset_example(body, request.user.id),
+            status=201,
+        )
+
+
+class LinkerAdminAddRefPartDatasetView(LinkerAdminAPIView):
+
+    def post(self, request):
+        return self._handle(
+            request,
+            lambda body: linker_admin.add_ref_part_dataset_example(body, request.user.id),
+            status=201,
+        )
+
+
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
         'ref', 'url', 'index_title', 'language', 'version_title',

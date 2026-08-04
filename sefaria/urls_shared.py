@@ -117,6 +117,8 @@ shared_patterns = [
     path('_api/linker-admin/citation/recreate', api_views.LinkerAdminRecreateCitationView.as_view()),
     path('_api/linker-admin/citation/parse', api_views.LinkerAdminParseCitationView.as_view()),
     path('_api/linker-admin/segment/rerun', api_views.LinkerAdminRerunSegmentView.as_view()),
+    path('_api/linker-admin/dataset/ref', api_views.LinkerAdminAddRefDatasetView.as_view()),
+    path('_api/linker-admin/dataset/ref-part', api_views.LinkerAdminAddRefPartDatasetView.as_view()),
     path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),

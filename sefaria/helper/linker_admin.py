@@ -1,11 +1,16 @@
+import re
+import time
 from typing import Any, Optional
 
 from ne_span import NEDoc
+from ne_span.ne_span import LABEL_TO_NAMED_ENTITY_TYPE_ATTR, LABEL_TO_REF_PART_TYPE_ATTR
 
 from sefaria import tracker
 from sefaria.model import Ref, Link, library
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, RefPartType, TermContext
 from sefaria.model.linker.ref_resolver import AmbiguousResolvedRef, ResolutionThoroughness
+from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
+from sefaria.model.linker_dataset_example import LinkerDatasetExample
 from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
 from sefaria.model.text import TextChunk
 from sefaria.system.exceptions import InputError
@@ -13,6 +18,51 @@ from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
 
 
 REF_PART_TYPE_BY_NAME = {part_type.name: part_type for part_type in RefPartType}
+
+_HEBREW_CHAR_RE = re.compile(r'[֐-׿]')
+
+
+def _reverse_labels_by_lang(label_to_attr: dict) -> dict:
+    """
+    Invert an ne_span label->enum-attr map into {lang: {enum_attr_name: raw_label}}.
+    Labels are partitioned into 'he'/'en' by whether they contain Hebrew characters.
+    When several labels map to the same enum attr within a language (e.g. person + group
+    both map to PERSON), the first one listed in ne_span (the primary) wins.
+    """
+    by_lang = {"he": {}, "en": {}}
+    for label, attr in label_to_attr.items():
+        lang = "he" if _HEBREW_CHAR_RE.search(label) else "en"
+        by_lang[lang].setdefault(attr, label)
+    return by_lang
+
+
+# {lang: {NamedEntityType attr name: raw model label}} and same for ref parts. Derived from
+# ne_span so these stay in lockstep with how the models were trained.
+_NAMED_ENTITY_LABEL_BY_LANG = _reverse_labels_by_lang(LABEL_TO_NAMED_ENTITY_TYPE_ATTR)
+_REF_PART_LABEL_BY_LANG = _reverse_labels_by_lang(LABEL_TO_REF_PART_TYPE_ATTR)
+
+# MUTC span type -> NamedEntityType enum attr name used by the named-entity ("ref") model.
+# Category spans (links to a whole category/section) are labeled as citations for the model.
+_MUTC_TYPE_TO_NE_ATTR = {
+    MUTCSpanType.CITATION.value: "CITATION",
+    MUTCSpanType.CATEGORY.value: "CITATION",
+    MUTCSpanType.NAMED_ENTITY.value: "PERSON",
+}
+
+
+def _named_entity_label(mutc_span_type: str, lang: str) -> str:
+    ne_attr = _MUTC_TYPE_TO_NE_ATTR[mutc_span_type]
+    try:
+        return _NAMED_ENTITY_LABEL_BY_LANG[lang][ne_attr]
+    except KeyError:
+        raise InputError(f"No named-entity model label for {ne_attr} in language '{lang}'")
+
+
+def _ref_part_label(part_type_name: str, lang: str) -> str:
+    try:
+        return _REF_PART_LABEL_BY_LANG[lang][part_type_name]
+    except KeyError:
+        raise InputError(f"No ref-part model label for {part_type_name} in language '{lang}'")
 
 
 def _required(payload: dict, key: str) -> Any:
@@ -237,3 +287,195 @@ def parse_linker_citation(payload: dict) -> dict:
         },
         "parsings": [_serialize_resolved_ref(resolved_ref) for resolved_ref in resolved_refs],
     }
+
+
+# ---------------------------------------------------------------------------
+# Dataset example capture ("+ Ref Dataset" / "+ Ref Part Dataset" buttons)
+# ---------------------------------------------------------------------------
+
+def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: str, lang: str,
+                            version_title: str, user_id: Optional[int]) -> dict:
+    """
+    Store (or overwrite) one gold training example. Uniqueness is (type, ref, text) so
+    re-clicking a button refreshes the labels rather than creating duplicates.
+    """
+    query = {"type": example_type, "ref": ref, "text": text}
+    example = LinkerDatasetExample().load(query) or LinkerDatasetExample()
+    example.type = example_type
+    example.text = text
+    example.ref = ref
+    example.lang = lang
+    example.versionTitle = version_title
+    example.labels = {"entities": entities}
+    example.added_by = user_id
+    example.added_at = int(time.time())
+    example.save()
+    return {
+        "ok": True,
+        "type": example_type,
+        "ref": ref,
+        "numEntities": len(entities),
+    }
+
+
+def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
+    """
+    Capture a named-entity ("ref") model training example for a whole segment: the normalized
+    segment text plus every non-deleted citation/person span from the current linker output.
+    """
+    ref = Ref(_required(payload, "ref")).normal()
+    version_title = _required(payload, "versionTitle")
+    lang = _required(payload, "lang")
+
+    tc = TextChunk(Ref(ref), lang=lang, vtitle=version_title)
+    original_text = tc.text
+    if not original_text:
+        raise InputError(f"No text found for {ref}, {lang}, {version_title}")
+
+    normalizer = get_linker_normalizer(lang)
+    normalized_text = normalizer.normalize(original_text)
+
+    chunk = LinkerOutput().load({"ref": ref, "versionTitle": version_title, "language": lang})
+    if not chunk:
+        raise InputError(f"No stored linker output found for {ref}, {lang}, {version_title}")
+
+    # Dedupe identical spans: an ambiguous citation/entity is stored as several span rows
+    # (one per resolution) but is a single labeled span for the named-entity model.
+    seen = set()
+    entities = []
+    for span in chunk.spans:
+        if span.get("deleted"):
+            continue
+        span_type = span.get("type")
+        if span_type not in _MUTC_TYPE_TO_NE_ATTR:
+            continue  # skip span types the named-entity model doesn't train on (e.g. quotes)
+        label = _named_entity_label(span_type, lang)
+        (norm_start, norm_end) = normalizer.norm_to_unnorm_indices(
+            original_text, [tuple(span["charRange"])], reverse=True
+        )[0]
+        key = (norm_start, norm_end, label)
+        if key in seen:
+            continue
+        seen.add(key)
+        entities.append([norm_start, norm_end, label])
+
+    entities.sort(key=lambda e: (e[0], e[1]))
+    return _upsert_dataset_example("ref", normalized_text, entities, ref, lang, version_title, user_id)
+
+
+def _expand_ref_parts(span: dict) -> list:
+    """
+    Yield (part_text, part_type_name) pairs for a citation span, expanding synthesized RANGE
+    parts back into the raw model labels the ref-part model was trained on
+    (NUMBERED + RANGE_SYMBOL + NUMBERED), mirroring Sefaria._getLinkerTestStringForParts.
+    """
+    part_texts = span.get("inputRefParts") or []
+    part_types = span.get("inputRefPartTypes") or []
+    range_sections = span.get("inputRangeSections") or []
+    range_to_sections = span.get("inputRangeToSections") or []
+    if len(part_texts) != len(part_types):
+        raise InputError("inputRefParts and inputRefPartTypes are misaligned in stored span")
+
+    expanded = []
+    for part_text, part_type in zip(part_texts, part_types):
+        if part_type == RefPartType.RANGE.name:
+            if not range_sections or not range_to_sections:
+                raise InputError("RANGE part is missing inputRangeSections / inputRangeToSections")
+            expanded.append((part_text, RefPartType.RANGE.name))  # marker; located as a whole below
+        else:
+            expanded.append((part_text, part_type))
+    return expanded
+
+
+def _locate_ref_part_entities(normalized_citation: str, span: dict, normalizer, lang: str) -> list:
+    """
+    Turn a citation's ref parts into [start, end, label] entities whose offsets index into
+    `normalized_citation`. Each part text is normalized and located sequentially from a running
+    cursor. RANGE parts are decomposed into their NUMBERED/RANGE_SYMBOL/NUMBERED components.
+    Raises InputError if any part cannot be located (so we never store malformed offsets).
+    """
+    range_sections = span.get("inputRangeSections") or []
+    range_to_sections = span.get("inputRangeToSections") or []
+
+    def locate(sub_text: str, cursor: int) -> tuple:
+        normalized_sub = normalizer.normalize(sub_text)
+        if not normalized_sub:
+            raise InputError(f"Ref part '{sub_text}' is empty after normalization")
+        idx = normalized_citation.find(normalized_sub, cursor)
+        if idx == -1:
+            raise InputError(f"Could not locate ref part '{normalized_sub}' in citation text")
+        return idx, idx + len(normalized_sub)
+
+    entities = []
+    cursor = 0
+    for part_text, part_type in _expand_ref_parts(span):
+        if part_type == RefPartType.RANGE.name:
+            # Bound the whole range within the citation, then place the sub-parts inside it.
+            range_start, range_end = locate(part_text, cursor)
+            inner_cursor = range_start
+            numbered_label = _ref_part_label(RefPartType.NUMBERED.name, lang)
+            symbol_label = _ref_part_label(RefPartType.RANGE_SYMBOL.name, lang)
+            for section in range_sections:
+                start, end = locate(section, inner_cursor)
+                entities.append([start, end, numbered_label])
+                inner_cursor = end
+            # The range symbol is whatever sits between the from-sections and to-sections.
+            first_to_start = None
+            to_cursor = inner_cursor
+            to_entities = []
+            for section in range_to_sections:
+                start, end = locate(section, to_cursor)
+                if first_to_start is None:
+                    first_to_start = start
+                to_entities.append([start, end, numbered_label])
+                to_cursor = end
+            symbol_start = inner_cursor
+            symbol_end = first_to_start if first_to_start is not None else range_end
+            # Trim surrounding whitespace from the symbol span.
+            while symbol_start < symbol_end and normalized_citation[symbol_start].isspace():
+                symbol_start += 1
+            while symbol_end > symbol_start and normalized_citation[symbol_end - 1].isspace():
+                symbol_end -= 1
+            if symbol_end > symbol_start:
+                entities.append([symbol_start, symbol_end, symbol_label])
+            entities.extend(to_entities)
+            cursor = range_end
+        else:
+            start, end = locate(part_text, cursor)
+            entities.append([start, end, _ref_part_label(part_type, lang)])
+            cursor = end
+
+    entities.sort(key=lambda e: (e[0], e[1]))
+    return entities
+
+
+def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
+    """
+    Capture a "ref part" model training example for a single citation: the normalized citation
+    text plus its ref parts (offsets relative to the citation text). `ref` is the segment ref.
+    """
+    ref = Ref(_required(payload, "ref")).normal()
+    version_title = _required(payload, "versionTitle")
+    lang = _required(payload, "lang")
+    char_range = _normalize_char_range(_required(payload, "charRange"))
+
+    chunk = LinkerOutput().load({"ref": ref, "versionTitle": version_title, "language": lang})
+    if not chunk:
+        raise InputError(f"No stored linker output found for {ref}, {lang}, {version_title}")
+
+    span = next(
+        (
+            s for s in chunk.spans
+            if s.get("type") == MUTCSpanType.CITATION.value
+            and s.get("charRange") == char_range
+            and not s.get("deleted")
+        ),
+        None,
+    )
+    if span is None:
+        raise InputError(f"No citation span found at {char_range} for {ref}")
+
+    normalizer = get_linker_normalizer(lang)
+    normalized_citation = normalizer.normalize(span["text"])
+    entities = _locate_ref_part_entities(normalized_citation, span, normalizer, lang)
+    return _upsert_dataset_example("ref part", normalized_citation, entities, ref, lang, version_title, user_id)

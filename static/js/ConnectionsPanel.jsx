@@ -1290,6 +1290,46 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     });
   };
 
+  const addRefDatasetExample = async () => {
+    const version = visibleRerunVersions[0];
+    if (!rerunRef || !version) { return; }
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const result = await Sefaria.apiRequestWithBody("/_api/linker-admin/dataset/ref", null, {
+        ref: rerunRef,
+        lang: version.lang,
+        versionTitle: version.versionTitle,
+      }, "POST");
+      setMessage(`Saved Ref dataset example (${result.numEntities} labels): ${rerunRef}`);
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const addRefPartDatasetExample = async () => {
+    if (!selectedSpan) { return; }
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const result = await Sefaria.apiRequestWithBody("/_api/linker-admin/dataset/ref-part", null, {
+        ref: selectedSpan.refContext || selectedSpan.sourceRef,
+        lang: selectedSpan.language || selectedSpan.lang,
+        versionTitle: selectedSpan.versionTitle,
+        charRange: selectedSpan.charRange,
+      }, "POST");
+      setMessage(`Saved Ref Part dataset example (${result.numEntities} labels): ${selectedSpan.text}`);
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const toggleLinkerDebugMode = () => {
     const url = new URL(window.location.href);
     Sefaria.util.setLinkerAdminUrlParams(url.searchParams, {debug: !linkerDebugOn});
@@ -1319,6 +1359,14 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
         </button>
         <button className={classNames("button", "small", {disabled: busy || !selectedSpan})} disabled={busy || !selectedSpan} onClick={() => parseSpan(selectedSpan)}>
           Re-parse
+        </button>
+      </div>
+      <div className="linkerAdminCitationActions">
+        <button className={classNames("button", "small", {disabled: busy || !rerunRef || !visibleRerunVersions.length})} disabled={busy || !rerunRef || !visibleRerunVersions.length} onClick={addRefDatasetExample}>
+          + Ref Dataset
+        </button>
+        <button className={classNames("button", "small", {disabled: busy || !selectedSpan})} disabled={busy || !selectedSpan} onClick={addRefPartDatasetExample}>
+          + Ref Part Dataset
         </button>
       </div>
       {selectedSpan ? (
