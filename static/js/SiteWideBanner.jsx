@@ -262,8 +262,7 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
   const handleJoin = async () => {
     setIsActionPending(true);
     try {
-      await Sefaria.experimentsOptInAPI()
-        .then(() => Sefaria.editProfileAPI({experiments: true}))
+      await Sefaria.editProfileAPI({settings: {library_assistant: true}})
         .then(() => {
           window.location.reload();
           return new Promise(() => {}); // never resolves
@@ -277,11 +276,11 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
     return null;
   }
   const isLoggedIn = !!Sefaria._uid;
-  // Route anon login/register through the Library Assistant opt-in landing so that,
-  // once they authenticate, they're auto-enrolled in the experiment and returned here —
-  // the assistant then appears on reload with no extra "Join" click.
-  const optInDest = "/enable-library-assistant?next=" + encodeURIComponent(Sefaria.util.currentPath());
-  const nextParam = "?next=" + encodeURIComponent(optInDest);
+  // Route anon login/register through /enable-library-assistant so that, once they
+  // authenticate, the assistant is turned on and they're returned here — it then
+  // appears on reload with no extra "Join" click.
+  const enableDest = "/enable-library-assistant?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  const nextParam = "?next=" + encodeURIComponent(enableDest);
 
   return (
     <SiteWideBanner

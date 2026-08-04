@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.test import Client
 
 from sefaria.helper.crm.tasks import (
+    dispatch_chatbot_opt_in_webhook,
     send_chatbot_opt_in_webhook,
     extract_error_detail,
 )
@@ -157,19 +158,33 @@ def test_webhook_rejects_get_with_400(mock_post, mock_capture):
 # ---------------------------------------------------------------------------
 
 @patch("sefaria.helper.crm.tasks.send_chatbot_opt_in_webhook")
-def test_dispatch_celery_enabled_uses_apply_async(mock_task):
-    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
+@patch("sefaria.helper.crm.tasks.requests.post")
+def test_dispatch_is_deactivated(mock_post, mock_task):
+    # The webhook is deactivated while comms has no use for the opt-in signal —
+    # nothing may reach Salesforce through either the Celery or the sync path.
+    for celery_enabled in (True, False):
+        with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", celery_enabled):
+            dispatch_chatbot_opt_in_webhook("user@example.com", True, "english")
 
+    mock_task.apply_async.assert_not_called()
+    mock_post.assert_not_called()
+
+
+# The tests below flip the deactivation flag off: the machinery is kept as a working
+# reference, and these prove it still works for the next experiment that needs it.
+
+@patch("sefaria.helper.crm.tasks.CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED", False)
+@patch("sefaria.helper.crm.tasks.send_chatbot_opt_in_webhook")
+def test_dispatch_celery_enabled_uses_apply_async(mock_task):
     with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", True):
         dispatch_chatbot_opt_in_webhook("user@example.com", True, "english")
 
     mock_task.apply_async.assert_called_once()
 
 
+@patch("sefaria.helper.crm.tasks.CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED", False)
 @patch("sefaria.helper.crm.tasks.requests.post")
 def test_dispatch_celery_disabled_calls_synchronously(mock_post):
-    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
-
     mock_post.return_value = make_mock_response(200, json_body={"success": True})
 
     with patch("sefaria.helper.crm.tasks.CELERY_ENABLED", False):
@@ -178,9 +193,8 @@ def test_dispatch_celery_disabled_calls_synchronously(mock_post):
     mock_post.assert_called_once()
 
 
+@patch("sefaria.helper.crm.tasks.CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED", False)
 def test_dispatch_empty_email_is_noop():
-    from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
-
     with patch("sefaria.helper.crm.tasks.requests.post") as mock_post:
         dispatch_chatbot_opt_in_webhook("", True)
         dispatch_chatbot_opt_in_webhook(None, True)  # type: ignore[arg-type]  # intentionally testing runtime guard against out-of-contract callers
