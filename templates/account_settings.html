@@ -125,10 +125,10 @@
 		</div>
 	</div>
 
-	{# The generic "Experiments" toggle is parked until the next experiment ships. It      #}
-	{# controls profile.experiments (whitelist-gated on experiments_available), which the  #}
-	{# Library Assistant toggle above no longer writes. Restore this block (and re-add the #}
-	{# profile.experiments read to the save handler below) when it is needed again.        #}
+	{# TEMPORARY (goes with the experiments framework): the generic "Experiments" toggle,  #}
+	{# parked. It controls profile.experiments (whitelist-gated on experiments_available), #}
+	{# which the Library Assistant toggle above no longer writes. It is deleted — not      #}
+	{# restored — when the framework goes; a future experiment builds its own switch.      #}
 	{% comment %}
     {% if experiments_available %}
     <div id="experimentsSetting" class="section">

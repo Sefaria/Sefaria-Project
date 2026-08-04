@@ -67,8 +67,8 @@ def _legacy_enabled(profile):
     """
     The pre-migration rule: on the experiments whitelist and opted in.
 
-    Removed in the phase that retires the experiments framework, once every profile
-    carries the setting key.
+    TEMPORARY (goes with the experiments framework), once every profile carries the
+    setting key.
     """
     from reader.models import user_has_experiments
     user = getattr(profile, "user", None)

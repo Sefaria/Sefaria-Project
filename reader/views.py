@@ -386,9 +386,11 @@ def base_props(request):
         if library_assistant.is_enabled(profile):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
-        # `in_chatbot_experiment` suppresses the "try the Library Assistant" promo banner
-        # for users who have already made a choice about the assistant — whether they are
-        # using it or deliberately turned it off.
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off. Once every profile carries the setting key, the
+        # prop and the whitelist check are both meaningless and get removed.
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
@@ -4079,6 +4081,8 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # TEMPORARY (goes with the experiments framework): legacy handling of the
+        # `experiments` field, which the Library Assistant no longer reads or writes.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
@@ -4098,8 +4102,12 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # TEMPORARY (goes with the experiments framework): keep the Postgres
+            # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
+            # NOT temporary: the CRM deliberately keeps hearing about genuine on/off
+            # changes of the assistant, exactly once per change.
             if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
                 library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
@@ -4112,6 +4120,9 @@ def experiments_opt_in_api(request):
     """
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
+
+    TEMPORARY (goes with the experiments framework): the Library Assistant no longer
+    enrolls through here, which leaves this endpoint with no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4355,6 +4366,8 @@ def profile_sync_api(request):
                 profile_updated = True
         if profile_updated:
             profile.save()
+        # NOT temporary: the CRM deliberately keeps hearing about genuine on/off
+        # changes of the assistant, exactly once per change.
         if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
             library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
         return jsonResponse(ret)
@@ -4485,6 +4498,8 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    # TEMPORARY (goes with the experiments framework): only gates the parked
+    # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
