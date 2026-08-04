@@ -256,7 +256,7 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
   );
 };
 
-const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
+const LibraryAssistantPromoBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
 
   const handleJoin = async () => {
@@ -296,6 +296,8 @@ const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSecond
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
+      // The storage key keeps its original name on purpose: renaming it would reset
+      // every logged-in user's dismissal history and start nagging them again.
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
       enableBackoffDismissal={true}
@@ -305,9 +307,9 @@ const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSecond
   );
 };
 
-ChatbotExperimentBanner.propTypes = {
+LibraryAssistantPromoBanner.propTypes = {
   promoMaybeLaterJSON: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner, isChatbotBannerExcludedPath };
+export { SiteWideBanner, LibraryAssistantPromoBanner, isChatbotBannerExcludedPath };
