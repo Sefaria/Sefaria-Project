@@ -430,9 +430,9 @@ def create_non_unique_term(titles: List[dict]) -> dict:
         if not isinstance(title, dict):
             raise InputError("Each title must be an object.")
         lang = title.get("lang")
-        text = (title.get("text") or "").strip()
         if lang not in ("en", "he"):
             raise InputError("Title lang must be 'en' or 'he'.")
+        text = _normalize_non_unique_term_title(title.get("text"), lang)
         if text:
             cleaned.append((lang, text))
     if not cleaned:
@@ -463,12 +463,18 @@ def add_non_unique_term_titles(slug: str, titles: List[dict]) -> dict:
         lang = title.get("lang")
         if lang not in ("en", "he"):
             raise InputError("Title lang must be 'en' or 'he'.")
-        # Normalize the title with the same normalizer the linker applies to input text
-        # server-side, so stored titles match what the linker sees at match time.
-        text = get_linker_normalizer(lang).normalize(title.get("text") or "").strip()
+        text = _normalize_non_unique_term_title(title.get("text"), lang)
         if not text:
             raise InputError("Title text may not be blank.")
         term.add_title(text, lang)
 
     term.save()
     return get_non_unique_term_detail(slug)
+
+
+def _normalize_non_unique_term_title(text: Optional[str], lang: str) -> str:
+    """
+    Normalize titles with the same normalizer the linker applies to input text
+    server-side, so stored titles match what the linker sees at match time.
+    """
+    return get_linker_normalizer(lang).normalize(text or "").strip()

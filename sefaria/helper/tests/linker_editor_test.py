@@ -507,6 +507,22 @@ def test_create_non_unique_term():
             NonUniqueTerm.init(detail["slug"]).delete()
 
 
+def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
+    from sefaria.model.schema import NonUniqueTerm
+    detail = None
+    try:
+        detail = le.create_non_unique_term([
+            {"lang": "en", "text": "  Ḥagigah   Editor Test Term  "},
+            {"lang": "he", "text": "בְּרֵאשִׁ֑ית בדיקה"},
+        ])
+        stored = {t["text"] for t in detail["titles"]}
+        assert "Hagigah Editor Test Term" in stored
+        assert "בראשית בדיקה" in stored
+    finally:
+        if detail:
+            NonUniqueTerm.init(detail["slug"]).delete()
+
+
 def test_create_non_unique_term_requires_a_title():
     with pytest.raises(InputError):
         le.create_non_unique_term([])
