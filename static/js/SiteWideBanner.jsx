@@ -104,6 +104,7 @@ const SiteWideBanner = ({
   enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
+  imgSrc,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
@@ -179,6 +180,7 @@ const SiteWideBanner = ({
 
   return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
     <div className="siteWideBannerContent">
+      {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
       <div className="siteWideBannerTextBox">
         <span className="bannerMainText">{mainText}</span>
         {secondaryText && (
@@ -231,10 +233,9 @@ SiteWideBanner.propTypes = {
   enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
+  imgSrc: PropTypes.string,
 };
 
-const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
-const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
 const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
@@ -255,9 +256,8 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
   );
 };
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
+const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
 
   const handleJoin = async () => {
     setIsActionPending(true);
@@ -284,14 +284,15 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 
   return (
     <SiteWideBanner
-      mainText={Sefaria._("site_wide_banner.enhance_your_learning_experience")}
-      secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
+      mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
+      secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
+      imgSrc="/static/icons/ai-double-star.svg"
       actionButtons={(track) => isLoggedIn ? (
-        <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+        <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
           <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
         </button>
       ) : (<>
-        <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
+        <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
@@ -305,7 +306,6 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 };
 
 ChatbotExperimentBanner.propTypes = {
-  promoLearnMoreUrls: PropTypes.object,
   promoMaybeLaterJSON: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
