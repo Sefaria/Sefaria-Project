@@ -7,10 +7,11 @@ Unsets `settings.library_assistant` on the profiles that
 still the one the migration wrote. A user who changed the setting themselves after the
 flip has expressed a real preference; that survives the rollback untouched.
 
-Everyone unset falls back to the pre-migration rule (on the experiments whitelist AND
-`profile.experiments` true), which is live code until the experiments framework is
-removed. That removal ends the rollback window, and this script refuses to run once it has
-happened rather than quietly turning the assistant off for everyone it touches.
+There is no longer any rule to fall back to: a profile with no key reads as off in
+`sefaria.helper.library_assistant`, which is the only source of truth for the switch.
+Unsetting the key would therefore turn the assistant off for everyone it touched rather
+than restore what each of them had, so this script now refuses to run at all. It is kept
+because the archive it reads is still the record of what the flip wrote.
 
 Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
 sefaria):

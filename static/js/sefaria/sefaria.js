@@ -2780,7 +2780,7 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
-  // TEMPORARY (goes with the experiments framework): no callers.
+  // Parked experiments framework: no callers; kept for a future experiment.
   experimentsOptInAPI: () => {
     return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
   },
@@ -3960,7 +3960,6 @@ Sefaria.unpackBaseProps = function(props){
       "_debug_mode",
       "remoteConfig",
       "chatbot_enabled",
-      "in_chatbot_experiment",
       "chatbot_user_token",
       "chatbot_api_base_url",
       "chatbot_version",

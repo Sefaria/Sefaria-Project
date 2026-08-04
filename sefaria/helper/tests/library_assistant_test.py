@@ -13,21 +13,12 @@ from sefaria.helper.library_assistant import SETTING_KEY
 
 
 class FakeProfile(object):
-    """
-    Enough of a UserProfile for the read rules: an id, a settings dict, the legacy
-    `experiments` flag, and the Django user the whitelist lookup keys on.
-    """
+    """Enough of a UserProfile for the read rules: an id and a settings dict."""
 
-    def __init__(self, settings=None, experiments=False, user="a-user", id=1):
+    def __init__(self, settings=None, id=1):
         self.id = id
         self.settings = settings if settings is not None else {}
-        self.experiments = experiments
-        self.user = user
         self.email = "user@example.com"
-
-
-def whitelisted(has_row):
-    return mock.patch("reader.models.user_has_experiments", return_value=has_row)
 
 
 @pytest.mark.parametrize("value,expected", [
@@ -56,39 +47,17 @@ def test_no_profile_is_not_enabled():
     assert library_assistant.is_enabled(FakeProfile(id=None)) is False
 
 
-def test_set_key_wins_over_the_legacy_rule():
-    # On the whitelist and opted in, but the setting says off.
-    with whitelisted(True):
-        profile = FakeProfile(settings={SETTING_KEY: False}, experiments=True)
-        assert library_assistant.is_enabled(profile) is False
+def test_absent_key_is_not_enabled():
+    # Every account carries the key; a profile without it has yet to be migrated.
+    assert library_assistant.is_enabled(FakeProfile(settings={})) is False
 
 
-def test_set_key_wins_when_legacy_would_say_off():
-    with whitelisted(False):
-        profile = FakeProfile(settings={SETTING_KEY: True}, experiments=False)
-        assert library_assistant.is_enabled(profile) is True
+def test_stored_string_false_is_not_truthy():
+    assert library_assistant.is_enabled(FakeProfile(settings={SETTING_KEY: "false"})) is False
 
 
-def test_posted_string_false_in_a_stored_setting_is_not_truthy():
-    with whitelisted(False):
-        assert library_assistant.is_enabled(FakeProfile(settings={SETTING_KEY: "false"})) is False
-
-
-@pytest.mark.parametrize("has_row,experiments,expected", [
-    (True, True, True),      # on the whitelist and opted in — the only legacy "on"
-    (True, False, False),    # deliberate opt-out
-    (False, True, False),    # never enrolled; the stray Mongo flag means nothing
-    (False, False, False),
-])
-def test_absent_key_falls_back_to_the_legacy_rule(has_row, experiments, expected):
-    with whitelisted(has_row):
-        profile = FakeProfile(settings={}, experiments=experiments)
-        assert library_assistant.is_enabled(profile) is expected
-
-
-def test_absent_key_and_no_django_user_is_not_enabled():
-    with whitelisted(True):
-        assert library_assistant.is_enabled(FakeProfile(user=None, experiments=True)) is False
+def test_stored_true_is_enabled():
+    assert library_assistant.is_enabled(FakeProfile(settings={SETTING_KEY: True})) is True
 
 
 class _SaveableProfile(FakeProfile):
@@ -108,12 +77,10 @@ def saveable_profile():
 
 
 def test_set_enabled_writes_the_key(saveable_profile):
-    with whitelisted(False):
-        library_assistant.set_enabled(mock.Mock(id=1), False)
+    library_assistant.set_enabled(mock.Mock(id=1), False)
     assert saveable_profile.settings[SETTING_KEY] is False
 
 
 def test_set_enabled_coerces_before_writing(saveable_profile):
-    with whitelisted(False):
-        library_assistant.set_enabled(mock.Mock(id=1), "false")
+    library_assistant.set_enabled(mock.Mock(id=1), "false")
     assert saveable_profile.settings[SETTING_KEY] is False

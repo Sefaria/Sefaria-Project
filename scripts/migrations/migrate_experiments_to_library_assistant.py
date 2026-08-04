@@ -2,16 +2,15 @@
 """
 Switch the Library Assistant from opt-in to opt-out.
 
-Running this script IS the launch. Until it runs, no profile carries
-`settings.library_assistant` and every user reads through the legacy rule in
-`sefaria.helper.library_assistant` — exactly today's behavior. Once it runs, every user
-carries an explicit setting and the assistant is on unless they turned it off.
+Running this script IS the launch. A profile with no `settings.library_assistant` key
+reads as off in `sefaria.helper.library_assistant`; this script gives every profile an
+explicit value, so the assistant is on unless the user turned it off.
 
 Cohorts come from **Postgres**, not from Mongo:
 
-  * a `UserExperimentSettings` row is the only record of a deliberate choice — every
-    enrollment path (opt-in API, admin CSV upload, admin user form) writes one. Those
-    users inherit `row.experiments`, so anyone who deliberately turned the assistant off
+  * a `UserExperimentSettings` row is the only record of a deliberate choice — the
+    experiments enrollment paths wrote one for every user who made one. Those users
+    inherit `row.experiments`, so anyone who deliberately turned the assistant off
     stays off.
   * every other profile is backfilled to True.
 
@@ -20,7 +19,7 @@ it on every save, so users who never enrolled in anything carry `experiments: Fa
 masse. Keying on that field would read them all as deliberate opt-outs.
 
 Profiles that already carry the setting are never touched, so the script is idempotent
-and safe to re-run as a catch-up before the experiments framework is removed. It never
+and safe to re-run as a catch-up for any profile that turns up without the key. It never
 writes `profiles.experiments` and never touches the Postgres table.
 
 Every write is archived to `db.library_assistant_migration_archive` (user id, value
