@@ -178,21 +178,26 @@ class StaffRequiredMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
+def _load_json_body(request, empty_as_object=False):
+    """Parse a JSON request body, returning (data, error_response)."""
+    try:
+        raw_body = (request.body or b"{}") if empty_as_object else request.body
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, jsonResponse({"error": "Invalid JSON body."}, status=400)
+    if not isinstance(body, dict):
+        return None, jsonResponse({"error": "JSON body must be an object."}, status=400)
+    return body, None
+
+
 class LinkerAdminAPIView(StaffRequiredMixin, View):
 
-    @staticmethod
-    def _body(request):
-        try:
-            body = json.loads(request.body or "{}")
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            raise InputError("Invalid JSON body")
-        if not isinstance(body, dict):
-            raise InputError("JSON body must be an object")
-        return body
-
     def _handle(self, request, handler, status=200):
+        body, err = _load_json_body(request, empty_as_object=True)
+        if err:
+            return err
         try:
-            return jsonResponse(handler(self._body(request)), status=status)
+            return jsonResponse(handler(body), status=status)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
@@ -447,13 +452,9 @@ class KnnSearch(View):
         if not expected or token != expected:
             return jsonResponse({"error": "Unauthorized"}, status=401)
 
-        try:
-            body = json.loads(request.body)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return jsonResponse({"error": "Invalid JSON body"}, status=400)
-
-        if not isinstance(body, dict):
-            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        body, err = _load_json_body(request)
+        if err:
+            return err
         query = body.get("query", "").strip()
         if not query:
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
@@ -518,17 +519,8 @@ class KnnSearch(View):
 
         return jsonResponse(response)
 
-
-def _load_json_body(request):
-    """Parse a JSON request body, returning (data, error_response)."""
-    try:
-        return json.loads(request.body), None
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return None, jsonResponse({"error": "Invalid JSON body."}, status=400)
-
-
 class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
-    """Create (POST) or remove (DELETE) a MatchTemplate on a schema node."""
+    """Create, replace, or remove a MatchTemplate on a schema node."""
 
     def post(self, request, title, node_key_path):
         body, err = _load_json_body(request)
@@ -537,6 +529,21 @@ class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
         try:
             serialized = linker_editor.add_match_template(
                 title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"))
+        except InputError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+        return jsonResponse({"status": "ok", "match_template": serialized})
+
+    def put(self, request, title, node_key_path):
+        body, err = _load_json_body(request)
+        if err:
+            return err
+        try:
+            serialized = linker_editor.replace_match_template(
+                title,
+                node_key_path,
+                body.get("old", {}),
+                body.get("new", {}),
+            )
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "match_template": serialized})

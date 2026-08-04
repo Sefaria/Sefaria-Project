@@ -399,9 +399,9 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
 
 def _expand_ref_parts(span: dict) -> list:
     """
-    Yield (part_text, part_type_name) pairs for a citation span, expanding synthesized RANGE
-    parts back into the raw model labels the ref-part model was trained on
-    (NUMBERED + RANGE_SYMBOL + NUMBERED), mirroring Sefaria._getLinkerTestStringForParts.
+    Yield (part_text, part_type_name) pairs for a citation span. Synthesized RANGE
+    parts are kept as RANGE markers here and expanded into NUMBERED / RANGE_SYMBOL /
+    NUMBERED spans later by _locate_ref_part_entities.
     """
     part_texts = span.get("inputRefParts") or []
     part_types = span.get("inputRefPartTypes") or []

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Sefaria from './sefaria/sefaria';
 import { GeneralAutocomplete } from './GeneralAutocomplete';
 import { InterfaceText, LoadingMessage } from './Misc';
+import ToggleSwitch from './common/ToggleSwitch';
 
 /*
  * Staff-only linker editor (/linker-editor). Search an Index, browse its schema tree,
@@ -78,22 +79,7 @@ const nodeDomId = (path) => `linker-editor-node-${path.replace(/[^a-zA-Z0-9_-]/g
 
 const encPath = (s) => encodeURIComponent(s);
 
-const detectTitleLang = (text) => {
-  let heCount = 0;
-  let otherCount = 0;
-  const punctuationRE = /[\s.,'"?!;:\-=@#$%^&*()[\]{}\/<>\\|_+`~׳״]/;
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
-    if (code >= 0x05D0 && code <= 0x05EA) {
-      heCount++;
-    } else if ((code >= 0x0591 && code <= 0x05C7) || punctuationRE.test(text[i])) {
-      continue;
-    } else {
-      otherCount++;
-    }
-  }
-  return heCount > otherCount ? 'he' : 'en';
-};
+const detectTitleLang = (text) => Sefaria.hebrew.isHebrew(text) ? 'he' : 'en';
 
 const editorApi = {
   loadRawIndex: (title) => Sefaria._ApiPromise(`${Sefaria.apiHost}/api/v2/raw/index/${encPath(title)}`),
@@ -107,6 +93,8 @@ const editorApi = {
   addressTypes: () => Sefaria._ApiPromise(`${Sefaria.apiHost}/_api/linker-editor/address-types`),
   addMatchTemplate: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'POST'),
+  replaceMatchTemplate: (title, path, payload) =>
+    Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'PUT'),
   deleteMatchTemplate: (title, path, payload) =>
     Sefaria.apiRequestWithBody(`/_api/linker-editor/index/${encPath(title)}/node/${encPath(path)}/match-templates`, {}, payload, 'DELETE'),
   setAddressTypes: (title, path, payload) =>
@@ -218,9 +206,10 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
     if (template.term_slugs.includes(term.slug)) { return; }
     setBusy(true);
     try {
-      // The API supports create/delete only; "add a term" = replace with an extended template.
-      await editorApi.deleteMatchTemplate(title, path, { term_slugs: template.term_slugs, scope });
-      await editorApi.addMatchTemplate(title, path, { term_slugs: [...template.term_slugs, term.slug], scope });
+      await editorApi.replaceMatchTemplate(title, path, {
+        old: { term_slugs: template.term_slugs, scope },
+        new: { term_slugs: [...template.term_slugs, term.slug], scope },
+      });
       await onChanged();
     } catch (e) { alert(e.message || e); }
     setBusy(false);
@@ -474,19 +463,15 @@ const ReferenceableControl = ({ value, disabled, onChange }) => {
   );
 };
 
-const ToggleControl = ({ value, defaultValue, disabled, onChange }) => {
+const ToggleControl = ({ name, value, defaultValue, disabled, onChange }) => {
   const on = value === undefined || value === null ? defaultValue : value;
   return (
-    <button
-      type="button"
+    <ToggleSwitch
+      name={name}
       disabled={disabled}
-      className={'linkerToggle' + (on ? ' on' : '')}
-      aria-pressed={on}
-      onClick={() => onChange(!on)}
-    >
-      <span className="linkerToggleKnob" />
-      <span className="linkerToggleLabel">{on ? Sefaria._('on') : Sefaria._('off')}</span>
-    </button>
+      isChecked={!!on}
+      onChange={() => onChange(!on)}
+    />
   );
 };
 
@@ -615,13 +600,13 @@ const NodePropertiesEditor = ({ node, title, keyPath, onChanged, onDhChanged }) 
       case 'referenceableSections':
         return <ReferenceableSectionsControl node={node} value={value} disabled={busy} onChange={v => saveProperty('referenceableSections', v)} />;
       case 'isSegmentLevelDiburHamatchil':
-        return <ToggleControl value={value} defaultValue={false} disabled={busy} onChange={v => saveProperty('isSegmentLevelDiburHamatchil', v)} />;
+        return <ToggleControl name={`${path}-isSegmentLevelDiburHamatchil`} value={value} defaultValue={false} disabled={busy} onChange={v => saveProperty('isSegmentLevelDiburHamatchil', v)} />;
       case 'diburHamatchilRegexes':
         return <ListControl value={value} disabled={busy} presets={DH_REGEX_PRESETS} placeholder={Sefaria._('regex')} onSave={v => saveProperty('diburHamatchilRegexes', v)} />;
       case 'skipped_addresses':
         return <ListControl value={value} disabled={busy} numeric={true} placeholder={Sefaria._('address #')} onSave={v => saveProperty('skipped_addresses', v)} />;
       case 'isMapReferenceable':
-        return <ToggleControl value={value} defaultValue={true} disabled={busy} onChange={v => saveProperty('isMapReferenceable', v)} />;
+        return <ToggleControl name={`${path}-isMapReferenceable`} value={value} defaultValue={true} disabled={busy} onChange={v => saveProperty('isMapReferenceable', v)} />;
       default:
         return null;
     }

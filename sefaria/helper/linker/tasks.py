@@ -111,7 +111,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     book_ref = Ref(linking_args.ref)
     output = linker.link_with_footnotes(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH, with_failures=True)
 
-    _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
+    linker_output = _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
 
@@ -122,7 +122,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         "spans": spans,
     })
 
-    _replace_existing_chunk(chunk)
+    _replace_existing_chunk(chunk, linker_output=linker_output)
 
     # Prepare the minimal info the next task needs
     mutc_trefs = _linked_trefs_from_mutc_spans(chunk.spans)
@@ -684,12 +684,13 @@ def _linked_trefs_from_mutc_spans(spans: list[dict]) -> list[str]:
     return sorted({s["ref"] for s in spans if "ref" in s and not s.get("deleted")})
 
 
-def _mutc_deleted_spans_from_linker_output(ref: str, version_title: str, language: str) -> list[dict]:
-    linker_output = LinkerOutput().load({
-        "ref": ref,
-        "versionTitle": version_title,
-        "language": language,
-    })
+def _mutc_deleted_spans_from_linker_output(ref: str, version_title: str, language: str, linker_output: Optional[LinkerOutput] = None) -> list[dict]:
+    if linker_output is None:
+        linker_output = LinkerOutput().load({
+            "ref": ref,
+            "versionTitle": version_title,
+            "language": language,
+        })
     if not linker_output:
         return []
     deleted_spans = []
@@ -807,7 +808,7 @@ def _create_or_update_link_for_non_segment_resolution(
 
 
 
-def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
+def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> Optional[LinkerOutput]:
     spans = _extract_debug_spans(doc)
     query = {
         "ref": tref,
@@ -819,14 +820,17 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
         spans = _merge_deleted_spans(spans, existing.spans)
         if len(spans) == 0:
             existing.delete()
-        else:
-            existing.spans = spans
-            existing.save()
+            return None
+        existing.spans = spans
+        existing.save()
+        return existing
     else:
         if len(spans) == 0:
-            return
+            return None
         query["spans"] = spans
-        LinkerOutput(query).save()
+        linker_output = LinkerOutput(query)
+        linker_output.save()
+        return linker_output
 
 
 def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
@@ -836,7 +840,7 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextChunk]:
+def _replace_existing_chunk(chunk: MarkedUpTextChunk, linker_output: Optional[LinkerOutput] = None) -> Optional[MarkedUpTextChunk]:
     """
     :return: existing mutc that was replaced, or None
     """
@@ -845,7 +849,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
-    linker_output_deleted_spans = _mutc_deleted_spans_from_linker_output(chunk.ref, chunk.versionTitle, chunk.language)
+    linker_output_deleted_spans = _mutc_deleted_spans_from_linker_output(chunk.ref, chunk.versionTitle, chunk.language, linker_output=linker_output)
     if existing:
         chunk.spans = _merge_deleted_spans(chunk.spans, existing.spans + linker_output_deleted_spans)
         if len(chunk.spans) == 0:

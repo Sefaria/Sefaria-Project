@@ -132,6 +132,46 @@ def remove_match_template(title: str, node_key_path: str, serialized_template: d
     nut_index.remove_template_usage(title, node, template, struct_name=struct_name)
 
 
+def replace_match_template(title: str, node_key_path: str, old_template_data: dict, new_template_data: dict) -> dict:
+    """Replace one MatchTemplate on a node with one index save."""
+    new_term_slugs = list(new_template_data.get("term_slugs", []))
+    if not new_term_slugs:
+        raise InputError("term_slugs must be a non-empty list.")
+    _validate_slugs(new_term_slugs)
+    new_scope = _normalize_scope(new_template_data.get("scope", "combined"))
+
+    index = library.get_index(title)
+    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
+    if node is None:
+        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+
+    old_serialized = {
+        "term_slugs": list(old_template_data.get("term_slugs", [])),
+        "scope": _normalize_scope(old_template_data.get("scope", "combined")),
+    }
+    new_template = MatchTemplate(new_term_slugs, new_scope)
+    new_serialized = new_template.serialize()
+    existing = list(getattr(node, "match_templates", []))
+    replaced = False
+    next_templates = []
+    for mt in existing:
+        if not replaced and _match_templates_equal(mt, old_serialized):
+            next_templates.append(new_serialized)
+            replaced = True
+        else:
+            next_templates.append(mt)
+    if not replaced:
+        raise InputError("No matching MatchTemplate found on node '{}'.".format(node_key_path))
+
+    node.match_templates = next_templates
+    index.save()
+
+    old_template = MatchTemplate(old_serialized["term_slugs"], old_serialized["scope"])
+    nut_index.remove_template_usage(title, node, old_template, struct_name=struct_name)
+    nut_index.add_template_usage(title, node, new_template, struct_name=struct_name)
+    return new_serialized
+
+
 # ---------------------------------------------------------------------------
 # AddressType editing
 # ---------------------------------------------------------------------------

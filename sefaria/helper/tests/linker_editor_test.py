@@ -9,6 +9,7 @@ manual/E2E verification rather than here, to avoid mutating shared index data.
 import pytest
 
 from sefaria.helper import linker_editor as le
+from sefaria.model import schema
 import sefaria.model.linker.nonuniqueterm_index as ni
 from sefaria.system.exceptions import InputError
 
@@ -45,6 +46,77 @@ def test_normalize_scope():
     assert le._normalize_scope("alone") == "alone"
     with pytest.raises(InputError):
         le._normalize_scope("bogus")
+
+
+def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
+    class FakeNode:
+        match_templates = [
+            {"term_slugs": ["old"], "scope": "combined"},
+            {"term_slugs": ["keep"], "scope": "alone"},
+        ]
+
+    class FakeIndex:
+        title = "Fake"
+        saves = 0
+
+        def save(self):
+            self.saves += 1
+
+    node = FakeNode()
+    index = FakeIndex()
+    calls = []
+
+    monkeypatch.setattr(le, "_validate_slugs", lambda slugs: None)
+    monkeypatch.setattr(schema.NonUniqueTerm, "init", staticmethod(lambda slug: type("FakeTerm", (), {"slug": slug})()))
+    monkeypatch.setattr(le.library, "get_index", lambda title: index)
+    monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (node, None))
+    monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append(("remove", args[2].serialize())))
+    monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize())))
+
+    serialized = le.replace_match_template(
+        "Fake",
+        "Fake",
+        {"term_slugs": ["old"], "scope": "combined"},
+        {"term_slugs": ["old", "new"], "scope": "combined"},
+    )
+
+    assert serialized == {"term_slugs": ["old", "new"]}
+    assert index.saves == 1
+    assert node.match_templates == [
+        {"term_slugs": ["old", "new"]},
+        {"term_slugs": ["keep"], "scope": "alone"},
+    ]
+    assert calls == [
+        ("remove", {"term_slugs": ["old"]}),
+        ("add", {"term_slugs": ["old", "new"]}),
+    ]
+
+
+def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatch):
+    class FakeNode:
+        match_templates = [{"term_slugs": ["old"], "scope": "combined"}]
+
+    class FakeIndex:
+        def save(self):
+            raise RuntimeError("save failed")
+
+    calls = []
+    monkeypatch.setattr(le, "_validate_slugs", lambda slugs: None)
+    monkeypatch.setattr(schema.NonUniqueTerm, "init", staticmethod(lambda slug: type("FakeTerm", (), {"slug": slug})()))
+    monkeypatch.setattr(le.library, "get_index", lambda title: FakeIndex())
+    monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (FakeNode(), None))
+    monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append("remove"))
+    monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append("add"))
+
+    with pytest.raises(RuntimeError):
+        le.replace_match_template(
+            "Fake",
+            "Fake",
+            {"term_slugs": ["old"], "scope": "combined"},
+            {"term_slugs": ["old", "new"], "scope": "combined"},
+        )
+
+    assert calls == []
 
 
 def test_alt_struct_editor_path():

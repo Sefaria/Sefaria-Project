@@ -3548,7 +3548,9 @@ _media: {},
           const data = await resp.json();
           if (!resp.ok) {
             clearInterval(handle);
-            reject(new Error(data.error || "Network error polling task " + taskId));
+            const error = new Error(data.error || "Network error polling task " + taskId);
+            error.isNetworkError = true;
+            reject(error);
             return;
           }
           if (!data.ready) {
