@@ -7,12 +7,14 @@ import PropTypes  from 'prop-types';
 import ComparePanelHeader from './ComparePanelHeader';
 import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters';
 import FilterNode from './sefaria/FilterNode';
+import SearchState from './sefaria/searchState';
 import Component from 'react-class';
-import {MobileFilterIconButton} from './SearchResultList';
+import {MobileFilterIconButton, SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
 import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
 import InfiniteScroll from './InfiniteScroll';
+import NoSearchResults from './NoSearchResults';
 import {
   CategoryColorLine,
   InterfaceText,
@@ -74,7 +76,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
                   setValue("");
                 }
               }}
-          /> : null}
+          /> : null }
     </div>
   );
 };
@@ -182,7 +184,7 @@ const EntitySearchResults = ({type, data, query, loadMore}) => {
     return <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
   }
   if (!data.hits.length) {
-    return <LoadingMessage message="0 results." heMessage="0 תוצאות." />;
+    return <NoSearchResults mode={type + 's'} query={query} />;
   }
   return (
     <InfiniteScroll
@@ -239,6 +241,10 @@ class SearchPage extends Component {
       }
     }
     return {...data, hits};
+  }
+
+  hasEntityResults(type) {
+    return !!this.getSortedEntityData(type)?.hits?.length;
   }
 
   toggleBookCategoryFilter(filter) {
@@ -344,35 +350,18 @@ class SearchPage extends Component {
         topics={this.props.topics}
     />;
 
-    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
-      <SearchSortDropdown
-          options={this.props.sortTypeArray}
-          sortType={this.props.searchState.sortType}
-          onSortChange={this.props.updateAppliedOptionSort}/>
-      :
-      <MobileFilterIconButton
-          openMobileFilters={() => this.setState({mobileFiltersOpen: true})}/>;
-
-    const isExactSearch = this.props.type === "text"
-      && this.props.searchState.field === this.props.searchState.fieldExact;
-    const handleExactMatchChange = (name) => {
-      this.props.updateAppliedOptionField(
-        name === "exact" ? this.props.searchState.fieldExact : this.props.searchState.fieldBroad
-      );
-    };
-    const searchTypeSection = this.props.type === "text" ? (
-      <div className="searchFilterGroup">
-        <h2><InterfaceText>search_page.search_type</InterfaceText></h2>
-        <SearchToggle
-          options={[
-            {name: "all",   en: "All results",  he: "כל התוצאות"},
-            {name: "exact", en: "Exact phrase", he: "מונח מדויק"},
-          ]}
-          selected={isExactSearch ? "exact" : "all"}
-          onChange={handleExactMatchChange}
-        />
-      </div>
-    ) : null;
+    const makeSortFilterControls = (disabled = false) =>
+      Sefaria.multiPanel && !this.props.compare
+        ? <SearchSortBox
+              type={this.props.type}
+              sortTypeArray={this.props.sortTypeArray}
+              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+              sortType={this.props.searchState.sortType}
+              disabled={disabled} />
+        : <SearchFilterButton
+              openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+              nFilters={this.props.searchState.appliedFilters.length}
+              disabled={disabled} />;
 
     if (this.props.searchInBook) {
       return searchResultList;
@@ -381,7 +370,6 @@ class SearchPage extends Component {
     const isValidTab = ["sources", "books", "authors", "topics"].includes(this.props.tab);
     const activeTab = isValidTab ? this.props.tab : "sources";
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
-    const selectedBookFilterCount = this.state.bookCategoryFilters.filter(f => f.isSelected()).length;
 
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
@@ -392,7 +380,6 @@ class SearchPage extends Component {
           searchState={this.props.searchState}
           updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-          topSection={searchTypeSection}
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
@@ -425,6 +412,12 @@ class SearchPage extends Component {
       }
     }
 
+    const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
+    const handleExactMatchChange = (val) => {
+      const defaultField = SearchState.metadataByType[this.props.type]?.field;
+      this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
+    };
+
     const tabs = [
       {id: "sources", title: "common.sources", count: this.props.totalResults?.asString() || ""},
       {id: "books",   title: "common.books",   count: this.formatEntityCount(this.state.entityData.book?.total)},
@@ -446,10 +439,12 @@ class SearchPage extends Component {
             />
           )}
           <div>
-            {sortFilterControls}
+            {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
           </div>
         </div>
-        {searchResultList}
+        {this.props.totalResults && !this.props.totalResults.getValue()
+          ? <NoSearchResults mode="sources" query={this.props.query} />
+          : searchResultList}
       </div>,
       <div className="searchTabPanel" key="books">
         <div className="searchSortBar">
@@ -458,9 +453,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.books}
                 sortType={this.state.entitySort.book}
                 onSortChange={(key) => this.setEntitySort('book', key)}
+                disabled={!this.hasEntityResults('book')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.hasEntityResults('book')}
               />
           }
         </div>
@@ -474,9 +471,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.authors}
                 sortType={this.state.entitySort.author}
                 onSortChange={(key) => this.setEntitySort('author', key)}
+                disabled={!this.hasEntityResults('author')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.hasEntityResults('author')}
               />
           }
         </div>
@@ -490,9 +489,11 @@ class SearchPage extends Component {
                 options={ENTITY_SORT_OPTIONS.topics}
                 sortType={this.state.entitySort.topic}
                 onSortChange={(key) => this.setEntitySort('topic', key)}
+                disabled={!this.hasEntityResults('topic')}
               />
             : <MobileFilterIconButton
                 openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
+                disabled={!this.hasEntityResults('topic')}
               />
           }
         </div>

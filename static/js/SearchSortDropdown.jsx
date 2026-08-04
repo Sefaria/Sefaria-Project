@@ -56,11 +56,23 @@ export const sortEntityHits = (hits, type, sortKey) => {
 };
 
 
-const SearchSortDropdown = ({ options, sortType, onSortChange }) => {
+const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!options || !options.length) return null;
   const currentOption = options.find(o => o.type === sortType) || options[0];
+
+  if (disabled) {
+    return (
+      <div className="searchSortDropdown disabled" aria-disabled="true" tabIndex={-1}>
+        <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
+        <span className="searchSortDropdown__label">
+          <InterfaceText text={{ en: currentOption.name, he: currentOption.heName }} />
+        </span>
+        <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down.svg" alt="" aria-hidden="true" />
+      </div>
+    );
+  }
 
   const handleSelect = (newSortType) => {
     if (newSortType !== sortType) {

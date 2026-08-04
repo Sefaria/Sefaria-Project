@@ -230,4 +230,44 @@ export class SearchPage extends HelperBase{
             }
         }, times);
     }
+
+    // ---------------------------------------------------------------------
+    // NoSearchResults null state (NoSearchResults.jsx)
+    // Renders inside the active tab panel when hits === 0 (entity tabs) or
+    // totalResults.getValue() === 0 (sources tab).
+    // ---------------------------------------------------------------------
+
+    private get nullState() {
+        return this.searchContent.locator('.noSearchResults');
+    }
+
+    /** Wait for the NoSearchResults component to appear in the active tab. */
+    async waitForNullState(): Promise<void> {
+        await expect(this.nullState).toBeVisible({ timeout: t(25000) });
+    }
+
+    /** href of the CTA link in the null state (e.g. "/texts", "/people", "/topics"). */
+    async nullStateCtaHref(): Promise<string | null> {
+        const cta = this.nullState.locator('.noSearchResults-cta');
+        await expect(cta).toBeVisible({ timeout: t(5000) });
+        return cta.getAttribute('href');
+    }
+
+    /** Full text content of the heading (includes the interpolated search query). */
+    async nullStateHeadingText(): Promise<string> {
+        const heading = this.nullState.locator('.noSearchResults-heading');
+        await expect(heading).toBeVisible({ timeout: t(5000) });
+        return (await heading.textContent()) ?? '';
+    }
+
+    /**
+     * href values of the two caption links in render order:
+     *   [0] report-bug link
+     *   [1] contact-us link
+     */
+    async nullStateCaptionLinkHrefs(): Promise<string[]> {
+        const links = this.nullState.locator('a.noSearchResults-captionLink');
+        await expect(links.first()).toBeVisible({ timeout: t(5000) });
+        return links.evaluateAll((els) => els.map((el) => el.getAttribute('href') ?? ''));
+    }
 }

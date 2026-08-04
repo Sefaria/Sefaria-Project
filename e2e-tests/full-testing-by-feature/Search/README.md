@@ -41,6 +41,19 @@ New here? Read the root [handbook](../../README.md) first — it covers setup, t
 | `SRCH-041` | No further requests once `hits.length` reaches `total`. |
 | `SRCH-042` | Five back-to-back scroll events still fetch page 2 exactly once. |
 
+### NoSearchResults null state ([no-search-results.spec.ts](no-search-results.spec.ts))
+
+| Test ID | Tab | Asserts |
+| --- | --- | --- |
+| `SRCH-060` | Books | Null state visible; CTA links to `/texts`. |
+| `SRCH-061` | Authors | Null state visible; CTA links to `/people`. |
+| `SRCH-062` | Topics | Null state visible; CTA links to `/topics`. |
+| `SRCH-063` | Topics | Search query appears in the null-state heading. |
+| `SRCH-064` | Books | Caption has exactly two `mailto:` links (report bug + contact us). |
+| `SRCH-065` | Sources | Real Elasticsearch round-trip returns 0 hits; null state renders, CTA → `/texts`, heading contains query. |
+
+`SRCH-060`–`SRCH-064` mock `/api/entity-search` to return empty arrays (`installEntitySearchMock`), making the null state deterministic. `SRCH-065` uses a garbled query against the real text-search API to exercise the sources-tab code path (`SearchPage.jsx:445 — totalResults.getValue() === 0`).
+
 ### Sheets With ref — regression smoke ([sheets-with-ref.spec.ts](sheets-with-ref.spec.ts))
 
 | Test ID | Asserts |
@@ -71,7 +84,7 @@ Two consequences worth knowing:
 ## Conventions for this folder
 
 - **Entry point:** `goToPageWithLang(context, MODULE_URLS.EN.LIBRARY | .VOICES, LANGUAGES.EN)`. For the results page, build the URL with `librarySearchUrl(query, searchTab?)` from [../../constants.ts](../../constants.ts) — note the tab param is `search_tab`, since `tab` already means the text/sheet search type.
-- **ID scheme:** `SRCH-###`. `001`–`006` header autocomplete + submit, `030`–`036` entity sort/filter, `040`–`042` infinite scroll, `050`+ Sheets With ref.
+- **ID scheme:** `SRCH-###`. `001`–`006` header autocomplete + submit, `030`–`036` entity sort/filter, `040`–`042` infinite scroll, `050`+ Sheets With ref, `060`–`065` NoSearchResults null state.
 - **Page object:** dropdown section/icon assertions go through [pm.onModuleHeader()](../../pages/moduleHeaderPage.ts) (`testSearchDropdown`, `testSearchDropdownIcons`); section/icon/term constants live in `SEARCH_DROPDOWN` ([../../constants.ts](../../constants.ts)). Results-page interactions go through [pm.onSearchPage()](../../pages/searchPage.ts) (`selectTab`, `setSort`, `toggleBookCategoryFilter`, `resultCardNames`, `scrollResultsToBottom`).
 
 ## Running

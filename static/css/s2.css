@@ -4308,6 +4308,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-button.buttonStyle:hover {
   text-decoration: none;
 }
+.dropdown-button.buttonStyle.disabled {
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
 .message-modal {
   position: fixed;
   text-align: center;
@@ -5174,6 +5180,95 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   width: 100%;
   border-radius: 4px;
+}
+
+/* ── No search results ──────────────────────────────────────────── */
+.noSearchResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 16px;
+}
+
+.noSearchResults-image {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.noSearchResults-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.noSearchResults-textGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.noSearchResults-heading {
+  font-size: 30px;
+  color: #121212;
+  font-weight: 400;
+  margin: 0;
+}
+
+.noSearchResults-body {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  color: var(--darker-grey);
+  margin: 0;
+}
+
+.noSearchResults-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  padding: 0 16px;
+  background: var(--sefaria-blue);
+  border: 1.5px solid var(--sefaria-blue);
+  border-radius: 4px;
+  color: #fff;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.noSearchResults-cta:hover {
+  color: #fff;
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.noSearchResults-caption {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  line-height: 18px;
+  color: #707070;
+  text-align: center;
+  margin: 0;
+}
+
+.noSearchResults-captionLink {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: var(--sefaria-blue);
+  text-decoration: underline;
 }
 
 .readerNavMenu .yourSheetsLink.navButton {
@@ -16473,6 +16568,12 @@ span.ref-link-color-3 {color: blue}
 .searchSortDropdown.open .searchSortDropdown__chevron {
   transform: rotate(180deg);
 }
+.searchSortDropdown.disabled {
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
 /* ========== SEARCH SORT DROPDOWN - END ========== */
 
 /* ========== MOBILE FILTER ICON BUTTON ========== */
@@ -16496,5 +16597,10 @@ span.ref-link-color-3 {color: blue}
 body.user-is-tabbing .mobileFilterIconButton:focus {
   outline: 2px solid var(--focus-blue);
   outline-offset: 2px;
+}
+.mobileFilterIconButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */

@@ -146,8 +146,17 @@ SearchResultList.propTypes = {
     isQueryRunning:   PropTypes.bool,
 };
 
-const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray}) => {
+const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, disabled}) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    if (disabled) {
+      return (
+        <div className="dropdown-button buttonStyle disabled" aria-disabled="true">
+          <InterfaceText text={{en: "Sort", he: "מיון"}} />
+          <img src="/static/img/arrow-down.png" alt="" aria-hidden="true" />
+        </div>
+      );
+    }
 
     const handleClick = (newSortType) => {
         if (sortType === newSortType) {
@@ -181,29 +190,40 @@ SearchSortBox.propTypes = {
   type:                    PropTypes.string.isRequired,
   updateAppliedOptionSort: PropTypes.func,
   sortType:                PropTypes.string,
+  disabled:                PropTypes.bool,
 };
 
 
-const SearchFilterButton = ({openMobileFilters, nFilters, label = "Filter"}) => (
-  <div className={classNames({button: 1, extraSmall: 1, grey: label === "Filter" ? !nFilters : false})}
-       onClick={openMobileFilters}
-       role="button"
-       tabIndex="0"
-       aria-label={`Open ${label.toLowerCase()}${label === "Filter" && nFilters ? ` (${nFilters} active)` : ''}`}>
-    <InterfaceText>common.filter</InterfaceText>
-    {label === "Filter" && !!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
-  </div>
-);
+const SearchFilterButton = ({openMobileFilters, nFilters, disabled, label = "Filter"}) => {
+  const isGrey = (label === "Filter" && !nFilters) || disabled;
+  const ariaLabel = disabled
+    ? undefined
+    : `Open ${label.toLowerCase()}${label === "Filter" && nFilters ? ` (${nFilters} active)` : ''}`;
+  return (
+    <div
+      className={classNames({button: 1, extraSmall: 1, grey: isGrey, disabled})}
+      onClick={disabled ? undefined : openMobileFilters}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label={ariaLabel}
+      aria-disabled={disabled || undefined}
+    >
+      <InterfaceText>common.filter</InterfaceText>
+      {label === "Filter" && !!nFilters ? <>&nbsp;({nFilters.toString()})</> : null}
+    </div>
+  );
+};
 
 
-const MobileFilterIconButton = ({ openMobileFilters }) => (
+const MobileFilterIconButton = ({ openMobileFilters, disabled }) => (
   <div
-    className="mobileFilterIconButton"
-    onClick={openMobileFilters}
+    className={classNames("mobileFilterIconButton", { disabled })}
+    onClick={disabled ? undefined : openMobileFilters}
     role="button"
-    tabIndex="0"
-    aria-label={Sefaria._("Filter and Sort")}
-    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
+    tabIndex={disabled ? -1 : 0}
+    aria-label={disabled ? undefined : Sefaria._("Filter and Sort")}
+    aria-disabled={disabled || undefined}
+    onKeyDown={disabled ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
   >
     <img src="/static/icons/sliders.svg" alt="" aria-hidden="true" />
   </div>
