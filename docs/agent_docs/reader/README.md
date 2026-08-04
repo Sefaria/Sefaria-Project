@@ -143,7 +143,7 @@ Many functions handle legacy URL redirects (old sheet URLs, old profile URLs, mo
 
 Contains a single model:
 
-- **`UserExperimentSettings`** -- Vestigial. The experiments program's whitelist, whose only member was ever the Library Assistant; nothing reads it. The table is dropped in the deploy following its removal from the code.
+- **`UserExperimentSettings`** -- Vestigial. The whitelist for the retired experiments program; nothing reads it. The class stays only so its Postgres table has a model to drop it by.
 
 ### startup.py
 

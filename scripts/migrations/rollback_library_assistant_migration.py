@@ -7,9 +7,9 @@ Unsets `settings.library_assistant` on the profiles that
 still the one the migration wrote. A user who changed the setting themselves after the
 flip has expressed a real preference; that survives the rollback untouched.
 
-Everyone unset falls back to the pre-migration rule (on the experiments whitelist AND
-`profile.experiments` true), which is live code until the experiments framework is
-removed. That removal ends the rollback window.
+A profile with no key reads as off in `sefaria.helper.library_assistant` — there is no
+other source of truth for the switch. Rolling back therefore leaves every profile it
+touches with the assistant off, whichever value the migration wrote for them.
 
 Usage:
     python scripts/migrations/rollback_library_assistant_migration.py --dry-run

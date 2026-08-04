@@ -4,10 +4,10 @@ from django.db import models
 
 class UserExperimentSettings(models.Model):
     """
-    Vestigial: the whitelist for the experiments program, whose only member was ever the
-    Library Assistant. The assistant is now a plain user setting — see
-    sefaria.helper.library_assistant — and nothing reads this model any more. The table
-    is dropped in the following deploy; the rows are archived first.
+    Vestigial: the whitelist for the retired experiments program. Nothing reads it — the
+    Library Assistant, the only feature it ever gated, is a plain user setting (see
+    sefaria.helper.library_assistant). The class stays only so its Postgres table has a
+    model to drop it by; deleting the class without a migration would strand the table.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="experiment_settings")
     experiments = models.BooleanField(default=True)
