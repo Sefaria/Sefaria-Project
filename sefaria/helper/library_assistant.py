@@ -78,6 +78,11 @@ def notify_crm_of_change(profile, enabled):
     Report an opt-in/opt-out to Salesforce. Kept separate from `set_enabled` so callers
     that write the profile by other means (the settings API, which saves the whole
     profile in one go) can still fire exactly one webhook per genuine change.
+
+    The webhook itself is currently deactivated at the dispatch layer — comms has no
+    use for the signal while the assistant is on by default. This seam and its
+    once-per-change contract stay wired so reactivating is a one-flag change; see
+    CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in sefaria/helper/crm/tasks.py.
     """
     from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
     interface_language = profile.settings.get("interface_language", "english")

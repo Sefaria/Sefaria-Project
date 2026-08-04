@@ -13,7 +13,7 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 - **`NationbuilderConnectionManager`** (`nationbuilder.py`) — Deprecated. Emits `DeprecationWarning` on import. Uses `rauth` OAuth2 against `{SLUG}.nationbuilder.com`. Kept for reference but never instantiated by the factory.
 - **`DummyConnectionManager`** (`dummy_crm.py`) — No-op returning `True` for every mutation. Returns two hardcoded fake lists from `get_available_lists`.
 - **`CrmInfoStore`** (`crm_info_store.py`) — Static methods that read/write CRM IDs on `UserProfile` (field name depends on CRM type: `nationbuilder_id` vs `sf_app_user_id`) and manage the `is_sustainer` flag in the `profiles` collection.
-- **`tasks.py`** — Celery task `crm.send_chatbot_opt_in_webhook`. Separate path from the mediator: posts `{id, data: {email, optIn, interfaceLanguage}}` to a hardcoded Salesforce Apex webhook URL with one retry.
+- **`tasks.py`** — Celery task `crm.send_chatbot_opt_in_webhook`. Separate path from the mediator: posts `{id, data: {email, optIn, interfaceLanguage}}` to a hardcoded Salesforce Apex webhook URL with one retry. **Currently deactivated** via `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED` — comms has no use for the opt-in signal while the Library Assistant is on by default; the code is kept as a working reference and reactivates by flipping the flag.
 
 ## Non-Obvious Patterns
 

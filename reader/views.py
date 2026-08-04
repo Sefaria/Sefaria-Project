@@ -4086,6 +4086,9 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # The once-per-genuine-change CRM detection stays wired, but the webhook
+            # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
+            # sefaria/helper/crm/tasks.py.
             if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
                 library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
@@ -4327,6 +4330,9 @@ def profile_sync_api(request):
                 profile_updated = True
         if profile_updated:
             profile.save()
+        # The once-per-genuine-change CRM detection stays wired, but the webhook
+        # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
+        # sefaria/helper/crm/tasks.py.
         if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
             library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
         return jsonResponse(ret)
