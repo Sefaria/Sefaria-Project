@@ -83,13 +83,43 @@ def _normalize_char_range(raw_char_range: Any) -> list[int]:
         raise InputError("charRange values must be integers")
 
 
+def _span_refs(span: dict) -> set[str]:
+    refs = set()
+    for key in ("ref", "llm_resolved_ref_ambiguous", "llm_resolved_ref_non_segment"):
+        ref = span.get(key)
+        if ref:
+            refs.add(ref)
+    return refs
+
+
 def _span_matches(span: dict, payload: dict) -> bool:
     return (
         span.get("type") == MUTCSpanType.CITATION.value
         and span.get("charRange") == payload["charRange"]
         and span.get("text") == payload["text"]
-        and span.get("ref") == payload["targetRef"]
+        and bool(_span_refs(span) & payload["targetRefs"])
     )
+
+
+def _target_ref_aliases(payload: dict) -> set[str]:
+    target_refs = {payload["targetRef"]}
+    query = {
+        "ref": payload["ref"],
+        "versionTitle": payload["versionTitle"],
+        "language": payload["lang"],
+    }
+    for klass in (LinkerOutput, MarkedUpTextChunk):
+        chunk = klass().load(query)
+        if not chunk:
+            continue
+        for span in chunk.spans:
+            if (
+                span.get("type") == MUTCSpanType.CITATION.value
+                and span.get("charRange") == payload["charRange"]
+                and span.get("text") == payload["text"]
+            ):
+                target_refs.update(_span_refs(span))
+    return target_refs
 
 
 def _update_deleted_marker(klass, payload: dict, deleted: bool) -> bool:
@@ -113,16 +143,19 @@ def _update_deleted_marker(klass, payload: dict, deleted: bool) -> bool:
     return updated
 
 
-def _delete_generated_link(source_ref: str, target_ref: str, user_id: Optional[int]) -> bool:
+def _delete_generated_link(source_ref: str, target_refs: set[str], user_id: Optional[int]) -> bool:
     # Callers pass already-normalized refs (see set_linker_citation_deleted).
-    link = Link().load({
-        "refs": {"$all": [source_ref, target_ref]},
-        "generated_by": "add_links_from_text",
-    })
-    if not link:
-        return False
-    tracker.delete(user_id, Link, link._id)
-    return True
+    deleted = False
+    for target_ref in target_refs:
+        link = Link().load({
+            "refs": {"$all": [source_ref, target_ref]},
+            "generated_by": "add_links_from_text",
+        })
+        if not link:
+            continue
+        tracker.delete(user_id, Link, link._id)
+        deleted = True
+    return deleted
 
 
 def rerun_linker_for_segment(payload: dict, user_id: Optional[int]) -> dict:
@@ -158,12 +191,13 @@ def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: 
         "charRange": _normalize_char_range(_required(payload, "charRange")),
         "targetRef": Ref(_required(payload, "targetRef")).normal(),
     }
+    normalized["targetRefs"] = _target_ref_aliases(normalized)
 
     mutc_updated = _update_deleted_marker(MarkedUpTextChunk, normalized, deleted)
     linker_output_updated = _update_deleted_marker(LinkerOutput, normalized, deleted)
     link_deleted = False
     if deleted:
-        link_deleted = _delete_generated_link(normalized["ref"], normalized["targetRef"], user_id)
+        link_deleted = _delete_generated_link(normalized["ref"], normalized["targetRefs"], user_id)
     else:
         rerun_linker_for_segment(normalized, user_id)
 

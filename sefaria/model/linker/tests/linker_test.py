@@ -10,7 +10,7 @@ from sefaria.settings import ENABLE_LINKER
 from sefaria.model.marked_up_text_chunk import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError, InputError
 from sefaria.helper.linker.tasks import _extract_debug_spans, _merge_deleted_spans, _linked_trefs_from_mutc_spans
-from sefaria.helper.linker_admin import parse_linker_citation
+from sefaria.helper.linker_admin import _span_matches, parse_linker_citation
 
 
 def _seed_non_unique_terms(term_defs):
@@ -133,6 +133,38 @@ def test_merge_deleted_spans_dedupes_repeated_deleted_spans():
     deleted = [span for span in merged_spans if span.get("deleted") and span.get("ref") == "Pirkei Avot 3"]
     assert len(deleted) == 1
     assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_merge_deleted_spans_blocks_resolved_ref_for_deleted_citation_occurrence():
+    new_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3:1"},
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    existing_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True},
+    ]
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
+    assert not any(span.get("ref") == "Pirkei Avot 3:1" for span in merged_spans)
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_linker_admin_delete_span_matches_disambiguated_ref_alias():
+    payload = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "targetRefs": {"Pirkei Avot 3"},
+    }
+    span = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "type": "citation",
+        "ref": "Pirkei Avot 3:1",
+        "llm_resolved_ref_non_segment": "Pirkei Avot 3",
+    }
+
+    assert _span_matches(span, payload)
 
 
 

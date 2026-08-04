@@ -351,6 +351,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
+    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
+        logger.info("Skipping deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
 
     mutc, span_data = _upsert_mutc_span(
         ref=payload.ref,
@@ -375,6 +378,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
         })
 
+    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
+        logger.info("Skipping link write for deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
         citing_ref=citing_ref,
         non_segment_ref=payload.resolved_non_segment_ref,
@@ -408,6 +414,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
+    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+        logger.info("Skipping deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
 
     mutc, span_data = _upsert_mutc_span(
         ref=payload.ref,
@@ -433,6 +442,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "llm_ambiguous_option_valid": True,
         })
 
+    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+        logger.info("Skipping link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
     if link_obj is not None:
         _record_disambiguated_link({
@@ -462,6 +474,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
                 text=payload.text,
                 resolved_ref=result.matched_segment,
             )
+            if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+                logger.info("Skipping matched-segment link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+                return
             link_obj, action = _create_or_update_link_for_non_segment_resolution(
                 citing_ref=citing_ref,
                 non_segment_ref=resolved_ref,
@@ -530,6 +545,40 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
 
     if updated:
         linker_output.save()
+
+
+def _span_refs(span: dict) -> set[str]:
+    refs = set()
+    for key in ("ref", "llm_resolved_ref_ambiguous", "llm_resolved_ref_non_segment"):
+        ref = span.get(key)
+        if ref:
+            refs.add(ref)
+    return refs
+
+
+def _citation_was_deleted(payload: object, candidate_refs: list[Optional[str]]) -> bool:
+    payload_refs = {ref for ref in candidate_refs if ref}
+    query = {
+        "ref": payload.ref,
+        "versionTitle": payload.versionTitle,
+        "language": payload.language,
+    }
+    for klass in (LinkerOutput, MarkedUpTextChunk):
+        chunk = klass().load(query)
+        if not chunk:
+            continue
+        for span in chunk.spans:
+            if not span.get("deleted"):
+                continue
+            if span.get("type") != MUTCSpanType.CITATION.value:
+                continue
+            if span.get("charRange") != payload.charRange:
+                continue
+            if span.get("text") != payload.text:
+                continue
+            if not payload_refs or _span_refs(span) & payload_refs:
+                return True
+    return False
 
 
 def _record_disambiguated_mutc(payload: dict) -> None:
@@ -609,7 +658,6 @@ def _span_identity(span: dict) -> tuple:
         span.get("type"),
         tuple(span.get("charRange") or []),
         span.get("text"),
-        span.get("ref"),
     )
 
 
