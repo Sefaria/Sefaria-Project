@@ -2780,8 +2780,7 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
-  // TEMPORARY (goes with the experiments framework): the Library Assistant no longer
-  // enrolls through the whitelist, which leaves this API without callers.
+  // TEMPORARY (goes with the experiments framework): no callers.
   experimentsOptInAPI: () => {
     return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
   },

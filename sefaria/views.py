@@ -174,8 +174,9 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant, written explicitly so they never
-            # depend on the pre-migration fallback or on the backfill having run.
+            # New accounts get the Library Assistant on. Written explicitly: an
+            # absent key would fall back to the experiments-whitelist rule, which no
+            # new account is part of.
             p.settings[library_assistant.SETTING_KEY] = True
 
 
