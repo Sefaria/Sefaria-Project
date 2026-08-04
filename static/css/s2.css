@@ -378,11 +378,8 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew .siteWideBanner {
   direction: rtl;
 }
-/* This purple is deliberately hardcoded rather than pinned to --mussar-purple or
-   --devportal-purple, which currently hold the same value. This promo is a
-   temporary treatment with its own lifespan, so sharing a token would mean a
-   later change to the Mussar category color silently restyles the banner, or
-   vice versa. Decided with design; revisit if the promo becomes permanent. */
+/* Uses the general brand purple rather than --mussar-purple, so this promo is not
+   coupled to the Mussar category color; the two share a base but can diverge. */
 .siteWideBanner .siteWideBannerContent {
   display: flex;
   flex: 1;
@@ -391,7 +388,7 @@ body.hasBannerMessage #s2.headerOnly {
   color: white;
   border-radius: 10px;
   padding: 20px;
-  background: #7C416F;
+  background: var(--sefaria-purple);
 }
 /* Matches the 41x43 "double star icon" frame in the design, exported whole so
    its internal padding keeps the stars aligned against the two lines of text. */
@@ -436,7 +433,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .button.white,
 .siteWideBanner .button.white:hover {
-  color: #7C416F;
+  color: var(--sefaria-purple);
 }
 .siteWideBanner .logInToTry {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
