@@ -9,7 +9,7 @@ import Button from '../common/Button.jsx';
 import Captcha from '../common/Captcha.jsx';
 import LegalText from './LegalText.jsx';
 import {
-  whenReady, pickFirstError, authError, postForm, requiredFieldValidate, onBlurValidate, onChangeClear,
+  whenReady, pickFirstError, authError, postForm, requiredFieldValidate, emailValidate, onBlurValidate, onChangeClear,
 } from './utils.js';
 
 // Shown in the banner (same shape LoginView's sso_only_account error already uses), not under
@@ -175,7 +175,7 @@ const RegisterView = ({
           <div className="sefaria-auth-fields">
             <EmailInput value={fields.email}
                    setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('email', () => requiredFieldValidate(fields.email), setFieldError)}
+                   onBlur={(e) => setFieldError('email', requiredFieldValidate(fields.email) || emailValidate(e.target))}
                    error={fieldErrors.email} />
             <PasswordInput autoComplete="new-password"
                    value={fields.password}

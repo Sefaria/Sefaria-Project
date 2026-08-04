@@ -83,6 +83,11 @@ export function requiredFieldValidate(value) {
   return value.trim() ? null : 'auth.required_field';
 }
 
+// auth.invalid_email matches the key sso/views.py returns for the same failure.
+export function emailValidate(el) {
+  return el.validity.typeMismatch ? 'auth.invalid_email' : null;
+}
+
 // Client-side field-error convention shared by every auth form: a value is judged invalid
 // on blur (onBlurValidate sets the error), but typing may only ever *clear* an error that's
 // already showing (onChangeClear) — a value that's still invalid while typing leaves whatever
