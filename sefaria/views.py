@@ -95,6 +95,11 @@ class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
     template_name = 'base.html'
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("/")
+        return super().get(request, *args, **kwargs)
+
     def render_to_response(self, context, **response_kwargs):
         return render_template(
             self.request, "base.html",
@@ -277,7 +282,7 @@ def _web_register_errors(form):
 
 def register(request):
     if request.user.is_authenticated:
-        return redirect("login")
+        return redirect("/")
 
     next_url = request.GET.get('next', '')
 
