@@ -4106,8 +4106,9 @@ def profile_api(request, slug=None):
             # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
-            # NOT temporary: the CRM deliberately keeps hearing about genuine on/off
-            # changes of the assistant, exactly once per change.
+            # The once-per-genuine-change CRM detection stays wired, but the webhook
+            # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
+            # sefaria/helper/crm/tasks.py.
             if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
                 library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
             return jsonResponse(profile.to_mongo_dict())
@@ -4366,8 +4367,9 @@ def profile_sync_api(request):
                 profile_updated = True
         if profile_updated:
             profile.save()
-        # NOT temporary: the CRM deliberately keeps hearing about genuine on/off
-        # changes of the assistant, exactly once per change.
+        # The once-per-genuine-change CRM detection stays wired, but the webhook
+        # itself is deactivated — see CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED in
+        # sefaria/helper/crm/tasks.py.
         if la_posted and library_assistant.is_enabled(profile) != la_was_enabled:
             library_assistant.notify_crm_of_change(profile, library_assistant.is_enabled(profile))
         return jsonResponse(ret)
