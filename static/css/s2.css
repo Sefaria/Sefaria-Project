@@ -386,7 +386,7 @@ body.hasBannerMessage #s2.headerOnly {
   color: white;
   border-radius: 10px;
   padding: 20px;
-  background: #653259;
+  background: var(--mussar-purple);
 }
 .siteWideBanner .siteWideBannerIcon {
   width: 28px;
@@ -432,10 +432,10 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .button.small:not(.siteWideBannerMaybeLater) {
   background-color: white;
-  color: #653259;
+  color: var(--mussar-purple);
 }
 .siteWideBanner .button.small:not(.siteWideBannerMaybeLater):hover {
-  color: #653259;
+  color: var(--mussar-purple);
 }
 .siteWideBanner .logInToTry {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
