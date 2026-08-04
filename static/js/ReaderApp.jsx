@@ -1342,6 +1342,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let slug = path.replace(/^\/translations\//, '');
       this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1).replace(/%3F/g, '?'))) {
+      if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
+        // Texts are only read in the Library module, so send the ref there in a new tab
+        window.open(Sefaria.util.fullURL(url.pathname + url.search, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
+        return true;
+      }
       const ref = path.slice(1).replace(/%3F/g, '?');
       const currVersions = {
         en: Sefaria.util.getObjectFromUrlParam(params.get("ven")),
