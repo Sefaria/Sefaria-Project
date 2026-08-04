@@ -42,7 +42,7 @@ import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
-import { isAuthPath, withNext, resolveInitialAuthState } from './auth/utils.js';
+import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
 
 class ReaderApp extends Component {
@@ -1311,7 +1311,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
 
     if (isAuthPath(path)) {
-      const next = params.get('next') || Sefaria.util.currentPath();
+      const next = this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
       this.handleAuthNavigate(withNext(path, next), signupSource);
       return true;
     }

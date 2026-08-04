@@ -24,7 +24,7 @@ import Util from './sefaria/util';
 import Button from './common/Button';
 
 const AuthNavLink = ({flow, openURL, close, children}) => {
-  const href = `/${flow}?next=${encodeURIComponent(Sefaria.util.currentPath())}`;
+  const href = `/${flow}`;
   return (
     <a className='interfaceLinks-option int-bi dropdownItem'
        href={href}
