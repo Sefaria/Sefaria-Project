@@ -1169,6 +1169,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
   const [message, setMessage] = useState(null);
   const [rerunStatus, setRerunStatus] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [testStringCopied, setTestStringCopied] = useState(false);
   const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
   // Fall back to the ref currently visible in the reader (updates as you scroll) rather than the
   // panel's static srefs, so "Current Ref" tracks the reader when no citation is selected.
@@ -1178,6 +1179,8 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
   // (stacked) for an ambiguous one. Each option carries its own disambiguated ref (if any), so the
   // Disambiguator arrow is drawn per-option — only on the option the disambiguator actually resolved.
   const spanOptions = getLinkerAdminOptions(selectedSpan);
+  // CRRD test string (paste into linker_test.py). Only citation spans carry ref parts.
+  const testStringCrrd = selectedSpan?.inputRefParts ? Sefaria._getLinkerTestString(selectedSpan) : null;
   const visibleRerunVersions = selectedSpan?.versionTitle && selectedSpanLang ? [{
     lang: selectedSpanLang,
     versionTitle: selectedSpan.versionTitle,
@@ -1330,6 +1333,22 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     }
   };
 
+  const copyTestString = () => {
+    if (!testStringCrrd) { return; }
+    const input = document.getElementById("linkerAdminTestString");
+    if (input) {
+      input.select();
+      input.setSelectionRange(0, 99999); // for mobile devices
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(testStringCrrd);
+    } else { // fallback if navigator.clipboard is unavailable
+      document.execCommand('copy');
+    }
+    setTestStringCopied(true);
+    setTimeout(() => setTestStringCopied(false), 2000);
+  };
+
   const toggleLinkerDebugMode = () => {
     const url = new URL(window.location.href);
     Sefaria.util.setLinkerAdminUrlParams(url.searchParams, {debug: !linkerDebugOn});
@@ -1438,6 +1457,22 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
                 </div>
               ))}
           </div>
+        </div>
+      ) : null}
+      {testStringCrrd ? (
+        <div className="linkerAdminSection">
+          <div className="linkerAdminSectionTitle">CRRD Test String</div>
+          <div className="linkerAdminTestStringBox" onClick={copyTestString} title="Click to copy">
+            <input
+              id="linkerAdminTestString"
+              className="linkerAdminTestStringInput"
+              type="text"
+              readOnly
+              value={testStringCrrd}
+            />
+            <img src="/static/icons/copy.svg" className="linkerAdminCopyIcon" aria-hidden="true" alt="" />
+          </div>
+          {testStringCopied ? <div className="linkerAdminMessage">Copied to clipboard</div> : null}
         </div>
       ) : null}
     </div>

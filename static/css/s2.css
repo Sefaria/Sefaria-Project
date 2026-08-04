@@ -6701,6 +6701,41 @@ But not to use a display block directive that might break continuous mode for ot
     color: #1b5e20;
     margin-bottom: 10px;
 }
+.linkerAdminTestStringBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: #f7f7f7;
+    cursor: pointer;
+}
+.linkerAdminTestStringBox:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+}
+.linkerAdminTestStringInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: monospace;
+    font-size: 12px;
+    color: #222;
+    cursor: pointer;
+    padding: 0;
+}
+.linkerAdminTestStringInput:focus {
+    outline: none;
+}
+.linkerAdminCopyIcon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+.linkerAdminTestStringBox:hover .linkerAdminCopyIcon {
+    opacity: 0.85;
+}
 .textRange .actionLinks {
   text-align: right;
 }
