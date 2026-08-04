@@ -13,7 +13,30 @@ from sefaria.model.schema import NonUniqueTerm, NonUniqueTermSet, AddressType
 from sefaria.model.linker.match_template import MatchTemplate
 from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
 import sefaria.model.linker.nonuniqueterm_index as nut_index
+from sefaria.settings import MULTISERVER_ENABLED, USE_VARNISH
 from sefaria.system.exceptions import InputError
+
+
+# ---------------------------------------------------------------------------
+# Persistence
+# ---------------------------------------------------------------------------
+
+def _save_linker_metadata(index) -> None:
+    """
+    Persist linker-only index metadata without running the full Index save
+    dependency chain. MatchTemplates, addressTypes, and linker node properties do
+    not affect the TOC, version state, or title lists, but other web processes
+    still need their in-process Index cache refreshed.
+    """
+    index.save(override_dependencies=True)
+    library.refresh_index_record_in_cache(index)
+
+    if MULTISERVER_ENABLED:
+        from sefaria.system.multiserver.coordinator import server_coordinator
+        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
+    elif USE_VARNISH:
+        from sefaria.system.varnish.wrapper import invalidate_title
+        invalidate_title(index.title)
 
 
 # ---------------------------------------------------------------------------
@@ -105,7 +128,7 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
     template = MatchTemplate(list(term_slugs), scope)
     serialized = template.serialize()
     node.match_templates = list(getattr(node, "match_templates", [])) + [serialized]
-    index.save()
+    _save_linker_metadata(index)
 
     nut_index.add_template_usage(title, node, template, struct_name=struct_name)
     return serialized
@@ -123,7 +146,7 @@ def remove_match_template(title: str, node_key_path: str, serialized_template: d
     if len(remaining) == len(existing):
         raise InputError("No matching MatchTemplate found on node '{}'.".format(node_key_path))
     node.match_templates = remaining
-    index.save()
+    _save_linker_metadata(index)
 
     template = MatchTemplate(
         list(serialized_template.get("term_slugs", [])),
@@ -164,7 +187,7 @@ def replace_match_template(title: str, node_key_path: str, old_template_data: di
         raise InputError("No matching MatchTemplate found on node '{}'.".format(node_key_path))
 
     node.match_templates = next_templates
-    index.save()
+    _save_linker_metadata(index)
 
     old_template = MatchTemplate(old_serialized["term_slugs"], old_serialized["scope"])
     nut_index.remove_template_usage(title, node, old_template, struct_name=struct_name)
@@ -208,7 +231,7 @@ def set_address_types(title: str, node_key_path: str, address_types: List[str]) 
             raise InputError("Unknown addressType '{}'.".format(atype))
 
     node.addressTypes = list(address_types)
-    index.save()
+    _save_linker_metadata(index)
     return node.addressTypes
 
 
@@ -345,7 +368,7 @@ def set_node_properties(title: str, node_key_path: str, properties: dict) -> dic
             raise InputError("Property '{}' does not apply to a {}.".format(prop, type(node).__name__))
         _apply_node_property(node, prop, value)
 
-    index.save()
+    _save_linker_metadata(index)
     return serialize_node_properties(node)
 
 

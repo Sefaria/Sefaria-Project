@@ -3,8 +3,8 @@ Tests for the linker editor backend (sefaria/helper/linker_editor.py and
 sefaria/model/linker/nonuniqueterm_index.py).
 
 Pure-logic and Redis-cache tests run anywhere. DB-backed tests are read-only.
-The write round-trip (add/remove MatchTemplate with index.save()) is exercised by
-manual/E2E verification rather than here, to avoid mutating shared index data.
+The write round-trip is exercised by manual/E2E verification rather than here,
+to avoid mutating shared index data.
 """
 import pytest
 
@@ -57,10 +57,10 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
 
     class FakeIndex:
         title = "Fake"
-        saves = 0
+        save_calls = []
 
-        def save(self):
-            self.saves += 1
+        def save(self, override_dependencies=False):
+            self.save_calls.append(override_dependencies)
 
     node = FakeNode()
     index = FakeIndex()
@@ -69,9 +69,12 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     monkeypatch.setattr(le, "_validate_slugs", lambda slugs: None)
     monkeypatch.setattr(schema.NonUniqueTerm, "init", staticmethod(lambda slug: type("FakeTerm", (), {"slug": slug})()))
     monkeypatch.setattr(le.library, "get_index", lambda title: index)
+    monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda saved_index: calls.append(("refresh", saved_index.title)))
     monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (node, None))
     monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append(("remove", args[2].serialize())))
     monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize())))
+    monkeypatch.setattr(le, "MULTISERVER_ENABLED", False)
+    monkeypatch.setattr(le, "USE_VARNISH", False)
 
     serialized = le.replace_match_template(
         "Fake",
@@ -81,12 +84,13 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     )
 
     assert serialized == {"term_slugs": ["old", "new"]}
-    assert index.saves == 1
+    assert index.save_calls == [True]
     assert node.match_templates == [
         {"term_slugs": ["old", "new"]},
         {"term_slugs": ["keep"], "scope": "alone"},
     ]
     assert calls == [
+        ("refresh", "Fake"),
         ("remove", {"term_slugs": ["old"]}),
         ("add", {"term_slugs": ["old", "new"]}),
     ]
@@ -97,16 +101,19 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
         match_templates = [{"term_slugs": ["old"], "scope": "combined"}]
 
     class FakeIndex:
-        def save(self):
+        def save(self, override_dependencies=False):
             raise RuntimeError("save failed")
 
     calls = []
     monkeypatch.setattr(le, "_validate_slugs", lambda slugs: None)
     monkeypatch.setattr(schema.NonUniqueTerm, "init", staticmethod(lambda slug: type("FakeTerm", (), {"slug": slug})()))
     monkeypatch.setattr(le.library, "get_index", lambda title: FakeIndex())
+    monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda index: calls.append("refresh"))
     monkeypatch.setattr(le, "get_node_by_editor_path", lambda index_arg, key_path: (FakeNode(), None))
     monkeypatch.setattr(le.nut_index, "remove_template_usage", lambda *args, **kwargs: calls.append("remove"))
     monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append("add"))
+    monkeypatch.setattr(le, "MULTISERVER_ENABLED", False)
+    monkeypatch.setattr(le, "USE_VARNISH", False)
 
     with pytest.raises(RuntimeError):
         le.replace_match_template(
@@ -117,6 +124,36 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
         )
 
     assert calls == []
+
+
+def test_save_linker_metadata_publishes_cache_refresh_in_multiserver(monkeypatch):
+    class FakeIndex:
+        title = "Fake"
+        save_calls = []
+
+        def save(self, override_dependencies=False):
+            self.save_calls.append(override_dependencies)
+
+    class FakeCoordinator:
+        events = []
+
+        def publish_event(self, *args):
+            self.events.append(args)
+
+    index = FakeIndex()
+    coordinator = FakeCoordinator()
+    refreshes = []
+
+    monkeypatch.setattr(le.library, "refresh_index_record_in_cache", lambda saved_index: refreshes.append(saved_index.title))
+    monkeypatch.setattr(le, "MULTISERVER_ENABLED", True)
+    monkeypatch.setattr(le, "USE_VARNISH", False)
+    monkeypatch.setattr("sefaria.system.multiserver.coordinator.server_coordinator", coordinator)
+
+    le._save_linker_metadata(index)
+
+    assert index.save_calls == [True]
+    assert refreshes == ["Fake"]
+    assert coordinator.events == [("library", "refresh_index_record_in_cache", ["Fake"])]
 
 
 def test_alt_struct_editor_path():
