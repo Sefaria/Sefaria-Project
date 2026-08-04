@@ -378,9 +378,11 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew .siteWideBanner {
   direction: rtl;
 }
-/* Design specified the mussar purple token itself for this promo, rather than a
-   banner-specific color that happens to match it. Keep them in step: if the
-   mussar token moves, this banner is meant to move with it. */
+/* This purple is deliberately hardcoded rather than pinned to --mussar-purple or
+   --devportal-purple, which currently hold the same value. This promo is a
+   temporary treatment with its own lifespan, so sharing a token would mean a
+   later change to the Mussar category color silently restyles the banner, or
+   vice versa. Decided with design; revisit if the promo becomes permanent. */
 .siteWideBanner .siteWideBannerContent {
   display: flex;
   flex: 1;
@@ -389,13 +391,15 @@ body.hasBannerMessage #s2.headerOnly {
   color: white;
   border-radius: 10px;
   padding: 20px;
-  background: var(--mussar-purple);
+  background: #7C416F;
 }
+/* Matches the 41x43 "double star icon" frame in the design, exported whole so
+   its internal padding keeps the stars aligned against the two lines of text. */
 .siteWideBanner .siteWideBannerIcon {
-  width: 28px;
-  height: auto;
+  width: 41px;
+  height: 43px;
   flex-shrink: 0;
-  margin-inline-end: 16px;
+  margin-inline-end: 18px;
 }
 .siteWideBanner .siteWideBannerTextBox {
   flex: 1;
@@ -432,7 +436,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .button.white,
 .siteWideBanner .button.white:hover {
-  color: var(--mussar-purple);
+  color: #7C416F;
 }
 .siteWideBanner .logInToTry {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
