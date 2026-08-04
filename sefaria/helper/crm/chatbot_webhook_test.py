@@ -1,8 +1,5 @@
-import json
-from unittest import mock
 from unittest.mock import patch, MagicMock
 
-import pytest
 import requests
 
 from sefaria.helper.crm.tasks import (
