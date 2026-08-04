@@ -4291,7 +4291,6 @@ def profile_sync_api(request):
         no_return = request.GET.get("no_return", False)
         annotate = bool(int(request.GET.get("annotate", 0)))
         profile = UserProfile(id=request.user.id)
-        la_key = library_assistant.SETTING_KEY
         ret = {"created": []}
         # sync items from request
         for field in syncable_fields:
@@ -4306,9 +4305,9 @@ def profile_sync_api(request):
                 except ValueError as e:
                     logger.warning(f'profile_sync_api: {e}')
                     continue
-                if la_key in field_data:
+                if library_assistant.SETTING_KEY in field_data:
                     # Public endpoint — coerce so a posted "false" can't read as truthy.
-                    field_data[la_key] = library_assistant.normalize(field_data[la_key])
+                    field_data[library_assistant.SETTING_KEY] = library_assistant.normalize(field_data[library_assistant.SETTING_KEY])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
