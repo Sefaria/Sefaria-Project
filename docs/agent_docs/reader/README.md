@@ -144,7 +144,7 @@ Many functions handle legacy URL redirects (old sheet URLs, old profile URLs, mo
 
 Contains a single model:
 
-- **`UserExperimentSettings`** -- A one-to-one extension of Django's `User` model tracking whether a user is opted into experiments (feature flags). The `experiments` boolean is also monkey-patched onto the `User` model as a property via `User.add_to_class()`.
+- **`UserExperimentSettings`** -- A one-to-one extension of Django's `User` model tracking whether a user is opted into experiments (feature flags). The `experiments` boolean is also monkey-patched onto the `User` model as a property via `User.add_to_class()`. The framework is currently parked — its data was cleared when the Library Assistant moved to its own setting, and nothing ships through it today — but it is kept working for a future experiment.
 - **`_set_user_experiments(user, value)`** -- Sets the flag on both the Django model and the MongoDB `UserProfile`, and dispatches a CRM webhook.
 - **`user_has_experiments(user)`** -- Checks if a user has an experiment settings record.
 
@@ -240,4 +240,4 @@ Add it to the `app_props` dict in that page's view function before calling `rend
 Use `UserExperimentSettings` via Django admin. Bulk-enable via CSV upload. Check with `user_has_experiments(request.user)` or `request.user.experiments` in views.
 
 ### The Library Assistant switch
-Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant`. Until every profile has been backfilled, an absent key falls back to the old rule (`UserExperimentSettings` row exists AND `profile.experiments`), so never read the key directly — call `is_enabled(profile)` / `is_enabled_for_user(user)`.
+Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant` -- call `is_enabled(profile)` / `is_enabled_for_user(user)` rather than reading the key. On for everyone unless they turn it off in account settings; see [the naming decision](../../decisions/library_assistant_naming.md) for why `chatbot` names persist alongside it.
