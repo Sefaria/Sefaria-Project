@@ -27,9 +27,10 @@ Every write is archived to `db.library_assistant_migration_archive` (user id, va
 written, cohort, run id) — both the historical record and the input for
 `rollback_library_assistant_migration.py`.
 
-Usage:
-    python scripts/migrations/migrate_experiments_to_library_assistant.py --dry-run
-    python scripts/migrations/migrate_experiments_to_library_assistant.py
+Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
+sefaria):
+    ./run scripts/migrations/migrate_experiments_to_library_assistant.py --dry-run
+    ./run scripts/migrations/migrate_experiments_to_library_assistant.py
 """
 
 import argparse
@@ -72,7 +73,9 @@ def _write(user_ids, value, cohort, run_id):
         batch = user_ids[start:start + BATCH_SIZE]
         # Re-read rather than trusting the scan, so the archive records exactly the
         # profiles this run changed and nothing else.
-        pending = [p["id"] for p in db.profiles.find(_unmigrated({"id": {"$in": batch}}), {"id": 1})]
+        # Deduplicated: a handful of ids own more than one profile document, and the count
+        # and the archive are both per user.
+        pending = list({p["id"] for p in db.profiles.find(_unmigrated({"id": {"$in": batch}}), {"id": 1})})
         if not pending:
             continue
         db.profiles.update_many(
