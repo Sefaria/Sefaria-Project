@@ -9,11 +9,11 @@ from functools import wraps
 
 from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from reader.models import user_has_experiments
+from sefaria.helper import library_assistant
 from sefaria.settings import *
 from django.conf import settings
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile
 
 import structlog
 
@@ -142,14 +142,6 @@ def _chatbot_script_url_and_type(chatbot_version):
         None,
     )
 
-def _is_user_in_experiment(request):
-    if not user_has_experiments(request.user):
-        return False
-    profile = UserProfile(user_obj=request.user)
-    if not getattr(profile, "experiments", False):
-        return False
-    return True
-
 @user_only
 def chatbot_user_token(request):
     chatbot_version = request.GET.get("chatbot_version", "").strip()
@@ -164,7 +156,7 @@ def chatbot_user_token(request):
     elif "chatbot_version" in request.session:
         chatbot_version = request.session["chatbot_version"]
 
-    if not _is_user_in_experiment(request):
+    if not library_assistant.is_enabled_for_user(request.user):
         return {
             "chatbot_script_url": None,
             "chatbot_script_type": None,
