@@ -1,0 +1,253 @@
+import fs from 'fs';
+import path from 'path';
+import { BrowserContext, Page, expect } from '@playwright/test';
+
+/**
+ * Shared plumbing for the Library Assistant opt-out suite.
+ *
+ * Deliberately independent of `e2e-tests/utils.ts` and `constants.ts`: those derive
+ * `MODULE_URLS` and cookie domains from `SANDBOX_URL` and assume a two-domain, two-module
+ * sandbox with `www.` and `voices.` subdomains. This suite has to run against a bare
+ * `http://localhost:8000` as well, where none of that holds — `.localhost:8000` is not a
+ * legal cookie domain — so it carries its own small entry point instead.
+ */
+
+export const BASE_URL = process.env.LA_BASE_URL || 'http://localhost:8000';
+
+/**
+ * Which side of the Phase 2 migration the environment under test is on.
+ *
+ *   `pre`  — Phase 1 deployed, migration not yet run. Profiles with no setting key fall
+ *            back to the experiments rule, so a never-enrolled user has no assistant.
+ *   `post` — the migration has run. Every profile carries the key, so the never-enrolled
+ *            user is on. Phase 3 removes the fallback but changes no expectation here,
+ *            because after the migration nothing reads it — which is exactly what makes
+ *            one suite serve all three phases.
+ */
+export type Phase = 'pre' | 'post';
+export const PHASE: Phase = (process.env.LA_PHASE as Phase) || 'pre';
+
+export type Account = {
+  key: string;
+  id: number;
+  email: string;
+  password: string;
+  expected_pre: boolean;
+  expected_post: boolean;
+  why: string;
+};
+
+const MANIFEST = path.join(__dirname, '..', '.la-e2e-users.json');
+
+export function accounts(): Account[] {
+  if (!fs.existsSync(MANIFEST)) {
+    throw new Error(
+      `No seeded-account manifest at ${MANIFEST}.\n` +
+      `Run: python scripts/dev/seed_library_assistant_e2e_users.py --reset`
+    );
+  }
+  return JSON.parse(fs.readFileSync(MANIFEST, 'utf-8')).accounts;
+}
+
+export function account(key: string): Account {
+  const found = accounts().find(a => a.key === key);
+  if (!found) throw new Error(`No seeded account "${key}". Re-run the seeding script.`);
+  return found;
+}
+
+/** What the assistant should do for this account in the environment under test. */
+export function expected(a: Account): boolean {
+  return PHASE === 'pre' ? a.expected_pre : a.expected_post;
+}
+
+export const authFile = (key: string) => path.join(__dirname, '.auth', `${key}.json`);
+
+/** Keep first-visit overlays from covering the page. Cookie domain is host-only, so this
+ *  works on localhost, a cauldron, and staging alike. */
+export async function suppressOverlays(context: BrowserContext) {
+  await context.addInitScript(() => {
+    const original = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key: string) {
+      if (typeof key === 'string' && (key.startsWith('modal_') || key.startsWith('banner_'))) {
+        return 'true';
+      }
+      return original.call(this, key);
+    };
+  });
+  await context.addCookies([{
+    name: 'cookiesNotificationAccepted',
+    value: '1',
+    url: BASE_URL,
+  }]);
+  await context.route('**/api/strapi/graphql-cache*', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ data: { modals: { data: [] }, banners: { data: [] }, sidebarAds: { data: [] } } }),
+  }));
+}
+
+/** Log in through the real form. Used by the setup project, once per account. */
+export async function logIn(page: Page, email: string, password: string) {
+  await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded' });
+  await page.locator('input[name="email"]').first().fill(email);
+  await page.locator('input[name="password"]').first().fill(password);
+  await page.locator('input[name="password"]').first().press('Enter');
+  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 30000 });
+}
+
+/**
+ * Whether the assistant is switched on for the current session, read from the props the
+ * server sent. This is the server's answer — the one the helper module computes — and it
+ * is the same field in every phase.
+ */
+export async function assistantEnabledInProps(page: Page): Promise<boolean> {
+  return page.evaluate(() => !!(window as any).Sefaria?.chatbot_enabled);
+}
+
+/**
+ * Whether the assistant actually mounted. `ReaderApp` renders `<lc-chatbot>` only when the
+ * server said enabled AND issued a user token; the element exists whether or not the
+ * external bundle that upgrades it is reachable, so this is a fair check locally.
+ */
+export function assistantElement(page: Page) {
+  return page.locator('lc-chatbot');
+}
+
+/** Assert both halves of the gate — what the server decided and what actually mounted. */
+export async function expectAssistant(page: Page, on: boolean, because: string) {
+  const inProps = await assistantEnabledInProps(page);
+  expect(inProps, `chatbot_enabled should be ${on} — ${because}`).toBe(on);
+  if (on) {
+    await expect(assistantElement(page), `<lc-chatbot> should render — ${because}`)
+      .toBeAttached({ timeout: 20000 });
+  } else {
+    await expect(assistantElement(page), `<lc-chatbot> should not render — ${because}`)
+      .toHaveCount(0, { timeout: 20000 });
+  }
+}
+
+/**
+ * A reader page is where the assistant lives; wait for React to have hydrated.
+ *
+ * Retries once on ERR_ABORTED. The settings page reloads itself after a save that changed
+ * the assistant, and an abort means precisely that another navigation won the race — the
+ * page is fine, this navigation just needs reissuing.
+ */
+export async function goToReader(page: Page, ref = '/Genesis.1') {
+  const url = `${BASE_URL}${ref}`;
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+  } catch (e: any) {
+    if (!String(e?.message).includes('ERR_ABORTED')) throw e;
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+  }
+  await page.waitForFunction(() => !!(window as any).Sefaria, null, { timeout: 45000 });
+  await expect(page.locator('.readerApp')).toBeAttached({ timeout: 45000 });
+}
+
+export const SETTINGS_URL = '/settings/account';
+
+export async function goToAccountSettings(page: Page) {
+  await page.goto(`${BASE_URL}${SETTINGS_URL}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: 20000 });
+}
+
+/** The toggle renders the *effective* value, so this is what the user is told. */
+export async function toggleShowsOn(page: Page): Promise<boolean> {
+  const on = page.locator('#libraryAssistantSetting .toggleOption[data-value=true]');
+  return (await on.getAttribute('aria-checked')) === 'true';
+}
+
+export async function setToggle(page: Page, on: boolean) {
+  await page.locator(`#libraryAssistantSetting .toggleOption[data-value=${on}]`).click();
+}
+
+/**
+ * Click Save and hand back the settings object the page actually posted.
+ *
+ * The decision of *whether* to send `library_assistant` lives in jQuery in
+ * `templates/account_settings.html` and is invisible to the Python tests, so the request
+ * body is the only place it can be observed. Fulfilling the route rather than letting it
+ * through keeps a test that only cares about the payload from mutating the account.
+ */
+export async function saveSettingsAndCapturePayload(
+  page: Page,
+  { persist = true }: { persist?: boolean } = {},
+): Promise<any> {
+  let posted: any = null;
+  await page.route('**/api/profile', async route => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    const body = route.request().postData() || '';
+    const json = new URLSearchParams(body).get('json');
+    posted = JSON.parse(json || '{}');
+    if (persist) return route.fallback();
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  // The page reloads itself when the assistant toggle changed, because the script tag and
+  // the user token are both decided server-side. Arm the listener before the click: if the
+  // caller navigates while that reload is in flight, the navigation aborts.
+  const reloaded = page.waitForEvent('load', { timeout: 20000 }).catch(() => null);
+
+  await page.locator('.saveAccountSettingsBtn').first().click();
+  await expect.poll(() => posted, { timeout: 20000 }).not.toBeNull();
+  await page.unroute('**/api/profile');
+
+  if (persist && posted?.settings?.library_assistant !== undefined) {
+    await reloaded;
+    await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: 20000 });
+  }
+  return posted;
+}
+
+/**
+ * Register a brand-new account.
+ *
+ * Goes through `/api/register/` rather than the HTML form: the form carries a reCAPTCHA
+ * that cannot be driven headlessly wherever real keys are configured. The API form drops
+ * the captcha and requires `mobile_app_key` instead — the dev default is the literal
+ * "MOBILE_APP_KEY" (see `sefaria/local_settings_example.py`); against staging, export the
+ * real one as LA_MOBILE_APP_KEY.
+ *
+ * Both paths run the same `process_register_form`, which is where the setting is written,
+ * so this exercises the real code path a person registering on the site would.
+ */
+export const MOBILE_APP_KEY = process.env.LA_MOBILE_APP_KEY || 'MOBILE_APP_KEY';
+
+export async function registerViaApi(page: Page, email: string, password: string) {
+  let text = '';
+  let status = 0;
+
+  // Registration is one long `transaction.atomic()`. Against the default local sqlite that
+  // collides with any concurrent write and returns a 500 "database is locked" — an
+  // artifact of the dev database, not of the code under test, and absent on Postgres.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await page.request.post(`${BASE_URL}/api/register/`, {
+      form: {
+        email,
+        first_name: 'LA',
+        last_name: 'Newcomer',
+        password1: password,
+        password2: password,
+        mobile_app_key: MOBILE_APP_KEY,
+      },
+    });
+    status = response.status();
+    text = await response.text();
+    try {
+      const body = JSON.parse(text);
+      if (response.ok() && 'access' in body) return body;
+      // Field errors are deterministic — retrying cannot help.
+      if (response.ok()) break;
+    } catch { /* not JSON: a 500 error page */ }
+    if (status !== 500) break;
+    await page.waitForTimeout(2000 * (attempt + 1));
+  }
+
+  throw new Error(
+    `/api/register/ did not create an account (HTTP ${status}): ${text.slice(0, 400)}\n` +
+    `If this says "Incorrect mobile_app_key", set LA_MOBILE_APP_KEY to the target ` +
+    `environment's MOBILE_APP_KEY secret.`
+  );
+}
