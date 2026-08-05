@@ -23,7 +23,8 @@ from django.test import TestCase
 
 from reader.conftest import create_test_user
 from reader.models import UserExperimentSettings
-from sefaria.helper.library_assistant import SETTING_KEY
+from sefaria.helper import library_assistant
+from sefaria.helper.library_assistant import SETTING_KEY, _legacy_enabled
 from sefaria.system.database import client
 
 # Per process: `setUp` drops this database outright, so a fixed name lets two concurrent
@@ -615,3 +616,30 @@ class RollbackFidelityTest(MigrationTestCase):
         self.run_rollback()
 
         self.assertEqual(self.db.profiles.find_one({"id": user.id})["settings"], {})
+
+
+class RollbackWindowTest(MigrationTestCase):
+    """
+    Unsetting the key only restores a user's prior behaviour while the legacy rule is there
+    to fall back to. Once it is removed, absent reads as off, so a rollback would turn the
+    assistant off for everyone it touched — and report success while doing it.
+    """
+
+    def test_it_refuses_once_the_legacy_fallback_is_gone(self):
+        user = self.make_profile()
+        self.run_migration()
+        del library_assistant._legacy_enabled
+        self.addCleanup(setattr, library_assistant, "_legacy_enabled", _legacy_enabled)
+
+        output = self.run_rollback()
+
+        self.assertIn("Refusing to run", output)
+        self.assertIs(self.stored(user), True)
+
+    def test_it_runs_while_the_fallback_is_live(self):
+        user = self.make_profile()
+        self.run_migration()
+
+        self.run_rollback()
+
+        self.assertEqual(self.stored(user), "<absent>")

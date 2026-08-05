@@ -9,7 +9,8 @@ flip has expressed a real preference; that survives the rollback untouched.
 
 Everyone unset falls back to the pre-migration rule (on the experiments whitelist AND
 `profile.experiments` true), which is live code until the experiments framework is
-removed. That removal ends the rollback window.
+removed. That removal ends the rollback window, and this script refuses to run once it has
+happened rather than quietly turning the assistant off for everyone it touches.
 
 Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
 sefaria):
@@ -25,6 +26,7 @@ import django
 django.setup()
 
 from sefaria.system.database import db
+from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 
 # Same directory as this script, which is sys.path[0] when it is run.
@@ -42,7 +44,26 @@ def _archived_entries(run_id):
     return db[ARCHIVE_COLLECTION].find(query, {"uid": 1, "value": 1}).sort("_id", 1)
 
 
+def _fallback_is_live():
+    """
+    Whether an unset profile still reads as its pre-flip value.
+
+    Unsetting the key only returns a user to their old behavior while the legacy rule is
+    there to fall back to. Once it is gone, absent reads as off, so this script would turn
+    the assistant off for everyone it touched while reporting a clean success.
+    """
+    return hasattr(library_assistant, "_legacy_enabled")
+
+
 def rollback(dry_run=False, run_id=None):
+    if not _fallback_is_live():
+        print(
+            f"Refusing to run: the legacy fallback is gone, so unsetting {SETTING_KEY} "
+            f"would turn the assistant off rather than restore what each user had.\n"
+            f"Undoing the flip now means writing values, not removing them."
+        )
+        return
+
     # One entry per user. The archive holds an entry per profile per run, and a profile is
     # written twice whenever a flip is rolled back and run again; counting those separately
     # reports a rollback that worked as one that left every re-written profile untouched.
