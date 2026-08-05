@@ -343,6 +343,12 @@ else:
 if os.getenv("COOLIFY"):
     from sefaria.local_settings_coolify import *
 
+# Entity search index names, defaulted after the local settings import so that a deployment
+# whose local_settings.py predates one of these constants still boots. Without the default,
+# the name is simply undefined, and `global_settings` (sefaria/system/context_processors.py)
+# raises NameError on *every* page render — a far worse failure than an unused index name.
+SEARCH_INDEX_NAME_CATEGORY = globals().get('SEARCH_INDEX_NAME_CATEGORY', 'category')
+
 # Listed after local settings are imported so CACHE can depend on DEBUG
 
 WEBPACK_LOADER = {

@@ -11,6 +11,7 @@ import datrie
 from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
+from sefaria.model.category import TocCategory
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
@@ -38,6 +39,21 @@ def normalize_chars(text):
     return strip_apostrophes("".join([c if c in letter_scope else unidecode(c) for c in text]))
 
 
+# Category nodes that are *collection boundaries* rather than meaningful text
+# categories (e.g. "Commentary", "Rishonim on Tanakh", "Other Kabbalah Works").
+# We drop the boundary node itself but harvest the good names one level below it
+# (Rashi, Ramban, Kessef Mishneh, ...), without descending into their repeated
+# per-book structure.  See get_search_categories.
+CATEGORY_BOUNDARY_EXACT = {"comment", "comments", "modern", "targum", "guides"}
+CATEGORY_BOUNDARY_RE = re.compile(
+    r"\b(commentary|commentaries|rishonim|acharonim|geonim|savoraim|other)\b")
+
+
+def is_category_boundary(name):
+    name = name.strip().lower()
+    return name in CATEGORY_BOUNDARY_EXACT or bool(CATEGORY_BOUNDARY_RE.search(name))
+
+
 def normalizer(lang):
     if lang == "he":
         return lambda x: normalize_chars(hebrew.normalize_final_letters_in_str(x))
@@ -45,6 +61,49 @@ def normalizer(lang):
 
 
 splitter = re.compile(r"[\s,]+")
+
+
+def get_search_categories(otoc):
+    """
+    Category nodes meaningful as search results.
+
+    - Keeps the base-text browse taxonomy (categories with >= 2 children).
+    - At a commentary/era/"Other" boundary (e.g. "Commentary", "Rishonim on
+      Tanakh", "Acharonim", "Other Kabbalah Works"): drops the boundary node,
+      but harvests its child *categories* (Rashi, Ramban, Kessef Mishneh, ...) --
+      lots of good names -- and does NOT descend into their repeated inner
+      structure.  Boundaries holding only texts (e.g. "Other Kabbalah Works")
+      contribute nothing here; those texts are already indexed as titles.
+
+    This is the single definition of which categories are user-facing enough to be
+    completed *and* searched. It backs both the autocompleter (see AutoCompleter.__init__,
+    `include_categories`) and the `category` Elasticsearch index that powers category
+    results on the search page's Books tab (see sefaria.search.index_categories). Keeping
+    one definition means the two can't drift apart — a category that autocompletes but
+    doesn't search (or vice versa) would be a confusing inconsistency. It replaces an
+    earlier `_get_main_categories`, which only reached two levels deep and excluded
+    "Commentary" by exact name.
+
+    :param otoc: the root TocCategory of the TOC tree (library.get_toc_tree().get_root())
+    :return: list of TocCategory nodes
+    """
+    cats = []
+
+    def walk(node):
+        for child in node.children:
+            if not isinstance(child, TocCategory):
+                continue
+            if is_category_boundary(child.primary_title("en")):
+                for grandchild in child.children:            # harvest one level
+                    if isinstance(grandchild, TocCategory) and not is_category_boundary(grandchild.primary_title("en")):
+                        cats.append(grandchild)
+                continue                                     # never descend past a boundary
+            if len(child.children) >= 2:
+                cats.append(child)
+            walk(child)
+
+    walk(otoc)
+    return cats
 
 
 class AutoCompleter(object):
@@ -88,7 +147,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(normal_titles)
             self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
-            categories = self._get_main_categories(library.get_toc_tree().get_root())
+            categories = get_search_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
             self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path", 2 * PAD)
@@ -174,17 +233,6 @@ class AutoCompleter(object):
 
     def set_other_lang_ac(self, ac):
         self.other_lang_ac = ac
-
-    @staticmethod
-    def _get_main_categories(otoc):
-        cats = []
-        for child in otoc.children:
-            if child.children and child.primary_title("en") != "Commentary":
-                cats += [child]
-            for grandchild in child.children:
-                if grandchild.children and grandchild.primary_title("en") != "Commentary":
-                    cats += [grandchild]
-        return cats
 
     def get_object(self, instring):
         """

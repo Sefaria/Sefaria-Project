@@ -84,6 +84,7 @@ SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
 SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic)
 SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records
+SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories (see sefaria.model.autospell.get_search_categories)
 
 # Node Server
 USE_NODE = False

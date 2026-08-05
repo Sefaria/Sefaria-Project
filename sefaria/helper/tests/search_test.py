@@ -2,7 +2,12 @@
 import json
 import pytest
 from sefaria.helper.search import *
-from sefaria.helper.search import _author_works_response, _query_matches_entity_title
+from sefaria.helper.search import (
+    _author_works_response,
+    _category_response,
+    _category_row,
+    _query_matches_entity_title,
+)
 
 
 def test_extract_filter_values():
@@ -306,6 +311,207 @@ def test_query_matches_entity_title_exact_only():
     assert _query_matches_entity_title("Chafetz Chaim",
                                        {"title_en": "Israel Meir Kagan",
                                         "titleVariants": ["Chafetz Chaim"]})
+
+
+# --------------------------------------------------------------------------- #
+#  Category results on the Books tab                                          #
+# --------------------------------------------------------------------------- #
+
+def test_entity_query_obj_category_exclusion():
+    s = get_entity_query_obj("mishneh torah", "book",
+                             exclude_category_paths=["Halakhah/Mishneh Torah"]).to_dict()
+    # The exclusion is a must_not, so it removes documents without touching relevance.
+    # The path is regex-escaped by make_path_filter, hence the backslash before the space.
+    assert s["query"]["bool"]["must_not"] == [
+        {"regexp": {"path": r"Halakhah/Mishneh\ Torah|Halakhah/Mishneh\ Torah/.*"}}
+    ]
+    # ...and the text query underneath is byte-identical to the unexcluded one.
+    unexcluded = get_entity_query_obj("mishneh torah", "book").to_dict()
+    assert ordered(s["query"]["bool"]["must"]) == ordered([unexcluded["query"]])
+
+
+def test_entity_query_obj_category_exclusion_multiple_paths():
+    # "Rishonim" names four categories; every one of them must be excluded.
+    paths = ["Halakhah/Rishonim", "Jewish Thought/Rishonim", "Musar/Rishonim", "Responsa/Rishonim"]
+    s = get_entity_query_obj("rishonim", "book", exclude_category_paths=paths).to_dict()
+    must_not = s["query"]["bool"]["must_not"]
+    assert len(must_not) == 4
+    assert {"regexp": {"path": "Musar/Rishonim|Musar/Rishonim/.*"}} in must_not
+
+
+def test_entity_query_obj_category_exclusion_composes_with_filter_and_sort():
+    s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"],
+                             exclude_category_paths=["Tanakh/Targum"]).to_dict()
+    assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
+    assert s["query"]["bool"]["filter"][0]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+    assert s["query"]["bool"]["must_not"] == [{"regexp": {"path": "Tanakh/Targum|Tanakh/Targum/.*"}}]
+
+
+def test_entity_query_obj_category_exclusion_books_only():
+    for entity_type in ("topic", "author"):
+        with pytest.raises(ValueError):
+            get_entity_query_obj("torah", entity_type, exclude_category_paths=["Tanakh"])
+
+
+def test_category_row_shape():
+    row = _category_row({
+        "title_en": "Mishneh Torah",
+        "title_he": "משנה תורה",
+        "categories": ["Halakhah"],
+        "path": "Halakhah/Mishneh Torah",
+        "description_en": "desc",
+        "description_he": "תיאור",
+        "depth": 2,
+    })
+    # Same contract as an aggregated author-works row, so the existing card renders it.
+    assert row["isCategory"] is True
+    assert row["url"] == "/texts/Halakhah/Mishneh Torah"
+    assert row["categories"] == ["Halakhah"]  # the breadcrumb is the *parent* path
+    assert row["title_en"] == "Mishneh Torah"
+    assert row["compDate"] is None
+    # categoryLabel is deliberately absent: the category *is* the title here, so sending it
+    # would render the same words as both the heading and the breadcrumb.
+    assert "categoryLabel_en" not in row
+
+
+def test_category_row_top_level_has_no_breadcrumb():
+    row = _category_row({"title_en": "Tanakh", "title_he": 'תנ"ך', "categories": [],
+                         "path": "Tanakh", "depth": 1})
+    assert row["categories"] == []
+    assert "categoryLabel_en" not in row
+
+
+def test_query_matches_category_via_shared_term_titles():
+    # A category's titleVariants are its shared Term's titles, so every Term title resolves
+    # the category (see make_category_index_document).
+    tanakh = {"title_en": "Tanakh", "title_he": 'תנ"ך', "titleVariants": ["Bible"]}
+    assert _query_matches_entity_title("Bible", tanakh)
+    assert _query_matches_entity_title("bible", tanakh)
+    assert not _query_matches_entity_title("Bib", tanakh)  # exact, never prefix
+
+
+class _FakeHits(list):
+    total = 0
+
+
+class _FakeResponse:
+    def __init__(self, hits, total):
+        self.hits = _FakeHits(hits)
+        self.hits.total = total
+
+    def success(self):
+        return True
+
+
+class _FakeSearch:
+    """
+    Minimal stand-in for elasticsearch_dsl's Search, recording the slice it was given so
+    the pagination assertions can check what was actually asked of Elasticsearch.
+    """
+    def __init__(self, book_hits, total):
+        self._book_hits = book_hits
+        self._total = total
+        self.start = None
+        self.size = None
+        self.query = None
+
+    def params(self, **kwargs):
+        return self
+
+    def sort(self, *args):
+        return self
+
+    def __getitem__(self, sl):
+        self.start, self.size = sl.start, sl.stop - sl.start
+        return self
+
+    def execute(self):
+        page = self._book_hits[self.start:self.start + self.size]
+        return _FakeResponse([_FakeHit(h) for h in page], self._total)
+
+
+class _FakeHit:
+    def __init__(self, doc):
+        self._doc = doc
+
+    def to_dict(self):
+        return self._doc
+
+
+def _category_response_with_fakes(monkeypatch, categories, book_hits, book_total,
+                                  eponymous=(), **kwargs):
+    search = _FakeSearch(list(book_hits), book_total)
+    monkeypatch.setattr("sefaria.helper.search.Search", lambda **kw: search)
+    monkeypatch.setattr("sefaria.helper.search._eponymous_books_in_categories",
+                        lambda q, paths, client: list(eponymous))
+    response = _category_response(categories, "q", es_client=None, **kwargs)
+    return response, search
+
+
+def test_category_response_leads_with_categories_and_excludes_their_books(monkeypatch):
+    categories = [{"title_en": "Mishneh Torah", "path": "Halakhah/Mishneh Torah",
+                   "categories": ["Halakhah"], "depth": 2}]
+    books = [{"title_en": "Other Book"}]
+    response, search = _category_response_with_fakes(monkeypatch, categories, books, 1, size=10)
+
+    assert response["category_paths"] == ["Halakhah/Mishneh Torah"]
+    assert response["hits"][0]["isCategory"] is True
+    assert response["hits"][1]["title_en"] == "Other Book"
+    # 1 category row + 1 remaining book
+    assert response["total"] == 2
+
+
+def test_category_response_lifts_eponymous_book_above_the_category(monkeypatch):
+    # Zohar/Tur/Sefer Yetzirah/Shulchan Arukh HaRav each name both a category and a book
+    # inside it. Category mode hides that category's books, so the same-named book is
+    # pulled back out and shown first, mirroring the author-works eponymous lift.
+    categories = [{"title_en": "Zohar", "path": "Kabbalah/Zohar", "categories": ["Kabbalah"], "depth": 2}]
+    response, _ = _category_response_with_fakes(
+        monkeypatch, categories, [], 0, eponymous=[{"title_en": "Zohar", "path": "Kabbalah/Zohar/Zohar"}], size=10)
+
+    assert response["hits"][0]["title_en"] == "Zohar"
+    assert not response["hits"][0].get("isCategory")   # the book
+    assert response["hits"][1]["isCategory"] is True   # then the category
+    assert response["total"] == 2
+
+
+def test_category_response_paginates_across_the_leading_rows(monkeypatch):
+    # Four same-titled categories ("Rishonim") fill more than one page, so paging has to
+    # walk the leading rows first and only then offset into Elasticsearch.
+    categories = [
+        {"title_en": "Rishonim", "path": "Halakhah/Rishonim", "categories": ["Halakhah"], "depth": 2},
+        {"title_en": "Rishonim", "path": "Jewish Thought/Rishonim", "categories": ["Jewish Thought"], "depth": 2},
+        {"title_en": "Rishonim", "path": "Musar/Rishonim", "categories": ["Musar"], "depth": 2},
+        {"title_en": "Rishonim", "path": "Responsa/Rishonim", "categories": ["Responsa"], "depth": 2},
+    ]
+    books = [{"title_en": "Book A"}, {"title_en": "Book B"}]
+
+    page1, search1 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=0, size=3)
+    assert [h["path"] for h in page1["hits"]] == [
+        "Halakhah/Rishonim", "Jewish Thought/Rishonim", "Musar/Rishonim"]
+    # Page 1 was filled by category rows alone, so ES was only asked for the count.
+    assert search1.size == 0
+    # total counts leading rows *and* the excluded-set book total
+    assert page1["total"] == 6
+
+    page2, search2 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=3, size=3)
+    assert page2["hits"][0]["path"] == "Responsa/Rishonim"
+    assert [h["title_en"] for h in page2["hits"][1:]] == ["Book A", "Book B"]
+    assert search2.start == 0  # first page of books, since only one leading row was left
+
+    page3, search3 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=5, size=3)
+    assert [h["title_en"] for h in page3["hits"]] == ["Book B"]
+    assert search3.start == 1  # fully past the leading rows: offset into ES by start - 4
+    assert page3["total"] == 6
+
+
+def test_category_response_alpha_sort_orders_category_rows(monkeypatch):
+    categories = [
+        {"title_en": "Zohar", "path": "Kabbalah/Zohar", "categories": ["Kabbalah"], "depth": 2},
+        {"title_en": "Aggadah", "path": "Midrash/Aggadah", "categories": ["Midrash"], "depth": 2},
+    ]
+    response, _ = _category_response_with_fakes(monkeypatch, categories, [], 0, size=10, sort="alpha")
+    assert [h["title_en"] for h in response["hits"]] == ["Aggadah", "Zohar"]
 
 
 def ordered(obj):
