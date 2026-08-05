@@ -12,6 +12,7 @@ are about what the scripts actually write, not about a reimplementation of their
 The Postgres side is the real `UserExperimentSettings` table on the Django test database.
 """
 
+import ast
 import importlib.util
 import io
 import os
@@ -643,3 +644,39 @@ class RollbackWindowTest(MigrationTestCase):
         self.run_rollback()
 
         self.assertEqual(self.stored(user), "<absent>")
+
+
+class ScriptIsolationTest(MigrationTestCase):
+    """
+    These tests only keep a developer's quarter-million real profiles out of the way
+    because each script reaches Mongo through exactly one module-level `db`, which `setUp`
+    rebinds. That is a convention, and nothing about it is self-enforcing: a single
+    function-local `from sefaria.system.database import db` would bypass the rebind and
+    point the migration at the real collection with no visible symptom until it had run.
+    """
+
+    SCRIPTS = ("migrate_experiments_to_library_assistant", "rollback_library_assistant_migration")
+
+    def database_imports_inside_functions(self, name):
+        source = (MIGRATIONS_DIR / f"{name}.py").read_text()
+        tree = ast.parse(source)
+        offenders = []
+        for func in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+            for node in ast.walk(func):
+                if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("sefaria.system.database"):
+                    offenders.append(f"{name}.{func.name}:{node.lineno}")
+                elif isinstance(node, ast.Import):
+                    offenders += [f"{name}.{func.name}:{node.lineno}"
+                                  for a in node.names if a.name.startswith("sefaria.system.database")]
+        return offenders
+
+    def test_neither_script_reaches_mongo_from_inside_a_function(self):
+        offenders = [o for name in self.SCRIPTS for o in self.database_imports_inside_functions(name)]
+
+        self.assertEqual(offenders, [], f"rebinding the module-level db no longer isolates: {offenders}")
+
+    def test_the_rebind_actually_took(self):
+        """A cheap tripwire: if the fixture ever stops applying, every other test here is
+        operating on whatever `db` really points at."""
+        for module in (migrate_script, rollback_script):
+            self.assertEqual(module.db.name, SCRATCH_DB)
