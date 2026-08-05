@@ -547,12 +547,14 @@ def _resolve_author(query, es_client):
 
 
 # How many category candidates to pull back when resolving a query to a category. The
-# index holds only ~80 documents and the exact-match tier is a constant_score of 1000, so
-# every exact match is at the very top; this just needs headroom above the largest group
-# of same-titled categories ("Rishonim"/"Acharonim"/"Modern" each name 4 categories).
+# exact-match tier is a constant_score of 1000, so every exact match sits at the very top;
+# this only needs headroom above the largest group of same-titled categories, which is 5
+# ("Seder Moed" and its sibling sedarim name one category each under Mishnah, Bavli,
+# Yerushalmi and both Tosefta editions).
 _CATEGORY_RESOLUTION_CANDIDATES = 20
 # Cap on eponymous books rescued from inside a matched category (see
-# _eponymous_books_in_categories). Realistically 1; the cap only bounds a pathological case.
+# _eponymous_books_in_categories). Realistically 1 per query; the cap only bounds a
+# pathological case.
 _MAX_EPONYMOUS_BOOKS = 5
 
 
@@ -560,9 +562,9 @@ def _resolve_categories(query, es_client):
     """
     Resolve `query` to the main TOC categories it names exactly, or [] if it names none.
 
-    Returns *every* exact match, not just one: several categories legitimately share a
-    title — "Rishonim", "Acharonim" and "Modern" each name four (under Halakhah, Jewish
-    Thought, Musar and Responsa), and "Halakhah" names both the top-level category and
+    Returns *every* exact match, not just one: 62 titles name more than one category —
+    "Seder Moed" names five (under Mishnah, Bavli, Yerushalmi and both Tosefta editions),
+    "Rashi" names four, and "Halakhah" names both the top-level category and
     Midrash/Halakhah. Picking one would be arbitrary, and the result cards carry
     breadcrumbs that tell them apart, so all of them are returned.
 
@@ -619,11 +621,12 @@ def _eponymous_books_in_categories(query, category_paths, es_client):
     """
     Books that sit *inside* a matched category and whose own title is exactly the query.
 
-    Four categories in the library contain a book of the same name — Zohar, Tur, Sefer
-    Yetzirah and Shulchan Arukh HaRav. Category mode hides everything under a matched
-    path, which would otherwise make the actual Zohar vanish from a search for "Zohar".
-    These books are pulled back out and shown above the category card, mirroring the
-    eponymous-work lift the author-works view already does for "Chafetz Chaim".
+    24 categories contain a book of the same name — Zohar, Tur, Sefer Yetzirah, Shulchan
+    Arukh HaRav, Mishnah Berurah, Magen Avraham and so on. Category mode hides everything
+    under a matched path, which would otherwise make the actual Zohar vanish from a search
+    for "Zohar". These books are pulled back out and shown above the category card,
+    mirroring the eponymous-work lift the author-works view already does for
+    "Chafetz Chaim".
 
     Only books *inside* a matched category need rescuing: a same-titled book anywhere
     else was never excluded, and the flat query's exact-match tier already floats it to #1.
@@ -783,10 +786,12 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
       full-text search over the book index. `category_paths` (books only) restricts hits
       to books at/under any of the given category paths.
 
-    Author is tried before category on purpose. Six categories are named after the person
-    whose works they collect — Ramak, Ramchal, Baal HaSulam, Piaseczno Rebbe, Josephus,
-    Philo — and for a name query the person is the likelier intent, so those keep
-    returning the author's aggregated works.
+    Author is tried before category on purpose, and this is a high-traffic branch rather
+    than an edge case: 179 category titles are also an author's name or title variant,
+    because the TOC collects a commentator's works under a category named after him
+    (Rashi, Ramban, Maggid Mishneh, Ramak, Ramchal, Josephus, ...). For a name query the
+    person is the likelier intent, so all of those keep returning aggregated author works
+    and never reach category resolution.
 
     Explicit sorts keep the aggregation: each aggregated row carries a `compDate` (a
     category row averages the dates of its collapsed works), and the rows are sorted in

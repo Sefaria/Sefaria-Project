@@ -331,12 +331,13 @@ def test_entity_query_obj_category_exclusion():
 
 
 def test_entity_query_obj_category_exclusion_multiple_paths():
-    # "Rishonim" names four categories; every one of them must be excluded.
-    paths = ["Halakhah/Rishonim", "Jewish Thought/Rishonim", "Musar/Rishonim", "Responsa/Rishonim"]
-    s = get_entity_query_obj("rishonim", "book", exclude_category_paths=paths).to_dict()
+    # "Seder Moed" names five categories; every one of them must be excluded.
+    paths = ["Mishnah/Seder Moed", "Talmud/Bavli/Seder Moed", "Talmud/Yerushalmi/Seder Moed",
+             "Tosefta/Lieberman Edition/Seder Moed", "Tosefta/Vilna Edition/Seder Moed"]
+    s = get_entity_query_obj("seder moed", "book", exclude_category_paths=paths).to_dict()
     must_not = s["query"]["bool"]["must_not"]
-    assert len(must_not) == 4
-    assert {"regexp": {"path": "Musar/Rishonim|Musar/Rishonim/.*"}} in must_not
+    assert len(must_not) == 5
+    assert {"regexp": {"path": r"Mishnah/Seder\ Moed|Mishnah/Seder\ Moed/.*"}} in must_not
 
 
 def test_entity_query_obj_category_exclusion_composes_with_filter_and_sort():
@@ -476,26 +477,27 @@ def test_category_response_lifts_eponymous_book_above_the_category(monkeypatch):
 
 
 def test_category_response_paginates_across_the_leading_rows(monkeypatch):
-    # Four same-titled categories ("Rishonim") fill more than one page, so paging has to
-    # walk the leading rows first and only then offset into Elasticsearch.
+    # Same-titled categories fill more than one page, so paging has to walk the leading
+    # rows first and only then offset into Elasticsearch. 62 titles name more than one
+    # category; "Seder Moed" names five, of which four are used here.
     categories = [
-        {"title_en": "Rishonim", "path": "Halakhah/Rishonim", "categories": ["Halakhah"], "depth": 2},
-        {"title_en": "Rishonim", "path": "Jewish Thought/Rishonim", "categories": ["Jewish Thought"], "depth": 2},
-        {"title_en": "Rishonim", "path": "Musar/Rishonim", "categories": ["Musar"], "depth": 2},
-        {"title_en": "Rishonim", "path": "Responsa/Rishonim", "categories": ["Responsa"], "depth": 2},
+        {"title_en": "Seder Moed", "path": "Mishnah/Seder Moed", "categories": ["Mishnah"], "depth": 2},
+        {"title_en": "Seder Moed", "path": "Talmud/Bavli/Seder Moed", "categories": ["Talmud", "Bavli"], "depth": 3},
+        {"title_en": "Seder Moed", "path": "Talmud/Yerushalmi/Seder Moed", "categories": ["Talmud", "Yerushalmi"], "depth": 3},
+        {"title_en": "Seder Moed", "path": "Tosefta/Vilna Edition/Seder Moed", "categories": ["Tosefta", "Vilna Edition"], "depth": 3},
     ]
     books = [{"title_en": "Book A"}, {"title_en": "Book B"}]
 
     page1, search1 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=0, size=3)
     assert [h["path"] for h in page1["hits"]] == [
-        "Halakhah/Rishonim", "Jewish Thought/Rishonim", "Musar/Rishonim"]
+        "Mishnah/Seder Moed", "Talmud/Bavli/Seder Moed", "Talmud/Yerushalmi/Seder Moed"]
     # Page 1 was filled by category rows alone, so ES was only asked for the count.
     assert search1.size == 0
     # total counts leading rows *and* the excluded-set book total
     assert page1["total"] == 6
 
     page2, search2 = _category_response_with_fakes(monkeypatch, categories, books, 2, start=3, size=3)
-    assert page2["hits"][0]["path"] == "Responsa/Rishonim"
+    assert page2["hits"][0]["path"] == "Tosefta/Vilna Edition/Seder Moed"
     assert [h["title_en"] for h in page2["hits"][1:]] == ["Book A", "Book B"]
     assert search2.start == 0  # first page of books, since only one leading row was left
 

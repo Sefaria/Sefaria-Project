@@ -28,7 +28,9 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags, strip_markdown
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
-from sefaria.model.autospell import get_search_categories
+# Aliased on import: this module already defines an unrelated `get_search_categories(oref,
+# categories)` (the text index's category-path helper, below), which would shadow it.
+from sefaria.model.autospell import get_search_categories as get_searchable_toc_categories
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
@@ -1601,7 +1603,7 @@ def make_category_index_document(toc_node):
     the Books tab's flat results.
 
     **Where the title variants come from.** A `Category` record almost always carries a
-    `sharedTitle` naming a `Term` (all 81 main categories do today), and
+    `sharedTitle` naming a `Term` (375 of the 376 searchable categories do today), and
     `AbstractTitledOrTermedObject._process_terms` — which runs during `Category`'s own
     `_set_derived_attributes` — *replaces* the category's title group with that Term's
     title group. So `cat_obj.get_titles(lang)` already returns the Term's full title list
@@ -1625,8 +1627,8 @@ def make_category_index_document(toc_node):
     if cat_obj is not None:
         all_titles = (cat_obj.get_titles("en") or []) + (cat_obj.get_titles("he") or [])
     else:
-        # No backing Category record (shouldn't happen for main categories, but the TOC
-        # tree does not guarantee one): fall back to the node's primary titles alone.
+        # No backing Category record (not observed among the searchable categories, but the
+        # TOC tree does not guarantee one): fall back to the node's primary titles alone.
         all_titles = []
     primaries = {title_en, title_he}
     variants = []
@@ -1754,7 +1756,7 @@ def index_categories(index_name):
     logger.info(f"Starting index_categories - index_name: {index_name}")
     skipped = []
     total = 0
-    toc_nodes = get_main_categories(library.get_toc_tree().get_root())
+    toc_nodes = get_searchable_toc_categories(library.get_toc_tree().get_root())
     if not toc_nodes:
         raise RuntimeError("index_categories: no searchable categories found; refusing to build an empty category index")
 
@@ -1912,9 +1914,10 @@ def resync_category_docs():
     re-synced wholesale, because a single category edit is not a single-document change.
     Renaming "Halakhah" rewrites the path (and therefore the document id) of every
     category beneath it, and a category that gains or loses its last child moves in or
-    out of the main-category set entirely. Tracking those cascades individually would be
-    easy to get subtly wrong; a full re-sync is unconditionally correct and, at ~80
-    documents in one bulk request, cheaper than the logic it replaces.
+    out of the searchable set entirely (its child count crosses the two-child threshold, or
+    a rename turns it into a boundary). Tracking those cascades individually would be easy
+    to get subtly wrong; a full re-sync is unconditionally correct and, at ~376 documents
+    in one bulk request, cheaper than the logic it replaces.
 
     Best-effort like the other on-save hooks: failures are logged, not raised, since the
     Mongo write has already been committed and the weekly rebuild reconciles anyway.
@@ -1925,7 +1928,7 @@ def resync_category_docs():
             return
         actions = []
         current_paths = set()
-        for node in get_search_categories(library.get_toc_tree().get_root()):
+        for node in get_searchable_toc_categories(library.get_toc_tree().get_root()):
             try:
                 doc = make_category_index_document(node)
             except Exception as e:
