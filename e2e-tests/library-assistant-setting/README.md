@@ -157,6 +157,11 @@ two tests skip with a message naming the key; they never silently pass.
 
 ## 4. Running against staging after code freeze
 
+> **Not yet proven remotely.** Every run so far has been against `http://localhost:8000`.
+> The remote path below is designed but unexercised — the seeding round trip, the real
+> `MOBILE_APP_KEY`, the HTTPS `www.` host. **Do a rehearsal run against staging before the
+> day it is needed**, so the first remote run is not the rollout itself.
+
 Everything above works unchanged against a remote target; only the inputs differ.
 
 ```bash
@@ -202,14 +207,17 @@ suite at production.**
 
 ## 6. Findings from the first full execution (2026-08-05, local, Phase 1 and Phase 3)
 
-**a. The scripts cannot be run the way their own docstrings say.** Both scripts document
+Findings a, b and e are **fixed in this PR**. c is a note about existing test machinery;
+d is open on #3579.
+
+**a. The scripts cannot be run the way their own docstrings say.** *(fixed here.)* Both scripts document
 `python scripts/migrations/<name>.py`, which fails immediately with
 `ModuleNotFoundError: No module named 'sefaria'` — `sys.path[0]` is the script's directory
 and `DJANGO_SETTINGS_MODULE` is unset. The working invocation is the repo's `./run` wrapper.
 The Phase 2 runbook on sc-46273 carries the same wrong command.
 
-**b. Rollback's report is badly wrong once two migration runs are archived.** The data is
-correct; the summary is not. Measured locally:
+**b. Rollback's report is badly wrong once two migration runs are archived.** *(fixed here.)*
+The data is correct; the summary is not. Measured locally:
 
 ```
 library_assistant unset on 248377 profiles
@@ -224,8 +232,8 @@ real profiles). An operator reading that would conclude a quarter of a million u
 changed their setting and the rollback had failed.
 
 Two runs get archived whenever a launch is rolled back and re-run — the exact situation in
-which someone reaches for rollback a second time. Fix: dedupe uids across runs before
-counting, or default `--run-id` to the most recent run.
+which someone reaches for rollback a second time. *(Fixed here: one entry per user, latest
+wins, ordered by `_id`.)*
 
 **c. `reader/conftest.py`'s `create_test_user` produces accounts that cannot log in.**
 Sefaria authenticates through `emailusernames`, which stores a hash of the address in
@@ -261,6 +269,29 @@ is to keep suppressing the promo when `settings.library_assistant` is present at
 rather than only when it is true.
 
 ---
+
+**e. Both scripts counted documents, not users** — found only because fixing b removed the
+noise that hid it. With the double-count gone, `left alone` came out **negative**:
+
+```
+library_assistant unset on 248373 profiles
+left alone (user changed it after the migration, or profile gone): -18
+```
+
+The cause is in the data, not the code's arithmetic: **15 user ids in the public dump own
+more than one `db.profiles` document** (18 extra documents; 248,394 documents against
+248,376 distinct ids). `kept += len(batch) - matching` compared a count of ids against a
+count of documents, so `matching` could exceed the batch size. The migration had the same
+class of error — `written` counted documents, and the archive gained a duplicate row per
+extra document.
+
+*(Fixed here: rollback counts `db.profiles.distinct("id", …)`, the migration deduplicates
+`pending`. `DuplicateProfileDocumentTest` also pins that every document belonging to a
+duplicated id still receives the setting, so those users are not left half-migrated.)*
+
+**The durable rule: any per-user count over `db.profiles` must count distinct ids.** Why
+those duplicates exist, and whether production Mongo has them too, is not established — the
+counters are correct either way, but it may be worth its own ticket.
 
 ## 7. Running the same suite against a different phase
 
