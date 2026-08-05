@@ -98,8 +98,8 @@ $stroke-strong:   1.5px;
     .interface-hebrew & img { transform: scaleX(-1); }
 
     @include breakpoint(mobile) {
-      top: -4px;
-      inset-inline-start: -4px;
+      top: 8px;
+      inset-inline-start: 8px;
       padding: 16px;
     }
   }
