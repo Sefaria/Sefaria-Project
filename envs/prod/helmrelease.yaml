@@ -201,6 +201,8 @@ spec:
     cronJobs:
       regenerate:
         enabled: true
+      clearSessions:
+        enabled: true
       dailyEmailNotifications:
         enabled: true
       indexFromQueue:
