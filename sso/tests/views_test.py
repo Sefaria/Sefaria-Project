@@ -336,3 +336,18 @@ class PasswordResetApiTest(TestCase):
         # account enumeration) — the API must not leak whether the address exists.
         res = self._post({'email': 'nobody@test.com'})
         self.assertEqual(res.status_code, 200)
+
+    def test_sso_only_account_does_not_send_reset_email(self):
+        user = User.objects.create_user(username='sso-reset@test.com', email='sso-reset@test.com', password='x')
+        user.set_unusable_password()
+        user.save()
+        SocialAccount.objects.create(user=user, provider='google', uid='12345')
+
+        with patch('sso.views.SefariaPasswordResetForm.save') as mock_save:
+            res = self._post({'email': 'sso-reset@test.com'})
+
+        self.assertEqual(res.status_code, 401)
+        data = res.json()
+        self.assertEqual(data['_auth']['code'], 'sso_only_account')
+        self.assertIn('google', data['_auth']['providers'])
+        mock_save.assert_not_called()

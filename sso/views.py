@@ -33,6 +33,25 @@ def _clean_name(value):
     return cleaned[:150]
 
 
+def _sso_only_account_error(email):
+    """If `email` belongs to an existing user who can only sign in via SSO
+    (no usable password, has a linked social account), return the shared
+    'sso_only_account' JsonResponse. Otherwise return None."""
+    if not user_exists(email):
+        return None
+    u = get_user(email)
+    if u.has_usable_password() or not u.socialaccount_set.exists():
+        return None
+    providers = list(u.socialaccount_set.values_list("provider", flat=True))
+    return JsonResponse(
+        {
+            "error": "auth.generic_error",
+            "_auth": {"code": "sso_only_account", "providers": providers},
+        },
+        status=401,
+    )
+
+
 def _social_login_or_error(
     request, provider_id, id_token, first_name=None, last_name=None
 ):
@@ -182,9 +201,15 @@ def password_reset_api(request):
     except (json.JSONDecodeError, ValueError):
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    form = SefariaPasswordResetForm(data={"email": data.get("email", "")})
+    email = data.get("email", "")
+
+    form = SefariaPasswordResetForm(data={"email": email})
     if not form.is_valid():
         return JsonResponse({"error": "auth.invalid_email"}, status=400)
+
+    err = _sso_only_account_error(email)
+    if err:
+        return err
 
     form.save(
         request=request,
@@ -219,17 +244,9 @@ def email_login(request):
 
     user = authenticate(request, username=email, password=password)
     if user is None:
-        if user_exists(email):
-            u = get_user(email)
-            if not u.has_usable_password() and u.socialaccount_set.exists():
-                providers = list(u.socialaccount_set.values_list("provider", flat=True))
-                return JsonResponse(
-                    {
-                        "error": "auth.generic_error",
-                        "_auth": {"code": "sso_only_account", "providers": providers},
-                    },
-                    status=401,
-                )
+        err = _sso_only_account_error(email)
+        if err:
+            return err
         return JsonResponse(
             {"error": "auth.invalid_credentials"}, status=401
         )
