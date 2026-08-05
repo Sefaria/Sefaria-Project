@@ -358,6 +358,12 @@ SESSION_COOKIE_SECURE = True  # Set to True if using HTTPS
 SESSION_COOKIE_HTTPONLY = True  # Recommended for security
 SESSION_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
 
+# How long a login lasts, in seconds. 399 days sits just under the 400-day cap
+# browsers apply to cookie lifetimes. Governs both the sessionid cookie's
+# Max-Age and the server-side django_session.expire_date, so the two stay in
+# sync. Django's default is only 1209600 (2 weeks).
+SESSION_COOKIE_AGE = 399 * 24 * 60 * 60  # 34,473,600 seconds
+
 CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Must be False for CSRF tokens to work with JavaScript
 CSRF_COOKIE_SAMESITE = 'Lax'  # Modern browsers require this
