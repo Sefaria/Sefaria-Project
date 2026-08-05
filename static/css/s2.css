@@ -3954,25 +3954,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopLine {
   margin-bottom: 20px;
 }
-/* Zero out the largeTabs bottom margin in search so the 42px panel padding
-   is the sole gap between the tab bar and the first card. */
+/* Zero out the largeTabs bottom margin so the controls row is the sole gap
+   between the tab bar and the first card. */
 .searchContent .tab-view.largeTabs .tab-list {
   margin-bottom: 0;
 }
-/* Fixed 42px gap between the tab bar and the first result card, on all tabs.
-   Controls (sort bar, top matter) are absolutely positioned inside this padding
-   so they don't push the cards down — the gap is consistent regardless of tab. */
-.searchTabPanel {
-  position: relative;
-  padding-top: 42px;
+/* Fixed 42px row between the tab bar and the first result card on all tabs.
+   Controls live inside this row in normal flow — no absolute positioning needed. */
+.searchSortBar {
+  height: 76px;
+  display: flex;
+  align-items: center;
 }
-.searchSortBar,
 .searchContent .searchTopMatter {
-  position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-  height: 42px;
+  height: 76px;
 }
 .searchPageSearchBar {
   display: flex;
@@ -4190,9 +4185,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .searchContent .searchResultList {
-  padding-top: 25px;
-  max-width: 665px;
-  padding-top: 25px;
   max-width: 665px;
 }
 

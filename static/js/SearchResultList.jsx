@@ -11,7 +11,6 @@ import SearchResultCard from './SearchResultCard';
 import InfiniteScroll from './InfiniteScroll';
 import {
   DropdownModal,
-  DropdownButton,
   DropdownOptionList,
   InterfaceText,
   LoadingMessage,
@@ -152,9 +151,12 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
 
     if (disabled) {
       return (
-        <div className="dropdown-button buttonStyle disabled" aria-disabled="true">
-          <InterfaceText text={{en: "Sort", he: "מיון"}} />
-          <img src="/static/img/arrow-down.png" alt="" aria-hidden="true" />
+        <div className="searchSortDropdown disabled" aria-disabled="true" tabIndex={-1}>
+          <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
+          <span className="searchSortDropdown__label">
+            <InterfaceText text={{en: "Sort", he: "מיון"}} />
+          </span>
+          <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down-line.svg" alt="" aria-hidden="true" />
         </div>
       );
     }
@@ -166,26 +168,37 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
         updateAppliedOptionSort(newSortType);
         setIsOpen(false);
     }
-    const filterTextClasses = classNames({searchFilterToggle: 1, active: isOpen});
+    const toggle = () => setIsOpen(prev => !prev);
     return (
-        <DropdownModal close={() => {
-            setIsOpen(false)
-        }} isOpen={isOpen}>
-            <DropdownButton
-                isOpen={isOpen}
-        toggle={() => {setIsOpen(!isOpen)}}
-        enText={"Sort"}
-        heText={"מיון"}
-        buttonStyle={true}
-      />
-      <DropdownOptionList
-        isOpen={isOpen}
-        options={sortTypeArray}
-        currOptionSelected={sortType}
-        handleClick={handleClick}
-      />
-    </DropdownModal>
-  );
+        <DropdownModal close={() => setIsOpen(false)} isOpen={isOpen}>
+          <div
+            className={classNames('searchSortDropdown', { open: isOpen })}
+            onClick={toggle}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }}}
+            tabIndex="0"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded={isOpen}
+          >
+            <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
+            <span className="searchSortDropdown__label">
+              <InterfaceText text={{en: "Sort", he: "מיון"}} />
+            </span>
+            <img
+              className="searchSortDropdown__chevron"
+              src="/static/icons/chevron-down-line.svg"
+              alt=""
+              aria-hidden="true"
+            />
+          </div>
+          <DropdownOptionList
+            isOpen={isOpen}
+            options={sortTypeArray}
+            currOptionSelected={sortType}
+            handleClick={handleClick}
+          />
+        </DropdownModal>
+    );
 }
 SearchSortBox.propTypes = {
   type:                    PropTypes.string.isRequired,
