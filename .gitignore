@@ -142,6 +142,8 @@ static/sheetrank.json
 e2e-tests/playwright_auth_*.json
 e2e-tests/auth_*.json
 e2e-tests/e2e-test-logs/
+e2e-tests/.la-e2e-users.json
+e2e-tests/library-assistant-setting/.auth/
 /test-results/
 /playwright-report/
 /playwright/.cache/
