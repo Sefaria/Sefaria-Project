@@ -72,7 +72,7 @@ def rollback(dry_run=False, run_id=None):
                 db.profiles.update_many(unchanged, {"$unset": {SETTING_PATH: ""}})
             unset += matching
 
-    print(f"{SETTING_KEY} unset on {unset} profiles" + (" (dry run)" if dry_run else ""))
+    print(f"{SETTING_KEY} unset on {unset} users" + (" (dry run)" if dry_run else ""))
     print(f"left alone (user changed it after the migration, or profile gone): {kept}")
 
 

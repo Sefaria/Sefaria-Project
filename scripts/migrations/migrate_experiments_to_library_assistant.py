@@ -78,11 +78,10 @@ def _write(user_ids, value, cohort, run_id):
         pending = list({p["id"] for p in db.profiles.find(_unmigrated({"id": {"$in": batch}}), {"id": 1})})
         if not pending:
             continue
-        db.profiles.update_many(
-            _unmigrated({"id": {"$in": pending}}),
-            {"$set": {SETTING_PATH: value}},
-        )
-        written += len(pending)
+        # Archive before writing. A crash between the two leaves an archive entry for a
+        # profile that never received the setting, which rollback ignores — it only unsets
+        # where the stored value matches. Writing first would instead leave written
+        # profiles with no archive entry, and rollback would miss them permanently.
         _archive(run_id, [
             {
                 "run_id": run_id,
@@ -93,6 +92,11 @@ def _write(user_ids, value, cohort, run_id):
             }
             for uid in pending
         ])
+        db.profiles.update_many(
+            _unmigrated({"id": {"$in": pending}}),
+            {"$set": {SETTING_PATH: value}},
+        )
+        written += len(pending)
     return written
 
 
@@ -104,11 +108,12 @@ def migrate(dry_run=False):
     row_off = [uid for uid, experiments in rows if not experiments]
     enrolled = {uid for uid, _ in rows}
 
-    unmigrated_ids = [p["id"] for p in db.profiles.find(_unmigrated(), {"id": 1})]
-    backfill = [uid for uid in unmigrated_ids if uid not in enrolled]
+    # Deduplicated: a handful of ids own more than one profile document, and every cohort
+    # count below is per user.
+    unmigrated = {p["id"] for p in db.profiles.find(_unmigrated(), {"id": 1})}
+    backfill = [uid for uid in unmigrated if uid not in enrolled]
     # Restrict the whitelist cohorts to profiles that actually need writing, so the
     # printed counts match what a real run would do.
-    unmigrated = set(unmigrated_ids)
     row_on = [uid for uid in row_on if uid in unmigrated]
     row_off = [uid for uid in row_off if uid in unmigrated]
 
@@ -125,7 +130,9 @@ def migrate(dry_run=False):
     written += _write(row_off, False, COHORT_ROW, run_id)
     written += _write(backfill, True, COHORT_BACKFILL, run_id)
 
-    remaining = db.profiles.count_documents(_unmigrated())
+    # Distinct ids, not documents: this runs after a successful pass, when it should be 0
+    # either way, but a partial run is exactly when the number is read and must mean users.
+    remaining = len(db.profiles.distinct("id", _unmigrated()))
     print(f"Profiles written: {written}")
     print(f"Profiles still missing {SETTING_KEY}: {remaining}")
     print(f"Archived to db.{ARCHIVE_COLLECTION} under run_id {run_id}")
