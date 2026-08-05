@@ -72,6 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write # needed to authenticate to GAR for the OCI chart push
     outputs:
       chart_version: ${{ steps.chart_version.outputs.chart_version }}
     steps:
@@ -130,6 +131,24 @@ jobs:
           chart_version: ${{ steps.chart_version.outputs.chart_version }}
           app_version: ${{ steps.appVersion.outputs.appVersion }}
           charts_dir: helm-chart
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.2.0
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
+      - name: Publish Helm chart to GAR (OCI)
+        env:
+          OCI_REPO: us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers
+          CHART_VERSION: ${{ steps.chart_version.outputs.chart_version }}
+        run: |
+          helm registry login us-east1-docker.pkg.dev \
+            -u oauth2accesstoken -p '${{ steps.auth.outputs.access_token }}'
+          helm package helm-chart/sefaria --destination dist
+          helm push "dist/sefaria-${CHART_VERSION}.tgz" "oci://${OCI_REPO}"
 
   release-app:
     needs: detect

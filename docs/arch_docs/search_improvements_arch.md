@@ -352,9 +352,8 @@ Separate from search, we want to bring `Sefaria-Project` onto the same translati
 
 Weblate translates **translation files**, not source code — it cannot parse `.js`. Historically Sefaria's interface strings lived inline in `static/js/sefaria/strings.js`, which put them out of Weblate's reach. Commit [`314e55b7cf`](https://github.com/Sefaria/Sefaria-Project/commit/314e55b7cf) ("chore: split up into json files") extracts them into JSON, which is what makes a Weblate hookup possible. After that commit:
 
-- `static/js/sefaria/i18n/interface/*.json` — a **flat** map (English key → value).
-- `static/js/sefaria/i18n/interface-context/*.json` — a **nested** map, one namespace per component (context-scoped strings).
-- In each directory, `en.json` is the **Weblate source template** (the source of truth for keys; not imported at runtime), and `he.json` holds the Hebrew translations consumed at runtime. `strings.js` now just imports the two `he.json` files.
+- `static/js/sefaria/i18n/interface/*.json` — a single **flat** map (keyed ID → value). Keys are namespaced by component where that's meaningful (`follow_button.follow`) and by `common.*` otherwise. An earlier split into a second `interface-context/` directory was folded back into this one file set, so there is only one shape to configure.
+- `en.json` is the **Weblate source template** (the source of truth for keys) and also supplies the English display text at runtime; `he.json` holds the Hebrew translations. `strings.js` imports both.
 
 ### How ai-chatbot does it (the model to copy)
 
@@ -370,19 +369,17 @@ The `ai-chatbot` deployment is the reference implementation; the full runbook li
 
 The infrastructure (Coolify instance, Google SSO, machine user) is **already stood up** for `ai-chatbot`, so onboarding this repo is mostly adding a new project/components rather than deploying Weblate again. The differences to account for:
 
-- **Two file sets, so two components (not one).** `ai-chatbot` has a single `locales/*.json` mask. `Sefaria-Project` has two shapes that need distinct Weblate components:
-  - `interface/` → file mask `static/js/sefaria/i18n/interface/*.json`, base `interface/en.json`, file format **`JSON file`** (flat).
-  - `interface-context/` → file mask `static/js/sefaria/i18n/interface-context/*.json`, base `interface-context/en.json`, file format **`JSON nested structure file`** (nested).
-- **`en.json` is a template, `he.json` is runtime.** Same monolingual pattern as `ai-chatbot` (`Edit base file: No`), but worth flagging that `en.json` is deliberately *not* imported by `strings.js` — it exists only to give Weblate the canonical key list.
+- **One component, same as `ai-chatbot`.** File mask `static/js/sefaria/i18n/interface/*.json`, base `interface/en.json`, file format **`JSON file`** (flat). (An earlier draft of this plan called for a second component for `interface-context/`; that directory has since been merged into `interface/`, so a single component covers everything.)
+- **`en.json` is both the template and the runtime English.** Same monolingual pattern as `ai-chatbot` (`Edit base file: No`) — `en.json` gives Weblate the canonical key list *and* supplies the English display text that `strings.js` imports, so a Weblate edit to a source string changes the English UI.
 - **New GitHub machine-user permissions and a webhook** scoped to `Sefaria/ai-chatbot` today; both need to be extended/added for `Sefaria/Sefaria-Project`.
 - **Branch policy.** `Sefaria-Project` PRs land on `master` (vs. `main` in `ai-chatbot`), so the component branch and PR target must be set accordingly.
-- **Scale.** This repo carries ~640+ interface strings plus the context-scoped set (vs. a small string set in `ai-chatbot`), so the initial import and the first translation sync are larger; budget for that in the smoke test.
+- **Scale.** This repo carries ~590+ interface strings (vs. a small string set in `ai-chatbot`), so the initial import and the first translation sync are larger; budget for that in the smoke test.
 
 ### Open items to resolve before hooking it up
 
 - **Key stability / no-concat rule.** Weblate keys must be stable and each key should carry a full, standalone sentence — never concatenate translated fragments (use placeholders instead). Existing Sefaria strings should be audited for concatenation patterns that won't survive translation cleanly.
 - **`en.json` drift.** Because `en.json` is generated/maintained separately from runtime, we need a convention (and ideally CI) ensuring new strings are added to `en.json` so Weblate surfaces them, and that stale keys get cleaned up.
-- **Two-component UX.** Confirm the flat vs. nested split is the right long-term shape for translators, or whether it should be consolidated before onboarding.
+- **Empty Hebrew values.** `interface/he.json` currently carries a couple of `""` values (e.g. `calendar_listing.talmud`). `Sefaria._keyedString` tests `id in maps.he`, not whether the value is non-empty, so an empty string renders as blank rather than falling back to English. Either fill those in or make the fallback treat `""` as missing before the Weblate import.
 
 ## Future Enrichments
 
