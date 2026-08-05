@@ -14,19 +14,21 @@ The Postgres side is the real `UserExperimentSettings` table on the Django test 
 
 import importlib.util
 import io
+import os
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 
 from django.test import TestCase
-from pymongo import MongoClient
 
 from reader.conftest import create_test_user
 from reader.models import UserExperimentSettings
 from sefaria.helper.library_assistant import SETTING_KEY
-from sefaria.local_settings import MONGO_HOST, MONGO_PORT
+from sefaria.system.database import client
 
-SCRATCH_DB = "sefaria_test_library_assistant_migration"
+# Per process: `setUp` drops this database outright, so a fixed name lets two concurrent
+# runs against one Mongo server destroy each other's fixtures mid-test.
+SCRATCH_DB = f"sefaria_test_library_assistant_migration_{os.getpid()}"
 MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "scripts" / "migrations"
 
 
@@ -51,20 +53,24 @@ class MigrationTestCase(TestCase):
     databases = "__all__"
 
     def setUp(self):
-        self.client_ = MongoClient(MONGO_HOST, MONGO_PORT)
-        self.client_.drop_database(SCRATCH_DB)
-        self.db = self.client_[SCRATCH_DB]
+        # The shared client, so the scratch database is reached however this deployment
+        # reaches Mongo — bare host, authenticated, or replica set alike.
+        client.drop_database(SCRATCH_DB)
+        self.db = client[SCRATCH_DB]
         # Both scripts reach Mongo only through their module-level `db`. Pointing that at
         # a scratch database keeps the real `profiles` collection — a restored public dump
         # of a quarter-million real people — entirely out of the test's path.
+        #
+        # Registered as cleanups rather than done in `tearDown`, which unittest skips
+        # entirely when a subclass `setUp` raises after the globals are already repointed.
         self._real_dbs = (migrate_script.db, rollback_script.db)
+        self.addCleanup(client.drop_database, SCRATCH_DB)
+        self.addCleanup(self._restore_script_dbs)
         migrate_script.db = self.db
         rollback_script.db = self.db
 
-    def tearDown(self):
+    def _restore_script_dbs(self):
         migrate_script.db, rollback_script.db = self._real_dbs
-        self.client_.drop_database(SCRATCH_DB)
-        self.client_.close()
 
     # -- fixtures ---------------------------------------------------------------
 
@@ -278,7 +284,7 @@ class DuplicateProfileDocumentTest(MigrationTestCase):
 
         output = self.run_rollback()
 
-        self.assertIn(f"{SETTING_KEY} unset on 1 profiles", output)
+        self.assertIn(f"{SETTING_KEY} unset on 1 users", output)
         self.assertIn("left alone (user changed it after the migration, or profile gone): 0", output)
 
     def test_rollback_dry_run_agrees_with_the_real_run(self):
@@ -289,8 +295,31 @@ class DuplicateProfileDocumentTest(MigrationTestCase):
         dry = self.run_rollback(dry_run=True)
         real = self.run_rollback()
 
-        self.assertIn(f"{SETTING_KEY} unset on 2 profiles (dry run)", dry)
-        self.assertIn(f"{SETTING_KEY} unset on 2 profiles", real)
+        self.assertIn(f"{SETTING_KEY} unset on 2 users (dry run)", dry)
+        self.assertIn(f"{SETTING_KEY} unset on 2 users", real)
+
+    def test_migration_dry_run_counts_the_user_once(self):
+        """
+        The dry-run cohort sizes are what the runbook is sanity-checked against before
+        anything is written, so they are the numbers that most need to mean users.
+        """
+        self.make_duplicated_profile()
+
+        output = self.run_migration(dry_run=True)
+
+        self.assertIn(f"no whitelist row (never chose)   -> {SETTING_KEY}=True :  1", output)
+
+    def test_a_duplicated_opt_out_stays_off_in_every_document(self):
+        """The whitelist cohorts run through the same writer, and an opt-out is the user
+        the launch most has to not break."""
+        user = self.make_duplicated_profile()
+        self.enroll(user, False)
+
+        self.run_migration()
+
+        values = [d.get("settings", {}).get(SETTING_KEY) for d in self.db.profiles.find({"id": user.id})]
+        self.assertEqual(values, [False, False])
+        self.assertEqual([e["value"] for e in self.archive_for(user)], [False])
 
 
 class DryRunTest(MigrationTestCase):
@@ -427,7 +456,7 @@ class RollbackTest(MigrationTestCase):
         output = self.run_rollback(dry_run=True)
 
         self.assertIs(self.stored(user), True)
-        self.assertIn("1 profiles", output)
+        self.assertIn(f"{SETTING_KEY} unset on 1 users (dry run)", output)
 
     def test_nothing_archived_is_reported_not_crashed(self):
         self.make_profile()
@@ -450,7 +479,7 @@ class RollbackTest(MigrationTestCase):
 
         output = self.run_rollback()
 
-        self.assertIn(f"{SETTING_KEY} unset on 2 profiles", output)
+        self.assertIn(f"{SETTING_KEY} unset on 2 users", output)
         self.assertIn("left alone (user changed it after the migration, or profile gone): 0", output)
         self.assertEqual(self.stored(backfill), "<absent>")
         self.assertEqual(self.stored(row_off), "<absent>")
@@ -463,7 +492,7 @@ class RollbackTest(MigrationTestCase):
 
         output = self.run_rollback(dry_run=True)
 
-        self.assertIn(f"{SETTING_KEY} unset on 1 profiles", output)
+        self.assertIn(f"{SETTING_KEY} unset on 1 users", output)
 
     def test_left_alone_counts_only_users_who_really_changed_it(self):
         changed = self.make_profile()
@@ -476,7 +505,7 @@ class RollbackTest(MigrationTestCase):
         output = self.run_rollback(dry_run=True)
 
         self.assertIn("left alone (user changed it after the migration, or profile gone): 1", output)
-        self.assertIn(f"{SETTING_KEY} unset on 1 profiles", output)
+        self.assertIn(f"{SETTING_KEY} unset on 1 users", output)
         self.assertIs(self.stored(untouched), True)
 
     def test_the_most_recently_written_value_is_the_one_rolled_back(self):
@@ -506,3 +535,83 @@ class RollbackTest(MigrationTestCase):
 
         self.assertIs(self.stored(row_off), False)
         self.assertIs(self.stored(backfill), True)
+
+
+class RollbackFidelityTest(MigrationTestCase):
+    """
+    The rollback's contract is not "the key is gone" — it is "the profile is what it was".
+
+    Every other rollback assertion here reads a single key through `stored()`, so a
+    rollback that removed the setting and left the document altered in any other way would
+    satisfy all of them. These compare whole documents instead, which is the only form of
+    the claim an operator is relying on when they reach for the script.
+    """
+
+    def snapshot(self):
+        """Every profile document, keyed by the `_id` the scripts never write."""
+        return {str(doc.pop("_id")): doc for doc in self.db.profiles.find()}
+
+    def whitelist_rows(self):
+        return sorted(UserExperimentSettings.objects.values_list("user_id", "experiments"))
+
+    def make_population(self):
+        """One profile per shape the migration encounters in the dump."""
+        row_on = self.make_profile(experiments=True)
+        self.enroll(row_on, True)
+        row_off = self.make_profile(experiments=False)
+        self.enroll(row_off, False)
+        self.make_profile()
+        self.make_profile(settings={SETTING_KEY: True})
+        self.make_profile(settings={"interface_language": "hebrew"})
+
+        duplicated = self.make_profile()
+        self.db.profiles.insert_one(
+            {"id": duplicated.id, "slug": f"user-{duplicated.id}-duplicate", "settings": {}}
+        )
+
+    def test_rollback_restores_every_profile_document_exactly(self):
+        self.make_population()
+        before = self.snapshot()
+
+        self.run_migration()
+        self.run_rollback()
+
+        self.assertEqual(self.snapshot(), before)
+
+    def test_rollback_leaves_the_whitelist_table_untouched(self):
+        """The rollback's inputs live in Postgres; it must not write there."""
+        self.make_population()
+        before = self.whitelist_rows()
+
+        self.run_migration()
+        self.run_rollback()
+
+        self.assertEqual(self.whitelist_rows(), before)
+
+    def test_a_second_flip_and_rollback_still_restores_exactly(self):
+        """The second rollback is the one an operator reaches for under pressure."""
+        self.make_population()
+        before = self.snapshot()
+
+        self.run_migration()
+        self.run_rollback()
+        self.run_migration()
+        self.run_rollback()
+
+        self.assertEqual(self.snapshot(), before)
+
+    def test_a_profile_with_no_settings_keeps_an_empty_one(self):
+        """
+        `$set settings.library_assistant` creates the subdocument, and unsetting the leaf
+        leaves `settings: {}` rather than removing what it created. No profile in the dump
+        has this shape — every one carries settings, because saving a profile serializes
+        them with defaults — so this is pinned rather than fixed: the residue is inert,
+        and a rollback that started deleting the whole subdocument would be the real risk.
+        """
+        user = create_test_user("la-migration-bare")
+        self.db.profiles.insert_one({"id": user.id, "slug": f"user-{user.id}"})
+
+        self.run_migration()
+        self.run_rollback()
+
+        self.assertEqual(self.db.profiles.find_one({"id": user.id})["settings"], {})
