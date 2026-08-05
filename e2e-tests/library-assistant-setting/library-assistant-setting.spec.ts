@@ -1,10 +1,11 @@
-import { test, expect, BrowserContext } from '@playwright/test';
+import { test, expect, Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
 import {
-  BASE_URL, PHASE, Account, accounts, cohorts, account, expected, authFile,
+  BASE_URL, PHASE, cohorts, account, expected, authFile,
   suppressOverlays, expectAssistant, goToReader, goToAccountSettings,
   toggleShowsOn, setToggle, saveSettingsAndCapturePayload, assistantElement,
   registerViaApi,
 } from './harness';
+import { t } from '../globals';
 
 /**
  * The Library Assistant's opt-out switch, end to end.
@@ -22,7 +23,7 @@ import {
  * Test IDs: LAS-NNN.
  */
 
-async function contextFor(browser: any, key: string): Promise<BrowserContext> {
+async function contextFor(browser: Browser, key: string): Promise<BrowserContext> {
   const context = await browser.newContext({ storageState: authFile(key) });
   await suppressOverlays(context);
   return context;
@@ -30,10 +31,12 @@ async function contextFor(browser: any, key: string): Promise<BrowserContext> {
 
 test.describe(`Library Assistant setting — ${PHASE}-migration`, () => {
 
-  // LAS-001..006 — the cohort matrix. This is the whole card in one table: who has the
-  // assistant, for every way a user can have arrived at their current state.
-  for (const a of cohorts()) {
-    test(`LAS-001 [${a.key}]: assistant is ${expected(a) ? 'on' : 'off'} — ${a.why}`, async ({ browser }) => {
+  // The cohort matrix, numbered from LAS-001 in manifest order — one id per cohort, so a
+  // single case can be selected with `-g 'LAS-003'`. This is the whole card in one table:
+  // who has the assistant, for every way a user can have arrived at their current state.
+  cohorts().forEach((a, i) => {
+    const id = `LAS-${String(1 + i).padStart(3, '0')}`;
+    test(`${id} [${a.key}]: assistant is ${expected(a) ? 'on' : 'off'} — ${a.why}`, async ({ browser }) => {
       const context = await contextFor(browser, a.key);
       const page = await context.newPage();
       await goToReader(page);
@@ -42,7 +45,7 @@ test.describe(`Library Assistant setting — ${PHASE}-migration`, () => {
 
       await context.close();
     });
-  }
+  });
 
   test('LAS-010: a logged-out visitor never gets the assistant', async ({ browser }) => {
     const context = await browser.newContext();
@@ -79,10 +82,12 @@ test.describe(`Library Assistant setting — ${PHASE}-migration`, () => {
 
 test.describe(`Library Assistant settings page — ${PHASE}-migration`, () => {
 
-  // LAS-020..025 — the toggle is the opt-out. Every logged-in user must have it, and it
-  // must show them the truth about their own account.
-  for (const a of cohorts()) {
-    test(`LAS-020 [${a.key}]: toggle is present and shows the effective value`, async ({ browser }) => {
+  // The toggle is the opt-out. Every logged-in user must have it, and it must show them the
+  // truth about their own account. Numbered from LAS-020 in manifest order, one id per
+  // cohort, so a single case can be selected with `-g 'LAS-022'`.
+  cohorts().forEach((a, i) => {
+    const id = `LAS-${String(20 + i).padStart(3, '0')}`;
+    test(`${id} [${a.key}]: toggle is present and shows the effective value`, async ({ browser }) => {
       const context = await contextFor(browser, a.key);
       const page = await context.newPage();
       await goToAccountSettings(page);
@@ -92,7 +97,7 @@ test.describe(`Library Assistant settings page — ${PHASE}-migration`, () => {
 
       await context.close();
     });
-  }
+  });
 
   test('LAS-030: saving unrelated settings does not write the assistant key', async ({ browser }) => {
     // The migration skips any profile that already carries the key. If the settings page
@@ -179,21 +184,51 @@ test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
   // and says plainly when the environment has the promo switched off.
   // Read it from DJANGO_VARS rather than the `Sefaria` global: the flag is a React prop on
   // ReaderApp and `unpackBaseProps` never copies it onto `Sefaria`.
-  async function promoIsRunning(page: any): Promise<boolean> {
+  async function promoIsRunning(page: Page): Promise<boolean> {
     return page.evaluate(() => !!(window as any).DJANGO_VARS?.props?.show_join_chatbot_banner);
   }
 
-  const promoBanner = (page: any) => page.locator('.siteWideBannerContent');
+  const promoBanner = (page: Page) => page.locator('.siteWideBannerContent');
 
-  test('LAS-060: a user who turned the assistant off is not asked to try it', async ({ browser }) => {
+  // Presence is asserted on the assistant promo specifically — its icon distinguishes it
+  // from any other site-wide banner that happens to be running. Absence is asserted on the
+  // generic container instead, so a promo whose artwork changed still counts as shown.
+  const assistantPromoBanner = (page: Page) =>
+    page.locator('.siteWideBannerContent:has(img[src*="ai-double-star"])');
+
+  const PROMO_OFF_MESSAGE =
+    'The promo is switched off in this environment, so this test cannot observe anything. ' +
+    'Turn on the remote config key `feature.client.show_join_chatbot_banner` and confirm it ' +
+    'with GET /api/remote-config. The remote-config cache is process-local with no TTL, so ' +
+    'every web pod must be restarted after the key changes before the promo appears. ' +
+    'Set LA_ALLOW_PROMO_SKIP=1 to run the suite anyway — with the understanding that the ' +
+    'promo regression these tests guard is then untested.';
+
+  /**
+   * Refuse to pass quietly when the promo is not running.
+   *
+   * A silent `test.skip` reads as "17 passed, 2 skipped" on launch day, and the default
+   * `list` reporter never prints the reason — so the two tests standing between a user who
+   * opted out and a banner asking them to opt back in would vanish unnoticed.
+   */
+  async function requirePromoRunning(page: Page, testInfo: TestInfo) {
+    if (await promoIsRunning(page)) return;
+    if (process.env.LA_ALLOW_PROMO_SKIP !== '1') {
+      throw new Error(PROMO_OFF_MESSAGE);
+    }
+    console.warn(`\n[${testInfo.title}] SKIPPED: ${PROMO_OFF_MESSAGE}\n`);
+    testInfo.annotations.push({ type: 'promo-skipped', description: PROMO_OFF_MESSAGE });
+    test.skip(true, PROMO_OFF_MESSAGE);
+  }
+
+  test('LAS-060: a user who turned the assistant off is not asked to try it', async ({ browser }, testInfo) => {
     // Nagging someone with "Try the Library Assistant" immediately after they opted out is
     // the one thing an opt-out switch must never do. Phase-invariant on purpose: the
     // correct answer is the same before and after the migration.
     const context = await contextFor(browser, 'explicit_off');
     const page = await context.newPage();
     await goToReader(page);
-    test.skip(!(await promoIsRunning(page)),
-      'promo is off in this environment — enable remote config feature.client.show_join_chatbot_banner');
+    await requirePromoRunning(page, testInfo);
 
     await expectAssistant(page, false, 'explicit_off has the assistant off');
     await expect(promoBanner(page), 'the promo must not be shown to a user who opted out')
@@ -202,16 +237,30 @@ test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
     await context.close();
   });
 
-  test('LAS-061: a user who has the assistant is not asked to try it', async ({ browser }) => {
-    const on = cohorts().find(a => expected(a))!;
-    const context = await contextFor(browser, on.key);
+  test('LAS-061: the promo follows the never-chose user across the migration', async ({ browser }, testInfo) => {
+    // Pinned to `never_chose` because that is the only cohort where the two suppression
+    // rules can disagree: it has no whitelist row, so before the migration nothing marks it
+    // as having chosen and the promo is exactly who it is for, while after the migration
+    // the setting key alone must both switch the assistant on and retire the invitation.
+    // Any cohort with a whitelist row is suppressed by both rules in both phases, which
+    // would make this assertion true no matter what the product did.
+    const context = await contextFor(browser, 'never_chose');
     const page = await context.newPage();
     await goToReader(page);
-    test.skip(!(await promoIsRunning(page)),
-      'promo is off in this environment — enable remote config feature.client.show_join_chatbot_banner');
+    await requirePromoRunning(page, testInfo);
 
-    await expect(promoBanner(page), 'the promo must not be shown to a user who already has it')
-      .toHaveCount(0);
+    const hasAssistant = expected(account('never_chose'));
+    await expectAssistant(page, hasAssistant, `never_chose (${PHASE}-migration)`);
+
+    if (hasAssistant) {
+      await expect(promoBanner(page), 'the promo must not be shown to a user who already has the assistant')
+        .toHaveCount(0);
+    } else {
+      await expect(
+        assistantPromoBanner(page),
+        'a user who has never chosen and does not have the assistant is precisely who the promo is for',
+      ).toBeVisible({ timeout: t(20000) });
+    }
 
     await context.close();
   });
@@ -241,7 +290,7 @@ test.describe(`Library Assistant acquisition paths — ${PHASE}-migration`, () =
     await freshPage.locator('input[name="email"]').first().fill(email);
     await freshPage.locator('input[name="password"]').first().fill(password);
     await freshPage.locator('input[name="password"]').first().press('Enter');
-    await freshPage.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 30000 });
+    await freshPage.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: t(30000) });
     await goToReader(freshPage);
 
     await expectAssistant(freshPage, true, 'registration writes the setting explicitly');
@@ -253,13 +302,17 @@ test.describe(`Library Assistant acquisition paths — ${PHASE}-migration`, () =
   test('LAS-051: /enable-library-assistant turns it on and returns the user where they were', async ({ browser }) => {
     // The promo banner's logged-out CTA routes login/register through here. It has to work
     // for a user who is currently off, in every phase.
+    //
+    // Uses the `enable_landing` scratch account rather than a matrix cohort: this test
+    // switches the assistant on, and the read-only cohorts are asserted concurrently by
+    // other tests under `fullyParallel`, so mutating one would make them flake.
     test.slow();
-    const context = await contextFor(browser, 'explicit_off');
+    const context = await contextFor(browser, 'enable_landing');
     const page = await context.newPage();
 
     try {
       await goToReader(page);
-      await expectAssistant(page, false, 'explicit_off starts off');
+      await expectAssistant(page, false, 'enable_landing starts off');
 
       await page.goto(`${BASE_URL}/enable-library-assistant?next=%2FGenesis.1`, { waitUntil: 'domcontentloaded' });
       await expect(page).toHaveURL(/\/Genesis\.1/);

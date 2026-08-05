@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { BrowserContext, Page, expect } from '@playwright/test';
+import { t } from '../globals';
 
 /**
  * Shared plumbing for the Library Assistant opt-out suite.
@@ -12,7 +13,9 @@ import { BrowserContext, Page, expect } from '@playwright/test';
  * legal cookie domain — so it carries its own small entry point instead.
  */
 
-export const BASE_URL = process.env.LA_BASE_URL || 'http://localhost:8000';
+// Every URL in this suite is built by concatenating a path onto this, so a trailing slash
+// would produce `https://host//Genesis.1` and fail as if the product were broken.
+export const BASE_URL = (process.env.LA_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 /**
  * Which side of the Phase 2 migration the environment under test is on.
@@ -103,7 +106,14 @@ export async function logIn(page: Page, email: string, password: string) {
   await page.locator('input[name="email"]').first().fill(email);
   await page.locator('input[name="password"]').first().fill(password);
   await page.locator('input[name="password"]').first().press('Enter');
-  await page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 30000 });
+  // `commit` resolves as soon as the post-login navigation is committed. The default
+  // (`load`) waits for every subresource — fonts, analytics, the chatbot bundle — which a
+  // remote host serves and a bare localhost does not, so it turns a successful login into
+  // a timeout against staging.
+  await page.waitForURL(url => !url.pathname.startsWith('/login'), {
+    timeout: t(30000),
+    waitUntil: 'commit',
+  });
 }
 
 /**
@@ -124,16 +134,50 @@ export function assistantElement(page: Page) {
   return page.locator('lc-chatbot');
 }
 
-/** Assert both halves of the gate — what the server decided and what actually mounted. */
+/**
+ * The `<script>` tag that turns `<lc-chatbot>` into a working component.
+ *
+ * `templates/base.html` emits it from `chatbot_script_url`, which a *second*, independent
+ * enablement check in `sefaria/system/context_processors.py` decides. Three URL shapes are
+ * possible: a local Vite dev server (`http://localhost:5173/src/main.js`), the deployed
+ * bundle (`<chatbot base>/static/js/lc-chatbot.umd.cjs`), and a per-version build on
+ * coolifydev (same filename, plus a cache-busting query). This matches all three.
+ */
+export function chatbotScriptTag(page: Page) {
+  return page.locator('script[src*="lc-chatbot"], script[src*=":5173/src/main.js"]');
+}
+
+/**
+ * Assert every half of the gate: what the server told React, what React mounted, and
+ * whether the server also emitted the bundle that upgrades the element.
+ *
+ * The script tag is worth asserting separately because it is decided by its own call to
+ * the enablement helper. Without it `<lc-chatbot>` is an inert, un-upgraded custom element
+ * — present in the DOM, useless to the user — so a suite that checked only the prop and
+ * the element would stay green through a total failure of the server-side gate.
+ */
 export async function expectAssistant(page: Page, on: boolean, because: string) {
   const inProps = await assistantEnabledInProps(page);
   expect(inProps, `chatbot_enabled should be ${on} — ${because}`).toBe(on);
+
+  const gateMismatch =
+    `If this disagrees with the chatbot_enabled assertion above, the two enablement ` +
+    `checks have diverged: the React prop comes from reader/views.py and the script tag ` +
+    `from sefaria/system/context_processors.py, and both must reach the same answer. ` +
+    `Prop right + tag wrong leaves an un-upgraded <lc-chatbot> that never becomes a ` +
+    `chatbot; tag right + prop wrong ships the bundle to a user who should not have it.`;
+
   if (on) {
     await expect(assistantElement(page), `<lc-chatbot> should render — ${because}`)
-      .toBeAttached({ timeout: 20000 });
+      .toBeAttached({ timeout: t(20000) });
+    // Not an exact count: the bundle itself may append further scripts once it runs.
+    await expect(chatbotScriptTag(page), `the chatbot script tag should be present — ${because}. ${gateMismatch}`)
+      .not.toHaveCount(0, { timeout: t(20000) });
   } else {
     await expect(assistantElement(page), `<lc-chatbot> should not render — ${because}`)
-      .toHaveCount(0, { timeout: 20000 });
+      .toHaveCount(0, { timeout: t(20000) });
+    await expect(chatbotScriptTag(page), `the chatbot script tag should be absent — ${because}. ${gateMismatch}`)
+      .toHaveCount(0, { timeout: t(20000) });
   }
 }
 
@@ -153,15 +197,15 @@ export async function goToReader(page: Page, ref = '/Genesis.1') {
     await page.waitForLoadState('domcontentloaded').catch(() => {});
     await page.goto(url, { waitUntil: 'domcontentloaded' });
   }
-  await page.waitForFunction(() => !!(window as any).Sefaria, null, { timeout: 45000 });
-  await expect(page.locator('.readerApp')).toBeAttached({ timeout: 45000 });
+  await page.waitForFunction(() => !!(window as any).Sefaria, null, { timeout: t(45000) });
+  await expect(page.locator('.readerApp')).toBeAttached({ timeout: t(45000) });
 }
 
 export const SETTINGS_URL = '/settings/account';
 
 export async function goToAccountSettings(page: Page) {
   await page.goto(`${BASE_URL}${SETTINGS_URL}`, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: 20000 });
+  await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: t(20000) });
   // The promo banner mounts on this page too and can sit over the save controls, so a
   // click on Save fails with "intercepts pointer events" rather than anything to do with
   // the setting. Hide it rather than dismissing it — dismissal writes a cookie, and
@@ -206,15 +250,15 @@ export async function saveSettingsAndCapturePayload(
   // The page reloads itself when the assistant toggle changed, because the script tag and
   // the user token are both decided server-side. Arm the listener before the click: if the
   // caller navigates while that reload is in flight, the navigation aborts.
-  const reloaded = page.waitForEvent('load', { timeout: 20000 }).catch(() => null);
+  const reloaded = page.waitForEvent('load', { timeout: t(20000) }).catch(() => null);
 
   await page.locator('.saveAccountSettingsBtn').first().click();
-  await expect.poll(() => posted, { timeout: 20000 }).not.toBeNull();
+  await expect.poll(() => posted, { timeout: t(20000) }).not.toBeNull();
   await page.unroute('**/api/profile');
 
   if (persist && posted?.settings?.library_assistant !== undefined) {
     await reloaded;
-    await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: t(20000) });
   }
   return posted;
 }
@@ -260,7 +304,7 @@ export async function registerViaApi(page: Page, email: string, password: string
       if (response.ok()) break;
     } catch { /* not JSON: a 500 error page */ }
     if (status !== 500) break;
-    await page.waitForTimeout(2000 * (attempt + 1));
+    await page.waitForTimeout(t(2000 * (attempt + 1)));
   }
 
   throw new Error(

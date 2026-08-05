@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Library Assistant opt-out suite (sc-46240).
+ * Library Assistant opt-out suite.
  *
  * Separate from `playwright.config.ts` on purpose. That config builds every project's
  * baseURL out of `SANDBOX_URL` as `https://www.<domain>` / `https://voices.<domain>`, and
@@ -17,7 +17,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Phase 3 also runs with `post`.
  */
 
-const BASE_URL = process.env.LA_BASE_URL || 'http://localhost:8000';
+// Stripped of any trailing slash to match the suite's harness, which builds every URL by
+// concatenation and would otherwise request `https://host//Genesis.1`.
+const BASE_URL = (process.env.LA_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 export default defineConfig({
   testDir: './e2e-tests/library-assistant-setting',
