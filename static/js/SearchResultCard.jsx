@@ -5,7 +5,7 @@ import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
 const TYPE_ICONS = {
-  author:     '/static/img/authors-icon.png',
+  author:     '/static/icons/iconmonstr-pen-17.svg',
   topic:      '/static/icons/topic.svg',
   text:       '/static/icons/book.svg',
   collection: '/static/icons/collection.svg',
@@ -68,7 +68,24 @@ function SearchResultCard({
       <div className="searchResultCard-content">
         {resolvedIcon && (
           <div className="searchResultCard-iconCircle">
-            <img src={resolvedIcon} alt={`${type} icon`} className="searchResultCard-iconImg" />
+            {(type === 'text' || type === 'collection') && MODES_WITH_CATEGORY_COLOR.has(mode) ? (
+              <span
+                className="searchResultCard-iconImg searchResultCard-iconImg--masked"
+                role="img"
+                aria-label={`${type} icon`}
+                style={{
+                  WebkitMaskImage: `url(${resolvedIcon})`,
+                  maskImage: `url(${resolvedIcon})`,
+                  backgroundColor: resolvedAccentColor,
+                }}
+              />
+            ) : (
+              <img
+                src={resolvedIcon}
+                alt={`${type} icon`}
+                className={`searchResultCard-iconImg searchResultCard-iconImg--${type.toLowerCase()}`}
+              />
+            )}
           </div>
         )}
         <div className="searchResultCard-body">

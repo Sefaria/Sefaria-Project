@@ -4782,6 +4782,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: block;
   object-fit: contain;
 }
+/* Masked variant — used for book/text icons so background-color drives the category color */
+.searchResultCard-iconImg--masked {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+/* Topic icon is always black */
+.searchResultCard-iconImg--topic {
+  filter: brightness(0);
+}
 .searchResultCard-body {
   display: flex;
   flex: 1;
@@ -4872,7 +4885,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
 }
-
 /* Breadcrumbs */
 .searchResultCard-breadcrumbs {
   position: relative;
@@ -4910,6 +4922,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .interface-hebrew .searchResultCard-crumbChevron {
   transform: scaleX(-1);
+}
+/* Target the InterfaceText spans directly: the .serif class on .readerPanel sets
+   --english-font/--hebrew-font to serif stacks, and the * rule in fonts.css applies
+   those vars to every child element including .int-en/.int-he, overriding inheritance.
+   Using --english-sans-serif-font-family (root-level var, never touched by .serif)
+   bypasses that cascade entirely. */
+.searchResultCard-crumb .int-en,
+.searchResultCard-description .int-en {
+  font-family: var(--english-sans-serif-font-family);
+}
+.searchResultCard-crumb .int-he,
+.searchResultCard-description .int-he {
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 .searchResultCard-crumb {
   font-size: 12px;
