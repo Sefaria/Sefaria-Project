@@ -214,9 +214,22 @@ function stampVariant(baseState: any, profile: Profile) {
   return { ...baseState, cookies };
 }
 
-export default async function globalSetup(_config: FullConfig) {
+export default async function globalSetup(config: FullConfig) {
   const baseURL = process.env.SANDBOX_URL || 'https://www.sefaria.org';
   const baseURLIL = process.env.SANDBOX_URL_IL || 'https://www.sefaria.org.il';
+
+  // The Library Assistant suite logs in as its own seeded cohort accounts, in its
+  // `la-setup` project, and reads none of the files written here. When it is the only
+  // thing selected there is nothing to do — and against a development server, where the
+  // shared QA accounts do not exist, four doomed logins would cost minutes before the
+  // first test. `config.projects` narrows to the selection when one was made; when it
+  // does not, this is simply false and the logins run as always.
+  const laProjectsOnly = config.projects.length > 0
+    && config.projects.every(project => project.name.startsWith('la-'));
+  if (laProjectsOnly) {
+    console.log('[global-setup] Library Assistant projects only — skipping the shared QA logins.');
+    return;
+  }
 
   // Wipe stale auth files exactly once. Workers will only read from this
   // point forward — no race between worker processes, no in-flight login.

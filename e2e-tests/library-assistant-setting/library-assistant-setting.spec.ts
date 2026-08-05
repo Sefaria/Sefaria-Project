@@ -3,7 +3,6 @@ import {
   BASE_URL, PHASE, cohorts, account, expected, authFile,
   suppressOverlays, expectAssistant, goToReader, goToAccountSettings,
   toggleShowsOn, setToggle, saveSettingsAndCapturePayload, assistantElement,
-  registerViaApi,
 } from './harness';
 import { t } from '../globals';
 
@@ -266,38 +265,11 @@ test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
   });
 });
 
+// Registration is not driven from here. It writes `settings.library_assistant = True`
+// outright, so the account it produces is the `explicit_on` cohort — already asserted by
+// the matrix above — while creating a CRM contact and an account no cleanup can reap on
+// whatever environment the suite is pointed at.
 test.describe(`Library Assistant acquisition paths — ${PHASE}-migration`, () => {
-
-  test('LAS-050: a brand-new account has the assistant from its first page view', async ({ browser }) => {
-    // Registration writes the key explicitly rather than relying on the fallback or on the
-    // migration having run — which is what makes new accounts behave identically in every
-    // phase. Goes through /api/register/ because the HTML form carries a reCAPTCHA.
-    test.slow();
-    const context = await browser.newContext();
-    await suppressOverlays(context);
-    const page = await context.newPage();
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-
-    const stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const email = `la-e2e-new-${stamp}@example.com`;
-    const password = 'Sefaria!e2e!2026';
-    await registerViaApi(page, email, password);
-
-    const fresh = await browser.newContext();
-    await suppressOverlays(fresh);
-    const freshPage = await fresh.newPage();
-    await freshPage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded' });
-    await freshPage.locator('input[name="email"]').first().fill(email);
-    await freshPage.locator('input[name="password"]').first().fill(password);
-    await freshPage.locator('input[name="password"]').first().press('Enter');
-    await freshPage.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: t(30000) });
-    await goToReader(freshPage);
-
-    await expectAssistant(freshPage, true, 'registration writes the setting explicitly');
-
-    await fresh.close();
-    await context.close();
-  });
 
   test('LAS-051: /enable-library-assistant turns it on and returns the user where they were', async ({ browser }) => {
     // The promo banner's logged-out CTA routes login/register through here. It has to work

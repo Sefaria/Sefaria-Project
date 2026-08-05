@@ -20,7 +20,7 @@ Playwright end-to-end test suite for Sefaria. Two web modules and one embedded p
 - **Cross-Module** — Library↔Voices integration: auth persistence (XMOD-L01 → L09) + Library→Voices redirects (XMOD-R01 → R17). See [Full testing by Feature/Cross-Module/README.md](Full%20testing%20by%20Feature/Cross-Module/README.md).
 - **Sheet Lifecycle** — full create→publish→delete sheet journey on Voices, SHT-001 → SHT-010 (serial). Lives in [voices/sheet-lifecycle.spec.ts](voices/README.md).
 - **Sanity** — the release-gate smoke set, defined by the `@sanity` **tag** (not a folder). See [Sanity/README.md](Sanity/README.md).
-- **Library Assistant opt-out setting** — whether the assistant is *offered* to a given user, LAS-001 → LAS-061. Runs under its **own config** ([../playwright.la.config.ts](../playwright.la.config.ts)) because it must also run against a bare `http://localhost:8000`, where the `SANDBOX_URL`-derived `MODULE_URLS` and cookie domains below do not apply. See [library-assistant-setting/README.md](library-assistant-setting/README.md).
+- **Library Assistant opt-out setting** — whether the assistant is *offered* to a given user, LAS-001 → LAS-061. Runs under the `la-setup` + `la-setting` projects, which log in as their own seeded cohort accounts rather than the shared QA profiles, and appear only once `scripts/dev/seed_library_assistant_e2e_users.py` has written `e2e-tests/.la-e2e-users.json`. See [library-assistant-setting/README.md](library-assistant-setting/README.md).
 
 Tests run against the sandbox URL pointed at by `SANDBOX_URL` / `SANDBOX_URL_IL` env vars. Each Playwright "project" in [playwright.config.ts](../playwright.config.ts) pairs a browser (Chromium/Firefox/WebKit) with a folder under `e2e-tests/`. **Mobile tests live under a separate config** ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`; the desktop projects never exercise it. See [mobile web/README.md](mobile%20web/README.md) and §20 below.
 
@@ -452,6 +452,11 @@ npx playwright test --project=chrome-resource-panel    # Resource Panel suite
 npx playwright test --project=chrome-voices-topics     # Voices Topics suite
 npx playwright test --project=chrome-library-topics    # Library Topics suite
 npx playwright test --project=chrome-bookmarks-(saved)-and-history  # Voices Bookmarks & History suite
+
+# Library Assistant opt-out setting. Requires the seeded cohorts; LA_PHASE selects the
+# expectations for the one cohort whose answer changes across the migration.
+npx playwright test --project=la-setting
+LA_PHASE=post npx playwright test --project=la-setting
 
 # Sanity = TAG-scoped: runs every test tagged `{ tag: '@sanity' }` anywhere in
 # the tree, not just the Sanity/ folder (testDir './e2e-tests' + grep /@sanity/).

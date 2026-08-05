@@ -2,20 +2,33 @@ import fs from 'fs';
 import path from 'path';
 import { BrowserContext, Page, expect } from '@playwright/test';
 import { t } from '../globals';
+import { moduleUrls } from '../moduleUrls';
 
 /**
  * Shared plumbing for the Library Assistant opt-out suite.
  *
- * Deliberately independent of `e2e-tests/utils.ts` and `constants.ts`: those derive
- * `MODULE_URLS` and cookie domains from `SANDBOX_URL` and assume a two-domain, two-module
- * sandbox with `www.` and `voices.` subdomains. This suite has to run against a bare
- * `http://localhost:8000` as well, where none of that holds — `.localhost:8000` is not a
- * legal cookie domain — so it carries its own small entry point instead.
+ * Deliberately independent of `e2e-tests/utils.ts`: its entry points log in through the
+ * shared QA accounts and pin cookies to a two-domain sandbox's parent domain, neither of
+ * which holds here — this suite runs as its own seeded cohorts, and against a development
+ * server `.localhost:8000` is not a legal cookie domain. The base URL is the one place it
+ * does share, so that `SANDBOX_URL` means the same thing to every suite in the repo.
  */
 
 // Every URL in this suite is built by concatenating a path onto this, so a trailing slash
 // would produce `https://host//Genesis.1` and fail as if the product were broken.
-export const BASE_URL = (process.env.LA_BASE_URL || 'http://localhost:8000').replace(/\/+$/, '');
+export const BASE_URL = moduleUrls().EN.LIBRARY.replace(/\/+$/, '');
+
+// This suite logs into real accounts and changes their settings. `SANDBOX_URL` is shared
+// with every other suite and points at the live site by default, so refuse the live site
+// outright rather than relying on whoever runs it to have overridden it.
+const LIVE_HOSTS = /^(www\.)?sefaria\.org(\.il)?$/i;
+if (LIVE_HOSTS.test(new URL(BASE_URL).hostname)) {
+  throw new Error(
+    `This suite signs in as seeded accounts and writes their settings, so it must not run ` +
+    `against ${BASE_URL}. Point SANDBOX_URL at a sandbox or a local server, e.g. ` +
+    `SANDBOX_URL=http://localhost:8000 npx playwright test --project=la-setting`
+  );
+}
 
 /**
  * Which side of the Phase 2 migration the environment under test is on.
@@ -261,55 +274,4 @@ export async function saveSettingsAndCapturePayload(
     await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: t(20000) });
   }
   return posted;
-}
-
-/**
- * Register a brand-new account.
- *
- * Goes through `/api/register/` rather than the HTML form: the form carries a reCAPTCHA
- * that cannot be driven headlessly wherever real keys are configured. The API form drops
- * the captcha and requires `mobile_app_key` instead — the dev default is the literal
- * "MOBILE_APP_KEY" (see `sefaria/local_settings_example.py`); against staging, export the
- * real one as LA_MOBILE_APP_KEY.
- *
- * Both paths run the same `process_register_form`, which is where the setting is written,
- * so this exercises the real code path a person registering on the site would.
- */
-export const MOBILE_APP_KEY = process.env.LA_MOBILE_APP_KEY || 'MOBILE_APP_KEY';
-
-export async function registerViaApi(page: Page, email: string, password: string) {
-  let text = '';
-  let status = 0;
-
-  // Registration is one long `transaction.atomic()`. Against the default local sqlite that
-  // collides with any concurrent write and returns a 500 "database is locked" — an
-  // artifact of the dev database, not of the code under test, and absent on Postgres.
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const response = await page.request.post(`${BASE_URL}/api/register/`, {
-      form: {
-        email,
-        first_name: 'LA',
-        last_name: 'Newcomer',
-        password1: password,
-        password2: password,
-        mobile_app_key: MOBILE_APP_KEY,
-      },
-    });
-    status = response.status();
-    text = await response.text();
-    try {
-      const body = JSON.parse(text);
-      if (response.ok() && 'access' in body) return body;
-      // Field errors are deterministic — retrying cannot help.
-      if (response.ok()) break;
-    } catch { /* not JSON: a 500 error page */ }
-    if (status !== 500) break;
-    await page.waitForTimeout(t(2000 * (attempt + 1)));
-  }
-
-  throw new Error(
-    `/api/register/ did not create an account (HTTP ${status}): ${text.slice(0, 400)}\n` +
-    `If this says "Incorrect mobile_app_key", set LA_MOBILE_APP_KEY to the target ` +
-    `environment's MOBILE_APP_KEY secret.`
-  );
 }

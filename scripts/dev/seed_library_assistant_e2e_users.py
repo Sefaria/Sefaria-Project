@@ -102,7 +102,8 @@ COHORTS = [
         "setting": True,
         "expected_pre": True,
         "expected_post": True,
-        "why": "already carries the key — the migration must skip it",
+        "why": "already carries the key — the migration must skip it; also the state a "
+               "brand-new account is in, since registration writes the key outright",
     },
     {
         "key": "explicit_off",

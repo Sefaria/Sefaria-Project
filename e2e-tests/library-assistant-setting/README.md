@@ -30,7 +30,7 @@ this suite would go red.
 | Views & template | `reader/tests/library_assistant_setting_test.py` | `/api/profile`, `/api/profile/sync`, the script-tag gate, the settings page |
 | Landing view | `reader/tests/enable_library_assistant_test.py` | `/enable-library-assistant` |
 | **Migration + rollback** | `reader/tests/library_assistant_migration_test.py` | cohort selection, idempotency, the archive, rollback's only-what-we-wrote rule |
-| **Browser, all phases** | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the promo banner, registration, the enable landing |
+| **Browser, all phases** | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the promo banner, the enable landing |
 
 The migration tests point the scripts' module-level `db` at a scratch database and call the
 real `migrate()` / `rollback()`. A developer's local `profiles` collection is a restored
@@ -47,9 +47,17 @@ public dump holding ~248,000 real people; nothing here writes to it.
 | LAS-030 | Saving unrelated settings does **not** write the assistant key |
 | LAS-031 | Changing the toggle **does** post the key |
 | LAS-040 | Turn it off → gone and remembered; turn it back on → returns |
-| LAS-050 | A brand-new account has it from its first page view |
 | LAS-051 | `/enable-library-assistant` turns it on and returns the user where they were |
 | LAS-060/061 | The promo never invites a user who opted out, or who already has it |
+
+**Registration is deliberately not driven from here.** `sefaria/views.py` writes
+`settings.library_assistant = True` outright when an account is created, so a brand-new
+account *is* the `explicit_on` cohort — on in both phases, and already asserted by the
+matrix. Registering for real to observe that costs a Salesforce contact, a gravatar fetch
+into the profiles bucket, and an account with an id below `SYNTHETIC_USER_ID_FLOOR` that no
+cleanup will ever reap, on whichever environment the suite is pointed at. What that leaves
+untested is the one line in the registration view itself; it is worth a Django test, not a
+browser one.
 
 LAS-030 matters more than it looks. The migration skips any profile that already carries
 the key, so if the settings page posted the toggle unconditionally, anyone who changed an
@@ -71,7 +79,7 @@ same accounts and no real profile document can ever be in range.
 | `beta_opt_in` | `experiments=True` | absent | on | on |
 | `beta_opt_out` | `experiments=False` | absent | **off** | **off** |
 | `never_chose` | none | absent | off | **on** |
-| `explicit_on` | none | `True` | on | on |
+| `explicit_on` *(also: any brand-new account)* | none | `True` | on | on |
 | `explicit_off` | none | `False` | off | off |
 | `toggler` *(scratch)* | none | `True` | on | on |
 | `enable_landing` *(scratch)* | none | `False` | off | off |
@@ -102,8 +110,27 @@ userbase as deliberate opt-outs. Cohorts come from Postgres.
 
 Assumes Mongo and the Django server are already up (see the repo `CLAUDE.md`).
 
+The suite runs under the shared `playwright.config.ts` as the `la-setup` + `la-setting`
+projects, pointed at whatever `SANDBOX_URL` says — the same variable every other e2e suite
+reads. Put it in `e2e-tests/.env` (or export it) alongside the rest:
+
 ```bash
-# 1. Cohort accounts. --reset makes it idempotent.
+SANDBOX_URL=http://localhost:8000
+```
+
+A URL that has to be used exactly as written — `localhost`, an explicit port, or plain
+`http` — is used verbatim; a bare domain such as `https://sefariastaging.org` still has
+`www.` / `voices.` prefixed onto it as before. The two `la-*` projects appear only once the
+cohort manifest exists, so `npx playwright test` on a machine that has never seeded skips
+them rather than failing.
+
+`SANDBOX_URL` is shared, so pointing it at a development server points every suite in the
+repo there. Prefer `SANDBOX_URL=http://localhost:8000 npx playwright test --project=la-setting`
+for a single command over leaving `localhost` sitting in `.env`.
+
+```bash
+# 1. Cohort accounts. --reset makes it idempotent. Writes e2e-tests/.la-e2e-users.json,
+#    which is also what makes the la-* Playwright projects exist.
 python scripts/dev/seed_library_assistant_e2e_users.py --reset
 
 # 2. Python layers.
@@ -114,19 +141,19 @@ python -m pytest reader/tests/library_assistant_setting_test.py \
                  reader/tests/library_assistant_migration_test.py
 
 # 3. Browser, Phase 1 (before the migration).
-npx playwright test --config=playwright.la.config.ts
+npx playwright test --project=la-setting
 
 # 4. The migration itself. NOTE the ./run wrapper — see §6.
 ./run scripts/migrations/migrate_experiments_to_library_assistant.py --dry-run
 ./run scripts/migrations/migrate_experiments_to_library_assistant.py
 
 # 5. Browser again, Phases 2 and 3. Identical file, one env var.
-LA_PHASE=post npx playwright test --config=playwright.la.config.ts
+LA_PHASE=post npx playwright test --project=la-setting
 
 # 6. Rollback, then prove Phase 1 behaviour came back.
 ./run scripts/migrations/rollback_library_assistant_migration.py --dry-run
 ./run scripts/migrations/rollback_library_assistant_migration.py
-npx playwright test --config=playwright.la.config.ts -g "LAS-001|LAS-020"
+npx playwright test --project=la-setting -g "LAS-001|LAS-020"
 ```
 
 Inspect cohort state at any point with
@@ -152,10 +179,11 @@ two tests skip with a message naming the key; they never silently pass.
 - **`npm run w` dies in a non-TTY shell.** Build the client bundle with
   `npx webpack --config ./node/webpack.client.js`. Rebuild it when switching phase
   branches, or the browser runs the previous phase's React.
-- **Two workers, not full parallelism.** `manage.py runserver` over sqlite serializes
-  writes; registration is one long `transaction.atomic()` and returns a 500
-  "database is locked" under concurrent load. `registerViaApi` retries it. Raise with
-  `LA_WORKERS=8` against a cauldron or staging, where Postgres makes it a non-issue.
+- **Full parallelism by default; cap it if your dev server can't keep up.** `LA_WORKERS=4`
+  caps the whole run — it is Playwright's global worker count, not a per-project one, so
+  set it only for a run pointed at a development server. `manage.py runserver` renders the
+  reader page slowly enough that a laptop's worth of workers can push a page load past the
+  90-second budget; nothing here contends on sqlite writes any more.
 - **Seeding pushes the sqlite id sequence up — and that is not harmless.** sqlite derives
   the next rowid from `max(rowid) + 1`, so once these explicit 2.09-billion ids exist,
   *every* account subsequently registered on that local database gets an id above
@@ -166,27 +194,27 @@ two tests skip with a message naming the key; they never silently pass.
   you seed a database you care about, and use `--teardown` when you are done.
 
   Staging Postgres does **not** behave this way — an INSERT with an explicit id does not
-  advance the sequence, so registered accounts keep their ordinary low ids. The
-  mirror-image consequence is that on staging the per-run registered test account is
-  indistinguishable from a real user, and nothing sweeps it up (see §4).
+  advance the sequence, so accounts registered there keep their ordinary low ids and stay
+  outside the id-floor class.
 
 ---
 
 ## 4. Running against staging after code freeze
 
 > **Not yet proven remotely.** Every run so far has been against `http://localhost:8000`.
-> The remote path below is designed but unexercised — the seeding round trip, the real
-> `MOBILE_APP_KEY`, the HTTPS `www.` host. **Do a rehearsal run against staging before the
-> day it is needed**, so the first remote run is not the rollout itself.
+> The remote path below is designed but unexercised — the seeding round trip, the HTTPS
+> `www.` host. **Do a rehearsal run against staging before the day it is needed**, so the
+> first remote run is not the rollout itself.
 
 Everything above works unchanged against a remote target; only the inputs differ.
 
 ```bash
-export LA_BASE_URL=https://www.sefariastaging.org
-export LA_MOBILE_APP_KEY=<the environment's MOBILE_APP_KEY secret>   # for LAS-050
-export LA_E2E_PASSWORD=<a password chosen for this run>              # not "password"
-export LA_WORKERS=6
+export SANDBOX_URL=https://sefariastaging.org            # www. is prefixed for you
+export LA_E2E_PASSWORD=<a password chosen for this run>  # not "password"
 ```
+
+Staging is Postgres behind several web pods and is not the bottleneck a dev server is, so
+leave `LA_WORKERS` unset and let Playwright choose.
 
 ### Precheck — do this the day before, not on the day
 
@@ -199,19 +227,18 @@ POD=<web-pod>
 #    staging deploys from master — until this merges, kubectl exec cannot find it.
 kubectl exec $POD -- ls scripts/dev/seed_library_assistant_e2e_users.py
 
-# 2. Remote config. The promo flag gates LAS-060/061 (without it they skip, not fail).
+# 2. Remote config. The promo flag gates LAS-060/061 (without it they refuse to pass).
 #    chatbot.hide is the dangerous one: set to 1, the client withholds the assistant from
 #    everybody, and every "assistant on" assertion fails for a reason that has nothing to
 #    do with the setting under test.
-curl -s "$LA_BASE_URL/api/remote-config" | python -m json.tool
+curl -s "https://www.sefariastaging.org/api/remote-config" | python -m json.tool
 #    → feature.client.show_join_chatbot_banner
 #    → feature.client.remote_config_json, whose parsed body must NOT have chatbot.hide == 1
-
-# 3. MOBILE_APP_KEY. The deployed settings read it as os.getenv("MOBILE_APP_KEY") with no
-#    default, so an unset secret makes it None — and registration then rejects every value
-#    of LA_MOBILE_APP_KEY. LAS-050 cannot pass at any key. Confirm it is set and get it.
-kubectl exec $POD -- python -c "from sefaria.settings import MOBILE_APP_KEY; print(bool(MOBILE_APP_KEY))"
 ```
+
+**Both were verified on staging on 2026-08-05**: `feature.client.show_join_chatbot_banner`
+is **on**, and `chatbot.hide` is **0**. Re-check on the day — they are remote config and can
+change under you — but as of that check staging needs no preparation for either.
 
 ### The run
 
@@ -232,31 +259,32 @@ kubectl exec $POD -- python -c "from sefaria.settings import MOBILE_APP_KEY; pri
    pod writes anything to stdout of its own, fall back to letting the script write its file
    and fetching it: `kubectl cp $POD:/app/e2e-tests/.la-e2e-users.json e2e-tests/.la-e2e-users.json`
    (adjust the path to the image's working directory).
-3. **Run the Python layers in the pod**, not locally: they need that environment's
-   databases.
-4. **Run the browser suite from your laptop** against `LA_BASE_URL`.
-5. **Then the migration**, per the Phase 2 runbook on sc-46273: dry-run, check the three
+3. **Run the browser suite from your laptop** against `SANDBOX_URL`:
+   `npx playwright test --project=la-setting`.
+4. **Then the migration**, per the Phase 2 runbook on sc-46273: dry-run, check the three
    cohort counts against expected user numbers, run for real, re-run the browser suite with
    `LA_PHASE=post`.
-6. **Tear the cohorts down** when the rollout is done:
+5. **Tear the cohorts down** when the rollout is done:
    `kubectl exec $POD -- python scripts/dev/seed_library_assistant_e2e_users.py --teardown`.
 
-Two things to know before running LAS-050 anywhere shared: registration calls
-`CrmMediator().create_crm_user(...)`, so it creates a real contact in that environment's
-CRM (the Salesforce **sandbox** for dev/staging), and it leaves a real account behind. Both
-are acceptable on staging and neither is acceptable on production — **do not point this
-suite at production.**
+**Do not run the Python layers in a pod.** They already run on every pull request as
+*Continuous Testing: PyTest*, so a staging run would re-prove nothing — and Django's test
+runner creates and drops a `test_<dbname>` on the Postgres instance the pod is pointed at,
+which staging shares. A staging run is the browser suite only; the pod is used for seeding
+and teardown and nothing else.
+
+The suite writes only to the accounts it seeds, but it does write to them — **do not point
+it at production.**
 
 ### What a staging run leaves behind
 
-Reversible is not the same as reversed. Everything below outlives the run.
+Reversible is not the same as reversed. Everything below outlives the run. Every account
+the suite touches is one it seeded, so `--teardown` reaches all of them; what is left is
+the sessions those logins created and the migration's own audit trail.
 
 | Residue | How to clean it |
 | --- | --- |
 | The seeded cohort accounts (Postgres users, `UserExperimentSettings` rows, Mongo profiles) and the manifest | `--teardown`. This is the only piece that is fully automated. |
-| The account LAS-050 registers, one per run, `la-e2e-new-<timestamp>@example.com` | By hand. On Postgres it gets an ordinary low id, so no id-floor sweep will ever find it. |
-| Its **Salesforce contact** | By hand, in Salesforce. **Nothing in this repo deletes it** — `--teardown` does not, because the seeded accounts never had one. It accumulates one contact per run in the sandbox. |
-| A profile picture in GCS, if the run reached the profile-edit path | By hand, in the bucket. |
 | ~7 `django_session` rows (one per logged-in account) | Leave them; they expire on their own. |
 | The migration archive collection | Left deliberately — it is the audit record and the input rollback reads. **Rollback restores the prior state except for the archive**; a claim that it "restores prior state exactly" is wrong. Drop it only when you are certain no rollback will be wanted. |
 
@@ -266,6 +294,7 @@ Reversible is not the same as reversed. Everything below outlives the run.
 
 | Check | Why not, and how to do it |
 | --- | --- |
+| Registration writes the setting key | Driving a real registration costs a CRM contact and an unreapable account wherever it runs (see §1). The state it produces is covered as the `explicit_on` cohort; the write itself belongs in a Django test of `sefaria/views.py`, which does not exist yet. |
 | Cohort counts are plausible for the real userbase | Only a human knows what "right" looks like. `--dry-run` prints the three numbers; compare against the known beta size before running for real. |
 | No CRM webhook burst during the migration | Nothing should fire at all — `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED = True` short-circuits the dispatch, and the migration never calls it. Confirm by grepping the run's logs for `chatbot_opt_in_webhook`. |
 | The assistant actually answers a question | Owned by the existing `chrome-assistant` suite against a real backend. This suite deliberately asserts only on whether the widget is *offered*. |
@@ -373,7 +402,7 @@ git checkout chore/sc-46274/phase-3-remove-legacy-fallback
 git merge fix/sc-46273/rollout-readiness-migration-fixes-and-tests
 npx webpack --config ./node/webpack.client.js   # or the browser runs the other phase's React
 # restart the server, then:
-LA_PHASE=post npx playwright test --config=playwright.la.config.ts
+LA_PHASE=post npx playwright test --project=la-setting
 ```
 
 Undo with `git branch -f chore/sc-46274/phase-3-remove-legacy-fallback origin/chore/sc-46274/phase-3-remove-legacy-fallback`.
