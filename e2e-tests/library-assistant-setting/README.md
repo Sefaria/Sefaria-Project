@@ -235,8 +235,10 @@ is invisible to the auth backend. It has never mattered because every caller use
 `username=_email_to_username(email)` — as the seeding script now does.
 
 **d. Phase 3 shows the promo banner to users who just opted out.** Reproduced: the whole
-suite was run against a Phase 1 checkout and then, unchanged, against Phase 3 with the same
-data. Phase 1 → 20/20. Phase 3 → LAS-060 fails.
+suite was run against a Phase 1 checkout pre-migration, and then — the same 19 tests, one
+env var different — against Phase 3 post-migration. **Phase 1: 19/19. Phase 3: 18/19, the
+one failure being LAS-060.** Every other assertion is identical across the two, which is
+the evidence that removing the fallback is otherwise unobservable.
 
 `ReaderApp.jsx:2451` moves the gate from `!Sefaria.in_chatbot_experiment` to
 `!this.props.chatbot_enabled`. Before Phase 3 a user who deliberately turned the assistant
@@ -257,3 +259,21 @@ on whether that flag is on when Phase 3 ships. Worth deciding before it does: th
 pre-Phase-3 rule was "don't ask someone who already answered", and the natural replacement
 is to keep suppressing the promo when `settings.library_assistant` is present at all,
 rather than only when it is true.
+
+---
+
+## 7. Running the same suite against a different phase
+
+The branches are stacked (Phase 3 sits on Phase 1), so the suite reaches Phase 3 with a
+merge. It is deliberately **not** merged into `chore/sc-46274/...`, to keep PR #3579 as the
+reviewed change and nothing else:
+
+```bash
+git checkout chore/sc-46274/phase-3-remove-legacy-fallback
+git merge chore/sc-46273/phase-2-migration-and-e2e-tests
+npx webpack --config ./node/webpack.client.js   # or the browser runs the other phase's React
+# restart the server, then:
+LA_PHASE=post npx playwright test --config=playwright.la.config.ts
+```
+
+Undo with `git branch -f chore/sc-46274/phase-3-remove-legacy-fallback origin/chore/sc-46274/phase-3-remove-legacy-fallback`.
