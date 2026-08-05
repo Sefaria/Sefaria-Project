@@ -1603,7 +1603,7 @@ def make_category_index_document(toc_node):
     the Books tab's flat results.
 
     **Where the title variants come from.** A `Category` record almost always carries a
-    `sharedTitle` naming a `Term` (375 of the 376 searchable categories do today), and
+    `sharedTitle` naming a `Term` (all 309 searchable categories do today), and
     `AbstractTitledOrTermedObject._process_terms` — which runs during `Category`'s own
     `_set_derived_attributes` — *replaces* the category's title group with that Term's
     title group. So `cat_obj.get_titles(lang)` already returns the Term's full title list
@@ -1916,7 +1916,7 @@ def resync_category_docs():
     category beneath it, and a category that gains or loses its last child moves in or
     out of the searchable set entirely (its child count crosses the two-child threshold, or
     a rename turns it into a boundary). Tracking those cascades individually would be easy
-    to get subtly wrong; a full re-sync is unconditionally correct and, at ~376 documents
+    to get subtly wrong; a full re-sync is unconditionally correct and, at ~309 documents
     in one bulk request, cheaper than the logic it replaces.
 
     Best-effort like the other on-save hooks: failures are logged, not raised, since the

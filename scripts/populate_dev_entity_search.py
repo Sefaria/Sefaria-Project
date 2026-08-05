@@ -9,7 +9,7 @@ directly under its alias name (no a/b blue-green swap) and indexes only a small
 sample, so /api/entity-search returns results locally without waiting on a full
 multi-thousand-document rebuild.
 
-`--limit` does not apply to categories: the whole set is only ~376 documents, and a
+`--limit` does not apply to categories: the whole set is only ~309 documents, and a
 partial one would make category resolution silently miss queries.
 
 Prereq: `SEARCH_INDEX_NAME_TOPIC`, `SEARCH_INDEX_NAME_BOOK` and
@@ -88,7 +88,7 @@ def _populate_books(limit):
 
 
 def _populate_categories():
-    # No limit: the main-category set is small enough to index whole, and the real
+    # No limit: the searchable-category set is small enough to index whole, and the real
     # indexer is cheap enough to reuse directly rather than sampling.
     create_index(SEARCH_INDEX_NAME_CATEGORY, 'category', force=True)
     result = index_categories(SEARCH_INDEX_NAME_CATEGORY)

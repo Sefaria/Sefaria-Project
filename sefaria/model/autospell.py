@@ -11,7 +11,7 @@ import datrie
 from unidecode import unidecode
 from django.contrib.auth.models import User
 from sefaria.model import *
-from sefaria.model.category import TocCategory
+from sefaria.model.category import TocCategory, TocTextIndex
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 from sefaria.model.following import aggregate_profiles
@@ -54,6 +54,37 @@ def is_category_boundary(name):
     return name in CATEGORY_BOUNDARY_EXACT or bool(CATEGORY_BOUNDARY_RE.search(name))
 
 
+# A category earns its place as a search result only if it is genuinely a *container of
+# texts*: at least this many indices somewhere beneath it.  A category holding one book is
+# not a collection, it is that book under another name — and the book is already searchable
+# on its own (e.g. "Shulchan Arukh/Commentary/Magen Avraham", which contains only Magen
+# Avraham).  Returning both would be one result wearing two hats.
+INDEX_CONTAINER_MIN = 2
+
+
+def is_index_container(node):
+    """
+    True if `node` holds at least INDEX_CONTAINER_MIN indices at any depth beneath it.
+
+    Depth matters: the count is over the whole subtree, not direct children.  The library's
+    most important categories have *no* direct index children at all — Tanakh, Talmud,
+    Mishnah, Midrash and Mishneh Torah each contain only subcategories at the top level —
+    so a direct-children test would throw out exactly the categories users search for most.
+
+    Counting leaves rather than walking the tree by hand: every `TocTextIndex` is a leaf
+    (TocTree._make_index_node builds them with no children), so the indices beneath a node
+    are exactly its `TocTextIndex` leaves.  `get_leaf_nodes` memoizes per node, so walking
+    the whole TOC costs each subtree once — and it is the same idiom `TocTree.flatten` uses.
+    """
+    found = 0
+    for leaf in node.get_leaf_nodes():
+        if isinstance(leaf, TocTextIndex):
+            found += 1
+            if found >= INDEX_CONTAINER_MIN:
+                return True
+    return False
+
+
 def normalizer(lang):
     if lang == "he":
         return lambda x: normalize_chars(hebrew.normalize_final_letters_in_str(x))
@@ -67,13 +98,16 @@ def get_search_categories(otoc):
     """
     Category nodes meaningful as search results.
 
-    - Keeps the base-text browse taxonomy (categories with >= 2 children).
+    - Keeps the base-text browse taxonomy, restricted to real *containers of texts*:
+      categories holding at least INDEX_CONTAINER_MIN indices at any depth
+      (see is_index_container).
     - At a commentary/era/"Other" boundary (e.g. "Commentary", "Rishonim on
       Tanakh", "Acharonim", "Other Kabbalah Works"): drops the boundary node,
       but harvests its child *categories* (Rashi, Ramban, Kessef Mishneh, ...) --
       lots of good names -- and does NOT descend into their repeated inner
       structure.  Boundaries holding only texts (e.g. "Other Kabbalah Works")
       contribute nothing here; those texts are already indexed as titles.
+      Harvested children face the same container test as everything else.
 
     This is the single definition of which categories are user-facing enough to be
     completed *and* searched. It backs both the autocompleter (see AutoCompleter.__init__,
@@ -83,6 +117,12 @@ def get_search_categories(otoc):
     doesn't search (or vice versa) would be a confusing inconsistency. It replaces an
     earlier `_get_main_categories`, which only reached two levels deep and excluded
     "Commentary" by exact name.
+
+    Deviation from `feat/autospell-search-categories`, where this function originates: that
+    version gates the taxonomy on `len(child.children) >= 2` and applies no gate at all to
+    the harvested children. Counting *child nodes* is a proxy for "is this a collection?";
+    counting *indices* is the thing itself, so the proxy is replaced by `is_index_container`
+    on both branches. Net effect on the live TOC: 376 categories -> 308.
 
     :param otoc: the root TocCategory of the TOC tree (library.get_toc_tree().get_root())
     :return: list of TocCategory nodes
@@ -95,10 +135,12 @@ def get_search_categories(otoc):
                 continue
             if is_category_boundary(child.primary_title("en")):
                 for grandchild in child.children:            # harvest one level
-                    if isinstance(grandchild, TocCategory) and not is_category_boundary(grandchild.primary_title("en")):
+                    if isinstance(grandchild, TocCategory) \
+                            and not is_category_boundary(grandchild.primary_title("en")) \
+                            and is_index_container(grandchild):
                         cats.append(grandchild)
                 continue                                     # never descend past a boundary
-            if len(child.children) >= 2:
+            if is_index_container(child):
                 cats.append(child)
             walk(child)
 

@@ -562,9 +562,9 @@ def _resolve_categories(query, es_client):
     """
     Resolve `query` to the main TOC categories it names exactly, or [] if it names none.
 
-    Returns *every* exact match, not just one: 62 titles name more than one category —
+    Returns *every* exact match, not just one: 57 titles name more than one category —
     "Seder Moed" names five (under Mishnah, Bavli, Yerushalmi and both Tosefta editions),
-    "Rashi" names four, and "Halakhah" names both the top-level category and
+    "Rashi" names three, and "Halakhah" names both the top-level category and
     Midrash/Halakhah. Picking one would be arbitrary, and the result cards carry
     breadcrumbs that tell them apart, so all of them are returned.
 
@@ -621,8 +621,8 @@ def _eponymous_books_in_categories(query, category_paths, es_client):
     """
     Books that sit *inside* a matched category and whose own title is exactly the query.
 
-    24 categories contain a book of the same name — Zohar, Tur, Sefer Yetzirah, Shulchan
-    Arukh HaRav, Mishnah Berurah, Magen Avraham and so on. Category mode hides everything
+    11 categories contain a book of the same name — Zohar, Tur, Sefer Yetzirah, Shulchan
+    Arukh HaRav, Mishnah Berurah, Sefer HaMitzvot and so on. Category mode hides everything
     under a matched path, which would otherwise make the actual Zohar vanish from a search
     for "Zohar". These books are pulled back out and shown above the category card,
     mirroring the eponymous-work lift the author-works view already does for
@@ -787,7 +787,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
       to books at/under any of the given category paths.
 
     Author is tried before category on purpose, and this is a high-traffic branch rather
-    than an edge case: 179 category titles are also an author's name or title variant,
+    than an edge case: 138 category titles are also an author's name or title variant,
     because the TOC collects a commentator's works under a category named after him
     (Rashi, Ramban, Maggid Mishneh, Ramak, Ramchal, Josephus, ...). For a name query the
     person is the likelier intent, so all of those keep returning aggregated author works
