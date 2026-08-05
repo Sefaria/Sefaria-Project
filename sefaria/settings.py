@@ -206,6 +206,18 @@ REST_FRAMEWORK = {
 }
 
 SESSION_SAVE_EVERY_REQUEST = True
+# Keep users signed in for as close to the browser ceiling as is safe. Chrome,
+# Firefox and Safari all clamp cookie lifetimes to 400 days; 399 leaves a day of
+# headroom so we never land on the boundary.
+#
+# This one setting drives BOTH the sessionid cookie's Max-Age and the
+# server-side django_session.expire_date, so the cookie can never outlive the
+# session record it points at. Combined with SESSION_SAVE_EVERY_REQUEST above,
+# the window rolls: every request pushes both out another 399 days.
+#
+# Django's own default is 1209600 (2 weeks), which is what we were silently
+# running on before.
+SESSION_COOKIE_AGE = 399 * 24 * 60 * 60  # 34,473,600 seconds
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
 LOCALE_PATHS = (
