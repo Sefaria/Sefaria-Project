@@ -163,6 +163,52 @@ test.describe(`Library Assistant settings page — ${PHASE}-migration`, () => {
   });
 });
 
+test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
+
+  // The promo invites people to try the assistant. Whether it is running at all is a
+  // server-side remote-config decision (`feature.client.show_join_chatbot_banner`) that a
+  // browser test cannot set, so each test reads the flag out of the props the server sent
+  // and says plainly when the environment has the promo switched off.
+  // Read it from DJANGO_VARS rather than the `Sefaria` global: the flag is a React prop on
+  // ReaderApp and `unpackBaseProps` never copies it onto `Sefaria`.
+  async function promoIsRunning(page: any): Promise<boolean> {
+    return page.evaluate(() => !!(window as any).DJANGO_VARS?.props?.show_join_chatbot_banner);
+  }
+
+  const promoBanner = (page: any) => page.locator('.siteWideBannerContent');
+
+  test('LAS-060: a user who turned the assistant off is not asked to try it', async ({ browser }) => {
+    // Nagging someone with "Try the Library Assistant" immediately after they opted out is
+    // the one thing an opt-out switch must never do. Phase-invariant on purpose: the
+    // correct answer is the same before and after the migration.
+    const context = await contextFor(browser, 'explicit_off');
+    const page = await context.newPage();
+    await goToReader(page);
+    test.skip(!(await promoIsRunning(page)),
+      'promo is off in this environment — enable remote config feature.client.show_join_chatbot_banner');
+
+    await expectAssistant(page, false, 'explicit_off has the assistant off');
+    await expect(promoBanner(page), 'the promo must not be shown to a user who opted out')
+      .toHaveCount(0);
+
+    await context.close();
+  });
+
+  test('LAS-061: a user who has the assistant is not asked to try it', async ({ browser }) => {
+    const on = accounts().find(a => expected(a))!;
+    const context = await contextFor(browser, on.key);
+    const page = await context.newPage();
+    await goToReader(page);
+    test.skip(!(await promoIsRunning(page)),
+      'promo is off in this environment — enable remote config feature.client.show_join_chatbot_banner');
+
+    await expect(promoBanner(page), 'the promo must not be shown to a user who already has it')
+      .toHaveCount(0);
+
+    await context.close();
+  });
+});
+
 test.describe(`Library Assistant acquisition paths — ${PHASE}-migration`, () => {
 
   test('LAS-050: a brand-new account has the assistant from its first page view', async ({ browser }) => {
