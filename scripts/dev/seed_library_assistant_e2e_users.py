@@ -114,7 +114,10 @@ COHORTS = [
         "setting": True,
         "expected_pre": True,
         "expected_post": True,
-        "why": "reserved for the tests that drive the settings toggle and leave it back on",
+        # Scratch: the only account any test writes to. Kept out of the cohort matrix so a
+        # failed mutation test cannot make unrelated assertions fail on the next run.
+        "scratch": True,
+        "why": "scratch account for the tests that drive the settings toggle",
     },
 ]
 
@@ -182,6 +185,7 @@ def _seed_one(cohort):
         "password": PASSWORD,
         "expected_pre": cohort["expected_pre"],
         "expected_post": cohort["expected_post"],
+        "scratch": cohort.get("scratch", False),
         "why": cohort["why"],
     }
 

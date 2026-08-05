@@ -1,6 +1,6 @@
 import { test, expect, BrowserContext } from '@playwright/test';
 import {
-  BASE_URL, PHASE, Account, accounts, account, expected, authFile,
+  BASE_URL, PHASE, Account, accounts, cohorts, account, expected, authFile,
   suppressOverlays, expectAssistant, goToReader, goToAccountSettings,
   toggleShowsOn, setToggle, saveSettingsAndCapturePayload, assistantElement,
   registerViaApi,
@@ -32,7 +32,7 @@ test.describe(`Library Assistant setting — ${PHASE}-migration`, () => {
 
   // LAS-001..006 — the cohort matrix. This is the whole card in one table: who has the
   // assistant, for every way a user can have arrived at their current state.
-  for (const a of accounts()) {
+  for (const a of cohorts()) {
     test(`LAS-001 [${a.key}]: assistant is ${expected(a) ? 'on' : 'off'} — ${a.why}`, async ({ browser }) => {
       const context = await contextFor(browser, a.key);
       const page = await context.newPage();
@@ -56,7 +56,7 @@ test.describe(`Library Assistant setting — ${PHASE}-migration`, () => {
   });
 
   test('LAS-011: the assistant does not load on a mobile viewport', async ({ browser }) => {
-    const on = accounts().find(a => expected(a))!;
+    const on = cohorts().find(a => expected(a))!;
     const context = await contextFor(browser, on.key);
     await context.close();
     const mobile = await browser.newContext({
@@ -81,7 +81,7 @@ test.describe(`Library Assistant settings page — ${PHASE}-migration`, () => {
 
   // LAS-020..025 — the toggle is the opt-out. Every logged-in user must have it, and it
   // must show them the truth about their own account.
-  for (const a of accounts()) {
+  for (const a of cohorts()) {
     test(`LAS-020 [${a.key}]: toggle is present and shows the effective value`, async ({ browser }) => {
       const context = await contextFor(browser, a.key);
       const page = await context.newPage();
@@ -133,6 +133,14 @@ test.describe(`Library Assistant settings page — ${PHASE}-migration`, () => {
     const page = await context.newPage();
 
     try {
+      // Establish the starting state rather than assuming it. A previous failed run may
+      // have left this account off, and that is this test's problem to absorb, not a
+      // reason to report a false failure about the product.
+      await goToAccountSettings(page);
+      if (!(await toggleShowsOn(page))) {
+        await setToggle(page, true);
+        await saveSettingsAndCapturePayload(page);
+      }
       await goToReader(page);
       await expectAssistant(page, true, 'toggler starts on');
 
@@ -195,7 +203,7 @@ test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
   });
 
   test('LAS-061: a user who has the assistant is not asked to try it', async ({ browser }) => {
-    const on = accounts().find(a => expected(a))!;
+    const on = cohorts().find(a => expected(a))!;
     const context = await contextFor(browser, on.key);
     const page = await context.newPage();
     await goToReader(page);

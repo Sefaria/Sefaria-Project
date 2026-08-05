@@ -20,6 +20,7 @@ Playwright end-to-end test suite for Sefaria. Two web modules and one embedded p
 - **Cross-Module** — Library↔Voices integration: auth persistence (XMOD-L01 → L09) + Library→Voices redirects (XMOD-R01 → R17). See [Full testing by Feature/Cross-Module/README.md](Full%20testing%20by%20Feature/Cross-Module/README.md).
 - **Sheet Lifecycle** — full create→publish→delete sheet journey on Voices, SHT-001 → SHT-010 (serial). Lives in [voices/sheet-lifecycle.spec.ts](voices/README.md).
 - **Sanity** — the release-gate smoke set, defined by the `@sanity` **tag** (not a folder). See [Sanity/README.md](Sanity/README.md).
+- **Library Assistant opt-out setting** — whether the assistant is *offered* to a given user, LAS-001 → LAS-061. Runs under its **own config** ([../playwright.la.config.ts](../playwright.la.config.ts)) because it must also run against a bare `http://localhost:8000`, where the `SANDBOX_URL`-derived `MODULE_URLS` and cookie domains below do not apply. See [library-assistant-setting/README.md](library-assistant-setting/README.md).
 
 Tests run against the sandbox URL pointed at by `SANDBOX_URL` / `SANDBOX_URL_IL` env vars. Each Playwright "project" in [playwright.config.ts](../playwright.config.ts) pairs a browser (Chromium/Firefox/WebKit) with a folder under `e2e-tests/`. **Mobile tests live under a separate config** ([../playwright.mobileweb.config.ts](../playwright.mobileweb.config.ts)) because Sefaria's mobile chrome only mounts below `width < 843px`; the desktop projects never exercise it. See [mobile web/README.md](mobile%20web/README.md) and §20 below.
 
@@ -614,6 +615,7 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly. Also recomm
 | Run commands, env setup, prereqs | [README.md](README.md) |
 | What a Sanity test is + the `@sanity` tag convention | [Sanity/README.md](Sanity/README.md) |
 | Library Assistant deep-dive guide (incl. coverage + backlog) | [assistant/README.md](assistant/README.md) |
+| Library Assistant opt-out test plan + migration runbook (sc-46240) | [library-assistant-setting/README.md](library-assistant-setting/README.md) |
 | Resource Panel deep-dive guide | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Voices Topics deep-dive guide | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
 | Library Topics deep-dive guide | [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md) |

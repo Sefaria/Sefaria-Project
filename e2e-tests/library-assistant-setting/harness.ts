@@ -34,6 +34,8 @@ export type Account = {
   password: string;
   expected_pre: boolean;
   expected_post: boolean;
+  /** Written to by the mutation tests, so excluded from the read-only cohort matrix. */
+  scratch: boolean;
   why: string;
 };
 
@@ -47,6 +49,15 @@ export function accounts(): Account[] {
     );
   }
   return JSON.parse(fs.readFileSync(MANIFEST, 'utf-8')).accounts;
+}
+
+/**
+ * The read-only cohorts. Excludes the scratch account the mutation tests write to: if that
+ * one is left in an unexpected state by a failing test, the failure should stay in that
+ * test rather than reappearing as an unrelated cohort assertion on the next run.
+ */
+export function cohorts(): Account[] {
+  return accounts().filter(a => !a.scratch);
 }
 
 export function account(key: string): Account {
@@ -151,6 +162,13 @@ export const SETTINGS_URL = '/settings/account';
 export async function goToAccountSettings(page: Page) {
   await page.goto(`${BASE_URL}${SETTINGS_URL}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: 20000 });
+  // The promo banner mounts on this page too and can sit over the save controls, so a
+  // click on Save fails with "intercepts pointer events" rather than anything to do with
+  // the setting. Hide it rather than dismissing it — dismissal writes a cookie, and
+  // whether the banner should be here at all is LAS-060's assertion to make, not a side
+  // effect of some other test's navigation.
+  await page.addStyleTag({ content: '.siteWideBannerContent { display: none !important; }' })
+    .catch(() => {});
 }
 
 /** The toggle renders the *effective* value, so this is what the user is told. */
