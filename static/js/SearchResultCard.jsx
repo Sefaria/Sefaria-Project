@@ -45,11 +45,20 @@ function SearchResultCard({
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
 
-  const handleClick = (e) => {
+  const handleCardClick = () => {
+    if (window.getSelection && window.getSelection().toString()) return;
+    Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
     if (onResultClick) {
+      onResultClick(tref ?? href, null, null);
+    } else {
+      window.location.href = href;
+    }
+  };
+
+  const handleCardKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
-      onResultClick(tref ?? href, null, null); // matches handleNavigationClick(ref, currVersions, options)
+      handleCardClick();
     }
   };
 
@@ -61,11 +70,19 @@ function SearchResultCard({
   const isSourcesMode = mode === 'sources';
   // Sources cards don't show the icon circle — the colored bar and ref title are sufficient.
   const resolvedIcon = isSourcesMode ? null : (icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text);
+  const hasDescription = !isSourcesMode && !!(descriptionHtml || description);
 
   return (
-    <div className={`searchResultCard searchResultCard--${mode}`}>
+    <div
+      className={`searchResultCard searchResultCard--${mode}`}
+      role="link"
+      tabIndex={0}
+      aria-label={name}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+    >
       <div className="searchResultCard-bar" style={{ backgroundColor: resolvedAccentColor }} />
-      <div className="searchResultCard-content">
+      <div className={`searchResultCard-content${hasDescription ? '' : ' searchResultCard-content--centered'}`}>
         {resolvedIcon && (
           <div className="searchResultCard-iconCircle">
             {(type === 'text' || type === 'collection') && MODES_WITH_CATEGORY_COLOR.has(mode) ? (
@@ -93,7 +110,7 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <a href={href} onClick={handleClick} className="searchResultCard-titleLink">
+            <div className="searchResultCard-titleLink">
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -104,7 +121,7 @@ function SearchResultCard({
                   </span>
                 )}
               </div>
-            </a>
+            </div>
             {!isSourcesMode && (secondaryDate || secondaryAuthor) && (
               <div className="searchResultCard-secondary">
                 {secondaryDate && (
@@ -147,7 +164,7 @@ function SearchResultCard({
               <button
                 type="button"
                 className="searchResultCard-versionsToggle"
-                onClick={() => setVersionsOpen(o => !o)}
+                onClick={(e) => { e.stopPropagation(); setVersionsOpen(o => !o); }}
                 aria-expanded={versionsOpen}
               >
                 <InterfaceText text={{

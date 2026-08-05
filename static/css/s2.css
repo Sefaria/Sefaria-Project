@@ -4742,15 +4742,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 20px;
   position: relative;
   transition: box-shadow 0.15s ease;
+  cursor: pointer;
 }
 .searchResultCard:hover {
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
               0 1px 2px 0  rgba(31,31,31,0.04),
               0 8px 16px 0 rgba(31,31,31,0.05);
+  cursor: pointer;
 }
-.searchResultCard:hover .searchResultCard-name,
-.searchResultCard:hover .searchResultCard-altName {
-  text-decoration: underline;
+.searchResultCard:focus-visible {
+  outline: 2px solid var(--navy, #18345d);
+  outline-offset: 2px;
 }
 .searchResultCard-bar {
   width: 4px;
@@ -4765,6 +4767,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: flex-start;
   padding: 16px 20px;
   min-width: 0;
+}
+.searchResultCard-content--centered {
+  align-items: center;
 }
 .searchResultCard-iconCircle {
   display: flex;
@@ -4806,10 +4811,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-.searchResultCard-titleLink {
-  text-decoration: none;
-  color: inherit;
 }
 .searchResultCard-titleLink:hover .searchResultCard-name {
   text-decoration: underline;
@@ -4995,12 +4996,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 /* ── Sources mode card extensions ────────────────────────────────────── */
-.searchResultCard--sources:hover .searchResultCard-name {
-  text-decoration: none;
-}
-.searchResultCard--sources .searchResultCard-titleLink:hover .searchResultCard-name {
-  text-decoration: underline;
-}
 .searchResultCard--sources .searchResultCard-body {
   gap: 8px;
 }
