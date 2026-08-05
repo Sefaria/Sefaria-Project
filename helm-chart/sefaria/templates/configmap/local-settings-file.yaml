@@ -166,7 +166,14 @@ data:
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "true").lower() == "true"
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "true").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-    
+
+    # Session lifetime in seconds. Defaults to 399 days, just under the 400-day
+    # cap browsers place on cookie lifetimes. Sets both the sessionid cookie's
+    # Max-Age and django_session.expire_date, keeping the two in sync.
+    # "or" rather than a getenv default, so a set-but-empty env var falls back
+    # instead of raising ValueError and taking down every pod at import time.
+    SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE") or 399 * 24 * 60 * 60)
+
     CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "true").lower() == "true"
     CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "false").lower() == "true"  # Must be False for CSRF tokens to work with JavaScript
     CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
