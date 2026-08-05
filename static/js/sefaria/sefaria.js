@@ -2833,6 +2833,27 @@ _media: {},
               callback();
           });
   },
+  // Max encoded length of the `user_history` cookie value, for logged out users.
+  // The cookie shares two budgets it does not control: the browser's ~4kB
+  // per-cookie limit, and the ~8kB request-header buffer that nginx allows for
+  // every cookie on the domain combined (sessionid, csrftoken, _ga,
+  // version_preferences_by_corpus, ...). Overrunning the latter is a 400 from the
+  // edge before Django is reached, so leave most of it to the other cookies.
+  MAX_ANON_HISTORY_BYTES: 3000,
+  _trimUserHistoryForCookie: function(items) {
+    // `items` is newest first; keep the longest leading run that fits the budget.
+    // Measured URL-encoded, since that is how the value is written to the cookie
+    // and a Hebrew `he_ref` costs six characters per letter once encoded.
+    const trimmed = [];
+    for (const item of items) {
+      trimmed.push(item);
+      if (encodeURIComponent(JSON.stringify(trimmed)).length > Sefaria.MAX_ANON_HISTORY_BYTES) {
+        trimmed.pop();
+        break;
+      }
+    }
+    return trimmed;
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
@@ -2862,20 +2883,9 @@ _media: {},
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
-        Sefaria.userHistory.items = new_hist_array.concat(user_history);
-
-        if (Sefaria._inBrowser) {
-          // check if we've reached the cookie size limit
-          const cookie_hist = JSON.parse(cookie("user_history"));
-          if (cookie_hist.length < (user_history.length + new_hist_array.length)) {
-            // save failed silently. resave by popping old history
-            if (new_hist_array.length < user_history.length) {
-              new_hist_array = new_hist_array.concat(user_history.slice(0, -new_hist_array.length));
-            }
-            cookie("user_history", JSON.stringify(new_hist_array), {path: "/"});
-          }
-        }
+        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
+        cookie("user_history", JSON.stringify(trimmed), {path: "/"});
+        Sefaria.userHistory.items = trimmed;
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
