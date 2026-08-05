@@ -105,8 +105,18 @@ spec:
             value: "{{ .Release.Revision }}"
           - name: randomstringtoforceredeployments
             value: {{ randAlphaNum 8 }}
-          - name: VARNISH_HOST
+          {{- if .Values.varnish.enabled }}
+          - name: UPSTREAM_HOST
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: UPSTREAM_PORT
+            value: "8040"
+          {{- else }}
+          # Varnish disabled: proxy straight to the next hop, the web (django) pods.
+          - name: UPSTREAM_HOST
+            value: "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: UPSTREAM_PORT
+            value: "80"
+          {{- end }}
           - name: INTERNAL_URL
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
