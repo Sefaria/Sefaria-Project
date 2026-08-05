@@ -74,11 +74,18 @@ same accounts and no real profile document can ever be in range.
 | `explicit_on` | none | `True` | on | on |
 | `explicit_off` | none | `False` | off | off |
 | `toggler` *(scratch)* | none | `True` | on | on |
+| `enable_landing` *(scratch)* | none | `False` | off | off |
 
-`toggler` is the only account any test writes to, and it is deliberately **excluded from the
-LAS-001 / LAS-020 matrices**. Keeping it in meant that when LAS-040 failed and left the
-account off, the next run reported three failures instead of one — a real bug buried under
-two false ones. LAS-040 also establishes its own starting state rather than assuming it.
+`toggler` and `enable_landing` are the only accounts any test writes to, and both are
+deliberately **excluded from the LAS-001 / LAS-020 matrices**. Keeping `toggler` in meant
+that when LAS-040 failed and left the account off, the next run reported three failures
+instead of one — a real bug buried under two false ones. LAS-040 also establishes its own
+starting state rather than assuming it.
+
+`enable_landing` exists because LAS-051 turns the assistant **on** for whichever account it
+drives. Pointing it at `explicit_off` put a mutation inside the read-only cohort matrix:
+three other tests assert that account is off, and under `fullyParallel` they can read it
+mid-flip. A scratch account that starts off is the only safe subject.
 
 `beta_opt_out` is the one that must never break: a person who joined the beta and turned
 the assistant off stays off through the flip. `never_chose` is the only row whose answer
@@ -149,9 +156,19 @@ two tests skip with a message naming the key; they never silently pass.
   writes; registration is one long `transaction.atomic()` and returns a 500
   "database is locked" under concurrent load. `registerViaApi` retries it. Raise with
   `LA_WORKERS=8` against a cauldron or staging, where Postgres makes it a non-issue.
-- **Seeding pushes the sqlite id sequence up.** Explicit ids in the 2.09 billion range mean
-  subsequently registered local accounts get ids in that range too. Harmless (still under
-  int4 max), and it makes them purgeable by `purge_test_profiles`.
+- **Seeding pushes the sqlite id sequence up — and that is not harmless.** sqlite derives
+  the next rowid from `max(rowid) + 1`, so once these explicit 2.09-billion ids exist,
+  *every* account subsequently registered on that local database gets an id above
+  `SYNTHETIC_USER_ID_FLOOR`. That floor is the only thing distinguishing a test account
+  from a real one: `purge_test_profiles` and `build/ci/cleanup_test_data.py` delete
+  anything above it without complaint. Real local accounts enrolled into that class are
+  deleted silently. On a local dump-restored database that is an annoyance; know it before
+  you seed a database you care about, and use `--teardown` when you are done.
+
+  Staging Postgres does **not** behave this way — an INSERT with an explicit id does not
+  advance the sequence, so registered accounts keep their ordinary low ids. The
+  mirror-image consequence is that on staging the per-run registered test account is
+  indistinguishable from a real user, and nothing sweeps it up (see §4).
 
 ---
 
@@ -167,29 +184,81 @@ Everything above works unchanged against a remote target; only the inputs differ
 ```bash
 export LA_BASE_URL=https://www.sefariastaging.org
 export LA_MOBILE_APP_KEY=<the environment's MOBILE_APP_KEY secret>   # for LAS-050
+export LA_E2E_PASSWORD=<a password chosen for this run>              # not "password"
 export LA_WORKERS=6
 ```
+
+### Precheck — do this the day before, not on the day
+
+Each of these fails the run for a reason that looks like a product bug if you meet it cold.
+
+```bash
+POD=<web-pod>
+
+# 1. Is the seed script even in the deployed image? It ships on this branch only, and
+#    staging deploys from master — until this merges, kubectl exec cannot find it.
+kubectl exec $POD -- ls scripts/dev/seed_library_assistant_e2e_users.py
+
+# 2. Remote config. The promo flag gates LAS-060/061 (without it they skip, not fail).
+#    chatbot.hide is the dangerous one: set to 1, the client withholds the assistant from
+#    everybody, and every "assistant on" assertion fails for a reason that has nothing to
+#    do with the setting under test.
+curl -s "$LA_BASE_URL/api/remote-config" | python -m json.tool
+#    → feature.client.show_join_chatbot_banner
+#    → feature.client.remote_config_json, whose parsed body must NOT have chatbot.hide == 1
+
+# 3. MOBILE_APP_KEY. The deployed settings read it as os.getenv("MOBILE_APP_KEY") with no
+#    default, so an unset secret makes it None — and registration then rejects every value
+#    of LA_MOBILE_APP_KEY. LAS-050 cannot pass at any key. Confirm it is set and get it.
+kubectl exec $POD -- python -c "from sefaria.settings import MOBILE_APP_KEY; print(bool(MOBILE_APP_KEY))"
+```
+
+### The run
 
 1. **Confirm which phase staging is on.** `LA_PHASE=pre` until the migration has been run
    there; `post` afterwards. Getting this wrong shows up as exactly one failing cohort
    (`never_chose`), which is the signal, not a flake.
 2. **Seed the cohorts on the target.** The seeding script needs Django and both databases,
-   so it runs *in the environment*, not from a laptop:
-   `kubectl exec -it <web-pod> -- python scripts/dev/seed_library_assistant_e2e_users.py --reset`
-   then copy the printed manifest to `e2e-tests/.la-e2e-users.json` locally, or re-create it
-   by hand — it is just emails, ids and the shared password.
+   so it runs *in the environment*, not from a laptop. `--manifest-stdout` puts the manifest
+   JSON — and only that — on stdout, so the round trip is one command:
+
+   ```bash
+   kubectl exec $POD -- env LA_E2E_PASSWORD="$LA_E2E_PASSWORD" \
+     python scripts/dev/seed_library_assistant_e2e_users.py --reset --manifest-stdout \
+     > e2e-tests/.la-e2e-users.json
+   ```
+
+   Note no `-it`: a TTY merges stderr into the captured stream and corrupts the JSON. If the
+   pod writes anything to stdout of its own, fall back to letting the script write its file
+   and fetching it: `kubectl cp $POD:/app/e2e-tests/.la-e2e-users.json e2e-tests/.la-e2e-users.json`
+   (adjust the path to the image's working directory).
 3. **Run the Python layers in the pod**, not locally: they need that environment's
    databases.
 4. **Run the browser suite from your laptop** against `LA_BASE_URL`.
 5. **Then the migration**, per the Phase 2 runbook on sc-46273: dry-run, check the three
    cohort counts against expected user numbers, run for real, re-run the browser suite with
    `LA_PHASE=post`.
+6. **Tear the cohorts down** when the rollout is done:
+   `kubectl exec $POD -- python scripts/dev/seed_library_assistant_e2e_users.py --teardown`.
 
 Two things to know before running LAS-050 anywhere shared: registration calls
 `CrmMediator().create_crm_user(...)`, so it creates a real contact in that environment's
 CRM (the Salesforce **sandbox** for dev/staging), and it leaves a real account behind. Both
 are acceptable on staging and neither is acceptable on production — **do not point this
 suite at production.**
+
+### What a staging run leaves behind
+
+Reversible is not the same as reversed. Everything below outlives the run.
+
+| Residue | How to clean it |
+| --- | --- |
+| The seeded cohort accounts (Postgres users, `UserExperimentSettings` rows, Mongo profiles) and the manifest | `--teardown`. This is the only piece that is fully automated. |
+| The account LAS-050 registers, one per run, `la-e2e-new-<timestamp>@example.com` | By hand. On Postgres it gets an ordinary low id, so no id-floor sweep will ever find it. |
+| Its **Salesforce contact** | By hand, in Salesforce. **Nothing in this repo deletes it** — `--teardown` does not, because the seeded accounts never had one. It accumulates one contact per run in the sandbox. |
+| A profile picture in GCS, if the run reached the profile-edit path | By hand, in the bucket. |
+| ~7 `django_session` rows (one per logged-in account) | Leave them; they expire on their own. |
+| The migration archive collection | Left deliberately — it is the audit record and the input rollback reads. **Rollback restores the prior state except for the archive**; a claim that it "restores prior state exactly" is wrong. Drop it only when you are certain no rollback will be wanted. |
 
 ---
 
@@ -301,7 +370,7 @@ reviewed change and nothing else:
 
 ```bash
 git checkout chore/sc-46274/phase-3-remove-legacy-fallback
-git merge chore/sc-46273/phase-2-migration-and-e2e-tests
+git merge fix/sc-46273/rollout-readiness-migration-fixes-and-tests
 npx webpack --config ./node/webpack.client.js   # or the browser runs the other phase's React
 # restart the server, then:
 LA_PHASE=post npx playwright test --config=playwright.la.config.ts

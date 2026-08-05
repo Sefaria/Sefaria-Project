@@ -14,11 +14,19 @@ low ids a fresh auth database hands out. Ids here are deterministic as well as s
 so re-seeding reuses the same accounts instead of accumulating new ones.
 
 Writes a manifest at ``e2e-tests/.la-e2e-users.json`` for the Playwright suite to read.
+``--manifest-stdout`` puts that same JSON on stdout and nothing else, so a run inside a
+pod can be redirected straight into the file the suite reads outside the cluster.
+
+The shared password comes from ``LA_E2E_PASSWORD`` when set. These are login-capable
+accounts with predictable addresses, so any environment reachable from the public
+internet wants a password of its own.
 
 Usage:
     python scripts/dev/seed_library_assistant_e2e_users.py
     python scripts/dev/seed_library_assistant_e2e_users.py --reset
     python scripts/dev/seed_library_assistant_e2e_users.py --report
+    python scripts/dev/seed_library_assistant_e2e_users.py --manifest-stdout > e2e-tests/.la-e2e-users.json
+    python scripts/dev/seed_library_assistant_e2e_users.py --teardown
 """
 
 import argparse
@@ -43,7 +51,7 @@ from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
 
-PASSWORD = "password"
+PASSWORD = os.environ.get("LA_E2E_PASSWORD", "password")
 MANIFEST = Path(__file__).resolve().parents[2] / "e2e-tests" / ".la-e2e-users.json"
 
 # Offsets sit at the top of the 100,000,000-wide band `create_test_user` draws random
@@ -119,6 +127,20 @@ COHORTS = [
         "scratch": True,
         "why": "scratch account for the tests that drive the settings toggle",
     },
+    {
+        "key": "enable_landing",
+        "offset": 7,
+        "whitelist_row": None,
+        "experiments": False,
+        "setting": False,
+        "expected_pre": False,
+        "expected_post": False,
+        # Scratch: the landing page turns this account on mid-test. It needs an account
+        # that starts off, and `explicit_off` cannot be it — that one is read-only, and
+        # three other tests assert it is off while this test would be flipping it.
+        "scratch": True,
+        "why": "scratch account the /enable-library-assistant landing test turns on",
+    },
 ]
 
 
@@ -131,6 +153,9 @@ def _email(cohort):
 
 
 def _purge():
+    # Every deletion here is keyed to this exact id list, never to a range or a pattern.
+    # `purge_test_profiles` additionally asserts every id is at or above
+    # `SYNTHETIC_USER_ID_FLOOR`, so a wrong id raises instead of removing a real profile.
     uids = [_uid(c) for c in COHORTS]
     purge_test_profiles(*uids)
     UserExperimentSettings.objects.filter(user_id__in=uids).delete()
@@ -202,20 +227,50 @@ def _observed(uid):
     }
 
 
-def _report():
-    print(f"{'cohort':<14} {'uid':>12}  {'row':<5} {'experiments':<11} {'setting':<8}")
-    print("-" * 58)
+def _report(stream=sys.stdout):
+    print(
+        f"{'cohort':<14} {'uid':>12}  {'row':<5} {'experiments':<11} {'setting':<8}",
+        file=stream,
+    )
+    print("-" * 58, file=stream)
     for cohort in COHORTS:
         uid = _uid(cohort)
         state = _observed(uid)
         marker = "" if state["profile"] else "  (no profile document)"
         print(
             f"{cohort['key']:<14} {uid:>12}  {str(state['row']):<5} "
-            f"{str(state['experiments']):<11} {str(state['setting']):<8}{marker}"
+            f"{str(state['experiments']):<11} {str(state['setting']):<8}{marker}",
+            file=stream,
         )
 
 
-def seed(reset=False, report=False):
+def _teardown():
+    uids = [_uid(c) for c in COHORTS]
+    profiles = db.profiles.count_documents({"id": {"$in": uids}})
+    rows = UserExperimentSettings.objects.filter(user_id__in=uids).count()
+    users = User.objects.filter(id__in=uids).count()
+
+    _purge()
+
+    try:
+        MANIFEST.unlink()
+        manifest = f"removed {MANIFEST}"
+    except FileNotFoundError:
+        manifest = f"no manifest at {MANIFEST}"
+    except OSError as error:
+        manifest = f"could not remove {MANIFEST} ({error})"
+
+    print(
+        f"Removed {users} accounts, {rows} experiment rows, "
+        f"{profiles} profile documents; {manifest}."
+    )
+
+
+def seed(reset=False, report=False, manifest_stdout=False, teardown=False):
+    if teardown:
+        _teardown()
+        return
+
     if report:
         _report()
         return
@@ -224,14 +279,38 @@ def seed(reset=False, report=False):
         _purge()
 
     accounts = [_seed_one(cohort) for cohort in COHORTS]
+    manifest = json.dumps({"password": PASSWORD, "accounts": accounts}, indent=2) + "\n"
 
-    MANIFEST.write_text(json.dumps({"password": PASSWORD, "accounts": accounts}, indent=2) + "\n")
-    print(f"Seeded {len(accounts)} accounts; manifest at {MANIFEST.relative_to(Path.cwd())}\n")
-    _report()
+    # With --manifest-stdout, stdout carries the manifest and nothing else, so the run can
+    # be redirected into the file the suite reads. Everything a human wants goes to stderr.
+    summary = sys.stderr if manifest_stdout else sys.stdout
+    if manifest_stdout:
+        sys.stdout.write(manifest)
+
+    # The filesystem may be read-only, and the manifest is the point of the run: say so
+    # rather than dying, and emit the JSON so a failed write cannot lose it.
+    try:
+        MANIFEST.write_text(manifest)
+        destination = str(MANIFEST)
+    except OSError as error:
+        if not manifest_stdout:
+            summary.write(manifest)
+        destination = f"NOT written to {MANIFEST} ({error}) — copy the JSON above"
+
+    print(f"Seeded {len(accounts)} accounts; manifest at {destination}\n", file=summary)
+    _report(stream=summary)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Seed Library Assistant e2e accounts.")
     parser.add_argument("--reset", action="store_true", help="delete the accounts first, then reseed")
     parser.add_argument("--report", action="store_true", help="print current state without writing")
+    parser.add_argument(
+        "--manifest-stdout",
+        action="store_true",
+        help="print only the manifest JSON to stdout; send the summary to stderr",
+    )
+    parser.add_argument(
+        "--teardown", action="store_true", help="delete the accounts and the manifest, then stop"
+    )
     seed(**vars(parser.parse_args()))
