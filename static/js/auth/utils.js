@@ -36,8 +36,15 @@ export function pickFirstError(data) {
   return null;
 }
 
+const SAFE_NEXT_BASE = 'http://sefaria-safenext.invalid'; // fake base, never sent anywhere — just lets URL parsing compare origins
+
 export function safeNext(next) {
-  return /^\/(?!\/)/.test(next) ? next : '/';
+  if (!next || typeof next !== 'string') return '/';
+  try {
+    return new URL(next, SAFE_NEXT_BASE).origin === SAFE_NEXT_BASE ? next : '/';
+  } catch {
+    return '/';
+  }
 }
 
 // Whether a bare path (as clicked in-app) should enter the auth experience.

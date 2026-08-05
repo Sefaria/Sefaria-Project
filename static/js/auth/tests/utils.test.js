@@ -18,13 +18,22 @@ describe('safeNext', () => {
     expect(safeNext('https://evil.example.com')).toBe('/');
   });
 
-  it('rejects a bare path with no leading slash', () => {
-    expect(safeNext('sheets/123')).toBe('/');
+  it('allows a bare relative path (still same-origin, not this function\'s concern)', () => {
+    expect(safeNext('sheets/123')).toBe('sheets/123');
   });
 
   it('defaults to / for empty/undefined input', () => {
     expect(safeNext('')).toBe('/');
     expect(safeNext(undefined)).toBe('/');
+  });
+
+  it('rejects a backslash that browsers normalize into a protocol-relative //', () => {
+    expect(safeNext('/\\evil.example.com')).toBe('/');
+  });
+
+  it('rejects embedded tabs/newlines that browsers strip into a protocol-relative //', () => {
+    expect(safeNext('/\t/evil.example.com')).toBe('/');
+    expect(safeNext('/\n/evil.example.com')).toBe('/');
   });
 });
 

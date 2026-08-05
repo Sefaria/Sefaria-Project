@@ -301,6 +301,8 @@ def register(request):
                 next_url = request.POST.get("next", "/")
                 parsed = urlparse(next_url)
                 next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if not url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                next_url = "/"
             if "noredirect" in request.POST:
                 return jsonResponse({"redirect": next_url})
             return HttpResponseRedirect(next_url)
