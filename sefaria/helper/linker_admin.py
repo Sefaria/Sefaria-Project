@@ -201,6 +201,15 @@ def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: 
     else:
         rerun_linker_for_segment(normalized, user_id)
 
+    if not mutc_updated and not linker_output_updated and not link_deleted:
+        # Nothing matched the given ref/charRange/text/targetRef combination. Without this check
+        # the endpoint returns 200 "ok" even though it silently did nothing, and the admin UI
+        # (which doesn't inspect the response body) shows the citation as deleted regardless.
+        raise InputError(
+            f"No stored citation found for {normalized['ref']} ({normalized['lang']}, "
+            f"{normalized['versionTitle']}) at {normalized['charRange']} matching that text/targetRef."
+        )
+
     return {
         "ok": True,
         "deleted": deleted,

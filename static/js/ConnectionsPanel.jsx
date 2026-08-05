@@ -1231,6 +1231,33 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     }
   }, [initialTestString]);
 
+  // Restyle the citation's <a class="mutc"> element(s) already rendered in the reader so a
+  // delete/recreate is visible immediately, without waiting for a reload to refetch linker_output.
+  // Scoped the same way TextRange's own click handler resolves a citation: by the segment's
+  // data-ref, the .contentSpan language, and the span's data-range.
+  const LINKER_DEBUG_STATUS_CLASSES = ["spanSucceeded", "spanFailed", "spanAmbiguous", "spanDisambiguated", "spanDeleted"];
+  const debugStatusClassForSpan = (span) => {
+    if (span.failed) { return "spanFailed"; }
+    if (span.llm_resolved_ref_non_segment || span.llm_resolved_ref_ambiguous) { return "spanDisambiguated"; }
+    if (span.ambiguous) { return "spanAmbiguous"; }
+    return "spanSucceeded";
+  };
+  const restyleLinkerCitationInReader = (span, deleted) => {
+    const sourceRef = span.refContext || span.sourceRef;
+    const lang = span.language || span.lang;
+    const charRange = Array.isArray(span.charRange) ? span.charRange.join("-") : span.charRange;
+    if (!sourceRef || !lang || !charRange) { return; }
+    document.querySelectorAll(`a.mutc[data-range="${CSS.escape(charRange)}"]`).forEach(el => {
+      const contentSpan = el.closest(".contentSpan");
+      // Start from the parent, not el itself: the <a class="mutc"> carries its own data-ref
+      // (the citation's target ref), which would otherwise shadow the ancestor segment's data-ref.
+      const container = el.parentElement?.closest("[data-ref]");
+      if (!contentSpan?.classList.contains(lang) || container?.getAttribute("data-ref") !== sourceRef) { return; }
+      LINKER_DEBUG_STATUS_CLASSES.forEach(cls => el.classList.remove(cls));
+      el.classList.add(deleted ? "spanDeleted" : debugStatusClassForSpan(span));
+    });
+  };
+
   const toggleDeleted = async () => {
     if (!selectedSpan) { return; }
     const deleted = !!selectedSpan.deleted;
@@ -1250,8 +1277,17 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     setError(null);
     setMessage(null);
     try {
-      await Sefaria.apiRequestWithBody(`/_api/linker-admin/citation/${deleted ? "recreate" : "delete"}`, null, payload, "POST");
+      const result = await Sefaria.apiRequestWithBody(`/_api/linker-admin/citation/${deleted ? "recreate" : "delete"}`, null, payload, "POST");
       setSelectedSpan({...selectedSpan, deleted: !deleted});
+      if (result.marked) {
+        restyleLinkerCitationInReader(selectedSpan, !deleted);
+      }
+      if (!deleted && result.marked && !result.linkDeleted) {
+        // The citation is hidden, but no linker-generated Link was found to remove alongside it
+        // (e.g. it was superseded by a more precise, non-auto-generated link). Surface that so the
+        // admin doesn't assume the underlying connection is gone.
+        setMessage("Citation hidden, but no linker-generated link was found to delete. The connection may still exist if it wasn't created by the linker.");
+      }
     } catch (e) {
       setError(e.message || String(e));
     } finally {
