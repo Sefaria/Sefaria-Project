@@ -26,6 +26,7 @@
 ######################
 *.log
 *.sql
+!semantic_search/sql/*.sql
 *.sqlite
 *.db
 
