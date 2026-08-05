@@ -2,7 +2,7 @@
 Unit tests for the semantic_search app.
 
 All tests run without a live pgvector connection and without a Gemini API key.
-ORM-touching code is mocked at the SemanticTextChunk.objects boundary.
+ORM-touching code is mocked at the Chunk.objects / Vector.objects boundary.
 """
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -19,7 +19,7 @@ from semantic_search.linked_refs import (
 )
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search, semantic_search_by_embedding
-from semantic_search.models import SemanticTextChunk
+from semantic_search.models import Chunk, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
 
 
 def make_chunk(**overrides):
@@ -71,31 +71,39 @@ class TestSemanticSearchRouter:
 class TestSearchByEmbeddingFilters:
     def _run(self, filters):
         mock_objects = MagicMock()
-        mock_objects.filter.return_value.order_by.return_value.__getitem__.return_value = []
+        (
+            mock_objects.filter.return_value
+            .select_related.return_value
+            .order_by.return_value
+            .__getitem__.return_value
+        ) = []
         with patch(
-            "semantic_search.models.SemanticTextChunk.objects",
+            "semantic_search.models.Vector.objects",
             mock_objects,
         ):
-            SemanticTextChunk().search_by_embedding([0.0] * 1536, filters=filters)
-        return mock_objects.filter.call_args.kwargs
+            Vector().search_by_embedding([0.0] * 1536, filters=filters)
+        kwargs = dict(mock_objects.filter.call_args.kwargs)
+        kwargs.pop("embedding_model_id", None)
+        return kwargs
 
     def test_known_field_passes_through(self):
         kwargs = self._run({"language": "en"})
-        assert kwargs == {"language": "en"}
+        assert kwargs == {"chunk__language": "en"}
 
     def test_ref_in_filter_passes_through(self):
         kwargs = self._run({"ref__in": ["Genesis 1:1", "Genesis 1:2"]})
-        assert kwargs == {"ref__in": ["Genesis 1:1", "Genesis 1:2"]}
+        assert kwargs == {"chunk__ref__in": ["Genesis 1:1", "Genesis 1:2"]}
 
     def test_unknown_field_is_dropped(self):
         kwargs = self._run({"bad__inject": "x"})
-        assert "bad__inject" not in kwargs
+        assert "chunk__bad__inject" not in kwargs
+        assert not kwargs
 
     def test_mixed_keeps_known_drops_unknown(self):
         kwargs = self._run({"language": "en", "evil": "x", "index_title": "Genesis"})
-        assert "language" in kwargs
-        assert "index_title" in kwargs
-        assert "evil" not in kwargs
+        assert "chunk__language" in kwargs
+        assert "chunk__index_title" in kwargs
+        assert "chunk__evil" not in kwargs
 
     def test_none_filters_calls_filter_with_no_kwargs(self):
         assert self._run(None) == {}
@@ -103,35 +111,79 @@ class TestSearchByEmbeddingFilters:
     def test_empty_dict_calls_filter_with_no_kwargs(self):
         assert self._run({}) == {}
 
+    def test_defaults_to_default_embedding_model_id(self):
+        mock_objects = MagicMock()
+        (
+            mock_objects.filter.return_value
+            .select_related.return_value
+            .order_by.return_value
+            .__getitem__.return_value
+        ) = []
+        with patch("semantic_search.models.Vector.objects", mock_objects):
+            Vector().search_by_embedding([0.0] * 1536)
+        assert mock_objects.filter.call_args.kwargs["embedding_model_id"] == DEFAULT_EMBEDDING_MODEL_ID
+
 
 # ---------------------------------------------------------------------------
 # upsert
 # ---------------------------------------------------------------------------
 
-class TestUpsert:
+class TestChunkUpsert:
     def test_empty_list_skips_bulk_create(self):
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([])
+        with patch("semantic_search.models.Chunk") as mock_cls:
+            Chunk().upsert([])
             mock_cls.objects.bulk_create.assert_not_called()
 
     def test_calls_bulk_create_with_conflict_args(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([chunk])
+        with patch("semantic_search.models.Chunk") as mock_cls:
+            Chunk().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             assert kwargs["update_conflicts"] is True
-            assert kwargs["unique_fields"] == ["doc_id"]
+            assert kwargs["unique_fields"] == [
+                "ref", "version_title", "language", "chunk_ordinal", "chunking_scheme_id",
+            ]
 
-    def test_update_fields_excludes_doc_id_and_created_at(self):
+    def test_update_fields_excludes_unique_fields_and_created_at(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk") as mock_cls:
-            SemanticTextChunk().upsert([chunk])
+        with patch("semantic_search.models.Chunk") as mock_cls:
+            Chunk().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             update_fields = kwargs["update_fields"]
-            assert "doc_id" not in update_fields
+            for field in ["ref", "version_title", "language", "chunk_ordinal", "chunking_scheme_id"]:
+                assert field not in update_fields
             assert "created_at" not in update_fields
             assert "updated_at" in update_fields
+            assert "index_title" in update_fields
+            assert "pagerank" in update_fields
+
+
+class TestVectorUpsert:
+    def test_empty_list_skips_bulk_create(self):
+        with patch("semantic_search.models.Vector") as mock_cls:
+            Vector().upsert([])
+            mock_cls.objects.bulk_create.assert_not_called()
+
+    def test_calls_bulk_create_with_conflict_args(self):
+        vector = MagicMock()
+        with patch("semantic_search.models.Vector") as mock_cls:
+            Vector().upsert([vector])
+            _, kwargs = mock_cls.objects.bulk_create.call_args
+            assert kwargs["update_conflicts"] is True
+            assert kwargs["unique_fields"] == ["chunk", "embedding_model_id"]
+
+    def test_update_fields_excludes_unique_fields_and_created_at(self):
+        vector = MagicMock()
+        with patch("semantic_search.models.Vector") as mock_cls:
+            Vector().upsert([vector])
+            _, kwargs = mock_cls.objects.bulk_create.call_args
+            update_fields = kwargs["update_fields"]
+            assert "chunk_id" not in update_fields
+            assert "embedding_model_id" not in update_fields
+            assert "created_at" not in update_fields
+            assert "text" in update_fields
             assert "embedding" in update_fields
+            assert "updated_at" in update_fields
 
 
 # ---------------------------------------------------------------------------
@@ -144,27 +196,29 @@ class TestGetIndexedUnitRefs:
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = [
             "Genesis 1", "Genesis 1", "Genesis 2"
         ]
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch("semantic_search.models.Chunk.objects", mock_objects):
+            result = Chunk().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert isinstance(result, set)
         assert result == {"Genesis 1", "Genesis 2"}
 
-    def test_filters_by_all_three_params(self):
+    def test_filters_by_index_language_version_scheme_and_embedding_model(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
+        with patch("semantic_search.models.Chunk.objects", mock_objects):
+            Chunk().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
         mock_objects.filter.assert_called_once_with(
             index_title="Mishnah Berakhot",
             language="he",
             version_title="Torat Emet 357",
+            chunking_scheme_id=DEFAULT_CHUNKING_SCHEME_ID,
+            vectors__embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
         )
 
     def test_empty_queryset_returns_empty_set(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            result = SemanticTextChunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch("semantic_search.models.Chunk.objects", mock_objects):
+            result = Chunk().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert result == set()
 
 
@@ -173,18 +227,18 @@ class TestGetIndexedUnitRefs:
 # ---------------------------------------------------------------------------
 
 class TestBulkDelete:
-    def test_filters_by_doc_ids(self):
+    def test_filters_by_ids(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().bulk_delete(["id1", "id2"])
-        mock_objects.filter.assert_called_once_with(doc_id__in=["id1", "id2"])
+        with patch("semantic_search.models.Chunk.objects", mock_objects):
+            Chunk().bulk_delete(["id1", "id2"])
+        mock_objects.filter.assert_called_once_with(id__in=["id1", "id2"])
         mock_objects.filter.return_value.delete.assert_called_once()
 
     def test_empty_list_still_calls_filter(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.models.SemanticTextChunk.objects", mock_objects):
-            SemanticTextChunk().bulk_delete([])
-        mock_objects.filter.assert_called_once_with(doc_id__in=[])
+        with patch("semantic_search.models.Chunk.objects", mock_objects):
+            Chunk().bulk_delete([])
+        mock_objects.filter.assert_called_once_with(id__in=[])
 
 
 # ---------------------------------------------------------------------------
@@ -481,44 +535,44 @@ class TestEmbedQuery:
 
 class TestSemanticSearch:
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.SemanticTextChunk")
+    @patch("semantic_search.search.Vector")
     @patch("semantic_search.search.embed_query")
-    def test_calls_embed_query_then_search_by_embedding(self, mock_embed, mock_chunk_cls):
+    def test_calls_embed_query_then_search_by_embedding(self, mock_embed, mock_vector_cls):
         mock_embed.return_value = [0.5] * 1536
-        mock_chunk_cls.return_value.search_by_embedding.return_value = []
+        mock_vector_cls.return_value.search_by_embedding.return_value = []
         semantic_search("what is shabbat")
         mock_embed.assert_called_once()
         assert mock_embed.call_args[0][0] == "what is shabbat"
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
-            [0.5] * 1536, limit=10, filters=None
+        mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
+            [0.5] * 1536, limit=10, filters=None, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
         )
 
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.SemanticTextChunk")
+    @patch("semantic_search.search.Vector")
     @patch("semantic_search.search.embed_query")
-    def test_forwards_filters_and_limit(self, mock_embed, mock_chunk_cls):
+    def test_forwards_filters_and_limit(self, mock_embed, mock_vector_cls):
         mock_embed.return_value = [0.1] * 1536
-        mock_chunk_cls.return_value.search_by_embedding.return_value = []
+        mock_vector_cls.return_value.search_by_embedding.return_value = []
         semantic_search("query", filters={"language": "en"}, limit=5)
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
-            [0.1] * 1536, limit=5, filters={"language": "en"}
+        mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
+            [0.1] * 1536, limit=5, filters={"language": "en"}, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
         )
 
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.SemanticTextChunk")
+    @patch("semantic_search.search.Vector")
     @patch("semantic_search.search.embed_query")
-    def test_returns_search_results(self, mock_embed, mock_chunk_cls):
+    def test_returns_search_results(self, mock_embed, mock_vector_cls):
         mock_embed.return_value = [0.0] * 1536
         expected = [MagicMock()]
-        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
+        mock_vector_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected
 
-    @patch("semantic_search.search.SemanticTextChunk")
-    def test_search_by_embedding_uses_existing_embedding(self, mock_chunk_cls):
+    @patch("semantic_search.search.Vector")
+    def test_search_by_embedding_uses_existing_embedding(self, mock_vector_cls):
         embedding = [0.25] * 1536
         expected = [MagicMock()]
-        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
+        mock_vector_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search_by_embedding(embedding, filters={"ref": "Genesis 1"}, limit=2) == expected
-        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
-            embedding, limit=2, filters={"ref": "Genesis 1"}
+        mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
+            embedding, limit=2, filters={"ref": "Genesis 1"}, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
         )

@@ -144,3 +144,60 @@ class TestCollectSegmentRecordsBySection:
         indices = [record.segment_index for record in first_section_records]
         assert indices == sorted(indices)
         assert indices[0] == 0
+
+
+class TestBuildChunkDataOrdinals:
+    """
+    chunk_ordinal must be 1 for any chunk spanning one whole segment or more (its ref is
+    unique within the unit), and must number pieces sequentially when a single oversized
+    segment is hard-split into multiple chunks sharing the same ref (patot's hard_max_split
+    pass - see chunker.py's `_apply_hard_max_pass` / `_split_text_evenly_by_max_tokens`).
+    """
+    def _fake_patot_chunk(self, text, source_segment_refs, kind="single_segment"):
+        return SimpleNamespace(
+            text=text, source_segment_refs=source_segment_refs, kind=kind,
+            pass_number=1, token_count=len(text.split()), triggered=False, score=None,
+        )
+
+    def _contexts(self):
+        index = library.get_index("Genesis")
+        index_context = pgv.get_index_context(index)
+        version = Version().load({"title": "Genesis", "language": "en"})
+        version_context = pgv.get_version_context(version)
+        return version, index_context, version_context
+
+    def _build(self, chunks):
+        version, index_context, version_context = self._contexts()
+        embedder = SimpleNamespace(embed_text=lambda text, task_type: [0.0, 0.0, 0.0, 0.0])
+        result = SimpleNamespace(chunks=chunks)
+        return pgv.build_chunk_data(
+            Ref("Genesis 1"), version_context["language"], version.versionTitle, "Genesis",
+            embedder, result, index_context, version_context,
+        )
+
+    def test_chunks_with_distinct_refs_all_get_ordinal_one(self):
+        built = self._build([
+            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+            self._fake_patot_chunk("verse two", ["Genesis 1:2"]),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 1]
+        assert len({b.chunk.ref for b in built}) == 2
+
+    def test_hard_split_pieces_of_one_segment_get_incrementing_ordinal(self):
+        built = self._build([
+            self._fake_patot_chunk("piece one", ["Genesis 1:1"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece two", ["Genesis 1:1"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece three", ["Genesis 1:1"], kind="hard_max_split"),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 2, 3]
+        assert len({b.chunk.ref for b in built}) == 1
+        assert [b.text for b in built] == ["piece one", "piece two", "piece three"]
+
+    def test_mixed_whole_segment_and_split_chunks(self):
+        built = self._build([
+            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+            self._fake_patot_chunk("piece a", ["Genesis 1:2"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece b", ["Genesis 1:2"], kind="hard_max_split"),
+            self._fake_patot_chunk("verse three", ["Genesis 1:3"]),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 1, 2, 1]

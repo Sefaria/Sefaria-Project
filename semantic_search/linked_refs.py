@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import statistics
 from typing import Callable
 
-from semantic_search.models import SemanticTextChunk
+from semantic_search.models import Chunk
 
 
 @dataclass(frozen=True)
@@ -59,7 +59,7 @@ def linked_refs_for(ref: str) -> list[str]:
 
 
 def get_linked_ref_enhancements(
-    chunks: list[SemanticTextChunk],
+    chunks: list[Chunk],
     link_depth: int = 1,
     min_link_count: int = 2,
     linked_refs_for_func: Callable[[str], list[str]] | None = None,
@@ -90,7 +90,7 @@ def get_linked_ref_enhancements(
 
 
 def get_mean_std_linked_ref_enhancements(
-    chunks: list[SemanticTextChunk],
+    chunks: list[Chunk],
     link_depth: int = 1,
     std_threshold: float = 2,
     min_count: int = 3,
@@ -140,7 +140,7 @@ def get_mean_std_linked_ref_enhancements(
 
 
 def get_linked_ref_counts(
-    chunks: list[SemanticTextChunk],
+    chunks: list[Chunk],
     link_depth: int = 1,
     linked_refs_for_func: Callable[[str], list[str]] | None = None,
     normalize_ref_func: Callable[[str], str] | None = None,

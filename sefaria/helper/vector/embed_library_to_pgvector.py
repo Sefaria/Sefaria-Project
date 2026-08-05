@@ -5,7 +5,8 @@ Embed Library to pgvector
 
 Chunks and embeds the entire Sefaria library (every Index, every Version, every
 language) using the patot semantic chunker + Gemini embedding pipeline, and upserts
-the resulting chunks into a pgvector-backed Postgres table (`library_chunks`).
+the resulting rows into two pgvector-backed Postgres tables: `chunks` (metadata) and
+`vectors` (text + embedding, FK'd to `chunks`).
 
 Resumable - on restart, (index, language, version_title) combinations whose section
 refs are already present in pgvector are skipped, so a restart does not re-embed
@@ -16,13 +17,13 @@ in `kubectl logs`.
 """
 
 import argparse
-import hashlib
 import logging
 import os
 import re
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import datetime
 
 import django
@@ -32,7 +33,7 @@ from django.conf import settings as django_settings
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import SemanticTextChunk
+from semantic_search.models import Chunk, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -58,8 +59,6 @@ try:
     from patot.analytics import ChunkingRuntimeAnalytics
 except ModuleNotFoundError:
     ChunkerConfig = PatotChunker = SegmentRecord = ChunkingRuntimeAnalytics = None
-
-_slugify = lambda text: re.sub(r"[^A-Za-z0-9]+", "_", text).strip("_").lower()
 
 logger = logging.getLogger(__name__)
 
@@ -298,34 +297,49 @@ def chunk_ref_from_segments(source_segment_refs: list):
     return Ref(unique_refs[0]).to(Ref(unique_refs[-1]))
 
 
+@dataclass
+class ChunkAndVector:
+    """A built `Chunk` metadata row paired with the text/embedding that will become its
+    `Vector` row once the chunk has been upserted and has a real `.id`."""
+    chunk: Chunk
+    text: str
+    embedding: list
+
+
 def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
-                     result, index_context: dict, version_context: dict) -> list[SemanticTextChunk]:
+                     result, index_context: dict, version_context: dict) -> list[ChunkAndVector]:
     unit_normal = unit_ref.normal()
-    unit_slug = _slugify(unit_normal)
-    vtitle_slug = _slugify(vtitle)
 
-    chunks = []
-    for chunk_index, chunk in enumerate(result.chunks, start=1):
+    # Chunks only share the same resulting ref when a single oversized segment was hard-split
+    # into multiple pieces (patot's hard_max_split pass, `_apply_hard_max_pass` in
+    # patot/chunker.py) - every other chunk's source_segment_refs (and therefore ref) is
+    # disjoint from every other chunk in this unit. chunk_ordinal numbers pieces within such a
+    # group (1-based, in patot's output order, which is already left-to-right); every other
+    # chunk gets ordinal 1. This is what `chunks`' UNIQUE (ref, version_title, language,
+    # chunk_ordinal, chunking_scheme_id) constraint relies on.
+    chunk_refs = [chunk_ref_from_segments(chunk.source_segment_refs) for chunk in result.chunks]
+    ordinal_counters: dict[str, int] = {}
+    chunk_ordinals = []
+    for chunk_ref in chunk_refs:
+        key = chunk_ref.normal()
+        ordinal_counters[key] = ordinal_counters.get(key, 0) + 1
+        chunk_ordinals.append(ordinal_counters[key])
+
+    built = []
+    for chunk, chunk_ref, chunk_ordinal in zip(result.chunks, chunk_refs, chunk_ordinals):
         vector = embedder.embed_text(chunk.text, "RETRIEVAL_DOCUMENT")
-        chunk_hash = hashlib.sha256(
-            f"{unit_normal}|{lang}|{vtitle}|{chunk_index}|{chunk.text}".encode("utf-8")
-        ).hexdigest()[:12]
-        doc_id = f"chunk_{lang}_{unit_slug}_{vtitle_slug}_{chunk_index}_{chunk_hash}"
-
-        chunk_ref = chunk_ref_from_segments(chunk.source_segment_refs)
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunks.append(SemanticTextChunk(
-            doc_id=doc_id,
+        chunk_row = Chunk(
             index_title=index_title,
+            version_title=vtitle,
+            language=version_context["language"],
             ref=chunk_ref.normal(),
             url=chunk_ref.url(),
             chunked_from_ref=unit_normal,
-            language=version_context["language"],
-            version_title=vtitle,
             direction=version_context["direction"],
-            text=chunk.text,
-            embedding=vector,
+            chunk_ordinal=chunk_ordinal,
+            chunking_scheme_id=DEFAULT_CHUNKING_SCHEME_ID,
             primary_category=index_context["primary_category"],
             all_categories=index_context["all_categories"],
             is_primary=version_context["is_primary"],
@@ -347,17 +361,18 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
                 "chunk_triggered": chunk.triggered,
                 "chunk_score": chunk.score,
             },
-        ))
-    return chunks
+        )
+        built.append(ChunkAndVector(chunk=chunk_row, text=chunk.text, embedding=vector))
+    return built
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: SemanticTextChunk, version_pbar=None):
+                   chunk_store: Chunk, vector_store: Vector, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
     `get_units_for_version(version)` must return a list of (unit_ref, segment_records) pairs,
-    where unit_ref is a Ref whose .normal() is used as the resume key and stored in library_chunks.ref.
+    where unit_ref is a Ref whose .normal() is used as the resume key and stored in chunks.chunked_from_ref.
     """
     index_context = get_index_context(index)
 
@@ -381,12 +396,20 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     if not chunk_result.chunks:
                         result_tracker.increment("sections_skipped_empty")
                     else:
-                        chunk_data = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
-                                                      chunk_result, index_context, version_context)
-                        chunk_store.upsert(chunk_data)
+                        built = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
+                                                 chunk_result, index_context, version_context)
+                        # chunks first (surrogate `id` populated in-place via RETURNING on
+                        # bulk_create/update_conflicts), then vectors, which need that id for
+                        # their chunk_id FK.
+                        chunk_store.upsert([b.chunk for b in built])
+                        vector_store.upsert([
+                            Vector(chunk=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
+                                   text=b.text, embedding=b.embedding)
+                            for b in built
+                        ])
                         result_tracker.increment("sections_embedded")
-                        result_tracker.increment("chunks_written", len(chunk_data))
-                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(chunk_data)} chunk(s)")
+                        result_tracker.increment("chunks_written", len(built))
+                        logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(built)} chunk(s)")
                 except Exception as e:
                     result_tracker.record_failure(index.title, lang, vtitle, unit_normal, e)
 
@@ -395,7 +418,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: SemanticTextChunk,
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: Chunk, vector_store: Vector,
                   version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
@@ -416,7 +439,7 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 ]
 
             _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, version_pbar=version_pbar)
+                           chunk_store=chunk_store, vector_store=vector_store, version_pbar=version_pbar)
             return
 
     section_refs = index.all_section_refs()
@@ -429,7 +452,7 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, version_pbar=version_pbar)
+                   chunk_store=chunk_store, vector_store=vector_store, version_pbar=version_pbar)
 
 
 def thread_init(api_key: str, config):
@@ -453,7 +476,8 @@ def main():
         raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
 
     result = EmbeddingResult()
-    chunk_store = SemanticTextChunk()
+    chunk_store = Chunk()
+    vector_store = Vector()
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
@@ -489,7 +513,7 @@ def main():
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(index, thread_local.chunker, result, chunk_store, version_pbar)
+                process_index(index, thread_local.chunker, result, chunk_store, vector_store, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
             result.increment("indexes_processed")

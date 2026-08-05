@@ -3,7 +3,7 @@
 """
 Debug script: chunk and embed a single section ref, write output to a JSON file.
 
-Shows exactly what would be upserted into the library_chunks pgvector table,
+Shows exactly what would be upserted into the chunks/vectors pgvector tables,
 with embeddings truncated to their first 8 dimensions + L2 norm.
 
 Usage:
@@ -26,6 +26,7 @@ from patot import ChunkerConfig, PatotChunker
 from patot.analytics import ChunkingRuntimeAnalytics
 
 from semantic_search.embedder import GeminiEmbedder
+from semantic_search.models import DEFAULT_EMBEDDING_MODEL_ID
 from sefaria.helper.vector.embed_library_to_pgvector import (
     collect_segment_records_by_section,
     get_index_context,
@@ -34,10 +35,12 @@ from sefaria.helper.vector.embed_library_to_pgvector import (
 )
 
 
-def chunk_to_dict(chunk) -> dict:
-    embedding = list(chunk.embedding) if chunk.embedding is not None else []
+def chunk_to_dict(built) -> dict:
+    """`built` is a `ChunkAndVector` (see embed_library_to_pgvector.py) - the `chunks` row
+    paired with the `vectors` row (text + embedding) it would become once upserted."""
+    chunk = built.chunk
+    embedding = list(built.embedding) if built.embedding is not None else []
     d = {
-        "doc_id": chunk.doc_id,
         "index_title": chunk.index_title,
         "ref": chunk.ref,
         "url": chunk.url,
@@ -45,7 +48,10 @@ def chunk_to_dict(chunk) -> dict:
         "language": chunk.language,
         "version_title": chunk.version_title,
         "direction": chunk.direction,
-        "text": chunk.text,
+        "chunk_ordinal": chunk.chunk_ordinal,
+        "chunking_scheme_id": chunk.chunking_scheme_id,
+        "embedding_model_id": DEFAULT_EMBEDDING_MODEL_ID,
+        "text": built.text,
         "embedding": {
             "preview_dims_0_7": embedding[:8],
             "norm": sum(x * x for x in embedding) ** 0.5,
@@ -114,7 +120,7 @@ def main():
         "ref": section_ref.normal(),
         "index_title": index.title,
         "generated_at": datetime.now().isoformat(),
-        "table": "library_chunks",
+        "tables": ["chunks", "vectors"],
         "rows": [],
     }
 
