@@ -171,12 +171,10 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
     const toggle = () => setIsOpen(prev => !prev);
     return (
         <DropdownModal close={() => setIsOpen(false)} isOpen={isOpen}>
-          <div
+          <button
+            type="button"
             className={classNames('searchSortDropdown', { open: isOpen })}
             onClick={toggle}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }}}
-            tabIndex="0"
-            role="button"
             aria-haspopup="true"
             aria-expanded={isOpen}
           >
@@ -190,7 +188,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
               alt=""
               aria-hidden="true"
             />
-          </div>
+          </button>
           <DropdownOptionList
             isOpen={isOpen}
             options={sortTypeArray}

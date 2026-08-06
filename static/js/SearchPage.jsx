@@ -217,7 +217,10 @@ class SearchPage extends Component {
       bookCategoryFilters: this.makeBookCategoryFilters(),
       useDesktopTabs: window.innerWidth > 985,
     };
-    this._onResize = () => this.setState({useDesktopTabs: window.innerWidth > 985});
+    this._onResize = () => {
+      const next = window.innerWidth > 985;
+      if (next !== this.state.useDesktopTabs) this.setState({useDesktopTabs: next});
+    };
   }
 
   makeBookCategoryFilters() {

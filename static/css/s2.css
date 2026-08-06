@@ -3959,7 +3959,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .tab-view.largeTabs .tab-list {
   margin-bottom: 0;
 }
-/* Fixed 42px row between the tab bar and the first result card on all tabs.
+/* Fixed 76px row between the tab bar and the first result card on all tabs.
    Controls live inside this row in normal flow — no absolute positioning needed. */
 .searchSortBar {
   height: 76px;
@@ -4832,6 +4832,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+.searchResultCard-titleLink {
+  text-decoration: none;
+  color: inherit;
 }
 .searchResultCard-titleLink:hover .searchResultCard-name {
   text-decoration: underline;

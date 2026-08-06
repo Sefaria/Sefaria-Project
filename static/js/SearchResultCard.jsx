@@ -111,7 +111,7 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <div className="searchResultCard-titleLink">
+            <a href={href} className="searchResultCard-titleLink" onClick={e => e.stopPropagation()}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -122,7 +122,7 @@ function SearchResultCard({
                   </span>
                 )}
               </div>
-            </div>
+            </a>
             {!isSourcesMode && (secondaryDate || secondaryAuthor) && (
               <div className="searchResultCard-secondary">
                 {secondaryDate && (
