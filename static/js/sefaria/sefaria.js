@@ -3541,13 +3541,15 @@ _media: {},
    * @returns {Promise}
    */
   pollTask(taskId, { interval = 3000, onProgress } = {}) {
+    // Schedules each poll only after the previous one settles (rather than on a fixed
+    // setInterval clock), so a slow/loaded server doesn't get a pile-up of overlapping
+    // in-flight polls for the same task.
     return new Promise((resolve, reject) => {
-      const handle = setInterval(async () => {
+      const poll = async () => {
         try {
           const resp = await fetch("/api/async/" + taskId);
           const data = await resp.json();
           if (!resp.ok) {
-            clearInterval(handle);
             const error = new Error(data.error || "Network error polling task " + taskId);
             error.isNetworkError = true;
             reject(error);
@@ -3555,20 +3557,20 @@ _media: {},
           }
           if (!data.ready) {
             if (onProgress) onProgress(data.meta || { state: data.state });
+            setTimeout(poll, interval);
             return;
           }
-          clearInterval(handle);
           if (data.error) {
             reject(new Error(data.error));
           } else {
             resolve(data.result);
           }
         } catch (e) {
-          clearInterval(handle);
           e.isNetworkError = true;
           reject(e);
         }
-      }, interval);
+      };
+      setTimeout(poll, interval);
     });
   },
   calendarRef: function(calendarTitle) {
