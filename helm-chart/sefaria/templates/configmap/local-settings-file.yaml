@@ -138,6 +138,11 @@ data:
     USER_AGENTS_CACHE = 'default'
     SHARED_DATA_CACHE_ALIAS = 'shared'
 
+    # Never serve content data from cache -- for content-upload / QA environments, so editors see
+    # uploads immediately. Costs performance; also run such an environment at a single replica so
+    # the per-pod in-memory library can't go stale. See local_settings_example.py.
+    DISABLE_CONTENT_CACHE = bool(os.getenv("DISABLE_CONTENT_CACHE", default="False").lower() == "true")
+
     SITE_PACKAGE = os.getenv("SITE_PACKAGE")
 
     GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'

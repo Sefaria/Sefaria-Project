@@ -107,6 +107,27 @@ SESSION_CACHE_ALIAS = "default"
 USER_AGENTS_CACHE = 'default'
 SHARED_DATA_CACHE_ALIAS = 'shared'
 
+# Never serve content data from cache. Intended for content-upload and QA environments, where
+# an editor needs to see an upload immediately instead of waiting out a cache timeout.
+#
+# When True:
+#   - @django_cache-decorated views always compute live (link counts, topic data, sheets, etc.)
+#   - in_memory_cache always reports a miss, so its callers re-read from Mongo
+#   - all non-static responses go out with `Cache-Control: no-store`, so browsers, Cloudflare
+#     and Varnish don't hold a stale copy
+#
+# Two things this does NOT do, both deliberate:
+#   - It leaves the 'shared' cache keys used for cross-server coordination alone ('last_cached',
+#     'regenerating', the cached ToC). Bypassing those would push every single request through a
+#     full library rebuild via SharedCacheMiddleware, which is unusably slow. Setting the whole
+#     CACHES dict to DummyCache hits exactly this problem -- use this flag instead.
+#   - It does not address the `library` singleton, which each server process holds in memory and
+#     which multiserver pubsub syncs only every 20 requests. To eliminate that staleness, run the
+#     upload environment with a single replica and a single worker process.
+#
+# Expect this environment to be noticeably slower, especially for link counts and topic queries.
+DISABLE_CONTENT_CACHE = False
+
 """THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
 """
 CACHES = {

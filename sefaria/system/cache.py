@@ -22,6 +22,21 @@ if not hasattr(sys, '_doc_build'):
 SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 LONG_TERM_CACHE_ALIAS = getattr(settings, 'LONG_TERM_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 
+
+def content_cache_disabled() -> bool:
+    """
+    True when DISABLE_CONTENT_CACHE is on, meaning content data should always be read live.
+
+    Intended for content-upload / QA environments, where an editor needs to see their upload
+    immediately rather than waiting out a cache timeout. This deliberately does *not* touch the
+    'shared' cache keys used for cross-server coordination ('last_cached', 'regenerating', the
+    cached ToC) -- those are coordination state, and bypassing them would send every request
+    through a full library rebuild. See DISABLE_CONTENT_CACHE in local_settings_example.py.
+
+    Read at call time rather than import time so tests and admin tooling can toggle it.
+    """
+    return bool(getattr(django_settings, 'DISABLE_CONTENT_CACHE', False))
+
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
 
@@ -70,6 +85,13 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
         @wraps(fn)
         def wrapper(*args, **kwargs):
             #logger.debug([args, kwargs])
+
+            if content_cache_disabled():
+                # Always compute live. Returns the bare result, matching the shape callers get on a
+                # cache hit -- note that the miss path below returns the decorate_data_with_key
+                # wrapper instead, so returning fn() directly is what keeps responses looking like
+                # a normally-warm server.
+                return fn(*args, **kwargs)
 
             # Inner scope variables are read-only so we set a new var
             _cache_key = cache_key
@@ -190,6 +212,11 @@ class InMemoryCache():
             self.timeouts[key] = (timeout, datetime.now().timestamp())
 
     def get(self, key):
+        if content_cache_disabled():
+            # Report a miss so callers re-read from the DB. Every consumer of this cache already
+            # handles a None return by recomputing and re-setting.
+            return None
+
         timeout = self.timeouts.get(key, None)
         if timeout and timeout[0] + timeout[1] < datetime.now().timestamp():
             self.set(key, None, timeout=timeout[0])

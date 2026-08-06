@@ -20,7 +20,7 @@ from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
 from sefaria.utils.views_utils import add_query_param
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
-from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem, content_cache_disabled
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urljoin
 from sefaria.constants.model import LIBRARY_MODULE
@@ -60,6 +60,36 @@ class SharedCacheMiddleware(MiddlewareMixin):
             if not regen_in_progress:
                 set_shared_cache_elem("regenerating", True)
                 request.init_shared_cache = True
+
+
+class DisableContentCacheMiddleware(MiddlewareMixin, MiddlewareURLMixin):
+    """
+    When DISABLE_CONTENT_CACHE is on, tell every downstream cache -- browser, Cloudflare, Varnish --
+    not to hold onto content responses.
+
+    Content-upload environments otherwise serve editors a stale copy of what they just uploaded,
+    since several views set an explicit `Cache-Control: max-age=...` (see reader/views.py and
+    sourcesheets/views.py). This overwrites those headers rather than adding to them.
+
+    Hashed static assets are excluded: their URLs already change on every deploy, so busting them
+    only costs bandwidth.
+    """
+    excluded_url_prefixes = {
+        '/static/',
+        '/media/',
+    }
+
+    def process_response(self, request, response):
+        if not content_cache_disabled():
+            return response
+
+        if not self.should_process_request(request):
+            return response
+
+        response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
 
 
 class LocationSettingsMiddleware(MiddlewareMixin):

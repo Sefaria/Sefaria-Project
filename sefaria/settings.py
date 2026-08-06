@@ -118,6 +118,10 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django_hosts.middleware.HostsRequestMiddleware',  # must be first
+    # Placed near the top so its process_response runs near-last and gets the final say on
+    # Cache-Control, overriding the max-age headers individual views set. No-op unless
+    # DISABLE_CONTENT_CACHE is on.
+    'sefaria.system.middleware.DisableContentCacheMiddleware',
     'sefaria.system.middleware.SessionCookieDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -329,6 +333,11 @@ CACHES = {
         'LOCATION': '/var/tmp/django_cache',
     }
 }
+
+# Serve content data live, never from cache. For content-upload and QA environments only --
+# see local_settings_example.py for the full description and caveats. Declared before local
+# settings are imported so a local_settings.py can override it.
+DISABLE_CONTENT_CACHE = False
 
 
 # Grab environment specific settings from a file which

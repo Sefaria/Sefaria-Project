@@ -469,6 +469,9 @@ localSettings:
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
+  # Set to "True" only on content-upload / QA environments, and pair it with a single web replica
+  # so the in-memory library can't go stale either. Costs performance -- see local_settings_example.py.
+  DISABLE_CONTENT_CACHE: "False"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
   SESSION_COOKIE_SECURE: true

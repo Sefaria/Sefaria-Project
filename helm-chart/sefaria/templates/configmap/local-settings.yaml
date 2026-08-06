@@ -28,6 +28,7 @@ data:
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
   MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
+  DISABLE_CONTENT_CACHE: "{{ .Values.localSettings.DISABLE_CONTENT_CACHE }}"
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
