@@ -37,6 +37,11 @@ The migration tests point the scripts' module-level `db` at a scratch database a
 real `migrate()` / `rollback()`. A developer's local `profiles` collection is a restored
 public dump holding ~248,000 real people; nothing here writes to it.
 
+**For how the suite is built and why, read §8–§10**: the oracle and the enablement call it
+was missing (§8), the shared e2e infrastructure this suite changed for every other suite in
+the repo (§9), and the Python layers including the isolation techniques (§10). §11 records
+the promo-banner question that is still open.
+
 ### What the browser suite asserts
 
 | ID | Test |
@@ -426,3 +431,183 @@ LA_PHASE=post npx playwright test --project=la-setting
 ```
 
 Undo with `git branch -f chore/sc-46274/phase-3-remove-legacy-fallback origin/chore/sc-46274/phase-3-remove-legacy-fallback`.
+
+**Reset the branch when you are done.** The merge is a local convenience for running the
+suite; it must never reach the PR, which is meant to be the reviewed change and nothing else.
+
+---
+
+## 8. How the suite is built
+
+Four files, plus two Playwright projects defined in the shared `playwright.config.ts`.
+
+| File | Role |
+| --- | --- |
+| `harness.ts` | Everything that is not an assertion: cohort loading, login, the oracle, navigation, the settings-page helpers |
+| `auth.setup.ts` | The `la-setup` project. Logs in every seeded cohort once and writes `.auth/<cohort>.json` |
+| `library-assistant-setting.spec.ts` | The `la-setting` project. Assertions only |
+| `.la-e2e-users.json` | The cohort manifest, written by the seed script. **Its existence is what makes the two projects exist** |
+
+`la-setting` depends on `la-setup`, so one login per cohort happens before any worker starts
+and the workers only ever read the storage-state files. This mirrors what `global-setup.ts`
+does for the shared QA accounts, but deliberately does not reuse it — see §9.
+
+### The oracle is the part that matters
+
+`expectAssistant(page, on, because)` in `harness.ts` is the single place that answers "does
+this user have the Library Assistant?", and every cohort test goes through it. It checks
+**three** things, and the third is the one that was missing:
+
+1. `Sefaria.chatbot_enabled` — the reader view's prop.
+2. The presence of the `<lc-chatbot>` element — also from the reader view's props.
+3. **The chatbot bundle's `<script>` tag.**
+
+(1) and (2) come from the same place, so together they are one signal, not two. Whether the
+assistant actually *loads* is decided independently: `chatbot_user_token` in
+`sefaria/system/context_processors.py` makes its own `is_enabled_for_user()` call, and only
+then does `base.html` emit the script tag. Without that tag, `<lc-chatbot>` is an
+un-upgraded custom element — inert DOM that looks exactly like a working one to a test
+asserting on presence.
+
+So the entire server-side gate could regress with every test green. And because
+`local_settings.py` sets `CHATBOT_USE_LOCAL_SCRIPT = True`, pointing the bundle at a Vite dev
+server, local runs were very likely taken against a dead element.
+
+**The script-tag assertion is what closes this**, and it asserts in both directions — the tag
+must be absent for a user who should not have the assistant. It passes with Vite **down**,
+because the tag is emitted server-side: the assertion tests the gate, not the fetch.
+
+> **The generalisable lesson: when a feature has two independent enablement calls, a test
+> that exercises only one of them is not testing the feature.** Worth applying to anything
+> else gated in both `context_processors` and the reader props.
+
+### Two cohorts exist only to be written to
+
+`toggler` and `enable_landing` are scratch accounts, excluded from the LAS-001 / LAS-020
+matrices. This is not tidiness, it is a real failure this design fixed:
+
+- Keeping `toggler` in the matrix meant that when LAS-040 failed and left the account off,
+  the *next* run reported three failures instead of one — a real bug buried under two false
+  ones. LAS-040 also establishes its own starting state rather than assuming it.
+- `enable_landing` exists because LAS-051 turns the assistant **on** for whichever account it
+  drives. Pointing it at `explicit_off` put a mutation inside the read-only matrix, where
+  three other tests assert that account is off and, under `fullyParallel`, can read it
+  mid-flip.
+
+> **Generalisable: a test that mutates shared state must own an account nothing else reads,
+> and must set up its own starting state rather than inheriting the previous run's.**
+
+### LAS-030 is doing more than it looks
+
+It asserts on the *posted request body* — that saving an unrelated setting does not include
+the assistant key. That decision lives in jQuery in `templates/account_settings.html` and is
+invisible to every Python test.
+
+It matters because the migration skips any profile that already carries the key. If the
+settings page posted the toggle unconditionally, anyone who changed an unrelated preference
+before launch day would be stamped with their pre-migration value and silently excluded from
+the flip.
+
+---
+
+## 9. Changes this suite made to shared e2e infrastructure
+
+Three changes are **not** scoped to the Library Assistant and affect every Playwright suite
+in the repo. If something unrelated starts behaving differently, look here first.
+
+**1. `e2e-tests/moduleUrls.ts` is the single derivation of module URLs**, used by
+`playwright.config.ts`, `e2e-tests/constants.ts` and this suite. Those two files each rebuilt
+the URLs from `SANDBOX_URL` independently, and `constants.ts` carried a "keep in sync with
+playwright.config.ts" comment that nothing enforced.
+
+A **loopback** host is now used verbatim; every other shape keeps the old
+`https://www.<domain>` assembly. Assembling `https://www.` onto `localhost:8000` yields a
+hostname that cannot resolve, which was the only reason this suite originally needed its own
+config file. Verified byte-identical for staging, a bare domain, CI's in-cluster host, and
+unset.
+
+**2. `.env` no longer overrides the shell.** The merge in `playwright.config.ts` was
+`{...process.env, ...env}`, so exported variables were silently ignored. Since `.env` holds
+`https://www.sefaria.org`, `SANDBOX_URL=http://localhost:8000 npx playwright test` would have
+run **against production**. Now the file supplies defaults and the environment wins; CI skips
+dotenv entirely, so this is a local-runs-only change.
+
+**3. `global-setup.ts` returns early when only `la-*` projects are selected.** This suite
+reads none of the shared `auth_*.json` files, and against a dev server the four QA logins are
+minutes of guaranteed failure. Written so that if `config.projects` isn't narrowed in this
+Playwright version, the guard is simply false and today's behaviour stands.
+
+`playwright.la.config.ts` was deleted as a result.
+
+**Expected noise:** when you run this suite, `global-setup` still logs failures for
+`testUser` / `testAdminUser` and skips `testLAUser` / `testHeLAUser` for missing env vars.
+Unrelated — the `la-*` projects authenticate through their own `auth.setup.ts`. Ignore those
+lines.
+
+---
+
+## 10. The Python layers in detail
+
+**`reader/tests/library_assistant_migration_test.py` — 45 tests.** Drives the real
+`migrate()` / `rollback()` rather than a reimplementation. Two things are worth knowing:
+
+- **The isolation is enforced, not assumed.** These tests are only safe because each script
+  reaches Mongo through exactly one module-level `db` that the fixture rebinds to a
+  per-process scratch database. A single function-local
+  `from sefaria.system.database import db` anywhere in either script would bypass that and
+  point the migration at ~248k real profiles **with no visible symptom**. An AST check now
+  fails if either script grows one.
+- **Rollback fidelity is asserted by whole-document comparison**, including through a second
+  flip-and-rollback cycle — the one an operator reaches for under pressure. Every other
+  rollback assertion reads a single key, so a rollback that removed the setting but altered
+  the document otherwise would pass all of them.
+
+**`reader/tests/register_library_assistant_test.py` — 6 tests.** Covered in §1. The technique
+is the transferable part: **when a flow assigns its own low user id, the
+`SYNTHETIC_USER_ID_FLOOR` factory cannot protect you — intercept the write and assert on the
+document instead.** Mutation-checked: deleting the write from `sefaria/views.py` fails 2 of
+the 6.
+
+**`sefaria/helper/tests/library_assistant_test.py`** covers the pure decision logic —
+`normalize` coercion (a posted `"false"` must not read truthy; the profile API is public),
+the read rule, and `set_enabled`.
+
+All of these run in CI as `Continuous Testing: PyTest` — **but only on a non-draft PR.** That
+job is gated on `draft == false`, so a draft PR reports it as `skipped` indefinitely and its
+Python is never executed in CI. Check the job's actual conclusion, not the run's.
+
+---
+
+## 11. Open: is the promo banner behaviour actually what we want?
+
+The promo is now gated on `!Sefaria._uid` — **logged-out visitors only** (§6d). That fixed a
+real regression, and `LAS-060` holds it in place. But the fix settled a *bug*; it did not
+settle the *product question*, and that question is still open:
+
+**Who is the Library Assistant promo for, now that the assistant is on by default for every
+logged-in user?**
+
+What the current behaviour means in practice:
+
+- A logged-out visitor sees "log in to try" — the acquisition funnel the banner was built as.
+- A logged-in user never sees it. Post-migration that costs nothing, because the only
+  logged-in users without the assistant are the ones who deliberately turned it off, and
+  those are exactly the people who must not be asked.
+- **The banner's logged-in branch is therefore unreachable code** — the "Try It" button,
+  `handleJoin`'s `editProfileAPI` call, and the `chatbot_experiment_banner_dismissed` cookie
+  name. It is left in place on purpose rather than deleted, but it re-arms the regression the
+  moment anyone relaxes the gate. Delete it or keep it deliberately; don't leave it undecided.
+
+**No Shortcut story covers this change.** It rides on sc-46274 (phase 3). The nearest
+neighbours are sc-43117 "End Game promotion of Library Assistant" (In Product, unowned —
+Mickey's note about what promotion becomes once throttling ends, which is exactly this
+question) and epic 45640 "LA Small Feature Basket", which holds the recent promo work:
+sc-46012 (cosmetic treatment), sc-46176 (remove from login/register screens), sc-46166
+(remove the first-session suppression), and sc-46018 (make sure email-campaign landings see
+the promo — **parked, and directly affected by this gate**).
+
+**Before phase 3 deploys, someone should confirm the banner behaves as intended** across all
+of these at once: the gate, the excluded paths, the first-session rule, the backoff/nudge
+schedule, and the email-campaign audience. They have been changed by four different stories
+in the same few weeks and no single test or person has looked at the result end to end.
+LAS-060/061 cover only the opt-out question.
