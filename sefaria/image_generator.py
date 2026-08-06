@@ -2,11 +2,14 @@ from PIL import Image, ImageDraw, ImageFont, features
 import textwrap
 from bidi.algorithm import get_display
 import re
+import structlog
 from django.http import HttpResponse
 import io
 from bs4 import BeautifulSoup
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from typing import Literal, TypeAlias, cast
+
+logger = structlog.get_logger(__name__)
 
 SocialImageLang: TypeAlias = Literal["en", "he"]
 SocialImagePlatform: TypeAlias = Literal["facebook", "twitter"]
@@ -17,32 +20,27 @@ CategoryColors: TypeAlias = list[ColorRGB]
 
 SUPPORTED_SOCIAL_IMAGE_MODULES = {LIBRARY_MODULE, VOICES_MODULE}
 
-SOCIAL_IMAGE_LOGOS = {
-    LIBRARY_MODULE: {
-        "en": {
-            "header": "static/img/library-logo-english.png",
-            "fallback": "static/img/library-logo-english-white.png",
-        },
-        "he": {
-            "header": "static/img/library-logo-hebrew.png",
-            "fallback": "static/img/library-logo-hebrew-white.png",
-        },
-    },
-    VOICES_MODULE: {
-        "en": {
-            "header": "static/img/voices-logo-english.png",
-            "fallback": "static/img/voices-logo-english-white.png",
-        },
-        "he": {
-            "header": "static/img/voices-logo-hebrew.png",
-            "fallback": "static/img/voices-logo-hebrew-white.png",
-        },
-    },
-}
-
 SOCIAL_IMAGE_FALLBACK_BG_COLORS = {
     LIBRARY_MODULE: "#18345D",
     VOICES_MODULE: "#518159",
+}
+
+# Per-language render settings.
+# spacing_key, when set, indexes into platforms[platform] for an extra inter-line spacing nudge needed by Hebrew.
+# cat_border_side selects which edge of the image gets the colored category accent stripe.
+LANG_RENDER_CONFIG = {
+    "en": {
+        "align": "left",
+        "ref_font_file": "static/fonts/Roboto-Regular.ttf",
+        "spacing_key": None,
+        "cat_border_side": "left",
+    },
+    "he": {
+        "align": "right",
+        "ref_font_file": "static/fonts/Heebo-Regular.ttf",
+        "spacing_key": "he_spacing",
+        "cat_border_side": "right",
+    },
 }
 
 palette = { # [(bg), (font)]
@@ -96,8 +94,8 @@ def get_category_colors(category: str | None) -> CategoryColors:
     """
     Return ``[background_color, font_color]`` for the given category name.
 
-    Colors are defined in the ``palette`` dict above. 
-    If ``category`` is not in the palette (or is ``None``), a fallback color is chosen deterministically by hashing the category string — 
+    Colors are defined in the ``palette`` dict above.
+    If ``category`` is not in the palette (or is ``None``), a fallback color is chosen deterministically by hashing the category string —
     so the same unknown category always gets the same color on every request rather than a random one.
 
     The return value is always a two-element list of RGB tuples:
@@ -111,6 +109,16 @@ def get_category_colors(category: str | None) -> CategoryColors:
     # change color between requests.
     index = sum(ord(char) for char in category) % len(fallback_palette_colors)
     return [fallback_palette_colors[index], (255, 255, 255)]
+
+
+def social_image_color_category_for_path(category_path: list[str] | tuple[str, ...]) -> str | None:
+    # Use the most specific category that has an explicit image color.
+    # This lets /texts/Tanakh/Targum use the Targum color while /texts/Tanakh uses Tanakh.
+    # If no category is configured, get_category_colors() will use a stable fallback color based on the returned category name.
+    for category in reversed(category_path):
+        if category in palette:
+            return category
+    return category_path[0] if category_path else None
 
 
 def normalize_social_image_module(module: str | None) -> SocialImageModule:
@@ -143,18 +151,20 @@ def social_image_logo_path(
     ``lang`` selects the English or Hebrew version of the logo (anything that is not ``"he"`` is treated as English).
     ``variant`` is ``"header"`` for the coloured logo shown at the top of a text image, or ``"fallback"`` for the white logo shown on the solid-colour fallback images.
 
-    All logo paths are defined in ``SOCIAL_IMAGE_LOGOS`` at the top of this file.
+    The path is computed from those three inputs, pointing at the per-module logo
+    assets stored under ``static/img/<module>/`` (e.g. ``static/img/library/library-logo-he-white.png``).
     """
     module = normalize_social_image_module(module)
     normalized_lang: SocialImageLang = "he" if lang == "he" else "en"
-    return SOCIAL_IMAGE_LOGOS[module][normalized_lang][variant]
+    variant_suffix = "-white" if variant == "fallback" else ""
+    return f"static/img/{module}/{module}-logo-{normalized_lang}{variant_suffix}.png"
 
 
 def social_image_fallback_bg_color(module: str | None = LIBRARY_MODULE) -> str:
     """
     Return the CSS hex color string (e.g. ``"#18345D"``) to use as the background of a module fallback image.
 
-    Each Sefaria module has its own brand color defined in ``SOCIAL_IMAGE_FALLBACK_BG_COLORS``. 
+    Each Sefaria module has its own brand color defined in ``SOCIAL_IMAGE_FALLBACK_BG_COLORS``.
     This is used when there is no category-specific color available — for example on a Voices page that does not map to a text ref.
     """
     module = normalize_social_image_module(module)
@@ -165,7 +175,7 @@ def open_social_image_logo(path: str) -> Image.Image:
     """
     Open a logo PNG from ``path`` and convert it to RGBA mode.
 
-    The conversion matters because logo files may be saved in palette mode (``"P"``). 
+    The conversion matters because logo files may be saved in palette mode (``"P"``).
     Resizing a palette-mode image produces jagged transparent edges; converting to RGBA first lets Pillow antialias the edges smoothly when the logo is composited onto the generated image.
     """
     # Logo assets may be paletted PNGs. Convert before resizing so antialiased
@@ -173,12 +183,17 @@ def open_social_image_logo(path: str) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
-def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | ColorRGB, logo_path: str) -> Image.Image:
+def generate_centered_logo_image(
+    platform: SocialImagePlatform,
+    bg_color: str | ColorRGB,
+    logo_path: str,
+    max_logo_size: int = 400,
+) -> Image.Image:
     """
     Create a plain solid-color image with a single logo centered on it.
 
-    Used for fallback images — pages that don't have a custom image renderer (e.g. topic pages, Voices pages). 
-    The logo is scaled to fit within a 400×400 pixel box while preserving its aspect ratio, then pasted exactly in the middle of the canvas.
+    Used for fallback images — pages that don't have a custom image renderer (e.g. topic pages, Voices pages).
+    The logo is scaled to fit within a ``max_logo_size`` × ``max_logo_size`` pixel box (default 400) while preserving its aspect ratio, then pasted exactly in the middle of the canvas.
 
     ``bg_color`` can be an RGB tuple or a CSS hex string (Pillow accepts both).
     ``logo_path`` should be a path returned by ``social_image_logo_path``.
@@ -190,9 +205,36 @@ def generate_centered_logo_image(platform: SocialImagePlatform, bg_color: str | 
     width = platforms[platform]["width"]
     img = Image.new('RGBA', (width, height), color=bg_color)
     logo = open_social_image_logo(logo_path)
-    logo.thumbnail((400, 400), Image.LANCZOS)
+    logo.thumbnail((max_logo_size, max_logo_size), Image.LANCZOS)
     logo_padded = Image.new('RGBA', (width, height))
     logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
+    return Image.alpha_composite(img, logo_padded)
+
+
+def add_social_image_header(
+    img: Image.Image, lang: str, platform: SocialImagePlatform, module: str | None
+) -> Image.Image:
+    # All non-fallback social images share the same white header.
+    # Keeping this in one helper prevents the quote and TOC renderers from drifting apart.
+    width, height = img.size
+    draw = ImageDraw.Draw(im=img)
+    draw.line(
+        (0, int(height * 0.05), width, int(height * 0.05)),
+        fill=(255, 255, 255),
+        width=int(height * 0.1),
+    )
+    draw.line(
+        (0, int(height * 0.1), width, int(height * 0.1)),
+        fill="#CCCCCC",
+        width=int(height * 0.0025),
+    )
+
+    logo = open_social_image_logo(social_image_logo_path(module, lang, "header"))
+    logo.thumbnail((width, int(height * 0.06)), Image.LANCZOS)
+    logo_padded = Image.new("RGBA", (width, height))
+    logo_padded.paste(
+        logo, (int(width / 2 - logo.size[0] / 2), int(height * 0.05 - logo.size[1] / 2))
+    )
     return Image.alpha_composite(img, logo_padded)
 
 
@@ -221,7 +263,7 @@ def make_module_fallback_img_http_response(
     """
     Generate and return the fallback social image for a specific Sefaria module.
 
-    This is shown for pages that belong to Library or Voices but do not have a custom image renderer (e.g. topic pages, sheet pages). 
+    This is shown for pages that belong to Library or Voices but do not have a custom image renderer (e.g. topic pages, sheet pages).
     It shows the module's brand color as the background with its white logo centered on top.
 
     ``lang`` picks the Hebrew or English version of the logo.
@@ -234,6 +276,7 @@ def make_module_fallback_img_http_response(
         platform,
         social_image_fallback_bg_color(module),
         social_image_logo_path(module, lang, "fallback"),
+        max_logo_size=500,
     )
     return make_png_http_response(img)
 
@@ -243,13 +286,140 @@ def make_static_img_http_response(platform: SocialImagePlatform) -> HttpResponse
     Generate and return the fallback social image for static marketing pages
     (About, Jobs, etc.).
 
-    Static pages are shared across all modules, so this image is deliberately module-neutral: 
+    Static pages are shared across all modules, so this image is deliberately module-neutral:
     it uses the ``"Static"`` category color and the original white Sefaria logo rather than a Library- or Voices-specific asset.
     """
     # Static marketing/about pages are shared by modules. Keep these visually
     # neutral by using the Static category color and original white Sefaria logo.
     bg_color, _ = get_category_colors("Static")
     img = generate_centered_logo_image(platform, bg_color, "static/img/logo-white.png")
+    return make_png_http_response(img)
+
+
+def generate_toc_image(
+    title: str | None,
+    subtitle: str | None,
+    category: str | None,
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+    category_path: tuple[str, ...] = (),
+    desc: str | None = None,
+    is_primary_category: bool = False,
+) -> Image.Image:
+    bg_color, text_color = get_category_colors(category)
+    width = platforms[platform]["width"]
+    height = platforms[platform]["height"]
+    img = Image.new("RGBA", (width, height), color=bg_color)
+
+    lang_config = LANG_RENDER_CONFIG["en"] if lang == "en" else LANG_RENDER_CONFIG["he"]
+    align = lang_config["align"]
+    direction = get_text_direction(lang)
+    spacing_key = lang_config["spacing_key"]
+    spacing = platforms[platform][spacing_key] if spacing_key else 0
+
+    content_width = width - platforms[platform]["padding"]
+
+    title_size = 90 if is_primary_category else 72
+    body_size = 38 if is_primary_category else 30
+    title_font = ImageFont.truetype(font="static/fonts/Amiri-Taamey-Frank-merged.ttf", size=title_size)
+    body_font = ImageFont.truetype(font=lang_config["ref_font_file"], size=body_size)
+
+    # Fit each slot to the content width before drawing (see spec truncation rules).
+    title_fitted = _wrap_and_cap(title or "", title_font, content_width, max_lines=2)
+    # 3 description lines with a breadcrumb footer, 4 when footerless (see _description_line_limit).
+    # The centered block clears the footer even for a 2-line title + 3-line description.
+    desc_max_lines = _description_line_limit(has_footer=bool(subtitle))
+    desc_fitted = _wrap_and_cap(desc or "", body_font, content_width, max_lines=desc_max_lines)
+    breadcrumb_fitted = _fit_breadcrumb_to_width(
+        (subtitle or "").split(" / "), body_font, content_width
+    )
+
+    title_text = prepare_text_for_drawing(title_fitted, lang)
+    desc_text = prepare_text_for_drawing(desc_fitted, lang)
+    footer_text = prepare_text_for_drawing(breadcrumb_fitted.upper(), lang)
+
+    # The description reads better centered with a little extra breathing room between its wrapped lines than the title/footer's tighter default spacing.
+    desc_spacing = spacing + int(body_size * 0.4)
+
+    draw = ImageDraw.Draw(im=img)
+
+    def _draw(text, font, y, line_spacing=spacing):
+        if not text:
+            return
+        draw.text(xy=(width / 2, y), text=text, font=font, spacing=line_spacing,
+                  align=align, fill=text_color, anchor="mm", direction=direction)
+
+    def _bbox_h(text, font):
+        if not text:
+            return 0
+        b = font.getbbox(text)
+        return b[3] - b[1]
+
+    # Title + description form one block, vertically centered between the header and the footer breadcrumb (or the whole canvas when there is no breadcrumb), so the whitespace above and below the block stays balanced.
+    # The breadcrumb stays pinned in the footer slot (where the ref citation sits on quote images).
+    footer_y = height * 0.88
+    region_bottom = (footer_y - height * 0.04) if footer_text else height
+    block_center_y = (height * 0.1 + region_bottom) / 2
+
+    title_h = _bbox_h(title_text, title_font)
+    desc_lines = desc_text.count("\n") + 1 if desc_text else 0
+    desc_h = _bbox_h(desc_text.replace("\n", " "), body_font) * desc_lines + desc_spacing * max(0, desc_lines - 1)
+    # Give the title room to breathe above the description while keeping the two associated as a unit (rather than floating the description to mid-canvas).
+    gap = int(height * 0.10) if desc_text else 0
+    block_h = title_h + gap + desc_h
+    block_top = block_center_y - block_h / 2
+
+    _draw(title_text, title_font, block_top + title_h / 2)
+    if desc_text:
+        _draw(desc_text, body_font, block_top + title_h + gap + desc_h / 2, line_spacing=desc_spacing)
+    if footer_text:
+        _draw(footer_text, body_font, footer_y)
+
+    cat_border_x = 0 if lang_config["cat_border_side"] == "left" else width
+    draw.line(
+        (cat_border_x, 0, cat_border_x, height), fill=bg_color, width=int(width * 0.02)
+    )
+    draw.line((0, 0, width, 0), fill="#666666", width=1)
+    draw.line((0, 0, 0, height), fill="#666666", width=1)
+    draw.line((width - 1, 0, width - 1, height), fill="#666666", width=1)
+    draw.line((0, height - 1, width, height - 1), fill="#666666", width=1)
+
+    return add_social_image_header(img, lang, platform, module)
+
+
+def make_toc_img_http_response(
+    title: str | None,
+    subtitle: str | None,
+    category: str | None,
+    lang: str,
+    platform: SocialImagePlatform,
+    module: str | None = LIBRARY_MODULE,
+    category_path: tuple[str, ...] = (),
+    desc: str | None = None,
+    is_primary_category: bool = False,
+) -> HttpResponse:
+    try:
+        img = generate_toc_image(
+            title,
+            subtitle,
+            category,
+            lang,
+            platform,
+            module,
+            category_path=category_path,
+            desc=desc,
+            is_primary_category=is_primary_category,
+        )
+    except Exception:
+        logger.exception(
+            "social_toc_image_generation_failed",
+            lang=lang,
+            platform=platform,
+            module=module,
+            category=category,
+        )
+        return make_module_fallback_img_http_response(lang, platform, module)
     return make_png_http_response(img)
 
 
@@ -278,7 +448,7 @@ def smart_truncate(content: str, length: int = 180, suffix: str = '...') -> str:
     Shorten ``content`` to at most ``length`` characters without cutting a word in half.
 
     If the text is already within ``length``, it is returned unchanged.
-    Otherwise the text is trimmed to ``length`` characters, the last (potentially partial) word is dropped, and ``suffix`` (default ``"..."``) is appended. 
+    Otherwise the text is trimmed to ``length`` characters, the last (potentially partial) word is dropped, and ``suffix`` (default ``"..."``) is appended.
     This keeps image text readable rather than ending mid-word.
     """
     if len(content) <= length:
@@ -286,32 +456,17 @@ def smart_truncate(content: str, length: int = 180, suffix: str = '...') -> str:
     else:
         return ' '.join(content[:length+1].split(' ')[0:-1]) + suffix
 
-def get_text_width(text: str, font: ImageFont.FreeTypeFont) -> float:
-    """
-    Return the rendered pixel width of ``text`` in the given ``font``.
-
-    Pillow's API for measuring text has changed across versions. This function tries ``getlength`` first (the modern API), then ``getbbox`` (intermediate), 
-    then falls back to ``getsize`` (legacy) so the code works on any installed version of Pillow.
-    """
-    if hasattr(font, "getlength"):
-        return font.getlength(text)
-    if hasattr(font, "getbbox"):
-        left, _, right, _ = font.getbbox(text)
-        return right - left
-    return font.getsize(text)[0]
-
-
 def calc_letters_per_line(text: str, font: ImageFont.FreeTypeFont, img_width: int) -> int:
     """
     Estimate how many characters fit on one line of ``img_width`` pixels wide in the given ``font``.
 
-    Uses the average character width across all characters in ``text`` as a rough measure. 
-    The result is passed to ``textwrap.fill`` so the text wraps before reaching the image edge. 
+    Uses the average character width across all characters in ``text`` as a rough measure.
+    The result is passed to ``textwrap.fill`` so the text wraps before reaching the image edge.
     Returns at least ``1`` to avoid a zero-width wrap that would produce an infinite loop.
     """
     if not text:
         return 1
-    avg_char_width = sum(get_text_width(char, font) for char in text) / len(text)
+    avg_char_width = sum(font.getlength(char) for char in text) / len(text)
     if avg_char_width <= 0:
         return len(text)
     max_char_count = int(img_width / avg_char_width)
@@ -322,22 +477,83 @@ def wrap_text_preserving_linebreaks(text: str, width: int) -> str:
     """
     Wrap ``text`` to ``width`` characters per line while keeping any existing newline characters in place.
 
-    ``html_to_text_canonical`` converts HTML block tags (``</p>``, ``<br>``, etc.) into ``"\\n"`` before this function is called. 
+    ``html_to_text_canonical`` converts HTML block tags (``</p>``, ``<br>``, etc.) into ``"\\n"`` before this function is called.
     Passing the whole string to ``textwrap.fill`` would collapse those intentional breaks.
     Instead this function splits on ``"\\n"`` first, wraps each segment independently, then rejoins them so the original paragraph structure survives.
     """
+    # HTML cleanup turns <br> and block boundaries into "\n".
+    # Wrap each line independently so those intentional breaks survive textwrap's whitespace handling.
     return "\n".join(
         textwrap.fill(text=line, width=width, replace_whitespace=False)
         for line in text.split("\n")
     )
 
 
+def _fit_line_to_width(text: str, font: ImageFont.FreeTypeFont, max_width: float, suffix: str = "…") -> str:
+    """Truncate a single line to fit ``max_width`` px, preferring word boundaries, adding ``suffix`` when trimmed."""
+    if not text or font.getlength(text) <= max_width:
+        return text
+    words = text.split(" ")
+    for n in range(len(words), 0, -1):
+        candidate = " ".join(words[:n]) + suffix
+        if font.getlength(candidate) <= max_width:
+            return candidate
+    # Even the first word plus the suffix is too wide: trim characters.
+    trimmed = words[0]
+    while trimmed and font.getlength(trimmed + suffix) > max_width:
+        trimmed = trimmed[:-1]
+    return trimmed + suffix if trimmed else suffix
+
+
+def _fit_breadcrumb_to_width(segments, font: ImageFont.FreeTypeFont, max_width: float,
+                             sep: str = " / ", suffix: str = "…") -> str:
+    """Fit a breadcrumb on one line, keeping the leading (outermost) segments and dropping trailing ones with ``suffix``."""
+    segments = [s for s in segments if s]
+    if not segments:
+        return ""
+    full = sep.join(segments)
+    if font.getlength(full) <= max_width:
+        return full
+    for n in range(len(segments) - 1, 0, -1):
+        candidate = sep.join(segments[:n]) + sep + suffix
+        if font.getlength(candidate) <= max_width:
+            return candidate
+    # Even the first segment alone overflows: char-trim it.
+    return _fit_line_to_width(segments[0], font, max_width, suffix)
+
+
+def _wrap_and_cap(text: str, font: ImageFont.FreeTypeFont, max_width: float,
+                  max_lines: int = 2, suffix: str = "…") -> str:
+    """Wrap ``text`` to ``max_width`` and cap at ``max_lines``, ellipsizing the last kept line on overflow."""
+    if not text:
+        return ""
+    per_line = calc_letters_per_line(text, font, int(max_width))
+    wrapped = wrap_text_preserving_linebreaks(text, per_line)
+    lines = wrapped.split("\n")
+    if len(lines) <= max_lines:
+        return wrapped
+    kept = lines[:max_lines]
+    last = kept[-1]
+    # Signal truncation with the suffix, trimming trailing words (then chars) off the last kept line until it fits WITH the suffix appended.
+    while last and font.getlength(last + suffix) > max_width:
+        last = last[:last.rfind(" ")] if " " in last else last[:-1]
+    kept[-1] = (last + suffix) if last else suffix
+    return "\n".join(kept)
+
+
+def _description_line_limit(has_footer: bool) -> int:
+    """Max description lines before truncation. A breadcrumb footer occupies the
+    bottom band (3 lines); footerless pages (top-level categories) have that room
+    free, so they get a 4th line."""
+    return 3 if has_footer else 4
+
+
 def supports_rtl_text_layout() -> bool:
     """
     Return ``True`` if the Raqm library is available on this system.
 
-    Raqm is a C library that handles complex text layout including right-to-left scripts. 
-    When it is present, Pillow can draw Hebrew text directly in the correct visual order. 
+    Raqm is a C library that handles complex text layout including right-to-left scripts.
+    When it is present, Pillow can draw Hebrew text directly in the correct visual order.
     When it is absent, the ``python-bidi`` library is used as a fallback to reorder the characters before passing them to Pillow.
     """
     return features.check("raqm")
@@ -348,11 +564,11 @@ def prepare_text_for_drawing(text: str, lang: str) -> str:
     Reorder ``text`` so Pillow draws characters in the correct visual sequence, including Hebrew words embedded inside English passages.
 
     When Raqm is available (``supports_rtl_text_layout()`` returns ``True``),
-    Pillow handles all BiDi reordering internally, so the text is passed through unchanged. 
+    Pillow handles all BiDi reordering internally, so the text is passed through unchanged.
     The ``direction`` hint returned by ``get_text_direction()`` tells Raqm the paragraph base direction so it can correctly place neutral characters (commas, spaces) at LTR/RTL boundaries.
 
-    When Raqm is absent, ``python-bidi``'s ``get_display()`` applies the Unicode Bidirectional Algorithm manually. 
-    ``base_dir`` is set to ``'L'`` for English so neutral characters at Hebrew/English boundaries are resolved with left-to-right as the paragraph direction, 
+    When Raqm is absent, ``python-bidi``'s ``get_display()`` applies the Unicode Bidirectional Algorithm manually.
+    ``base_dir`` is set to ``'L'`` for English so neutral characters at Hebrew/English boundaries are resolved with left-to-right as the paragraph direction,
     matching how the text looks when read as English with embedded Hebrew words.
     Hebrew-primary text uses automatic base-direction detection (which will resolve to right-to-left for Hebrew).
     """
@@ -372,7 +588,7 @@ def get_text_direction(lang: str) -> Literal["rtl", "ltr"] | None:
     - ``"rtl"`` for Hebrew text.
     - ``"ltr"`` for English text (even English that contains Hebrew words — a comma in "fathers ,יהוה" should stay on the English side of the Hebrew word, not drift to the far side).
 
-    When Raqm is absent, ``prepare_text_for_drawing`` has already reordered the characters to visual order, 
+    When Raqm is absent, ``prepare_text_for_drawing`` has already reordered the characters to visual order,
     so no direction hint is needed and ``None`` is returned.
     """
     if not supports_rtl_text_layout():
@@ -415,7 +631,7 @@ def html_to_text_canonical(html: str | None) -> str:
     text = re.sub(r"\n\s*\n", "\n", text)
     return text
 
-def cleanup_and_format_text(text: str | None, language: str) -> str:
+def cleanup_and_format_text(text: str | None) -> str:
     """
     Prepare raw Sefaria text for rendering inside a social image.
 
@@ -423,11 +639,12 @@ def cleanup_and_format_text(text: str | None, language: str) -> str:
 
     1. Strips HTML tags via ``html_to_text_canonical``.
     2. Replaces em-dashes and Hebrew maqafs (``\\u05BE``) with plain ASCII equivalents so the image font renders them correctly.
-    3. Strips Hebrew cantillation marks (ta'amei hamikra) and nikud (vowel points) using a Unicode range regex — 
+    3. Strips Hebrew cantillation marks (ta'amei hamikra) and nikud (vowel points) using a Unicode range regex —
     these are decorative in the source text but make social image text harder to read.
     4. Truncates to 180 characters at a word boundary via ``smart_truncate``.
     """
     # Removes HTML tags/entities according to canonical web copy behavior, then removes nikkudot and taamim.
+    # The cantillation strip is Hebrew-specific but a safe no-op on English text since the regex only matches Hebrew/CJK ranges.
     text = html_to_text_canonical(text)
     text = text.replace("—", "-")
     text = text.replace(u"\u05BE", " ")  #replace hebrew dash with ascii
@@ -465,7 +682,6 @@ def generate_image(
     """
     bg_color, text_color = get_category_colors(category)
     ref_str = ref_str or ""
-    module = normalize_social_image_module(module)
 
     font = ImageFont.truetype(font='static/fonts/Amiri-Taamey-Frank-merged.ttf', size=platforms[platform]["font_size"])
     width = platforms[platform]["width"]
@@ -474,21 +690,17 @@ def generate_image(
     padding_y = padding_x/2
     img = Image.new('RGBA', (width, height), color=bg_color)
 
-    if lang == "en":
-        align = "left"
-        logo_url = social_image_logo_path(module, lang, "header")
-        spacing = 0
-        ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
-        cat_border_pos = (0, 0, 0, img.size[1])
+    lang_config = LANG_RENDER_CONFIG["en"] if lang == "en" else LANG_RENDER_CONFIG["he"]
+    align = lang_config["align"]
+    spacing_key = lang_config["spacing_key"]
+    spacing = platforms[platform][spacing_key] if spacing_key else 0
+    ref_font = ImageFont.truetype(
+        font=lang_config["ref_font_file"], size=platforms[platform]["ref_font_size"]
+    )
+    cat_border_x = 0 if lang_config["cat_border_side"] == "left" else img.size[0]
+    cat_border_pos = (cat_border_x, 0, cat_border_x, img.size[1])
 
-    else:
-        align = "right"
-        logo_url = social_image_logo_path(module, lang, "header")
-        spacing = platforms[platform]["he_spacing"]
-        ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
-        cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
-
-    text = cleanup_and_format_text(text, lang)
+    text = cleanup_and_format_text(text)
     text = wrap_text_preserving_linebreaks(text, calc_letters_per_line(text, font, int(img.size[0]-padding_x)))
     text = prepare_text_for_drawing(text, lang)
     direction = get_text_direction(lang)
@@ -500,9 +712,8 @@ def generate_image(
     # category line
     draw.line(cat_border_pos, fill=bg_color, width=int(width*.02))
 
-    # header white
-    draw.line((0, int(height*.05), img.size[0], int(height*.05)), fill=(255, 255, 255), width=int(height*.1))
-    draw.line((0, int(height*.1), img.size[0], int(height*.1)), fill="#CCCCCC", width=int(height*.0025))
+    img = add_social_image_header(img, lang, platform, module)
+    draw = ImageDraw.Draw(im=img)
 
     # write ref
     ref_text = prepare_text_for_drawing(ref_str.upper(), lang)
@@ -514,15 +725,7 @@ def generate_image(
     draw.line((width-1, 0, width-1, height), fill="#666666", width=1)
     draw.line((0, height-1, width, height-1), fill="#666666", width=1)
 
-    # add sefaria logo
-    logo = open_social_image_logo(logo_url)
-    logo.thumbnail((width, int(height*.06)), Image.LANCZOS)
-    logo_padded = Image.new('RGBA', (width, height))
-    logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height*.05-logo.size[1]/2)))
-
-    img = Image.alpha_composite(img, logo_padded)
-
-    return(img)
+    return img
 
 
 def make_img_http_response(
@@ -537,15 +740,20 @@ def make_img_http_response(
     Top-level entry point: render a social image and return it as an HTTP
     response.
 
-    Delegates to ``generate_image`` for the actual drawing. 
-    If anything goes wrong (e.g. a font file is missing, a text processing step raises), the exception is caught, printed to the server log, 
+    Delegates to ``generate_image`` for the actual drawing.
+    If anything goes wrong (e.g. a font file is missing, a text processing step raises), the exception is caught and logged via ``structlog``,
     and the module fallback image is returned instead so the caller always gets a valid PNG response.
     """
-    module = normalize_social_image_module(module)
     try:
         img = generate_image(text, category, ref_str, lang, platform, module)
-    except Exception as e:
-        print(e)
+    except Exception:
+        logger.exception(
+            "social_image_generation_failed",
+            lang=lang,
+            platform=platform,
+            module=module,
+            category=category,
+        )
         return make_module_fallback_img_http_response(lang, platform, module)
 
     return make_png_http_response(img)

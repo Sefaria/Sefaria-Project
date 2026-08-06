@@ -11,14 +11,14 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
-from enum import Enum
+from typing import assert_never
 import pytz
 from html import unescape
 import redis
 import os
 import re
 import uuid
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from functools import lru_cache
 
 from remote_config import remoteConfigCache
@@ -90,7 +90,8 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     get_author_indexes
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
-    make_static_img_http_response, normalize_social_image_module
+    make_static_img_http_response, make_toc_img_http_response, normalize_social_image_module, \
+    social_image_color_category_for_path
 import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
@@ -112,11 +113,38 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class SocialImagePageType(Enum):
-    """Kinds of social images supported by /api/img-gen/."""
-    REF = "ref"
-    STATIC = "static"
-    MODULE_FALLBACK = "module_fallback"
+@dataclass(frozen=True)
+class PassageTarget:
+    """Segment/section ref (e.g. Genesis.1.1) -> quote image. Body fetched later."""
+    oref: Ref
+
+
+@dataclass(frozen=True)
+class TocTarget:
+    """Book-level ref or category page -> TOC image. Covers text-TOC and category-TOC."""
+    title_en: str
+    title_he: str
+    category: str | None
+    category_path: tuple[str, ...]
+    subtitle_en: str | None = None      # footer context line (breadcrumb)
+    subtitle_he: str | None = None
+    desc_en: str | None = None          # short description
+    desc_he: str | None = None
+    is_primary_category: bool = False     # top-level category landing page
+
+
+@dataclass(frozen=True)
+class StaticTarget:
+    """Module-shared static/about page -> neutral Sefaria image."""
+
+
+@dataclass(frozen=True)
+class ModuleFallbackTarget:
+    """No custom renderer (topics, sheets, unknown) -> module-branded fallback."""
+
+
+# A classified /api/img-gen/ path is exactly one of these; the class is the tag.
+SocialImageTarget = PassageTarget | TocTarget | StaticTarget | ModuleFallbackTarget
 
 
 class PageTypes:
@@ -740,8 +768,67 @@ def _extract_version_title_param(request, key: str) -> str | None:
     return params
 
 
+def _social_image_text_target(tref: str) -> SocialImageTarget:
+    """Book-level refs (e.g. "Genesis") are TOC pages; segment refs are quote images."""
+    try:
+        ref = Ref(tref)
+    except InputError:
+        return ModuleFallbackTarget()
+
+    if not ref.is_book_level():
+        return PassageTarget(oref=ref)
+
+    index = ref.index
+    primary_category = index.get_primary_category()
+    categories = tuple(index.categories)
+    return TocTarget(
+        title_en=index.get_title("en"),
+        title_he=index.get_title("he"),
+        subtitle_en=" / ".join(categories) if categories else None,
+        subtitle_he=" / ".join(hebrew_term(c) for c in categories) if categories else None,
+        desc_en=getattr(index, "enShortDesc", "") or None,
+        desc_he=getattr(index, "heShortDesc", "") or None,
+        category=primary_category,
+        category_path=categories,
+        is_primary_category=False,
+    )
+
+
+def _social_image_category_target(cats: str | None) -> SocialImageTarget:
+    """
+    Build a TOC image target for /texts/<category path> pages.
+
+    Category paths come from Django's URL match.
+    That keeps this aligned with the real Library table of contents.
+    """
+    if not cats:
+        return ModuleFallbackTarget()
+
+    category_path = tuple(
+        part for part in urllib.parse.unquote(cats).split("/") if part
+    )
+    toc_node = library.get_toc_tree().lookup(category_path)
+    if toc_node is None:
+        return ModuleFallbackTarget()
+
+    parent_categories = category_path[:-1]
+    return TocTarget(
+        title_en=toc_node.primary_title("en"),
+        title_he=toc_node.primary_title("he"),
+        subtitle_en=" / ".join(parent_categories) if parent_categories else None,
+        subtitle_he=" / ".join(hebrew_term(category) for category in parent_categories)
+        if parent_categories
+        else None,
+        desc_en=getattr(toc_node, "enShortDesc", "") or None,
+        desc_he=getattr(toc_node, "heShortDesc", "") or None,
+        category=social_image_color_category_for_path(category_path),
+        category_path=category_path,
+        is_primary_category=len(category_path) == 1,
+    )
+
+
 @lru_cache(maxsize=512)
-def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
+def _classify_social_image_path(tref: str, module: str) -> SocialImageTarget:
     """
     Decide what kind of image /api/img-gen/ should return for this path.
 
@@ -751,42 +838,80 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
     trying Ref(...), so non-text pages do not accidentally become broken ref
     images.
     """
-    # Cache common paths to avoid repeating Django route resolution for every
-    # social image request.
+    # Cache common paths to avoid repeating Django route resolution for every social image request.
     if not tref:
         # /api/img-gen/ with no path is valid. It means "give me the default
         # fallback image for the current host/module."
-        return SocialImagePageType.MODULE_FALLBACK
+        return ModuleFallbackTarget()
 
     path = f"/{tref.lstrip('/')}"
     try:
         # The same path can mean different things on different Sefaria modules.
-        # Resolve against the module's own URLconf (defined in sefaria/hosts.py)
-        # so that /topics, /sheets, etc. are classified the same way Django
-        # would classify them for that host. get_host() looks up the host
-        # definition by module name — 'library' or 'voices' — and .urlconf
-        # gives the dotted path of the URLconf it uses (e.g. sefaria.urls_library).
+        # Resolve against the module's own URLConf so /topics, /sheets, etc. are classified the same way Django would classify them for that host.
+        # get_host(module) looks up the django-hosts entry whose name is the module (see sefaria/hosts.py) so the module -> URLConf mapping stays in one place instead of being duplicated here.
         match = resolve(path, urlconf=get_host(module).urlconf)
     except Resolver404:
         # Unknown paths get the module fallback instead of raising an error.
-        # This keeps Open Graph images available even when a page cannot be
-        # represented by a custom image.
-        return SocialImagePageType.MODULE_FALLBACK
+        # This keeps images available for unknown situations.
+        return ModuleFallbackTarget()
 
-    if match.func is serve_static:
-        # Static pages are shared between modules and should use the simple
-        # Sefaria fallback image, not Library or Voices module branding.
-        return SocialImagePageType.STATIC
+    # Every view function in this set must serve a module-shared static page (no per-module branding).
+    # serve_static handles both plain and by-language static pages (the latter via a {"by_lang": True} URL kwarg), so the resolved function object is serve_static in both cases.
+    # If you wrap serve_static in a new decorator that produces a different function object at import time, add the wrapped function here too; otherwise static pages will silently fall through to MODULE_FALLBACK and start rendering Library/Voices branding instead of the shared Sefaria image.
+    if match.func in {serve_static, annual_report}:
+        return StaticTarget()
 
+    if module == LIBRARY_MODULE and match.func == texts_category_list:
+        return _social_image_category_target(match.kwargs.get("cats"))
+
+    # Catchall handles text refs on Library AND sheets on Voices
+    # The module gate is what disambiguates them.
+    # If a non-ref Library route is ever added that also resolves to catchall (e.g. a vanity URL above the catchall pattern): it will be misclassified as REF and produce a broken text image.
+    # Add an explicit STATIC/MODULE_FALLBACK case for that route before this check.
     if module == LIBRARY_MODULE and match.func == catchall:
-        # Only the Library module should generate text-ref images. A ref-like
-        # string on Voices should stay module-branded because Voices pages are
-        # not currently supported by the text image generator.
-        return SocialImagePageType.REF
+        return _social_image_text_target(tref)
 
-    # Topics, sheets, and other module pages do not have custom image builders
-    # yet, so they use the module fallback image.
-    return SocialImagePageType.MODULE_FALLBACK
+    # Default: topics, sheets, and other module pages have no custom image builder yet, so they use the module fallback image.
+    # Any unknown view function also lands here, which keeps the endpoint safe-by-default.
+    return ModuleFallbackTarget()
+
+
+def resolve_passage(target: PassageTarget, lang: str, version: str | None) -> tuple[str | None, str, str | None]:
+    """Fetch the passage body for a PassageTarget. Owns the lang+version I/O."""
+    ref_str = target.oref.normal() if lang == "en" else target.oref.he_normal()
+    tf = TextFamily(target.oref, stripItags=True, lang=lang, version=version,
+                    context=0, commentary=False).contents()
+    body = tf["text"] if lang == "en" else tf["he"]
+    text = " ".join(body if isinstance(body, list) else [body])
+    return text, ref_str, tf["primary_category"]
+
+
+def make_social_image_response(target: SocialImageTarget, lang, platform, module, version):
+    """Render a classified target into an HTTP image response."""
+    match target:
+        case StaticTarget():
+            return make_static_img_http_response(platform)
+        case ModuleFallbackTarget():
+            return make_module_fallback_img_http_response(lang, platform, module)
+        case TocTarget() as t:
+            title = t.title_he if lang == "he" else t.title_en
+            subtitle = t.subtitle_he if lang == "he" else t.subtitle_en
+            desc = t.desc_he if lang == "he" else t.desc_en
+            return make_toc_img_http_response(title, subtitle, t.category, lang,
+                                              platform, module, category_path=t.category_path,
+                                              desc=desc, is_primary_category=t.is_primary_category)
+        case PassageTarget() as p:
+            # Broad-but-logged: any failure to fetch/render a quote must yield a module fallback (this endpoint is crawler-facing and must never 500).
+            # Mirrors make_img_http_response's own render-failure fallback.
+            try:
+                text, ref_str, cat = resolve_passage(p, lang, version)
+            except Exception:
+                logger.exception("social_passage_resolve_failed", tref=p.oref.normal(),
+                                 lang=lang, platform=platform, module=module)
+                return make_module_fallback_img_http_response(lang, platform, module)
+            return make_img_http_response(text, cat, ref_str, lang, platform, module)
+        case _:
+            assert_never(target)
 
 
 @sanitize_get_params
@@ -1223,7 +1348,8 @@ def edit_collection_page(request, slug=None):
         "desc": "Edit your collection settings and details",
         "noindex": True
     })
-    
+
+
 def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
@@ -1315,8 +1441,6 @@ def calendars(request):
     return menu_page(request, page="calendars", title=title, desc=desc)
 
 
-
-
 @login_required
 def saved_content(request):
     """
@@ -1330,7 +1454,6 @@ def saved_content(request):
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
-
 def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -1342,7 +1465,6 @@ def get_user_history_props(request):
     else:
         uhistory = _get_anonymous_user_history(request)
     return {"userHistory": {"loaded": True, "items": uhistory}}
-
 
 
 @login_required
@@ -1911,46 +2033,18 @@ def social_image_api(request, tref):
     # mode yet, so it falls back to the host language.
     domain_lang = current_domain_lang(request)
     default_lang = "he" if domain_lang == "hebrew" else "en"
+    # lang=bi is not a real image mode; the set check folds it into default_lang alongside any other unsupported value.
     lang = request.GET.get("lang") or default_lang
-    if lang == "bi":
-        lang = default_lang
     if lang not in {"en", "he"}:
         lang = default_lang
-    version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
+    version_key = "ven" if lang == "en" else "vhe"
+    version = _extract_version_title_param(request, version_key)
     platform = request.GET.get("platform") or "facebook"
     if platform not in {"facebook", "twitter"}:
         platform = "facebook"
     module = normalize_social_image_module(getattr(request, "active_module", None))
-    page_type = _classify_social_image_path(tref, module)
-
-    if page_type == SocialImagePageType.STATIC:
-        return make_static_img_http_response(platform)
-
-    if page_type == SocialImagePageType.MODULE_FALLBACK:
-        return make_module_fallback_img_http_response(lang, platform, module)
-
-    try:
-        ref = Ref(tref)
-        ref_str = ref.normal() if lang == "en" else ref.he_normal()
-
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
-        text = en if lang == "en" else he
-        text = ' '.join(text)
-        cat = tf["primary_category"]
-
-    except:
-        text = None
-        cat = None
-        ref_str = None
-
-
-    res = make_img_http_response(text, cat, ref_str, lang, platform, module)
-
-    return res
+    target = _classify_social_image_path(tref, module)
+    return make_social_image_response(target, lang, platform, module, version)
 
 
 @catch_error_as_json
@@ -2282,7 +2376,6 @@ def shape_api(request, title):
 
         res = _collapse_book_leaf_shapes(res)
         return jsonResponse(res, callback=request.GET.get("callback", None))
-
 
 
 @catch_error_as_json
@@ -2618,8 +2711,6 @@ def version_status_api(request):
         except Exception:
             pass
     return jsonResponse(sorted(res, key = lambda x: x["title"] + x["version"]), callback=request.GET.get("callback", None))
-
-
 
 
 @json_response_decorator
@@ -4883,6 +4974,7 @@ def search_path_filter(request, book_title):
 
 
 _ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
+
 
 @ensure_csrf_cookie
 def serve_static(request, page, by_lang=False):
