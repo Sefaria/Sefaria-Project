@@ -105,9 +105,8 @@
 		</div>
 	</div>
 	{% endif %}
-	{# The Library Assistant is a plain user setting, shown to every logged-in user. Its   #}
-	{# value comes from sefaria.helper.library_assistant, not straight from the profile:   #}
-	{# users who are on through the pre-migration rule carry no setting key yet.           #}
+	{# The Library Assistant is a plain user setting, shown to every logged-in user.      #}
+	{# Its value comes from sefaria.helper.library_assistant.                              #}
     <div id="libraryAssistantSetting" class="section">
 		<label class="control-elem">
             <span class="int-en">Library Assistant</span>
@@ -125,9 +124,9 @@
 		</div>
 	</div>
 
-	{# TEMPORARY (goes with the experiments framework): the generic "Experiments" toggle,  #}
-	{# parked. It controls profile.experiments (whitelist-gated on experiments_available); #}
-	{# the Library Assistant toggle above writes settings.library_assistant instead.       #}
+	{# Parked experiments framework: the generic "Experiments" toggle, kept for a future  #}
+	{# experiment. It controls profile.experiments (whitelist-gated on                     #}
+	{# experiments_available); the Library Assistant toggle writes settings.library_assistant. #}
 	{% comment %}
     {% if experiments_available %}
     <div id="experimentsSetting" class="section">

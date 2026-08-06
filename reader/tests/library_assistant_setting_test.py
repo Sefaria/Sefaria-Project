@@ -5,11 +5,10 @@ from unittest import mock
 from django.test import TestCase
 
 from reader.conftest import create_test_user, purge_test_profiles
-from sefaria.system.context_processors import chatbot_user_token
-from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.context_processors import chatbot_user_token
 from sefaria.system.database import db
 
 
@@ -22,16 +21,10 @@ class LibraryAssistantUserTestCase(TestCase):
 
     def tearDown(self):
         purge_test_profiles(self.user)
-        UserExperimentSettings.objects.filter(user=self.user).delete()
 
     def stored_setting(self):
         profile = db.profiles.find_one({"id": self.user.id}) or {}
         return profile.get("settings", {}).get(SETTING_KEY, "<absent>")
-
-    def enroll_in_experiments(self, experiments):
-        """Put the user on the whitelist exactly as the opt-in paths do."""
-        with mock.patch("reader.models.dispatch_chatbot_opt_in_webhook"):
-            _set_user_experiments(self.user, experiments)
 
     def post_profile(self, payload):
         self.client.force_login(self.user)
@@ -74,15 +67,10 @@ class ProfileApiTest(LibraryAssistantUserTestCase):
 
         self.assertEqual(UserProfile(id=self.user.id).settings.get("interface_language"), "hebrew")
 
-    def test_saving_unrelated_settings_leaves_a_legacy_user_alone(self):
-        # On through the pre-migration rule, with no setting key of their own. Saving
-        # something else must not write a value for them.
-        self.enroll_in_experiments(True)
-
+    def test_saving_unrelated_settings_leaves_the_key_alone(self):
         self.post_profile({"settings": {"interface_language": "hebrew"}})
 
         self.assertEqual(self.stored_setting(), "<absent>")
-        self.assertTrue(library_assistant.is_enabled(UserProfile(id=self.user.id)))
 
 
 class ProfileSyncApiTest(LibraryAssistantUserTestCase):
@@ -123,27 +111,15 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
         request.session = {}
         return chatbot_user_token(request)
 
-    def test_absent_setting_keeps_todays_behavior(self):
-        # Never enrolled: no script, exactly as before the setting existed.
+    def test_unmigrated_profile_gets_no_script(self):
         self.assertIsNone(self.context()["chatbot_script_url"])
 
-    def test_legacy_enrolled_user_still_gets_the_script(self):
-        self.enroll_in_experiments(True)
-
-        self.assertIsNotNone(self.context()["chatbot_script_url"])
-
-    def test_legacy_opt_out_still_gets_nothing(self):
-        self.enroll_in_experiments(False)
-
-        self.assertIsNone(self.context()["chatbot_script_url"])
-
-    def test_setting_on_gets_the_script_without_any_enrollment(self):
+    def test_setting_on_gets_the_script(self):
         library_assistant.set_enabled(self.user, True)
 
         self.assertIsNotNone(self.context()["chatbot_script_url"])
 
-    def test_setting_off_beats_legacy_enrollment(self):
-        self.enroll_in_experiments(True)
+    def test_setting_off_gets_no_script(self):
         library_assistant.set_enabled(self.user, False)
 
         self.assertIsNone(self.context()["chatbot_script_url"])
@@ -151,7 +127,7 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):
     """
-    The toggle is available to every logged-in user and renders the effective value.
+    The toggle is available to every logged-in user and renders the stored value.
     """
     url = "/settings/account"
 
@@ -165,19 +141,18 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertIsNotNone(checked, "Library Assistant toggle not found on the page")
         self.assertEqual(checked.group(1) == "true", on)
 
-    def test_toggle_is_rendered_without_any_enrollment(self):
+    def test_toggle_is_rendered_for_every_logged_in_user(self):
         self.assertIn('id="libraryAssistantSetting"', self.get_page())
 
-    def test_never_enrolled_user_sees_off(self):
+    def test_unmigrated_profile_shows_off(self):
         self.assertToggleShows(self.get_page(), on=False)
 
-    def test_legacy_enrolled_user_sees_on(self):
-        self.enroll_in_experiments(True)
+    def test_setting_on_shows_on(self):
+        library_assistant.set_enabled(self.user, True)
 
         self.assertToggleShows(self.get_page(), on=True)
 
-    def test_setting_beats_legacy_enrollment_in_the_rendered_value(self):
-        self.enroll_in_experiments(True)
+    def test_setting_off_shows_off(self):
         library_assistant.set_enabled(self.user, False)
 
         self.assertToggleShows(self.get_page(), on=False)

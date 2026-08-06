@@ -7,24 +7,14 @@ The assistant is a plain per-user setting living at
 module — views, templates, context processors and scripts all call in here rather than
 touching the key directly.
 
-Two rules:
-
-1. **Key present** — obey it.
-2. **Key absent** — fall back to the experiments rule: the user is on the experiments
-   whitelist (a ``UserExperimentSettings`` row exists) *and* ``profile.experiments`` is
-   true.
+The key is written for every account: registration writes it for new accounts, and
+``scripts/migrations/migrate_experiments_to_library_assistant.py`` backfills any profile
+missing it. A profile without the key reads as off; re-run the migration if any turn up.
 
 Deliberately *not* done: adding the key to ``UserProfile``'s settings defaults. A default
-of ``True`` would make a profile with no key of its own read as on, and
-``UserProfile.update()`` deep-merges settings, so that value would then be written back on
-the profile's next save. Absent means absent.
-
-TEMPORARY (goes with the experiments framework) — rule 2, the fallback implementing it
-below, and this paragraph. The fallback is what makes deploying this module behaviorally
-inert: until the migration in
-``scripts/migrations/migrate_experiments_to_library_assistant.py`` writes the key, every
-user reads exactly as they do today. The migration run — not the deploy — is the moment
-the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
+of ``True`` would silently override a real opt-out on any profile that lost the key, and
+``UserProfile.update()`` deep-merges settings, so the wrong value would then be written
+back on the user's next profile save. Absent means absent.
 """
 
 from sefaria.model.user_profile import UserProfile
@@ -50,9 +40,7 @@ def is_enabled(profile):
     if profile is None or getattr(profile, "id", None) is None:
         return False
     settings = getattr(profile, "settings", None) or {}
-    if SETTING_KEY in settings:
-        return normalize(settings[SETTING_KEY])
-    return _legacy_enabled(profile)
+    return normalize(settings.get(SETTING_KEY, False))
 
 
 def is_enabled_for_user(user):
@@ -62,22 +50,6 @@ def is_enabled_for_user(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
     return is_enabled(UserProfile(user_obj=user))
-
-
-def _legacy_enabled(profile):
-    """
-    The pre-migration rule: on the experiments whitelist and opted in.
-
-    TEMPORARY (goes with the experiments framework): remove once every profile carries
-    the setting key.
-    """
-    # Imported here, not at the top: the import serves only this TEMPORARY
-    # fallback and disappears with it.
-    from reader.models import user_has_experiments
-    user = getattr(profile, "user", None)
-    if user is None:
-        return False
-    return user_has_experiments(user) and bool(getattr(profile, "experiments", False))
 
 
 def set_enabled(user, enabled):
