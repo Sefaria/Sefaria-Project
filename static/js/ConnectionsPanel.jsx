@@ -1168,6 +1168,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [rerunStatus, setRerunStatus] = useState(null);
+  const [parsing, setParsing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [testStringCopied, setTestStringCopied] = useState(false);
   const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
@@ -1195,6 +1196,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
       return;
     }
     setBusy(true);
+    setParsing(true);
     setError(null);
     setMessage(null);
     try {
@@ -1210,6 +1212,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
       setError(e.message || String(e));
     } finally {
       setBusy(false);
+      setParsing(false);
     }
   };
 
@@ -1393,8 +1396,10 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
 
   // error, rerunStatus, and message are never set simultaneously (each setter call clears the
   // others first), so they collapse into a single status line with one of three visual treatments.
-  const statusKind = error ? "error" : rerunStatus ? "pending" : message ? "success" : null;
-  const statusText = error || rerunStatus || message;
+  // `parsing` (the citation/parse call backing ref-part loading) takes priority since it's the
+  // most time-sensitive: it should replace whatever status was showing the instant a new parse starts.
+  const statusKind = parsing ? "pending" : error ? "error" : rerunStatus ? "pending" : message ? "success" : null;
+  const statusText = parsing ? "Loading ref parts…" : (error || rerunStatus || message);
 
   return (
     <div className="linkerAdminBox sans-serif">
