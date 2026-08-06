@@ -51,7 +51,7 @@ class SemanticSearchQuerier extends Component {
         if (this._runningQuery) {
             this._runningQuery.abort();
         }
-        this.setState({isQueryRunning: true, error: false});
+        this.setState({isQueryRunning: true, error: false, hits: []});
         this._runningQuery = $.ajax({
             url: `${Sefaria.apiHost}/api/search-wrapper/semantic`,
             type: "POST",
