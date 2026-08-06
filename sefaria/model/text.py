@@ -3950,6 +3950,19 @@ class Ref(object, metaclass=RefCacheType):
         # TODO this function should take Version as optional parameter to limit the refs it returns to ones existing in that Version
         assert not self.is_range(), "Ref.all_subrefs() is not intended for use on Ranges"
 
+        if self.index_node.is_virtual:
+            # Honour the requested language; fall back to whichever language has content
+            # so single-language texts (e.g. dictionary entries with only a Hebrew Version)
+            # can still enumerate their segments.
+            size = len(self.text(lang).text) if lang in ("he", "en") else 0
+            if not size:
+                for fallback_lang in ("he", "en"):
+                    if fallback_lang == lang:
+                        continue
+                    size = len(self.text(fallback_lang).text)
+                    if size:
+                        break
+            return self.subrefs(size)
         size = self.get_subrefs_count(state_ja or self.get_state_ja(lang))
         if size is None:
             size = 0
