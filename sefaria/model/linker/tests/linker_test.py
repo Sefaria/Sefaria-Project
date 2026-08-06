@@ -8,8 +8,9 @@ from sefaria.model import schema
 from sefaria.model.text import TextChunk
 from sefaria.settings import ENABLE_LINKER
 from sefaria.model.marked_up_text_chunk import LinkerOutput
-from sefaria.system.exceptions import IndexSchemaError
-from sefaria.helper.linker.tasks import _extract_debug_spans
+from sefaria.system.exceptions import IndexSchemaError, InputError
+from sefaria.helper.linker.tasks import _extract_debug_spans, _merge_deleted_spans, _linked_trefs_from_mutc_spans
+from sefaria.helper.linker_admin import _span_matches, parse_linker_citation
 
 
 def _seed_non_unique_terms(term_defs):
@@ -56,6 +57,114 @@ def test_resolved_raw_ref_clone():
     rrr = ResolvedRef(raw_ref, [], [index.nodes], Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
+
+
+def test_debug_pruning_keeps_disqualified_reason():
+    raw_ref, context_ref, lang, _ = create_raw_ref_data(["#13"], context_tref="Zevachim 55b:3", lang="en")
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+    resolved = ref_resolver.resolve_raw_ref(context_ref, raw_ref, keep_disqualified=True)
+    resolved_refs = resolved.resolved_raw_refs if resolved and resolved.is_ambiguous else [resolved]
+    assert any(rr and rr.disqualification_reason for rr in resolved_refs)
+
+
+def test_parse_linker_citation_response_shape():
+    response = parse_linker_citation({
+        "parts": [
+            {"text": "Job", "type": "NAMED"},
+            {"text": "III", "type": "NUMBERED"},
+            {"text": "5", "type": "NUMBERED"},
+        ],
+        "lang": "en",
+    })
+    assert response["ok"] is True
+    assert response["input"]["parts"][0]["type"] == "NAMED"
+    assert any(parsing["ref"] == "Job 3:5" and parsing["valid"] for parsing in response["parsings"])
+
+
+def test_parse_linker_citation_ranged_ref():
+    # A ranged citation arrives from the frontend already flattened into NUMBERED sections,
+    # a RANGE_SYMBOL, and NUMBERED toSections; RawRef._group_ranged_parts regroups it server-side.
+    response = parse_linker_citation({
+        "parts": [
+            {"text": "Genesis", "type": "NAMED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "-", "type": "RANGE_SYMBOL"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "2", "type": "NUMBERED"},
+        ],
+        "lang": "en",
+    })
+    assert response["ok"] is True
+    assert any(parsing["ref"] == "Genesis 1:1-2" and parsing["valid"] for parsing in response["parsings"])
+
+
+def test_parse_linker_citation_missing_parts_raises_input_error():
+    with pytest.raises(InputError):
+        parse_linker_citation({"lang": "en"})
+
+
+def test_deleted_spans_are_not_counted_as_added_links():
+    new_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3"},
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    existing_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True},
+    ]
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_merge_deleted_spans_dedupes_repeated_deleted_spans():
+    # The same deleted citation can appear in more than one source (MUTC + LinkerOutput). It must
+    # not accumulate duplicate entries when merged.
+    new_spans = [
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    deleted_span = {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True}
+    existing_spans = [deleted_span, dict(deleted_span)]  # duplicated across sources
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    deleted = [span for span in merged_spans if span.get("deleted") and span.get("ref") == "Pirkei Avot 3"]
+    assert len(deleted) == 1
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_merge_deleted_spans_blocks_resolved_ref_for_deleted_citation_occurrence():
+    new_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3:1"},
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    existing_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True},
+    ]
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
+    assert not any(span.get("ref") == "Pirkei Avot 3:1" for span in merged_spans)
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_linker_admin_delete_span_matches_disambiguated_ref_alias():
+    payload = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "targetRefs": {"Pirkei Avot 3"},
+    }
+    span = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "type": "citation",
+        "ref": "Pirkei Avot 3:1",
+        "llm_resolved_ref_non_segment": "Pirkei Avot 3",
+    }
+
+    assert _span_matches(span, payload)
 
 
 
@@ -296,6 +405,10 @@ def test_multiple_ambiguities():
     [crrd(['@זוה"ק', '#ח"א','@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    # A lone term matching an intermediate AltStructNode (here a Zohar volume, whose ref() is
+    # None) used to crash the unrefined-match pruner. It should instead descend through the
+    # volume's (optional) parsha/sub-section structure and refine the daf to a concrete ref.
+    [crrd(['@זח"ב', '#צה.']), ['Zohar, Mishpatim 3:14-23']],
 
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],

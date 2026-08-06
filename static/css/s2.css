@@ -6522,6 +6522,254 @@ But not to use a display block directive that might break continuous mode for ot
 .mutc.spanAmbiguous {
     background: #fff8e1;
 }
+.mutc.spanDisambiguated {
+    background: #e3f2fd;
+}
+.mutc.spanDeleted {
+    background: #e0e0e0;
+    border-color: #9e9e9e;
+}
+.linkerAdminBox {
+    padding: 16px;
+}
+.linkerAdminToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    color: #333;
+    font-size: 14px;
+}
+.linkerAdminCurrentRef {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 14px;
+    overflow-wrap: anywhere;
+}
+.linkerAdminSection {
+    margin-bottom: 14px;
+}
+.linkerAdminSectionTitle {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+    margin-bottom: 8px;
+}
+.linkerAdminCitationActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.linkerAdminSelectedSpan {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 14px;
+}
+.linkerAdminSpanText {
+    color: #222;
+    font-style: italic;
+    margin-bottom: 8px;
+    overflow-wrap: anywhere;
+}
+.linkerAdminOptions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.linkerAdminRefFlow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.linkerAdminRefFlow.rejected {
+    opacity: 0.5;
+}
+.linkerAdminRefItem {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    padding: 5px 8px;
+    max-width: 100%;
+}
+.linkerAdminRefItem.disambiguated {
+    border-color: #1e88e5;
+    background: #e3f2fd;
+}
+.linkerAdminRefTag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #666;
+}
+.linkerAdminRefItem.disambiguated .linkerAdminRefTag {
+    color: #1565c0;
+}
+.linkerAdminRefValue {
+    color: #222;
+    overflow-wrap: anywhere;
+}
+.linkerAdminRefArrow {
+    color: #1e88e5;
+    font-size: 18px;
+    line-height: 1;
+}
+/* Beat `.button.small`'s width: fit-content (same specificity, defined later) so each
+   button fills its grid cell rather than shrinking to its label. */
+.linkerAdminCitationActions .button.small {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+.button.linkerAdminDanger {
+    background-color: #b71c1c;
+}
+.button.linkerAdminDanger:hover {
+    background-color: #a01818;
+}
+.linkerAdminMuted,
+.linkerAdminPartType,
+.linkerAdminNode,
+.linkerAdminInvalidReason {
+    color: #666;
+    font-size: 12px;
+}
+.linkerAdminParts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.linkerAdminPartChip {
+    display: inline-flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    padding: 5px 7px;
+    margin: 2px;
+    max-width: 100%;
+}
+.linkerAdminPartText {
+    color: #222;
+    overflow-wrap: anywhere;
+}
+.linkerAdminPartContext {
+    color: #1565c0;
+    font-size: 11px;
+    font-style: italic;
+}
+.linkerAdminParsing {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.linkerAdminParsing.valid {
+    background: #eef8ef;
+}
+.linkerAdminParsing.invalid {
+    background: #fdeeee;
+}
+.linkerAdminParsingRef {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.linkerAdminDisclosure {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    padding: 4px 0;
+    cursor: pointer;
+    color: #333;
+}
+.linkerAdminDisclosureChevron {
+    width: 12px;
+    height: 12px;
+    transform: rotate(-90deg);
+    transition: transform 0.15s ease;
+}
+.interface-hebrew .linkerAdminDisclosureChevron {
+    transform: rotate(90deg);
+}
+.linkerAdminDisclosureChevron.open {
+    transform: rotate(0deg);
+}
+.linkerAdminPairing {
+    margin-top: 8px;
+}
+.linkerAdminMessage {
+    color: #1b5e20;
+    margin-bottom: 10px;
+}
+.linkerAdminStatusLine {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    border: 1px solid;
+    border-radius: 6px;
+    overflow-wrap: anywhere;
+}
+.linkerAdminStatusLine--error {
+    color: #b71c1c;
+    background: #fdeeee;
+    border-color: rgba(183, 28, 28, 0.35);
+}
+.linkerAdminStatusLine--pending {
+    color: #444;
+    background: #f2f2f2;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+.linkerAdminStatusLine--success {
+    color: #1b5e20;
+    background: #eef8ef;
+    border-color: rgba(27, 94, 32, 0.35);
+}
+.linkerAdminTestStringBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 6px 8px;
+    background: #f7f7f7;
+    cursor: pointer;
+}
+.linkerAdminTestStringBox:hover {
+    border-color: rgba(0, 0, 0, 0.3);
+}
+.linkerAdminTestStringInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: monospace;
+    font-size: 12px;
+    color: #222;
+    cursor: pointer;
+    padding: 0;
+}
+.linkerAdminTestStringInput:focus {
+    outline: none;
+}
+.linkerAdminCopyIcon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+.linkerAdminTestStringBox:hover .linkerAdminCopyIcon {
+    opacity: 0.85;
+}
 .textRange .actionLinks {
   text-align: right;
 }

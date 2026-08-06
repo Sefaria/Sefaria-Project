@@ -1246,6 +1246,16 @@ class Util {
       });
       return vars;
     }
+    static setLinkerAdminUrlParams(searchParams, {debug = true} = {}) {
+      // Put the reader into the Linker Admin sidebar, optionally toggling linker debug mode.
+      searchParams.set("with", "LinkerAdmin");
+      if (debug) {
+        searchParams.set("debug_mode", "linker");
+      } else {
+        searchParams.delete("debug_mode");
+      }
+      return searchParams;
+    }
     static replaceUrlParam(paramName, paramValue){
       //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end
       var url = INBROWSER ? window.location.href : this._initialPath;

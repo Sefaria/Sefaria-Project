@@ -25,6 +25,7 @@ import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import LinkerEditorPage from './LinkerEditorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
@@ -189,6 +190,23 @@ class ReaderPanel extends Component {
     } else {
       this.showBaseText(citationRef, replace, currVersions, [], true);
     }
+  }
+  handleLinkerAdminCitationClick(sourceRef, lang, charRange, spans) {
+    // For ambiguous citations several spans share a charRange; prefer the option the disambiguator
+    // kept (llm_ambiguous_option_valid !== false) rather than blindly taking the first.
+    const span = spans?.find(s => s.llm_ambiguous_option_valid !== false) || spans?.[0];
+    if (!span) { return; }
+    const testString = Sefaria._getLinkerTestString(span);
+    const connectionData = {
+      linkerAdminCitation: testString,
+      linkerAdminSpan: {...span, sourceRef, lang, charRange},
+    };
+    Sefaria._linkerAdminSelectedCitation = connectionData;
+    this.openConnectionsPanel([sourceRef], {connectionsMode: "LinkerAdmin", connectionData});
+    const url = new URL(window.location.href);
+    Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
+    url.searchParams.set("linkerAdminCitation", testString);
+    history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
@@ -759,6 +777,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onLinkerAdminCitationClick={this.handleLinkerAdminCitationClick}
           onNamedEntityClick={this.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
@@ -1077,7 +1096,10 @@ class ReaderPanel extends Component {
         <ModeratorToolsPanel
           interfaceLang={this.props.interfaceLang} />
       );
-      
+
+    } else if (this.state.menuOpen === "linkerEditor") {
+      menu = (<LinkerEditorPage interfaceLang={this.props.interfaceLang} />);
+
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
         <UserHistoryPanel              

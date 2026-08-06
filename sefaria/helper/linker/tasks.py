@@ -6,7 +6,7 @@ from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
 from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
-from sefaria.settings import USE_VARNISH
+from sefaria.settings import USE_VARNISH, MULTISERVER_ENABLED
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version, TermSet
 from sefaria.celery_setup.app import app
@@ -111,7 +111,7 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
     book_ref = Ref(linking_args.ref)
     output = linker.link_with_footnotes(linking_args.text, book_context_ref=book_ref, thoroughness=ResolutionThoroughness.HIGH, with_failures=True)
 
-    _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
+    linker_output = _save_linker_debug_data(linking_args.ref, linking_args.vtitle, linking_args.lang, output)
     # Build spans/chunk (write MarkedUpTextChunk)
     spans = _extract_resolved_spans(output.resolved_refs)
 
@@ -122,10 +122,10 @@ def link_segment_with_worker(linking_args_dict: dict) -> None:
         "spans": spans,
     })
 
-    _replace_existing_chunk(chunk)
+    _replace_existing_chunk(chunk, linker_output=linker_output)
 
     # Prepare the minimal info the next task needs
-    mutc_trefs = sorted({s["ref"] for s in spans if "ref" in s})
+    mutc_trefs = _linked_trefs_from_mutc_spans(chunk.spans)
     msg = DeleteAndSaveLinksMsg(
         ref=linking_args.ref,
         added_mutc_trefs=mutc_trefs,
@@ -164,6 +164,8 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousRes
     spans = linker_output.spans
     ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
     for span in spans:
+        if span.get("deleted"):
+            continue
         if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
             key = tuple(span.get("charRange", []))
             if len(key) == 2:
@@ -212,6 +214,8 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     for mutc_span in mutc_spans:
         if mutc_span.get("type") != MUTCSpanType.CITATION.value:
             continue
+        if mutc_span.get("deleted"):
+            continue
         mutc_ref = mutc_span.get("ref")
         if not mutc_ref:
             continue
@@ -226,6 +230,8 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     non_segment_payloads: list[NonSegmentResolutionPayload] = []
     for span in spans:
         if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if span.get("deleted"):
             continue
         if span.get("failed"):
             continue
@@ -345,6 +351,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
+    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
+        logger.info("Skipping deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
 
     mutc, span_data = _upsert_mutc_span(
         ref=payload.ref,
@@ -369,6 +378,9 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
         })
 
+    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
+        logger.info("Skipping link write for deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
         citing_ref=citing_ref,
         non_segment_ref=payload.resolved_non_segment_ref,
@@ -402,6 +414,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
+    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+        logger.info("Skipping deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
 
     mutc, span_data = _upsert_mutc_span(
         ref=payload.ref,
@@ -427,6 +442,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "llm_ambiguous_option_valid": True,
         })
 
+    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+        logger.info("Skipping link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+        return
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
     if link_obj is not None:
         _record_disambiguated_link({
@@ -456,6 +474,9 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
                 text=payload.text,
                 resolved_ref=result.matched_segment,
             )
+            if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
+                logger.info("Skipping matched-segment link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+                return
             link_obj, action = _create_or_update_link_for_non_segment_resolution(
                 citing_ref=citing_ref,
                 non_segment_ref=resolved_ref,
@@ -524,6 +545,40 @@ def _update_linker_output_resolution_fields(payload: object, result: object) -> 
 
     if updated:
         linker_output.save()
+
+
+def _span_refs(span: dict) -> set[str]:
+    refs = set()
+    for key in ("ref", "llm_resolved_ref_ambiguous", "llm_resolved_ref_non_segment"):
+        ref = span.get(key)
+        if ref:
+            refs.add(ref)
+    return refs
+
+
+def _citation_was_deleted(payload: object, candidate_refs: list[Optional[str]]) -> bool:
+    payload_refs = {ref for ref in candidate_refs if ref}
+    query = {
+        "ref": payload.ref,
+        "versionTitle": payload.versionTitle,
+        "language": payload.language,
+    }
+    for klass in (LinkerOutput, MarkedUpTextChunk):
+        chunk = klass().load(query)
+        if not chunk:
+            continue
+        for span in chunk.spans:
+            if not span.get("deleted"):
+                continue
+            if span.get("type") != MUTCSpanType.CITATION.value:
+                continue
+            if span.get("charRange") != payload.charRange:
+                continue
+            if span.get("text") != payload.text:
+                continue
+            if not payload_refs or _span_refs(span) & payload_refs:
+                return True
+    return False
 
 
 def _record_disambiguated_mutc(payload: dict) -> None:
@@ -596,6 +651,62 @@ def _extract_resolved_spans(resolved_refs):
             "ref": resolved_ref.ref.normal(),
         })
     return spans
+
+
+def _span_identity(span: dict) -> tuple:
+    return (
+        span.get("type"),
+        tuple(span.get("charRange") or []),
+        span.get("text"),
+    )
+
+
+def _merge_deleted_spans(new_spans: list[dict], existing_spans: list[dict]) -> list[dict]:
+    # Collect deleted spans from existing_spans, deduped by identity — the same deleted citation
+    # can appear in more than one source (e.g. the MUTC and the LinkerOutput), and without dedup
+    # it would accumulate duplicate entries on every rerun.
+    deleted_spans = []
+    deleted_keys = set()
+    for span in existing_spans:
+        if not span.get("deleted"):
+            continue
+        key = _span_identity(span)
+        if key in deleted_keys:
+            continue
+        deleted_keys.add(key)
+        deleted_spans.append(span)
+    if not deleted_spans:
+        return new_spans
+    return [span for span in new_spans if _span_identity(span) not in deleted_keys] + deleted_spans
+
+
+def _linked_trefs_from_mutc_spans(spans: list[dict]) -> list[str]:
+    return sorted({s["ref"] for s in spans if "ref" in s and not s.get("deleted")})
+
+
+def _mutc_deleted_spans_from_linker_output(ref: str, version_title: str, language: str, linker_output: Optional[LinkerOutput] = None) -> list[dict]:
+    if linker_output is None:
+        linker_output = LinkerOutput().load({
+            "ref": ref,
+            "versionTitle": version_title,
+            "language": language,
+        })
+    if not linker_output:
+        return []
+    deleted_spans = []
+    for span in linker_output.spans:
+        if not span.get("deleted") or span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if not span.get("ref"):
+            continue
+        deleted_spans.append({
+            "charRange": span.get("charRange"),
+            "text": span.get("text"),
+            "type": MUTCSpanType.CITATION.value,
+            "ref": span.get("ref"),
+            "deleted": True,
+        })
+    return deleted_spans
 
 
 def _upsert_mutc_span(
@@ -697,7 +808,7 @@ def _create_or_update_link_for_non_segment_resolution(
 
 
 
-def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> None:
+def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: LinkedDoc) -> Optional[LinkerOutput]:
     spans = _extract_debug_spans(doc)
     query = {
         "ref": tref,
@@ -706,16 +817,20 @@ def _save_linker_debug_data(tref: str, version_title: str, lang: str, doc: Linke
     }
     existing = LinkerOutput().load(query)
     if existing:
+        spans = _merge_deleted_spans(spans, existing.spans)
         if len(spans) == 0:
             existing.delete()
-        else:
-            existing.spans = spans
-            existing.save()
+            return None
+        existing.spans = spans
+        existing.save()
+        return existing
     else:
         if len(spans) == 0:
-            return
+            return None
         query["spans"] = spans
-        LinkerOutput(query).save()
+        linker_output = LinkerOutput(query)
+        linker_output.save()
+        return linker_output
 
 
 def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
@@ -725,7 +840,7 @@ def _extract_debug_spans(doc: LinkedDoc) -> list[dict]:
     return spans
 
 
-def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextChunk]:
+def _replace_existing_chunk(chunk: MarkedUpTextChunk, linker_output: Optional[LinkerOutput] = None) -> Optional[MarkedUpTextChunk]:
     """
     :return: existing mutc that was replaced, or None
     """
@@ -734,7 +849,9 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         "language": chunk.language,
         "versionTitle": chunk.versionTitle,
     })
+    linker_output_deleted_spans = _mutc_deleted_spans_from_linker_output(chunk.ref, chunk.versionTitle, chunk.language, linker_output=linker_output)
     if existing:
+        chunk.spans = _merge_deleted_spans(chunk.spans, existing.spans + linker_output_deleted_spans)
         if len(chunk.spans) == 0:
             # If the new chunk has no spans, just delete the existing one
             existing.delete()
@@ -745,6 +862,7 @@ def _replace_existing_chunk(chunk: MarkedUpTextChunk) -> Optional[MarkedUpTextCh
         existing.add_non_overlapping_spans(existing_spans)
         existing.save()
     else:
+        chunk.spans = _merge_deleted_spans(chunk.spans, linker_output_deleted_spans)
         if len(chunk.spans) == 0:
             # No existing chunk and no spans to save
             return None
@@ -776,6 +894,8 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
             # Skip MUTC that matches the current version
             continue
         for span in mutc.spans:
+            if span.get("deleted"):
+                continue
             if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
                 other_mutc_trefs.add(span['ref'])
 
@@ -784,6 +904,8 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
     linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
     for mutc in linked_mutcs:
         for span in mutc.spans:
+            if span.get("deleted"):
+                continue
             if span['type'] == MUTCSpanType.CITATION.value and span.get('ref') == msg.ref:
                 # this is an MUTC that links back to the current ref implying we need to keep this link
                 other_mutc_trefs.add(mutc.ref)
@@ -860,6 +982,58 @@ def enqueue_linking_chain(linking_args: LinkingArgs):
         options={"queue": CELERY_QUEUES.get("tasks", "TASK QUEUE UNDEFINED")},
     )
     return sig.apply_async()
+
+
+@app.task(name="linker.rebuild_dibur_hamatchils", bind=True)
+def rebuild_dibur_hamatchils_task(self, title: str) -> dict:
+    """
+    Recompute the dibur_hamatchils for a single index after linker-editor edits.
+    Runs on a worker (its own process/library cache), so reload the index fresh from
+    the DB and refresh it in the cache before extracting, to pick up just-saved
+    diburHamatchilRegexes / isSegmentLevelDiburHamatchil changes.
+    """
+    from sefaria.helper.linker_index_converter import DiburHamatchilAdder
+    logger.info("rebuild_dibur_hamatchils:start", title=title, task_id=self.request.id)
+    index = library.get_index(title)
+    library.refresh_index_record_in_cache(index)
+    count = DiburHamatchilAdder().rebuild_index_dibur_hamatchils(index)
+    logger.info("rebuild_dibur_hamatchils:complete", title=title, count=count, task_id=self.request.id)
+    return {"title": title, "count": count}
+
+
+@app.task(name="linker.rebuild_linker_resolvers", bind=True)
+def rebuild_linker_resolvers_task(self, langs: List[str]) -> dict:
+    """
+    Rebuild only RefResolver and CategoryResolver for the given linker languages, after
+    linker-editor metadata edits (match_templates / addressTypes / NonUniqueTerms). Runs
+    off the request path since rebuilding a resolver walks the whole library and can take
+    several seconds. Publishes to other web servers the same way the old inline endpoint
+    did, so every process picks up the rebuilt resolver.
+    """
+    logger.info("rebuild_linker_resolvers:start", langs=langs, task_id=self.request.id)
+    library.rebuild_linker_resolvers(langs)
+    if MULTISERVER_ENABLED:
+        from sefaria.system.multiserver.coordinator import server_coordinator
+        server_coordinator.publish_event("library", "rebuild_linker_resolvers", [langs])
+    logger.info("rebuild_linker_resolvers:complete", langs=langs, task_id=self.request.id)
+    return {"langs": langs}
+
+
+@app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)
+def rebuild_nonuniqueterm_index_task(self) -> dict:
+    """
+    Rebuild the NonUniqueTerm usage index (sefaria/model/linker/nonuniqueterm_index.py) from
+    scratch by walking every index in the library. Runs off the request path: this is a full
+    library walk (several seconds even on a fast local Mongo/Redis), and it's what
+    nonuniqueterm_index._ensure_warm() enqueues instead of rebuilding inline when it finds the
+    shared cache cold (e.g. after a Redis restart/flush), so a linker-editor read or edit
+    doesn't block a web worker for the duration.
+    """
+    import sefaria.model.linker.nonuniqueterm_index as nut_index
+    logger.info("rebuild_nonuniqueterm_index:start", task_id=self.request.id)
+    count = nut_index.rebuild()
+    logger.info("rebuild_nonuniqueterm_index:complete", count=count, task_id=self.request.id)
+    return {"count": count}
 
 
 @app.task(name="linker.process_ambiguous_resolution")

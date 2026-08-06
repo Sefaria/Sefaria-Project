@@ -180,6 +180,7 @@ class ReaderApp extends Component {
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null,
       filterRef:               state.filterRef               || null,
+      connectionData:          state.connectionData          || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -417,6 +418,7 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
+          (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
@@ -460,7 +462,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -597,6 +599,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("reader_app.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
+            break;
+          case "linkerEditor":
+            hist.title = Sefaria._("Linker Editor");
+            hist.url = "linker-editor";
+            hist.mode = "linkerEditor";
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
@@ -832,6 +839,10 @@ class ReaderApp extends Component {
           hist.url += "&aliyot" + (i + 1) + "=" + histories[i].aliyot;
         }
       }
+    }
+    const linkerAdminCitation = Sefaria.util.getUrlVars()["linkerAdminCitation"];
+    if (linkerAdminCitation && hist.url.includes("with=LinkerAdmin")) {
+      hist.url += "&linkerAdminCitation=" + encodeURIComponent(linkerAdminCitation);
     }
     // Replace question marks that can be included in titles
     // (not using encodeURIComponent for this can run twice and encode the % of the first running)
@@ -1316,6 +1327,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/torahtracker") {
       this.showUserStats();
+
+    } else if (path === "/linker-editor") {
+      this.showLinkerEditor();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
@@ -1947,6 +1961,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showUserStats() {
     this.setSinglePanelState({menuOpen: "user_stats"});
+  }
+  showLinkerEditor() {
+    this.setSinglePanelState({menuOpen: "linkerEditor"});
   }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});

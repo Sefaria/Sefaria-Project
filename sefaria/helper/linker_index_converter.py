@@ -314,6 +314,21 @@ class DiburHamatchilAdder:
             self.add_dibur_hamatchil_to_index(index)
         db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
 
+    def rebuild_index_dibur_hamatchils(self, index) -> int:
+        """
+        Recompute and replace the dibur_hamatchils for a single index. Used by the
+        linker editor after diburHamatchilRegexes / isSegmentLevelDiburHamatchil edits.
+        Every DH document for this index carries the index title in its container_refs
+        (see get_container_refs), so that field scopes the delete. Returns the count
+        of DH documents written.
+        """
+        self._dhs_to_insert = []
+        self.add_dibur_hamatchil_to_index(index)
+        db.dibur_hamatchils.delete_many({"container_refs": index.title})
+        if self._dhs_to_insert:
+            db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
+        return len(self._dhs_to_insert)
+
 
 class LinkerIndexConverter:
     """

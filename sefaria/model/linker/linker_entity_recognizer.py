@@ -5,8 +5,25 @@ from sefaria.helper.normalization import NormalizerComposer, AbstractNormalizer
 from sefaria.settings import GPU_SERVER_URL
 import requests
 from ne_span import NESpan, NEDoc, NamedEntityType, RefPartType
+from sefaria.system.exceptions import InputError
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+def get_linker_normalizer(lang: str) -> NormalizerComposer:
+    """
+    The normalizer the linker applies to input text server-side before recognition.
+    See ML Repo library_exporter.py:TextWalker.__init__() which uses the same normalization;
+    important that normalization is equivalent to normalization done at training time.
+
+    Exposed as a module-level function so other server-side code (e.g. the linker editor,
+    when storing NonUniqueTerm titles) can normalize strings identically to what the linker
+    sees at match time.
+    """
+    normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
+    if lang == 'he':
+        normalizer_steps += ['maqaf', 'cantillation']
+    return NormalizerComposer(normalizer_steps)
 
 
 class LinkerEntityRecognizer:
@@ -28,12 +45,7 @@ class LinkerEntityRecognizer:
         self._normalizer = self.__init_normalizer()
 
     def __init_normalizer(self) -> NormalizerComposer:
-        # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
-        # important that normalization is equivalent to normalization done at training time
-        normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
-        if self._lang == 'he':
-            normalizer_steps += ['maqaf', 'cantillation']
-        return NormalizerComposer(normalizer_steps)
+        return get_linker_normalizer(self._lang)
     
     @property
     def normalizer(self) -> AbstractNormalizer:
@@ -67,11 +79,22 @@ class LinkerEntityRecognizer:
 
     def _recognize_entities_api_request(self, input_str: str):
         resp = requests.post(f"{GPU_SERVER_URL}/recognize-entities", json={"text": input_str, "lang": self._lang})
-        return resp.json()
+        return self._parse_api_response(resp, "recognize-entities")
 
     def _bulk_recognize_entities_api_request(self, inputs: list[str]):
         resp = requests.post(f"{GPU_SERVER_URL}/bulk-recognize-entities", json={"texts": inputs, "lang": self._lang})
-        return resp.json()
+        return self._parse_api_response(resp, "bulk-recognize-entities")
+
+    @staticmethod
+    def _parse_api_response(resp: requests.Response, endpoint: str) -> dict:
+        response_preview = (resp.text or "")[:500]
+        if not resp.ok:
+            raise InputError(f"Linker NER server error from {endpoint}: HTTP {resp.status_code}. Response: {response_preview}")
+        try:
+            return resp.json()
+        except requests.exceptions.JSONDecodeError:
+            content_type = resp.headers.get("content-type", "")
+            raise InputError(f"Linker NER server returned non-JSON from {endpoint}: HTTP {resp.status_code}, content-type '{content_type}'. Response: {response_preview}")
 
     def _parse_recognize_response(self, input_str: str, data: dict) -> (list[RawRef], list[RawNamedEntity]):
         all_citations, non_citations = [], []

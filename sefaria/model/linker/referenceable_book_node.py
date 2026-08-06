@@ -131,7 +131,12 @@ class IndexNodeReferenceableBookNode(ReferenceableBookNode):
         return self._titled_tree_node.ref()
 
     def unique_key(self) -> str:
-        return self.ref().normal()
+        ref = self.ref()
+        if ref is not None:
+            return ref.normal()
+        # Non-referenceable intermediate nodes (e.g. AltStructNodes) don't map to a Ref.
+        # Fall back to their title path, which uniquely identifies the node in its index.
+        return self._titled_tree_node.full_title("en")
 
     def ref_order_id(self) -> str:
         if isinstance(self._titled_tree_node, schema.AltStructNode):
@@ -216,7 +221,7 @@ class NamedReferenceableBookNode(IndexNodeReferenceableBookNode):
             if referenceable: #referenceable or optional
                 nodes.append(node)
             if referenceable is not True: #unreferenceable or optional
-                nodes += node._get_all_children()
+                nodes += node.get_children()
         return nodes
 
     def ref_part_title_trie(self, *args, **kwargs):

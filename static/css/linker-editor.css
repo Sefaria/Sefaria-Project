@@ -1,0 +1,443 @@
+/* Linker editor (/linker-editor) — staff-only tool. Functional styling. */
+
+.linkerEditorNavMenu .linkerEditorContent {
+  height: 100%;
+}
+
+.linkerEditorPage {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 24px 160px;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  color: #333;
+}
+
+.linkerEditorTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+.linkerEditorTopBar h1 { font-size: 24px; margin: 0; }
+.linkerEditorTopActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.linkerEditorHeaderTermSearch {
+  position: relative;
+  width: 260px;
+}
+.linkerEditorHeaderTermSearch .linkerEditorTermInput { width: 100%; }
+.linkerEditorRebuildResolverControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.linkerEditorRebuildResolverLabel {
+  color: #555;
+  font-size: 13px;
+  margin-right: 2px;
+}
+.linkerEditorRebuildResolverControl .linkerEditorBtn {
+  min-width: 44px;
+}
+
+.linkerEditorBtn {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+.linkerEditorBtn:hover { background: #f4f4f4; }
+.linkerEditorBtn.small { padding: 2px 8px; font-size: 12px; }
+.linkerEditorBtn.primary { background: #212e50; color: #fff; border-color: #212e50; }
+.linkerEditorBtn.primary:hover { background: #2c3c6a; opacity: 0.9; }
+.linkerEditorBtn.danger { color: #b00; border-color: #e0b4b4; }
+.linkerEditorBtn:disabled { opacity: 0.5; cursor: default; }
+
+/* Search / autocomplete */
+.linkerEditorSearchWrap { margin-top: 40px; }
+.linkerEditorAutocomplete { position: relative; }
+.linkerEditorSearchInput,
+.linkerEditorTermInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+.linkerEditorTermInput { font-size: 13px; padding: 5px 8px; width: 220px; }
+.linkerEditorDropdown {
+  position: absolute;
+  z-index: 20;
+  left: 0; right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.linkerEditorSuggestion {
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+.linkerEditorSuggestion.highlighted { background: #eef2fb; }
+.linkerEditorSuggestion .termSlug { font-weight: 600; font-size: 13px; }
+.linkerEditorSuggestion .termTitles { font-size: 12px; color: #777; }
+
+/* Tree */
+.linkerEditorIndexTitleRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; }
+.linkerEditorIndexTitle { font-size: 20px; line-height: 1.2; margin: 0; }
+/* Button + help icon travel together, centered to each other; the group's baseline
+   aligns to the book title's text baseline. */
+.linkerDhRebuildControl { display: inline-flex; align-items: center; gap: 6px; }
+/* DH rebuild button turns red once a dibur-hamatchil setting changes and needs rebuilding. */
+.linkerEditorBtn.dhDirty { background: #b00; color: #fff; border-color: #b00; }
+.linkerEditorBtn.dhDirty:hover { background: #900; }
+.linkerDhMsg { font-size: 13px; }
+.linkerDhMsg.ok { color: #297a29; }
+.linkerDhMsg.err { color: #b00; }
+.linkerEditorError,
+.termDetailError { color: #b00; padding: 8px 0; }
+
+.schemaNodeCard {
+  border: 1px solid #e3e3e3;
+  border-radius: 6px;
+  margin: 8px 0;
+  background: #fafafa;
+}
+.schemaNodeCard.root { background: #fff; }
+.schemaNodeHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+.expandToggle { cursor: pointer; width: 14px; color: #888; user-select: none; }
+.expandToggle.placeholder { cursor: default; }
+.schemaNodeTitle { font-weight: 600; }
+.schemaNodeKey { font-size: 12px; color: #999; }
+.schemaNodeStructName {
+  font-size: 11px;
+  color: #666;
+  background: #eee;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.schemaNodePath {
+  font-size: 11px;
+  color: #888;
+}
+.schemaNodePathCrumb {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #666;
+  cursor: pointer;
+  font: inherit;
+}
+.schemaNodePathCrumb:hover { text-decoration: underline; }
+.schemaNodePathSeparator { color: #aaa; }
+.schemaNodeBody { padding: 10px 12px; }
+.schemaNodeChildren { padding: 0 0 8px 22px; }
+.altStructChildren {
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+.altStructHeading {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #777;
+  margin: 0 0 8px;
+}
+
+.cardLabel {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #999;
+  margin-right: 8px;
+}
+.emptyNote { color: #aaa; font-style: italic; font-size: 13px; }
+
+/* MatchTemplates */
+.matchTemplatesSection { margin-bottom: 12px; }
+.matchTemplateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  flex-wrap: wrap;
+}
+.matchTemplateRow.busy { opacity: 0.5; }
+.matchTemplateBadges { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.matchTemplateActions { display: flex; gap: 6px; align-items: center; }
+.termBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #e8eefc;
+  color: #223;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.termBadge:hover { background: #d6e0fb; }
+/* Primary title on top, raw slug always shown muted underneath for reference. */
+.termBadgeLabels { display: inline-flex; flex-direction: column; line-height: 1.25; }
+.termBadgeTitle { color: #223; }
+.termBadgeSlug { color: #999; font-size: 11px; }
+.termBadge .removeSlug { cursor: pointer; color: #a55; font-weight: bold; }
+.scopeBadge {
+  font-size: 11px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  background: #eee;
+  color: #666;
+}
+.scopeBadge.scope-alone { background: #fff2d6; color: #8a6d1a; }
+.scopeBadge.scope-any { background: #e0f5e0; color: #2c6e2c; }
+
+.addMatchTemplateForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px;
+  background: #f0f4fb;
+  border-radius: 5px;
+}
+.addMatchTemplateBadges { display: flex; gap: 5px; flex-wrap: wrap; }
+.scopeSelect { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+
+/* AddressType */
+.addressTypeEditor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.addressTypeEditor select { font-size: 13px; padding: 3px 6px; }
+.addressTypeMsg.ok { color: #2c6e2c; font-size: 12px; }
+.addressTypeMsg.err { color: #b00; font-size: 12px; }
+
+/* Term detail panel */
+.termDetailPanel {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  max-height: 45vh;
+  overflow-y: auto;
+  background: #fff;
+  border-top: 2px solid #212e50;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+  padding: 14px 24px 24px;
+  z-index: 50;
+}
+.termDetailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.termDetailSlug { font-weight: 700; font-size: 16px; }
+.termDetailActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.linkerEditorBtn.termDeleteBtn {
+  background: #b00;
+  border-color: #b00;
+  color: #fff;
+}
+.linkerEditorBtn.termDeleteBtn:hover { background: #900; }
+.termSwapForm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.termSwapTarget {
+  color: #555;
+  font-size: 12px;
+  font-family: Menlo, Consolas, monospace;
+}
+.termTitlesList { margin-bottom: 12px; }
+.termTitleItem { display: inline-block; margin-right: 12px; font-size: 13px; }
+.termTitleItem em { color: #888; font-style: normal; text-transform: uppercase; font-size: 11px; }
+.termAddTitlesForm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.termCreateForm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.termCreateHint { color: #999; font-weight: normal; }
+.termUsageItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.usageNodeTitle { font-weight: 600; min-width: 220px; }
+.usageTemplate { color: #777; flex: 1; }
+
+/* Node properties editor (collapsed by default) */
+.nodePropertiesEditor { margin-top: 12px; border-top: 1px solid #eee; padding-top: 8px; }
+.nodePropertiesToggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #999;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nodePropertiesToggle:hover { color: #555; }
+.nodePropertiesBody { margin-top: 8px; display: flex; flex-direction: column; gap: 12px; }
+.nodePropertyRow {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.nodePropertyLabel { display: flex; align-items: center; gap: 5px; padding-top: 4px; }
+.nodePropertyName { font-family: monospace; font-size: 12px; color: #334; word-break: break-word; }
+.nodePropertyControl { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.nodePropertiesMsg { font-size: 12px; }
+.nodePropertiesMsg.ok { color: #2c6e2c; }
+.nodePropertiesMsg.err { color: #b00; }
+
+/* Help "?" tips */
+.linkerHelpTip { position: relative; display: inline-flex; }
+.linkerHelpTipIcon {
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #bbb;
+  background: #f4f4f4;
+  color: #666;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+.linkerHelpTipIcon:hover { background: #e6ecf9; border-color: #99a; color: #223; }
+.linkerHelpTipPopover {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  z-index: 60;
+  width: 300px;
+  background: #fff;
+  border: 1px solid #cdd3e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #333;
+  text-transform: none;
+  letter-spacing: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.linkerHelpTipExample { color: #555; }
+.linkerHelpTipExample em { color: #888; }
+
+/* Segmented control (referenceable) */
+.segmentedControl { display: inline-flex; border: 1px solid #ccc; border-radius: 5px; overflow: hidden; }
+.segmentedControl .segment {
+  background: #fff;
+  border: none;
+  border-left: 1px solid #ddd;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+}
+.segmentedControl .segment:first-child { border-left: none; }
+.segmentedControl .segment:hover { background: #f4f4f4; }
+.segmentedControl .segment.active { background: #212e50; color: #fff; }
+.segmentedControl .segment:disabled { opacity: 0.5; cursor: default; }
+
+/* On/off toggle */
+.linkerToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 12px;
+  color: #666;
+}
+.linkerToggle .linkerToggleKnob {
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: #ccc;
+  position: relative;
+  transition: background 0.15s;
+  flex: none;
+}
+.linkerToggle .linkerToggleKnob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+.linkerToggle.on .linkerToggleKnob { background: #3a6ea5; }
+.linkerToggle.on .linkerToggleKnob::after { left: 18px; }
+.linkerToggle:disabled { opacity: 0.5; cursor: default; }
+
+/* referenceableSections per-section checkboxes */
+.referenceableSections { display: flex; flex-wrap: wrap; gap: 12px; }
+.referenceableSectionItem { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #444; }
+
+/* List controls (regexes / skipped addresses) */
+.linkerListControl { display: flex; flex-direction: column; gap: 6px; }
+.linkerListRow { display: flex; align-items: center; gap: 6px; }
+.linkerListRow .linkerEditorTermInput { width: 260px; }
+.linkerListActions { display: flex; gap: 8px; align-items: center; }
+.linkerListPresets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.linkerListPresetsLabel { font-size: 12px; color: #666; }
+.linkerEditorTermInput.numberInput { width: 120px; }
