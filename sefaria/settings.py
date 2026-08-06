@@ -400,6 +400,8 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 # Env vars take precedence (production injects these via the deploy environment);
 # fall back to the local_settings values imported above (used in local dev).
+_APPLE_WEB_CLIENT_ID = os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID
+_APPLE_NATIVE_BUNDLE_ID = os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID') or GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
@@ -407,17 +409,16 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'apple': {
         'APP': {
-            'client_id': os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
+            # allauth reads the accepted 'aud's from a comma-separated
+            # client_id (AppleProvider.get_auds); there is no 'audience'
+            # setting. Web ID first -- api calls use client_id.split(",")[0].
+            'client_id': ','.join(filter(None, (_APPLE_WEB_CLIENT_ID, _APPLE_NATIVE_BUNDLE_ID))),
             # allauth's Apple client signs its own client-secret JWT from these:
             # 'secret' -> Key ID (JWT 'kid' header), 'key' -> Team ID (JWT 'iss' claim).
             'secret': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
             'key': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
             'settings': {
                 'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
-                'audience': [
-                    os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID,
-                    os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID,
-                ],
             },
         },
     },
