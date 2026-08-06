@@ -29,6 +29,7 @@ this suite would go red.
 | Decision logic | `sefaria/helper/tests/library_assistant_test.py` | `normalize` coercion, the read rule, `set_enabled` |
 | Views & template | `reader/tests/library_assistant_setting_test.py` | `/api/profile`, `/api/profile/sync`, the script-tag gate, the settings page |
 | Landing view | `reader/tests/enable_library_assistant_test.py` | `/enable-library-assistant` |
+| Registration | `reader/tests/register_library_assistant_test.py` | that a brand-new account is given the key |
 | **Migration + rollback** | `reader/tests/library_assistant_migration_test.py` | cohort selection, idempotency, the archive, rollback's only-what-we-wrote rule |
 | **Browser, all phases** | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the promo banner, the enable landing |
 
@@ -55,9 +56,18 @@ public dump holding ~248,000 real people; nothing here writes to it.
 account *is* the `explicit_on` cohort — on in both phases, and already asserted by the
 matrix. Registering for real to observe that costs a Salesforce contact, a gravatar fetch
 into the profiles bucket, and an account with an id below `SYNTHETIC_USER_ID_FLOOR` that no
-cleanup will ever reap, on whichever environment the suite is pointed at. What that leaves
-untested is the one line in the registration view itself; it is worth a Django test, not a
-browser one.
+cleanup will ever reap, on whichever environment the suite is pointed at. The one line in
+the registration view itself is covered by a Django test instead —
+`reader/tests/register_library_assistant_test.py`, which drives a real `POST /register` and
+asserts on the profile document the view was about to store.
+
+That test cannot let registration persist, for the same id-floor reason: registration takes
+its user id from the auto-increment sequence, so the account lands in the low ids where the
+restored dump holds real people and where `purge_test_profiles` refuses to delete. It
+patches `UserProfile.save` to capture the document instead, and asserts the captured
+profile's `_id` is still `None` — so if that interception ever stops covering the write, the
+test fails rather than writing into the dump. The captcha, the Salesforce contact and the
+gravatar fetch are stubbed out for the same reason.
 
 LAS-030 matters more than it looks. The migration skips any profile that already carries
 the key, so if the settings page posted the toggle unconditionally, anyone who changed an
@@ -294,7 +304,7 @@ the sessions those logins created and the migration's own audit trail.
 
 | Check | Why not, and how to do it |
 | --- | --- |
-| Registration writes the setting key | Driving a real registration costs a CRM contact and an unreapable account wherever it runs (see §1). The state it produces is covered as the `explicit_on` cohort; the write itself belongs in a Django test of `sefaria/views.py`, which does not exist yet. |
+| Registration writes the setting key — *in the browser* | Driving a real registration costs a CRM contact and an unreapable account wherever it runs (see §1). The state it produces is covered as the `explicit_on` cohort, and the write itself is covered by `reader/tests/register_library_assistant_test.py`. Nothing here is uncovered; it is simply covered a layer down. |
 | Cohort counts are plausible for the real userbase | Only a human knows what "right" looks like. `--dry-run` prints the three numbers; compare against the known beta size before running for real. |
 | No CRM webhook burst during the migration | Nothing should fire at all — `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED = True` short-circuits the dispatch, and the migration never calls it. Confirm by grepping the run's logs for `chatbot_opt_in_webhook`. |
 | The assistant actually answers a question | Owned by the existing `chrome-assistant` suite against a real backend. This suite deliberately asserts only on whether the widget is *offered*. |
@@ -305,8 +315,8 @@ the sessions those logins created and the migration's own audit trail.
 
 ## 6. Findings from the first full execution (2026-08-05, local, Phase 1 and Phase 3)
 
-Findings a, b and e are **fixed in this PR**. c is a note about existing test machinery;
-d is open on #3579.
+Findings a, b and e were fixed on #3584 (merged). c is a note about existing test machinery.
+d was fixed on #3579 on 2026-08-06.
 
 **a. The scripts cannot be run the way their own docstrings say.** *(fixed here.)* Both scripts document
 `python scripts/migrations/<name>.py`, which fails immediately with
@@ -360,11 +370,21 @@ first surfaced (LAS-040 failed with `.siteWideBannerContent … intercepts point
 before the assertion it actually cared about). `goToAccountSettings` now hides the banner so
 that only LAS-060 speaks to this.
 
-The banner is behind `feature.client.show_join_chatbot_banner`, so the blast radius depends
-on whether that flag is on when Phase 3 ships. Worth deciding before it does: the
-pre-Phase-3 rule was "don't ask someone who already answered", and the natural replacement
-is to keep suppressing the promo when `settings.library_assistant` is present at all,
-rather than only when it is true.
+The banner is behind `feature.client.show_join_chatbot_banner`, so the blast radius depended
+on whether that flag was on when Phase 3 shipped.
+
+***Fixed on #3579, 2026-08-06.*** The promo is now gated on `!Sefaria._uid` — logged-out
+visitors only. That matches its stated purpose as a "log in to try" acquisition funnel, and
+post-migration it is equivalent to "don't ask anyone who has already answered", because
+after the flip everyone logged in *has* answered. Re-run against the fixed Phase 3 branch:
+**19/19**, identical to Phase 2.
+
+**If you run a fix-carrying branch at `LA_PHASE=pre`, `LAS-061` will fail — correctly.** Its
+`pre` branch asserts the promo *is* visible to a logged-in `never_chose` user, which the fix
+makes false. Phase 3 only ever runs `post`, so this never arises in practice; read it as the
+suite noticing a real difference, not as a flake. Its comment about `never_chose` being the
+only cohort where the two suppression rules disagree also no longer describes why the
+assertion holds post-migration.
 
 ---
 
