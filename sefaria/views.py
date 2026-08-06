@@ -74,6 +74,7 @@ from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
+from reader import models as reader_models
 from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs, remove_links_from_csv
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
@@ -95,6 +96,16 @@ class StaticViewMixin:
 
 class CustomLoginView(StaticViewMixin, LoginView):
     authentication_form = SefariaLoginForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.get_user()
+        # Users who have never made a Library Assistant choice are enrolled at login,
+        # so the assistant opens for them automatically. Users with an existing
+        # preference (enabled or disabled) are left untouched.
+        if not reader_models.user_has_experiments(user):
+            reader_models._set_user_experiments(user, True)
+        return response
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
