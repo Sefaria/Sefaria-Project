@@ -31,7 +31,13 @@ const Promotions = () => {
         console.error("Failed to process sidebar ads from Strapi: ", error);
       }
     }
-  }, [strapi.dataFromStrapiHasBeenReceived]);
+    // strapiData must be a dependency, not just the received-flag: context.js sets the flag and
+    // the data in two separate setState calls, and React 16 does not batch updates made inside a
+    // promise callback. The flag can therefore flip in its own commit while strapiData is still
+    // null, in which case this effect runs, finds no array, and — keyed on the flag alone — would
+    // never run again once the data arrived. The ad then only appeared after some later navigation
+    // remounted this component.
+  }, [strapi.dataFromStrapiHasBeenReceived, strapi.strapiData]);
   // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
   
   useEffect(() => {
