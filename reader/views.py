@@ -4910,6 +4910,36 @@ def semantic_search_wrapper_api(request):
 
 
 @csrf_exempt
+def natural_language_search_wrapper_api(request):
+    """
+    Public, same-origin wrapper around NaturalLanguageSearch.run_search for the
+    search page. Unlike /api/natural-language-search (bearer-token gated, for
+    external/tool callers), this view is not token-protected -- it runs the same
+    search logic server-side so the shared SEMANTIC_SEARCH_API_TOKEN secret never
+    has to reach browser JS.
+    """
+    from api.views import NaturalLanguageSearch, NaturalLanguageSearchError
+
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    if not isinstance(body, dict):
+        return jsonResponse({"error": "JSON body must be an object"}, status=400)
+
+    try:
+        response = NaturalLanguageSearch.run_search({"query": body.get("query", "")})
+    except NaturalLanguageSearchError as e:
+        return jsonResponse({"error": str(e)}, status=e.status)
+
+    return jsonResponse(response)
+
+
+@csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
 

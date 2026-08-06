@@ -7,9 +7,12 @@ import React from "react";
 import SearchPage from "./SearchPage";
 
 /**
- * Feeds the search page from the KNN semantic search API (/api/search-wrapper/semantic)
- * instead of Elasticsearch. POC: no filters, no sort, no pagination -- a single capped
- * batch of semantic matches followed by link-origin matches.
+ * Feeds the search page from the natural-language search API
+ * (/api/search-wrapper/natural-language) instead of Elasticsearch. That endpoint
+ * elaborates the query with an LLM into English and Hebrew versions, runs both
+ * through semantic KNN search in parallel, and unions the results. POC: no
+ * filters, no sort, no pagination -- semantic matches followed by link-origin
+ * matches.
  */
 class SemanticSearchQuerier extends Component {
     constructor(props) {
@@ -53,7 +56,7 @@ class SemanticSearchQuerier extends Component {
         }
         this.setState({isQueryRunning: true, error: false, hits: []});
         this._runningQuery = $.ajax({
-            url: `${Sefaria.apiHost}/api/search-wrapper/semantic`,
+            url: `${Sefaria.apiHost}/api/search-wrapper/natural-language`,
             type: "POST",
             data: JSON.stringify({query}),
             contentType: "application/json; charset=utf-8",

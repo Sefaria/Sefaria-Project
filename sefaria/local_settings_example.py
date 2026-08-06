@@ -367,4 +367,6 @@ CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefar
 CHATBOT_USE_LOCAL_SCRIPT = True
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
-SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint
+SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search and /api/natural-language-search endpoints
+ANTHROPIC_API_KEY = ""  # API key for query elaboration (used by /api/natural-language-search)
+NATURAL_LANGUAGE_SEARCH_MODEL = "claude-sonnet-5"  # LLM model used to elaborate natural-language search queries
