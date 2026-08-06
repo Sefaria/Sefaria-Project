@@ -75,12 +75,14 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
     monkeypatch.setattr(le.nut_index, "add_template_usage", lambda *args, **kwargs: calls.append(("add", args[2].serialize())))
     monkeypatch.setattr(le, "MULTISERVER_ENABLED", False)
     monkeypatch.setattr(le, "USE_VARNISH", False)
+    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)))
 
     serialized = le.replace_match_template(
         "Fake",
         "Fake",
         {"term_slugs": ["old"], "scope": "combined"},
         {"term_slugs": ["old", "new"], "scope": "combined"},
+        1,
     )
 
     assert serialized == {"term_slugs": ["old", "new"]}
@@ -93,6 +95,12 @@ def test_replace_match_template_saves_index_once_and_updates_usage(monkeypatch):
         ("refresh", "Fake"),
         ("remove", {"term_slugs": ["old"]}),
         ("add", {"term_slugs": ["old", "new"]}),
+        ("log", 1, "replace_match_template", {
+            "title": "Fake",
+            "node_key_path": "Fake",
+            "old_template_data": {"term_slugs": ["old"], "scope": "combined"},
+            "new_template_data": {"term_slugs": ["old", "new"], "scope": "combined"},
+        }, {"index_title": "Fake"}),
     ]
 
 
@@ -121,6 +129,7 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
             "Fake",
             {"term_slugs": ["old"], "scope": "combined"},
             {"term_slugs": ["old", "new"], "scope": "combined"},
+            1,
         )
 
     assert calls == []
@@ -198,16 +207,21 @@ def test_add_non_unique_term_titles(monkeypatch):
 
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
+    log_calls = []
+    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)))
 
     detail = le.add_non_unique_term_titles(term.slug, [
         {"text": "Alt", "lang": "en"},
         {"text": "חלופה", "lang": "he"},
-    ])
+    ], 1)
 
     assert term.saved
     assert {"text": "Alt", "lang": "en"} in detail["titles"]
     assert {"text": "חלופה", "lang": "he"} in detail["titles"]
     assert detail["usages"] == []
+    assert log_calls == [(1, "add_non_unique_term_titles",
+        {"slug": term.slug, "titles": [{"text": "Alt", "lang": "en"}, {"text": "חלופה", "lang": "he"}]},
+        {"slug": term.slug})]
 
 
 def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatch):
@@ -236,6 +250,7 @@ def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatc
 
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
+    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: None)
 
     detail = le.add_non_unique_term_titles(term.slug, [
         # unidecode diacritic + collapsed double space + surrounding whitespace
@@ -243,7 +258,7 @@ def test_add_non_unique_term_titles_normalizes_with_linker_normalizer(monkeypatc
         # vowel/cantillation marks stripped for Hebrew (the linker's "cantillation"
         # normalizer range covers nikud too): בְּרֵאשִׁ֑ית -> בראשית
         {"text": "בְּרֵאשִׁ֑ית", "lang": "he"},
-    ])
+    ], 1)
 
     stored = {t["text"] for t in detail["titles"]}
     assert "Hagigah ha" in stored
@@ -259,7 +274,7 @@ def test_add_non_unique_term_titles_validation(monkeypatch):
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
 
     with pytest.raises(InputError):
-        le.add_non_unique_term_titles("__no_such_slug__", [{"text": "Alt", "lang": "en"}])
+        le.add_non_unique_term_titles("__no_such_slug__", [{"text": "Alt", "lang": "en"}], 1)
 
     class ExistingFakeNonUniqueTerm:
         @staticmethod
@@ -269,11 +284,11 @@ def test_add_non_unique_term_titles_validation(monkeypatch):
     monkeypatch.setattr(le, "NonUniqueTerm", ExistingFakeNonUniqueTerm)
 
     with pytest.raises(InputError):
-        le.add_non_unique_term_titles("__le_test_term__", [])
+        le.add_non_unique_term_titles("__le_test_term__", [], 1)
     with pytest.raises(InputError):
-        le.add_non_unique_term_titles("__le_test_term__", [{"text": "Alt", "lang": "fr"}])
+        le.add_non_unique_term_titles("__le_test_term__", [{"text": "Alt", "lang": "fr"}], 1)
     with pytest.raises(InputError):
-        le.add_non_unique_term_titles("__le_test_term__", [{"text": "   ", "lang": "en"}])
+        le.add_non_unique_term_titles("__le_test_term__", [{"text": "   ", "lang": "en"}], 1)
 
 
 def test_delete_non_unique_term_rejects_terms_with_usages(monkeypatch):
@@ -294,7 +309,7 @@ def test_delete_non_unique_term_rejects_terms_with_usages(monkeypatch):
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [{"index_title": "Fake"}])
 
     with pytest.raises(InputError) as e:
-        le.delete_non_unique_term("__le_test_term__")
+        le.delete_non_unique_term("__le_test_term__", 1)
 
     assert "use Swap" in str(e.value)
     assert not term.deleted
@@ -315,10 +330,15 @@ def test_delete_non_unique_term_deletes_unused_term_and_clears_usage_cache(monke
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: [])
     monkeypatch.setattr(le.nut_index, "set_term_usages", lambda slug, usages: calls.append(("set", slug, usages)))
+    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: calls.append(("log", uid, action, params, kwargs)))
 
-    le.delete_non_unique_term("__le_test_term__")
+    le.delete_non_unique_term("__le_test_term__", 1)
 
-    assert calls == ["delete", ("set", "__le_test_term__", [])]
+    assert calls == [
+        "delete",
+        ("set", "__le_test_term__", []),
+        ("log", 1, "delete_non_unique_term", {"slug": "__le_test_term__"}, {"slug": "__le_test_term__"}),
+    ]
 
 
 def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
@@ -344,13 +364,15 @@ def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
         },
     ]
     replacements = []
+    log_calls = []
 
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
     monkeypatch.setattr(le.nut_index, "get_term_usages", lambda slug: usages)
-    monkeypatch.setattr(le, "replace_match_template", lambda title, path, old, new: replacements.append((title, path, old, new)))
+    monkeypatch.setattr(le, "_replace_match_template_impl", lambda title, path, old, new: replacements.append((title, path, old, new)))
     monkeypatch.setattr(le, "get_non_unique_term_detail", lambda slug: {"slug": slug, "usages": []})
+    monkeypatch.setattr(le, "log_linker_editor_action", lambda uid, action, params, **kwargs: log_calls.append((uid, action, params, kwargs)))
 
-    result = le.swap_non_unique_term_usages("old", "new")
+    result = le.swap_non_unique_term_usages("old", "new", 1)
 
     assert result["updated_usages"] == 2
     assert replacements == [
@@ -367,6 +389,27 @@ def test_swap_non_unique_term_usages_replaces_each_usage(monkeypatch):
             {"term_slugs": ["prefix", "new"], "scope": "alone"},
         ),
     ]
+    # A swap over multiple usages logs exactly one compound entry, not one per usage.
+    assert log_calls == [(1, "swap_non_unique_term_usages", {
+        "old_slug": "old",
+        "new_slug": "new",
+        "affected_usages": [
+            {
+                "index_title": "Fake",
+                "node_key_path": "Fake",
+                "old_term_slugs": ["old", "keep"],
+                "new_term_slugs": ["new", "keep"],
+                "scope": "combined",
+            },
+            {
+                "index_title": "Other",
+                "node_key_path": "__alt__.Parasha.0",
+                "old_term_slugs": ["prefix", "old"],
+                "new_term_slugs": ["prefix", "new"],
+                "scope": "alone",
+            },
+        ],
+    }, {})]
 
 
 def test_swap_non_unique_term_usages_validation(monkeypatch):
@@ -378,11 +421,11 @@ def test_swap_non_unique_term_usages_validation(monkeypatch):
     monkeypatch.setattr(le, "NonUniqueTerm", FakeNonUniqueTerm)
 
     with pytest.raises(InputError):
-        le.swap_non_unique_term_usages("old", "old")
+        le.swap_non_unique_term_usages("old", "old", 1)
     with pytest.raises(InputError):
-        le.swap_non_unique_term_usages("old", "missing")
+        le.swap_non_unique_term_usages("old", "missing", 1)
     with pytest.raises(InputError):
-        le.swap_non_unique_term_usages("missing", "old")
+        le.swap_non_unique_term_usages("missing", "old", 1)
 
 
 # ---------------------------------------------------------------------------
@@ -643,7 +686,7 @@ def test_create_non_unique_term():
         detail = le.create_non_unique_term([
             {"lang": "en", "text": "Zzz Editor Test Term"},
             {"lang": "he", "text": "זזז מונח בדיקה"},
-        ])
+        ], 1)
         assert detail["slug"] == "zzz-editor-test-term"
         langs = {(t["lang"], t.get("primary")) for t in detail["titles"]}
         assert ("en", True) in langs and ("he", True) in langs
@@ -660,7 +703,7 @@ def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
         detail = le.create_non_unique_term([
             {"lang": "en", "text": "  Ḥagigah   Editor Test Term  "},
             {"lang": "he", "text": "בְּרֵאשִׁ֑ית בדיקה"},
-        ])
+        ], 1)
         stored = {t["text"] for t in detail["titles"]}
         assert "Hagigah Editor Test Term" in stored
         assert "בראשית בדיקה" in stored
@@ -671,9 +714,9 @@ def test_create_non_unique_term_normalizes_titles_with_linker_normalizer():
 
 def test_create_non_unique_term_requires_a_title():
     with pytest.raises(InputError):
-        le.create_non_unique_term([])
+        le.create_non_unique_term([], 1)
     with pytest.raises(InputError):
-        le.create_non_unique_term([{"lang": "en", "text": "   "}])
+        le.create_non_unique_term([{"lang": "en", "text": "   "}], 1)
 
 
 def test_search_empty_query_returns_empty():

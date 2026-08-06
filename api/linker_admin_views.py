@@ -91,7 +91,7 @@ class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
             return err
         try:
             serialized = linker_editor.add_match_template(
-                title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"))
+                title, node_key_path, body.get("term_slugs", []), body.get("scope", "combined"), request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "match_template": serialized})
@@ -106,6 +106,7 @@ class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
                 node_key_path,
                 body.get("old", {}),
                 body.get("new", {}),
+                request.user.id,
             )
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
@@ -116,7 +117,7 @@ class LinkerEditorMatchTemplateView(StaffRequiredMixin, View):
         if err:
             return err
         try:
-            linker_editor.remove_match_template(title, node_key_path, body)
+            linker_editor.remove_match_template(title, node_key_path, body, request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok"})
@@ -133,7 +134,7 @@ class LinkerEditorAddressTypeView(StaffRequiredMixin, View):
         if not isinstance(address_types, list):
             return jsonResponse({"error": "'address_types' must be a list."}, status=400)
         try:
-            result = linker_editor.set_address_types(title, node_key_path, address_types)
+            result = linker_editor.set_address_types(title, node_key_path, address_types, request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "address_types": result})
@@ -150,7 +151,7 @@ class LinkerEditorNodePropertiesView(StaffRequiredMixin, View):
         if not isinstance(properties, dict):
             return jsonResponse({"error": "'properties' must be an object."}, status=400)
         try:
-            result = linker_editor.set_node_properties(title, node_key_path, properties)
+            result = linker_editor.set_node_properties(title, node_key_path, properties, request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "properties": result})
@@ -168,7 +169,7 @@ class LinkerEditorRebuildDiburHamatchilView(StaffRequiredMixin, View):
 
     def post(self, request, title):
         try:
-            task_id = linker_editor.enqueue_rebuild_dibur_hamatchils(title)
+            task_id = linker_editor.enqueue_rebuild_dibur_hamatchils(title, request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"task_id": task_id}, status=202)
@@ -188,13 +189,13 @@ class LinkerEditorNonUniqueTermView(StaffRequiredMixin, View):
         if err:
             return err
         try:
-            return jsonResponse(linker_editor.add_non_unique_term_titles(slug, body.get("titles", [])))
+            return jsonResponse(linker_editor.add_non_unique_term_titles(slug, body.get("titles", []), request.user.id))
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
     def delete(self, request, slug):
         try:
-            linker_editor.delete_non_unique_term(slug)
+            linker_editor.delete_non_unique_term(slug, request.user.id)
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok"})
@@ -208,7 +209,7 @@ class LinkerEditorNonUniqueTermSwapView(StaffRequiredMixin, View):
         if err:
             return err
         try:
-            return jsonResponse(linker_editor.swap_non_unique_term_usages(slug, body.get("new_slug")))
+            return jsonResponse(linker_editor.swap_non_unique_term_usages(slug, body.get("new_slug"), request.user.id))
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
@@ -221,7 +222,7 @@ class LinkerEditorNonUniqueTermCreateView(StaffRequiredMixin, View):
         if err:
             return err
         try:
-            return jsonResponse(linker_editor.create_non_unique_term(body.get("titles", [])))
+            return jsonResponse(linker_editor.create_non_unique_term(body.get("titles", []), request.user.id))
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
 
