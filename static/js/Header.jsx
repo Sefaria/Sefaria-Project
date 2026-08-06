@@ -391,6 +391,7 @@ const LoggedOutButtons = ({ mobile, loginOnly }) => {
           {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
           <InterfaceText>header.log_in</InterfaceText>
         </NextRedirectAnchor>)}
+      
       {loginOnly ? null :
         <span>
           <NextRedirectAnchor className="login signupLink" url={'/register'}>
