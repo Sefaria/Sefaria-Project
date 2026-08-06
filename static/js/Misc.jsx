@@ -2161,14 +2161,18 @@ const InterruptingMessage = ({
 
   const shouldShow = () => {
     if (!strapi.modal) return false;
-    if (!strapi.modal.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
+    const locale = INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang];
+    if (!strapi.modal.locales.includes(locale)) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
       )
     )
       return false;
-    if (!matchesCountryTarget(strapi.modal.countriesToTarget, getViewerCountryCandidates())) return false;
+    // Targeting is localized (see LOCALIZED_FIELDS), so read the active locale's entry rather than
+    // the document as a whole. A locale with no targeting set yields null, which matches everyone.
+    if (!matchesCountryTarget(strapi.modal.countriesToTarget?.[locale], getViewerCountryCandidates()))
+      return false;
 
     let shouldShowModal = false;
 
@@ -2343,11 +2347,15 @@ const Banner = ({ onClose }) => {
 
   const shouldShow = () => {
     if (!strapi.banner) return false;
-    if (!strapi.banner.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
+    const locale = INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang];
+    if (!strapi.banner.locales.includes(locale)) return false;
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
-    if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;
+    // Targeting is localized (see LOCALIZED_FIELDS), so read the active locale's entry rather than
+    // the document as a whole. A locale with no targeting set yields null, which matches everyone.
+    if (!matchesCountryTarget(strapi.banner.countriesToTarget?.[locale], getViewerCountryCandidates()))
+      return false;
 
     let shouldShowBanner = false;
 

@@ -3,6 +3,7 @@ import {
   SUPPORTED_LOCALES,
   LOCALE_TO_INTERFACE_LANG,
   INTERFACE_LANG_TO_LOCALE,
+  LOCALIZED_FIELDS,
   groupBy,
   keyBy,
   omit,
@@ -179,5 +180,37 @@ describe("buildInterfaceTextDoc", function () {
 
     expect(doc.bannerText).toEqual({ en: "text-en", he: null });
     expect(doc.locales).toEqual(["en"]);
+  });
+});
+
+describe("countriesToTarget as a localized field", function () {
+  const ukOnly = { countryMode: "include", countries: [{ name: "United Kingdom", code: "GB" }] };
+  const everywhere = { countryMode: "all", countries: [] };
+
+  it("is listed as localized for banners and modals", function () {
+    // Editors can set targeting per locale in Strapi -- e.g. show a Hebrew-interface promotion to
+    // readers in the US but not in Israel -- so it must survive the per-document merge.
+    expect(LOCALIZED_FIELDS.banner).toContain("countriesToTarget");
+    expect(LOCALIZED_FIELDS.modal).toContain("countriesToTarget");
+  });
+
+  it("keeps each locale's targeting rather than applying the en row's to both", function () {
+    const rowsByLocale = {
+      en: [makeRow("en", { countriesToTarget: ukOnly })],
+      he: [makeRow("he", { countriesToTarget: everywhere })],
+    };
+    const [grouped] = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+    const doc = buildInterfaceTextDoc(grouped, LOCALIZED_FIELDS.banner);
+
+    expect(doc.countriesToTarget.en).toEqual(ukOnly);
+    expect(doc.countriesToTarget.he).toEqual(everywhere);
+  });
+
+  it("fills the absent locale with null so an unpublished locale carries no targeting", function () {
+    const rowsByLocale = { en: [], he: [makeRow("he", { countriesToTarget: everywhere })] };
+    const [grouped] = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+    const doc = buildInterfaceTextDoc(grouped, LOCALIZED_FIELDS.banner);
+
+    expect(doc.countriesToTarget).toEqual({ en: null, he: everywhere });
   });
 });
