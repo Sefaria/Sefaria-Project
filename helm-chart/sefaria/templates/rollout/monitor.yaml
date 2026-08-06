@@ -92,9 +92,11 @@ spec:
           name: local-settings
           readOnly: true
           subPath: local_settings.py
+        {{- if .Values.varnish.enabled }}
         - mountPath: /varnish-secret
           name: varnish-secret
           readOnly: true
+        {{- end }}
       volumes:
         - name:  local-settings
           configMap:
@@ -102,6 +104,8 @@ spec:
             items:
               - key: local_settings.py
                 path: local_settings.py
+        {{- if .Values.varnish.enabled }}
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
+        {{- end }}

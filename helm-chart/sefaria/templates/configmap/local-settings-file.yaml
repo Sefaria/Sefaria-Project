@@ -237,8 +237,10 @@ data:
     MAILCHIMP_ANNOUNCE_ID = os.getenv("MAILCHIMP_ANNOUNCE_ID")
     MAILCHIMP_WEBHOOK_KEY = os.getenv("MAILCHIMP_WEBHOOK_KEY")
 
-    USE_VARNISH = True
+    USE_VARNISH = {{ .Values.varnish.enabled | ternary "True" "False" }}
     FRONT_END_URL = os.getenv("FRONT_END_URL")
+    # These stay defined even when USE_VARNISH is False: sefaria/system/varnish/common.py
+    # imports them at module scope, and that module is only imported behind USE_VARNISH.
     VARNISH_ADM_ADDR = "{}:6082".format(varnishHost)
     VARNISH_HOST = varnishHost
     VARNISH_FRNT_PORT = 8040

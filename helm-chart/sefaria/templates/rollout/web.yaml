@@ -211,9 +211,11 @@ spec:
           name: local-settings
           subPath: local_settings.py
           readOnly: true
+        {{- if .Values.varnish.enabled }}
         - mountPath: /varnish-secret
           name: varnish-secret
           readOnly: true
+        {{- end }}
         - mountPath: /school-lookup-data
           name: school-lookup-data
           readOnly: true
@@ -256,9 +258,11 @@ spec:
           secret:
             secretName: {{ template "sefaria.secrets.logging" . }}
             optional: true
+        {{- if .Values.varnish.enabled }}
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
+        {{- end }}
         - name: school-lookup-data
           secret:
             secretName: {{ template "sefaria.secrets.schoolLookup" . }}

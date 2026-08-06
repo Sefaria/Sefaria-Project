@@ -178,6 +178,10 @@ nodejs:
   heapSize: 150
 
 varnish:
+  # When disabled, the varnish rollout, services, configmaps, secret and
+  # monitoring resources are not rendered, and nginx proxies straight to the
+  # web (django) pods instead.
+  enabled: true
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: ibmcom/varnish
