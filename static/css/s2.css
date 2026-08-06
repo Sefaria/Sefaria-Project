@@ -4855,6 +4855,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.interface-hebrew .searchResultCard-name {
+  font-size: 29px;
+}
 .searchResultCard-altName {
   font-size: 24px;
   font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
@@ -16588,7 +16591,6 @@ span.ref-link-color-3 {color: blue}
 }
 .interface-hebrew .searchSortDropdown {
   font-family: var(--hebrew-sans-serif-font-family);
-  flex-direction: row-reverse;
 }
 .searchSortDropdown:hover,
 .searchSortDropdown:focus-visible {

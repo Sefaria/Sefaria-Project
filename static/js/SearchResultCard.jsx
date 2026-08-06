@@ -24,6 +24,7 @@ function SearchResultCard({
   hebrewSecondaryDate,
   secondaryAuthor,
   hebrewSecondaryAuthor,
+  secondaryAuthorHref,
   secondaryAuthorAlt,
   hebrewSecondaryAuthorAlt,
   description,
@@ -134,7 +135,13 @@ function SearchResultCard({
                 )}
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
-                    <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                    {secondaryAuthorHref ? (
+                      <a href={secondaryAuthorHref} onClick={e => e.stopPropagation()}>
+                        <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                      </a>
+                    ) : (
+                      <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                    )}
                   </span>
                 )}
                 {secondaryAuthor && secondaryAuthorAlt && (
@@ -169,7 +176,7 @@ function SearchResultCard({
               >
                 <InterfaceText text={{
                   en: versions.length === 1 ? '1 more version' : `${versions.length} more versions`,
-                  he: versions.length === 1 ? 'גרסה נוספת 1' : `${versions.length} גרסאות נוספות`,
+                  he: versions.length === 1 ? '1 גרסה נוספת' : `${versions.length} גרסאות נוספות`,
                 }} />
                 <span
                   className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`}
@@ -223,6 +230,7 @@ SearchResultCard.propTypes = {
   hebrewSecondaryDate:     PropTypes.string,
   secondaryAuthor:         PropTypes.string,
   hebrewSecondaryAuthor:   PropTypes.string,
+  secondaryAuthorHref:     PropTypes.string,
   secondaryAuthorAlt:      PropTypes.string,
   hebrewSecondaryAuthorAlt: PropTypes.string,
   description:          PropTypes.string,

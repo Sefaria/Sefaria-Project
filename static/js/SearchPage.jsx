@@ -162,12 +162,16 @@ const bookHitCardProps = (hit, query) => {
         : hit.categoryLabel_en ? [{label: hit.categoryLabel_en, hebrewLabel: hit.categoryLabel_he}] : undefined,
     };
   }
+  const authorNames = hit.author_names || [];
+  const isHebrew = s => /[֐-׿]/.test(s);
   return {
     ...common,
     type: 'text',
     href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
     crumbs: categoryPathCrumbs(hit.categories || []),
-    secondaryAuthor: hit.author_names?.[0],
+    secondaryAuthor: authorNames.find(n => !isHebrew(n)) || authorNames[0],
+    hebrewSecondaryAuthor: authorNames.find(isHebrew),
+    secondaryAuthorHref: hit.authors?.[0] ? `/topics/${hit.authors[0]}?tab=author-works-on-sefaria` : undefined,
   };
 };
 

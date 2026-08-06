@@ -27,7 +27,7 @@ function renderCaption() {
 
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.null.${mode}.${type}`;
-  const heading = Sefaria._(key('h1')).replace('[query]', query);
+  const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
 
   return (
     <div className="noSearchResults">
