@@ -21,8 +21,12 @@ currently present so the index can be fully rebuilt/cleared. Entries look like::
 The index is rebuilt from scratch by the `build_nonuniqueterm_index` management command,
 surgically updated by the linker editor API whenever a MatchTemplate is saved or deleted, and
 self-heals on read: if the registry key is missing (e.g. a Redis restart/flush dropped the
-whole shared cache), `get_term_usages` detects the empty registry and triggers a full rebuild
-before answering, instead of silently returning `[]` for every term forever.
+whole shared cache), `get_term_usages` detects the empty registry and enqueues a full rebuild
+in the background (see rebuild_nonuniqueterm_index_task in sefaria/helper/linker/tasks.py),
+instead of silently returning `[]` for every term forever. The rebuild walks the entire
+library (thousands of index records), so it runs off the request path rather than inline:
+the read that triggers it still gets `[]` this one time, but the index is warm again by the
+time the rebuild task finishes.
 """
 import time
 from typing import List, Dict, Optional, Iterator, Tuple
@@ -38,8 +42,8 @@ REGISTRY_KEY = CACHE_KEY_PREFIX + "__slugs__"
 
 # Throttles the self-heal rebuild in _ensure_warm() below. Without this, a cache
 # backend that never actually persists (e.g. Django's DummyCache, used in CI - see
-# local_settings_ci.py) would make the registry look permanently cold and trigger a
-# full library-tree rebuild on every single read instead of just after a real outage.
+# local_settings_ci.py) would make the registry look permanently cold and enqueue a
+# full library-tree rebuild task on every single read instead of just after a real outage.
 _REBUILD_COOLDOWN_SECONDS = 60
 _last_rebuild_attempt = 0.0
 
@@ -111,9 +115,12 @@ def _ensure_warm() -> None:
     """
     A missing registry key means the shared cache has no data for this index at all -
     almost certainly a Redis restart/flush rather than a real "zero usages anywhere"
-    state, since every library has thousands of usages. Rebuild before serving reads,
-    throttled by _REBUILD_COOLDOWN_SECONDS so a cold cache can't trigger a full rebuild
-    on every call.
+    state, since every library has thousands of usages. Enqueue a rebuild (rather than
+    running it inline) so a linker-editor read or edit doesn't block on a full library
+    walk, which takes several seconds even locally and can run well past a request
+    timeout in production. Throttled by _REBUILD_COOLDOWN_SECONDS so a cold cache can't
+    enqueue a rebuild on every call -- and so that a cache backend that never actually
+    persists (e.g. CI's DummyCache) doesn't queue one per read.
     """
     global _last_rebuild_attempt
     if _get_registry():
@@ -122,7 +129,9 @@ def _ensure_warm() -> None:
     if now - _last_rebuild_attempt < _REBUILD_COOLDOWN_SECONDS:
         return
     _last_rebuild_attempt = now
-    rebuild()
+    from sefaria.helper.linker.tasks import rebuild_nonuniqueterm_index_task
+    from sefaria.celery_setup.config import CeleryQueue
+    rebuild_nonuniqueterm_index_task.apply_async(queue=CeleryQueue.TASKS.value)
 
 
 def get_term_usages(slug: str) -> List[dict]:

@@ -1001,6 +1001,23 @@ def rebuild_dibur_hamatchils_task(self, title: str) -> dict:
     return {"title": title, "count": count}
 
 
+@app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)
+def rebuild_nonuniqueterm_index_task(self) -> dict:
+    """
+    Rebuild the NonUniqueTerm usage index (sefaria/model/linker/nonuniqueterm_index.py) from
+    scratch by walking every index in the library. Runs off the request path: this is a full
+    library walk (several seconds even on a fast local Mongo/Redis), and it's what
+    nonuniqueterm_index._ensure_warm() enqueues instead of rebuilding inline when it finds the
+    shared cache cold (e.g. after a Redis restart/flush), so a linker-editor read or edit
+    doesn't block a web worker for the duration.
+    """
+    import sefaria.model.linker.nonuniqueterm_index as nut_index
+    logger.info("rebuild_nonuniqueterm_index:start", task_id=self.request.id)
+    count = nut_index.rebuild()
+    logger.info("rebuild_nonuniqueterm_index:complete", count=count, task_id=self.request.id)
+    return {"count": count}
+
+
 @app.task(name="linker.process_ambiguous_resolution")
 def process_ambiguous_resolution(resolution_data: dict) -> None:
     """
