@@ -431,12 +431,15 @@ def enqueue_rebuild_dibur_hamatchils(title: str, uid: int) -> str:
     return async_result.id
 
 
-def enqueue_rebuild_linker_resolvers(langs, uid: int) -> str:
+def enqueue_rebuild_linker_resolvers(langs) -> str:
     """
     Enqueue a Celery task to rebuild RefResolver and CategoryResolver for `langs`
     (after linker-editor metadata edits). Validates langs up front so a bad request
     fails fast with an InputError instead of inside the worker. Returns the async task
     id; poll it via /api/async/<task_id>.
+
+    Not logged via log_linker_editor_action: this is a global in-process cache rebuild,
+    not scoped to a single uid+index mutation (see linker_editor_history.py's module docstring).
     """
     if isinstance(langs, str):
         langs = [langs]
@@ -455,7 +458,6 @@ def enqueue_rebuild_linker_resolvers(langs, uid: int) -> str:
         args=(langs,),
         queue=CeleryQueue.TASKS.value,
     )
-    log_linker_editor_action(uid, "rebuild_linker_resolvers", {"langs": langs})
     return async_result.id
 
 

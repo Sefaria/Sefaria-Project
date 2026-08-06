@@ -765,7 +765,7 @@ def rebuild_linker_resolvers(request):
 
     from sefaria.helper import linker_editor
     try:
-        task_id = linker_editor.enqueue_rebuild_linker_resolvers(body.get("langs", ["en", "he"]), request.user.id)
+        task_id = linker_editor.enqueue_rebuild_linker_resolvers(body.get("langs", ["en", "he"]))
     except InputError as e:
         return jsonResponse({"error": str(e)}, status=400)
 
