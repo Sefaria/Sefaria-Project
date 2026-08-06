@@ -121,12 +121,26 @@ class TextList extends Component {
       if (!("anchorRefExpanded" in link)) { link.anchorRefExpanded = Sefaria.splitRangingRef(link.anchorRef); }
     });
     let overlaps = link => (!(link.anchorRefExpanded.every(aref => Sefaria.util.inArray(aref, refs) === -1)));
-    let links = Sefaria._filterLinks(sectionLinks, filter)
-      .filter(overlaps)
-      .sort(sortConnections);
+    let links = Sefaria._filterLinks(sectionLinks, filter).filter(overlaps);
 
+    // apply sheet filter before final sort
     if (excludedSheet) {
       links = Sefaria._filterSheetFromLinks(links, excludedSheet);
+    }
+
+    // if the active tab is Quoting Commentary, sort by relevance_score (DESC)
+    const [base, suffix] = String(filter?.[0] || "").split("|");
+    const isQuoting = base === "Quoting Commentary" || suffix === "Quoting";
+
+    if (isQuoting) {
+      const toNum = v => (typeof v === "number" ? v : parseFloat(v || 0)) || 0;
+      links.forEach(l => { l.relevance_score = toNum(l.relevance_score); });
+      links.sort((a, b) => {
+        const diff = toNum(b.relevance_score) - toNum(a.relevance_score);
+        return diff !== 0 ? diff : sortConnections(a, b); // tie-break with original logic
+      });
+    } else {
+      links.sort(sortConnections);
     }
 
     return links;
