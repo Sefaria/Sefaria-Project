@@ -217,12 +217,25 @@ class SearchPage extends Component {
   }
 
   makeBookCategoryFilters() {
-    return Sefaria.toc.map(cat => new FilterNode({
-      title: cat.category,
-      heTitle: cat.heCategory,
-      aggKey: cat.category,
-      aggType: "categories",
-    }));
+    return Sefaria.toc.map(cat => {
+      const node = new FilterNode({
+        title: cat.category,
+        heTitle: cat.heCategory,
+        aggKey: cat.category,
+        aggType: "categories",
+      });
+      (cat.contents || [])
+        .filter(sub => sub.category)
+        .forEach(sub => {
+          node.append(new FilterNode({
+            title: sub.category,
+            heTitle: sub.heCategory,
+            aggKey: `${cat.category}/${sub.category}`,
+            aggType: "categories",
+          }));
+        });
+      return node;
+    });
   }
 
   setEntitySort(type, sortKey) {
@@ -235,11 +248,23 @@ class SearchPage extends Component {
     const sortKey = this.state.entitySort[type];
     let hits = sortEntityHits(data.hits, type, sortKey);
     if (type === 'book') {
-      const selectedCategories = this.state.bookCategoryFilters
-        .filter(f => f.isSelected())
-        .map(f => f.aggKey);
-      if (selectedCategories.length > 0) {
-        hits = hits.filter(hit => hit.categories && selectedCategories.includes(hit.categories[0]));
+      const selectedKeys = [];
+      const collectSelected = (filterList) => {
+        filterList.forEach(f => {
+          if (f.isSelected()) {
+            selectedKeys.push(f.aggKey);
+          } else if (f.isPartial()) {
+            collectSelected(f.children);
+          }
+        });
+      };
+      collectSelected(this.state.bookCategoryFilters);
+      if (selectedKeys.length > 0) {
+        hits = hits.filter(hit => {
+          if (!hit.categories) return false;
+          const path = hit.categories.join("/");
+          return selectedKeys.some(key => path === key || path.startsWith(key + "/"));
+        });
       }
     }
     return {...data, hits};
@@ -265,7 +290,7 @@ class SearchPage extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.query !== this.props.query) {
-      this.setState({entityData: {topic: null, author: null, book: null}});
+      this.setState({entityData: {topic: null, author: null, book: null}, bookCategoryFilters: this.makeBookCategoryFilters()});
       this.fetchEntityResults();
     }
   }
@@ -392,9 +417,27 @@ class SearchPage extends Component {
           compare={this.props.compare}
           type={this.props.type}/>;
     } else if (activeTab === "books") {
+      const dataLoaded = !!this.state.entityData.book;
+      let visibleBookFilters = this.state.bookCategoryFilters;
+      if (dataLoaded) {
+        const counts = {};
+        this.state.entityData.book.hits.forEach(hit => {
+          if (!hit.categories) return;
+          const topKey = hit.categories[0];
+          const subKey = hit.categories.length > 1 ? `${hit.categories[0]}/${hit.categories[1]}` : null;
+          counts[topKey] = (counts[topKey] || 0) + 1;
+          if (subKey) counts[subKey] = (counts[subKey] || 0) + 1;
+        });
+        this.state.bookCategoryFilters.forEach(f => {
+          f.docCount = counts[f.aggKey];
+          f.children.forEach(child => { child.docCount = counts[child.aggKey]; });
+        });
+        visibleBookFilters = this.state.bookCategoryFilters.filter(f => (f.docCount || 0) > 0);
+      }
       sidebar = <BookSearchFilters
-          filters={this.state.bookCategoryFilters}
+          filters={visibleBookFilters}
           updateSelected={this.toggleBookCategoryFilter}
+          hideEmpty={dataLoaded}
           mobileSortProps={!useDesktopTabs ? {
             sortOptions: ENTITY_SORT_OPTIONS.books,
             sortType: this.state.entitySort.book,
