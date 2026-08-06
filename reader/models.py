@@ -1,6 +1,8 @@
+from functools import partial
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
+from django.db import models, transaction
 
 from sefaria.helper.crm.tasks import dispatch_chatbot_opt_in_webhook
 
@@ -24,7 +26,7 @@ def _get_user_experiments(user):
         return False
 
 
-def _set_user_experiments(user, value):
+def _set_user_experiments(user, value, *, dispatch_webhook_on_commit=False):
     experiments_enabled = bool(value)
     settings, created = UserExperimentSettings.objects.get_or_create(user=user)
     changed = created or (experiments_enabled != settings.experiments)
@@ -38,7 +40,16 @@ def _set_user_experiments(user, value):
 
     if changed:
         interface_language = profile.settings.get("interface_language", "english")
-        dispatch_chatbot_opt_in_webhook(user.email, experiments_enabled, interface_language)
+        dispatch_webhook = partial(
+            dispatch_chatbot_opt_in_webhook,
+            user.email,
+            experiments_enabled,
+            interface_language,
+        )
+        if dispatch_webhook_on_commit:
+            transaction.on_commit(dispatch_webhook, robust=True)
+        else:
+            dispatch_webhook()
 
 
 if not hasattr(User, "experiments"):
