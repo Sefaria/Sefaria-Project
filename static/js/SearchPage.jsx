@@ -211,7 +211,9 @@ class SearchPage extends Component {
       entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
       entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
       bookCategoryFilters: this.makeBookCategoryFilters(),
+      useDesktopTabs: window.innerWidth > 985,
     };
+    this._onResize = () => this.setState({useDesktopTabs: window.innerWidth > 985});
   }
 
   makeBookCategoryFilters() {
@@ -254,6 +256,11 @@ class SearchPage extends Component {
 
   componentDidMount() {
     this.fetchEntityResults();
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
   }
 
   componentDidUpdate(prevProps) {
@@ -335,6 +342,7 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
+    const useDesktopTabs = Sefaria.multiPanel && this.state.useDesktopTabs;
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -351,7 +359,7 @@ class SearchPage extends Component {
     />;
 
     const makeSortFilterControls = (disabled = false) =>
-      Sefaria.multiPanel && !this.props.compare
+      useDesktopTabs && !this.props.compare
         ? <SearchSortBox
               type={this.props.type}
               sortTypeArray={this.props.sortTypeArray}
@@ -387,14 +395,14 @@ class SearchPage extends Component {
       sidebar = <BookSearchFilters
           filters={this.state.bookCategoryFilters}
           updateSelected={this.toggleBookCategoryFilter}
-          mobileSortProps={!Sefaria.multiPanel ? {
+          mobileSortProps={!useDesktopTabs ? {
             sortOptions: ENTITY_SORT_OPTIONS.books,
             sortType: this.state.entitySort.book,
             onSortChange: (key) => this.setEntitySort('book', key),
             onClose: closeMobileFilters,
           } : null}
       />;
-    } else if (!Sefaria.multiPanel) {
+    } else if (!useDesktopTabs) {
       if (activeTab === "authors") {
         sidebar = <EntitySortPanel
             sortOptions={ENTITY_SORT_OPTIONS.authors}
@@ -428,7 +436,7 @@ class SearchPage extends Component {
     const tabPanels = [
       <div className="searchTabPanel" key="sources">
         <div className="searchTopMatter">
-          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
+          {useDesktopTabs && !this.props.compare && this.props.type === "text" && (
             <SearchToggle
               options={[
                 {name: "all",   en: "All results",  he: "כל התוצאות"},
@@ -448,7 +456,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="books">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.books}
                 sortType={this.state.entitySort.book}
@@ -466,7 +474,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="authors">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.authors}
                 sortType={this.state.entitySort.author}
@@ -484,7 +492,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="topics">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.topics}
                 sortType={this.state.entitySort.topic}
@@ -523,7 +531,7 @@ class SearchPage extends Component {
 
                 {this.props.isQueryRunning && !this.props.hits.length
                   ? <SearchLoadSkeleton />
-                  : Sefaria.multiPanel
+                  : useDesktopTabs
                     ? <TabView
                           tabs={tabs}
                           currTabName={isValidTab ? this.props.tab : null}
