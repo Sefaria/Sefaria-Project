@@ -10,6 +10,11 @@
   flex-direction: column;
 }
 
+@keyframes sefaria-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .sefaria-auth-page {
   position: absolute;
   top: var(--header-offset);
@@ -120,6 +125,20 @@
 }
 .sefaria-auth-card-sub a {
   color: var(--sefaria-blue);
+}
+.sefaria-auth-card-sub .sefaria-auth-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sefaria-blue);
+}
+.sefaria-auth-card-sub .sefaria-auth-loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(24, 52, 93, 0.25);
+  border-top-color: var(--sefaria-blue);
+  border-radius: 50%;
+  animation: sefaria-auth-spin 0.8s linear infinite;
 }
 .sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header):not(.sefaria-auth-card-sub) {
   width: 100%;

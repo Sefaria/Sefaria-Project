@@ -22,6 +22,10 @@ $stroke-strong:   1.5px;
   flex-direction: column;
 }
 
+@keyframes sefaria-auth-spin {
+  to { transform: rotate(360deg); }
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Page background
@@ -129,6 +133,22 @@ $stroke-strong:   1.5px;
     color: $sef-text-primary;
 
     a { color: var(--sefaria-blue); }
+
+    .sefaria-auth-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--sefaria-blue);
+    }
+
+    .sefaria-auth-loading-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(24, 52, 93, 0.25); // --sefaria-blue at low opacity
+      border-top-color: var(--sefaria-blue);
+      border-radius: 50%;
+      animation: sefaria-auth-spin 0.8s linear infinite;
+    }
   }
 
   // Direct children except the back button and header are capped at 348px

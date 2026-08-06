@@ -584,6 +584,7 @@
     "auth.hide_password": "הסתרת סיסמה",
     "auth.invalid_credentials": "דוא״ל ו/או הסיסמה אינם נכונים",
     "auth.invalid_email": "דוא״ל שגוי",
+    "auth.loading": "טוען",
     "auth.log_in_link": "להתחברות",
     "auth.new_password": "סיסמה חדשה",
     "auth.or": "או",

@@ -55,7 +55,7 @@ const AuthPage = ({
   const csrf = getCsrfToken();
   const tracking = useSignUpTracking({ flow, source: authSource });
   const {
-    googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   } = useProviderTriggers({ next, tracking });
   const fieldsRef = useRef(fields);
   fieldsRef.current = fields;
@@ -136,7 +136,7 @@ const AuthPage = ({
       <ChooseView
         flow={flow} switchFlow={switchFlow}
         onEmailClick={onEmailClick}
-        googleReady={googleReady} appleReady={appleReady}
+        googleReady={googleReady} appleReady={appleReady} ssoLoading={ssoLoading}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />

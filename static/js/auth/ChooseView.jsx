@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from '../Misc.jsx';
 import AuthCard from './AuthCard.jsx';
+import LoadingSub from './LoadingSub.jsx';
 import Divider from './Divider.jsx';
 import Button from '../common/Button.jsx';
 import ProviderButton from './ProviderButton.jsx';
@@ -10,7 +11,7 @@ import ErrorBanner from './ErrorBanner.jsx';
 
 const ChooseView = ({
   flow, switchFlow, onEmailClick,
-  googleReady, appleReady, registerGoogleTarget, triggerApple, setActiveErrorHandler,
+  googleReady, appleReady, ssoLoading, registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const [error, setError] = useState(null);
   const { googleClientId, appleClientId } = Sefaria;
@@ -47,7 +48,7 @@ const ChooseView = ({
     <AuthCard
       className="sefaria-auth-card--choose"
       heading={heading}
-      sub={sub}
+      sub={ssoLoading ? <LoadingSub /> : sub}
     >
       <ErrorBanner error={error} registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple} />
       <div className="sefaria-auth-choose">
@@ -89,6 +90,7 @@ ChooseView.propTypes = {
   onEmailClick: PropTypes.func.isRequired,
   googleReady: PropTypes.bool,
   appleReady: PropTypes.bool,
+  ssoLoading: PropTypes.bool,
   registerGoogleTarget: PropTypes.func,
   triggerApple: PropTypes.func,
   setActiveErrorHandler: PropTypes.func,

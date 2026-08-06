@@ -25,6 +25,7 @@ import { getCsrfToken } from '../sefaria/csrf';
 export function useProviderTriggers({ next, tracking }) {
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
   const [rect, setRect] = useState(null);
   const googleBtnRef = useRef(null);
   const targetElRef = useRef(null);
@@ -98,6 +99,7 @@ export function useProviderTriggers({ next, tracking }) {
     // Google's own callback just fired, so a real fetch to our backend is now in flight —
     // the popup-abandonment watch below must not treat this as "closed without a credential".
     googlePopupStateRef.current = 'processing';
+    setSsoLoading(true);
     try {
       const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
         method: 'POST',
@@ -114,11 +116,13 @@ export function useProviderTriggers({ next, tracking }) {
         trackingRef.current.endProcess('success', null);
         window.location.href = safeNext(nextRef.current);
       } else {
+        setSsoLoading(false);
         trackingRef.current.endProcess('failure', authError(data, 'auth.generic_error').message);
         activeErrorHandlerRef.current(authError(data, 'auth.generic_error'));
       }
     } catch (e) {
       googlePopupStateRef.current = 'done';
+      setSsoLoading(false);
       trackingRef.current.endProcess('failure', 'network_error');
       activeErrorHandlerRef.current(authError(null, 'auth.generic_error'));
     }
@@ -227,6 +231,7 @@ export function useProviderTriggers({ next, tracking }) {
       const a = (ev.detail?.authorization) || {};
       const u = (ev.detail?.user) || {};
       const n = u.name || {};
+      setSsoLoading(true);
       try {
         const res = await fetch('/api/auth/apple/callback', {
           method: 'POST',
@@ -239,10 +244,12 @@ export function useProviderTriggers({ next, tracking }) {
           trackingRef.current.endProcess('success', null);
           window.location.href = safeNext(nextRef.current);
         } else {
+          setSsoLoading(false);
           trackingRef.current.endProcess('failure', 'apple_callback_failed');
           failApple();
         }
       } catch (e) {
+        setSsoLoading(false);
         trackingRef.current.endProcess('failure', 'network_error');
         failApple();
       }
@@ -320,6 +327,6 @@ export function useProviderTriggers({ next, tracking }) {
   );
 
   return {
-    googleReady, appleReady, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
+    googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   };
 }

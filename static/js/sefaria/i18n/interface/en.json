@@ -584,6 +584,7 @@
     "auth.hide_password": "Hide password",
     "auth.invalid_credentials": "Email and/or password are incorrect",
     "auth.invalid_email": "Invalid email address",
+    "auth.loading": "Loading",
     "auth.log_in_link": "Log In",
     "auth.new_password": "New Password",
     "auth.or": "or",

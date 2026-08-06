@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import AuthCard from './AuthCard.jsx';
 import ErrorBanner from './ErrorBanner.jsx';
+import LoadingSub from './LoadingSub.jsx';
 
 /**
  * FormView — shared shell + state for every auth form: AuthCard + <form> +
@@ -42,17 +43,17 @@ const FormView = ({
     setError(null);
     setFieldErrors({});
     setSubmitting(true);
-    try {
-      const result = await onSubmit();
-      if (result?.error) setError(result.error);
-      if (result?.fieldErrors) setFieldErrors(result.fieldErrors);
-    } finally {
-      setSubmitting(false);
-    }
+    const result = await onSubmit();
+    if (!result) return; // already handled (redirect / view switch) — leave loading in place
+    if (result.error) setError(result.error);
+    if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+    setSubmitting(false);
   };
 
   return (
-    <AuthCard className={cardClass} onBack={onBack} heading={heading} sub={sub}>
+    <AuthCard className={cardClass} onBack={onBack} heading={heading}
+      sub={submitting ? <LoadingSub /> : sub}
+    >
       <form id={formId} className="sefaria-auth-email-form" onSubmit={handleSubmit} noValidate>
         <ErrorBanner
           error={error} registerGoogleTarget={registerGoogleTarget}
