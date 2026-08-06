@@ -4145,6 +4145,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   display: inline-flex;
   align-items: center;
+  width: 216px;
   padding: 4px;
   background: #fafafa;
   border: 1px solid var(--lighter-grey);
@@ -4166,6 +4167,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchToggle__option {
   position: relative;
   z-index: 1;
+  width: 104px;
   padding: 8px 12px;
   background: none;
   border: none;
@@ -4177,6 +4179,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 18px;
   color: var(--darker-grey);
   white-space: nowrap;
+  text-align: center;
   transition: color 150ms ease;
 }
 .searchToggle__option--active {
@@ -4364,6 +4367,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 480px;
   box-sizing: border-box;
   margin-bottom: 20px;
+}
+.searchContent .sidebarLayout {
+  min-height: 100%;
+}
+.searchContent .navSidebar {
+  min-height: 100vh;
 }
 .searchContent .navSidebar .searchFilters {
   /* Align the sidebar heading underline with the tab group underline:
