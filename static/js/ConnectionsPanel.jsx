@@ -1391,6 +1391,11 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     window.location.href = url.toString();
   };
 
+  // error, rerunStatus, and message are never set simultaneously (each setter call clears the
+  // others first), so they collapse into a single status line with one of three visual treatments.
+  const statusKind = error ? "error" : rerunStatus ? "pending" : message ? "success" : null;
+  const statusText = error || rerunStatus || message;
+
   return (
     <div className="linkerAdminBox sans-serif">
       <div className="linkerAdminToggle">
@@ -1424,6 +1429,11 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           + Ref Part Dataset
         </button>
       </div>
+      {statusText ? (
+        <div className={classNames("linkerAdminStatusLine", `linkerAdminStatusLine--${statusKind}`)}>
+          {statusText}
+        </div>
+      ) : null}
       {selectedSpan ? (
         <div className="linkerAdminSelectedSpan">
           <div className="linkerAdminSectionTitle">
@@ -1469,9 +1479,6 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
           </div>
         </div>
       ) : null}
-      {error ? <div className="linkerAdminError">{error}</div> : null}
-      {rerunStatus ? <div className="linkerAdminMessage">{rerunStatus}</div> : null}
-      {message ? <div className="linkerAdminMessage">{message}</div> : null}
       {parsed?.parsings?.length ? (
         <div className="linkerAdminSection">
           <div className="linkerAdminSectionTitle">Options considered</div>
