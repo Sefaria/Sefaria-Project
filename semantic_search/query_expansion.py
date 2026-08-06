@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from typing import cast
 
@@ -64,8 +65,10 @@ def expand_query(query: str) -> QueryExpansion:
 
 
 def _get_llm() -> ChatAnthropic:
-    api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
+    api_key = getattr(settings, "ANTHROPIC_API_KEY", "") or os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         raise QueryExpansionError("ANTHROPIC_API_KEY is not configured")
     model = getattr(settings, "NATURAL_LANGUAGE_SEARCH_MODEL", DEFAULT_MODEL)
-    return ChatAnthropic(model=model, api_key=api_key, max_tokens=1024, temperature=0)
+    # temperature is not configurable on every model this can point to (e.g. it's
+    # rejected outright for claude-sonnet-5), so leave it at the provider default.
+    return ChatAnthropic(model=model, api_key=api_key, max_tokens=1024)

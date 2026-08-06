@@ -603,6 +603,7 @@ class TestExpandQuery:
         assert mock_chat_cls.call_args.kwargs["model"] == "claude-custom-model"
 
     @override_settings(ANTHROPIC_API_KEY="")
+    @patch.dict("os.environ", {"ANTHROPIC_API_KEY": ""})
     def test_raises_when_api_key_missing(self):
         with pytest.raises(QueryExpansionError):
             expand_query("query")
