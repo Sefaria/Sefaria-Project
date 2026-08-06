@@ -431,6 +431,34 @@ def enqueue_rebuild_dibur_hamatchils(title: str, uid: int) -> str:
     return async_result.id
 
 
+def enqueue_rebuild_linker_resolvers(langs, uid: int) -> str:
+    """
+    Enqueue a Celery task to rebuild RefResolver and CategoryResolver for `langs`
+    (after linker-editor metadata edits). Validates langs up front so a bad request
+    fails fast with an InputError instead of inside the worker. Returns the async task
+    id; poll it via /api/async/<task_id>.
+    """
+    if isinstance(langs, str):
+        langs = [langs]
+    if not isinstance(langs, list) or not langs:
+        raise InputError("langs must be a non-empty list.")
+
+    valid_langs = {"en", "he"}
+    langs = list(dict.fromkeys(langs))
+    invalid_langs = [lang for lang in langs if lang not in valid_langs]
+    if invalid_langs:
+        raise InputError("Invalid linker language(s): {}.".format(", ".join(invalid_langs)))
+
+    from sefaria.helper.linker.tasks import rebuild_linker_resolvers_task
+    from sefaria.celery_setup.config import CeleryQueue
+    async_result = rebuild_linker_resolvers_task.apply_async(
+        args=(langs,),
+        queue=CeleryQueue.TASKS.value,
+    )
+    log_linker_editor_action(uid, "rebuild_linker_resolvers", {"langs": langs})
+    return async_result.id
+
+
 # ---------------------------------------------------------------------------
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------

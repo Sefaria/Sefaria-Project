@@ -6,7 +6,7 @@ from sefaria.model.linker.named_entity_resolver import ResolvedNamedEntity
 from sefaria.settings import CELERY_QUEUES
 from celery import signature
 from celery.signals import worker_init
-from sefaria.settings import USE_VARNISH
+from sefaria.settings import USE_VARNISH, MULTISERVER_ENABLED
 from sefaria import tracker
 from sefaria.model import library, Link, LinkSet, Version, TermSet
 from sefaria.celery_setup.app import app
@@ -999,6 +999,24 @@ def rebuild_dibur_hamatchils_task(self, title: str) -> dict:
     count = DiburHamatchilAdder().rebuild_index_dibur_hamatchils(index)
     logger.info("rebuild_dibur_hamatchils:complete", title=title, count=count, task_id=self.request.id)
     return {"title": title, "count": count}
+
+
+@app.task(name="linker.rebuild_linker_resolvers", bind=True)
+def rebuild_linker_resolvers_task(self, langs: List[str]) -> dict:
+    """
+    Rebuild only RefResolver and CategoryResolver for the given linker languages, after
+    linker-editor metadata edits (match_templates / addressTypes / NonUniqueTerms). Runs
+    off the request path since rebuilding a resolver walks the whole library and can take
+    several seconds. Publishes to other web servers the same way the old inline endpoint
+    did, so every process picks up the rebuilt resolver.
+    """
+    logger.info("rebuild_linker_resolvers:start", langs=langs, task_id=self.request.id)
+    library.rebuild_linker_resolvers(langs)
+    if MULTISERVER_ENABLED:
+        from sefaria.system.multiserver.coordinator import server_coordinator
+        server_coordinator.publish_event("library", "rebuild_linker_resolvers", [langs])
+    logger.info("rebuild_linker_resolvers:complete", langs=langs, task_id=self.request.id)
+    return {"langs": langs}
 
 
 @app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)

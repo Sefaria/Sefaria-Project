@@ -1190,7 +1190,8 @@ const LinkerEditorPage = () => {
   const rebuildLinkerResolvers = async (langs, label) => {
     setRebuildingResolver(label);
     try {
-      await editorApi.rebuildLinkerResolvers(langs);
+      const { task_id } = await editorApi.rebuildLinkerResolvers(langs);
+      await Sefaria.pollTask(task_id, { interval: 2000 });
       alert(Sefaria._('RefResolver rebuilt.'));
     } catch (e) { alert(e.message || String(e)); }
     setRebuildingResolver(null);
