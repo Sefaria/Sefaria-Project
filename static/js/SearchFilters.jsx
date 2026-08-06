@@ -128,7 +128,7 @@ TextSearchFilters.propTypes = {
 };
 
 
-const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder}) => {
+const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, searchable, preserveOrder, searchPlaceholder, hideEmpty, checkOnPartial}) => {
 const SEARCH_FILTER_GROUP_IDS = {
   "Texts": "search_filters.title",
   "Topics": "common.topics",
@@ -149,6 +149,8 @@ const SEARCH_FILTER_GROUP_IDS = {
       filter={filter}
       updateSelected={updateSelected}
       expandable={expandable}
+      hideEmpty={hideEmpty}
+      checkOnPartial={checkOnPartial}
       filterSearchValue={document.getElementById(`filter${name}`)?.value}
       key={filter.aggKey}/>
   ));
@@ -216,6 +218,8 @@ SearchFilterGroup.propTypes = {
   searchable:        PropTypes.bool,
   preserveOrder:     PropTypes.bool,
   searchPlaceholder: PropTypes.string,
+  hideEmpty:         PropTypes.bool,
+  checkOnPartial:    PropTypes.bool,
 };
 
 
@@ -234,21 +238,23 @@ class SearchFilter extends Component {
   }
   componentDidMount() {
     // Can't set indeterminate in the render phase.  https://github.com/facebook/react/issues/1798
-    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    if (this.props.filter.isPartial()) {
+    const isPartial = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = isPartial && !this.props.checkOnPartial;
+    if (isPartial && !this.props.checkOnPartial) {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected >= 1);
     }
   }
   componentDidUpdate() {
-    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = this.props.filter.isPartial();
-    if (this.props.filter.isPartial()) {
+    const isPartial = this.props.filter.isPartial();
+    ReactDOM.findDOMNode(this).querySelector("input").indeterminate = isPartial && !this.props.checkOnPartial;
+    if (isPartial && !this.props.checkOnPartial) {
       ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", "mixed");
     }
     else {
-      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected==1);
+      ReactDOM.findDOMNode(this).querySelector("label").setAttribute("aria-checked", this.state.selected >= 1);
     }
   }
   handleFilterClick(evt) {
@@ -261,40 +267,44 @@ class SearchFilter extends Component {
     return this.props.filterSearchValue !== undefined && this.props.filterSearchValue !== null && this.props.filterSearchValue !== "" && this.props.expandable && filter.getLeafNodes(this.props.filterSearchValue).length > 0;
   }
   render() {
-    const { filter, expandable } = this.props;
+    const { filter, expandable, hideEmpty, checkOnPartial } = this.props;
     const toggleMessage = "Press enter to toggle search filter for " + filter.title + ".";
     const expandMessage = "Press enter to toggle the list of specific books within " + filter.title + " to filter by."
+
+    const leafNodes = filter.getLeafNodes(this.props.filterSearchValue);
+    const visibleLeafNodes = hideEmpty ? leafNodes.filter(c => (c.docCount || 0) > 0) : leafNodes;
+    const isExpandable = expandable && visibleLeafNodes.length > 0;
 
     return (
       <>
         <li>
           <div className="checkboxAndText">
-            <input type="checkbox" id={filter.aggKey} className="filter" checked={this.state.selected == 1} onChange={this.handleFilterClick}/>
-            <label 
-              onClick={this.handleFilterClick} 
-              id={"label-for-"+this.props.filter.aggKey} 
+            <input type="checkbox" id={filter.aggKey} className="filter" checked={checkOnPartial ? this.state.selected >= 1 : this.state.selected == 1} onChange={this.handleFilterClick}/>
+            <label
+              onClick={this.handleFilterClick}
+              id={"label-for-"+this.props.filter.aggKey}
               tabIndex="0"
-              onKeyDown={Util.handleEnterKey(this.handleFilterClick)} 
+              onKeyDown={Util.handleEnterKey(this.handleFilterClick)}
               aria-label={toggleMessage}>
               <span></span>
             </label>
             <span
               className="searchFilterTitle"
-              onClick={expandable ? this.toggleExpanded : this.handleFilterClick}
-              onKeyDown={expandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)}
-              tabIndex={expandable ? "0" : null}
-              aria-label={expandable ? expandMessage : toggleMessage} >
+              onClick={isExpandable ? this.toggleExpanded : this.handleFilterClick}
+              onKeyDown={isExpandable ? Util.handleEnterKey(this.toggleExpanded) : Util.handleEnterKey(this.handleFilterClick)}
+              tabIndex={isExpandable ? "0" : null}
+              aria-label={isExpandable ? expandMessage : toggleMessage} >
               <InterfaceText text={{en: filter.title, he: filter.heTitle}} />&nbsp;
               {filter.docCount !== undefined ?
                 <span className="filter-count"><InterfaceText>{`(${filter.docCount})`}</InterfaceText></span> : null}
             </span>
           </div>
-          {this.props.expandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
+          {isExpandable ? <i className="fa fa-angle-down" onClick={this.toggleExpanded} /> : null}
         </li>
-        {this.state.expanded || this.autoExpand(filter) ? 
+        {this.state.expanded || this.autoExpand(filter) ?
         <li>
           <div className="searchFilterBooks">
-            {filter.getLeafNodes(this.props.filterSearchValue).map(subFilter => (
+            {visibleLeafNodes.map(subFilter => (
               <SearchFilter
                 filter={subFilter}
                 updateSelected={this.props.updateSelected}
@@ -309,11 +319,13 @@ class SearchFilter extends Component {
 SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   expandable:     PropTypes.bool,
+  hideEmpty:      PropTypes.bool,
+  checkOnPartial: PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
 };
 
 
-const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
+const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}) => {
   const filterContent = (
     <div className="searchFilterBoxes">
       <SearchFilterGroup
@@ -322,6 +334,9 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
         filters={filters}
         updateSelected={updateSelected}
         preserveOrder={true}
+        expandable={true}
+        hideEmpty={hideEmpty}
+        checkOnPartial={true}
         searchPlaceholder={Sefaria._("common.search")} />
     </div>
   );
@@ -358,9 +373,10 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps}) => {
   );
 };
 BookSearchFilters.propTypes = {
-  filters:        PropTypes.array.isRequired,
-  updateSelected: PropTypes.func.isRequired,
+  filters:         PropTypes.array.isRequired,
+  updateSelected:  PropTypes.func.isRequired,
   mobileSortProps: PropTypes.object,
+  hideEmpty:       PropTypes.bool,
 };
 
 

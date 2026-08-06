@@ -162,12 +162,16 @@ const bookHitCardProps = (hit, query) => {
         : hit.categoryLabel_en ? [{label: hit.categoryLabel_en, hebrewLabel: hit.categoryLabel_he}] : undefined,
     };
   }
+  const authorNames = hit.author_names || [];
+  const isHebrew = s => /[֐-׿]/.test(s);
   return {
     ...common,
     type: 'text',
     href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
     crumbs: categoryPathCrumbs(hit.categories || []),
-    secondaryAuthor: hit.author_names?.[0],
+    secondaryAuthor: authorNames.find(n => !isHebrew(n)) || authorNames[0],
+    hebrewSecondaryAuthor: authorNames.find(isHebrew),
+    secondaryAuthorHref: hit.authors?.[0] ? `/topics/${hit.authors[0]}?tab=author-works-on-sefaria` : undefined,
   };
 };
 
@@ -211,16 +215,34 @@ class SearchPage extends Component {
       entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
       entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
       bookCategoryFilters: this.makeBookCategoryFilters(),
+      useDesktopTabs: window.innerWidth > 985,
+    };
+    this._onResize = () => {
+      const next = window.innerWidth > 985;
+      if (next !== this.state.useDesktopTabs) this.setState({useDesktopTabs: next});
     };
   }
 
   makeBookCategoryFilters() {
-    return Sefaria.toc.map(cat => new FilterNode({
-      title: cat.category,
-      heTitle: cat.heCategory,
-      aggKey: cat.category,
-      aggType: "categories",
-    }));
+    return Sefaria.toc.map(cat => {
+      const node = new FilterNode({
+        title: cat.category,
+        heTitle: cat.heCategory,
+        aggKey: cat.category,
+        aggType: "categories",
+      });
+      (cat.contents || [])
+        .filter(sub => sub.category)
+        .forEach(sub => {
+          node.append(new FilterNode({
+            title: sub.category,
+            heTitle: sub.heCategory,
+            aggKey: `${cat.category}/${sub.category}`,
+            aggType: "categories",
+          }));
+        });
+      return node;
+    });
   }
 
   setEntitySort(type, sortKey) {
@@ -233,11 +255,23 @@ class SearchPage extends Component {
     const sortKey = this.state.entitySort[type];
     let hits = sortEntityHits(data.hits, type, sortKey);
     if (type === 'book') {
-      const selectedCategories = this.state.bookCategoryFilters
-        .filter(f => f.isSelected())
-        .map(f => f.aggKey);
-      if (selectedCategories.length > 0) {
-        hits = hits.filter(hit => hit.categories && selectedCategories.includes(hit.categories[0]));
+      const selectedKeys = [];
+      const collectSelected = (filterList) => {
+        filterList.forEach(f => {
+          if (f.isSelected()) {
+            selectedKeys.push(f.aggKey);
+          } else if (f.isPartial()) {
+            collectSelected(f.children);
+          }
+        });
+      };
+      collectSelected(this.state.bookCategoryFilters);
+      if (selectedKeys.length > 0) {
+        hits = hits.filter(hit => {
+          if (!hit.categories) return false;
+          const path = hit.categories.join("/");
+          return selectedKeys.some(key => path === key || path.startsWith(key + "/"));
+        });
       }
     }
     return {...data, hits};
@@ -254,11 +288,16 @@ class SearchPage extends Component {
 
   componentDidMount() {
     this.fetchEntityResults();
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.query !== this.props.query) {
-      this.setState({entityData: {topic: null, author: null, book: null}});
+      this.setState({entityData: {topic: null, author: null, book: null}, bookCategoryFilters: this.makeBookCategoryFilters()});
       this.fetchEntityResults();
     }
   }
@@ -335,6 +374,7 @@ class SearchPage extends Component {
 
   render () {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
+    const useDesktopTabs = Sefaria.multiPanel && this.state.useDesktopTabs;
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -351,7 +391,7 @@ class SearchPage extends Component {
     />;
 
     const makeSortFilterControls = (disabled = false) =>
-      Sefaria.multiPanel && !this.props.compare
+      useDesktopTabs && !this.props.compare
         ? <SearchSortBox
               type={this.props.type}
               sortTypeArray={this.props.sortTypeArray}
@@ -384,17 +424,35 @@ class SearchPage extends Component {
           compare={this.props.compare}
           type={this.props.type}/>;
     } else if (activeTab === "books") {
+      const dataLoaded = !!this.state.entityData.book;
+      let visibleBookFilters = this.state.bookCategoryFilters;
+      if (dataLoaded) {
+        const counts = {};
+        this.state.entityData.book.hits.forEach(hit => {
+          if (!hit.categories) return;
+          const topKey = hit.categories[0];
+          const subKey = hit.categories.length > 1 ? `${hit.categories[0]}/${hit.categories[1]}` : null;
+          counts[topKey] = (counts[topKey] || 0) + 1;
+          if (subKey) counts[subKey] = (counts[subKey] || 0) + 1;
+        });
+        this.state.bookCategoryFilters.forEach(f => {
+          f.docCount = counts[f.aggKey];
+          f.children.forEach(child => { child.docCount = counts[child.aggKey]; });
+        });
+        visibleBookFilters = this.state.bookCategoryFilters.filter(f => (f.docCount || 0) > 0);
+      }
       sidebar = <BookSearchFilters
-          filters={this.state.bookCategoryFilters}
+          filters={visibleBookFilters}
           updateSelected={this.toggleBookCategoryFilter}
-          mobileSortProps={!Sefaria.multiPanel ? {
+          hideEmpty={dataLoaded}
+          mobileSortProps={!useDesktopTabs ? {
             sortOptions: ENTITY_SORT_OPTIONS.books,
             sortType: this.state.entitySort.book,
             onSortChange: (key) => this.setEntitySort('book', key),
             onClose: closeMobileFilters,
           } : null}
       />;
-    } else if (!Sefaria.multiPanel) {
+    } else if (!useDesktopTabs) {
       if (activeTab === "authors") {
         sidebar = <EntitySortPanel
             sortOptions={ENTITY_SORT_OPTIONS.authors}
@@ -428,7 +486,7 @@ class SearchPage extends Component {
     const tabPanels = [
       <div className="searchTabPanel" key="sources">
         <div className="searchTopMatter">
-          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
+          {useDesktopTabs && !this.props.compare && this.props.type === "text" && (
             <SearchToggle
               options={[
                 {name: "all",   en: "All results",  he: "כל התוצאות"},
@@ -448,7 +506,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="books">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.books}
                 sortType={this.state.entitySort.book}
@@ -466,7 +524,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="authors">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.authors}
                 sortType={this.state.entitySort.author}
@@ -484,7 +542,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="topics">
         <div className="searchSortBar">
-          {Sefaria.multiPanel
+          {useDesktopTabs
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.topics}
                 sortType={this.state.entitySort.topic}
@@ -523,7 +581,7 @@ class SearchPage extends Component {
 
                 {this.props.isQueryRunning && !this.props.hits.length
                   ? <SearchLoadSkeleton />
-                  : Sefaria.multiPanel
+                  : useDesktopTabs
                     ? <TabView
                           tabs={tabs}
                           currTabName={isValidTab ? this.props.tab : null}

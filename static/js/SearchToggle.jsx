@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { InterfaceText } from './Misc';
 
 const SearchToggle = ({ options, selected, onChange }) => {
@@ -6,18 +6,24 @@ const SearchToggle = ({ options, selected, onChange }) => {
   const optionRefs = useRef([]);
   const [sliderStyle, setSliderStyle] = useState({});
 
-  useLayoutEffect(() => {
+  const updateSlider = () => {
     const selectedIndex = options.findIndex(o => o.name === selected);
     const selectedEl = optionRefs.current[selectedIndex];
     const containerEl = containerRef.current;
-    if (!selectedEl || !containerEl) { return; }
+    if (!selectedEl || !containerEl) return;
     const containerRect = containerEl.getBoundingClientRect();
     const optionRect = selectedEl.getBoundingClientRect();
     setSliderStyle({
       width: `${optionRect.width}px`,
       transform: `translateX(${optionRect.left - containerRect.left}px)`,
     });
-  }, [selected, options]);
+  };
+
+  // Set initial position synchronously before first paint (avoids flash, no transition needed)
+  useLayoutEffect(() => { updateSlider(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Animate on change — fires after paint so the CSS transition has a "from" state
+  useEffect(() => { updateSlider(); }, [selected]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="searchToggle" role="group" ref={containerRef}>
