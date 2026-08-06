@@ -13,7 +13,7 @@
     {% autoescape off %}
     <script type="application/ld+json">
     {
-      "@context": "http://schema.org",
+      "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "{% trans "Sefaria" %}",
       "url": "https://{{ request.META.HTTP_HOST }}",
@@ -27,7 +27,7 @@
 
     <script type="application/ld+json">
     {
-      "@context": "http://schema.org",
+      "@context": "https://schema.org",
       "@type": "Organization",
       "name": "{% trans "Sefaria" %}",
       "url": "https://{{ request.META.HTTP_HOST }}",
