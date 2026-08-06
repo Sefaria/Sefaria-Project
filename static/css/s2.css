@@ -3954,8 +3954,146 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopLine {
   margin-bottom: 20px;
 }
+/* Zero out the largeTabs bottom margin so the controls row is the sole gap
+   between the tab bar and the first card. */
+.searchContent .tab-view.largeTabs .tab-list {
+  margin-bottom: 0;
+}
+/* Fixed 76px row between the tab bar and the first result card on all tabs.
+   Controls live inside this row in normal flow — no absolute positioning needed. */
+.searchSortBar {
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+.searchContent .searchTopMatter {
+  height: 76px;
+}
+.searchPageSearchBar {
+  display: flex;
+  align-items: center;
+  height: 45px;
+  background-color: var(--lighter-grey);
+  border-radius: 24px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+}
+.searchPageSearchBar .searchIcon {
+  width: 24px;
+  height: 24px;
+  margin-inline-end: 16px;
+  cursor: pointer;
+}
+.searchPageSearchBar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 24px;
+  color: var(--dark-grey);
+  font-family: var(--english-serif-font-family);
+}
+.interface-hebrew .searchPageSearchBar input {
+  font-family: var(--hebrew-serif-font-family);
+}
+.searchPageSearchBar .searchBarClearButton {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.searchContent .tab-view .tab-list .tab .searchTabCount {
+  display: inline-block;
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  margin-inline-start: 12px;
+  background-color: var(--lighter-grey);
+  border-radius: 4px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dark-grey);
+  text-align: center;
+  vertical-align: middle;
+}
 .searchContent .searchResultCount {
   color: var(--dark-grey);
+}
+.searchTabsMobileWeb {
+  position: relative;
+  margin-bottom: 18px;
+}
+.searchTabsMobileWeb-scroll {
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid #CCC;
+}
+.searchTabsMobileWeb-spacer {
+  flex-shrink: 0;
+  width: 30px;
+}
+.searchTabsMobileWeb-scroll::-webkit-scrollbar {
+  display: none;
+}
+.searchTabsMobileWeb-tab {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  color: var(--Semantic-Text-Secondary, #575757);
+  padding: 10px 0 14px;
+  margin-inline-end: 24px;
+  white-space: nowrap;
+}
+.searchTabsMobileWeb-tab .int-en,
+.searchTabsMobileWeb-tab .int-he {
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 22px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: normal;
+  text-align: center;
+}
+.searchTabsMobileWeb-tab.active {
+  color: var(--Semantic-Text-Primary, #121212);
+  border-bottom-color: var(--light-grey);
+}
+.searchTabsMobileWeb-count {
+  display: inline-block;
+  min-width: 24px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  margin-inline-start: 8px;
+  background-color: var(--lighter-grey);
+  border-radius: 4px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dark-grey);
+  text-align: center;
+}
+.searchTabsMobileWeb-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  pointer-events: none;
+}
+.searchTabsMobileWeb-gradient.right {
+  right: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+}
+.searchTabsMobileWeb-gradient.left {
+  left: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0), #fff);
 }
 .searchContent .searchTopMatter {
   position: relative;
@@ -3967,6 +4105,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .singlePanel .searchContent .searchTopMatter {
   border-bottom: 1px solid var(--light-grey);
   padding-bottom: 5px;
+  justify-content: flex-end;
 }
 .searchTopMatter .type-buttons {
   display: flex;
@@ -4002,11 +4141,53 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   border-bottom: 4px solid var(--medium-grey);
 }
+.searchToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 216px;
+  padding: 4px;
+  background: #fafafa;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 9999px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.searchToggle__slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  background: white;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.searchToggle__option {
+  position: relative;
+  z-index: 1;
+  width: 104px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--darker-grey);
+  white-space: nowrap;
+  text-align: center;
+  transition: color 150ms ease;
+}
+.searchToggle__option--active {
+  color: #121212;
+  font-weight: 600;
+}
 
 .searchContent .searchResultList {
-  padding-top: 25px;
-  max-width: 665px;
-  padding-top: 25px;
   max-width: 665px;
 }
 
@@ -4142,6 +4323,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dropdown-button.buttonStyle:hover {
   text-decoration: none;
 }
+.dropdown-button.buttonStyle.disabled {
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
 .message-modal {
   position: fixed;
   text-align: center;
@@ -4181,8 +4368,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   margin-bottom: 20px;
 }
+.searchContent .sidebarLayout {
+  min-height: 100%;
+}
+.searchContent .navSidebar {
+  min-height: 100vh;
+}
+.searchContent .navSidebar .searchFilters {
+  /* Align the sidebar heading underline with the tab group underline:
+     search bar (45px) + its margin (20px) + tab row height above the shared line */
+  margin-top: 80px;
+}
 .searchContent .searchFilterGroup {
   margin-bottom:  30px;
+}
+.searchContent .searchFilterList {
+  padding-inline-start: 0;
 }
 .searchContent .searchFilterBoxes li {
   display: flex;
@@ -4399,6 +4600,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 15px;
   border-top: 1px solid var(--light-grey);
 }
+.sortRadioList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sortRadioItem label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.sortRadioLabel {
+  color: var(--Semantic-Text-Primary, #121212);
+}
 .searchContent .result {
   padding-bottom: 20px;
 }
@@ -4523,6 +4739,586 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
 }
+
+/* "Loading more results..." — shown at the bottom of any search tab while the next page
+   loads on scroll. Small, non-italic grey, aligned to the card content inset. */
+.searchResultList .searchLoadMore,
+.entitySearchResults .searchLoadMore {
+  color: var(--medium-grey);
+  font-style: normal;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 16px 20px;
+}
+
+/* SearchResultCard — multi-entity search result card */
+.searchResultCard {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border-bottom: 1px solid var(--lighter-grey, #ededec);
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+  margin-bottom: 20px;
+  position: relative;
+  transition: box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.searchResultCard:hover {
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+  cursor: pointer;
+}
+.searchResultCard:focus-visible {
+  outline: 2px solid var(--navy, #18345d);
+  outline-offset: 2px;
+}
+.searchResultCard-bar {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+  background-color: #000;
+}
+.searchResultCard-content {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  min-width: 0;
+}
+.searchResultCard-content--centered {
+  align-items: center;
+}
+.searchResultCard-iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  background: var(--background-grey, #fafafa);
+}
+.searchResultCard-iconImg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  object-fit: contain;
+}
+/* Masked variant — used for book/text icons so background-color drives the category color */
+.searchResultCard-iconImg--masked {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+/* Topic icon is always black */
+.searchResultCard-iconImg--topic {
+  filter: brightness(0);
+}
+.searchResultCard-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.searchResultCard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.searchResultCard-titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+.searchResultCard-titleLink:hover .searchResultCard-name {
+  text-decoration: underline;
+}
+.searchResultCard-titleRow {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  overflow: hidden;
+  min-width: 0;
+  /* no flex-wrap: altName must shrink to nothing before title truncates */
+}
+.searchResultCard-name {
+  font-size: 24px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: var(--near-black, #121212);
+  flex-shrink: 0;    /* title never yields space to altName */
+  max-width: 100%;   /* but can't overflow the row when alone */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.interface-hebrew .searchResultCard-name {
+  font-size: 29px;
+}
+.searchResultCard-altName {
+  font-size: 24px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: var(--near-black, #121212);
+  flex-shrink: 1;    /* altName is first to give up space */
+  min-width: 0;      /* allows shrinking all the way to 0 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchResultCard-secondary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 15px;
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--medium-grey, #575757);
+}
+.searchResultCard-secondary-date,
+.searchResultCard-secondary-dot {
+  flex-shrink: 0;
+}
+.searchResultCard-secondary-author {
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.searchResultCard-secondary-authorAlt {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.searchResultCard-description {
+  font-size: 14px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 400;
+  line-height: 18px;
+  color: var(--dark-grey, #707070);
+  max-height: 72px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+/* Breadcrumbs */
+.searchResultCard-breadcrumbs {
+  position: relative;
+  width: 100%;
+  height: 20px;           /* single line — 12px caption line-height 20px */
+  flex-shrink: 0;
+}
+/* Hidden measurement layer — renders the full path off-screen */
+.searchResultCard-breadcrumbs-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Visible breadcrumb row — no overflow:hidden so the tooltip ::before
+   pseudo-element is not clipped. The JS truncation already ensures only
+   fitting nodes are rendered, so clipping is not needed. */
+.searchResultCard-breadcrumbs-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  height: 100%;
+}
+.searchResultCard-crumbChevron {
+  width: 12px;
+  height: 12px;
+  display: block;
+  flex-shrink: 0;
+}
+.interface-hebrew .searchResultCard-crumbChevron {
+  transform: scaleX(-1);
+}
+/* Target the InterfaceText spans directly: the .serif class on .readerPanel sets
+   --english-font/--hebrew-font to serif stacks, and the * rule in fonts.css applies
+   those vars to every child element including .int-en/.int-he, overriding inheritance.
+   Using --english-sans-serif-font-family (root-level var, never touched by .serif)
+   bypasses that cascade entirely. */
+.searchResultCard-crumb .int-en,
+.searchResultCard-description .int-en {
+  font-family: var(--english-sans-serif-font-family);
+}
+.searchResultCard-crumb .int-he,
+.searchResultCard-description .int-he {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+.searchResultCard-crumb {
+  font-size: 12px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--dark-grey, #707070);
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+/* Breadcrumb links — underline only the crumb being hovered */
+.searchResultCard-crumb--link:hover {
+  text-decoration: underline;
+  color: var(--sefaria-blue, #18345d);
+}
+/* Ellipsis breadcrumb — same hover style as a linked crumb */
+.searchResultCard-crumb--ellipsis {
+  cursor: default;
+}
+.searchResultCard-crumb--ellipsis:hover {
+  text-decoration: underline;
+  color: var(--sefaria-blue, #18345d);
+}
+/* Tooltip for the ellipsis — uses the existing .tooltip-toggle pattern.
+   Positioned above the ellipsis node; wider than the default 140 px to
+   accommodate multiple crumb labels joined by " > ". */
+.searchResultCard-crumb--ellipsis.tooltip-toggle::before {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-width: 100px;
+  max-width: 320px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+@media (max-width: 600px) {
+  .searchResultCard--books .searchResultCard-description {
+    display: none;
+  }
+  /* Title gets two lines on mobile; altName is hidden to avoid layout conflict */
+  .searchResultCard-titleRow {
+    display: block;
+  }
+  .searchResultCard-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    max-width: 100%;
+  }
+  .searchResultCard-altName {
+    display: none;
+  }
+}
+
+/* ── Sources mode card extensions ────────────────────────────────────── */
+.searchResultCard--sources .searchResultCard-body {
+  gap: 8px;
+}
+.searchResultCard-snippet {
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--near-black, #121212);
+  word-break: break-word;
+}
+.searchResultCard-snippet.he {
+  font-family: "Taamey Frank CLM", "FrankRuehl", serif;
+  direction: rtl;
+  text-align: right;
+}
+.searchResultCard-snippet.en {
+  font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
+}
+.searchResultCard-snippet b {
+  font-weight: 700;
+}
+.searchResultCard-versionName,
+.searchResultCard-versionName * {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--darker-grey, #575757);
+}
+.interface-hebrew .searchResultCard-versionName,
+.interface-hebrew .searchResultCard-versionName * {
+  font-family: "Heebo", sans-serif;
+  line-height: normal;
+}
+.searchResultCard-versionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.searchResultCard-versionsToggle,
+.searchResultCard-versionsToggle * {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--darker-grey, #575757);
+}
+.searchResultCard-versionsToggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: start;
+}
+.interface-hebrew .searchResultCard-versionsToggle,
+.interface-hebrew .searchResultCard-versionsToggle * {
+  font-family: "Heebo", sans-serif;
+  line-height: normal;
+}
+.searchResultCard-versionsToggle:hover,
+.searchResultCard-versionsToggle:hover * {
+  color: var(--near-black, #121212);
+}
+.searchResultCard-versionsChevron {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M13.5 11.25L9 6.75L4.5 11.25' stroke='%236F6F6F' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+.searchResultCard-versionsChevron.open {
+  transform: rotate(0deg);
+}
+.searchResultCard-versionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.searchResultCard-versionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--background-grey, #fafafa);
+}
+
+/* ── Search loading skeleton ──────────────────────────────────────────── */
+@keyframes searchSkeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes searchSkeletonShimmerRTL {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.searchLoadSkeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-grey) 25%,
+    #efefef 50%,
+    var(--skeleton-grey) 75%
+  );
+  background-size: 300% 100%;
+  animation: searchSkeletonShimmer 1.6s ease-in-out infinite;
+}
+
+.interface-hebrew .searchLoadSkeleton-shimmer {
+  animation-name: searchSkeletonShimmerRTL;
+}
+
+.searchLoadSkeleton-tabs {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--skeleton-grey);
+  width: 100%;
+}
+
+.searchLoadSkeleton-tab {
+  width: 100px;
+  height: 26px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.searchLoadSkeleton-sortRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 42px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-sort {
+  width: 68px;
+  height: 35px;
+  border-radius: 6px;
+}
+
+.searchLoadSkeleton-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  height: 145px;
+  box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
+              0 1px 2px 0  rgba(31,31,31,0.04),
+              0 8px 16px 0 rgba(31,31,31,0.05);
+}
+
+.searchLoadSkeleton-cardAccent {
+  width: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+  background: var(--skeleton-grey);
+}
+
+.searchLoadSkeleton-cardContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 20px;
+  min-width: 0;
+}
+
+.searchLoadSkeleton-cardTitle {
+  height: 18px;
+  width: 320px;
+  max-width: 100%;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.searchLoadSkeleton-cardLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.searchLoadSkeleton-cardLine {
+  height: 10px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+/* ── No search results ──────────────────────────────────────────── */
+.noSearchResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 16px;
+}
+
+.noSearchResults-image {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.noSearchResults-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+}
+
+.noSearchResults-textGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.noSearchResults-heading {
+  font-size: 30px;
+  color: #121212;
+  font-weight: 400;
+  margin: 0;
+}
+
+.noSearchResults-body {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  color: var(--darker-grey);
+  margin: 0;
+}
+
+.noSearchResults-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  padding: 0 16px;
+  background: var(--sefaria-blue);
+  border: 1.5px solid var(--sefaria-blue);
+  border-radius: 4px;
+  color: #fff;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.noSearchResults-cta:hover {
+  color: #fff;
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.noSearchResults-caption {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 14px;
+  line-height: 18px;
+  color: #707070;
+  text-align: center;
+  margin: 0;
+}
+
+.noSearchResults-captionLink {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+}
+
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
@@ -15773,3 +16569,85 @@ span.ref-link-color-3 {color: blue}
 }
 
 /* ========== GUIDE OVERLAY COMPONENT STYLES - END ========== */
+
+/* ========== SEARCH SORT DROPDOWN ========== */
+.searchSortBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 42px;
+}
+.searchSortDropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  margin: 8px;
+  background-color: #ededec;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  color: #575757;
+  user-select: none;
+  outline: none;
+}
+.interface-hebrew .searchSortDropdown {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+.searchSortDropdown:hover,
+.searchSortDropdown:focus-visible {
+  background-color: #dfdfdf;
+}
+.searchSortDropdown__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.searchSortDropdown__chevron {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.searchSortDropdown.open .searchSortDropdown__chevron {
+  transform: rotate(180deg);
+}
+.searchSortDropdown.disabled {
+  color: var(--medium-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.5;
+}
+/* ========== SEARCH SORT DROPDOWN - END ========== */
+
+/* ========== MOBILE FILTER ICON BUTTON ========== */
+.mobileFilterIconButton {
+  display: inline-flex;
+  padding: 8px;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  user-select: none;
+}
+.mobileFilterIconButton img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.mobileFilterIconButton:active {
+  background-color: var(--lighter-grey);
+}
+body.user-is-tabbing .mobileFilterIconButton:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+.mobileFilterIconButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/* ========== MOBILE FILTER ICON BUTTON - END ========== */
