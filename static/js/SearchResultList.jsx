@@ -217,4 +217,4 @@ const SearchFilterButton = ({openMobileFilters, nFilters}) => (
 );
 
 
-export { SearchResultList, SearchFilterButton, SearchSortBox };
+export { SearchResultList, SearchFilterButton, SearchSortBox, SearchTopic };
