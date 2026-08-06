@@ -435,8 +435,27 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    # Set true only for prod/preprod cronjobs that intentionally swap the shared "text"/"sheet"
+    # aliases. Cauldrons must never set this; use localSettings.ISOLATE_SEARCH_INDEXES instead.
+    allowSharedIndex: false
     SEARCH_HOST_ES6: ""
     SEARCH_HOST_ES8: ""
+    shardCount: 8
+    # Bounds a single shard's runtime. A wedged shard has been observed spinning at ~500m CPU
+    # with zero bulk writes and zero log output for hours with no crash - without a deadline
+    # it runs forever, and (with concurrencyPolicy: Forbid) blocks every future scheduled
+    # reindex too. Shards that completed took ~2-3h, so 6h is generous but bounded.
+    shardActiveDeadlineSeconds: 21600
+    orchestratorResources:
+      requests:
+        memory: "4Gi"
+      limits:
+        memory: "6Gi"
+    shardResources:
+      requests:
+        memory: "8Gi"
+      limits:
+        memory: "12Gi"
   topicsIndexing:
     enabled: false
   trello:
@@ -458,6 +477,11 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
   SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
+  # When true, appends "-<deployEnv>" to the ES index base names above so a cauldron gets its own
+  # isolated indexes/alias on the shared dev Elasticsearch cluster instead of colliding with
+  # prod's "text"/"sheet" names. Cauldrons opt in via build/ci/sandbox-values.yaml.
+  # prod/preprod MUST leave this false.
+  ISOLATE_SEARCH_INDEXES: false
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"

@@ -213,6 +213,7 @@ spec:
         enabled: true
       reindexElasticSearch:
         enabled: true
+        allowSharedIndex: true
       topicsIndexing:
         enabled: true
       trello:

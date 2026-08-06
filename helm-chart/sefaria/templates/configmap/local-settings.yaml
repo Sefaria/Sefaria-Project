@@ -36,8 +36,21 @@ data:
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}
   SEARCH_SSL_ENABLE: {{ .Values.nginx.SEARCH_SSL_ENABLE | quote }}
-  SEARCH_INDEX_NAME_TEXT: {{ .Values.localSettings.SEARCH_INDEX_NAME_TEXT | quote }}
-  SEARCH_INDEX_NAME_SHEET: {{ .Values.localSettings.SEARCH_INDEX_NAME_SHEET | quote }}
+  {{- $searchIndexNameText := tpl .Values.localSettings.SEARCH_INDEX_NAME_TEXT . }}
+  {{- $searchIndexNameSheet := tpl .Values.localSettings.SEARCH_INDEX_NAME_SHEET . }}
+  {{- /* Only derive a name when this environment is still on the shared default. An environment
+         that already supplies its own index name (cauldrons get one at deploy time) is left
+         alone, so this stays idempotent and never suffixes an already-isolated name. */}}
+  {{- if .Values.localSettings.ISOLATE_SEARCH_INDEXES }}
+  {{- if eq $searchIndexNameText "text" }}
+  {{- $searchIndexNameText = printf "text-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- if eq $searchIndexNameSheet "sheet" }}
+  {{- $searchIndexNameSheet = printf "sheet-%s" .Values.deployEnv }}
+  {{- end }}
+  {{- end }}
+  SEARCH_INDEX_NAME_TEXT: {{ $searchIndexNameText | quote }}
+  SEARCH_INDEX_NAME_SHEET: {{ $searchIndexNameSheet | quote }}
   {{- if .Values.tasks.enabled }}
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}

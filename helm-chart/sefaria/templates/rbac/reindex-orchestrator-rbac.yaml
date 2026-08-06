@@ -1,0 +1,36 @@
+{{- if .Values.cronJobs.reindexElasticSearch.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.deployEnv }}-reindex-orchestrator
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.deployEnv }}-reindex-orchestrator
+rules:
+  # The orchestrator creates the shard Indexed Job, polls its status to run the
+  # barrier, and deletes a stale prior job before recreating. That is the entire
+  # Kube-API surface — no configmap/secret reads: shard pods receive config via
+  # envFrom (names only), resolved by the kubelet, per the 2026-07-13 decision.
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs/status"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.deployEnv }}-reindex-orchestrator
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.deployEnv }}-reindex-orchestrator
+roleRef:
+  kind: Role
+  name: {{ .Values.deployEnv }}-reindex-orchestrator
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

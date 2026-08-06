@@ -6,8 +6,10 @@ Writes to MongoDB Collection: index_queue
 """
 from datetime import datetime, timedelta
 import logging
+import os
 import re
 import sys
+import threading
 import bleach
 import pymongo
 
@@ -17,7 +19,7 @@ import time as pytime
 from elastic_transport import ConnectionError as ESConnectionError, ConnectionTimeout
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
-from elasticsearch.exceptions import NotFoundError
+from elasticsearch.exceptions import NotFoundError, ApiError
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
@@ -56,6 +58,33 @@ _indexer_es_client = get_elasticsearch_client_for_indexer()
 MAX_RETRY_ATTEMPTS = 200
 RETRY_SLEEP_SECONDS = 5
 PROGRESS_LOG_EVERY_N = 100
+
+# A wedged shard used to go completely silent - zero log output, zero bulk writes, no crash -
+# until it was killed by activeDeadlineSeconds hours later. This heartbeat makes that state
+# loud: a daemon thread that WARNs if the title loop hasn't advanced in this many seconds,
+# naming the title it is stuck on. Daemon so it can never keep the process alive on its own.
+try:
+    REINDEX_HEARTBEAT_SECONDS = int(os.environ.get("REINDEX_HEARTBEAT_SECONDS", 300))
+except (TypeError, ValueError):
+    REINDEX_HEARTBEAT_SECONDS = 300
+
+# elasticsearch.helpers.bulk defaults to a 100MB max_chunk_bytes per request. With N
+# shards flushing concurrently, that is N*100MB of in-flight coordinating bytes against
+# a cluster whose write buffer is capped far lower (indices.breaker.total.limit-ish, e.g.
+# ~215MB) - the old serial indexer only ever had one writer so it never hit this. Bound
+# the per-request size so aggregate in-flight bytes across all shards stays bounded.
+_MIN_BULK_CHUNK_BYTES = 1024 * 1024  # 1MB floor - never let a bad env value shrink chunks to nothing
+try:
+    REINDEX_BULK_MAX_CHUNK_BYTES = max(
+        _MIN_BULK_CHUNK_BYTES, int(os.environ.get("REINDEX_BULK_MAX_CHUNK_BYTES", 10 * 1024 * 1024))
+    )
+except (TypeError, ValueError):
+    REINDEX_BULK_MAX_CHUNK_BYTES = 10 * 1024 * 1024
+
+# 429 es_rejected_execution_exception backoff for _flush_bulk_actions
+BULK_429_MAX_RETRIES = 6
+BULK_429_INITIAL_BACKOFF_SECONDS = 2
+BULK_429_MAX_BACKOFF_SECONDS = 60
 
 
 def delete_text(oref, version, lang):
@@ -144,28 +173,27 @@ def index_sheet(index_name, id):
     if not sheet:
         return False  # Sheet not found - tracked as failed
     
-    # Validate all critical fields upfront
+    # Only `owner` is truly required. summary/dates are optional schema fields
+    # (absent on legacy sheets) — ES indexes them as null. Treating them as
+    # required silently dropped ~71% of public sheets.
     owner_id = sheet.get("owner")
-    sheet_title = sheet.get("title")
+    if not owner_id:
+        return False  # genuinely cannot build a sheet doc without an owner
+
+    sheet_title = sheet.get("title") or ""
     summary = sheet.get("summary")
     datePublished = sheet.get("datePublished")
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
-    
-    if any(x is None for x in [summary, datePublished, dateCreated, dateModified]) or not (owner_id and sheet_title):
-        return False  # Missing critical sheet fields - tracked as failed
-    
+
     pud = public_user_data(owner_id)
     if not pud:
-        return False  # Could not get user data - tracked as failed
-    
-    owner_name = pud.get("name")
-    owner_image = pud.get("imageUrl")
-    profile_url = pud.get("profileUrl")
-    owner_link = user_link(owner_id)
-    
-    if not all([owner_name, owner_image, profile_url, owner_link]):
-        return False  # Missing critical user fields - tracked as failed
+        pud = {"name": "", "imageUrl": "", "profileUrl": ""}
+
+    owner_name = pud.get("name", "")
+    owner_image = pud.get("imageUrl", "")
+    profile_url = pud.get("profileUrl", "")
+    owner_link = user_link(owner_id) or ""
     
     topics = make_sheet_topics(sheet)
     collections = CollectionSet({"sheets": id, "listed": True})
@@ -194,7 +222,7 @@ def index_sheet(index_name, id):
         es_client.create(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
-        # Error indexing - skip silently, will be tracked as failed
+        logger.warning(f"Failed to index sheet {id}: {type(e).__name__}: {e}")
         return False
 
 def make_sheet_text(sheet, pud):
@@ -203,14 +231,9 @@ def make_sheet_text(sheet, pud):
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    # Validate critical fields - title and summary are required
-    title = sheet.get("title")
-    summary = sheet.get("summary")
-    if not title or not summary:
-        # Critical fields missing - raise exception to be caught and tracked as failed
-        raise ValueError(f"Missing critical fields: title={title is not None}, summary={summary is not None}")
-    
-    text = f"{title}\n{summary}"
+    title = sheet.get("title") or ""
+    summary = sheet.get("summary") or ""
+    text = " ".join([t for t in [title, summary] if t])
     
     # Null-safety for author name
     author_name = pud.get("name") if pud else None
@@ -342,6 +365,23 @@ def create_index(index_name, type, force=False):
         logger.debug(f"Sheet mapping applied successfully - index_name: {index_name}")
     else:
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
+
+
+def set_index_bulk_load_settings(index_name):
+    """Disable refresh + replicas for fast bulk ingest. Restore via restore_index_settings()."""
+    index_client.put_settings(index=index_name, body={
+        "index": {"refresh_interval": "-1", "number_of_replicas": 0}
+    })
+    logger.info(f"Set bulk-load settings (refresh=-1, replicas=0) - index: {index_name}")
+
+
+def restore_index_settings(index_name, refresh_interval="1s", number_of_replicas=1):
+    """Restore production settings after bulk ingest and force a refresh so docs are searchable."""
+    index_client.put_settings(index=index_name, body={
+        "index": {"refresh_interval": refresh_interval, "number_of_replicas": number_of_replicas}
+    })
+    index_client.refresh(index=index_name)
+    logger.info(f"Restored settings (refresh={refresh_interval}, replicas={number_of_replicas}) + refreshed - index: {index_name}")
 
 
 def put_text_mapping(index_name):
@@ -497,10 +537,16 @@ def get_search_categories(oref, categories):
 
 
 class TextIndexer(object):
-    
+
     # Class-level failure tracking
     _failed_versions = None
     _skipped_versions = None
+
+    # Progress/heartbeat state - set at the top of every title-loop iteration and read by
+    # the heartbeat thread. cls._current_title survives a crash/OOM for postmortem log
+    # scraping; cls._last_progress_monotonic is what the heartbeat compares across polls.
+    _current_title = None
+    _last_progress_monotonic = None
 
     @classmethod
     def clear_cache(cls):
@@ -536,30 +582,85 @@ class TextIndexer(object):
         })
 
     @classmethod
+    def _mark_progress(cls, title=None):
+        """Record forward progress for the stall heartbeat. Called at the top of every
+        title-loop iteration (with the title) and after every bulk flush (without one) so
+        the heartbeat thread has a fresh timestamp even during a long single-title flush."""
+        if title is not None:
+            cls._current_title = title
+        cls._last_progress_monotonic = pytime.monotonic()
+
+    @classmethod
+    def _heartbeat_loop(cls, stop_event, shard_index=None, shard_count=None):
+        """Runs in a daemon thread for the duration of index_all. If no forward progress
+        (title loop or bulk flush) has happened since the previous heartbeat, log a WARNING
+        naming the current title and how long it has been stuck - this is the only way to
+        tell a wedged shard from a slow-but-alive one, since a wedge otherwise produces zero
+        log output until it is eventually killed."""
+        last_seen = cls._last_progress_monotonic
+        shard_label = f"Shard {shard_index}/{shard_count}: " if shard_index is not None else ""
+        while not stop_event.wait(REINDEX_HEARTBEAT_SECONDS):
+            progress_ts = cls._last_progress_monotonic
+            if progress_ts is not None and progress_ts == last_seen:
+                stuck_seconds = int(pytime.monotonic() - progress_ts)
+                logger.warning(
+                    f"{shard_label}No progress in the last {REINDEX_HEARTBEAT_SECONDS}s - "
+                    f"currently on title: {cls._current_title}, stuck for ~{stuck_seconds}s"
+                )
+            last_seen = progress_ts
+
+    @classmethod
     def _flush_bulk_actions(cls, in_flight_versions):
         """Flush bulk actions; absorb connection failures, propagate everything else.
 
         Returns the number of versions reclassified as failed.
         """
+        cls._mark_progress()
         if not cls._bulk_actions:
             return 0
-        try:
-            bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
-                 raise_on_error=False, request_timeout=120)
-            cls._bulk_actions = []
-            return 0
-        except (ESConnectionError, ConnectionTimeout) as e:
-            # Both are siblings under TransportError, not parent/child — list explicitly.
-            logger.warning(
-                f"Bulk indexing failed: {type(e).__name__}: {e}; "
-                f"continuing with next index"
-            )
-            for v in in_flight_versions:
-                cls._add_failed_version(
-                    v, f"Bulk write failed: {e}", type(e).__name__
+        backoff = BULK_429_INITIAL_BACKOFF_SECONDS
+        attempt = 0
+        while True:
+            try:
+                bulk(_indexer_es_client, cls._bulk_actions, stats_only=True,
+                     raise_on_error=False, request_timeout=120,
+                     max_retries=3, initial_backoff=2, max_backoff=60,
+                     max_chunk_bytes=REINDEX_BULK_MAX_CHUNK_BYTES)
+                cls._bulk_actions = []
+                return 0
+            except (ESConnectionError, ConnectionTimeout) as e:
+                # Both are siblings under TransportError, not parent/child — list explicitly.
+                logger.warning(
+                    f"Bulk indexing failed: {type(e).__name__}: {e}; "
+                    f"continuing with next index"
                 )
-            cls._bulk_actions = []
-            return len(in_flight_versions)
+                for v in in_flight_versions:
+                    cls._add_failed_version(
+                        v, f"Bulk write failed: {e}", type(e).__name__
+                    )
+                cls._bulk_actions = []
+                return len(in_flight_versions)
+            except ApiError as e:
+                # elasticsearch.helpers.bulk only retries items that come back inside an
+                # HTTP-200 bulk response. A whole-request 429 (es_rejected_execution_exception,
+                # coordinating bytes over the cluster's write buffer) is raised here instead,
+                # and would otherwise kill this shard outright. Absorb it with backoff; any
+                # other ApiError is a real failure and must propagate loudly.
+                if getattr(e, "status_code", None) != 429:
+                    raise
+                attempt += 1
+                if attempt > BULK_429_MAX_RETRIES:
+                    logger.warning(
+                        f"Bulk indexing exhausted 429 retry budget after {attempt - 1} "
+                        f"attempts: {e}; giving up"
+                    )
+                    raise
+                logger.warning(
+                    f"Bulk indexing rejected with 429 (cluster write buffer full); "
+                    f"retrying attempt {attempt}/{BULK_429_MAX_RETRIES} in {backoff}s: {e}"
+                )
+                pytime.sleep(backoff)
+                backoff = min(backoff * 2, BULK_429_MAX_BACKOFF_SECONDS)
 
 
     @classmethod
@@ -621,7 +722,7 @@ class TextIndexer(object):
                 raise e
 
     @classmethod
-    def get_all_versions(cls, tries=0, versions=None, page=0):
+    def get_all_versions(cls, tries=0, versions=None, page=0, query=None):
         if page == 0:
             logger.debug("Starting to fetch all versions from database")
         versions = versions or []
@@ -630,7 +731,7 @@ class TextIndexer(object):
             temp_versions = []
             first_run = True
             while first_run or len(temp_versions) > 0:
-                temp_versions = VersionSet(limit=version_limit, page=page).array()
+                temp_versions = VersionSet(query or {}, limit=version_limit, page=page).array()
                 versions += temp_versions
                 page += 1
                 first_run = False
@@ -644,7 +745,9 @@ class TextIndexer(object):
                 if tries % 10 == 0:
                     logger.warning(f"MongoDB AutoReconnect while fetching versions, retrying - attempt: {tries}, versions_so_far: {len(versions)}")
                 pytime.sleep(RETRY_SLEEP_SECONDS)
-                return cls.get_all_versions(tries+1, versions, page)
+                # query must be threaded through the retry, or a mid-fetch AutoReconnect
+                # would silently drop back to loading the entire corpus.
+                return cls.get_all_versions(tries+1, versions, page, query)
             else:
                 logger.error(f"get_all_versions failed after max retries - attempts: {tries}, versions_retrieved: {len(versions)}")
                 raise e
@@ -657,7 +760,97 @@ class TextIndexer(object):
         ]
 
     @classmethod
-    def index_all(cls, index_name, debug=False, for_es=True, action=None):
+    def _index_size_map(cls):
+        """Real per-title size proxy: for each VersionState, sum the available section counts
+        (across "he" and "en") reported across all LEAF schema nodes. This tracks how much text
+        index_all actually has to load and index per title, which is what drives per-shard
+        memory use. Counts are summed over leaf nodes - not just the root - because complex/
+        structured texts (e.g. commentaries with multiple sub-sections) carry their
+        availableCounts on the leaf schema nodes, not the root node; for a simple text the root
+        node IS a leaf, so get_leaf_nodes() naturally returns just that node and the simple case
+        is unaffected. Returns {title: weight}, weight always >= 1.
+        Individual VersionStates can fail (e.g. orphaned VersionStates left behind after their
+        Index was deleted) - those are counted and reported in one aggregated warning after the
+        loop, not logged per-failure, since a shard-count x per-VersionState-failure log would
+        spam the logs. If the whole computation raises, or the resulting map ends up empty or
+        uniform (every weight identical - the degenerate case that silently broke balancing
+        before), a WARNING is logged that shard balancing is DEGRADED and shards may be
+        unbalanced/OOM. On total failure, {} is returned rather than pretending balancing
+        succeeded."""
+        sizes = {}
+        failed = 0
+        try:
+            for vs in VersionStateSet():
+                title = getattr(vs, "title", None)
+                if not title:
+                    continue
+                try:
+                    weight = 0
+                    for leaf in vs.index.nodes.get_leaf_nodes():
+                        sn = vs.state_node(leaf)
+                        for lang in ("he", "en"):
+                            # get_available_counts can return None/falsy for complex texts
+                            # missing counts on a given node/lang - guard before summing.
+                            counts = sn.get_available_counts(lang)
+                            if counts:
+                                weight += sum(x for x in counts if isinstance(x, int))
+                except Exception:
+                    failed += 1
+                    continue
+                sizes[title] = max(weight, 1)
+        except Exception as e:
+            logger.warning(f"Failed to build index size map from VersionStates - shard balancing is DEGRADED, shards may be unbalanced/OOM: {e}")
+            return {}
+        if failed:
+            logger.warning(f"Skipped {failed} VersionState(s) while building index size map (likely orphaned VersionStates with no matching Index)")
+        if not sizes:
+            logger.warning("Index size map is empty - shard balancing is DEGRADED, shards may be unbalanced/OOM")
+        elif len(set(sizes.values())) == 1:
+            logger.warning("Index size map has uniform weights - shard balancing is DEGRADED, shards may be unbalanced/OOM")
+        return sizes
+
+    @classmethod
+    def _snake_assign(cls, keys, shard_index, shard_count, weight_fn):
+        """Deterministically pick this shard's keys out of `keys`, a collection of
+        (title, lang) tuples. Snake-distributes keys sorted by descending weight_fn(key)
+        so the heavy head spreads evenly across shards. Returns a set of selected keys."""
+        # stable, deterministic ordering: by descending weight, then by key
+        ordered = sorted(keys, key=lambda k: (-weight_fn(k), k))
+        selected = set()
+        for pos, key in enumerate(ordered):
+            # snake: 0..N-1, then N-1..0, repeating -> balances big items across shards
+            cycle = pos // shard_count
+            offset = pos % shard_count
+            assigned = offset if cycle % 2 == 0 else (shard_count - 1 - offset)
+            if assigned == shard_index:
+                selected.add(key)
+        return selected
+
+    @classmethod
+    def _select_shard_keys(cls, keys, shard_index, shard_count, size_map=None):
+        """Same snake selection as _select_shard_groups, but operating on bare (title, lang)
+        keys instead of a versions_by_index dict - lets index_all pick this shard's titles
+        from a metadata-only projection, before any Version (with text) is loaded."""
+        if not size_map:
+            logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
+        size_map = size_map or {}
+        # no versions_by_index here to fall back on for weight, so use a constant
+        weight_fn = lambda key: size_map.get(key[0], 1)
+        return cls._snake_assign(keys, shard_index, shard_count, weight_fn)
+
+    @classmethod
+    def _select_shard_groups(cls, versions_by_index, shard_index, shard_count, size_map=None):
+        """Deterministically pick this shard's (title, lang) groups.
+        Snake-distribute groups sorted by descending size so the heavy head spreads evenly."""
+        if not size_map:
+            logger.warning("No size map provided - falling back to uniform weights, shard memory may be unbalanced")
+        size_map = size_map or {}
+        weight_fn = lambda key: size_map.get(key[0], len(versions_by_index[key]))
+        selected_keys = cls._snake_assign(versions_by_index.keys(), shard_index, shard_count, weight_fn)
+        return {key: versions_by_index[key] for key in versions_by_index if key in selected_keys}
+
+    @classmethod
+    def index_all(cls, index_name, debug=False, for_es=True, action=None, shard_index=None, shard_count=None):
         start_time = datetime.now()
         cls.index_name = index_name
         
@@ -671,19 +864,48 @@ class TextIndexer(object):
         logger.debug("Clearing Ref cache to save RAM")
         Ref.clear_cache()
 
-        # Get and sort versions
-        logger.debug("Sorting versions by priority")
-        versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
-        versions_by_index = {}
-        
-        # Organize by index for the merged case
-        for v in versions:
-            key = (v.title, v.language)
-            if key in versions_by_index:
-                versions_by_index[key] += [v]
-            else:
-                versions_by_index[key] = [v]
-        
+        if shard_index is not None and shard_count is not None:
+            # Sharded path: pick this shard's (title, lang) groups from METADATA ONLY -
+            # a cheap projection over VersionState/Version, no text loaded - so we know
+            # which titles to load BEFORE loading any of them. Loading everything first
+            # and filtering after (the old behavior) defeats sharding's memory benefit:
+            # every shard would hold the whole corpus in RAM just to discard most of it.
+            size_map = cls._index_size_map()
+            keys = set()
+            for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
+                if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
+                    keys.add((v.get("title"), v.get("language")))
+            selected_keys = cls._select_shard_keys(keys, shard_index, shard_count, size_map)
+            titles = sorted({t for (t, l) in selected_keys})
+
+            logger.debug("Sorting versions by priority")
+            versions = sorted(
+                [x for x in cls.get_all_versions(query={"title": {"$in": titles}})
+                 if (x.title, x.versionTitle, x.language) in cls.version_priority_map
+                 and (x.title, x.language) in selected_keys],
+                key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0]
+            )
+            versions_by_index = {}
+            for v in versions:
+                key = (v.title, v.language)
+                versions_by_index.setdefault(key, []).append(v)
+
+            logger.info(f"Shard {shard_index}/{shard_count}: indexing {len(versions_by_index)} of the title groups")
+            logger.info(f"Shard {shard_index}/{shard_count}: loaded {len(versions)} versions for {len(titles)} titles")
+        else:
+            # Get and sort versions
+            logger.debug("Sorting versions by priority")
+            versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+            versions_by_index = {}
+
+            # Organize by index for the merged case
+            for v in versions:
+                key = (v.title, v.language)
+                if key in versions_by_index:
+                    versions_by_index[key] += [v]
+                else:
+                    versions_by_index[key] = [v]
+
         total_versions = len(versions)
         total_indexes = len(versions_by_index)
         logger.debug(f"Beginning text indexing - total_versions: {total_versions}, total_indexes: {total_indexes}")
@@ -693,11 +915,41 @@ class TextIndexer(object):
         skipped = 0
         failed = 0
         versions = None  # release RAM
-        
+
+        cls._current_title = None
+        cls._mark_progress()
+        heartbeat_stop = threading.Event()
+        heartbeat_thread = threading.Thread(
+            target=cls._heartbeat_loop,
+            args=(heartbeat_stop, shard_index, shard_count),
+            daemon=True,
+        )
+        heartbeat_thread.start()
+
+        try:
+            vcount, skipped, failed = cls._index_all_titles(
+                versions_by_index, total_indexes, start_time, for_es, action,
+                vcount, skipped, failed, shard_index, shard_count,
+            )
+        finally:
+            heartbeat_stop.set()
+
+        elapsed = datetime.now() - start_time
+        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+
+    @classmethod
+    def _index_all_titles(cls, versions_by_index, total_indexes, start_time, for_es, action,
+                           vcount, skipped, failed, shard_index, shard_count):
+        """The per-title indexing loop, split out of index_all so the heartbeat thread wraps
+        it cleanly via try/finally. Returns the updated (vcount, skipped, failed) counters."""
+        shard_label = f"Shard {shard_index}/{shard_count}: " if shard_index is not None else ""
         for idx_count, (title, vlist) in enumerate(list(versions_by_index.items())):
+            title_name = title[0] if isinstance(title, tuple) else title
+            cls._mark_progress(title_name)
+
             if len(vlist) == 0:
                 continue
-            
+
             try:
                 cls.curr_index = vlist[0].get_index()
             except Exception as e:
@@ -757,12 +1009,15 @@ class TextIndexer(object):
                     vcount -= rolled_back
                     failed += rolled_back
 
-            if idx_count % 100 == 0:
+            if idx_count % PROGRESS_LOG_EVERY_N == 0:
                 elapsed_so_far = datetime.now() - start_time
-                logger.info(f"TextIndexer progress: {idx_count}/{total_indexes} indexes ({100*idx_count//total_indexes}%), {vcount} versions indexed, elapsed: {elapsed_so_far}")
+                logger.info(
+                    f"{shard_label}TextIndexer progress: {idx_count}/{total_indexes} indexes "
+                    f"({100*idx_count//total_indexes}%), current title: {title_name}, "
+                    f"{vcount} versions indexed, elapsed: {elapsed_so_far}"
+                )
 
-        elapsed = datetime.now() - start_time
-        logger.info(f"TextIndexer.index_all completed - total_indexed: {vcount}, total_skipped: {skipped}, total_failed: {failed}, elapsed: {elapsed}")
+        return vcount, skipped, failed
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
@@ -934,13 +1189,14 @@ class TextIndexer(object):
         }
 
 
-def index_sheets_by_timestamp(timestamp):
+def index_sheets_by_timestamp(timestamp, debug=False):
     """
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
+    :param debug: use debug index names when True
     """
-    logger.debug(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}")
+    logger.debug(f"Starting index_sheets_by_timestamp - timestamp: {timestamp}, debug: {debug}")
     
-    name_dict = get_new_and_current_index_names('sheet', debug=False)
+    name_dict = get_new_and_current_index_names('sheet', debug=debug)
     curr_index_name = name_dict.get('current')
     logger.debug(f"Using sheet index - index_name: {curr_index_name}")
     
@@ -1141,9 +1397,7 @@ def index_all(skip=0, debug=False):
         raise
     
     # Clear index queue
-    logger.debug("Clearing stale index queue")
-    deleted = db.index_queue.delete_many({})
-    logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
+    clear_index_queue()
     
     end = datetime.now()
     total_elapsed = end - start
@@ -1152,59 +1406,165 @@ def index_all(skip=0, debug=False):
     logger.info("=" * 60)
 
 
+def clear_index_queue():
+    """Remove all entries from the index queue after a full reindex."""
+    logger.debug("Clearing stale index queue")
+    deleted = db.index_queue.delete_many({})
+    logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
+    return deleted.deleted_count
+
+
+def _index_doc_count(index_name):
+    """Doc count for an index. Returns 0 if the index is absent (legit, e.g. first run),
+    or None if the count could not be read (transient error) so callers can fail closed."""
+    try:
+        if not index_client.exists(index=index_name):
+            return 0
+    except Exception as e:
+        logger.warning(f"Could not check index existence - index: {index_name}, error: {e}")
+        return None
+    try:
+        stats = index_client.stats(index=index_name)
+        return stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
+    except Exception as e:
+        logger.warning(f"Could not read index doc count - index: {index_name}, error: {e}")
+        return None
+
+
+def _assert_not_shared_index(alias, type):
+    """
+    Refuse to operate on a shared/default index alias ("text" / "sheet") unless explicitly
+    allowed. The dev Elasticsearch cluster is shared across cauldrons, and both index creation
+    (reindex_init) and the alias swap (reindex_finalize -> _swap_alias_atomically, which does a
+    wildcard `remove`) are destructive to whatever else lives under that alias on a shared cluster.
+    """
+    shared_index_names = ("text", "sheet")
+    allow_shared_index = os.environ.get("REINDEX_ALLOW_SHARED_INDEX", "").lower() in ("1", "true", "yes")
+    if alias in shared_index_names and not allow_shared_index:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: alias {alias!r} is a shared default index "
+            f"name; operating on it risks destroying or stripping the alias from every index on a "
+            f"shared cluster (wildcard `remove` in _swap_alias_atomically). Refusing to proceed. Set "
+            f"ISOLATE_SEARCH_INDEXES=true (cauldron path) to give this environment its own indexes, "
+            f"or REINDEX_ALLOW_SHARED_INDEX=true (prod/preprod, intentional, informed opt-in) to proceed."
+        )
+
+
+def reindex_init(type, debug=False):
+    """
+    Phase 1: Create the new index with bulk-load settings.
+    Safe to call multiple times: reuses a partially-filled new index instead of wiping it.
+    Returns the names dict from get_new_and_current_index_names.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    _assert_not_shared_index(names['alias'], type)
+    new_index = names['new']
+    if index_client.exists(index=new_index):
+        doc_count = _index_doc_count(new_index)
+        if doc_count is None:
+            raise ValueError(
+                f"reindex_init failed for {type}: could not read doc count for in-progress index {new_index}"
+            )
+        if doc_count > 0:
+            logger.info(
+                f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
+            )
+            set_index_bulk_load_settings(new_index)
+            return names
+        logger.info(f"reindex_init recreating empty index - type: {type}, new_index: {new_index}")
+        create_index(new_index, type, force=True)
+    else:
+        create_index(new_index, type, force=False)
+    set_index_bulk_load_settings(new_index)
+    logger.info(f"reindex_init complete - type: {type}, new_index: {new_index}")
+    return names
+
+
+def reindex_index_shard(type, shard_index=None, shard_count=None, debug=False):
+    """
+    Phase 2: Index one shard (or the whole corpus if shard_index/shard_count are None)
+    into the existing new index. Does NOT create or alias-swap the index.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    if type == 'text':
+        TextIndexer.clear_cache()
+        TextIndexer.index_all(names['new'], debug=debug, shard_index=shard_index, shard_count=shard_count)
+    elif type == 'sheet':
+        index_public_sheets(names['new'])
+    else:
+        raise ValueError(f"Unknown index type: {type}")
+    logger.info(f"reindex_index_shard complete - type: {type}, shard: {shard_index}/{shard_count}")
+
+
+def _swap_alias_atomically(names):
+    """
+    Atomically repoint the stable alias at the new index.
+    Removes the alias from every index in one request, then adds it to the new index.
+    """
+    actions = [
+        {"remove": {"index": "*", "alias": names['alias'], "must_exist": False}},
+        {"add": {"index": names['new'], "alias": names['alias']}},
+    ]
+    index_client.update_aliases(body={"actions": actions})
+    logger.debug(
+        f"Atomically swapped alias - alias: {names['alias']}, new_index: {names['new']}, "
+        f"previous_index: {names['current']}"
+    )
+
+
+def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
+    """
+    Phase 3: Restore production index settings, run a sanity gate on doc counts,
+    then swap the alias and drop the old index.
+    """
+    names = get_new_and_current_index_names(type=type, debug=debug)
+    restore_index_settings(names['new'])
+    new_count = _index_doc_count(names['new'])
+    current_count = _index_doc_count(names['current'])
+    if new_count is None:
+        raise ValueError(f"Reindex sanity gate failed for {type}: could not read new index {names['new']} doc count; refusing alias swap")
+    if current_count is None:
+        raise ValueError(f"Reindex sanity gate failed for {type}: could not read current index {names['current']} doc count; refusing alias swap")
+    if current_count == 0 and new_count == 0:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: new index {names['new']} is empty and there is no current index; refusing alias swap"
+        )
+    if current_count > 0 and new_count < current_count * min_doc_ratio:
+        raise ValueError(
+            f"Reindex sanity gate failed for {type}: new index {names['new']} has {new_count} docs "
+            f"but current index {names['current']} has {current_count} "
+            f"(ratio {new_count/current_count:.2%} < required {min_doc_ratio:.0%}). Refusing alias swap."
+        )
+
+    # Defense in depth: reindex_init already checks this before creating/clearing any index,
+    # but finalize can be invoked independently and is the operation that does the wildcard
+    # alias strip, so re-check here too.
+    _assert_not_shared_index(names['alias'], type)
+
+    # Drop any erroneous physical index named like the alias before swapping
+    logger.debug("Switching aliases after indexing")
+    if index_client.exists(index=names['alias']):
+        clear_index(names['alias'])
+
+    _swap_alias_atomically(names)
+
+    if names['new'] != names['current']:
+        logger.debug(f"Cleaning up old index - old_index: {names['current']}")
+        clear_index(names['current'])
+
+    logger.info(f"reindex_finalize complete - type: {type}, alias -> {names['new']} ({new_count} docs)")
+
+
 def index_all_of_type(type, skip=0, debug=False):
     """
     Index all documents of a given type (text or sheet).
-    Handles index creation, alias switching, and cleanup.
+    Composes the three phase functions: init -> index_shard -> finalize.
+    Note: the ``skip`` parameter is accepted for backward compatibility but is no longer
+    forwarded; resume-from-skip is a no-op now that indexing is sharded/phase-split.
     """
-    index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    
-    logger.debug("=" * 40)
-    logger.debug(f"Starting index_all_of_type for '{type}' - type: {type}, new_index: {index_names_dict.get('new')}, current_index: {index_names_dict.get('current')}, alias: {index_names_dict.get('alias')}, skip: {skip}, debug: {debug}")
-    
-    # Check if new index already exists
-    new_exists = index_client.exists(index=index_names_dict.get('new'))
-    if new_exists:
-        try:
-            stats = index_client.stats(index=index_names_dict.get('new'))
-            doc_count = stats.get('_all', {}).get('primaries', {}).get('docs', {}).get('count', 0)
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}, existing_doc_count: {doc_count}")
-        except Exception:
-            logger.debug(f"New index already exists, will be recreated - index: {index_names_dict.get('new')}")
-    
-    # Countdown (keeping for backwards compatibility, but logging instead of just printing)
-    logger.debug("Starting countdown before indexing...")
-    for i in range(10):
-        remaining = 10 - i
-        logger.debug(f'STARTING IN T-MINUS {remaining}')
-        logger.debug(f"Countdown - seconds_remaining: {remaining}")
-        pytime.sleep(1)
-
-    # Perform the actual indexing
-    logger.debug(f"Beginning indexing operation - type: {type}, index_name: {index_names_dict.get('new')}")
-    index_all_of_type_by_index_name(type, index_names_dict.get('new'), skip, debug)
-
-    # Switch aliases
-    logger.debug("Switching aliases after indexing")
-    try:
-        index_client.delete_alias(index=index_names_dict.get('current'), name=index_names_dict.get('alias'))
-        logger.debug(f"Successfully deleted alias from old index - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
-    except NotFoundError:
-        logger.debug(f"Alias not found on old index (may be first run) - alias: {index_names_dict.get('alias')}, old_index: {index_names_dict.get('current')}")
-
-    # Clear any index with the alias name
-    clear_index(index_names_dict.get('alias'))
-
-    # Create new alias
-    index_client.put_alias(index=index_names_dict.get('new'), name=index_names_dict.get('alias'))
-    logger.debug(f"Successfully created alias for new index - alias: {index_names_dict.get('alias')}, new_index: {index_names_dict.get('new')}")
-
-    # Cleanup old index
-    if index_names_dict.get('new') != index_names_dict.get('current'):
-        logger.debug(f"Cleaning up old index - old_index: {index_names_dict.get('current')}")
-        clear_index(index_names_dict.get('current'))
-    
-    logger.debug(f"Completed index_all_of_type for '{type}' - type: {type}, final_index: {index_names_dict.get('new')}, alias: {index_names_dict.get('alias')}")
+    reindex_init(type, debug=debug)
+    reindex_index_shard(type, debug=debug)
+    reindex_finalize(type, debug=debug)
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force_recreate=True):
