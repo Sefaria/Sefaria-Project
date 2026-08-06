@@ -4415,6 +4415,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result-title {
   font-size: 24px;
   margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .sheetResult .result-title {
   --english-font: var(--english-sans-serif-font-family);
@@ -4476,6 +4480,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .result .result-title:hover {
   text-decoration: underline;
+}
+.resultOriginChip {
+  display: inline-block;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.resultOriginChip.semantic {
+  background-color: var(--highlight-blue-light);
+  color: var(--sefaria-blue);
+}
+.resultOriginChip.link {
+  background-color: #F1F1F0;
+  color: var(--medium-grey);
 }
 .readerPanel.english .searchContent .snippet.he,
 .readerPanel.hebrew .searchContent .snippet.en,
