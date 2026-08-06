@@ -1,0 +1,23 @@
+# Mergify configuration for cascading changes between long-term branches
+# Docs: https://docs.mergify.com/
+
+pull_request_rules:
+  # When a PR is merged into modularization-main, copy it to modularization-future
+  - name: Cascade changes from modularization-main to modularization-future
+    conditions:
+      - merged
+      - base = modularization-main
+    actions:
+      copy:
+        branches:
+          - modularization-future
+
+  # Auto-merge the cascaded PRs if no conflicts
+  - name: Auto-merge cascade PRs to modularization-future
+    conditions:
+      - base = modularization-future
+      - head ~= ^mergify/copy/
+      - "#conflicts = 0"
+    actions:
+      merge:
+        method: merge
