@@ -23,7 +23,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
@@ -33,7 +32,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -51,6 +50,7 @@ from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDele
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
+from sso.adapters import import_gravatar
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -93,8 +93,24 @@ class StaticViewMixin:
         context['renderStatic'] = True
         return context
 
-class CustomLoginView(StaticViewMixin, LoginView):
+class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
+    template_name = 'base.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("/")
+        return super().get(request, *args, **kwargs)
+
+    def render_to_response(self, context, **response_kwargs):
+        return render_template(
+            self.request, "base.html",
+            {"headerMode": False},
+            {
+                'title': _('Log in to Sefaria'),
+                'desc': _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.'),
+            }
+        )
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
@@ -153,16 +169,67 @@ class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
         # Don't call super().form_valid(form) as it would send the email again
         return HttpResponseRedirect(self.get_success_url())
 
-class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
+    template_name = 'base.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        # dispatch() calls this directly (bypassing get()/post()) whenever the
+        # link is invalid/expired — for BOTH GET and POST. Branch on method so
+        # an invalid-link POST still gets JSON, not an HTML page.
+        if self.request.method == 'POST':
+            try:
+                data = json.loads(self.request.body)
+            except (json.JSONDecodeError, ValueError):
+                data = {}
+            if data.get('action') == 'resend':
+                # dispatch() already resolved self.user from the URL's uidb64
+                # before checking token validity, so the account is known
+                # even though the link itself has expired.
+                if self.user is None:
+                    return jsonResponse({
+                        "error": "We couldn't find an account for this link.",
+                        "_auth": {"code": "no_account_for_link"},
+                    }, status=400)
+                form = SefariaPasswordResetForm(data={'email': self.user.email})
+                if form.is_valid():
+                    form.save(
+                        request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
+                        email_template_name='registration/password_reset_email.txt',
+                        html_email_template_name='registration/password_reset_email.html',
+                    )
+                return jsonResponse({})
+            return jsonResponse({
+                "error": "This password reset link is no longer valid.",
+                "_auth": {"code": "invalid_reset_link"},
+            }, status=400)
+        return render_template(
+            self.request, "base.html",
+            {
+                "headerMode": False,
+                "authResetUid": self.kwargs.get("uidb64", ""),
+                "authResetValid": bool(context.get("validlink")),
+            },
+            {'title': _('Reset Your Password'), 'desc': _('Reset your Sefaria account password.')},
+        )
+
+    def post(self, request, *args, **kwargs):
+        # Only reached when dispatch() already confirmed validlink=True.
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return jsonResponse({"error": "Invalid JSON"}, status=400)
+        form = self.form_class(user=self.user, data={
+            "new_password1": data.get("new_password1", ""),
+            "new_password2": data.get("new_password2", ""),
+        })
+        if not form.is_valid():
+            return jsonResponse({k: v[0] for k, v in form.errors.items()}, status=400)
+        form.save()
+        request.session.pop(INTERNAL_RESET_SESSION_TOKEN, None)
+        return jsonResponse({})
 
 def process_register_form(request, auth_method='session'):
-    from sefaria.utils.util import epoch_time
-    from sefaria.helper.file import get_resized_file
-    import hashlib
-    import urllib.parse, urllib.request
-    from google.cloud.exceptions import GoogleCloudError
-    from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
@@ -179,27 +246,10 @@ def process_register_form(request, auth_method='session'):
             # deliberately absent from the settings defaults, so a new account starts
             # with no value at all unless one is written here.
             p.settings[library_assistant.SETTING_KEY] = True
-
-
-            # auto-add profile pic from gravatar if exists
-            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
-            gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
-            try:
-                with urllib.request.urlopen(gravatar_url) as r:
-                    bucket_name = GoogleStorageManager.PROFILES_BUCKET
-                    with Image.open(r) as image:
-                        now = epoch_time()
-                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
-                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
-                        p.profile_pic_url = big_pic_url
-                        p.profile_pic_url_small = small_pic_url
-            except urllib.error.HTTPError as e:
-                logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
-            except urllib.error.URLError as e:
-                logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
-            except GoogleCloudError as e:
-                logger.warning("Error communicating with Google Storage Manager. {}".format(e))
             p.save()
+
+        import_gravatar(p)
+        p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
 
         if auth_method == 'session':
             auth_login(request, user)
@@ -219,14 +269,31 @@ def register_api(request):
     return jsonResponse(errors)
 
 
+# Maps Django's stable, language-independent error `code` (e.g. from CharField's built-in
+# "required" validation) to the SSO client's i18n key. Built-in field messages are gettext_lazy
+# and resolve to whatever language is active when read, not when raised, so matching message
+# text (as register_api/Mobile still does) silently breaks on non-English interfaces. Only
+# used for the web /register JSON path; codes with no entry here keep their message text
+# (e.g. clean_email's custom account-exists errors, which have no code and are always English).
+WEB_REGISTER_ERROR_CODES = {"required": "auth.required_field"}
+
+
+def _web_register_errors(form):
+    errors = {}
+    for field, field_errors in form.errors.as_data().items():
+        error = field_errors[0]
+        errors[field] = WEB_REGISTER_ERROR_CODES.get(error.code, error.messages[0])
+    return errors
+
+
 def register(request):
     if request.user.is_authenticated:
-        return redirect("login")
+        return redirect("/")
 
     next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
-        errors, _, form = process_register_form(request)
+        errors, __, form = process_register_form(request)
         if len(errors) == 0:
             if "new?assignment=" in request.POST.get("next", ""):
                 next_url = request.POST.get("next", "")
@@ -234,30 +301,30 @@ def register(request):
                 next_url = request.POST.get("next", "/")
                 parsed = urlparse(next_url)
                 next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if not url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                next_url = "/"
             if "noredirect" in request.POST:
                 return jsonResponse({"redirect": next_url})
             return HttpResponseRedirect(next_url)
         elif "noredirect" in request.POST:
-            return jsonResponse(errors)
+            return jsonResponse(_web_register_errors(form))
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
+    return render_template(request, "base.html", {"headerMode": False}, {
+        'form': form,
+        'next': next_url,
+        'title': _('Create an Account'),
+        'desc': _('Create an account on Sefaria to make source sheets, take notes and follow other people.'),
+    })
 
 
 def maintenance_message(request):
     resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
-
-
-def accounts(request):
-    return render_template(request,"registration/accounts.html", None, {
-        "createForm": UserCreationForm(),
-        "loginForm": AuthenticationForm()
-    })
 
 
 @csrf_exempt

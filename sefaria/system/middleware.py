@@ -86,28 +86,34 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     """
     Determines Interface and Content Language settings for each request.
     """
+    @staticmethod
+    def _interface_from_request_signals(request):
+        # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
+        interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
+        interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
+        # Don't allow languages other than what we currently handle
+        interface = 'english' if interface not in ('english', 'hebrew') else interface
+        return interface
+
     def process_request(self, request):
         excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
-            request.interfaceLang = "english"
+            request.interfaceLang = self._interface_from_request_signals(request)
+            request.LANGUAGE_CODE = request.interfaceLang[0:2]
             request.contentLang = "bilingual"
             request.translation_language_preference = None
             request.version_preferences_by_corpus = {}
             request.translation_language_preference_suggestion = None
-            return # Save looking up a UserProfile, or redirecting when not needed
+            return # Skips UserProfile lookup and domain-redirect; only resolves interfaceLang from cookie/header
 
         profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None
-        # INTERFACE 
+        # INTERFACE
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
-        if not interface: 
-            # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
-            interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
-            # Don't allow languages other than what we currently handle
-            interface = 'english' if interface not in ('english', 'hebrew') else interface
+            interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface
+        if not interface:
+            interface = self._interface_from_request_signals(request)
 
         # Check if the current domain is pinned to  particular language in settings
         domain_lang = current_domain_lang(request)
@@ -478,4 +484,29 @@ class ModuleMiddleware(MiddlewareURLMixin):
         # For template responses, add active_module to context
         if hasattr(response, 'context_data') and response.context_data is not None:
             response.context_data['active_module'] = request.active_module
+        return response
+
+
+class ClearSsoNextCookieMiddleware(MiddlewareMixin):
+    """
+    Deletes the `sefaria_sso_next` cookie (written by static/js/auth/useSsoSignIn.jsx,
+    read by sso.adapters.SefariaAccountAdapter) as soon as one of the two views that
+    might consume it responds, success or failure, so it can't be reused by a later,
+    unrelated SSO attempt within its own max-age window. These are the only two call
+    sites in the codebase that reach SefariaAccountAdapter.get_login_redirect_url /
+    get_signup_redirect_url — email login/register/password-reset are all fully custom
+    Sefaria views that never touch that adapter machinery. Keep this cookie name in
+    sync with sso.adapters.SefariaAccountAdapter.SSO_NEXT_COOKIE.
+    """
+    SSO_NEXT_COOKIE = 'sefaria_sso_next'
+    SSO_CALLBACK_PATHS = {
+        '/api/auth/google/redirect',
+        '/accounts/apple/login/callback/finish/',
+    }
+
+    def process_response(self, request, response):
+        if request.path in self.SSO_CALLBACK_PATHS:
+            # samesite must match the original cookie's (SameSite=None) for browsers to
+            # treat this as the same cookie being cleared.
+            response.delete_cookie(self.SSO_NEXT_COOKIE, samesite='None')
         return response
