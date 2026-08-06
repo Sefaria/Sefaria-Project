@@ -18,9 +18,13 @@ currently present so the index can be fully rebuilt/cleared. Entries look like::
         "scope": "combined",
     }
 
-The index is rebuilt from scratch by the `build_nonuniqueterm_index` management command and
-surgically updated by the linker editor API whenever a MatchTemplate is saved or deleted.
+The index is rebuilt from scratch by the `build_nonuniqueterm_index` management command,
+surgically updated by the linker editor API whenever a MatchTemplate is saved or deleted, and
+self-heals on read: if the registry key is missing (e.g. a Redis restart/flush dropped the
+whole shared cache), `get_term_usages` detects the empty registry and triggers a full rebuild
+before answering, instead of silently returning `[]` for every term forever.
 """
+import time
 from typing import List, Dict, Optional, Iterator, Tuple
 
 from sefaria.system.cache import (
@@ -31,6 +35,13 @@ from sefaria.system.cache import (
 
 CACHE_KEY_PREFIX = "linker_nut_usages:"
 REGISTRY_KEY = CACHE_KEY_PREFIX + "__slugs__"
+
+# Throttles the self-heal rebuild in _ensure_warm() below. Without this, a cache
+# backend that never actually persists (e.g. Django's DummyCache, used in CI - see
+# local_settings_ci.py) would make the registry look permanently cold and trigger a
+# full library-tree rebuild on every single read instead of just after a real outage.
+_REBUILD_COOLDOWN_SECONDS = 60
+_last_rebuild_attempt = 0.0
 
 
 def _slug_key(slug: str) -> str:
@@ -96,7 +107,26 @@ def _entry_identity(entry: dict) -> Tuple:
 # Read
 # ---------------------------------------------------------------------------
 
+def _ensure_warm() -> None:
+    """
+    A missing registry key means the shared cache has no data for this index at all -
+    almost certainly a Redis restart/flush rather than a real "zero usages anywhere"
+    state, since every library has thousands of usages. Rebuild before serving reads,
+    throttled by _REBUILD_COOLDOWN_SECONDS so a cold cache can't trigger a full rebuild
+    on every call.
+    """
+    global _last_rebuild_attempt
+    if _get_registry():
+        return
+    now = time.time()
+    if now - _last_rebuild_attempt < _REBUILD_COOLDOWN_SECONDS:
+        return
+    _last_rebuild_attempt = now
+    rebuild()
+
+
 def get_term_usages(slug: str) -> List[dict]:
+    _ensure_warm()
     return get_shared_cache_elem(_slug_key(slug)) or []
 
 
