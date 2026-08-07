@@ -40,6 +40,7 @@ import {
 import {ContentText} from "./ContentText";
 import SheetsWithRefPage from "./sheets/SheetsWithRefPage";
 import {ElasticSearchQuerier} from "./ElasticSearchQuerier";
+import {SemanticSearchQuerier} from "./SemanticSearchQuerier";
 import {SheetsHomePage} from "./sheets/SheetsHomePage";
 import {TopicsLandingPage} from "./TopicLandingPage/TopicsLandingPage";
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
@@ -942,7 +943,8 @@ class ReaderPanel extends Component {
                     }/>);
 
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
-      menu = (<ElasticSearchQuerier
+      menu = this.state.searchState?.type === "sheet" ? (
+                <ElasticSearchQuerier
                     query={this.state.searchQuery}
                     searchState={this.state['searchState']}
                     resetSearchFilters={this.props.resetSearchFilters}
@@ -956,7 +958,15 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    compare={this.state.compare}/>);
+                    compare={this.state.compare}/>
+             ) : (
+                <SemanticSearchQuerier
+                    query={this.state.searchQuery}
+                    panelsOpen={this.props.panelsOpen}
+                    onResultClick={this.props.onSearchResultClick}
+                    close={this.props.closePanel}
+                    onQueryChange={this.props.onQueryChange}/>
+             );
     } else if (this.state.menuOpen === "topics") {
       if (this.state.navigationTopicCategory) {
         menu = (

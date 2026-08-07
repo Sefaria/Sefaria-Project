@@ -29,6 +29,7 @@ class SearchPage extends Component {
     const classes = classNames({readerNavMenu: 1, compare: this.props.compare});
     const {aiBadgeText} = this.props;
     const showAiBadge = aiBadgeText != null;
+    const hideFiltersAndSort = this.props.type === "semantic";
     const searchResultList = <SearchResultList
         query={this.props.query}
         hits={this.props.hits}
@@ -51,7 +52,7 @@ class SearchPage extends Component {
       </>
     );
 
-    const sortFilterControls = Sefaria.multiPanel && !this.props.compare ?
+    const sortFilterControls = hideFiltersAndSort ? null : (Sefaria.multiPanel && !this.props.compare ?
       <SearchSortBox
           type={this.props.type}
           sortTypeArray={this.props.sortTypeArray}
@@ -60,7 +61,7 @@ class SearchPage extends Component {
       :
       <SearchFilterButton
           openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-          nFilters={this.props.searchState.appliedFilters.length}/>;
+          nFilters={this.props.searchState.appliedFilters.length}/>);
 
     if (this.props.searchInBook) {
       return searchResultList;
@@ -91,6 +92,12 @@ class SearchPage extends Component {
                       variant="solid"
                       size={24}
                     />}
+                    {(this.props.englishQuery || this.props.hebrewQuery) && (
+                      <div className="searchExpandedQuery">
+                        <InterfaceText>search_page.searched_for</InterfaceText>&nbsp;
+                        <InterfaceText text={{en: this.props.englishQuery, he: this.props.hebrewQuery}}/>
+                      </div>
+                    )}
                   </div>
                   <div className="searchTopMatter">
                     <div className="searchResultCount">
@@ -104,7 +111,7 @@ class SearchPage extends Component {
                 {searchResultList}
               </div>
 
-              {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
+              {!hideFiltersAndSort && ((Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen) ?
                   <div
                       className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
                     {this.props.totalResults?.getValue() > 0 ?
@@ -129,7 +136,9 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
-  type:                      PropTypes.oneOf(["text", "sheet"]),
+  englishQuery:             PropTypes.string,
+  hebrewQuery:              PropTypes.string,
+  type:                      PropTypes.oneOf(["text", "sheet", "semantic"]),
   searchState:              PropTypes.object,
   settings:                 PropTypes.object,
   panelsOpen:               PropTypes.number,

@@ -92,7 +92,14 @@ class SearchTextResult extends Component {
     render() {
         var data = this.props.data;
         var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
+        const href = s.version
+            ? `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`
+            : `/${Sefaria.normRef(s.ref)}?qh=${this.props.query}`;
+        const originLabel = data.resultOrigin === "english" ? "English Query Match"
+            : data.resultOrigin === "hebrew" ? "Hebrew Query Match"
+            : data.resultOrigin === "both" ? "English & Hebrew Match"
+            : data.resultOrigin === "linked" ? "Related Link"
+            : null;
 
         const more_results_caret =
             (this.state.duplicatesShown)
@@ -130,11 +137,13 @@ class SearchTextResult extends Component {
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <InterfaceText text={{en: s.ref, he: s.heRef}}/>
+                        {originLabel && <span className={classNames({resultOriginChip: 1, [data.resultOrigin]: 1})}>{originLabel}</span>}
                     </div>
                 </a>
                 <ColorBarBox tref={s.ref}>
                     <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                 </ColorBarBox>
+                {data.summary && <div className="resultSummary">{data.summary}</div>}
                 <div className="version">
                     {Sefaria.interfaceLang === 'hebrew' && s.hebrew_version_title || s.version}
                 </div>

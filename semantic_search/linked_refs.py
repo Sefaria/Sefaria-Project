@@ -40,22 +40,33 @@ def _is_dictionary_oref(oref) -> bool:
     return bool(categories & {"Dictionary", "Dictionaries", "Lexicon"})
 
 
-def linked_refs_for(ref: str) -> list[str]:
-    from sefaria.model import LinkSet, Ref
+def _is_dictionary_ref_str(ref: str) -> bool:
+    from sefaria.model import Ref
 
     try:
-        oref = Ref(ref)
+        return _is_dictionary_oref(Ref(ref))
     except Exception:
+        return False
+
+
+def linked_refs_for(ref: str) -> list[str]:
+    """
+    Linked-ref lookup for hops beyond the initial search results (link_depth > 1).
+    Reads the linked_refs already computed onto matching semantic search chunks
+    in pgvector, instead of querying Mongo's links collection.
+    """
+    if _is_dictionary_ref_str(ref):
         return []
 
-    if _is_dictionary_oref(oref):
-        return []
+    seen = set()
+    candidates = []
+    for chunk in SemanticTextChunk().filter(ref=ref):
+        for candidate in chunk.linked_refs:
+            if candidate not in seen:
+                seen.add(candidate)
+                candidates.append(candidate)
 
-    return [
-        linked_ref.normal()
-        for linked_ref in LinkSet(oref).refs_from(oref)
-        if not _is_dictionary_oref(linked_ref)
-    ]
+    return [candidate for candidate in candidates if not _is_dictionary_ref_str(candidate)]
 
 
 def get_linked_ref_enhancements(
@@ -66,8 +77,9 @@ def get_linked_ref_enhancements(
     normalize_ref_func: Callable[[str], str] | None = None,
 ) -> LinkedRefEnhancement:
     """
-    Count refs linked from the semantic search result chunks via Mongo links,
-    optionally expanding through linked refs to collect additional graph hops.
+    Count refs linked from the semantic search result chunks, using the linked_refs
+    already stored on each chunk for the first hop and (optionally) expanding
+    through further graph hops for additional depth.
     """
     if link_depth < 1 or min_link_count < 1:
         return LinkedRefEnhancement(appended_refs=[], ref_counts={})
@@ -148,7 +160,8 @@ def get_linked_ref_counts(
     if link_depth < 1:
         return Counter()
 
-    if linked_refs_for_func is None:
+    using_default = linked_refs_for_func is None
+    if using_default:
         linked_refs_for_func = linked_refs_for
         normalize_ref_func = normalize_ref_func or normalize_ref
     else:
@@ -156,6 +169,20 @@ def get_linked_ref_counts(
 
     def normalize(ref: str) -> str:
         return normalize_ref_func(ref) if ref else ""
+
+    def candidate_refs_for_chunk(chunk) -> list[str]:
+        # Chunks arrive with their own linked_refs already populated (set at
+        # embedding time), so the first hop needs no lookup at all -- DB or
+        # otherwise. Dictionary-ref filtering (an in-memory library lookup, not
+        # a DB call) only runs when the real default is in play; a caller that
+        # injects its own linked_refs_for_func is assumed to be a test that
+        # wants to bypass it.
+        raw = getattr(chunk, "linked_refs", None) or []
+        if not using_default:
+            return raw
+        if _is_dictionary_ref_str(chunk.ref):
+            return []
+        return [r for r in raw if not _is_dictionary_ref_str(r)]
 
     original_refs = {
         normalized_ref
@@ -166,21 +193,30 @@ def get_linked_ref_counts(
         )
         if normalized_ref
     }
+
     counts = Counter()
     seen_frontier_refs = set()
-    current_refs = []
     seen_current_refs = set()
+    next_frontier = []
     for chunk in chunks:
         normalized_ref = normalize(chunk.ref)
-        if normalized_ref and normalized_ref not in seen_current_refs:
-            seen_current_refs.add(normalized_ref)
-            current_refs.append(normalized_ref)
+        if not normalized_ref or normalized_ref in seen_current_refs:
+            continue
+        seen_current_refs.add(normalized_ref)
+        for linked_ref in {normalize(r) for r in candidate_refs_for_chunk(chunk)}:
+            if not linked_ref or linked_ref in original_refs:
+                continue
+            counts[linked_ref] += 1
+            if linked_ref not in seen_frontier_refs:
+                seen_frontier_refs.add(linked_ref)
+                next_frontier.append(linked_ref)
 
-    for depth_index in range(link_depth):
+    current_refs = next_frontier
+    for _ in range(1, link_depth):
+        if not current_refs:
+            break
         next_frontier = []
         for ref in current_refs:
-            if not ref:
-                continue
             source_linked_refs = {
                 normalize(linked_ref)
                 for linked_ref in linked_refs_for_func(ref)
@@ -192,9 +228,6 @@ def get_linked_ref_counts(
                 if linked_ref not in seen_frontier_refs:
                     seen_frontier_refs.add(linked_ref)
                     next_frontier.append(linked_ref)
-
-        if depth_index == link_depth - 1 or not next_frontier:
-            break
         current_refs = next_frontier
 
     return counts

@@ -4871,6 +4871,76 @@ def search_wrapper_api(request, es6_compat=False):
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
+
+@csrf_exempt
+def semantic_search_wrapper_api(request):
+    """
+    Public, same-origin wrapper around KnnSearch.run_search for the search page.
+    Unlike /api/knn-search (bearer-token gated, for external/tool callers), this
+    view is not token-protected -- it runs the same search logic server-side so
+    the shared SEMANTIC_SEARCH_API_TOKEN secret never has to reach browser JS.
+    """
+    from api.views import KnnSearch, KnnSearchError
+
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    if not isinstance(body, dict):
+        return jsonResponse({"error": "JSON body must be an object"}, status=400)
+
+    search_body = {
+        "query": body.get("query", ""),
+        "result_limit": 40,
+        "linked_ref_limit": 10,
+        "include_linked_refs": True,
+        "include_text": True,
+    }
+
+    try:
+        response = KnnSearch.run_search(search_body)
+    except KnnSearchError as e:
+        return jsonResponse({"error": str(e)}, status=e.status)
+
+    return jsonResponse(response)
+
+
+@csrf_exempt
+def natural_language_search_wrapper_api(request):
+    """
+    Public, same-origin wrapper around NaturalLanguageSearch.enqueue for the
+    search page. Unlike /api/natural-language-search (bearer-token gated, for
+    external/tool callers), this view is not token-protected -- it enqueues the
+    same Celery task server-side so the shared SEMANTIC_SEARCH_API_TOKEN secret
+    never has to reach browser JS. Returns a task_id; the caller polls
+    GET /api/async/<task_id> (see sefaria.views.async_task_status_api) for
+    progress and the final result.
+    """
+    from api.views import NaturalLanguageSearch, NaturalLanguageSearchError
+
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    if not isinstance(body, dict):
+        return jsonResponse({"error": "JSON body must be an object"}, status=400)
+
+    try:
+        async_result = NaturalLanguageSearch.enqueue(body.get("query", ""))
+    except NaturalLanguageSearchError as e:
+        return jsonResponse({"error": str(e)}, status=e.status)
+
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
 @csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)

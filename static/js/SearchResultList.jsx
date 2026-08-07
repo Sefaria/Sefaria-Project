@@ -126,6 +126,14 @@ class SearchResultList extends Component {
           }
 
 
+        } else if (type === "semantic") {
+          results = this.props.hits.map(result =>
+            <SearchTextResult
+              data={result}
+              query={this.props.query}
+              key={result._id}
+              onResultClick={this.props.onResultClick} />
+          );
         } else if (type === "sheet") {
           results = this.props.hits.map((result, i) =>
             <SearchSheetResult

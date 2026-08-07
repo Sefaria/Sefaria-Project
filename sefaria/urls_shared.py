@@ -79,6 +79,7 @@ shared_patterns = [
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
     path('api/knn-search', api_views.KnnSearch.as_view()),
+    path('api/natural-language-search', api_views.NaturalLanguageSearch.as_view()),
     re_path(r'^api/index/?$', reader_views.table_of_contents_api),
     re_path(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     re_path(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -166,6 +167,8 @@ shared_patterns = [
     path('api/dummy-search', reader_views.dummy_search_api),
     path('api/search-wrapper/es6', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-wrapper/es8', reader_views.search_wrapper_api),
+    path('api/search-wrapper/semantic', reader_views.semantic_search_wrapper_api),
+    path('api/search-wrapper/natural-language', reader_views.natural_language_search_wrapper_api),
     path('api/search-wrapper', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-path-filter/<path:book_title>', reader_views.search_path_filter),
 

@@ -3537,15 +3537,22 @@ _media: {},
    * Returns a Promise that resolves with the task result on success, or rejects
    * with an Error on task failure or network error. Network errors set
    * err.isNetworkError = true so callers can show a different message.
+   * If `signal` is aborted (a standard AbortSignal), polling stops silently --
+   * the returned Promise never resolves or rejects, so callers who abort
+   * because a newer request superseded this one don't need to special-case
+   * "aborted" in their .then()/.catch().
    * @param {string} taskId
    * @param {number} [interval=3000] ms between polls
+   * @param {AbortSignal} [signal]
    * @returns {Promise}
    */
-  pollTask(taskId, { interval = 3000, onProgress } = {}) {
+  pollTask(taskId, { interval = 3000, onProgress, signal } = {}) {
     return new Promise((resolve, reject) => {
       const handle = setInterval(async () => {
+        if (signal?.aborted) { clearInterval(handle); return; }
         try {
           const resp = await fetch("/api/async/" + taskId);
+          if (signal?.aborted) { clearInterval(handle); return; }
           if (!resp.ok) {
             clearInterval(handle);
             const err = new Error("Network error polling task " + taskId);
@@ -3554,6 +3561,7 @@ _media: {},
             return;
           }
           const data = await resp.json();
+          if (signal?.aborted) { clearInterval(handle); return; }
           if (!data.ready) {
             if (onProgress && data.meta) onProgress(data.meta);
             return;
@@ -3566,6 +3574,7 @@ _media: {},
           }
         } catch (e) {
           clearInterval(handle);
+          if (signal?.aborted) { return; }
           e.isNetworkError = true;
           reject(e);
         }
