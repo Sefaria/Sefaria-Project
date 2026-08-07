@@ -188,7 +188,8 @@ export const SCENARIOS = {
    *   en_modals: 1      he_modals: 1     ← the bilingual modal is also published
    *   en_banners: 0     he_banners: 0
    *
-   * The modal rows are unavoidable noise (Strapi holds one content state at a time) but harmless:
+   * The modal rows are unavoidable noise (the live instance was in this state when the recording
+   * was taken, and one call returns every surface) but harmless:
    * a modal only renders once its showDelay timer fires, and these specs never advance the clock —
    * sidebar ads have no delay of their own. Do not add advanceUntilVisible to a sidebar-ad test
    * without expecting the modal to appear over the page.
@@ -746,13 +747,35 @@ const strapiHits = new WeakMap();
  * ALSO fakes timers. Each banner/modal arms a `setTimeout(showDelay * 1000)` before it renders, so
  * with real timers that render raced wall-clock time: fine for "does it appear", useless for
  * "is it still hidden before the delay", and unreliable for asserting something never appears.
- * Under install(), app time only moves when a test moves it — see advanceUntilVisible / advanceBy.
+ *
+ * ⚠️ `install()` ALONE IS NOT ENOUGH — it fakes the timers but leaves the clock RUNNING in step
+ * with real time. Measured: ~2949ms of app time elapses over 3s of real time under install(), and
+ * 0ms under pauseAt(). So a surface can appear while a test merely waits, with no advance at all.
+ * That is invisible to "does it eventually appear" and "is it still absent after a big jump" — the
+ * shapes every recorded scenario uses — but it silently defeats a showDelay BOUNDARY assertion,
+ * which is how it was found: "visible after the delay" passed without the advance meant to cause
+ * it. `pauseAt` is what actually makes app time move only when a test moves it.
  */
 export async function prepareStrapiPage(page, scenario) {
   if (!scenario?.pinnedNow) {
     throw new Error('prepareStrapiPage requires a scenario from SCENARIOS (missing pinnedNow).');
   }
   await page.clock.install({ time: new Date(scenario.pinnedNow) });
+  await page.clock.pauseAt(new Date(scenario.pinnedNow));
+
+  // Record every timer the page arms, so a test can wait for the showDelay timer to EXIST before
+  // moving the clock past it. Registered after clock.install() on purpose: init scripts run in
+  // registration order, so this wraps the CLOCK'S faked setTimeout rather than the native one it
+  // replaced — wrap the native one and the recorded delays would be of timers the clock no longer
+  // drives. See waitForTimerArmed.
+  await page.addInitScript(() => {
+    window.__armedTimerDelays = [];
+    const realSetTimeout = window.setTimeout;
+    window.setTimeout = function instrumentedSetTimeout(handler, delay, ...args) {
+      window.__armedTimerDelays.push(delay);
+      return realSetTimeout.call(this, handler, delay, ...args);
+    };
+  });
 
   const counter = { count: 0 };
   strapiHits.set(page, counter);
@@ -817,15 +840,35 @@ export async function advanceUntilVisible(page, locator, { stepMs = 500 } = {}) 
  * advance moves past nothing, so a "still hidden" assertion passes VACUOUSLY — it would pass even
  * if showDelay were broken — and the following "now visible" assertion flakes.
  *
- * The fix is to wait for the timer itself rather than the response: instrument setTimeout in an
- * addInitScript registered AFTER page.clock.install() (so it wraps the faked setTimeout), record
- * each armed delay, and poll until the expected delay appears. Full recipe in
- * e2e-tests/tests/README.md → "Before you write showDelay boundary tests".
- *
- * Not implemented yet — no test needs it. Build it with the first boundary test.
+ * ALWAYS PRECEDE A BOUNDARY ASSERTION WITH waitForTimerArmed (below). Waiting for the timer itself
+ * removes the race at its source; waiting for the Strapi response does not.
  */
 export async function advanceBy(page, ms) {
   await page.clock.fastForward(ms);
+}
+
+/**
+ * Resolve once the page has armed a timer of exactly `delayMs`.
+ *
+ * This is what makes a showDelay boundary assertion trustworthy. The surface's
+ * `setTimeout(showDelay * 1000)` is armed several async hops after the Strapi response lands — the
+ * app must await response.json(), run the .then() that sets React state, and re-render so the
+ * component's useEffect schedules it. Advance the clock before that and the "still hidden"
+ * assertion passes without exercising anything at all.
+ *
+ * Timers are captured by the init script in prepareStrapiPage, which wraps the faked setTimeout.
+ *
+ * ⚠️ MATCHES ON THE DELAY VALUE, so pick a showDelay no other timer on the page is likely to use.
+ * A 1-second delay is a popular round number in third-party code; something like 7 seconds is
+ * effectively unambiguous, and the synthetic factory lets a spec choose freely.
+ */
+export async function waitForTimerArmed(page, delayMs) {
+  await expect
+    .poll(() => page.evaluate(() => window.__armedTimerDelays ?? []), {
+      message: `Expected the page to arm a ${delayMs}ms timer (the surface's showDelay)`,
+      timeout: t(15000),
+    })
+    .toContain(delayMs);
 }
 
 /**
