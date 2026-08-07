@@ -234,6 +234,28 @@ Both ad scenarios carry `debug: true`, so **they require a sandbox running with 
 (`showGivenDebugMode` hides debug ads otherwise). That also makes the button icon load from the
 Strapi host directly, the one request in this suite that is not served from a HAR.
 
+## What is covered
+
+Every gate each surface applies, so a new scenario can be checked against this before being written.
+
+| gate | modal | banner | sidebar ad |
+| --- | --- | --- | --- |
+| locale: en-only / he-only / both | ✓ ✓ ✓ | ✓ ✓ ✓ | ✓ ✓ ✓ |
+| country targeting | ✓ `include`, per locale | ✓ `exclude`, per locale | n/a — no field on this type |
+| keyword targeting | n/a | n/a | ✓ matching + excluded topic |
+| date window: expired / future | — | ✓ ✓ (`context.js` selection) | ✓ ✓ (`Promotions` filtering) |
+| dismissal persists across reload | — | ✓ | n/a — no dismiss control |
+
+Deliberately **not** covered, with reasons:
+
+- **More country modes or edge cases at this layer.** `matchesCountryTarget` has ~28 exhaustive Jest
+  cases; integration owns the wiring, not the predicate. Two country cases per call site is the budget.
+- **Logged-in visitor states** (`showTo: logged_in_only`, sustainer, returning-visitor). Needs an
+  authenticated profile; every scenario so far runs logged out.
+- **Mobile viewport.** `shouldDeployOnMobile` exists on the payload and is never asserted.
+- **Analytics.** Impression and interaction events fire through `gtag`/`sa_event`; see the note in
+  the interaction section for why a naive stub does not capture them.
+
 ## The levers
 
 - **Locale** → `useInterfaceLanguage(page, LANGUAGES.HE)` before the first navigation, then
@@ -428,9 +450,17 @@ assumed:
   factory should be able to emit rows whose shared fields disagree, so that class of bug stays
   testable.
 
-  To find the next instance: pull the wide window, group the `en_*`/`he_*` rows by `documentId`, and
-  diff every field that is *not* in `LOCALIZED_FIELDS` (ignoring `locale`/`createdAt`/`updatedAt`/
-  `publishedAt`). Anything that differs is being silently dropped.
+  To find candidates: pull the wide window, group the `en_*`/`he_*` rows by `documentId`, and diff
+  every field that is *not* in `LOCALIZED_FIELDS`.
+
+  > ⚠️ **A field differing between locales is NOT evidence that it is localizable.** Strapi
+  > propagates an edit to a non-localized field into the other locale's *draft*, but that locale's
+  > *published* row keeps its old value until it is re-published — so a stale publish produces
+  > exactly the same signal. Compare `publishedAt` across the two rows before concluding anything:
+  > if they differ, suspect timing, not schema. **The CMS field configuration is the only authority
+  > on what is localizable — ask before changing `LOCALIZED_FIELDS`.** This was learned the hard
+  > way: four sidebar-ad fields were added on the strength of API divergence and then reverted once
+  > the timestamps showed the Hebrew row was a day stale.
 - **The three surfaces consume locale differently** — merge-and-gate for banners/modals, fan-out
   per locale for sidebar ads (see the table above). A factory that emits the raw per-locale rows,
   as the endpoint does, stays correct for all three; one that models "a document with translations"
