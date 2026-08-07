@@ -176,6 +176,7 @@ Each test folder is run by three browser-specific Playwright projects defined in
 | `library/` | `chrome-library` | `firefox-library` | `safari-library` | `www.<domain>` |
 | `voices/` | `chrome-voices` | `firefox-voices` | `safari-voices` | `voices.<domain>` |
 | `Misc/` | `chrome-misc` | `firefox-misc` | `safari-misc` | `www.<domain>` |
+| `tests/` (Strapi content, HAR replay) | `chrome-strapi` | — | — | `SANDBOX_URL` verbatim |
 | `assistant/` | `chrome-assistant` | `firefox-assistant` | `safari-assistant` | `www.<domain>` |
 | `Full testing by Feature/Resource Panel/` | `chrome-resource-panel` | `firefox-resource-panel` | `safari-resource-panel` | `www.<domain>` |
 | `Full testing by Feature/Voices Topics/` | `chrome-voices-topics` | `firefox-voices-topics` | `safari-voices-topics` | `voices.<domain>` |
