@@ -128,7 +128,11 @@ export default defineConfig({
       testMatch: /strapi-.*\.spec\.js/,
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: MODULE_URLS.EN.LIBRARY,
+        // No baseURL override: inherit the global `use.baseURL` (= SANDBOX_URL verbatim), like
+        // chrome-newsletter. The MODULE_URLS defined in this file always build
+        // `https://www.<domain>`, which is correct for a remote sandbox but breaks a local one
+        // (`https://www.localhost:8000` → ERR_SSL_PROTOCOL_ERROR). Recording happens against a
+        // local Django + Strapi, so the raw SANDBOX_URL is what this suite needs.
       },
     },
     // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
