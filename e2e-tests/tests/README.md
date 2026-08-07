@@ -1,20 +1,38 @@
-# HAR-driven Strapi specs (`e2e-tests/tests/`)
+# Strapi specs (`e2e-tests/tests/`)
 
-Playwright specs that replay a recorded HTTP archive (HAR) instead of depending on live Strapi
-content, following the pattern the newsletter sign-up PR introduced.
+Playwright specs that drive `/api/strapi/graphql-cache` deterministically instead of depending on
+live Strapi content. There are two ways to supply the payload, and both are in use:
+
+| | Payload source | Reach for it when |
+| --- | --- | --- |
+| **Recorded** (`routeWithStrapiHarFixture`) | a committed `.har` captured from real Strapi | the question is "does Sefaria behave correctly against a payload Strapi really produced". Following the pattern the newsletter sign-up PR introduced. |
+| **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the state is a permutation, an unpublishable field value, or a response Strapi would never send |
+
+Recording came first, deliberately: fourteen real states were captured before any abstraction was
+extracted, so the factory is shaped by observed variation rather than by a guess. The recordings
+now do double duty — they are still the behavioural fixtures, and they are also the **schema the
+factory is held to** by [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js). See
+[Synthetic payloads](#synthetic-payloads) for which to pick.
 
 These specs intentionally sit **outside** the `PageManager` / `goToPageWithLang` conventions in
 [`../CLAUDE.md`](../CLAUDE.md). The standard entry helpers call `installOverlaySuppression()`,
 which short-circuits `/api/strapi/graphql-cache` with an empty payload and marks banners/modals as
-already-seen — it suppresses the very content these specs assert on (CLAUDE.md §3). So they use a
-bare `page.goto` plus `context.routeFromHAR`, keeping Strapi **on**.
+already-seen — it suppresses the very content these specs assert on (CLAUDE.md §3, §22). So they
+use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 
 ## Files
 
 | File | Role |
 | --- | --- |
 | [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | `routeWithStrapiHarFixture(context, name)` — record/replay wrapper over `routeFromHAR`, matching `**/api/strapi/**`. |
-| [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`. |
+| [`../support/strapi-payload-factory.js`](../support/strapi-payload-factory.js) | Builds a synthetic response body: `banner`/`modal`/`sidebarAd` document builders, `strapiPayload`, `targetCountries`, and the `daysFromNow`/`hoursFromNow` helpers measured from `SYNTHETIC_NOW`. Pure — no Playwright import. |
+| [`../support/strapi-payload-fixture.js`](../support/strapi-payload-fixture.js) | `routeWithStrapiPayload(context, payload, {status, rawBody})` plus `expectStrapiServed` — fulfils the endpoint from a built payload, matching the URL glob alone. |
+| [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
+| [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | Holds the factory's field set to what every committed recording actually contains — the guard that keeps synthetic payloads honest. Needs no server. |
+| [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js) | *(synthetic)* Each surface waits exactly its own `showDelay` — hidden a second before, visible a second after, with two surfaces on different delays. |
+| [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Only the first date-active banner/modal is surfaced; reversing the order flips the winner; an English-only banner masks a Hebrew-only one. Carries the known-gap `test.fail` for targeting-after-selection. |
+| [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. |
+| [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
 | [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI. |
 | [`strapi-modal-bilingual.spec.js`](strapi-modal-bilingual.spec.js) | Both locales published: each interface shows its own copy, plus the optional-header asymmetry. |
@@ -245,16 +263,46 @@ Every gate each surface applies, so a new scenario can be checked against this b
 | keyword targeting | n/a | n/a | ✓ matching + excluded topic |
 | date window: expired / future | — | ✓ ✓ (`context.js` selection) | ✓ ✓ (`Promotions` filtering) |
 | dismissal persists across reload | — | ✓ | n/a — no dismiss control |
+| `showDelay` boundary | ✓ *(synthetic)* | ✓ *(synthetic)* | n/a — no delay on this type |
+| selection among several in-window | ✓ *(synthetic)* | ✓ *(synthetic; locale masking marked as a known gap)* | n/a — all matches render |
+| `excludedPaths`, incl. cross-locale | ✓ *(synthetic)* | — (same code path as the modal) | n/a |
+| malformed / failed response | ✓ *(synthetic)* | ✓ *(synthetic)* | ✓ *(synthetic)* |
 
 Deliberately **not** covered, with reasons:
 
 - **More country modes or edge cases at this layer.** `matchesCountryTarget` has ~28 exhaustive Jest
-  cases; integration owns the wiring, not the predicate. Two country cases per call site is the budget.
+  cases; integration owns the wiring, not the predicate. Two country cases per call site is the
+  budget — a synthetic country matrix would be cheap to write and would still be duplication.
 - **Logged-in visitor states** (`showTo: logged_in_only`, sustainer, returning-visitor). Needs an
-  authenticated profile; every scenario so far runs logged out.
+  authenticated profile; every scenario so far runs logged out. The factory removes the *payload*
+  obstacle, so this is now only an auth-fixture problem.
 - **Mobile viewport.** `shouldDeployOnMobile` exists on the payload and is never asserted.
 - **Analytics.** Impression and interaction events fire through `gtag`/`sa_event`; see the note in
   the interaction section for why a naive stub does not capture them.
+
+### Known gap, deliberately marked
+
+`strapi-selection-order.spec.js` carries **three `test.fail()` markers** for one defect: gating is
+applied *after* selection, not during it. `context.js` picks a single winner on the date window
+alone (`.find()`, lines 229 and 245), then `Misc.jsx` gates that one document — and there is no
+fallback to the runner-up, so a reader the runner-up was written for sees **nothing at all**.
+
+It bites twice:
+
+- **Country** (1 marker). Two modals scheduled at the same time targeting different countries: the
+  first wins on date, fails the country check, and the modal aimed at this viewer is never
+  reconsidered. Listing the right one first *does* rescue it, so order is at least a workaround.
+- **Locale** (2 markers). An English-only and a Hebrew-only banner over the same window: the
+  English one is handed to everyone and rejected for Hebrew readers. **Order is not a workaround
+  here** — `groupByDocumentId` flattens every `en` row before every `he` row, so the English
+  document sorts first however the payload was ordered. Measured across all four combinations: the
+  English reader is served either way, the Hebrew reader neither way. So a Hebrew-only banner
+  cannot reach Hebrew readers at all while any English banner shares its window. Both orders are
+  marked, so a partial fix that merely respected payload order cannot close the gap prematurely.
+
+Each marker is paired with passing controls proving the content renders in isolation, so the
+failure is "nothing was surfaced", not "this document is unrenderable". A fix is planned
+separately; Playwright fails the run the moment a marker starts passing, so they close themselves.
 
 ## The levers
 
@@ -290,11 +338,22 @@ Change it and that scenario's recording no longer matches.
 (which is what keeps the query params matching), but `install()` **also fakes timers**. That
 matters because every banner and modal arms a `setTimeout(showDelay * 1000)` before it renders:
 
-| | Real timers (`setFixedTime`) | Fake timers (`install`) |
+| | Real timers (`setFixedTime`) | Fake timers (`install` + `pauseAt`) |
 | --- | --- | --- |
 | "does it appear?" | works, but waits real seconds | works, instantly |
 | "still hidden before the delay?" | not expressible | straightforward |
 | "never appears" | a wall-clock guess | app time only moves when you move it |
+
+> ⚠️ **`install()` on its own is not enough — it leaves the clock RUNNING in step with real time.**
+> Measured: ~2949ms of app time elapses over 3s of real time under `install()`, and 0ms once
+> `pauseAt()` is added. `prepareStrapiPage` therefore calls both.
+>
+> This was wrong here for a while and cost nothing, because every recorded scenario asserts only
+> "does it eventually appear" or "is it still absent after a big jump" — both indifferent to extra
+> time passing. It silently defeats a **boundary** assertion, which is how it was caught: a
+> "visible after the delay" assertion passed without the advance that was supposed to cause it.
+> The lesson generalises — a clock helper that is good enough for eventually-assertions can still
+> be wrong, and only a boundary test will tell you.
 
 Two helpers drive it:
 
@@ -311,7 +370,7 @@ reloaded page to receive another Strapi payload (`waitForStrapiResponse`), and o
 past the delay and asserts absence. Verified by mutation — clearing the dismissal key before the
 reload makes the banner reappear and the test fail.
 
-### ⚠️ Before you write `showDelay` boundary tests — read this
+### ⚠️ `showDelay` boundary tests — use `waitForTimerArmed`
 
 There is a gap between "the Strapi response arrived" and "the `showDelay` timer is armed", and
 `waitForStrapiResponse` only closes the first half of it. After the response event fires the app
@@ -337,29 +396,34 @@ await expect(banner).toBeVisible();    // ❌ flakes
 The "still hidden" half passes **vacuously**, which is exactly the assertion you were trying to
 make meaningful.
 
-**The fix: wait for the timer itself, not for the response.** Instrument `setTimeout` and poll
-until a timer with the expected delay exists:
+**The fix: wait for the timer itself, not for the response.** `prepareStrapiPage` instruments
+`setTimeout` in an init script registered *after* `page.clock.install()` — init scripts run in
+registration order, and `install()` registers its own, so this wraps the **faked** `setTimeout`
+rather than the native one it replaced. `waitForTimerArmed(page, delayMs)` then polls until a timer
+of that exact delay exists:
 
 ```js
-// in prepareStrapiPage, AFTER page.clock.install(...) so we wrap the *fake* setTimeout —
-// init scripts run in the order they were added, and install() registers its own.
-await page.addInitScript(() => {
-  window.__armedTimers = [];
-  const original = window.setTimeout;
-  window.setTimeout = (fn, delay, ...rest) => {
-    window.__armedTimers.push(delay);
-    return original(fn, delay, ...rest);
-  };
-});
-
-// in the test
-await expect.poll(() => page.evaluate(() => window.__armedTimers))
-  .toContain(showDelaySeconds * 1000);
-// only now is advanceBy meaningful
+await waitForTimerArmed(page, SHOW_DELAY_SECONDS * 1000);   // now advanceBy is meaningful
+await advanceBy(page, (SHOW_DELAY_SECONDS - 1) * 1000);
+await expect(banner).toHaveCount(0);
+await advanceBy(page, 2000);
+await expect(banner).toBeVisible();
 ```
 
-This is **not implemented yet** — no test needs it so far. Implement it with the first boundary
-test rather than trusting `waitForStrapiResponse` for that purpose.
+Two things worth knowing:
+
+- **It doubles as a gate check.** The `useEffect` only arms the timer when `shouldShow()` returns
+  true, so a timer of that delay existing also proves locale, country, `showTo` and `excludedPaths`
+  all passed. Conversely, in a test where the surface is *expected* to be withheld no timer is ever
+  armed — don't wait for one there, or you will wait out the timeout.
+- **It matches on the delay value**, and pages arm plenty of timers of their own. Pick a `showDelay`
+  nothing else is likely to use — `strapi-show-delay.spec.js` uses 7s and 11s. A round 1s risks
+  matching a third-party timer and resolving before the surface's own timer exists, which puts the
+  vacuous pass straight back.
+
+Worked example: [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js). Mutation-verified in both
+directions — asserting "hidden" after the boundary fails, and asserting "visible" without crossing
+it fails.
 
 ## Scenarios
 
@@ -410,26 +474,73 @@ than the whole suite.
 > `bannerCountryTargeted` sits a day after the other banner scenarios.
 
 > ⚠️ **Re-recording a spec whose content is no longer published will silently overwrite its fixture
-> with an empty payload.** Strapi holds one content state at a time, but the committed recordings
-> span several. Only ever record the spec whose state is currently published — which is why
-> `strapi-banner-hebrew.spec.js` is a separate file from `strapi-banner.spec.js` rather than another
-> `describe` inside it.
+> with an empty payload.** The *live instance* is in one state at any given moment, but the
+> committed recordings span several. (Strapi is perfectly capable of publishing many entries at
+> once — `strapi-sidebar-ad-date-states.har` holds three — the constraint is temporal, not a limit
+> on what can be published.) Only ever record the spec whose state is currently published, which is
+> why `strapi-banner-hebrew.spec.js` is a separate file from `strapi-banner.spec.js` rather than
+> another `describe` inside it.
 
-## Planned: synthetic payloads
+## Synthetic payloads
 
-Recording every permutation by hand does not scale, and it is not the end state. Once we have
-recordings across the different content patterns, the plan is to extract a payload factory and
-fulfil the route from generated JSON for most permutations — no Strapi setup, no recording, and
-dates computed relative to *now* so fixtures never age out. A recording or two stays behind as a
-contract fixture, so drift in Strapi's real response shape is still caught.
+Recording every permutation by hand does not scale. Multi-item states are perfectly *recordable* —
+they are just unaffordable: each combination of order × locale × targeting × date state is another
+hand-authored publishing session, and since the live instance holds one state at a time,
+re-recording an older scenario later means reconstructing the state it was captured under. Two
+further classes are out of reach entirely: field values no editor would author (a `buttonURL` whose
+pathname collides with the page under test) and responses Strapi will never send (malformed JSON,
+HTTP 500, a v4-shaped body).
 
-`routeWithStrapiHarFixture(context, scenario.har)` is the seam that swap happens at. Specs written
-against `SCENARIOS` should not need to change.
+So [`strapi-payload-factory.js`](../support/strapi-payload-factory.js) builds the response body in
+code and [`routeWithStrapiPayload`](../support/strapi-payload-fixture.js) fulfils the endpoint from
+it. Synthetic routes match the **URL glob alone**, which also sidesteps the standing HAR tax: since
+`routeFromHAR` matches on the POST body, adding one field to the GraphQL query in `context.js`
+invalidates all fourteen recordings at once.
+
+```js
+const strapi = await routeWithStrapiPayload(
+  context,
+  strapiPayload({
+    modals: [
+      modal({
+        window: { start: daysFromNow(-1), end: daysFromNow(1) },
+        shared: { showDelay: 7, countriesToTarget: targetCountries('include', ['GB']) },
+        locales: { en: { modalText: 'English copy' }, he: { modalText: 'עותק עברי' } },
+      }),
+    ],
+  }),
+);
+await prepareStrapiPage(page, { pinnedNow: SYNTHETIC_NOW });
+// ... and expectStrapiServed(strapi) in afterEach
+```
+
+Three things to know before using it:
+
+- **A locale block may carry *any* field, not just localized ones.** Localized fields differ per
+  locale naturally; setting a *non-localized* field inside a locale block emits rows that
+  **disagree**, which is how the `rows[0]`-wins merge bug class stays testable.
+- **`expectStrapiServed` is not optional.** It catches the mirror image of the HAR suite's
+  stale-fixture guard: here the payload always matches, so the danger is that no request happens at
+  all (`STRAPI_INSTANCE` unset, or the standard entry helpers suppressing the endpoint), which
+  would make every absence assertion pass while testing nothing.
+- **Row order within each alias is the order documents are passed** — a documented guarantee, since
+  `context.js` selects with `.find()` and order decides the winner.
+
+### Which to reach for
+
+| Use | For |
+| --- | --- |
+| **Recorded** | the response *shape* (a real payload, really produced), and locale/targeting/date behaviour on content an editor plausibly publishes |
+| **Synthetic** | permutations (several items, specific order), unpublishable field values, error and malformed responses, and precise timing |
+
+Keep at least one recording per content type committed — the contract spec's coverage guard fails
+if a content type is never exercised, because the field-set check would then go quietly vacuous.
 
 ### What the recordings have taught us about the shape
 
-These are the constraints a factory has to support, each observed in a real recording rather than
-assumed:
+These are the constraints the factory supports, each observed in a real recording rather than
+assumed. They are the factory's specification — `FIELD_DEFAULTS` and the `locales`/`shared` split
+exist to satisfy them:
 
 - **A localized field may hold the same value in every locale, or different values.** The bilingual
   banner points each locale at a *different* donation campaign (`/give/468442/` vs `/give/451346/`);
@@ -442,13 +553,19 @@ assumed:
   Hebrew and null in English on one document; a sidebar ad's `buttonText`/`buttonURL` were null in
   Hebrew before being filled in. Absence in one locale says nothing about the other.
 - **A document may have one locale row or two.** Fields outside `LOCALIZED_FIELDS` (`showDelay`,
-  `showTo`, background, and — for banners/modals — the start/end dates) are assumed identical across rows — `groupByDocumentId` takes
-  them from `rows[0]`, always the English row. Anything an editor can vary per locale must be
+  `showTo`, background, the start/end dates for all three surfaces, and a sidebar ad's
+  `internalCampaignId` and `keywords`) are assumed identical across rows — `groupByDocumentId`
+  takes them from `rows[0]`, always the English row. Anything an editor can vary per locale must be
   listed in `LOCALIZED_FIELDS`, or the first row silently wins. `countriesToTarget` was moved there
-  for exactly that reason, after this suite caught the Hebrew value being dropped — and sidebar ads
-  later gained `internalCampaignId`, `startTime`, `endTime` and `keywords` for the same reason. A
-  factory should be able to emit rows whose shared fields disagree, so that class of bug stays
-  testable.
+  for exactly that reason, after this suite caught the Hebrew value being dropped. The factory can
+  emit rows whose shared fields disagree — put the field in a `locales` block rather than `shared` —
+  so that class of bug stays testable.
+
+  As of now `LOCALIZED_FIELDS` is exactly: banner `bannerText`, `buttonText`, `buttonURL`,
+  `countriesToTarget`; modal the same plus `modalHeader`, `modalText`; sidebar ad `title`,
+  `bodyText`, `buttonText`, `buttonURL`. Four sidebar-ad fields were once added here on the
+  strength of API divergence and then reverted — see the warning below, and check
+  `static/js/sefaria/strapiLocalization.js` rather than trusting any prose, including this.
 
   To find candidates: pull the wide window, group the `en_*`/`he_*` rows by `documentId`, and diff
   every field that is *not* in `LOCALIZED_FIELDS`.
