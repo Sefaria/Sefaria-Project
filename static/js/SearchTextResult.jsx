@@ -95,8 +95,10 @@ class SearchTextResult extends Component {
         const href = s.version
             ? `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`
             : `/${Sefaria.normRef(s.ref)}?qh=${this.props.query}`;
-        const originLabel = data.resultOrigin === "semantic" ? "Semantic Match"
-            : data.resultOrigin === "link" ? "Related Link"
+        const originLabel = data.resultOrigin === "english" ? "English Query Match"
+            : data.resultOrigin === "hebrew" ? "Hebrew Query Match"
+            : data.resultOrigin === "both" ? "English & Hebrew Match"
+            : data.resultOrigin === "linked" ? "Related Link"
             : null;
 
         const more_results_caret =
@@ -141,6 +143,7 @@ class SearchTextResult extends Component {
                 <ColorBarBox tref={s.ref}>
                     <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                 </ColorBarBox>
+                {data.summary && <div className="resultSummary">{data.summary}</div>}
                 <div className="version">
                     {Sefaria.interfaceLang === 'hebrew' && s.hebrew_version_title || s.version}
                 </div>

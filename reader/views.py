@@ -4912,11 +4912,13 @@ def semantic_search_wrapper_api(request):
 @csrf_exempt
 def natural_language_search_wrapper_api(request):
     """
-    Public, same-origin wrapper around NaturalLanguageSearch.run_search for the
+    Public, same-origin wrapper around NaturalLanguageSearch.enqueue for the
     search page. Unlike /api/natural-language-search (bearer-token gated, for
-    external/tool callers), this view is not token-protected -- it runs the same
-    search logic server-side so the shared SEMANTIC_SEARCH_API_TOKEN secret never
-    has to reach browser JS.
+    external/tool callers), this view is not token-protected -- it enqueues the
+    same Celery task server-side so the shared SEMANTIC_SEARCH_API_TOKEN secret
+    never has to reach browser JS. Returns a task_id; the caller polls
+    GET /api/async/<task_id> (see sefaria.views.async_task_status_api) for
+    progress and the final result.
     """
     from api.views import NaturalLanguageSearch, NaturalLanguageSearchError
 
@@ -4932,11 +4934,11 @@ def natural_language_search_wrapper_api(request):
         return jsonResponse({"error": "JSON body must be an object"}, status=400)
 
     try:
-        response = NaturalLanguageSearch.run_search({"query": body.get("query", "")})
+        async_result = NaturalLanguageSearch.enqueue(body.get("query", ""))
     except NaturalLanguageSearchError as e:
         return jsonResponse({"error": str(e)}, status=e.status)
 
-    return jsonResponse(response)
+    return jsonResponse({"task_id": async_result.id}, status=202)
 
 
 @csrf_exempt

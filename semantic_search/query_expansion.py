@@ -1,12 +1,9 @@
-import os
 from dataclasses import dataclass
 from typing import cast
 
-from django.conf import settings
-from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
-DEFAULT_MODEL = "claude-sonnet-5"
+from semantic_search.llm import LLMConfigError, get_chat_llm
 
 _SYSTEM_PROMPT = (
     "You expand short search queries about Jewish texts (Torah, Talmud, Midrash, "
@@ -47,7 +44,10 @@ class QueryExpansion:
 
 
 def expand_query(query: str) -> QueryExpansion:
-    llm = _get_llm()
+    try:
+        llm = get_chat_llm()
+    except LLMConfigError as e:
+        raise QueryExpansionError(str(e)) from e
     structured_llm = llm.with_structured_output(_QUERY_EXPANSION_SCHEMA)
     try:
         result = cast(dict, structured_llm.invoke([
@@ -62,13 +62,3 @@ def expand_query(query: str) -> QueryExpansion:
     if not english or not hebrew:
         raise QueryExpansionError(f"Query expansion returned an incomplete result: {result}")
     return QueryExpansion(english=english, hebrew=hebrew)
-
-
-def _get_llm() -> ChatAnthropic:
-    api_key = getattr(settings, "ANTHROPIC_API_KEY", "") or os.environ.get("ANTHROPIC_API_KEY", "")
-    if not api_key:
-        raise QueryExpansionError("ANTHROPIC_API_KEY is not configured")
-    model = getattr(settings, "NATURAL_LANGUAGE_SEARCH_MODEL", DEFAULT_MODEL)
-    # temperature is not configurable on every model this can point to (e.g. it's
-    # rejected outright for claude-sonnet-5), so leave it at the provider default.
-    return ChatAnthropic(model=model, api_key=api_key, max_tokens=1024)

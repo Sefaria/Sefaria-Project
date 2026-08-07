@@ -92,6 +92,12 @@ class SearchPage extends Component {
                       variant="solid"
                       size={24}
                     />}
+                    {(this.props.englishQuery || this.props.hebrewQuery) && (
+                      <div className="searchExpandedQuery">
+                        <InterfaceText>search_page.searched_for</InterfaceText>&nbsp;
+                        <InterfaceText text={{en: this.props.englishQuery, he: this.props.hebrewQuery}}/>
+                      </div>
+                    )}
                   </div>
                   <div className="searchTopMatter">
                     <div className="searchResultCount">
@@ -130,6 +136,8 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  englishQuery:             PropTypes.string,
+  hebrewQuery:              PropTypes.string,
   type:                      PropTypes.oneOf(["text", "sheet", "semantic"]),
   searchState:              PropTypes.object,
   settings:                 PropTypes.object,

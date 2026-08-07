@@ -1,6 +1,5 @@
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor
 
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -467,79 +466,33 @@ class NaturalLanguageSearch(View):
     Elaborates a user's query with an LLM into a verbose English query and a
     Hebrew translation of it, then runs both through semantic search in
     parallel threads (semantic search responds differently to English vs.
-    Hebrew queries, so running both improves recall). Each leg fetches
-    SEMANTIC_RESULT_LIMIT semantic matches with no linked-ref lookup of its
-    own; the two chunk lists are unioned by ref, and linked refs are computed
-    once over that unioned set -- reusing the linked_refs already stored on
-    each chunk (see semantic_search.linked_refs), so unioning first and
-    linking second costs no extra DB lookups either.
+    Hebrew queries, so running both improves recall), scores every result's
+    relevance to the query with an LLM (keeping only 3-5 out of 5), and
+    generates a short LLM relevance summary for each retained result. The
+    full pipeline (see semantic_search.natural_language_search.run_natural_language_search)
+    runs as a Celery task -- this view only validates the request and enqueues it;
+    callers poll GET /api/async/<task_id> for progress and the final result.
     """
-
-    SEMANTIC_RESULT_LIMIT = 40
 
     @method_decorator(csrf_exempt)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
     @classmethod
-    def _search_leg(cls, query):
-        from semantic_search.search import get_query_embedding, semantic_search_by_embedding
+    def enqueue(cls, query):
+        from sefaria.celery_setup.config import CeleryQueue
+        from semantic_search.tasks import natural_language_search_task
 
-        embedding = get_query_embedding(query)
-        chunks = semantic_search_by_embedding(embedding, limit=cls.SEMANTIC_RESULT_LIMIT)
-        return embedding, chunks
-
-    @classmethod
-    def run_search(cls, body):
-        if not isinstance(body, dict):
-            raise NaturalLanguageSearchError("JSON body must be an object", 400)
-        query = body.get("query", "").strip()
+        query = (query or "").strip()
         if not query:
             raise NaturalLanguageSearchError("Missing or empty 'query'", 400)
-
-        from semantic_search.embedder import EmbeddingError
-        from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
-        from semantic_search.natural_language_search import union_chunks_by_ref
-        from semantic_search.query_expansion import expand_query, QueryExpansionError
-
         if not getattr(settings, "GEMINI_API_KEY", ""):
             raise NaturalLanguageSearchError("Semantic search is not configured", 503)
 
-        try:
-            expansion = expand_query(query)
-        except QueryExpansionError as e:
-            raise NaturalLanguageSearchError(str(e), 502)
-
-        try:
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                english_future = executor.submit(cls._search_leg, expansion.english)
-                hebrew_future = executor.submit(cls._search_leg, expansion.hebrew)
-                english_embedding, english_chunks = english_future.result()
-                _, hebrew_chunks = hebrew_future.result()
-        except EmbeddingError as e:
-            raise NaturalLanguageSearchError(str(e), 502)
-
-        union_chunks = union_chunks_by_ref(english_chunks, hebrew_chunks)
-
-        enhancement = get_mean_std_linked_ref_enhancements(
-            union_chunks,
-            link_depth=KnnSearch.LINKED_REF_ENHANCEMENT_DEPTH,
-            std_threshold=KnnSearch.LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
-            min_count=KnnSearch.LINKED_REF_ENHANCEMENT_MIN_COUNT,
+        return natural_language_search_task.apply_async(
+            args=(query,),
+            queue=CeleryQueue.TASKS.value,
         )
-        top_linked_refs = KnnSearch._top_linked_refs(enhancement, KnnSearch.DEFAULT_LINKED_REF_LIMIT)
-
-        include_text = True
-        return {
-            "query": query,
-            "english_query": expansion.english,
-            "hebrew_query": expansion.hebrew,
-            "results": [KnnSearch._serialize_search_result(c, include_text) for c in union_chunks],
-            # Oversized-linked-ref chunk lookups (see KnnSearch._serialize_linked_ref)
-            # rank by distance from a single query embedding; English is used here
-            # as the representative embedding for that narrow fallback path.
-            "linked_refs": KnnSearch._serialize_linked_refs(top_linked_refs, include_text, english_embedding, None),
-        }
 
     def post(self, request):
         auth = request.headers.get("Authorization", "")
@@ -554,10 +507,12 @@ class NaturalLanguageSearch(View):
             body = json.loads(request.body)
         except (json.JSONDecodeError, UnicodeDecodeError):
             return jsonResponse({"error": "Invalid JSON body"}, status=400)
+        if not isinstance(body, dict):
+            return jsonResponse({"error": "JSON body must be an object"}, status=400)
 
         try:
-            response = self.run_search(body)
+            async_result = self.enqueue(body.get("query", ""))
         except NaturalLanguageSearchError as e:
             return jsonResponse({"error": str(e)}, status=e.status)
 
-        return jsonResponse(response)
+        return jsonResponse({"task_id": async_result.id}, status=202)

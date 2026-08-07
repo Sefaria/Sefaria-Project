@@ -18,8 +18,18 @@ from semantic_search.linked_refs import (
     get_mean_std_linked_ref_enhancements,
     linked_refs_for,
 )
-from semantic_search.natural_language_search import union_chunks_by_ref
+from semantic_search.natural_language_search import (
+    run_natural_language_search,
+    union_chunks_by_ref,
+    union_chunks_with_origin,
+)
 from semantic_search.query_expansion import QueryExpansion, QueryExpansionError, expand_query
+from semantic_search.relevance import (
+    score_result,
+    score_results_parallel,
+    summarize_result,
+    summarize_results_parallel,
+)
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search, semantic_search_by_embedding
 from semantic_search.models import SemanticTextChunk
@@ -565,7 +575,7 @@ class TestSemanticSearch:
 
 class TestExpandQuery:
     @override_settings(ANTHROPIC_API_KEY="test-key")
-    @patch("semantic_search.query_expansion.ChatAnthropic")
+    @patch("semantic_search.llm.ChatAnthropic")
     def test_returns_query_expansion_from_structured_output(self, mock_chat_cls):
         mock_structured = mock_chat_cls.return_value.with_structured_output.return_value
         mock_structured.invoke.return_value = {
@@ -581,7 +591,7 @@ class TestExpandQuery:
         )
 
     @override_settings(ANTHROPIC_API_KEY="test-key")
-    @patch("semantic_search.query_expansion.ChatAnthropic")
+    @patch("semantic_search.llm.ChatAnthropic")
     def test_uses_default_model_when_unconfigured(self, mock_chat_cls):
         mock_chat_cls.return_value.with_structured_output.return_value.invoke.return_value = {
             "english": "x", "hebrew": "y",
@@ -592,7 +602,7 @@ class TestExpandQuery:
         assert mock_chat_cls.call_args.kwargs["model"] == "claude-sonnet-5"
 
     @override_settings(ANTHROPIC_API_KEY="test-key", NATURAL_LANGUAGE_SEARCH_MODEL="claude-custom-model")
-    @patch("semantic_search.query_expansion.ChatAnthropic")
+    @patch("semantic_search.llm.ChatAnthropic")
     def test_uses_configured_model(self, mock_chat_cls):
         mock_chat_cls.return_value.with_structured_output.return_value.invoke.return_value = {
             "english": "x", "hebrew": "y",
@@ -609,7 +619,7 @@ class TestExpandQuery:
             expand_query("query")
 
     @override_settings(ANTHROPIC_API_KEY="test-key")
-    @patch("semantic_search.query_expansion.ChatAnthropic")
+    @patch("semantic_search.llm.ChatAnthropic")
     def test_raises_when_result_missing_fields(self, mock_chat_cls):
         mock_chat_cls.return_value.with_structured_output.return_value.invoke.return_value = {
             "english": "", "hebrew": "",
@@ -619,7 +629,7 @@ class TestExpandQuery:
             expand_query("query")
 
     @override_settings(ANTHROPIC_API_KEY="test-key")
-    @patch("semantic_search.query_expansion.ChatAnthropic")
+    @patch("semantic_search.llm.ChatAnthropic")
     def test_raises_when_llm_call_fails(self, mock_chat_cls):
         mock_chat_cls.return_value.with_structured_output.return_value.invoke.side_effect = RuntimeError("boom")
 
@@ -644,3 +654,242 @@ class TestUnionChunksByRef:
 
     def test_empty_lists_return_empty(self):
         assert union_chunks_by_ref([], []) == []
+
+
+class TestUnionChunksWithOrigin:
+    def test_english_only_chunk_tagged_english(self):
+        chunk = make_chunk(ref="Genesis 1:1")
+        assert union_chunks_with_origin([chunk], []) == [(chunk, "english")]
+
+    def test_hebrew_only_chunk_tagged_hebrew(self):
+        chunk = make_chunk(ref="Genesis 1:1")
+        assert union_chunks_with_origin([], [chunk]) == [(chunk, "hebrew")]
+
+    def test_chunk_in_both_lists_tagged_both_and_kept_once(self):
+        english_chunk = make_chunk(ref="Genesis 1:1", language="en")
+        hebrew_chunk = make_chunk(ref="Genesis 1:1", language="he")
+        assert union_chunks_with_origin([english_chunk], [hebrew_chunk]) == [(english_chunk, "both")]
+
+    def test_preserves_english_first_then_hebrew_only_order(self):
+        a = make_chunk(ref="A")
+        b = make_chunk(ref="B")
+        c = make_chunk(ref="C")
+        result = union_chunks_with_origin([a, b], [b, c])
+        assert result == [(a, "english"), (b, "both"), (c, "hebrew")]
+
+    def test_empty_lists_return_empty(self):
+        assert union_chunks_with_origin([], []) == []
+
+
+# ---------------------------------------------------------------------------
+# relevance
+# ---------------------------------------------------------------------------
+
+class TestScoreResult:
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_returns_score_from_structured_output(self, mock_get_llm):
+        mock_get_llm.return_value.with_structured_output.return_value.invoke.return_value = {"score": 4}
+        assert score_result("query", "some passage") == 4
+
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_clamps_score_above_max(self, mock_get_llm):
+        mock_get_llm.return_value.with_structured_output.return_value.invoke.return_value = {"score": 9}
+        assert score_result("query", "text") == 5
+
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_clamps_score_below_zero(self, mock_get_llm):
+        mock_get_llm.return_value.with_structured_output.return_value.invoke.return_value = {"score": -3}
+        assert score_result("query", "text") == 0
+
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_returns_zero_on_llm_exception(self, mock_get_llm):
+        mock_get_llm.return_value.with_structured_output.return_value.invoke.side_effect = RuntimeError("boom")
+        assert score_result("query", "text") == 0
+
+    @patch("semantic_search.relevance.get_chat_llm", side_effect=RuntimeError("no key"))
+    def test_returns_zero_on_llm_config_error(self, mock_get_llm):
+        assert score_result("query", "text") == 0
+
+
+class TestSummarizeResult:
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_returns_stripped_content(self, mock_get_llm):
+        mock_get_llm.return_value.invoke.return_value = SimpleNamespace(content="  relevant because X  ")
+        assert summarize_result("query", "text") == "relevant because X"
+
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_returns_empty_string_on_exception(self, mock_get_llm):
+        mock_get_llm.return_value.invoke.side_effect = RuntimeError("boom")
+        assert summarize_result("query", "text") == ""
+
+
+class TestScoreResultsParallel:
+    def test_preserves_original_order_regardless_of_completion_order(self):
+        items = [{"text": f"item-{i}"} for i in range(10)]
+
+        def fake_score(query, text):
+            # deliberately return based on content, not call order, so the test
+            # can't pass just by luck of thread scheduling
+            return int(text.split("-")[1]) % 5
+
+        with patch("semantic_search.relevance.score_result", side_effect=fake_score):
+            scores = score_results_parallel("query", items, max_workers=5)
+
+        assert scores == [i % 5 for i in range(10)]
+
+    def test_calls_on_progress_once_per_item_with_final_total(self):
+        items = [{"text": f"item-{i}"} for i in range(6)]
+        progress_calls = []
+
+        with patch("semantic_search.relevance.score_result", return_value=3):
+            score_results_parallel(
+                "query", items, max_workers=3,
+                on_progress=lambda completed, total: progress_calls.append((completed, total)),
+            )
+
+        assert len(progress_calls) == 6
+        assert [c for c, _ in sorted(progress_calls)] == [1, 2, 3, 4, 5, 6]
+        assert all(total == 6 for _, total in progress_calls)
+
+    def test_empty_items_returns_empty_list_and_skips_progress(self):
+        progress_calls = []
+        scores = score_results_parallel(
+            "query", [], on_progress=lambda completed, total: progress_calls.append((completed, total)),
+        )
+        assert scores == []
+        assert progress_calls == []
+
+
+class TestSummarizeResultsParallel:
+    def test_preserves_original_order_regardless_of_completion_order(self):
+        items = [{"text": f"item-{i}"} for i in range(8)]
+
+        def fake_summarize(query, text):
+            return f"summary-{text}"
+
+        with patch("semantic_search.relevance.summarize_result", side_effect=fake_summarize):
+            summaries = summarize_results_parallel("query", items, max_workers=4)
+
+        assert summaries == [f"summary-item-{i}" for i in range(8)]
+
+
+# ---------------------------------------------------------------------------
+# run_natural_language_search
+# ---------------------------------------------------------------------------
+
+class TestRunNaturalLanguageSearch:
+    @patch("semantic_search.relevance.summarize_results_parallel")
+    @patch("semantic_search.relevance.score_results_parallel")
+    @patch("semantic_search.linked_refs.get_mean_std_linked_ref_enhancements")
+    @patch("semantic_search.natural_language_search._search_leg")
+    @patch("semantic_search.query_expansion.expand_query")
+    def test_filters_low_scores_sorts_and_annotates_source_and_summary(
+        self, mock_expand, mock_search_leg, mock_link_enh, mock_score, mock_summarize,
+    ):
+        mock_expand.return_value = QueryExpansion(english="en query", hebrew="he query")
+
+        english_chunk = make_chunk(ref="A", text="text-a")
+        hebrew_chunk = make_chunk(ref="B", text="text-b")
+
+        def fake_search_leg(leg_query):
+            # keyed by query text (not call order) so this is safe under real
+            # ThreadPoolExecutor scheduling, which doesn't guarantee call order
+            return {
+                "en query": ([0.1], [english_chunk]),
+                "he query": ([0.2], [hebrew_chunk]),
+            }[leg_query]
+
+        mock_search_leg.side_effect = fake_search_leg
+        mock_link_enh.return_value = SimpleNamespace(ref_counts={})
+        mock_score.return_value = [2, 4]  # item 0 (A) filtered out, item 1 (B) kept
+        mock_summarize.return_value = ["B is relevant because..."]
+
+        with patch("api.views.KnnSearch._top_linked_refs", return_value=[]), \
+             patch(
+                 "api.views.KnnSearch._serialize_search_result",
+                 side_effect=lambda chunk, include_text: {"ref": chunk.ref, "text": chunk.text},
+             ), \
+             patch("api.views.KnnSearch._serialize_linked_refs", return_value=[]):
+            result = run_natural_language_search("original query")
+
+        assert result["query"] == "original query"
+        assert result["english_query"] == "en query"
+        assert result["hebrew_query"] == "he query"
+        assert result["results"] == [{
+            "ref": "B", "text": "text-b", "source": "hebrew",
+            "score": 4, "summary": "B is relevant because...",
+        }]
+        # scoring runs against the original raw query, over both items (pre-filter)
+        assert mock_score.call_args.args[0] == "original query"
+        assert len(mock_score.call_args.args[1]) == 2
+        # summarizing only runs on the item that survived the score filter
+        assert mock_summarize.call_args.args[0] == "original query"
+        assert len(mock_summarize.call_args.args[1]) == 1
+
+    @patch("semantic_search.relevance.summarize_results_parallel")
+    @patch("semantic_search.relevance.score_results_parallel")
+    @patch("semantic_search.linked_refs.get_mean_std_linked_ref_enhancements")
+    @patch("semantic_search.natural_language_search._search_leg")
+    @patch("semantic_search.query_expansion.expand_query")
+    def test_sorts_by_score_descending_stable_on_ties(
+        self, mock_expand, mock_search_leg, mock_link_enh, mock_score, mock_summarize,
+    ):
+        mock_expand.return_value = QueryExpansion(english="en query", hebrew="he query")
+
+        chunk_a = make_chunk(ref="A", text="text-a")
+        chunk_c = make_chunk(ref="C", text="text-c")
+        mock_search_leg.side_effect = lambda leg_query: {
+            "en query": ([0.1], [chunk_a, chunk_c]),
+            "he query": ([0.2], []),
+        }[leg_query]
+        mock_link_enh.return_value = SimpleNamespace(ref_counts={})
+        mock_score.return_value = [3, 5]  # A=3, C=5 -> C should sort first
+        mock_summarize.return_value = ["summary-c", "summary-a"]
+
+        with patch("api.views.KnnSearch._top_linked_refs", return_value=[]), \
+             patch(
+                 "api.views.KnnSearch._serialize_search_result",
+                 side_effect=lambda chunk, include_text: {"ref": chunk.ref, "text": chunk.text},
+             ), \
+             patch("api.views.KnnSearch._serialize_linked_refs", return_value=[]):
+            result = run_natural_language_search("original query")
+
+        assert [r["ref"] for r in result["results"]] == ["C", "A"]
+        assert [r["score"] for r in result["results"]] == [5, 3]
+
+    @patch("semantic_search.relevance.summarize_results_parallel")
+    @patch("semantic_search.relevance.score_results_parallel")
+    @patch("semantic_search.linked_refs.get_mean_std_linked_ref_enhancements")
+    @patch("semantic_search.natural_language_search._search_leg")
+    @patch("semantic_search.query_expansion.expand_query")
+    def test_reports_progress_through_all_phases(
+        self, mock_expand, mock_search_leg, mock_link_enh, mock_score, mock_summarize,
+    ):
+        mock_expand.return_value = QueryExpansion(english="en query", hebrew="he query")
+        chunk = make_chunk(ref="A", text="text-a")
+        mock_search_leg.side_effect = lambda leg_query: {
+            "en query": ([0.1], [chunk]),
+            "he query": ([0.2], []),
+        }[leg_query]
+        mock_link_enh.return_value = SimpleNamespace(ref_counts={})
+        mock_score.return_value = [4]
+        mock_summarize.return_value = ["summary"]
+
+        phases = []
+
+        with patch("api.views.KnnSearch._top_linked_refs", return_value=[]), \
+             patch(
+                 "api.views.KnnSearch._serialize_search_result",
+                 side_effect=lambda chunk, include_text: {"ref": chunk.ref, "text": chunk.text},
+             ), \
+             patch("api.views.KnnSearch._serialize_linked_refs", return_value=[]):
+            run_natural_language_search(
+                "original query",
+                progress_callback=lambda phase, meta: phases.append(phase),
+            )
+
+        assert phases[0] == "expanding_query"
+        assert "searching" in phases
+        assert "expanding_links" in phases
+        assert "scoring" in phases
+        assert phases[-1] == "summarizing"
