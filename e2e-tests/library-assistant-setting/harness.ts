@@ -113,7 +113,23 @@ export async function suppressOverlays(context: BrowserContext) {
   }));
 }
 
-/** Log in through the real form. Used by the setup project, once per account. */
+/**
+ * Log in through the real form. Used by the setup project, once per account.
+ *
+ * Leaving `/login` is NOT evidence that the login worked, and treating it as such is how
+ * this suite once reported all seven cohorts logged in while every authenticated assertion
+ * failed — an infrastructure fault presented as a product regression, which is the single
+ * most expensive way for a test suite to be wrong. A failed submit can navigate elsewhere,
+ * and a host that redirects across domains (`sefariastaging.org` → `sefariastaging-il.org`
+ * for a request from Israel) leaves `/login` while stranding the session cookie on a
+ * domain the tests never visit.
+ *
+ * So the outcome is verified twice: the browser must still be on the origin we started
+ * from, and the server must actually recognise the session. `Sefaria._uid` answers the
+ * second question — the server renders it into the page props only for an authenticated
+ * request, which is why the app itself uses it as the logged-in test, and why it is the
+ * same signal the promo banner gates on.
+ */
 export async function logIn(page: Page, email: string, password: string) {
   await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded' });
   await page.locator('input[name="email"]').first().fill(email);
@@ -127,6 +143,31 @@ export async function logIn(page: Page, email: string, password: string) {
     timeout: t(30000),
     waitUntil: 'commit',
   });
+
+  const landed = new URL(page.url()).origin;
+  const expectedOrigin = new URL(BASE_URL).origin;
+  if (landed !== expectedOrigin) {
+    throw new Error(
+      `Login for ${email} left ${expectedOrigin} and landed on ${landed}. The session ` +
+      `cookie is scoped to the host that served the login, so every later navigation to ` +
+      `${expectedOrigin} would be anonymous and every "assistant is on" assertion would ` +
+      `fail as though the feature were broken. Point SANDBOX_URL at the host this ` +
+      `environment actually serves you.`
+    );
+  }
+
+  // `commit` above resolves before the document is parsed, so the props may not exist yet.
+  try {
+    await page.waitForFunction(() => !!(window as any).Sefaria?._uid, null, { timeout: t(15000) });
+  } catch {
+    throw new Error(
+      `Login for ${email} navigated away from /login but the session is not authenticated ` +
+      `— the server rendered no Sefaria._uid, which it does for every logged-in request. ` +
+      `The form was submitted and rejected. Check the account exists and its password ` +
+      `matches the manifest; \`seed_library_assistant_e2e_users.py --report\` in the ` +
+      `target environment lists the cohorts.`
+    );
+  }
 }
 
 /**
