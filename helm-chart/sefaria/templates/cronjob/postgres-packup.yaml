@@ -23,7 +23,7 @@ spec:
                   - key: app
                     operator: In
                     values:
-                    - postgres
+                    - {{ .Values.backup.postgres.host }}
                 topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
@@ -35,7 +35,7 @@ spec:
             image:  postgres:{{ .Values.backup.postgres.version }}
             env:
             - name: DATABASES_HOST
-              value: "postgres"
+              value: {{ .Values.backup.postgres.host | quote }}
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}

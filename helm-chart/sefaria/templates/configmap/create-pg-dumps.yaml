@@ -81,6 +81,7 @@ data:
       --no-owner \
       --section=pre-data \
       --section=data \
+      --section=post-data \
       --no-privileges \
       --no-tablespaces \
       --no-unlogged-table-data \

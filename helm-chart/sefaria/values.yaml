@@ -68,7 +68,10 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    version: 10.3
+    # Hostname of the Postgres instance to dump from. Must track the instance the
+    # application actually writes to -- also used as the `app` label for pod affinity.
+    host: postgres-18
+    version: 18.3
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
