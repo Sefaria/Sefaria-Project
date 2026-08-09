@@ -845,11 +845,9 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
     editorApi.termDetail(slug).then(setDetail, e => setError(e.message || String(e)));
   }, [slug, createMode, refreshToken]);
 
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') { onClose(); } };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const handlePanelKeyDown = (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+  };
 
   const createTerm = async () => {
     const titles = [];
@@ -914,7 +912,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
 
   if (createMode) {
     return (
-      <div className="termDetailPanel">
+      <div className="termDetailPanel" onKeyDown={handlePanelKeyDown}>
         <div className="termDetailHeader">
           <span className="termDetailSlug">{Sefaria._('New term')}</span>
           <button className="linkerEditorBtn small" onClick={onClose}>{Sefaria._('Close')}</button>
@@ -951,7 +949,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
   }
 
   return (
-    <div className="termDetailPanel">
+    <div className="termDetailPanel" onKeyDown={handlePanelKeyDown}>
       <div className="termDetailHeader">
         <span className="termDetailSlug">{slug}</span>
         <button className="linkerEditorBtn small" onClick={onClose}>{Sefaria._('Close')}</button>
@@ -1238,8 +1236,13 @@ const LinkerEditorPage = () => {
   const altStructRootEntries = rawIndex ? altStructRoots(rawIndex) : [];
   const showDhRebuild = indexHasDiburHamatchil(rawIndex) || dhDirty;
 
+  // Escape shouldn't bubble up to ReaderPanel and close the whole editor (which navigates
+  // home if it's the only panel open). TermDetailPanel handles its own Escape and stops
+  // propagation before it reaches here; this catches Escape everywhere else in the editor.
+  const swallowEscape = (e) => { if (e.key === 'Escape') { e.stopPropagation(); } };
+
   return (
-    <div className="readerNavMenu linkerEditorNavMenu sans-serif">
+    <div className="readerNavMenu linkerEditorNavMenu sans-serif" onKeyDown={swallowEscape}>
       <div className="content linkerEditorContent">
         <div className="linkerEditorPage">
           <div className="linkerEditorTopBar">
