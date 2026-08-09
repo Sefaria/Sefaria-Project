@@ -840,10 +840,6 @@ class ReaderApp extends Component {
         }
       }
     }
-    const linkerAdminCitation = Sefaria.util.getUrlVars()["linkerAdminCitation"];
-    if (linkerAdminCitation && hist.url.includes("with=LinkerAdmin")) {
-      hist.url += "&linkerAdminCitation=" + encodeURIComponent(linkerAdminCitation);
-    }
     // Replace question marks that can be included in titles
     // (not using encodeURIComponent for this can run twice and encode the % of the first running)
     hist.url = hist.url.replace(/\?/g, '%3F')

@@ -1069,20 +1069,6 @@ LinkerPartChip.propTypes = {
   contextType: PropTypes.string,
 };
 
-const getSelectedLinkerAdminSpan = (testString) => {
-  if (!testString) { return null; }
-  for (let [key, spans] of Object.entries(Sefaria._linkerOutputMap || {})) {
-    // For ambiguous citations several spans share a test string; skip options the disambiguator
-    // marked invalid (llm_ambiguous_option_valid === false) so we select the option it kept.
-    const match = (spans || []).find(span => span.type === "citation" && span.llm_ambiguous_option_valid !== false && Sefaria._getLinkerTestString(span) === testString);
-    if (match) {
-      const [sourceRef, lang, charRange] = key.split("|");
-      return {...match, sourceRef, lang, charRange};
-    }
-  }
-  return null;
-};
-
 // All citation spans sharing this span's charRange. For an unambiguous citation that's just the
 // one span; for an ambiguous citation it's every option the linker considered (the disambiguator
 // keeps one and marks the rest llm_ambiguous_option_valid === false). Falls back to [span] when the
@@ -1160,10 +1146,7 @@ LinkerPairings.propTypes = {
 
 const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersions, currObjectVersions}) => {
   const selectedCitationData = connectionData || Sefaria._linkerAdminSelectedCitation;
-  const urlVars = Sefaria.util.getUrlVars();
-  const initialTestString = selectedCitationData?.linkerAdminCitation || urlVars["linkerAdminCitation"] || "";
   const linkerDebugOn = Sefaria._debug_mode === "linker";
-  const [testString, setTestString] = useState(initialTestString);
   const [parsed, setParsed] = useState(null);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
@@ -1171,7 +1154,7 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
   const [parsing, setParsing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [testStringCopied, setTestStringCopied] = useState(false);
-  const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
+  const [selectedSpan, setSelectedSpan] = useState(selectedCitationData?.linkerAdminSpan || null);
   // Fall back to the ref currently visible in the reader (updates as you scroll) rather than the
   // panel's static srefs, so "Current Ref" tracks the reader when no citation is selected.
   const rerunRef = selectedSpan?.refContext || selectedSpan?.sourceRef || currentlyVisibleRef || srefs?.[0];
@@ -1216,23 +1199,16 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     }
   };
 
-  const parseCitation = (value = testString) => {
-    if (!value) { return; }
-    const span = selectedCitationData?.linkerAdminCitation === value ? selectedCitationData?.linkerAdminSpan : getSelectedLinkerAdminSpan(value);
-    return parseSpan(span);
-  };
-
   const openLinkerEditor = () => {
     window.open("/linker-editor", "_blank", "noopener");
   };
 
   useEffect(() => {
-    if (initialTestString) {
-      setTestString(initialTestString);
-      setSelectedSpan(selectedCitationData?.linkerAdminSpan || getSelectedLinkerAdminSpan(initialTestString));
-      parseCitation(initialTestString);
+    if (selectedCitationData?.linkerAdminSpan) {
+      setSelectedSpan(selectedCitationData.linkerAdminSpan);
+      parseSpan(selectedCitationData.linkerAdminSpan);
     }
-  }, [initialTestString]);
+  }, [selectedCitationData?.linkerAdminSpan]);
 
   // Restyle the citation's <a class="mutc"> element(s) already rendered in the reader so a
   // delete/recreate is visible immediately, without waiting for a reload to refetch linker_output.
