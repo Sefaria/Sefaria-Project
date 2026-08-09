@@ -47,7 +47,7 @@ function CrumbList({ crumbs }) {
  *   - If the full path overflows, show [first] > [...] > [last].
  *   - The "..." node has the same hover style as a text crumb.
  *   - Hovering "..." shows a static tooltip listing the hidden middle crumbs
- *     joined by " > ", styled like the reader-header tooltip.
+ *     joined by ">", styled like the reader-header tooltip.
  */
 function BreadcrumbPath({ crumbs }) {
   const containerRef = useRef(null);
