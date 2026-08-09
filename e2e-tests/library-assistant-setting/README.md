@@ -30,12 +30,15 @@ this suite would go red.
 | Views & template | `reader/tests/library_assistant_setting_test.py` | `/api/profile`, `/api/profile/sync`, the script-tag gate, the settings page |
 | Landing view | `reader/tests/enable_library_assistant_test.py` | `/enable-library-assistant` |
 | Registration | `reader/tests/register_library_assistant_test.py` | that a brand-new account is given the key |
-| **Migration + rollback** | `reader/tests/library_assistant_migration_test.py` | cohort selection, idempotency, the archive, rollback's only-what-we-wrote rule |
+| **Migration + rollback** | *not committed* — `.claude/scratch/sc-46240/library_assistant_migration_test.py` | cohort selection, idempotency, the archive, rollback's only-what-we-wrote rule |
 | **Browser, all phases** | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the promo banner, the enable landing |
 
-The migration tests point the scripts' module-level `db` at a scratch database and call the
-real `migrate()` / `rollback()`. A developer's local `profiles` collection is a restored
-public dump holding ~248,000 real people; nothing here writes to it.
+**On the migration tests.** They guard two one-shot scripts that are meaningless after the
+migration runs, so they are deliberately not committed — they live in
+`.claude/scratch/sc-46240/` and are run from there. Copy the file into `reader/tests/` if you
+need it; do not commit it. They point the scripts' module-level `db` at a scratch database and
+call the real `migrate()` / `rollback()`. A developer's local `profiles` collection is a
+restored public dump holding ~248,000 real people; nothing there writes to it.
 
 **For how the suite is built and why, read §8–§10**: the oracle and the enablement call it
 was missing (§8), the shared e2e infrastructure this suite changed for every other suite in
@@ -153,7 +156,11 @@ python -m pytest sefaria/helper/tests/library_assistant_test.py
 python -m pytest reader/tests/library_assistant_setting_test.py \
                  reader/tests/enable_library_assistant_test.py \
                  reader/tests/experiments_admin_test.py \
-                 reader/tests/library_assistant_migration_test.py
+                 reader/tests/register_library_assistant_test.py
+
+# 2b. The migration tests are not committed. To run them, copy them in first:
+cp .claude/scratch/sc-46240/library_assistant_migration_test.py reader/tests/
+python -m pytest reader/tests/library_assistant_migration_test.py
 
 # 3. Browser, Phase 1 (before the migration).
 npx playwright test --project=la-setting
@@ -216,10 +223,12 @@ two tests skip with a message naming the key; they never silently pass.
 
 ## 4. Running against staging after code freeze
 
-> **Not yet proven remotely.** Every run so far has been against `http://localhost:8000`.
-> The remote path below is designed but unexercised — the seeding round trip, the HTTPS
-> `www.` host. **Do a rehearsal run against staging before the day it is needed**, so the
-> first remote run is not the rollout itself.
+> **Exercised against staging on 2026-08-06.** The seeding round trip and the cohort matrix
+> both worked; the browser suite did not, for environment reasons rather than product ones.
+> Everything below has been corrected against what that run actually found — where this
+> file previously guessed, it now reports. §4a is the environment as it is; §4b is what
+> went wrong and what it looked like, so the next person recognises it in seconds instead
+> of debugging it for an afternoon.
 
 Everything above works unchanged against a remote target; only the inputs differ.
 
@@ -228,8 +237,72 @@ export SANDBOX_URL=https://sefariastaging.org            # www. is prefixed for 
 export LA_E2E_PASSWORD=<a password chosen for this run>  # not "password"
 ```
 
-Staging is Postgres behind several web pods and is not the bottleneck a dev server is, so
-leave `LA_WORKERS` unset and let Playwright choose.
+### 4a. Staging, as it actually is
+
+Verified live 2026-08-06. Several of these contradict what this file used to assert, and
+each one costs an afternoon if you meet it cold.
+
+| | |
+| --- | --- |
+| Cluster | **development** — `gke_development-205018_us-east1-b_cluster-1`, namespace `default`. *Not* the production cluster. |
+| Pod | `sefariastaging-web-<hash>`, **one replica** (`rollout.argoproj.io/sefariastaging-web`) |
+| Postgres | database `sefariastaging`, host `postgres-18` |
+| Mongo | database `sefaria-sefariastaging`, `mongo.default:27017` |
+| Fronted by | Cloudflare — so a failure can be a Cloudflare error page rather than anything Django served |
+| **Weekly wipe** | `sefariastaging-sync-{postgres,mongo}-production-data`, both `0 2 * * 0`. **Both databases are restored from production every Sunday at 02:00.** Seeded cohorts do not survive it, and a rehearsal on one side of that boundary does not describe the state on the other. |
+
+Two things that are safe by construction, worth knowing so you don't spend time worrying
+about them:
+
+- **You cannot seed production by accident.** Production is a different cluster, its pods
+  are named `production-*`, and ordinary developer accounts have no `pods/exec` there.
+- **CI cannot delete staging's cohorts.** `build/ci/cleanup_test_data.py` range-deletes
+  every profile above `SYNTHETIC_USER_ID_FLOOR`, which looks alarming next to seeded
+  accounts at 2.09 billion — but `SEFARIA_DB` is `os.getenv("SEFARIA_DB") + "-" + deployEnv`
+  (`helm-chart/sefaria/templates/configmap/local-settings-file.yaml`), so sandboxes are
+  `sefaria-sandbox-<sha>` and the script resolves `db` from its own pod. It cannot reach
+  `sefaria-sefariastaging`.
+
+**Check the active gcloud account before concluding you lack access.** `kubectl` reports
+IAM denials against whichever account `gcloud` has active, which may be a personal one.
+`gcloud config set account <you>@sefaria.org`, then `rm ~/.kube/gke_gcloud_auth_plugin_cache`
+— the plugin caches tokens and will keep serving the old identity — then `gcloud auth login`.
+
+### 4b. Failure modes seen on staging, and how to recognise them
+
+| Symptom | Cause | What to do |
+| --- | --- | --- |
+| Snapshot shows **"Gateway time-out / Error code 504"** | Too many workers against one pod; Cloudflare gave up before Django answered | `LA_WORKERS=2`. Nothing to debug in the app. |
+| Every "assistant is on" test fails, every "off" test passes, settings-page tests time out on `#libraryAssistantSetting`, and the snapshot shows **"Log in to Sefaria"** | The browser is anonymous. The session did not attach. | `logIn` now fails loudly on this (§4c). If you see it anyway, check `--report` in the pod and confirm the manifest password matches. |
+| `la-setup` passes but everything after it fails as though the feature were broken | Historic: `logIn` treated "left `/login`" as success | Fixed — see §4c. If you are on an older checkout, this is the first thing to suspect. |
+
+**A request from Israel is served the `-il` domain.** `www.sefariastaging.org` redirects to
+`www.sefariastaging-il.org` in the browser, which strands the session cookie on a host the
+tests never visit. `logIn` now rejects this explicitly rather than continuing anonymously.
+Note this is *not* the same as the whole suite failing — pointing `SANDBOX_URL` at
+`https://sefariastaging-il.org` was tried and did **not** fix the 2026-08-06 run, so do not
+assume it is the answer.
+
+### 4c. `logIn` verifies the login actually happened
+
+`harness.ts:logIn` used to wait only for the URL to leave `/login`. A failed submit
+satisfies that, and so does a cross-domain redirect — so the suite reported all seven
+cohorts logged in and then failed 13 of 19 tests as though the product had regressed. It
+now asserts that the browser is still on the expected origin **and** that `/api/profile`
+returns the caller's own profile, which is only true if the session cookie authenticated.
+
+**The generalisable rule: an authentication helper must assert authentication, not
+navigation.** A suite that cannot tell "the login failed" from "the feature is broken" will
+send you hunting a product bug that does not exist — and it will do it on the day you have
+least time for it.
+
+**Cap the workers.** `LA_WORKERS=2` is a good default for staging. An earlier version of
+this file said staging sits behind "several web pods" and told you to leave `LA_WORKERS`
+unset; that was wrong. Staging runs **one** web pod (`rollout.argoproj.io/sefariastaging-web`,
+`replicas: 1`), and an uncapped Playwright run from a laptop drives it hard enough that
+Cloudflare starts returning **504 Gateway time-out** pages. Those surface as ordinary
+assertion failures — a snapshot showing "Gateway time-out" is the tell, and it means the
+page never reached Django at all.
 
 ### Precheck — do this the day before, not on the day
 
@@ -261,19 +334,34 @@ change under you — but as of that check staging needs no preparation for eithe
    there; `post` afterwards. Getting this wrong shows up as exactly one failing cohort
    (`never_chose`), which is the signal, not a flake.
 2. **Seed the cohorts on the target.** The seeding script needs Django and both databases,
-   so it runs *in the environment*, not from a laptop. `--manifest-stdout` puts the manifest
-   JSON — and only that — on stdout, so the round trip is one command:
+   so it runs *in the environment*, not from a laptop. Let the script write its own manifest
+   and fetch it with `kubectl cp` — three commands, each of which either works or fails
+   loudly:
 
    ```bash
-   kubectl exec $POD -- env LA_E2E_PASSWORD="$LA_E2E_PASSWORD" \
-     python scripts/dev/seed_library_assistant_e2e_users.py --reset --manifest-stdout \
-     > e2e-tests/.la-e2e-users.json
+   CTX=gke_development-205018_us-east1-b_cluster-1
+   POD=$(kubectl --context $CTX get pods -n default --no-headers \
+         | awk '/^sefariastaging-web-/ {print $1; exit}')
+
+   # The password goes in through a file, not `env VAR=` in the argv: kubectl exec
+   # arguments are recorded in GKE Cloud Audit Logs and in your shell history.
+   printf '%s\n' "$LA_E2E_PASSWORD" > /tmp/la_pw
+   kubectl --context $CTX cp /tmp/la_pw default/$POD:/tmp/la_pw -c web
+   kubectl --context $CTX exec $POD -n default -- sh -c \
+     'LA_E2E_PASSWORD=$(cat /tmp/la_pw) python /app/scripts/dev/seed_library_assistant_e2e_users.py --reset; rm -f /tmp/la_pw'
+   kubectl --context $CTX cp default/$POD:/app/e2e-tests/.la-e2e-users.json \
+     e2e-tests/.la-e2e-users.json -c web
    ```
 
-   Note no `-it`: a TTY merges stderr into the captured stream and corrupts the JSON. If the
-   pod writes anything to stdout of its own, fall back to letting the script write its file
-   and fetching it: `kubectl cp $POD:/app/e2e-tests/.la-e2e-users.json e2e-tests/.la-e2e-users.json`
-   (adjust the path to the image's working directory).
+   **Do not use the `--manifest-stdout` round trip that this file used to document.**
+   `kubectl exec -i … > file` does not work: `-i` holds stdin open after the script exits,
+   so the command hangs until something kills it, and the shell's redirection has already
+   truncated the target — you are left with an empty manifest *and* your previous local one
+   destroyed. `--manifest-stdout` is still useful when you are piping to a program that
+   closes the stream itself; it is not useful here.
+
+   Back up any existing local manifest before overwriting it — the same file is how a
+   local run finds its own cohorts.
 3. **Run the browser suite from your laptop** against `SANDBOX_URL`:
    `npx playwright test --project=la-setting`.
 4. **Then the migration**, per the Phase 2 runbook on sc-46273: dry-run, check the three
@@ -548,8 +636,9 @@ lines.
 
 ## 10. The Python layers in detail
 
-**`reader/tests/library_assistant_migration_test.py` — 45 tests.** Drives the real
-`migrate()` / `rollback()` rather than a reimplementation. Two things are worth knowing:
+**`library_assistant_migration_test.py` — 45 tests, not committed** (see §1; it lives in
+`.claude/scratch/sc-46240/`). Drives the real `migrate()` / `rollback()` rather than a
+reimplementation. Two things are worth knowing:
 
 - **The isolation is enforced, not assumed.** These tests are only safe because each script
   reaches Mongo through exactly one module-level `db` that the fixture rebinds to a
