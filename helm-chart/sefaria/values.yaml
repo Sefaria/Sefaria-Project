@@ -68,8 +68,7 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    # Hostname of the Postgres instance to dump from. Must track the instance the
-    # application actually writes to -- also used as the `app` label for pod affinity.
+    # Instance to dump from; must track the one the app writes to. Also the `app` label.
     host: postgres-18
     version: 18.3
     prefix: ""

@@ -110,9 +110,7 @@ spec:
                     optional: true
                 - configMapRef:
                     name: local-settings-{{ .Values.deployEnv }}
-              # mongorestore streams multi-GB collections (sheets alone is ~14GB); at a
-              # 1Gi limit it was OOM-killed mid-restore at varying points, which is why
-              # this job failed intermittently rather than consistently.
+              # 1Gi OOM-killed mongorestore mid-sheets (~14GB collection).
               resources:
                 requests:
                   cpu: 500m
