@@ -231,9 +231,11 @@
 
 /* AddressType */
 .addressTypeEditor { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.addressTypeEditor.busy { opacity: 0.5; }
 .addressTypeEditor select { font-size: 13px; padding: 3px 6px; }
-.addressTypeMsg.ok { color: #2c6e2c; font-size: 12px; }
-.addressTypeMsg.err { color: #b00; font-size: 12px; }
+.addressTypeMsg { font-size: 12px; }
+.addressTypeMsg.ok { color: #2c6e2c; }
+.addressTypeMsg.err { color: #b00; }
 
 /* Term detail panel */
 .termDetailPanel {

@@ -314,7 +314,7 @@ const AddressTypeEditor = ({ node, title, keyPath, addressTypeOptions, onChanged
 
   if (!addressTypes.length) { return null; }
   return (
-    <div className="addressTypeEditor">
+    <div className={'addressTypeEditor' + (busy ? ' busy' : '')}>
       <span className="cardLabel">{Sefaria._('AddressTypes')}</span>
       {addressTypes.map((atype, i) => (
         <select key={i} value={atype} disabled={busy} onChange={e => changeAt(i, e.target.value)}>
@@ -323,7 +323,8 @@ const AddressTypeEditor = ({ node, title, keyPath, addressTypeOptions, onChanged
           ))}
         </select>
       ))}
-      {msg && <span className={'addressTypeMsg' + (msg.ok ? ' ok' : ' err')}>{msg.text}</span>}
+      {busy && <span className="addressTypeMsg">{Sefaria._('Saving…')}</span>}
+      {!busy && msg && <span className={'addressTypeMsg' + (msg.ok ? ' ok' : ' err')}>{msg.text}</span>}
     </div>
   );
 };
