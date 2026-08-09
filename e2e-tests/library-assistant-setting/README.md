@@ -288,8 +288,10 @@ assume it is the answer.
 `harness.ts:logIn` used to wait only for the URL to leave `/login`. A failed submit
 satisfies that, and so does a cross-domain redirect — so the suite reported all seven
 cohorts logged in and then failed 13 of 19 tests as though the product had regressed. It
-now asserts that the browser is still on the expected origin **and** that `/api/profile`
-returns the caller's own profile, which is only true if the session cookie authenticated.
+now asserts that the browser is still on the expected origin **and** that `Sefaria._uid` is
+present, which the server renders into the page props only for an authenticated request —
+the same signal the app itself uses to decide whether someone is logged in. (`/api/profile`
+has no GET route and 404s, so it is not the check to reach for despite the name.)
 
 **The generalisable rule: an authentication helper must assert authentication, not
 navigation.** A suite that cannot tell "the login failed" from "the feature is broken" will
