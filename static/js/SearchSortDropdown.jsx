@@ -75,7 +75,7 @@ const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {
         <span className="searchSortDropdown__label">
           <InterfaceText text={{ en: currentOption.name, he: currentOption.heName }} />
         </span>
-        <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down.svg" alt="" aria-hidden="true" />
+        <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down-line.svg" alt="" aria-hidden="true" />
       </div>
     );
   }
@@ -107,7 +107,7 @@ const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {
         </span>
         <img
           className="searchSortDropdown__chevron"
-          src="/static/icons/chevron-down.svg"
+          src="/static/icons/chevron-down-line.svg"
           alt=""
           aria-hidden="true"
         />

@@ -9,7 +9,11 @@ function Breadcrumb({ label, hebrewLabel, href }) {
   const text = <InterfaceText text={{ en: label, he: hebrewLabel }} />;
   if (href) {
     return (
-      <a href={href} className="searchResultCard-crumb searchResultCard-crumb--link">
+      <a
+        href={href}
+        className="searchResultCard-crumb searchResultCard-crumb--link"
+        onClick={(e) => e.stopPropagation()}
+      >
         {text}
       </a>
     );
