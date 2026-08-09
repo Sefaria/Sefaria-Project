@@ -11,6 +11,7 @@ import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
 import {matchesCountryTarget} from './sefaria/strapiTargeting';
+import {INTERFACE_LANG_TO_LOCALE} from './sefaria/strapiLocalization';
 import {getViewerCountryCandidates} from './sefaria/countryCandidates';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -2143,7 +2144,7 @@ const InterruptingMessage = ({
 
   const shouldShow = () => {
     if (!strapi.modal) return false;
-    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
+    if (!strapi.modal.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
@@ -2325,11 +2326,7 @@ const Banner = ({ onClose }) => {
 
   const shouldShow = () => {
     if (!strapi.banner) return false;
-    if (
-      Sefaria.interfaceLang === "hebrew" &&
-      !strapi.banner.locales.includes("he")
-    )
-      return false;
+    if (!strapi.banner.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
