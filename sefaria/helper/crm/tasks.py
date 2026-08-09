@@ -92,8 +92,18 @@ def extract_error_detail(exc: Exception) -> str:
     return str(exc)
 
 
+# The webhook is deactivated, not deleted: it reported opt-ins to Salesforce while the
+# Library Assistant was an opt-in experiment and comms segmented users by that choice.
+# With the assistant on by default, comms has no use for who turns it off, so nothing
+# is sent. Everything below is kept as a working reference for the next experiment that
+# needs CRM segmentation — flip this to False to reactivate.
+CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED = True
+
+
 def dispatch_chatbot_opt_in_webhook(email: str, opt_in: bool, interface_language: str = "english") -> None:
     """Fire the Salesforce webhook for a chatbot experiment opt-in/opt-out change."""
+    if CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED:
+        return
     if not email:
         return
     if CELERY_ENABLED:

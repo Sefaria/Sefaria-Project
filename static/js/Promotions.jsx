@@ -1,5 +1,6 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
+import { buildInAppAdsFromSidebarAds } from "./sefaria/sidebarAds";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
@@ -23,68 +24,7 @@ const Promotions = () => {
         // Only an array is iterable here. A stale/incompatible payload may nest the ads under a wrapper object (Strapi v4's { data: [...] })
         // The wrong data type  must be treated as "no ads" rather than crashing on .forEach iterator
         if (Array.isArray(sidebarAds)) {
-          sidebarAds.forEach((sidebarAd) => {
-            let keywordTargetsArray = sidebarAd.keywords
-              .split(",")
-              .map((x) => x.trim().toLowerCase());
-            let excludeKeywordTargets = keywordTargetsArray
-              .filter((x) => x[0] === "!")
-              .map((x) => x.slice(1));
-            keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
-            Sefaria._inAppAds.push({
-              campaignId: sidebarAd.internalCampaignId,
-              title: sidebarAd.title,
-              bodyText: sidebarAd.bodyText,
-              buttonText: sidebarAd.buttonText,
-              buttonURL: sidebarAd.buttonURL,
-              buttonIcon: sidebarAd.buttonIcon,
-              buttonLocation: sidebarAd.buttonAboveOrBelow,
-              hasBlueBackground: sidebarAd.hasBlueBackground,
-              isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-              newsletterMailingLists:
-                sidebarAd.newsletterMailingLists?.map(
-                  (mailingLists) => mailingLists.newsletterName
-                ) ?? [],
-              trigger: {
-                showTo: sidebarAd.showTo,
-                interfaceLang: "english",
-                startTimeDate: Date.parse(sidebarAd.startTime),
-                endTimeDate: Date.parse(sidebarAd.endTime),
-                keywordTargets: keywordTargetsArray,
-                excludeKeywordTargets: excludeKeywordTargets,
-              },
-              debug: sidebarAd.debug,
-            });
-            // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
-            if (sidebarAd.localizations?.length) {
-              const hebrewAttributes = sidebarAd.localizations[0];
-              const [buttonText, bodyText, buttonURL, title] = [
-                hebrewAttributes.buttonText,
-                hebrewAttributes.bodyText,
-                hebrewAttributes.buttonURL,
-                hebrewAttributes.title,
-              ];
-              Sefaria._inAppAds.push({
-                campaignId: sidebarAd.internalCampaignId,
-                title: title,
-                bodyText: bodyText,
-                buttonText: buttonText,
-                buttonURL: buttonURL,
-                buttonIcon: sidebarAd.buttonIcon,
-                buttonLocation: sidebarAd.buttonAboveOrBelow,
-                hasBlueBackground: sidebarAd.hasBlueBackground,
-                trigger: {
-                  showTo: sidebarAd.showTo,
-                  interfaceLang: "hebrew",
-                  startTimeDate: Date.parse(sidebarAd.startTime),
-                  endTimeDate: Date.parse(sidebarAd.endTime),
-                  keywordTargets: keywordTargetsArray,
-                  excludeKeywordTargets: excludeKeywordTargets,
-                },
-                debug: sidebarAd.debug,
-              });
-            }
-          });
+          Sefaria._inAppAds = buildInAppAdsFromSidebarAds(sidebarAds);
           setInAppAds(Sefaria._inAppAds);
         }
       } catch (error) {

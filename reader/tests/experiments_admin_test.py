@@ -3,13 +3,13 @@ import io
 import uuid
 from unittest import mock
 
-from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, RequestFactory
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 
 from reader.admin import UserExperimentSettingsAdmin
+from reader.conftest import create_test_user, purge_test_profiles
 from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 
@@ -20,16 +20,11 @@ class TestUserExperimentSettingsSync(TestCase):
     databases = "__all__"
 
     def setUp(self):
-        token = uuid.uuid4().hex
-        self.user = User.objects.create_user(
-            username=f"experiments-{token}",
-            email=f"experiments-{token}@example.com",
-            password="password",
-        )
-        db.profiles.delete_many({"id": self.user.id})
+        self.user = create_test_user("experiments")
+        purge_test_profiles(self.user)
 
     def tearDown(self):
-        db.profiles.delete_many({"id": self.user.id})
+        purge_test_profiles(self.user)
 
     def test_set_user_experiments_updates_profile_without_duplicates(self, _mock_dispatch):
         self.assertEqual(db.profiles.count_documents({"id": self.user.id}), 0)
@@ -99,21 +94,10 @@ class TestUploadCsvView(TestCase):
 
     def setUp(self):
         self.token = uuid.uuid4().hex
-        self.admin_user = User.objects.create_superuser(
-            username=f"admin-{self.token}",
-            email=f"admin-{self.token}@example.com",
-            password="password",
-        )
+        self.admin_user = create_test_user("admin", superuser=True)
         # Create a few "existing" users whose emails will appear in the CSV.
-        self.existing_users = []
-        for i in range(3):
-            u = User.objects.create_user(
-                username=f"csvuser-{i}-{self.token}",
-                email=f"csvuser-{i}-{self.token}@example.com",
-                password="password",
-            )
-            self.existing_users.append(u)
-            db.profiles.delete_many({"id": u.id})
+        self.existing_users = [create_test_user(f"csvuser-{i}") for i in range(3)]
+        purge_test_profiles(*self.existing_users)
 
         self.nonexistent_emails = [
             f"nobody-{self.token}@example.com",
@@ -125,8 +109,8 @@ class TestUploadCsvView(TestCase):
         )
 
     def tearDown(self):
+        purge_test_profiles(*self.existing_users)
         for u in self.existing_users:
-            db.profiles.delete_many({"id": u.id})
             UserExperimentSettings.objects.filter(user=u).delete()
 
     def _get_messages(self, request):

@@ -4,39 +4,29 @@ import Sefaria from '../sefaria';
 describe('keyed interface strings', () => {
   const interfaceEn = require('../i18n/interface/en.json');
   const interfaceHe = require('../i18n/interface/he.json');
-  const contextEn = require('../i18n/interface-context/en.json');
-  const contextHe = require('../i18n/interface-context/he.json');
   const ID_RE = /^[a-z0-9_]+(\.[a-z0-9_]+)+$/;
 
   test('every key in every map is an ID matching the router regex', () => {
-    [interfaceEn, interfaceHe, contextEn, contextHe].forEach(map =>
+    [interfaceEn, interfaceHe].forEach(map =>
       Object.keys(map).forEach(id => expect(id).toMatch(ID_RE))
     );
   });
 
-  test('en.json and he.json cover the same IDs in each map', () => {
+  test('en.json and he.json cover the same IDs', () => {
     expect(Object.keys(interfaceHe).sort()).toEqual(Object.keys(interfaceEn).sort());
-    expect(Object.keys(contextHe).sort()).toEqual(Object.keys(contextEn).sort());
   });
 
-  test('interface and interface-context define disjoint IDs', () => {
-    const ctxIds = new Set(Object.keys(contextEn));
-    Object.keys(interfaceEn).forEach(id => expect(ctxIds.has(id)).toBe(false));
+  test('no value is empty in the English source template', () => {
+    Object.entries(interfaceEn).forEach(([id, v]) => {
+      expect(typeof v).toBe('string');
+      expect(v.length).toBeGreaterThan(0);
+    });
   });
 
-  test('no value is empty in the English source templates', () => {
-    [interfaceEn, contextEn].forEach(map =>
-      Object.entries(map).forEach(([id, v]) => {
-        expect(typeof v).toBe('string');
-        expect(v.length).toBeGreaterThan(0);
-      })
-    );
-  });
-
-  test('runtime map merges both directories', () => {
+  test('runtime map exposes every ID in both languages', () => {
     Object.entries(interfaceEn).forEach(([id, v]) =>
       expect(Sefaria._i18nInterfaceStrings.en[id]).toBe(v));
-    Object.entries(contextHe).forEach(([id, v]) =>
+    Object.entries(interfaceHe).forEach(([id, v]) =>
       expect(Sefaria._i18nInterfaceStrings.he[id]).toBe(v));
   });
 
@@ -53,9 +43,9 @@ describe('keyed interface strings', () => {
       expect(Sefaria._('common.cancel')).toBe(interfaceHe['common.cancel']);
     });
 
-    test('interface-context ID resolves like any other ID', () => {
+    test('component-scoped ID resolves like any other ID', () => {
       Sefaria.interfaceLang = 'hebrew';
-      expect(Sefaria._('follow_button.follow')).toBe(contextHe['follow_button.follow']);
+      expect(Sefaria._('follow_button.follow')).toBe(interfaceHe['follow_button.follow']);
     });
 
     test('keyed ID missing a Hebrew value falls back to English', () => {
