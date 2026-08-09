@@ -46,7 +46,7 @@ function CrumbList({ crumbs }) {
  *
  * Props: crumbs – array of { label: string, hebrewLabel?: string, href?: string }
  *
- * Truncation rules (per designer spec):
+ * Truncation rules (per spec):
  *   - Never truncate individual nodes mid-label.
  *   - If the full path overflows, show [first] > [...] > [last].
  *   - The "..." node has the same hover style as a text crumb.
