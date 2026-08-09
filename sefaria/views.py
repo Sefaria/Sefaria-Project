@@ -736,21 +736,6 @@ def reset_cache(request):
 
 
 @staff_member_required
-def rebuild_linker(request):
-    """
-    Rebuild the in-process linker (ref-resolver) for each language so that linker
-    metadata edits made via /linker-editor take effect on the live linker. Triggered
-    by the "Rebuild linker" button in the editor. Returns JSON (called via fetch).
-    """
-    model.library.rebuild_linker()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild_linker")
-
-    return jsonResponse({"status": "ok"})
-
-
-@staff_member_required
 def rebuild_linker_resolvers(request):
     """
     Enqueue an async rebuild of RefResolver and CategoryResolver for selected linker

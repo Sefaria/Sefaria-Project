@@ -1019,6 +1019,18 @@ def rebuild_linker_resolvers_task(self, langs: List[str]) -> dict:
     return {"langs": langs}
 
 
+@app.task(name="linker.parse_citation", bind=True)
+def parse_linker_citation_task(self, payload: dict) -> dict:
+    """
+    Preview how the RefResolver would parse a manually-assembled citation (the "Parse"
+    action in the reader's linker admin sidebar). Runs on a worker, where the linker is
+    already built, instead of the web pod.
+    """
+    from sefaria.helper import linker_admin
+    logger.info("parse_linker_citation:start", task_id=self.request.id)
+    return linker_admin.parse_linker_citation(payload)
+
+
 @app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)
 def rebuild_nonuniqueterm_index_task(self) -> dict:
     """

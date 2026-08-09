@@ -5759,8 +5759,9 @@ class Library(object):
         """
         Rebuild the cached linker (ref-resolver) for each language so that linker
         metadata edits (match_templates / addressTypes / NonUniqueTerms) take effect on
-        the live linker. Invoked directly and, in multiserver setups, on every web
-        server via the coordinator (see sefaria.views.rebuild_linker).
+        the live linker. A full rebuild (loads spaCy models); prefer
+        rebuild_linker_resolvers for the RefResolver/CategoryResolver-only case used by
+        /linker-editor. Not exposed via any web view — call from a worker or shell.
         """
         for lang in langs:
             self.build_linker(lang)

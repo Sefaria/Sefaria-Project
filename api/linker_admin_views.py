@@ -49,7 +49,7 @@ class LinkerAdminRecreateCitationView(LinkerAdminAPIView):
 class LinkerAdminParseCitationView(LinkerAdminAPIView):
 
     def post(self, request):
-        return self._handle(request, linker_admin.parse_linker_citation)
+        return self._handle(request, linker_admin.parse_linker_citation_sync)
 
 
 class LinkerAdminRerunSegmentView(LinkerAdminAPIView):

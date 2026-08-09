@@ -297,7 +297,32 @@ def _serialize_resolved_ref(resolved_ref) -> dict:
     }
 
 
+def parse_linker_citation_sync(payload: dict, timeout: int = 20) -> dict:
+    """
+    Run the "Parse" preview (reader linker-admin sidebar) on a worker and block for the
+    result. `parse_linker_citation` calls `library.get_linker`, which would otherwise
+    lazily build the full linker (RefResolver + spaCy models) on whichever web pod handles
+    the request; routing it through Celery keeps that off the web pod. Blocks the request
+    (bounded by `timeout`) rather than returning a task_id to poll: this is a quick,
+    interactive lookup with no meaningful progress to show while it runs.
+    """
+    if not isinstance(payload, dict) or not payload.get("parts"):
+        raise InputError("Missing required field: parts")
+    from celery.exceptions import TimeoutError as CeleryTimeoutError
+    from sefaria.helper.linker.tasks import parse_linker_citation_task
+    from sefaria.celery_setup.config import CeleryQueue
+    async_result = parse_linker_citation_task.apply_async(args=(payload,), queue=CeleryQueue.TASKS.value)
+    try:
+        return async_result.get(timeout=timeout)
+    except CeleryTimeoutError:
+        raise InputError("Linker parse timed out; the task queue may be busy. Try again in a moment.")
+
+
 def parse_linker_citation(payload: dict) -> dict:
+    """
+    Runs on a Celery worker (see parse_linker_citation_task in helper.linker.tasks) — never
+    call this directly from a web request.
+    """
     parts = _required(payload, "parts")
     lang = payload.get("lang", "he")
     context_ref = payload.get("contextRef")
