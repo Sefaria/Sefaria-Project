@@ -68,8 +68,9 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    # Instance to dump from; must track the one the app writes to. Also the `app` label.
-    host: postgres-18
+    # `app` label of the Postgres pod to co-locate the dumper with. The host itself
+    # comes from DATABASES_HOST in local-settings, same as the application.
+    podAffinityApp: postgres-18
     version: 18.3
     prefix: ""
     bucket: sefaria-user-backup

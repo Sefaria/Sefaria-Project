@@ -80,8 +80,8 @@ spec:
                   echo "Restoring to database: $PGDATABASE"
                   echo "Using PostgreSQL host: $PGHOST"
 
-                  # Recreate the DB rather than pg_restore --clean; see wiki runbook
-                  # staging-production-data-sync.
+                  # Recreate the DB: --clean makes the dump issue DROP SCHEMA public, which
+                  # fails whenever this env holds objects production lacks.
                   echo "Terminating existing connections to $PGDATABASE..."
                   psql -h "$PGHOST" -U "$PGUSER" -d postgres -c \
                     "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$PGDATABASE' AND pid <> pg_backend_pid();"

@@ -23,7 +23,7 @@ spec:
                   - key: app
                     operator: In
                     values:
-                    - {{ .Values.backup.postgres.host }}
+                    - {{ .Values.backup.postgres.podAffinityApp }}
                 topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
@@ -33,9 +33,8 @@ spec:
           initContainers:
           - name: postgres-dumper
             image:  postgres:{{ .Values.backup.postgres.version }}
-            env:
-            - name: DATABASES_HOST
-              value: {{ .Values.backup.postgres.host | quote }}
+            # DATABASES_HOST intentionally not overridden here: create-dumps.sh reads it
+            # from local-settings below, so the dump follows whatever the app connects to.
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
