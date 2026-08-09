@@ -16,7 +16,9 @@ class MessagingNode(object):
     RECONNECT_BACKOFF_SECONDS = 30
 
     def connect(self):
-        logger.info("Initializing {} with subscriptions: {}".format(self.__class__.__name__, self.subscription_channels))
+        logger.info("Initializing {} at {}:{}/{} with subscriptions: {}".format(
+            self.__class__.__name__, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, self.subscription_channels
+        ))
         self._last_connect_attempt = time.time()
         try:
             self.redis_client = redis.StrictRedis(
