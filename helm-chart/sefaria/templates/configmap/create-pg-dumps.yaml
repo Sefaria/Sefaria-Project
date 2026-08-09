@@ -21,10 +21,15 @@ data:
     COUNTS_FILE="$DATADIR/row_counts.txt"
 
     # Connection parameters
-    PG_HOST="${DATABASES_HOST}"
+    PG_HOST="{{ if .Values.postgres.host }}{{ .Values.postgres.host }}{{ else }}${DATABASES_HOST}{{ end }}"
     PG_PORT="${DATABASES_PORT:-5432}"
     PG_USER="${DATABASES_USER}"
     PG_DB="sefaria_auth"
+
+    if [[ -z "$PG_HOST" ]]; then
+      echo "ERROR: no Postgres host resolved (set postgres.host or DATABASES_HOST)."
+      exit 1
+    fi
 
     echo "=== Connection Info ==="
     echo "Host: $PG_HOST"

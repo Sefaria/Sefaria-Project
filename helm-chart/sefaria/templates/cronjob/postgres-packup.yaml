@@ -15,6 +15,7 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.backup.postgres.serviceAccount }}
+          {{- with .Values.backup.postgres.podAffinityApp }}
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -23,8 +24,9 @@ spec:
                   - key: app
                     operator: In
                     values:
-                    - {{ .Values.backup.postgres.podAffinityApp }}
+                    - {{ . }}
                 topologyKey: kubernetes.io/hostname
+          {{- end }}
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"

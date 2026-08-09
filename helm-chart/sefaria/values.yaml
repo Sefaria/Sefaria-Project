@@ -68,9 +68,12 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    # `app` label of the Postgres pod to co-locate the dumper with. The host itself
-    # comes from DATABASES_HOST in local-settings, same as the application.
-    podAffinityApp: postgres-18
+    # Optional `app` label of the Postgres pod to co-locate the dumper with. This is a
+    # required-during-scheduling affinity, so a label no pod carries leaves the backup
+    # Job Pending forever with nothing to alert on -- leave unset unless the label is
+    # known to exist in the target environment. The host itself comes from
+    # postgres.host, falling back to DATABASES_HOST, same as every other consumer.
+    podAffinityApp: ""
     version: 18.3
     prefix: ""
     bucket: sefaria-user-backup
