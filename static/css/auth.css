@@ -204,6 +204,10 @@
   text-decoration: underline;
   cursor: pointer;
 }
+.sefaria-auth-provider-action--google-target {
+  position: relative;
+  display: inline-block;
+}
 
 .sefaria-provider-button-shell {
   position: relative;
@@ -268,7 +272,8 @@
 }
 
 .sefaria-provider-sdk-overlay {
-  position: fixed;
+  position: absolute;
+  inset: 0;
   opacity: 0.0001;
   overflow: hidden;
   z-index: var(--z-overlay);

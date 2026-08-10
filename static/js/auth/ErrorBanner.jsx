@@ -45,7 +45,10 @@ const ProviderErrorItem = ({ provider, registerGoogleTarget, triggerApple }) => 
           <InterfaceText>{info.linkEn}</InterfaceText>
         </a>
       ) : (
-        <span ref={registerGoogleTarget} className="sefaria-auth-provider-action">
+        <span
+          ref={registerGoogleTarget}
+          className="sefaria-auth-provider-action sefaria-auth-provider-action--google-target"
+        >
           <InterfaceText>{info.linkEn}</InterfaceText>
         </span>
       )}

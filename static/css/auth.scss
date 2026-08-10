@@ -227,6 +227,14 @@ $stroke-strong:   1.5px;
   color: $sef-error;
   text-decoration: underline;
   cursor: pointer;
+
+  // The Google variant is also a `registerGoogleTarget` — the real Google iframe is portaled
+  // into it (see .sefaria-provider-sdk-overlay below) and positioned via `inset: 0`, which
+  // needs this to be its containing block.
+  &--google-target {
+    position: relative;
+    display: inline-block;
+  }
 }
 
 
@@ -295,14 +303,15 @@ $stroke-strong:   1.5px;
   &-icon { width: 16px; height: 16px; flex: 0 0 16px; }
 }
 
-// The one real Google button on the page (useProviderTriggers/useSsoSignIn.jsx), invisibly
-// tracked over whichever "Continue with Google" element is currently registered — its
-// position/size come from inline styles (recomputed on scroll/resize/target-change), not CSS,
-// since it has to follow an arbitrary target anywhere on the page rather than fill a fixed
-// parent. Google GIS injects an iframe with inline width/height; !important overrides those so
-// the transparent overlay covers the full tracked area and captures clicks correctly.
+// The real Google button (useProviderTriggers/useSsoSignIn.jsx), portaled directly into
+// whichever "Continue with Google" element is currently registered (registerGoogleTarget) —
+// see .sefaria-provider-button-shell and .sefaria-auth-provider-action--google-target, both of
+// which are `position: relative` so this fills them via `inset: 0`. Google GIS injects an
+// iframe with inline width/height; !important overrides those so the transparent overlay
+// covers the full target area and captures clicks correctly.
 .sefaria-provider-sdk-overlay {
-  position: fixed;
+  position: absolute;
+  inset: 0;
   opacity: 0.0001;
   overflow: hidden;
   z-index: var(--z-overlay);

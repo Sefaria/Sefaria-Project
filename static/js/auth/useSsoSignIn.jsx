@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { whenReady, makeUuid, safeNext, authError, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
 import { persistPendingAttempt, SIGNUP_METHOD } from './signupAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
@@ -11,11 +12,14 @@ import { getCsrfToken } from '../sefaria/csrf';
  * Apple's SDK can start sign-in from any click handler (`triggerApple()`, no DOM dependency).
  * Google's cannot: its rendered button is served from an accounts.google.com iframe, a
  * cross-origin boundary — a click can only ever be received by that iframe's actual on-screen
- * pixels, never dispatched into it from a distance. So there is exactly one real Google button
- * (`overlayNode`, rendered once here), invisibly repositioned via `getBoundingClientRect()` to
- * sit on top of whichever "Continue with Google" element is currently registered as the active
- * target (`registerGoogleTarget`, a ref callback — attach it to that element and React's mount/
- * unmount ref calls double as start/stop tracking signals).
+ * pixels, never dispatched into it from a distance. So the real Google button is portaled
+ * (`createPortal`) directly into whichever "Continue with Google" element is currently
+ * registered as the active target (`registerGoogleTarget`, a ref callback), and re-rendered
+ * there each time the target changes — this keeps the real, focusable control in the DOM
+ * exactly where it's visually placed (tab order matches what's on screen), at the cost of a
+ * fresh (invisible — the overlay is opacity ~0) re-init of the Google button on every target
+ * change. That's cheap: it only happens on mount into ChooseView and, more rarely, when an
+ * sso_only_account error banner registers its own inline target (see ErrorBanner.jsx).
  *
  * A trigger can fail from anywhere too, sometimes asynchronously (Google's popup result arrives
  * via its own callback, Apple's via a DOM event) — `setActiveErrorHandler` lets whichever view
@@ -26,10 +30,8 @@ export function useProviderTriggers({ next, tracking }) {
   const [googleReady, setGoogleReady] = useState(false);
   const [appleReady, setAppleReady] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
-  const [rect, setRect] = useState(null);
+  const [targetEl, setTargetEl] = useState(null);
   const googleBtnRef = useRef(null);
-  const targetElRef = useRef(null);
-  const resizeObserverRef = useRef(null);
   const activeErrorHandlerRef = useRef(() => {});
   const nextRef = useRef(next);
   nextRef.current = next;
@@ -62,32 +64,9 @@ export function useProviderTriggers({ next, tracking }) {
     }
   }, []);
 
-  const measure = useCallback(() => {
-    const el = targetElRef.current;
-    setRect(el ? el.getBoundingClientRect() : null);
-  }, []);
-
   const registerGoogleTarget = useCallback((el) => {
-    const observer = resizeObserverRef.current;
-    if (targetElRef.current && observer) observer.unobserve(targetElRef.current);
-    targetElRef.current = el;
-    if (el && observer) observer.observe(el);
-    measure();
-  }, [measure]);
-
-  // Global listeners for whatever's currently registered — set up once, `measure()` itself
-  // no-ops (clears the rect) when nothing is registered.
-  useEffect(() => {
-    resizeObserverRef.current = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (resizeObserverRef.current && targetElRef.current) resizeObserverRef.current.observe(targetElRef.current);
-    window.addEventListener('scroll', measure, true);
-    window.addEventListener('resize', measure);
-    return () => {
-      resizeObserverRef.current?.disconnect();
-      window.removeEventListener('scroll', measure, true);
-      window.removeEventListener('resize', measure);
-    };
-  }, [measure]);
+    setTargetEl(el);
+  }, []);
 
   const { googleClientId } = Sefaria;
 
@@ -167,7 +146,7 @@ export function useProviderTriggers({ next, tracking }) {
   useEffect(() => {
     setGoogleReady(false);
     googlePopupStateRef.current = 'idle';
-    if (!googleClientId) return undefined;
+    if (!googleClientId || !targetEl) return undefined;
     const useRedirect = Sefaria.ssoUseRedirect();
     const stopWaiting = whenReady(
       () => window.google?.accounts?.id && googleBtnRef.current,
@@ -209,7 +188,7 @@ export function useProviderTriggers({ next, tracking }) {
       stopWaiting();
       clearPopupWatch();
     };
-  }, [googleClientId, onGoogleResult, onGoogleButtonClicked, clearPopupWatch]);
+  }, [googleClientId, targetEl, onGoogleResult, onGoogleButtonClicked, clearPopupWatch]);
 
   const { appleClientId } = Sefaria;
   const ssoRedirectState = useRef(makeUuid()).current;
@@ -312,18 +291,11 @@ export function useProviderTriggers({ next, tracking }) {
     }
   }, [appleReady, failApple]);
 
-  const { top = 0, left = 0, width = 0, height = 0 } = rect || {};
-  const overlayStyle = {
-    position: 'fixed',
-    top, left, width, height,
-    opacity: 0.0001,
-    overflow: 'hidden',
-    pointerEvents: rect && googleReady ? 'auto' : 'none',
-  };
-  const overlayNode = (
-    <div className="sefaria-provider-sdk-overlay" style={overlayStyle}>
+  const overlayNode = targetEl && createPortal(
+    <div className="sefaria-provider-sdk-overlay" style={{ pointerEvents: googleReady ? 'auto' : 'none' }}>
       <div ref={googleBtnRef} />
-    </div>
+    </div>,
+    targetEl,
   );
 
   return {

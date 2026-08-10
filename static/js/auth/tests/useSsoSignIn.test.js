@@ -18,11 +18,23 @@ let hookApi;
 let tracking;
 
 // Renders overlayNode too (not just calling the hook) — googleBtnRef only gets a real DOM
-// node, which whenReady's check requires, if the ref actually mounts.
+// node, which whenReady's check requires, if the ref actually mounts. overlayNode is now a
+// portal into whatever's registered via registerGoogleTarget (see useSsoSignIn.jsx), so a
+// target div is needed here too, standing in for the real "Continue with Google" element
+// (ProviderButton.jsx's shell / ErrorBanner.jsx's span) — without it renderButton never fires.
+// The target div and overlayNode are rendered as siblings, mirroring how AuthPage.jsx actually
+// uses this hook (ProviderButton.jsx's shell and useSsoSignIn.jsx's overlayNode are separate
+// JSX nodes) — nesting them here would make the DOM-placement assertions below pass trivially
+// regardless of whether the portal targeting actually works.
 function Harness(props) {
   const api = useProviderTriggers(props);
   hookApi = api;
-  return api.overlayNode;
+  return React.createElement(
+    React.Fragment,
+    null,
+    React.createElement('div', { 'data-testid': 'google-target', ref: api.registerGoogleTarget }),
+    api.overlayNode,
+  );
 }
 
 function mount(props) {
@@ -176,5 +188,38 @@ describe('popup abandonment detection', () => {
     act(() => { jest.advanceTimersByTime(1200); });
 
     expect(tracking.endProcess).not.toHaveBeenCalled();
+  });
+});
+
+// WCAG 2.4.3 regression coverage: the real Google button must live in the DOM exactly where
+// registerGoogleTarget currently points, not at some fixed page location — otherwise tab order
+// stops matching what's visually on screen (see useSsoSignIn.jsx's module doc for why).
+describe('Google button DOM placement', () => {
+  it('portals the real button inside the currently registered target', () => {
+    mount();
+    const target = container.querySelector('[data-testid="google-target"]');
+    const overlay = container.querySelector('.sefaria-provider-sdk-overlay');
+
+    expect(overlay).not.toBeNull();
+    expect(target.contains(overlay)).toBe(true);
+  });
+
+  it('moves the button when the registered target changes', () => {
+    mount();
+    const otherTarget = document.createElement('div');
+    container.appendChild(otherTarget);
+
+    act(() => { hookApi.registerGoogleTarget(otherTarget); });
+
+    const overlay = container.querySelector('.sefaria-provider-sdk-overlay');
+    expect(overlay).not.toBeNull();
+    expect(otherTarget.contains(overlay)).toBe(true);
+  });
+
+  it('renders nothing left dangling in the DOM when no target is registered', () => {
+    mount();
+    act(() => { hookApi.registerGoogleTarget(null); });
+
+    expect(container.querySelector('.sefaria-provider-sdk-overlay')).toBeNull();
   });
 });
