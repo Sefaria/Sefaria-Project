@@ -588,6 +588,10 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
+  setLinkerEditorBook(book) {
+    this.replaceHistory = false;
+    this.conditionalSetState({linkerEditorBook: book});
+  }
   setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
     // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
     // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
@@ -1095,7 +1099,13 @@ class ReaderPanel extends Component {
       );
 
     } else if (this.state.menuOpen === "linkerEditor") {
-      menu = (<LinkerEditorPage interfaceLang={this.props.interfaceLang} />);
+      menu = (
+        <LinkerEditorPage
+          interfaceLang={this.props.interfaceLang}
+          initialBook={this.state.linkerEditorBook}
+          onBookChange={this.setLinkerEditorBook.bind(this)}
+        />
+      );
 
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (

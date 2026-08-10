@@ -1384,9 +1384,11 @@ def modtools(request):
 
 @ensure_csrf_cookie
 @staff_member_required
+@sanitize_get_params
 def linker_editor(request):
     title = _("Linker Editor")
-    return menu_page(request, page="linkerEditor", title=title)
+    props = {"initialLinkerEditorBook": request.GET.get("book")}
+    return menu_page(request, props, page="linkerEditor", title=title)
 
 
 def canonical_url(request):

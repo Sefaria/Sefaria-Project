@@ -1092,7 +1092,7 @@ const IndexSearch = ({ onSelect }) => {
 // Page
 // ---------------------------------------------------------------------------
 
-const LinkerEditorPage = () => {
+const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   const [title, setTitle] = useState(null);
   const [rawIndex, setRawIndex] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1130,6 +1130,7 @@ const LinkerEditorPage = () => {
   const loadIndex = useCallback((indexTitle) => {
     setLoading(true); setError(null); setRawIndex(null); setTitle(indexTitle);
     setDhDirty(false); setDhMsg(null);
+    if (onBookChange) { onBookChange(indexTitle); }
     editorApi.loadRawIndex(indexTitle)
       .then(d => {
         if (d.error) { setError(d.error); }
@@ -1140,7 +1141,21 @@ const LinkerEditorPage = () => {
         }
         setLoading(false);
       }, e => { setError(e.message || String(e)); setLoading(false); })
-  }, [loadTermTitles]);
+  }, [loadTermTitles, onBookChange]);
+
+  // Keep the loaded book in sync with the URL: react to browser back/forward
+  // (initialBook prop changing under us) and to the very first mount landing
+  // on a /linker-editor?book=... deep link. loadIndex() already reports book
+  // changes it initiates back up via onBookChange, so this only needs to act
+  // when initialBook and the currently-loaded title have drifted apart.
+  useEffect(() => {
+    if (initialBook === title) { return; }
+    if (initialBook) {
+      loadIndex(initialBook);
+    } else {
+      setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
+    }
+  }, [initialBook]);
 
   const reload = useCallback(async () => {
     if (!title) { return; }
@@ -1221,6 +1236,7 @@ const LinkerEditorPage = () => {
   const leaveIndex = () => {
     if (!confirmLeaveIfDhDirty()) { return; }
     setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
+    if (onBookChange) { onBookChange(null); }
   };
 
   // Warn on tab close / navigation away while DH changes are unbuilt (browser shows
