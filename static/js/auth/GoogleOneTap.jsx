@@ -8,6 +8,7 @@ const SESSION_KEY = 'sefaria_interruptive_ui_shown';
 
 const wasShown = () => { try { return sessionStorage.getItem(SESSION_KEY) === '1'; } catch { return true; } };
 const markShown = () => { try { sessionStorage.setItem(SESSION_KEY, '1'); } catch { } };
+const isAuthPath = () => AUTH_PATHS.has(window.location.pathname.replace(/\/$/, ''));
 const hasInterruptiveUI = () =>
   ['.cookiesNotification', '.siteWideBanner:not(.hidden)', '.modal', '[role="dialog"][aria-modal="true"]']
     .some(s => !!document.querySelector(s));
@@ -15,7 +16,7 @@ const hasInterruptiveUI = () =>
 export default function GoogleOneTap({ googleClientId }) {
   useEffect(() => {
     if (!googleClientId) return;
-    if (AUTH_PATHS.has(window.location.pathname.replace(/\/$/, ''))) return;
+    if (isAuthPath()) return;
     if (wasShown()) return;
 
     // isDisplayed() is Google's own choice to show the widget, not a user action — the real
@@ -55,6 +56,12 @@ export default function GoogleOneTap({ googleClientId }) {
     let timeoutId;
     const initOneTap = () => {
       timeoutId = setTimeout(() => {
+        // Re-check: this is a SPA, so the user can client-side-navigate to /login or
+        // /register (AuthPage, with its own Google button) during this delay -- the
+        // isAuthPath() check above only ran once, at effect-setup time, and won't catch
+        // that. Not marking shown here (unlike the interruptive-UI case below) mirrors
+        // the top-level guard above, which also doesn't mark shown on this path.
+        if (isAuthPath()) return;
         if (hasInterruptiveUI()) { markShown(); return; }
         const flowId = makeUuid();
         const attemptId = makeUuid();

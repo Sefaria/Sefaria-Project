@@ -127,3 +127,36 @@ describe('no engagement', () => {
     expect(fireFlowEnded).not.toHaveBeenCalled();
   });
 });
+
+describe('auth path guard', () => {
+  afterEach(() => { window.history.pushState({}, '', '/'); });
+
+  it('never shows One Tap if already on an auth path at mount (no timer even scheduled)', () => {
+    window.history.pushState({}, '', '/login');
+    mount();
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
+    expect(window.google.accounts.id.prompt).not.toHaveBeenCalled();
+  });
+
+  it('does not show One Tap on top of AuthPage if the user client-side-navigates to /login during the initial delay', () => {
+    // This is a SPA: navigating to /login re-renders AuthPage (own Google button) without
+    // remounting GoogleOneTap, so the mount-time-only check above can't catch this — the
+    // pending timer has to re-check the path itself before it fires.
+    mount();
+    act(() => { window.history.pushState({}, '', '/login'); });
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.initialize).not.toHaveBeenCalled();
+    expect(window.google.accounts.id.prompt).not.toHaveBeenCalled();
+  });
+
+  it('still shows One Tap when navigation during the delay lands somewhere that is not an auth path', () => {
+    mount();
+    act(() => { window.history.pushState({}, '', '/texts/Genesis'); });
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.prompt).toHaveBeenCalled();
+  });
+});
