@@ -75,6 +75,15 @@ backup:
     # postgres.host, falling back to DATABASES_HOST, same as every other consumer.
     podAffinityApp: ""
     version: 18.3
+    # Tables whose *contents* are omitted from the dump. --exclude-table-data (not
+    # --exclude-table) so the table is still created: django_migrations is restored
+    # with the migration already marked applied, so a table omitted outright would
+    # never be recreated by Django. Sessions are cookie-bound and inert once
+    # restored elsewhere, so this drops the largest table in the database along with
+    # the most credential-like data in it. Trade-off: restoring production from a
+    # backup logs everyone out.
+    excludeTableData:
+      - django_session
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write

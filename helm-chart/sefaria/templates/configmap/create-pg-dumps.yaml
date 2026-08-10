@@ -90,6 +90,9 @@ data:
       --no-privileges \
       --no-tablespaces \
       --no-unlogged-table-data \
+      {{- range .Values.backup.postgres.excludeTableData }}
+      --exclude-table-data={{ . }} \
+      {{- end }}
       "$PG_DB" 2>&1
 
     DUMP_EXIT_CODE=${PIPESTATUS[0]}
