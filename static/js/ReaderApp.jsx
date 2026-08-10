@@ -472,8 +472,8 @@ class ReaderApp extends Component {
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     if (this.state.showAuth) {
-      const { authPath } = this.state;
-      return { state: { showAuth: true, authPath, panels: [] }, url: authPath, title: document.title };
+      const { authPath, authSource } = this.state;
+      return { state: { showAuth: true, authPath, authSource, panels: [] }, url: authPath, title: document.title };
     }
 
     var histories = [];
