@@ -1071,10 +1071,19 @@ class ResolvedRefPruner:
             if match.disqualification_reason is not None or id(match) in valid_set:
                 continue
             # A match that passed correctness checks but didn't survive preference pruning was
-            # dropped for one of two reasons. `remove_superfluous_matches` discards matches whose
-            # ref points to a non-existent (empty) segment; call that out specifically, since it's
-            # a common signature of a bad citation. Otherwise it lost to a higher-priority parsing.
-            if match.ref is not None and match.ref.is_empty():
+            # dropped for one of three reasons. `remove_superfluous_matches` unconditionally
+            # discards matches with no ref at all (e.g. one that only reached a non-addressable
+            # intermediate node like an AltStructNode -- AltStructNode.ref() is always None,
+            # since the alt-structure itself isn't a location, only its leaves are) as well as
+            # matches whose ref points to a non-existent (empty) segment. Neither of those lost
+            # to a competing match, so labeling them "pruned in favor of a higher-priority
+            # parsing" would be misleading when nothing else actually won.
+            if match.ref is None:
+                match.disqualification_reason = (
+                    "Matched a non-addressable intermediate node (e.g. an AltStructNode) with no "
+                    "concrete ref, not outranked by another parsing."
+                )
+            elif match.ref.is_empty():
                 match.disqualification_reason = "Resolved ref does not exist (empty segment)."
             else:
                 match.disqualification_reason = "Valid match pruned in favor of a higher-priority parsing."
