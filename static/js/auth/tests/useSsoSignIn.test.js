@@ -83,6 +83,19 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+describe('FedCM opt-in', () => {
+  it('sets use_fedcm_for_button, required per Google\'s FedCM migration guide, in popup mode', () => {
+    mount();
+    expect(getInitConfig().use_fedcm_for_button).toBe(true);
+  });
+
+  it('also sets use_fedcm_for_button in redirect mode -- the opt-in is independent of ux_mode', () => {
+    Sefaria.ssoUseRedirect.mockReturnValue(true);
+    mount();
+    expect(getInitConfig().use_fedcm_for_button).toBe(true);
+  });
+});
+
 describe('click_listener wiring', () => {
   it('fires chooseMethod/startProcess synchronously on click, popup mode', () => {
     mount();

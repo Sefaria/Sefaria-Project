@@ -155,6 +155,12 @@ export function useProviderTriggers({ next, tracking }) {
           const config = {
             client_id: googleClientId,
             ux_mode: useRedirect ? 'redirect' : 'popup',
+            // Opt-in for the rendered "Sign in with Google" button's FedCM UX, independent
+            // of ux_mode. Google's One Tap counterpart (use_fedcm_for_prompt) is deprecated
+            // and ignored as of Google's current reference -- One Tap already goes through
+            // FedCM when supported regardless -- so it's deliberately not set in
+            // GoogleOneTap.jsx, unlike this still-live button-side flag.
+            use_fedcm_for_button: true,
           };
           if (useRedirect) {
             config.login_uri = `${window.location.origin}/api/auth/google/redirect`;
