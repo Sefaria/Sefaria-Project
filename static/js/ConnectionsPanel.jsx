@@ -1220,6 +1220,17 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     }
   }, [selectedCitationData?.linkerAdminSpan]);
 
+  useEffect(() => {
+    // A citation selection should only pin "Rerun Linker" (and the other selectedSpan-driven
+    // actions) to its own segment while that segment is still on screen. Without this, scrolling
+    // away from a selected citation without clicking a new one leaves selectedSpan stale, so
+    // rerunRef keeps silently targeting the OLD segment instead of the one currently visible.
+    if (selectedSpan?.sourceRef && currentlyVisibleRef && selectedSpan.sourceRef !== currentlyVisibleRef) {
+      setSelectedSpan(null);
+      setParsed(null);
+    }
+  }, [currentlyVisibleRef]);
+
   // Restyle the citation's <a class="mutc"> element(s) already rendered in the reader so a
   // delete/recreate is visible immediately, without waiting for a reload to refetch linker_output.
   // Scoped the same way TextRange's own click handler resolves a citation: by the segment's
