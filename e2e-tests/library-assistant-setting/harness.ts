@@ -89,6 +89,39 @@ export function expected(a: Account): boolean {
 
 export const authFile = (key: string) => path.join(__dirname, '.auth', `${key}.json`);
 
+/**
+ * The interface language the host under test is pinned to.
+ *
+ * Sefaria serves each language from its own domain, and `LanguageSettingsMiddleware`
+ * redirects a request whose detected language does not match the domain it arrived on.
+ * Detection reads, in order: the profile, the `interfaceLang` cookie, then Cloudflare's
+ * `cf-ipcountry` header. So a request from Israel to an English domain is redirected to
+ * the Hebrew one — which for a test run means the login completes on the other domain and
+ * the session cookie is stranded there. See `PINNED_LANG_COOKIE` below.
+ */
+const DOMAIN_LANG = /(-il\.org|\.org\.il)$/i.test(new URL(BASE_URL).hostname)
+  ? 'hebrew'
+  : 'english';
+
+/**
+ * Pin the interface language so the geo redirect never fires.
+ *
+ * The cookie is checked *before* `cf-ipcountry` (`sefaria/system/middleware.py:107`), so
+ * setting it to the language this domain already serves makes the detected language agree
+ * with the domain and `needs_domain_switch` stays false.
+ *
+ * Without this, a run from Israel against `www.sefariastaging.org` is redirected to
+ * `www.sefariastaging-il.org` at `/login`, authenticates there, and comes back to the
+ * English domain with its `sessionid` scoped to `.sefariastaging-il.org` — anonymous, with
+ * every "assistant is on" assertion failing as though the feature were broken. The run
+ * that found this looked like a product regression and was not one.
+ *
+ * Note that curl cannot reproduce it: middleware exempts a list of bots and tools from the
+ * redirect by user-agent (`middleware.py:117-121`), and `curl` is on that list. A curl
+ * smoke test of the same login passes while the browser fails.
+ */
+const PINNED_LANG_COOKIE = { name: 'interfaceLang', value: DOMAIN_LANG, url: BASE_URL };
+
 /** Keep first-visit overlays from covering the page. Cookie domain is host-only, so this
  *  works on localhost, a cauldron, and staging alike. */
 export async function suppressOverlays(context: BrowserContext) {
@@ -101,11 +134,14 @@ export async function suppressOverlays(context: BrowserContext) {
       return original.call(this, key);
     };
   });
-  await context.addCookies([{
-    name: 'cookiesNotificationAccepted',
-    value: '1',
-    url: BASE_URL,
-  }]);
+  await context.addCookies([
+    {
+      name: 'cookiesNotificationAccepted',
+      value: '1',
+      url: BASE_URL,
+    },
+    PINNED_LANG_COOKIE,
+  ]);
   await context.route('**/api/strapi/graphql-cache*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -131,6 +167,22 @@ export async function suppressOverlays(context: BrowserContext) {
  * same signal the promo banner gates on.
  */
 export async function logIn(page: Page, email: string, password: string) {
+  // Checking only where the login *ended* is not enough: the language redirect bounces to
+  // the other domain and back, so the final origin is correct while the session cookie was
+  // set on — and left on — the domain that served the form. Record every origin the frame
+  // visits, so that excursion is reported as what it is instead of surfacing later as an
+  // unauthenticated session with no explanation.
+  const expectedOrigin = new URL(BASE_URL).origin;
+  const foreignOrigins = new Set<string>();
+  const watchNavigation = (frame: { url: () => string; parentFrame: () => unknown }) => {
+    if (frame.parentFrame()) return;
+    try {
+      const origin = new URL(frame.url()).origin;
+      if (origin !== expectedOrigin && origin !== 'null') foreignOrigins.add(origin);
+    } catch { /* about:blank and friends */ }
+  };
+  page.on('framenavigated', watchNavigation as any);
+
   await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded' });
   await page.locator('input[name="email"]').first().fill(email);
   await page.locator('input[name="password"]').first().fill(password);
@@ -144,8 +196,21 @@ export async function logIn(page: Page, email: string, password: string) {
     waitUntil: 'commit',
   });
 
+  page.off('framenavigated', watchNavigation as any);
+
+  if (foreignOrigins.size) {
+    throw new Error(
+      `Login for ${email} was redirected through ${[...foreignOrigins].join(', ')} before ` +
+      `returning to ${expectedOrigin}. Sefaria pins each interface language to its own ` +
+      `domain and redirects when the detected language disagrees, so the form was served ` +
+      `— and the session cookie set — on the other domain. Every later request to ` +
+      `${expectedOrigin} is therefore anonymous. The suite pins the language with an ` +
+      `interfaceLang cookie to prevent exactly this; if you are seeing it, that cookie is ` +
+      `not reaching the request.`
+    );
+  }
+
   const landed = new URL(page.url()).origin;
-  const expectedOrigin = new URL(BASE_URL).origin;
   if (landed !== expectedOrigin) {
     throw new Error(
       `Login for ${email} left ${expectedOrigin} and landed on ${landed}. The session ` +
