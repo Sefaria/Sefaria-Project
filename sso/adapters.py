@@ -10,6 +10,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.core import context as allauth_context
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils.http import url_has_allowed_host_and_scheme
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
@@ -151,16 +152,24 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
         1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
         2. Register the user in Salesforce CRM — wrapped in its own try/except
            so a CRM outage doesn't affect the user or profile already created above
-        """
-        user = super().save_user(request, sociallogin, form)
 
-        p = UserProfile(id=user.id, user_registration=True)
-        p.assign_slug()
-        p.join_invited_collections()
-        if hasattr(request, "interfaceLang"):
-            p.settings["interface_language"] = request.interfaceLang
+        The Django User/SocialAccount creation and the initial UserProfile save
+        are wrapped together so a UserProfile failure rolls back the Django rows
+        too, instead of leaving a user who can authenticate via SSO but has no
+        profile (mirrors sefaria/views.py's process_register_form).
+        """
+        with transaction.atomic():
+            user = super().save_user(request, sociallogin, form)
+
+            p = UserProfile(id=user.id, user_registration=True)
+            p.assign_slug()
+            p.join_invited_collections()
+            if hasattr(request, "interfaceLang"):
+                p.settings["interface_language"] = request.interfaceLang
+            p.save()
+
         import_gravatar(p)
-        p.save()
+        p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
 
         try:
             CrmMediator().create_crm_user(

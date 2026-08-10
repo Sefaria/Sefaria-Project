@@ -10,7 +10,7 @@ sys._called_from_test = True
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.core.context import request_context
-from allauth.socialaccount.models import SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialLogin
 from google.cloud.exceptions import GoogleCloudError
 
 from sso.adapters import SefariaSocialAccountAdapter, SefariaAccountAdapter, import_gravatar
@@ -191,6 +191,12 @@ class SaveUserTest(TestCase):
     wires up three side effects after allauth creates the Django User row:
     MongoDB UserProfile creation, Gravatar import, and Salesforce CRM
     registration — the last of which must not be able to roll back the first two.
+
+    UserProfile is saved twice, mirroring process_register_form in
+    sefaria/views.py: once inside the atomic block (with assign_slug/
+    join_invited_collections/interface_language already set) so a failure
+    there rolls back the Django User too, and again after import_gravatar,
+    which runs outside the transaction since it's a slow network call.
     """
     def _sociallogin_for(self, user):
         sl = MagicMock(spec=SocialLogin)
@@ -220,7 +226,7 @@ class SaveUserTest(TestCase):
         profile.join_invited_collections.assert_called_once()
         profile.settings.__setitem__.assert_called_once_with('interface_language', 'english')
         mock_import_gravatar.assert_called_once_with(profile)
-        profile.save.assert_called_once()
+        self.assertEqual(profile.save.call_count, 2)
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(
             user.email, first_name='New', last_name='User', lang='en', educator=False,
         )
@@ -242,9 +248,37 @@ class SaveUserTest(TestCase):
             result = adapter.save_user(request, self._sociallogin_for(user))
 
         # No exception propagated, the user is still returned, and the profile
-        # was still created/saved before the CRM call ran.
+        # was still created/saved (twice — atomic block, then post-gravatar)
+        # before the CRM call ran.
         self.assertIs(result, user)
-        mock_profile_cls.return_value.save.assert_called_once()
+        self.assertEqual(mock_profile_cls.return_value.save.call_count, 2)
+
+
+class SaveUserAtomicityTest(TestCase):
+    """
+    Real (unmocked) database writes -- not just mock call assertions --
+    proving transaction.atomic() actually rolls back rows created inside it
+    when UserProfile creation fails afterward, rather than trusting that it
+    does what it says. super().save_user() is stubbed with a side_effect
+    that performs real User/SocialAccount writes (mirroring what it does
+    for real), so this stays a targeted test of the atomic wrap itself
+    without dragging in allauth's unrelated internal request/session needs.
+    """
+    def _real_super_save_user(self, request, sociallogin, form=None):
+        user = User.objects.create_user(username='atomic@test.com', email='atomic@test.com')
+        SocialAccount.objects.create(user=user, provider='google', uid='uid-atomic-1')
+        return user
+
+    def test_profile_failure_rolls_back_the_django_user(self):
+        adapter = SefariaSocialAccountAdapter()
+        with patch.object(SefariaSocialAccountAdapter.__bases__[0], 'save_user', side_effect=self._real_super_save_user):
+            with patch('sso.adapters.UserProfile') as mock_profile_cls:
+                mock_profile_cls.return_value.assign_slug.side_effect = Exception('mongo is down')
+                with self.assertRaisesMessage(Exception, 'mongo is down'):
+                    adapter.save_user(MagicMock(), MagicMock(spec=SocialLogin))
+
+        self.assertFalse(User.objects.filter(email='atomic@test.com').exists())
+        self.assertFalse(SocialAccount.objects.filter(uid='uid-atomic-1').exists())
 
 
 class ImportGravatarTest(TestCase):
