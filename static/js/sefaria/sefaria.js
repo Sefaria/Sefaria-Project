@@ -3550,9 +3550,16 @@ _media: {},
           const resp = await fetch("/api/async/" + taskId);
           const data = await resp.json();
           if (!resp.ok) {
-            const error = new Error(data.error || "Network error polling task " + taskId);
-            error.isNetworkError = true;
-            reject(error);
+            if (data && data.state) {
+              // A well-formed task-status payload came back with a failure state (e.g. FAILURE) --
+              // this is a real task failure, not a network/connectivity problem, even if the
+              // server-side exception had no message.
+              reject(new Error(data.error || `Task ${taskId} failed (state: ${data.state})`));
+            } else {
+              const error = new Error(data.error || "Network error polling task " + taskId);
+              error.isNetworkError = true;
+              reject(error);
+            }
             return;
           }
           if (!data.ready) {
