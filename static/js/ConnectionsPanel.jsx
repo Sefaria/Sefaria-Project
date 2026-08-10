@@ -1184,10 +1184,20 @@ const LinkerAdminBox = ({srefs, currentlyVisibleRef, connectionData, currVersion
     setMessage(null);
     try {
       const parts = linkerPartsFromSpan(span);
+      // span.contextRef is the ref the ORIGINAL live resolution actually matched against — for an
+      // ibid-sourced citation that's the ibid target, not the citation's home segment. Feeding it in
+      // as the resolver's book_context_ref would make the fresh parse label that same match
+      // "curr. book" (RefResolver always tags book_context_ref matches CURRENT_BOOK), even though the
+      // live resolution used ibid. Send the true home segment as contextRef, and carry the original
+      // ibid target (if any) as prevRefs so a genuinely ibid-sourced match can still resolve — and be
+      // labeled — as ibid here too.
+      const homeRef = span.refContext || span.sourceRef || null;
+      const prevRefs = span.contextType === "IBID" && span.contextRef ? [span.contextRef] : [];
       const result = await Sefaria.apiRequestWithBody("/_api/linker-admin/citation/parse", null, {
         parts,
         lang: span.language || span.lang || (Sefaria.hebrew.isHebrew(parts.map(part => part.text).join(" ")) ? "he" : "en"),
-        contextRef: span.contextRef || null,
+        contextRef: homeRef,
+        prevRefs,
       }, "POST");
       setParsed(result);
       setSelectedSpan(span);

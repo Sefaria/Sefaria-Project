@@ -658,20 +658,29 @@ class RefResolver:
         term_contexts = []
         curr_node = node
         while curr_node is not None and (include_root or not curr_node.is_root()):
-            term_contexts += RefResolver._get_term_contexts(curr_node)
+            term_contexts += RefResolver._get_node_term_contexts(curr_node)
             curr_node = curr_node.parent
         return term_contexts
+
+    @staticmethod
+    def _get_node_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
+        """
+        Return the TermContexts contributed by `node`'s own (shortest) match template, without
+        looking at ancestors.
+        """
+        match_templates = list(node.get_match_templates())
+        if len(match_templates) == 0:
+            return []
+        # not clear which match_template to choose. shortest has advantage of adding minimum context to search
+        shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
+        return [TermContext(term) for term in shortest_template.terms]
 
     @staticmethod
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
         term_contexts = []
         recursion_depth = 0
         while True:
-            match_templates = list(node.get_match_templates())
-            if len(match_templates) != 0:
-                # not clear which match_template to choose. shortest has advantage of adding minimum context to search
-                shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
-                term_contexts.extend([TermContext(term) for term in shortest_template.terms])
+            term_contexts.extend(RefResolver._get_node_term_contexts(node))
             if node.parent is None:
                 break
             node = node.parent
