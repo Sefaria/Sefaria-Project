@@ -3222,13 +3222,17 @@ class Ref(object, metaclass=RefCacheType):
         :return: list of all segment level refs under this Ref.  
         """
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert self.index_node is not None
+        if self.index_node is None:
+            raise InputError(f"all_segment_refs() failed for {self}: no index_node")
         if not isinstance(self.index_node, supported_classes):
             # search for default node child
             for child in self.index_node.children:
                 if child.is_default():
                     return child.ref().all_segment_refs()
-            assert isinstance(self.index_node, supported_classes)
+            raise InputError(
+                f"all_segment_refs() doesn't support {self}: its node ({type(self.index_node).__name__}) "
+                f"is not one of {[c.__name__ for c in supported_classes]} and has no default child."
+            )
 
         if self.is_range():
             input_refs = self.range_list()
@@ -4896,7 +4900,7 @@ class Ref(object, metaclass=RefCacheType):
                 continue
             try:
                 expanded_set |= {r.normal() for r in oref.all_segment_refs()}
-            except AssertionError:
+            except InputError:
                 continue
         return list(expanded_set)
 

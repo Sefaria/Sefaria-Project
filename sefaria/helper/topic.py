@@ -882,10 +882,8 @@ def update_ref_topic_link_orders(source_links, sheet_topic_links):
                     if oref is None:
                         continue
                     includedRefs += [[sub_oref.normal() for sub_oref in oref.all_segment_refs()]]
-                except InputError:
-                    continue
-                except AssertionError:
-                    print("Assertion Error", tref)
+                except InputError as e:
+                    print("InputError", tref, e)
                     continue
             sheet['includedRefs'] = includedRefs
             sheet_cache[sheet_id] = sheet
