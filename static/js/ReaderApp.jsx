@@ -427,6 +427,7 @@ class ReaderApp extends Component {
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
+          (prev.linkerEditorBook !== next.linkerEditorBook) ||
           (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||

@@ -1234,9 +1234,12 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   };
 
   const leaveIndex = () => {
+    // Local-only: shows the search UI without touching history/URL, which still
+    // points at the last loaded book. Otherwise "New search" would push its own
+    // back-stack entry between books, so Back would land on an empty search
+    // screen instead of the previously loaded book.
     if (!confirmLeaveIfDhDirty()) { return; }
     setTitle(null); setRawIndex(null); setDhDirty(false); setDhMsg(null);
-    if (onBookChange) { onBookChange(null); }
   };
 
   // Warn on tab close / navigation away while DH changes are unbuilt (browser shows
