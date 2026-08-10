@@ -89,7 +89,7 @@ django==6.0.4
     #   djangorestframework
     #   djangorestframework-simplejwt
 django-admin-sortable==2.3
-django-allauth[socialaccount]
+django-allauth[socialaccount]==65.8.0
     # via -r ./requirements.txt
 django-anymail==10.3
     # via -r ./requirements.txt
