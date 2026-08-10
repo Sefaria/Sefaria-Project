@@ -442,6 +442,48 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+@api_view(["POST"])
+def webpage_search_api(request):
+    """Search indexed Linker webpage passages with optional website/ref filters."""
+    from django.conf import settings
+    from semantic_search.embedder import EmbeddingError
+    from semantic_search.search import get_query_embedding
+    from sefaria.helper.webpage_search import WebPageSearchFilters, search_webpages
+
+    auth = request.headers.get("Authorization", "")
+    expected_token = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+    if not auth.startswith("Bearer ") or not expected_token or auth[len("Bearer "):] != expected_token:
+        return jsonResponse({"error": "Unauthorized"}, status=401)
+
+    post = request.data
+    query = post.get("query", "")
+    mode = post.get("mode", "hybrid")
+    if mode not in {"lexical", "hybrid", "semantic"}:
+        return jsonResponse({"error": "mode must be lexical, hybrid, or semantic"}, status=400)
+    if mode == "semantic" and not query:
+        return jsonResponse({"error": "query is required"}, status=400)
+
+    try:
+        query_vector = get_query_embedding(query) if mode in {"hybrid", "semantic"} else None
+        results = search_webpages(
+            query=query,
+            filters=WebPageSearchFilters(
+                website_id=post.get("website_id"),
+                domain=post.get("domain"),
+                ref=post.get("ref"),
+                language=post.get("language"),
+            ),
+            limit=int(post.get("limit", 10)),
+            query_vector=query_vector,
+            mode=mode,
+        )
+    except ValueError as exc:
+        return jsonResponse({"error": str(exc)}, status=400)
+    except EmbeddingError as exc:
+        return jsonResponse({"error": str(exc)}, status=502)
+    return jsonResponse({"results": results})
+
+
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):

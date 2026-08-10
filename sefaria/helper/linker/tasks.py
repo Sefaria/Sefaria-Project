@@ -94,6 +94,20 @@ def find_refs_api_task(raw_find_refs_input: dict) -> dict:
         raise
 
 
+@app.task(name="linker.index_webpage_text")
+def index_webpage_text_task(url: str) -> int:
+    """Generate embeddings and replace the Elasticsearch chunks for one page."""
+    from django.conf import settings
+    from semantic_search.embedder import embed_documents
+    from sefaria.helper.webpage_search import index_webpage_text
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    embedding_callback = None
+    if api_key:
+        embedding_callback = lambda texts: embed_documents(texts, api_key=api_key)
+    return index_webpage_text(url, embed_documents=embedding_callback)
+
+
 @app.task(name="linker.link_segment_with_worker")
 def link_segment_with_worker(linking_args_dict: dict) -> None:
     """

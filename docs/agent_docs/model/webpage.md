@@ -55,6 +55,20 @@ Tracks external web pages that reference Sefaria texts (discovered via the Sefar
 - **Helper module**: URL normalization, domain extraction, site data lookup, and website caching live in `sefaria/helper/webpages.py`, not in the model itself.
 - **Linker integration**: The Sefaria Linker (JavaScript widget on partner sites) calls `add_or_update_from_linker()` to report pages.
 
+## WebPageText and Search Indexing
+
+The full title/body submitted to the find-refs API is stored separately by
+`WebPageText` in the `webpages_text` MongoDB collection. When
+`WEBPAGE_SEARCH_INDEX_ON_SAVE` is enabled, a successful content update queues
+`linker.index_webpage_text`. The task chunks the body, optionally generates
+Gemini embeddings, and replaces that URL's documents in the dedicated
+Elasticsearch webpage index.
+
+Search documents carry denormalized `website_id`, `domain`, `refs`, and
+`expanded_refs` keyword fields. `sefaria.helper.webpage_search` owns index
+creation, full rebuilds, incremental replacement, ref normalization, and
+filtered lexical/hybrid/semantic queries. MongoDB remains the source of truth.
+
 ## Common Tasks
 
 ### Look up webpages for a Sefaria ref

@@ -7,6 +7,16 @@ Elasticsearch integration for Sefaria's full-text search. Manages two separate E
 
 ## Key Functions/Classes
 
+### Linker Webpage Search
+
+`sefaria.helper.webpage_search` builds a dedicated chunk-level index from the
+MongoDB `webpages_text` and `webpages` collections. It supports exact filters
+for website, domain, language, and expanded Sefaria refs, plus lexical,
+semantic, and hybrid retrieval. Results are collapsed by URL and return a
+highlighted passage for agent consumption. Incremental indexing runs through
+the `linker.index_webpage_text` Celery task; `scripts/reindex_webpage_search.py`
+creates and populates the full index.
+
 ### Index Management
 
 - **`create_index(index_name, type, force=False)`** -- Creates an ES index with custom analyzers (stemmed English via Snowball, exact English via ICU). Has a safety check: refuses to recreate an index that already contains documents unless `force=True`. Calls `put_text_mapping()` or `put_sheet_mapping()` depending on type.

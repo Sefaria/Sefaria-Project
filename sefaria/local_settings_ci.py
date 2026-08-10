@@ -82,6 +82,9 @@ SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_WEBPAGE = 'webpage'
+WEBPAGE_SEARCH_INDEX_ON_SAVE = False
+WEBPAGE_SEARCH_VECTOR_DIMS = 1536
 
 # Node Server
 USE_NODE = False
