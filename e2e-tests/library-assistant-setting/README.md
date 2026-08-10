@@ -223,6 +223,14 @@ two tests skip with a message naming the key; they never silently pass.
 
 ## 4. Running against staging after code freeze
 
+> **Ran green against staging 2026-08-10** — seed → suite at `pre` → migrate → suite at
+> `post` → rollback → teardown, on 268,476 profiles. 19/19 at `post`; 11/11 at `pre` again
+> after the rollback. The migration wrote 268,472 and the rollback unset exactly the same
+> number with 0 left alone. The one blocker was the language redirect in §4b, not the
+> product. Cohort counts from staging are **not** production's — its Postgres restore has
+> been failing since 2026-06-28 while Mongo restores weekly, so the two stores are ~6 weeks
+> apart. Derive production's numbers on production.
+>
 > **Exercised against staging on 2026-08-06.** The seeding round trip and the cohort matrix
 > both worked; the browser suite did not, for environment reasons rather than product ones.
 > Everything below has been corrected against what that run actually found — where this
@@ -275,13 +283,37 @@ IAM denials against whichever account `gcloud` has active, which may be a person
 | Snapshot shows **"Gateway time-out / Error code 504"** | Too many workers against one pod; Cloudflare gave up before Django answered | `LA_WORKERS=2`. Nothing to debug in the app. |
 | Every "assistant is on" test fails, every "off" test passes, settings-page tests time out on `#libraryAssistantSetting`, and the snapshot shows **"Log in to Sefaria"** | The browser is anonymous. The session did not attach. | `logIn` now fails loudly on this (§4c). If you see it anyway, check `--report` in the pod and confirm the manifest password matches. |
 | `la-setup` passes but everything after it fails as though the feature were broken | Historic: `logIn` treated "left `/login`" as success | Fixed — see §4c. If you are on an older checkout, this is the first thing to suspect. |
+| `logIn` throws naming a foreign origin it was redirected through | The interface-language pin is not reaching the request | The `interfaceLang` cookie in `suppressOverlays` is the guard; see below. |
 
-**A request from Israel is served the `-il` domain.** `www.sefariastaging.org` redirects to
-`www.sefariastaging-il.org` in the browser, which strands the session cookie on a host the
-tests never visit. `logIn` now rejects this explicitly rather than continuing anonymously.
-Note this is *not* the same as the whole suite failing — pointing `SANDBOX_URL` at
-`https://sefariastaging-il.org` was tried and did **not** fix the 2026-08-06 run, so do not
-assume it is the answer.
+**A request from Israel is served the `-il` domain — and this was the whole 2026-08-06
+failure.** Solved 2026-08-10; the suite now prevents it. What follows is the mechanism,
+because every part of it is counter-intuitive.
+
+`LanguageSettingsMiddleware` (`sefaria/system/middleware.py:115-130`) redirects whenever the
+language it detects disagrees with the language the domain is pinned to. From Israel,
+`www.sefariastaging.org/login` 302s to `www.sefariastaging-il.org/login`. The login form is
+then served — and the session cookie set — on the Hebrew domain, scoped to
+`.sefariastaging-il.org`. The chain lands back on the English domain, where that cookie is
+not sent. Every cohort browses anonymously and all nineteen tests fail as though the
+assistant had regressed.
+
+Three things make it hard to recognise:
+
+1. **The final URL is correct.** The excursion happens mid-chain, so a check on where login
+   *ended* passes. Only `Sefaria._uid` catches it. `logIn` now records every origin the main
+   frame visits and names the redirect explicitly.
+2. **Pointing `SANDBOX_URL` at the `-il` domain does not fix it**, which is what the previous
+   version of this file recorded and mis-explained. The trigger is the *mismatch*, not the
+   domain — swapping domains just inverts which side is wrong.
+3. **`curl` cannot reproduce it.** Middleware exempts curl, wget and crawlers by user-agent
+   (`middleware.py:117-121`). A curl login against staging succeeds and returns
+   `chatbot_enabled: true` while the browser is anonymous, so a curl smoke test gives false
+   confidence.
+
+**The fix:** detection reads the `interfaceLang` cookie *before* `cf-ipcountry`
+(`middleware.py:107`), so `suppressOverlays` pins it to the language the target domain
+already serves and the redirect never fires. It is derived from the hostname, so a run
+against an `-il` domain pins `hebrew` and is equally stable.
 
 ### 4c. `logIn` verifies the login actually happened
 
