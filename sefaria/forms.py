@@ -78,12 +78,13 @@ class SefariaNewUserForm(EmailUserCreationForm):
             user = get_user(email)
             if not user.groups.filter(name=SEED_GROUP).exists():
                 social = SocialAccount.objects.filter(user=user)
+                # Not wrapped in _(): register_api (Mobile's AuthPage.js) still text-matches these verbatim.
                 if social.filter(provider='google').exists():
-                    raise forms.ValidationError("This email address is already registered via Google Sign-In.")
+                    raise forms.ValidationError("This email address is already registered via Google Sign-In.", code='sso_google_exists')
                 elif social.filter(provider='apple').exists():
-                    raise forms.ValidationError("This email address is already registered via Apple Sign-In.")
+                    raise forms.ValidationError("This email address is already registered via Apple Sign-In.", code='sso_apple_exists')
                 else:
-                    raise forms.ValidationError("An account with this email address already exists.")
+                    raise forms.ValidationError("An account with this email address already exists.", code='email_exists')
         return email
 
     def save(self, commit=True):

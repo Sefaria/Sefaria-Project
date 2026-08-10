@@ -269,13 +269,18 @@ def register_api(request):
     return jsonResponse(errors)
 
 
-# Maps Django's stable, language-independent error `code` (e.g. from CharField's built-in
-# "required" validation) to the SSO client's i18n key. Built-in field messages are gettext_lazy
-# and resolve to whatever language is active when read, not when raised, so matching message
-# text (as register_api/Mobile still does) silently breaks on non-English interfaces. Only
-# used for the web /register JSON path; codes with no entry here keep their message text
-# (e.g. clean_email's custom account-exists errors, which have no code and are always English).
-WEB_REGISTER_ERROR_CODES = {"required": "auth.required_field"}
+# Maps Django's stable, language-independent error `code` to a frontend-stable token, so
+# RegisterView.jsx never has to match on message text (which is gettext_lazy and resolves to
+# whatever language is active when read, not when raised). Only used for the web /register JSON
+# path; codes with no entry here keep their message text. register_api (Mobile) has no such
+# indirection and still text-matches clean_email's account-exists messages verbatim — see the
+# comment there.
+WEB_REGISTER_ERROR_CODES = {
+    "required": "auth.required_field",
+    "sso_google_exists": "sso_google_exists",
+    "sso_apple_exists": "sso_apple_exists",
+    "email_exists": "email_exists",
+}
 
 
 def _web_register_errors(form):

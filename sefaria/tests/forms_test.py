@@ -23,20 +23,24 @@ class CleanEmailTest(TestCase):
 
     def test_existing_email_with_no_social_account_gets_generic_message(self):
         User.objects.create_user(username="plain@test.com", email="plain@test.com", password="x")
-        with self.assertRaisesMessage(ValidationError, "An account with this email address already exists."):
+        with self.assertRaisesMessage(ValidationError, "An account with this email address already exists.") as ctx:
             self._clean("plain@test.com")
+        # sefaria/views.py::WEB_REGISTER_ERROR_CODES keys off this code, not the message text above.
+        self.assertEqual(ctx.exception.code, "email_exists")
 
     def test_existing_email_linked_to_google_gets_google_message(self):
         user = User.objects.create_user(username="g@test.com", email="g@test.com", password="x")
         SocialAccount.objects.create(user=user, provider="google", uid="123")
-        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Google Sign-In."):
+        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Google Sign-In.") as ctx:
             self._clean("g@test.com")
+        self.assertEqual(ctx.exception.code, "sso_google_exists")
 
     def test_existing_email_linked_to_apple_gets_apple_message(self):
         user = User.objects.create_user(username="a@test.com", email="a@test.com", password="x")
         SocialAccount.objects.create(user=user, provider="apple", uid="456")
-        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Apple Sign-In."):
+        with self.assertRaisesMessage(ValidationError, "This email address is already registered via Apple Sign-In.") as ctx:
             self._clean("a@test.com")
+        self.assertEqual(ctx.exception.code, "sso_apple_exists")
 
     def test_seed_group_member_bypasses_all_existing_email_checks(self):
         # Pre-existing "User Seeds" bypass must still work even for a seeded

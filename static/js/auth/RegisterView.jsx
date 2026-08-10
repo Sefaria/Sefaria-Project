@@ -11,14 +11,7 @@ import LegalText from './LegalText.jsx';
 import {
   whenReady, pickFirstError, authError, postForm, requiredFieldValidate, emailValidate, onBlurValidate, onChangeClear,
 } from './utils.js';
-
-// Shown in the banner (same shape LoginView's sso_only_account error already uses), not under
-// the email field — ErrorBanner already knows how to render both of these.
-const EMAIL_EXISTS_ERRORS = {
-  'This email address is already registered via Google Sign-In.': { code: 'sso_only_account', providers: ['google'] },
-  'This email address is already registered via Apple Sign-In.':  { code: 'sso_only_account', providers: ['apple'] },
-  'An account with this email address already exists.':           { message: 'auth.email_exists_generic', linkText: 'auth.log_in_link' },
-};
+import { EMAIL_EXISTS_ERRORS } from './emailExistsErrors.js';
 
 const FIELD_MAP = { email: 'email', password1: 'password', first_name: 'first', last_name: 'last' };
 // 'required' is Django's stable error code (see sefaria/views.py::_web_register_errors) —
