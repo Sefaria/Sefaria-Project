@@ -4,11 +4,12 @@ import urllib.parse
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, RequestFactory, override_settings
 
 sys._called_from_test = True
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.core.context import request_context
 from allauth.socialaccount.models import SocialLogin
 from google.cloud.exceptions import GoogleCloudError
 
@@ -109,6 +110,45 @@ class SsoNextCookieRedirectTest(TestCase):
         adapter, request = self._adapter(None)
         with patch.object(DefaultAccountAdapter, 'get_signup_redirect_url', return_value='/signup-fallback'):
             self.assertEqual(adapter.get_signup_redirect_url(request), '/signup-fallback')
+
+
+@override_settings(ALLOWED_HOSTS=['*'])
+class IsSafeUrlTest(TestCase):
+    """
+    Production runs ALLOWED_HOSTS=['*'] for multi-domain routing. DefaultAccountAdapter's
+    is_safe_url() has a fallback for that case that degenerates into checking a URL's host
+    against itself, i.e. it accepts any external URL (see allauth.account.adapter). We
+    override is_safe_url() to scope the check to the current request's host instead, so
+    this exercises the real request-scoped context binding rather than mocking it away.
+    """
+    def _adapter_for(self, host):
+        adapter = SefariaAccountAdapter()
+        request = RequestFactory().get('/', SERVER_NAME=host)
+        return adapter, request
+
+    def test_rejects_external_host(self):
+        adapter, request = self._adapter_for('www.sefaria.org')
+        with request_context(request):
+            self.assertFalse(adapter.is_safe_url('https://evil.example.com/phish'))
+
+    def test_accepts_same_host_absolute_url(self):
+        adapter, request = self._adapter_for('www.sefaria.org')
+        with request_context(request):
+            self.assertTrue(adapter.is_safe_url('http://www.sefaria.org/texts'))
+
+    def test_accepts_relative_url(self):
+        adapter, request = self._adapter_for('www.sefaria.org')
+        with request_context(request):
+            self.assertTrue(adapter.is_safe_url('/texts/Genesis.1.1'))
+
+    def test_rejects_scheme_relative_url_to_other_host(self):
+        adapter, request = self._adapter_for('www.sefaria.org')
+        with request_context(request):
+            self.assertFalse(adapter.is_safe_url('//evil.example.com/phish'))
+
+    def test_rejects_without_bound_request(self):
+        adapter = SefariaAccountAdapter()
+        self.assertFalse(adapter.is_safe_url('/texts/Genesis.1.1'))
 
 
 class SaveUserTest(TestCase):

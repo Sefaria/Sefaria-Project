@@ -7,8 +7,10 @@ import urllib.request
 
 import structlog
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.core import context as allauth_context
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib.auth.models import User
+from django.utils.http import url_has_allowed_host_and_scheme
 from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
@@ -70,6 +72,17 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
     def populate_username(self, request, user):
         # emailusernames requires username == email
         user.username = user.email
+
+    def is_safe_url(self, url):
+        # DefaultAccountAdapter.is_safe_url falls back to settings.ALLOWED_HOSTS, which
+        # we run as ["*"] in production for multi-domain routing (see DOMAIN_MODULES).
+        # allauth's own fallback for "*" degenerates into checking a URL's host against
+        # itself, i.e. it accepts any external URL. Scope the check to the current
+        # request's host instead, matching the pattern in sefaria/views.py's register().
+        request = allauth_context.request
+        return bool(request) and url_has_allowed_host_and_scheme(
+            url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
 
     def _next_from_cookie(self, request):
         raw_next_url = request.COOKIES.get(self.SSO_NEXT_COOKIE)
