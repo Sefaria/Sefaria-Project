@@ -68,20 +68,12 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    # Optional `app` label of the Postgres pod to co-locate the dumper with. This is a
-    # required-during-scheduling affinity, so a label no pod carries leaves the backup
-    # Job Pending forever with nothing to alert on -- leave unset unless the label is
-    # known to exist in the target environment. The host itself comes from
-    # postgres.host, falling back to DATABASES_HOST, same as every other consumer.
+    # Optional `app` label to co-locate the dumper with. Hard scheduling rule: a
+    # label no pod carries leaves the backup Job Pending silently.
     podAffinityApp: ""
     version: 18.3
-    # Tables whose *contents* are omitted from the dump. --exclude-table-data (not
-    # --exclude-table) so the table is still created: django_migrations is restored
-    # with the migration already marked applied, so a table omitted outright would
-    # never be recreated by Django. Sessions are cookie-bound and inert once
-    # restored elsewhere, so this drops the largest table in the database along with
-    # the most credential-like data in it. Trade-off: restoring production from a
-    # backup logs everyone out.
+    # Table contents omitted from the dump -- data only, never the table itself: the
+    # restored django_migrations marks the migration applied, so Django won't recreate it.
     excludeTableData:
       - django_session
     prefix: ""

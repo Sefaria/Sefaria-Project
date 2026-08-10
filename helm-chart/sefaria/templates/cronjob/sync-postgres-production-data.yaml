@@ -80,8 +80,7 @@ spec:
                   echo "Restoring to database: $PGDATABASE"
                   echo "Using PostgreSQL host: $PGHOST"
 
-                  # Safety check: never drop the default/shared database.
-                  # Mirrors the guard in the postgres-destroy script.
+                  # Never drop the shared database; mirrors the postgres-destroy guard.
                   if [[ "$PGDATABASE" == "sefaria_auth" ]]; then
                     echo "ERROR: refusing to sync into the default 'sefaria_auth' database."
                     echo "Set postgres.db to an environment-specific name to enable this job."
@@ -90,23 +89,21 @@ spec:
 
                   PSQL="psql -v ON_ERROR_STOP=1 -h $PGHOST -U $PGUSER -d postgres"
 
-                  # Recreate the DB rather than pg_restore --clean: --clean makes the dump
-                  # issue DROP SCHEMA public, which fails whenever this env holds objects
-                  # production lacks. WITH (FORCE) drops live connections atomically --
-                  # terminate-then-drop races reconnecting app pods.
+                  # Recreate rather than pg_restore --clean, whose DROP SCHEMA public fails
+                  # when this env holds objects production lacks. FORCE avoids racing
+                  # reconnecting app pods.
                   echo "Dropping and recreating database $PGDATABASE..."
                   $PSQL -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
                   $PSQL -c "CREATE DATABASE \"$PGDATABASE\" TEMPLATE template0 ENCODING 'UTF8';"
 
-                  # --single-transaction so a mid-restore failure rolls back to an empty
-                  # database rather than leaving a half-populated one.
+                  # --single-transaction: a mid-restore failure rolls back rather than
+                  # leaving a half-populated database.
                   echo "Restoring PostgreSQL data..."
                   pg_restore --no-owner --no-privileges --exit-on-error --single-transaction \
                     --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
-                  # A dump taken without --section=post-data restores cleanly but carries no
-                  # indexes, primary keys or foreign keys. Fail loudly rather than leave the
-                  # environment silently unindexed.
+                  # A dump lacking --section=post-data restores cleanly but carries no
+                  # indexes or constraints. Fail rather than sit silently unindexed.
                   echo "Verifying indexes and constraints were restored..."
                   IDX_COUNT=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
                     "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indrelid
