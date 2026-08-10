@@ -17,6 +17,16 @@ from sso.adapters import SefariaSocialAccountAdapter, SefariaAccountAdapter, imp
 
 
 class PreSocialLoginTest(TestCase):
+    """
+    Product decision: SSO always wins on an email collision, even when the
+    provider doesn't mark the email verified (covers e.g. someone
+    registering with an email they don't own, or a stolen mailbox) -- see
+    SefariaSocialAccountAdapter.pre_social_login. is_existing=False here
+    means allauth's own provider-verified-email match (lookup()) didn't
+    already claim the account, so this hook is what has to take it over;
+    is_existing=True means allauth already matched it and drives the
+    wipe/connect itself, so this hook must stay out of the way.
+    """
     def _make_sociallogin(self, email, is_existing=False):
         user = MagicMock()
         user.email = email
@@ -25,16 +35,18 @@ class PreSocialLoginTest(TestCase):
         sl.user = user
         return sl
 
-    def test_disables_password_on_email_collision(self):
+    def test_takes_over_existing_account_on_email_collision(self):
         existing = User.objects.create_user(username='col@test.com', email='col@test.com', password='secret')
         self.assertTrue(existing.has_usable_password())
 
         adapter = SefariaSocialAccountAdapter()
         sl = self._make_sociallogin('col@test.com', is_existing=False)
-        adapter.pre_social_login(MagicMock(), sl)
+        request = MagicMock()
+        adapter.pre_social_login(request, sl)
 
         existing.refresh_from_db()
         self.assertFalse(existing.has_usable_password())
+        sl.connect.assert_called_once_with(request, existing)
 
     def test_skips_returning_user(self):
         existing = User.objects.create_user(username='ret@test.com', email='ret@test.com', password='secret')
@@ -44,11 +56,31 @@ class PreSocialLoginTest(TestCase):
 
         existing.refresh_from_db()
         self.assertTrue(existing.has_usable_password())
+        sl.connect.assert_not_called()
 
     def test_no_op_for_new_email(self):
         adapter = SefariaSocialAccountAdapter()
         sl = self._make_sociallogin('brand@new.com', is_existing=False)
         adapter.pre_social_login(MagicMock(), sl)  # must not raise
+        sl.connect.assert_not_called()
+
+    def test_no_op_for_missing_email(self):
+        adapter = SefariaSocialAccountAdapter()
+        sl = self._make_sociallogin('', is_existing=False)
+        adapter.pre_social_login(MagicMock(), sl)  # must not raise
+        sl.connect.assert_not_called()
+
+    def test_connects_even_when_existing_account_already_has_no_password(self):
+        existing = User.objects.create_user(username='sso@test.com', email='sso@test.com')
+        existing.set_unusable_password()
+        existing.save()
+
+        adapter = SefariaSocialAccountAdapter()
+        sl = self._make_sociallogin('sso@test.com', is_existing=False)
+        request = MagicMock()
+        adapter.pre_social_login(request, sl)
+
+        sl.connect.assert_called_once_with(request, existing)
 
 
 class PopulateUsernameTest(TestCase):

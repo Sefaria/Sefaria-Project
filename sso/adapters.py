@@ -104,18 +104,27 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def pre_social_login(self, request, sociallogin):
         """
-        Called after sociallogin.lookup() has run (so is_existing is already set)
-        but before the user is logged in or created.
+        Called after sociallogin.lookup() has run (so is_existing already
+        reflects whether allauth's own provider-verified-email match
+        succeeded), but before the user is logged in or created.
 
-        Scenarios:
-        - is_existing=True: returning user who already has a SocialAccount row
-          for this (provider, uid). Nothing to do.
-        - is_existing=False, email matches an existing Django user: email
-          collision. SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT will link
-          the new SocialAccount to that existing user. We disable their password
-          here so the account becomes SSO-only going forward.
-        - is_existing=False, no matching user: brand-new user. save_user() will
-          handle them. Nothing to do here.
+        Product decision: SSO always wins on an email collision, whether or
+        not the provider marked the email verified. This covers cases beyond
+        "provider says unverified" (e.g. someone registering with an email
+        they don't own, or a stolen mailbox) where whoever can authenticate
+        as that address via Google/Apple should take over the account, not
+        be blocked by it.
+
+        - is_existing=True: allauth's own lookup() already matched via a
+          provider-verified email (SOCIALACCOUNT_EMAIL_AUTHENTICATION). It
+          drives the password wipe + connect itself. Nothing to do here.
+        - is_existing=False, email matches an existing Django user: take the
+          account over ourselves — wipe its password and connect this
+          SocialAccount to it, so login proceeds against that (now SSO-only)
+          account instead of hitting allauth's own email-conflict signup
+          flow, which would otherwise reject the login entirely.
+        - is_existing=False, no matching user: brand-new user. save_user()
+          will handle them. Nothing to do here.
         """
         if sociallogin.is_existing:
             return
@@ -124,16 +133,18 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
             return
         try:
             existing_user = User.objects.get(email__iexact=email)
-            if existing_user.has_usable_password():
-                existing_user.set_unusable_password()
-                existing_user.save(update_fields=["password"])
         except User.DoesNotExist:
-            pass
+            return
+        if existing_user.has_usable_password():
+            existing_user.set_unusable_password()
+            existing_user.save(update_fields=["password"])
+        sociallogin.connect(request, existing_user)
 
     def save_user(self, request, sociallogin, form=None):
         """
-        Called only for brand-new users (email-collision users reuse their
-        existing Django account and never reach this method).
+        Called only for brand-new users (email-collision users are connected
+        to their existing Django account in pre_social_login/allauth's own
+        matching, and never reach this method).
 
         After the base implementation creates the Django User and SocialAccount
         row, we:

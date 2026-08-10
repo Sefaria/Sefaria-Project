@@ -3,10 +3,11 @@ import json
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 
 sys._called_from_test = True
 
+from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount
 
 
@@ -220,6 +221,75 @@ class GoogleMobileTest(TestCase):
         self.assertEqual(res.cookies['sessionid'].value, '')
         # The account issued tokens for genuinely has no password to steal.
         self.assertFalse(User.objects.get(pk=user.pk).has_usable_password())
+
+
+class GoogleMobileEmailOverrideTest(TestCase):
+    """
+    Unlike GoogleMobileTest, this does NOT mock complete_social_login -- it
+    builds a real SocialLogin (only the network token-verification call is
+    mocked) and runs it through allauth's actual internal login flow, so a
+    regression in SefariaSocialAccountAdapter.pre_social_login's real
+    connect/wipe/login path (see adapters_test.py's PreSocialLoginTest for
+    the policy rationale) would be caught here, not just at the unit level.
+
+    Driven through the mobile JSON endpoint purely for test-harness
+    convenience (a plain POST, vs. the web flow's CSRF double-submit cookie
+    or the Apple callback's extra plumbing) -- pre_social_login is a single
+    adapter hook shared by every SSO entry point (web redirect, Apple
+    popup, native mobile), all funneling through allauth's
+    complete_social_login(), so this exercises the same code regardless of
+    which entry point is used.
+    """
+    def setUp(self):
+        self.client = Client()
+        self.url = '/api/auth/google/mobile'
+
+    def _real_sociallogin(self, email, verified, uid='google-uid-1'):
+        request = RequestFactory().get('/')
+        provider = get_social_adapter(request).get_provider(request, 'google')
+        return provider.sociallogin_from_response(request, {
+            'sub': uid,
+            'email': email,
+            'email_verified': verified,
+            'given_name': 'Vic',
+            'family_name': 'Tim',
+        })
+
+    def _assert_takes_over_existing_account(self, email, verified, uid):
+        existing = User.objects.create_user(username=email, email=email, password='attacker-set-pw')
+        self.assertTrue(existing.has_usable_password())
+        sociallogin = self._real_sociallogin(email, verified=verified, uid=uid)
+
+        with patch('sso.views.get_social_adapter') as mock_get_adapter:
+            provider = MagicMock()
+            provider.verify_token.return_value = sociallogin
+            mock_get_adapter.return_value.get_provider.return_value = provider
+            res = self.client.post(self.url, data=json.dumps({'id_token': 'valid'}), content_type='application/json')
+
+        self.assertEqual(res.status_code, 200)
+        self.assertIn('access', res.json())
+
+        existing.refresh_from_db()
+        self.assertFalse(existing.has_usable_password())
+        self.assertTrue(SocialAccount.objects.filter(user=existing, provider='google', uid=uid).exists())
+        self.assertEqual(User.objects.count(), 1)  # no duplicate account was created
+
+    def test_unverified_email_still_takes_over_existing_account(self):
+        # Exercises SefariaSocialAccountAdapter.pre_social_login directly:
+        # allauth's own lookup() doesn't match an unverified email, so our
+        # hook is the one performing the takeover.
+        self._assert_takes_over_existing_account('victim@test.com', verified=False, uid='google-uid-1')
+
+    def test_verified_email_also_takes_over_existing_account(self):
+        # The common real-world case (an ordinary Gmail login, provider marks
+        # the email verified): allauth's own lookup() matches the colliding
+        # account before our hook runs, so is_existing is already True and
+        # pre_social_login stays out of the way entirely -- the takeover
+        # here is driven by allauth's built-in wipe_password/connect
+        # (SOCIALACCOUNT_EMAIL_AUTHENTICATION + _AUTO_CONNECT). This guards
+        # against a regression where our hook's is_existing check stops
+        # matching allauth's actual behavior and interferes with this path.
+        self._assert_takes_over_existing_account('victim2@test.com', verified=True, uid='google-uid-2')
 
 
 class AppleMobileTest(TestCase):
