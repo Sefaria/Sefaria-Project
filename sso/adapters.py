@@ -34,7 +34,7 @@ def import_gravatar(profile):
     email_hash = hashlib.md5(profile.email.lower().encode("utf-8")).hexdigest()
     gravatar_url = f"https://www.gravatar.com/avatar/{email_hash}?d=404&s=250"
     try:
-        with urllib.request.urlopen(gravatar_url) as r:
+        with urllib.request.urlopen(gravatar_url, timeout=5) as r:
             bucket_name = GoogleStorageManager.PROFILES_BUCKET
             with Image.open(r) as image:
                 now = epoch_time()

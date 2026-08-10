@@ -1,3 +1,4 @@
+import socket
 import sys
 import urllib.error
 import urllib.parse
@@ -302,6 +303,20 @@ class ImportGravatarTest(TestCase):
     def test_url_error_is_swallowed(self, mock_urlopen):
         mock_urlopen.side_effect = urllib.error.URLError('DNS lookup failed')
         import_gravatar(self._profile())  # must not raise
+
+    @patch('sso.adapters.urllib.request.urlopen')
+    def test_hanging_gravatar_is_bounded_and_swallowed(self, mock_urlopen):
+        # Reproduces the actual failure mode a missing timeout= caused: a
+        # gravatar.com that accepts the connection but never responds. A real
+        # hang can't be reproduced in a fast/non-flaky unit test (the URL is
+        # hardcoded to the real host), so this simulates what urlopen(...,
+        # timeout=N) actually raises once N elapses -- socket.timeout wrapped
+        # in URLError -- and asserts both that we're the ones enforcing a
+        # bound (timeout= is actually passed) and that hitting it doesn't
+        # propagate into the registration request.
+        mock_urlopen.side_effect = urllib.error.URLError(socket.timeout('timed out'))
+        import_gravatar(self._profile())  # must not raise
+        self.assertEqual(mock_urlopen.call_args.kwargs.get('timeout'), 5)
 
     @patch('sso.adapters.GoogleStorageManager')
     @patch('sso.adapters.get_resized_file')
