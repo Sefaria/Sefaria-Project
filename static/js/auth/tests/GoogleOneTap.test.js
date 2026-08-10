@@ -160,3 +160,16 @@ describe('auth path guard', () => {
     expect(window.google.accounts.id.prompt).toHaveBeenCalled();
   });
 });
+
+describe('prompt() moment listener', () => {
+  // Regression coverage for a live finding (2026-08-10): calling prompt() with no
+  // argument at all silently drops the credential under FedCM -- no error, no call to
+  // our own callback, no network request to our backend. A listener must be present,
+  // even a no-op, for GIS to actually invoke the `callback` set in initialize().
+  it('passes a listener function to prompt(), not no arguments', () => {
+    mount();
+    flushInitialDelay();
+
+    expect(window.google.accounts.id.prompt).toHaveBeenCalledWith(expect.any(Function));
+  });
+});

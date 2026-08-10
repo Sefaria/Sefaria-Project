@@ -69,7 +69,16 @@ export default function GoogleOneTap({ googleClientId }) {
           client_id: googleClientId,
           callback: (resp) => handleCredential(resp, flowId, attemptId),
         });
-        window.google.accounts.id.prompt();
+        // The listener argument is required, empirically: without one, GIS's FedCM path
+        // silently drops the credential instead of invoking the `callback` set in
+        // initialize() above -- no error, no network request to our backend, nothing.
+        // Confirmed live (2026-08-10): identical initialize()/prompt() config fired the
+        // credential callback correctly with a listener present, silently didn't without
+        // one. The [GSI_LOGGER] "may stop functioning when FedCM becomes mandatory"
+        // warning this triggers is about the notification object's inspection methods
+        // (isNotDisplayed/isSkippedMoment/etc, unused here), not the listener itself,
+        // which is what's actually keeping credential delivery alive under FedCM today.
+        window.google.accounts.id.prompt(() => {});
         markShown();
       }, 1200);
     };
