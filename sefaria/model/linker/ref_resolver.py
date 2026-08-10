@@ -1079,10 +1079,7 @@ class ResolvedRefPruner:
             # to a competing match, so labeling them "pruned in favor of a higher-priority
             # parsing" would be misleading when nothing else actually won.
             if match.ref is None:
-                match.disqualification_reason = (
-                    "Matched a non-addressable intermediate node (e.g. an AltStructNode) with no "
-                    "concrete ref, not outranked by another parsing."
-                )
+                match.disqualification_reason = "Matched a non-addressable intermediate node (e.g. an AltStructNode) with no concrete ref."
             elif match.ref.is_empty():
                 match.disqualification_reason = "Resolved ref does not exist (empty segment)."
             else:
