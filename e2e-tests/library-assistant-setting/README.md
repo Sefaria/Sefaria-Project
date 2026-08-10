@@ -227,9 +227,11 @@ two tests skip with a message naming the key; they never silently pass.
 > `post` → rollback → teardown, on 268,476 profiles. 19/19 at `post`; 11/11 at `pre` again
 > after the rollback. The migration wrote 268,472 and the rollback unset exactly the same
 > number with 0 left alone. The one blocker was the language redirect in §4b, not the
-> product. Cohort counts from staging are **not** production's — its Postgres restore has
-> been failing since 2026-06-28 while Mongo restores weekly, so the two stores are ~6 weeks
-> apart. Derive production's numbers on production.
+> product. Cohort counts from staging are **not** production's: measured 2026-08-10, its
+> newest Postgres `date_joined` is 2026-05-17 and its newest Mongo profile is 2026-08-08 —
+> a **~12-week** skew. Size that from the data, not from `kubectl get jobs`: the Postgres
+> sync exits non-zero while its data still lands, so the last *successful* Job under-reports
+> the gap by six weeks. Derive production's numbers on production.
 >
 > **Exercised against staging on 2026-08-06.** The seeding round trip and the cohort matrix
 > both worked; the browser suite did not, for environment reasons rather than product ones.
