@@ -3770,10 +3770,17 @@ class Ref(object, metaclass=RefCacheType):
                 return bool(len(text) and all(text))
             except NoVersionFoundError:
                 return False
-        else:
+        elif isinstance(self.index_node, JaggedArrayNode):
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
             return subarray.is_full()
+        else:
+            # A ref to a whole branching/structural node (e.g. a named, directly
+            # referenceable node covering several JaggedArrayNode leaves, like a Sifra
+            # parsha) has no availableTexts JaggedArray of its own in VersionState -
+            # only the rolled-up per-language completeness _aggregate_structure_state
+            # computes from its leaves.
+            return bool(self.get_state_node(hint=[(lang, "textComplete")]).var(lang, "textComplete"))
 
     def is_text_translated(self):
         """
