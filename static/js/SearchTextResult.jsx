@@ -92,7 +92,12 @@ class SearchTextResult extends Component {
     render() {
         var data = this.props.data;
         var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
+        const href = s.version
+            ? `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`
+            : `/${Sefaria.normRef(s.ref)}?qh=${this.props.query}`;
+        const originLabel = data.resultOrigin === "semantic" ? "Semantic Match"
+            : data.resultOrigin === "link" ? "Related Link"
+            : null;
 
         const more_results_caret =
             (this.state.duplicatesShown)
@@ -130,6 +135,7 @@ class SearchTextResult extends Component {
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
                         <InterfaceText text={{en: s.ref, he: s.heRef}}/>
+                        {originLabel && <span className={classNames({resultOriginChip: 1, [data.resultOrigin]: 1})}>{originLabel}</span>}
                     </div>
                 </a>
                 <ColorBarBox tref={s.ref}>

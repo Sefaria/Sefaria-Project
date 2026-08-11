@@ -167,6 +167,12 @@ class RefView(View):
         return jsonResponse(return_object)
 
 
+class KnnSearchError(Exception):
+    def __init__(self, message, status):
+        super().__init__(message)
+        self.status = status
+
+
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
         'ref', 'url', 'index_title', 'language', 'version_title',
@@ -354,6 +360,79 @@ class KnnSearch(View):
             )[:limit]
         ]
 
+    @classmethod
+    def run_search(cls, body):
+        """
+        Core KNN search logic, shared by the bearer-token-gated /api/knn-search
+        endpoint and any trusted same-origin caller. Raises KnnSearchError for
+        all validation/runtime failures; callers translate that into a response.
+        """
+        if not isinstance(body, dict):
+            raise KnnSearchError("JSON body must be an object", 400)
+        query = body.get("query", "").strip()
+        if not query:
+            raise KnnSearchError("Missing or empty 'query'", 400)
+
+        filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            raise KnnSearchError("'filters' must be an object", 400)
+
+        try:
+            result_limit = cls._limit_param(
+                body,
+                "result_limit",
+                body.get("limit", cls.DEFAULT_RESULT_LIMIT),
+                cls.MAX_RESULT_LIMIT,
+            )
+            linked_ref_limit = cls._limit_param(
+                body,
+                "linked_ref_limit",
+                cls.DEFAULT_LINKED_REF_LIMIT,
+                cls.MAX_LINKED_REF_LIMIT,
+            )
+            include_linked_refs = cls._bool_param(body, "include_linked_refs", False)
+            include_text = cls._bool_param(body, "include_text", True)
+        except ValueError as e:
+            raise KnnSearchError(str(e), 400)
+
+        from semantic_search.embedder import EmbeddingError
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            raise KnnSearchError("Semantic search is not configured", 503)
+
+        try:
+            from semantic_search.search import get_query_embedding, semantic_search_by_embedding
+
+            search_limit = max(result_limit, cls.LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
+            query_embedding = get_query_embedding(query)
+            search_results = semantic_search_by_embedding(query_embedding, filters=filters, limit=search_limit)
+        except EmbeddingError as e:
+            raise KnnSearchError(str(e), 502)
+        results = search_results[:result_limit]
+
+        response = {
+            "results": [
+                cls._serialize_search_result(r, include_text)
+                for r in results
+            ]
+        }
+
+        if include_linked_refs:
+            from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
+
+            enhancement = get_mean_std_linked_ref_enhancements(
+                search_results[:cls.LINKED_REF_ENHANCEMENT_LIMIT],
+                link_depth=cls.LINKED_REF_ENHANCEMENT_DEPTH,
+                std_threshold=cls.LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
+                min_count=cls.LINKED_REF_ENHANCEMENT_MIN_COUNT,
+            )
+            top_linked_refs = cls._top_linked_refs(enhancement, linked_ref_limit)
+            response.update({
+                "linked_refs": cls._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
+            })
+
+        return response
+
     def post(self, request):
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):
@@ -368,68 +447,9 @@ class KnnSearch(View):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return jsonResponse({"error": "Invalid JSON body"}, status=400)
 
-        if not isinstance(body, dict):
-            return jsonResponse({"error": "JSON body must be an object"}, status=400)
-        query = body.get("query", "").strip()
-        if not query:
-            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
-
-        filters = body.get("filters") or None
-        if filters is not None and not isinstance(filters, dict):
-            return jsonResponse({"error": "'filters' must be an object"}, status=400)
-
         try:
-            result_limit = self._limit_param(
-                body,
-                "result_limit",
-                body.get("limit", self.DEFAULT_RESULT_LIMIT),
-                self.MAX_RESULT_LIMIT,
-            )
-            linked_ref_limit = self._limit_param(
-                body,
-                "linked_ref_limit",
-                self.DEFAULT_LINKED_REF_LIMIT,
-                self.MAX_LINKED_REF_LIMIT,
-            )
-            include_linked_refs = self._bool_param(body, "include_linked_refs", False)
-            include_text = self._bool_param(body, "include_text", True)
-        except ValueError as e:
-            return jsonResponse({"error": str(e)}, status=400)
-
-        from semantic_search.embedder import EmbeddingError
-
-        if not getattr(settings, "GEMINI_API_KEY", ""):
-            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
-
-        try:
-            from semantic_search.search import get_query_embedding, semantic_search_by_embedding
-
-            search_limit = max(result_limit, self.LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
-            query_embedding = get_query_embedding(query)
-            search_results = semantic_search_by_embedding(query_embedding, filters=filters, limit=search_limit)
-        except EmbeddingError as e:
-            return jsonResponse({"error": str(e)}, status=502)
-        results = search_results[:result_limit]
-
-        response = {
-            "results": [
-                self._serialize_search_result(r, include_text)
-                for r in results
-            ]
-        }
-
-        if include_linked_refs:
-            from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
-
-            enhancement = get_mean_std_linked_ref_enhancements(
-                search_results[:self.LINKED_REF_ENHANCEMENT_LIMIT],
-                link_depth=self.LINKED_REF_ENHANCEMENT_DEPTH,
-                std_threshold=self.LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
-                min_count=self.LINKED_REF_ENHANCEMENT_MIN_COUNT,
-            )
-            top_linked_refs = self._top_linked_refs(enhancement, linked_ref_limit)
-            response.update({
-                "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
-            })
+            response = self.run_search(body)
+        except KnnSearchError as e:
+            return jsonResponse({"error": str(e)}, status=e.status)
 
         return jsonResponse(response)

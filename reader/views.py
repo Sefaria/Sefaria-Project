@@ -4871,6 +4871,50 @@ def search_wrapper_api(request, es6_compat=False):
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
+
+@csrf_exempt
+def semantic_search_wrapper_api(request):
+    """
+    Public, same-origin wrapper around KnnSearch.run_search for the search page.
+    Unlike /api/knn-search (bearer-token gated, for external/tool callers), this
+    view is not token-protected -- it runs the same search logic server-side so
+    the shared SEMANTIC_SEARCH_API_TOKEN secret never has to reach browser JS.
+
+    The search itself (embedding call + pgvector KNN) runs as a Celery task so a
+    slow embedding call doesn't tie up a web worker; the frontend gets a task_id
+    back and polls /api/async/<task_id> (sefaria_views.async_task_status_api) for
+    the result.
+    """
+    from semantic_search.tasks import knn_search_task
+    from sefaria.celery_setup.config import CeleryQueue
+
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    if not isinstance(body, dict):
+        return jsonResponse({"error": "JSON body must be an object"}, status=400)
+
+    search_body = {
+        "query": body.get("query", ""),
+        "result_limit": 40,
+        "linked_ref_limit": 10,
+        "include_linked_refs": True,
+        "include_text": True,
+    }
+
+    async_result = knn_search_task.apply_async(
+        args=(search_body,),
+        queue=CeleryQueue.TASKS.value,
+    )
+    logger.info("semantic_search_wrapper_api:enqueued", task_id=async_result.id, query_len=len(search_body["query"]))
+    return jsonResponse({"task_id": async_result.id}, status=202)
+
+
 @csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
