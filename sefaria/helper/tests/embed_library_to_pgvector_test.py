@@ -124,6 +124,58 @@ class TestGetChunkContext:
         assert segment_pagerank != section_pagerank
 
 
+class TestHashSectionText:
+    def test_deterministic(self):
+        assert pgv.hash_section_text("hello") == pgv.hash_section_text("hello")
+
+    def test_distinguishes_different_text(self):
+        assert pgv.hash_section_text("hello") != pgv.hash_section_text("hello ")
+
+
+class TestResolveSectionRef:
+    def test_direct_segment_match(self):
+        assert pgv.resolve_section_ref("Genesis 1:3", {"Genesis 1"}) == "Genesis 1"
+
+    def test_exact_match_when_section_is_segment(self):
+        assert pgv.resolve_section_ref("Genesis 1", {"Genesis 1"}) == "Genesis 1"
+
+    def test_does_not_confuse_prefix_collisions(self):
+        # "Genesis 1" must not swallow "Genesis 10:3" - a boundary-aware check, not a bare
+        # substring test.
+        known = {"Genesis 1", "Genesis 10"}
+        assert pgv.resolve_section_ref("Genesis 10:3", known) == "Genesis 10"
+
+    def test_multi_level_address_strips_only_last_component(self):
+        known = {"Mishneh Torah, Sabbath 1:2"}
+        assert pgv.resolve_section_ref("Mishneh Torah, Sabbath 1:2:3", known) == "Mishneh Torah, Sabbath 1:2"
+
+    def test_unknown_ref_returns_none(self):
+        assert pgv.resolve_section_ref("Nonexistent Book 1:1", set()) is None
+
+
+class TestCollectAllSectionRefs:
+    def test_genesis(self):
+        index = library.get_index("Genesis")
+        refs = pgv.collect_all_section_refs([index])
+        expected = {section_ref.normal() for section_ref in index.all_section_refs()}
+        assert refs == expected
+
+
+class TestCollectSectionTextsByRef:
+    def test_matches_collect_segment_records_by_section(self):
+        version = Version().load({"title": "Mishnah Berakhot", "versionTitle": "Torat Emet 357"})
+        index = library.get_index("Mishnah Berakhot")
+        known_section_refs = pgv.collect_all_section_refs([index])
+
+        section_texts = pgv.collect_section_texts_by_ref(version, known_section_refs)
+        records_by_section = pgv.collect_segment_records_by_section(version)
+
+        assert set(section_texts.keys()) == set(records_by_section.keys())
+        first_section = "Mishnah Berakhot 1"
+        expected_text = "\n".join(record.text for record in records_by_section[first_section])
+        assert section_texts[first_section] == expected_text
+
+
 class TestCollectSegmentRecordsBySection:
     def test_groups_by_section_and_preserves_order(self):
         version = Version().load({"title": "Mishnah Berakhot", "versionTitle": "Torat Emet 357"})

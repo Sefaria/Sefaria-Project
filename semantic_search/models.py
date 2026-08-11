@@ -152,3 +152,42 @@ _VECTOR_UPSERT_UPDATE_FIELDS = [
     for f in Vector._meta.concrete_fields
     if not f.primary_key and f.attname not in ('created_at', 'chunk_id', 'embedding_model_id')
 ]
+
+
+class SectionTextCache(models.Model):
+    """Last-seen text hash per (section/passage ref, version, language), independent of
+    `chunks`/`vectors` (no chunking_scheme_id/embedding_model_id) - only the underlying text
+    invalidates a row, so it stays valid across chunker or embedding-model changes. Lets
+    `embed_library_to_pgvector.py` skip re-running the patot chunker (and re-billing Gemini)
+    for units whose text hasn't changed since the last run.
+    """
+    id                  = models.BigAutoField(primary_key=True)
+    section_ref         = models.TextField()
+    version_title       = models.TextField()
+    language            = models.TextField()
+    section_text_hash   = models.TextField()
+    updated_at          = models.DateTimeField(auto_now=True)
+
+    _UNIQUE_FIELDS = ['section_ref', 'version_title', 'language']
+
+    class Meta:
+        managed = False
+        db_table = 'section_text_cache'
+        app_label = 'semantic_search'
+
+    def upsert(self, rows: list['SectionTextCache']) -> None:
+        if not rows:
+            return
+        SectionTextCache.objects.bulk_create(
+            rows,
+            update_conflicts=True,
+            unique_fields=self._UNIQUE_FIELDS,
+            update_fields=['section_text_hash', 'updated_at'],
+        )
+
+    def all_hashes(self) -> dict:
+        """{(section_ref, version_title, language): section_text_hash} for the whole table."""
+        return {
+            (row.section_ref, row.version_title, row.language): row.section_text_hash
+            for row in SectionTextCache.objects.all()
+        }
