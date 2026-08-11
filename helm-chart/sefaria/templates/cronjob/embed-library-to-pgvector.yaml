@@ -23,7 +23,8 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "pip install 'patot[chunking] @ git+https://github.com/Sefaria/patot.git@{{ .Values.cronJobs.embedLibraryToPgvector.patotVersion }}' && /app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }}"
+              # TEMP: --limit-indexes/--max-versions for a dev-cluster smoke test, revert before merge
+              "pip install 'patot[chunking] @ git+https://github.com/Sefaria/patot.git@{{ .Values.cronJobs.embedLibraryToPgvector.patotVersion }}' && /app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }} --limit-indexes 10 --max-versions 5"
             ]
             env:
             - name: REDIS_HOST
