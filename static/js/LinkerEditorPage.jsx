@@ -339,7 +339,7 @@ const NODE_PROPERTIES = [
   {
     key: 'referenceable',
     label: 'referenceable',
-    what: "Whether the linker can cite this node directly. On (the default for most nodes): the node is matchable and its children are traversed. Off: the node itself is skipped and only its referenceable descendants are used. Optional: the node is BOTH matchable by name AND transparent, so its children flatten up — a citation can land on the node or descend straight into it.",
+    what: "Whether the linker can cite this node directly. Default leaves nothing stored and lets the schema decide — for an ordinary named node that's the same as On, but for a structural placeholder node (one standing in for its parent without its own title) it behaves like Off instead. On: the node is matchable and its children are traversed normally. Off: the node itself is skipped and only its referenceable descendants are used. Optional: the node is BOTH matchable by name AND transparent, so its children flatten up — a citation can land on the node or descend straight into it.",
     example: "Mark a Zohar sub-section like “Saba DeMishpatim” as Optional so a bare daf citation (זח\"ב צה.) can resolve into it, while the sub-section is still citable by its own name.",
   },
   {
