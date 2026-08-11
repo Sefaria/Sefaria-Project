@@ -2,6 +2,7 @@
 
 .linkerEditorNavMenu .linkerEditorContent {
   height: 100%;
+  padding: 0;
 }
 
 .linkerEditorPage {
@@ -17,7 +18,7 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #ddd;
-  padding-bottom: 12px;
+  padding: 20px 0 12px;
   margin-bottom: 20px;
   position: sticky;
   top: 0;
