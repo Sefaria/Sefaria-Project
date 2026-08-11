@@ -271,6 +271,68 @@ def test_entity_query_obj_exact_tier_is_case_insensitive():
         assert spec["case_insensitive"] is True, f"{field} exact-match tier must be case-insensitive"
 
 
+def _entity_should_clauses(query, entity_type):
+    s = get_entity_query_obj(query, entity_type).to_dict()
+    q = s["query"]
+    # topic/author (and filtered book) queries wrap the text query in a bool must
+    if "must" in q.get("bool", {}):
+        q = q["bool"]["must"][0]
+    return q["bool"]["should"]
+
+
+def test_entity_query_obj_all_words_is_and():
+    # A multi-word query must not degrade to OR: the all-words tier requires every word
+    # (operator "and"), and cross_fields lets the words split across fields ("Rambam
+    # Torah" -> author_names + title_en) as long as all of them match somewhere.
+    for entity_type in ("topic", "author", "book"):
+        shoulds = _entity_should_clauses("Or Chaim", entity_type)
+        all_words = [c["multi_match"] for c in shoulds
+                     if "multi_match" in c and c["multi_match"].get("operator") == "and"]
+        assert len(all_words) == 1, "expected exactly one AND multi_match tier"
+        assert all_words[0]["type"] == "cross_fields"
+        # the AND tier must outweigh the any-word tier by a wide margin
+        any_word = [c["multi_match"] for c in shoulds
+                    if "multi_match" in c and c["multi_match"].get("type") == "best_fields"]
+        assert len(any_word) == 1, "expected exactly one any-word (OR) multi_match tier"
+        assert all_words[0]["boost"] > any_word[0]["boost"] * 10
+
+
+def test_entity_query_obj_all_prefix_tier_multi_word_only():
+    # "Or Chaim" should rank "Orach Chaim"/"Orchot Chaim" (every word matches a word-start
+    # in one title field) above one-word matches like "Chafetz Chaim". The tier is a
+    # dis_max of per-title-field bools, each requiring a case-insensitive prefix per word.
+    shoulds = _entity_should_clauses("Or Chaim", "book")
+    dis_max = [c["dis_max"] for c in shoulds if "dis_max" in c]
+    assert len(dis_max) == 1, "expected the all-prefixes dis_max tier for a multi-word query"
+    per_field = dis_max[0]["queries"]
+    assert len(per_field) == len(["title_en", "title_he", "titleVariants"])
+    for field_bool in per_field:
+        musts = field_bool["bool"]["must"]
+        values = [list(m["prefix"].values())[0]["value"] for m in musts]
+        assert values == ["Or", "Chaim"]
+        assert all(list(m["prefix"].values())[0]["case_insensitive"] is True for m in musts)
+
+    # single-word query: the tier would just duplicate the phrase_prefix tier, so it's absent
+    shoulds = _entity_should_clauses("Chaim", "book")
+    assert not any("dis_max" in c for c in shoulds)
+
+
+def test_entity_query_obj_partial_matches_kept_at_bottom():
+    # Product decision (2026-08-11): one-word matches stay findable, but only via the
+    # tiny-boost any-word tier — so the match set still includes them while every tier
+    # above (exact / phrase / all-words / all-prefixes / begins-with) outscores them.
+    shoulds = _entity_should_clauses("Or Chaim", "book")
+    boosts = []
+    for c in shoulds:
+        if "multi_match" in c:
+            boosts.append(c["multi_match"]["boost"])
+        elif "dis_max" in c:
+            boosts.append(c["dis_max"]["boost"])
+    any_word_boost = min(boosts)
+    assert any_word_boost <= 0.1
+    assert all(b >= 1 for b in boosts if b != any_word_boost)
+
+
 def test_author_works_response_eponymous_beats_matching_category():
     # Regression: when a category row's title happens to equal the query, it must not sort
     # ahead of the actual eponymous (non-category) work. The eponymous tier explicitly
