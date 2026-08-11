@@ -1,8 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
+
+// Tracks whether a touch gesture is a tap (no/minimal movement) so we can show
+// a pressed state only for taps, not for scrolls that happen to start on a card.
+function usePressState() {
+  const ref = useRef(null);
+  const [pressed, setPressed] = useState(false);
+  const startPos = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const onStart = (e) => {
+      const t = e.touches[0];
+      startPos.current = { x: t.clientX, y: t.clientY };
+      setPressed(true);
+    };
+    const onMove = (e) => {
+      if (!startPos.current) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - startPos.current.x) > 10 ||
+          Math.abs(t.clientY - startPos.current.y) > 10) {
+        setPressed(false);
+        startPos.current = null;
+      }
+    };
+    const onEnd = () => {
+      setPressed(false);
+      startPos.current = null;
+    };
+
+    el.addEventListener('touchstart',  onStart, { passive: true });
+    el.addEventListener('touchmove',   onMove,  { passive: true });
+    el.addEventListener('touchend',    onEnd,   { passive: true });
+    el.addEventListener('touchcancel', onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener('touchstart',  onStart);
+      el.removeEventListener('touchmove',   onMove);
+      el.removeEventListener('touchend',    onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, []);
+
+  return [ref, pressed];
+}
 
 const TYPE_ICONS = {
   author:     '/static/icons/iconmonstr-pen-17.svg',
@@ -45,6 +90,7 @@ function SearchResultCard({
   versions,
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [pressRef, isPressed] = usePressState();
 
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
@@ -75,7 +121,8 @@ function SearchResultCard({
 
   return (
     <div
-      className={`searchResultCard searchResultCard--${mode}`}
+      ref={pressRef}
+      className={`searchResultCard searchResultCard--${mode}${isPressed ? ' is-pressed' : ''}`}
       role="link"
       tabIndex={0}
       aria-label={name}

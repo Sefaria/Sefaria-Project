@@ -61,6 +61,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
+          enterKeyHint="search"
       />
       {value.length ?
           <img
