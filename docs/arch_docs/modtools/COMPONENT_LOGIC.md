@@ -314,7 +314,7 @@ if (indexSpecificUpdates.collective_title === 'auto') {
 }
 ```
 
-### TOC Zoom Handling
+### TOC Zoom Handling (plan, not yet implemented)
 
 TOC zoom is applied to schema nodes, not the index directly:
 

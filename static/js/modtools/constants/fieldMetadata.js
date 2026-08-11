@@ -92,17 +92,6 @@ export const INDEX_FIELD_METADATA = {
     placeholder: "למשל: 'ונציה, איטליה'",
     dir: "rtl"
   },
-  "toc_zoom": {
-    label: "TOC Zoom Level",
-    type: "number",
-    placeholder: "0-10",
-    help: "Controls how deep the table of contents displays by default (0=fully expanded). Must be an integer.",
-    validate: (value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      const num = parseInt(value);
-      return !isNaN(num) && num >= 0 && num <= 10;
-    }
-  },
   "dependence": {
     label: "Dependence Type",
     type: "select",

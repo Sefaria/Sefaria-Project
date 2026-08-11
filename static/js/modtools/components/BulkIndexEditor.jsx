@@ -13,7 +13,6 @@
  * Special features:
  * - Auto-detection for commentary texts ("X on Y" pattern)
  * - Author validation against AuthorTopic
- * - TOC zoom level setting on schema nodes
  *
  * Backend API: POST /api/v2/raw/index/{title}?update=1
  *
@@ -76,7 +75,6 @@ const HELP_CONTENT = (
         <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
         <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
         <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
-        <tr><td><code>toc_zoom</code></td><td>Table of contents zoom level (0-10, 0=fully expanded)</td></tr>
       </tbody>
     </table>
 
@@ -109,7 +107,6 @@ const HELP_CONTENT = (
       <li>Setting up commentary metadata for a new commentary series</li>
       <li>Moving texts to a different category</li>
       <li>Adding authorship information to texts by the same author</li>
-      <li>Configuring TOC display depth for complex texts</li>
     </ul>
   </>
 );
@@ -277,7 +274,7 @@ const BulkIndexEditor = () => {
     const processedUpdates = {};
 
     for (const [field, value] of Object.entries(updates)) {
-      if (!value && field !== "toc_zoom") continue;
+      if (!value) continue;
 
       const fieldMeta = INDEX_FIELD_METADATA[field];
       if (!fieldMeta) {
@@ -440,23 +437,6 @@ const BulkIndexEditor = () => {
           }
         }
 
-        // Handle TOC zoom
-        let tocZoomValue = null;
-        if ('toc_zoom' in indexSpecificUpdates) {
-          tocZoomValue = indexSpecificUpdates.toc_zoom;
-          delete indexSpecificUpdates.toc_zoom;
-
-          if (existingIndexData.schema?.nodes) {
-            existingIndexData.schema.nodes.forEach(node => {
-              if (node.nodeType === "JaggedArrayNode") {
-                node.toc_zoom = tocZoomValue;
-              }
-            });
-          } else if (existingIndexData.schema) {
-            existingIndexData.schema.toc_zoom = tocZoomValue;
-          }
-        }
-
         const postData = {
           title: indexTitle,
           heTitle: existingIndexData.heTitle,
@@ -560,8 +540,6 @@ const BulkIndexEditor = () => {
           </select>
         ) : fieldMeta.type === "textarea" ? (
           <textarea {...commonProps} rows={3} />
-        ) : fieldMeta.type === "number" ? (
-          <input {...commonProps} type="number" min="0" max="10" />
         ) : (
           <input {...commonProps} type="text" />
         )}
@@ -569,8 +547,8 @@ const BulkIndexEditor = () => {
     );
   };
 
-  // Check if there are actual changes - toc_zoom of 0 is valid, so check for undefined instead
-  const hasChanges = Object.keys(updates).filter(k => updates[k] || (k === 'toc_zoom' && updates[k] !== undefined && updates[k] !== '')).length > 0;
+  // Check if there are actual changes
+  const hasChanges = Object.keys(updates).some(k => updates[k]);
 
   return (
     <ModToolsSection
@@ -585,7 +563,6 @@ const BulkIndexEditor = () => {
           <li><strong>Authors:</strong> Must exist in the Authors topic. Use exact names or slugs.</li>
           <li><strong>Base Text Titles:</strong> Must be exact index titles (e.g., "Mishnah Berakhot").</li>
           <li><strong>Auto-detection:</strong> Works for commentary texts with "X on Y" format.</li>
-          <li><strong>TOC Zoom:</strong> Integer 0-10 (0=fully expanded).</li>
         </ul>
       </div>
 
@@ -669,7 +646,7 @@ const BulkIndexEditor = () => {
             <div className="changesPreview">
               <strong>Changes to apply:</strong>
               <ul>
-                {Object.entries(updates).filter(([k, v]) => v || k === 'toc_zoom').map(([k, v]) => (
+                {Object.entries(updates).filter(([k, v]) => v).map(([k, v]) => (
                   <li key={k}>{INDEX_FIELD_METADATA[k]?.label || k}: "{v}"</li>
                 ))}
               </ul>
