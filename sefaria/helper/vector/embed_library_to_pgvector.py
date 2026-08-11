@@ -12,11 +12,19 @@ Resumable - on restart, (index, language, version_title) combinations whose sect
 refs are already present in pgvector are skipped, so a restart does not re-embed
 (and re-bill Gemini for) already-completed work.
 
+Change-detected - at startup, every section/passage's current text is hashed and compared
+against `section_text_cache` (a separate pgvector table, keyed on section/passage ref +
+version + language). Units whose hash hasn't changed since the last run are skipped even on a
+deliberate re-run (not just a crash restart), so a periodic re-index doesn't re-run the
+chunker/embedder over the whole library every time - only over sections whose text actually
+changed.
+
 Note: Logging is configured via sefaria.search.setup_logging() so output is visible
 in `kubectl logs`.
 """
 
 import argparse
+import hashlib
 import logging
 import os
 import re
@@ -25,6 +33,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 import django
 django.setup()
@@ -33,7 +42,9 @@ from django.conf import settings as django_settings
 from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
-from semantic_search.models import Chunk, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
+from semantic_search.models import (
+    Chunk, Vector, SectionTextCache, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
+)
 
 import tqdm as _tqdm_module
 import tqdm.auto as _tqdm_auto_module
@@ -366,13 +377,94 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
     return built
 
 
+def hash_section_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def resolve_section_ref(tref: str, known_section_refs: set) -> Optional[str]:
+    """
+    Which of `known_section_refs` does `tref` (a raw segment ref string straight from
+    Version.walk_thru_contents) fall under? A segment ref "is a superset of" its section ref,
+    so strip trailing ':<address>' components off `tref` until what's left is a known section
+    ref (almost always one strip) - this avoids parsing `tref` into a Ref, which is the
+    expensive part collect_section_texts_by_ref needs to avoid when it's called for every
+    segment in every version of the library.
+    """
+    candidate = tref
+    while candidate not in known_section_refs:
+        if ':' not in candidate:
+            return None
+        candidate = candidate.rsplit(':', 1)[0]
+    return candidate
+
+
+def collect_section_texts_by_ref(version, known_section_refs: set) -> dict:
+    """Walk `version` once and return {section_ref_normal: concatenated_section_text}."""
+    section_segments: dict = {}
+
+    def collect(segment_str, tref, _he_tref, _version):
+        if not segment_str or not segment_str.strip():
+            return
+        section_ref = resolve_section_ref(tref, known_section_refs)
+        if section_ref is None:
+            return
+        section_segments.setdefault(section_ref, []).append(segment_str)
+
+    version.walk_thru_contents(collect)
+    return {ref: "\n".join(texts) for ref, texts in section_segments.items()}
+
+
+def collect_all_section_refs(indexes) -> set:
+    """Every normalized section ref across `indexes` - the universe collect_section_texts_by_ref
+    buckets segments into."""
+    refs = set()
+    for index in indexes:
+        for section_ref in index.all_section_refs():
+            refs.add(section_ref.normal())
+    return refs
+
+
+def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
+    """
+    {(unit_ref_normal, version_title, language): sha256(unit_text)} for every (index, version,
+    unit) currently in the library, where unit_ref is the same resume key `chunk_store` already
+    tracks via chunked_from_ref - a passage full_ref for passage-based indexes, a section ref
+    otherwise. Used to detect, before running the chunker/embedder, which units' text actually
+    changed since the last run.
+    """
+    hashes = {}
+    for index in indexes:
+        passages = get_passages_for_index(index) if is_passage_based(index) else []
+        for version in VersionSet({"title": index.title}):
+            lang, vtitle = version.language, version.versionTitle
+            if passages:
+                segment_text_by_ref = collect_segment_text_by_ref(version)
+                for passage in passages:
+                    text = "\n".join(
+                        segment_text_by_ref[r] for r in passage.ref_list if r in segment_text_by_ref
+                    )
+                    if text:
+                        unit_normal = Ref(passage.full_ref).normal()
+                        hashes[(unit_normal, vtitle, lang)] = hash_section_text(text)
+            else:
+                for section_ref, text in collect_section_texts_by_ref(version, known_section_refs).items():
+                    hashes[(section_ref, vtitle, lang)] = hash_section_text(text)
+    return hashes
+
+
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: Chunk, vector_store: Vector, version_pbar=None):
+                   chunk_store: Chunk, vector_store: Vector, changed_units: set, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
     `get_units_for_version(version)` must return a list of (unit_ref, segment_records) pairs,
     where unit_ref is a Ref whose .normal() is used as the resume key and stored in chunks.chunked_from_ref.
+
+    `changed_units` is the set of (unit_ref_normal, version_title, language) keys whose text
+    hash (see compute_current_unit_hashes) differs from - or is absent from - the last run's
+    section_text_cache. A unit already in pgvector (`already_done`) is only skipped if its text
+    also hasn't changed; otherwise a text edit would be silently skipped forever by the resume
+    check alone.
     """
     index_context = get_index_context(index)
 
@@ -386,7 +478,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
 
         for unit_ref, segment_records in units:
             unit_normal = unit_ref.normal()
-            if unit_normal in already_done:
+            if unit_normal in already_done and (unit_normal, vtitle, lang) not in changed_units:
                 result_tracker.increment("sections_skipped_resume")
             elif not segment_records:
                 result_tracker.increment("sections_skipped_empty")
@@ -419,7 +511,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
 
 
 def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: Chunk, vector_store: Vector,
-                  version_pbar=None):
+                  changed_units: set, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -439,7 +531,8 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 ]
 
             _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, vector_store=vector_store, version_pbar=version_pbar)
+                           chunk_store=chunk_store, vector_store=vector_store,
+                           changed_units=changed_units, version_pbar=version_pbar)
             return
 
     section_refs = index.all_section_refs()
@@ -452,7 +545,8 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, vector_store=vector_store, version_pbar=version_pbar)
+                   chunk_store=chunk_store, vector_store=vector_store,
+                   changed_units=changed_units, version_pbar=version_pbar)
 
 
 def thread_init(api_key: str, config):
@@ -506,6 +600,22 @@ def main():
         logger.info(f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
                     f"{len(all_indexes)} remaining")
 
+    section_cache_store = SectionTextCache()
+    cached_hashes = section_cache_store.all_hashes()
+    logger.info(f"Loaded {len(cached_hashes)} cached section text hashes")
+
+    logger.info("Computing current section/passage text hashes for change detection...")
+    known_section_refs = collect_all_section_refs(all_indexes)
+    current_hashes = compute_current_unit_hashes(all_indexes, known_section_refs)
+    changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
+    logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
+                f"{len(changed_units)} changed or new since last run")
+
+    section_cache_store.upsert([
+        SectionTextCache(section_ref=section_ref, version_title=vtitle, language=lang, section_text_hash=h)
+        for (section_ref, vtitle, lang), h in current_hashes.items()
+    ])
+
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in all_indexes)
     logger.info(f"Total versions: {total_versions}")
 
@@ -513,7 +623,8 @@ def main():
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(index, thread_local.chunker, result, chunk_store, vector_store, version_pbar)
+                process_index(index, thread_local.chunker, result, chunk_store, vector_store,
+                              changed_units, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
             result.increment("indexes_processed")

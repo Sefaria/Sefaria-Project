@@ -141,3 +141,22 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vectors_embedding_hnsw
 -- Not strictly needed (the UNIQUE(chunk_id, embedding_model_id) constraint's implicit btree
 -- already covers chunk_id-prefix lookups), but named here for discoverability alongside the
 -- other vectors indexes.
+
+-- ---------------------------------------------------------------------------
+-- section_text_cache: last-seen text hash per (section/passage ref, version, language).
+-- Deliberately independent of chunks/vectors - no chunking_scheme_id/embedding_model_id, so a
+-- row stays valid across chunker/embedding-model changes and only goes stale when the
+-- underlying text does. embed_library_to_pgvector.py loads this whole table at startup and
+-- diffs it against freshly computed hashes to skip re-running the chunker (and re-billing
+-- Gemini) for units whose text hasn't changed since the last run.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS section_text_cache (
+    id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    section_ref         text NOT NULL,
+    version_title       text NOT NULL,
+    language            text NOT NULL,
+    section_text_hash   text NOT NULL,
+    updated_at          timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (section_ref, version_title, language)
+);
