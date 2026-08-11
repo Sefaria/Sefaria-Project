@@ -591,5 +591,11 @@
     "guide.previous_card": "Previous card",
     "guide.show_guide": "Show guide",
     "guide.your_browser_does_not_support_the_video_tag": "Your browser does not support the video tag.",
-    "search_filters.collections": "Collections"
+    "search_filters.collections": "Collections",
+    "search.null.caption": "Something seem wrong? {reportBugLink} or {contactUsLink}.",
+    "search.null.caption.bug.label": "Report a bug",
+    "search.null.caption.contact.label": "contact us",
+    "search.null.caption.divider": "or",
+    "search.null.caption.contact.link": "https://github.com/Sefaria/Sefaria-Project/issues",
+    "search.null.caption.bug.link": "https://github.com/Sefaria/Sefaria-Project/issues"
 }
