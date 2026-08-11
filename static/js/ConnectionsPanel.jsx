@@ -1562,7 +1562,14 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
     const openLinkerAdminTools = function () {
       const url = new URL(window.location.href);
       Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
-      window.location.href = url.toString();
+      if (Sefaria._debug_mode === "linker") {
+        // Debug mode is already active server-side, so there's nothing a reload would add —
+        // just switch the sidebar into LinkerAdmin mode in place.
+        history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
+        setConnectionsMode("LinkerAdmin");
+      } else {
+        window.location.href = url.toString();
+      }
     };
 
     return (
