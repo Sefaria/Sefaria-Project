@@ -47,10 +47,15 @@ def wipe(dry_run=False, force=False):
 
     unmigrated = db.profiles.count_documents({SETTING_PATH: {"$exists": False}})
     if unmigrated and not force:
-        print(f"ABORT: {unmigrated} profiles still have no {SETTING_KEY} key.")
+        print(f"{'WARNING' if dry_run else 'ABORT'}: {unmigrated} profiles still have"
+              f" no {SETTING_KEY} key.")
         print("Run migrate_experiments_to_library_assistant.py first — it reads its")
         print("cohorts from the rows this script deletes. (--force overrides.)")
-        return
+        # A dry run writes nothing, so it goes on to report. Rehearsing the wipe on an
+        # environment that has yet to be migrated is exactly when the counts are wanted.
+        if not dry_run:
+            return
+        print()
 
     rows = list(UserExperimentSettings.objects.values_list("user_id", "experiments"))
     flagged = db.profiles.count_documents({"experiments": {"$exists": True}})
