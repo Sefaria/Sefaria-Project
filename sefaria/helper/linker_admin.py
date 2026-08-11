@@ -223,6 +223,7 @@ def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: 
 def _raw_ref_from_part_dicts(part_dicts: list[dict], lang: str) -> RawRef:
     if not isinstance(part_dicts, list) or not all(isinstance(part, dict) for part in part_dicts):
         raise InputError("parts must be a list of objects with text and type")
+    normalizer = get_linker_normalizer(lang)
     texts = []
     part_types = []
     for part in part_dicts:
@@ -235,6 +236,13 @@ def _raw_ref_from_part_dicts(part_dicts: list[dict], lang: str) -> RawRef:
         part_type = REF_PART_TYPE_BY_NAME.get(part_type_name)
         if part_type is None:
             raise InputError(f"Unknown ref part type: {part_type_name}")
+        # Stored ref parts carry the raw, un-normalized citation text. The real linker pipeline
+        # normalizes a segment's text (e.g. gershayim '״' -> '"') before running NER/resolution,
+        # so term/title matching expects normalized text -- without this, a part like 'ח״ב' fails to
+        # match a term title written as 'ח"ב'.
+        text = normalizer.normalize(text)
+        if not text:
+            raise InputError("Each part must include non-empty string text")
         texts.append(text)
         part_types.append(part_type)
 
