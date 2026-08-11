@@ -80,6 +80,7 @@ class ReaderApp extends Component {
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
+        linkerEditorBook:        props.initialLinkerEditorBook,
       };
     }
 
@@ -180,6 +181,8 @@ class ReaderApp extends Component {
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null,
       filterRef:               state.filterRef               || null,
+      connectionData:          state.connectionData          || null,
+      linkerEditorBook:        state.linkerEditorBook        || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -417,12 +420,14 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
+          (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
+          (prev.linkerEditorBook !== next.linkerEditorBook) ||
           (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
@@ -460,7 +465,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -597,6 +602,14 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("reader_app.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
+            break;
+          case "linkerEditor":
+            hist.title = Sefaria._("Linker Editor");
+            hist.url = "linker-editor";
+            hist.mode = "linkerEditor";
+            if (state.linkerEditorBook) {
+              hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
+            }
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
@@ -1317,6 +1330,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/torahtracker") {
       this.showUserStats();
 
+    } else if (path === "/linker-editor") {
+      this.showLinkerEditor(params.get("book"));
+
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
@@ -1948,6 +1964,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   showUserStats() {
     this.setSinglePanelState({menuOpen: "user_stats"});
   }
+  showLinkerEditor(book) {
+    this.setSinglePanelState({menuOpen: "linkerEditor", linkerEditorBook: book || null});
+  }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});
   }
@@ -2520,6 +2539,7 @@ ReaderApp.propTypes = {
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
   topicTestVersion:            PropTypes.string,
+  initialLinkerEditorBook:     PropTypes.string,
   sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
@@ -2538,7 +2558,8 @@ ReaderApp.defaultProps = {
   initialDefaultVersions:      {},
   initialPanelCap:             2,
   initialPath:                 "/",
-  topicTestVersion:          null
+  topicTestVersion:          null,
+  initialLinkerEditorBook:     null,
 };
 
 const sefariaSetup = Sefaria.setup;

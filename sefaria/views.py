@@ -743,6 +743,28 @@ def reset_cache(request):
 
 
 @staff_member_required
+def rebuild_linker_resolvers(request):
+    """
+    Enqueue an async rebuild of RefResolver and CategoryResolver for selected linker
+    languages. Used by /linker-editor after linker metadata edits. Runs on a worker
+    since walking the library to rebuild a resolver can take several seconds; poll the
+    returned task_id via /api/async/<task_id>.
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except ValueError:
+        return jsonResponse({"error": "Invalid JSON."}, status=400)
+
+    from sefaria.helper import linker_editor
+    try:
+        task_id = linker_editor.enqueue_rebuild_linker_resolvers(body.get("langs", ["en", "he"]))
+    except InputError as e:
+        return jsonResponse({"error": str(e)}, status=400)
+
+    return jsonResponse({"task_id": task_id}, status=202)
+
+
+@staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)

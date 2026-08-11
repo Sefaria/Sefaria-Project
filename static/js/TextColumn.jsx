@@ -434,6 +434,7 @@ class TextColumn extends Component {
         showBaseText={this.props.showBaseText}
         onSegmentClick={this.props.onSegmentClick}
         onCitationClick={this.props.onCitationClick}
+        onLinkerAdminCitationClick={this.props.onLinkerAdminCitationClick}
         onNamedEntityClick={this.props.onNamedEntityClick}
         onTextLoad={this.handleTextLoad}
         filter={this.props.filter}
@@ -495,6 +496,7 @@ TextColumn.propTypes = {
   updateTextColumn:       PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
+  onLinkerAdminCitationClick: PropTypes.func,
   onNamedEntityClick:     PropTypes.func,
   setTextListHighlight:   PropTypes.func,
   setCurrentlyVisibleRef: PropTypes.func,

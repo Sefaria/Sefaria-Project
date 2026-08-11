@@ -10,6 +10,8 @@ export const GeneralAutocomplete = ({
     containerClassString,
     dropdownMenuClassString,
     shouldDisplaySuggestions,
+    onSelectedItemChange,
+    onEnter,
 }) => {
     /**
  * @param {Function} getSuggestions - A function that takes the current input value as a parameter
@@ -34,6 +36,7 @@ export const GeneralAutocomplete = ({
   } = useCombobox({
         items: suggestions,
         itemToString: (item) => (item ? item.name : ''),
+        onSelectedItemChange,
         onInputValueChange: async ({ inputValue }) => {
             setSuggestions(await getSuggestions(inputValue));
         }
@@ -41,15 +44,28 @@ export const GeneralAutocomplete = ({
 
     const highlightedSuggestion=suggestions[highlightedIndex]
     shouldDisplaySuggestions = shouldDisplaySuggestions || (() => {return isOpen})
+    const wrappedGetInputProps = (options={}) => {
+        const inputProps = getInputProps(options);
+        const originalKeyDown = inputProps.onKeyDown;
+        inputProps.onKeyDown = (event) => {
+            if (event.key === 'Enter' && onEnter && onEnter({ event, highlightedSuggestion, suggestions })) {
+                return;
+            }
+            if (originalKeyDown) {
+                originalKeyDown(event);
+            }
+        };
+        return inputProps;
+    };
 
     return (
         <div className={containerClassString}>
-            {renderInput(highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions)}
+            {renderInput(highlightedIndex, highlightedSuggestion, wrappedGetInputProps, setInputValue, suggestions)}
             <div
               {...getMenuProps()}
               className={dropdownMenuClassString}
             >
-                {shouldDisplaySuggestions(isOpen) && renderItems(suggestions, highlightedIndex, getItemProps, getInputProps)}
+                {shouldDisplaySuggestions(isOpen) && renderItems(suggestions, highlightedIndex, getItemProps, wrappedGetInputProps)}
             </div>
         </div>
     );

@@ -6,6 +6,7 @@ import reader.views as reader_views
 import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
+import api.linker_admin_views as linker_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -103,6 +104,29 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+
+    # Linker editor (staff-only): edit index linker metadata (match templates, address types,
+    # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
+    path('api/linker/non-unique-terms', linker_api_views.LinkerEditorNonUniqueTermSearchView.as_view()),
+    path('_api/linker-editor/address-types', linker_api_views.LinkerEditorAddressTypesListView.as_view()),
+    path('_api/linker-editor/non-unique-term', linker_api_views.LinkerEditorNonUniqueTermCreateView.as_view()),
+    path('_api/linker-editor/non-unique-term-titles', linker_api_views.LinkerEditorNonUniqueTermTitlesView.as_view()),
+    path('_api/linker-editor/non-unique-term/<str:slug>/swap', linker_api_views.LinkerEditorNonUniqueTermSwapView.as_view()),
+    path('_api/linker-editor/non-unique-term/<str:slug>', linker_api_views.LinkerEditorNonUniqueTermView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/match-templates', linker_api_views.LinkerEditorMatchTemplateView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/address-type', linker_api_views.LinkerEditorAddressTypeView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/properties', linker_api_views.LinkerEditorNodePropertiesView.as_view()),
+    path('_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils', linker_api_views.LinkerEditorRebuildDiburHamatchilView.as_view()),
+
+    # Linker admin (staff-only): debug/delete/recreate individual linker-generated citations,
+    # rerun the linker on a segment, and capture NER/ref-part training examples.
+    path('_api/linker-admin/citation/delete', linker_api_views.LinkerAdminDeleteCitationView.as_view()),
+    path('_api/linker-admin/citation/recreate', linker_api_views.LinkerAdminRecreateCitationView.as_view()),
+    path('_api/linker-admin/citation/parse', linker_api_views.LinkerAdminParseCitationView.as_view()),
+    path('_api/linker-admin/segment/rerun', linker_api_views.LinkerAdminRerunSegmentView.as_view()),
+    path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
+    path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
+
     path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
@@ -252,6 +276,7 @@ shared_patterns = [
     re_path(r'^admin/reset/counts/(?P<title>.+)$', sefaria_views.reset_counts),
     re_path(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     re_path(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
+    re_path(r'^admin/reset/linker-resolvers$', sefaria_views.rebuild_linker_resolvers),
     re_path(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     re_path(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     re_path(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),

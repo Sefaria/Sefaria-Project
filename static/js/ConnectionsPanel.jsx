@@ -16,7 +16,7 @@ import {
 } from './Media';
 
 import { CategoryFilter, TextFilter } from './ConnectionFilters';
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { ReaderPanelContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
@@ -30,6 +30,7 @@ import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
 import GuideBox from './GuideBox';
 import TranslationsBox from './TranslationsBox';
+import LinkerAdminBox from './LinkerAdminBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component from 'react-class';
@@ -467,6 +468,15 @@ class ConnectionsPanel extends Component {
         srefs={this.props.srefs}
         interfaceLang={this.props.interfaceLang}
         key="Media" />);
+
+    } else if (this.props.mode === "LinkerAdmin") {
+      content = (<LinkerAdminBox
+        srefs={this.props.srefs}
+        currentlyVisibleRef={this.props.currentlyVisibleRef}
+        connectionData={this.props.connectionData}
+        currVersions={this.props.currVersions}
+        currObjectVersions={this.state.currObjectVersions}
+      />);
 
     } else if (this.props.mode === "Advanced Tools") {
       content = (<AdvancedToolsList
@@ -1050,12 +1060,25 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
         );
       }
     };
+    const openLinkerAdminTools = function () {
+      const url = new URL(window.location.href);
+      Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
+      if (Sefaria._debug_mode === "linker") {
+        // Debug mode is already active server-side, so there's nothing a reload would add —
+        // just switch the sidebar into LinkerAdmin mode in place.
+        history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
+        setConnectionsMode("LinkerAdmin");
+      } else {
+        window.location.href = url.toString();
+      }
+    };
 
     return (
       <div>
         <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
         {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
+        {Sefaria.is_moderator ? (<ToolsButton en="Linker Admin Tools" he="כלי ניהול לינקר" icon="wrench" onClick={openLinkerAdminTools} />) : null}
       </div>
     );
 }

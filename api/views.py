@@ -167,6 +167,18 @@ class RefView(View):
         return jsonResponse(return_object)
 
 
+def _load_json_body(request, empty_as_object=False):
+    """Parse a JSON request body, returning (data, error_response)."""
+    try:
+        raw_body = (request.body or b"{}") if empty_as_object else request.body
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, jsonResponse({"error": "Invalid JSON body."}, status=400)
+    if not isinstance(body, dict):
+        return None, jsonResponse({"error": "JSON body must be an object."}, status=400)
+    return body, None
+
+
 class KnnSearch(View):
     SEARCH_RESULT_FIELDS = (
         'ref', 'url', 'index_title', 'language', 'version_title',
@@ -363,13 +375,9 @@ class KnnSearch(View):
         if not expected or token != expected:
             return jsonResponse({"error": "Unauthorized"}, status=401)
 
-        try:
-            body = json.loads(request.body)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return jsonResponse({"error": "Invalid JSON body"}, status=400)
-
-        if not isinstance(body, dict):
-            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        body, err = _load_json_body(request)
+        if err:
+            return err
         query = body.get("query", "").strip()
         if not query:
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
@@ -433,3 +441,4 @@ class KnnSearch(View):
             })
 
         return jsonResponse(response)
+
