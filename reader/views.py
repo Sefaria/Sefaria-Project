@@ -4879,8 +4879,14 @@ def semantic_search_wrapper_api(request):
     Unlike /api/knn-search (bearer-token gated, for external/tool callers), this
     view is not token-protected -- it runs the same search logic server-side so
     the shared SEMANTIC_SEARCH_API_TOKEN secret never has to reach browser JS.
+
+    The search itself (embedding call + pgvector KNN) runs as a Celery task so a
+    slow embedding call doesn't tie up a web worker; the frontend gets a task_id
+    back and polls /api/async/<task_id> (sefaria_views.async_task_status_api) for
+    the result.
     """
-    from api.views import KnnSearch, KnnSearchError
+    from semantic_search.tasks import knn_search_task
+    from sefaria.celery_setup.config import CeleryQueue
 
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
@@ -4901,12 +4907,12 @@ def semantic_search_wrapper_api(request):
         "include_text": True,
     }
 
-    try:
-        response = KnnSearch.run_search(search_body)
-    except KnnSearchError as e:
-        return jsonResponse({"error": str(e)}, status=e.status)
-
-    return jsonResponse(response)
+    async_result = knn_search_task.apply_async(
+        args=(search_body,),
+        queue=CeleryQueue.TASKS.value,
+    )
+    logger.info("semantic_search_wrapper_api:enqueued", task_id=async_result.id, query_len=len(search_body["query"]))
+    return jsonResponse({"task_id": async_result.id}, status=202)
 
 
 @csrf_exempt
