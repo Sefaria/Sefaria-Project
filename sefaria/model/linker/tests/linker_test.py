@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+from copy import deepcopy
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
@@ -7,9 +9,17 @@ from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.model.text import TextChunk
 from sefaria.settings import ENABLE_LINKER
-from sefaria.model.marked_up_text_chunk import LinkerOutput
+from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.link import Link
 from sefaria.system.exceptions import IndexSchemaError, InputError
-from sefaria.helper.linker.tasks import _extract_debug_spans, _merge_deleted_spans, _linked_trefs_from_mutc_spans
+from sefaria.helper.linker.tasks import (
+    _extract_debug_spans, _merge_deleted_spans, _linked_trefs_from_mutc_spans,
+    _apply_non_segment_resolution, _apply_ambiguous_resolution,
+)
+from sefaria.helper.linker.disambiguator import (
+    NonSegmentResolutionPayload, NonSegmentResolutionResult,
+    AmbiguousResolutionPayload, AmbiguousResolutionResult,
+)
 from sefaria.helper.linker_admin import _span_matches, parse_linker_citation
 
 
@@ -148,6 +158,82 @@ def test_merge_deleted_spans_blocks_resolved_ref_for_deleted_citation_occurrence
     assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
     assert not any(span.get("ref") == "Pirkei Avot 3:1" for span in merged_spans)
     assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+@contextmanager
+def _seeded_linker_output_spans(query: dict, spans: list[dict]):
+    """
+    Temporarily point a LinkerOutput's spans at `spans` for a test, restoring whatever was
+    there before (or deleting the doc, if none existed) on exit. `query` may target a ref that
+    already has real linker debug data in the DB, so this must not clobber it.
+    """
+    existing = LinkerOutput().load(query)
+    original_spans = deepcopy(existing.spans) if existing else None
+    obj = existing if existing else LinkerOutput({**query, "spans": spans})
+    obj.spans = spans
+    obj.save()
+    try:
+        yield
+    finally:
+        if original_spans is not None:
+            obj.spans = original_spans
+            obj.save()
+        else:
+            obj.delete()
+
+
+def test_apply_non_segment_resolution_skips_deleted_citation():
+    # run_disambiguator's synchronous path (_apply_non_segment_resolution) must not resurrect
+    # a citation an admin already marked deleted, matching the async cauldron path's behavior.
+    query = {"ref": "Genesis 1:1", "versionTitle": "Tanakh: The Holy Scriptures, published by JPS", "language": "en"}
+    resolved_ref = "Genesis 1:2"
+    deleted_span = {
+        "charRange": [0, 1],
+        "text": "x",
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+        "deleted": True,
+        "ambiguous": False,
+        "failed": False,
+    }
+
+    with _seeded_linker_output_spans(query, [deleted_span]):
+        payload = NonSegmentResolutionPayload(
+            **query, charRange=[0, 1], text="x",
+            resolved_non_segment_ref=resolved_ref,
+        )
+        result = NonSegmentResolutionResult(resolved_ref=resolved_ref, method="test")
+
+        _apply_non_segment_resolution(payload, result)
+
+        assert MarkedUpTextChunk().load(query) is None
+        assert Link().load({"refs": {"$all": [query["ref"], resolved_ref]}}) is None
+
+
+def test_apply_ambiguous_resolution_skips_deleted_citation():
+    query = {"ref": "Genesis 1:1", "versionTitle": "Tanakh: The Holy Scriptures, published by JPS", "language": "en"}
+    resolved_ref = "Genesis 1:2"
+    deleted_span = {
+        "charRange": [0, 1],
+        "text": "x",
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+        "deleted": True,
+        "ambiguous": False,
+        "failed": False,
+    }
+
+    with _seeded_linker_output_spans(query, [deleted_span]):
+        payload = AmbiguousResolutionPayload(
+            **query, charRange=[0, 1], text="x",
+            ambiguous_refs=["Genesis 1:2", "Genesis 1:3"],
+        )
+        result = AmbiguousResolutionResult(resolved_ref=resolved_ref, method="test")
+
+        _apply_ambiguous_resolution(payload, result)
+
+        assert MarkedUpTextChunk().load(query) is None
+        assert Link().load({"refs": {"$all": [query["ref"], resolved_ref]}}) is None
 
 
 def test_linker_admin_delete_span_matches_disambiguated_ref_alias():

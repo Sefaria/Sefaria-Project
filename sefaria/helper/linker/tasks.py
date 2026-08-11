@@ -163,10 +163,8 @@ def _load_recent_ambiguous_cases(linking_args: LinkingArgs) -> list[AmbiguousRes
 
     spans = linker_output.spans
     ambiguous_groups: dict[tuple[int, int], list[dict]] = {}
-    for span in spans:
-        if span.get("deleted"):
-            continue
-        if span.get("type") == MUTCSpanType.CITATION.value and span.get("ambiguous"):
+    for span in _iter_citation_spans(spans):
+        if span.get("ambiguous"):
             key = tuple(span.get("charRange", []))
             if len(key) == 2:
                 ambiguous_groups.setdefault(key, []).append(span)
@@ -211,11 +209,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
     })
     mutc_spans = (mutc.spans if mutc else [])
     mutc_non_segment_char_ranges: set[tuple[int, int]] = set()
-    for mutc_span in mutc_spans:
-        if mutc_span.get("type") != MUTCSpanType.CITATION.value:
-            continue
-        if mutc_span.get("deleted"):
-            continue
+    for mutc_span in _iter_citation_spans(mutc_spans):
         mutc_ref = mutc_span.get("ref")
         if not mutc_ref:
             continue
@@ -228,11 +222,7 @@ def _load_recent_non_segment_cases(linking_args: LinkingArgs) -> list[NonSegment
             if len(key) == 2:
                 mutc_non_segment_char_ranges.add(key)
     non_segment_payloads: list[NonSegmentResolutionPayload] = []
-    for span in spans:
-        if span.get("type") != MUTCSpanType.CITATION.value:
-            continue
-        if span.get("deleted"):
-            continue
+    for span in _iter_citation_spans(spans):
         if span.get("failed"):
             continue
         if span.get("ambiguous"):
@@ -284,6 +274,13 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
     if not citing_ref or not resolved_ref:
         return
 
+    query = {"ref": payload.ref, "versionTitle": payload.versionTitle, "language": payload.language}
+    linker_output = LinkerOutput().load(query)
+    mutc_doc = MarkedUpTextChunk().load(query)
+    candidate_refs = [payload.resolved_non_segment_ref, resolved_ref]
+    if _bail_if_deleted(payload, candidate_refs, "Skipping deleted non-segment citation resolution", resolved_ref, linker_output, mutc_doc):
+        return
+
     _upsert_mutc_span(
         ref=payload.ref,
         version_title=payload.versionTitle,
@@ -293,6 +290,8 @@ def _apply_non_segment_resolution(payload: NonSegmentResolutionPayload, result: 
         resolved_ref=resolved_ref,
     )
 
+    if _bail_if_deleted(payload, candidate_refs, "Skipping link write for deleted non-segment citation resolution", resolved_ref, linker_output, mutc_doc):
+        return
     _create_link_for_resolution(citing_ref, resolved_ref)
     _update_linker_output_resolution_fields(payload, result)
 
@@ -307,6 +306,13 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
     if not citing_ref or not resolved_ref:
         return
 
+    query = {"ref": payload.ref, "versionTitle": payload.versionTitle, "language": payload.language}
+    linker_output = LinkerOutput().load(query)
+    mutc_doc = MarkedUpTextChunk().load(query)
+    candidate_refs = [*payload.ambiguous_refs, resolved_ref, result.matched_segment]
+    if _bail_if_deleted(payload, candidate_refs, "Skipping deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
+        return
+
     _upsert_mutc_span(
         ref=payload.ref,
         version_title=payload.versionTitle,
@@ -316,6 +322,8 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
         resolved_ref=resolved_ref,
     )
 
+    if _bail_if_deleted(payload, candidate_refs, "Skipping link write for deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
+        return
     _create_link_for_resolution(citing_ref, resolved_ref)
     if result.matched_segment:
         try:
@@ -331,6 +339,8 @@ def _apply_ambiguous_resolution(payload: AmbiguousResolutionPayload, result: Opt
                 text=payload.text,
                 resolved_ref=result.matched_segment,
             )
+            if _bail_if_deleted(payload, candidate_refs, "Skipping matched-segment link write for deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
+                return
             _create_or_update_link_for_non_segment_resolution(
                 citing_ref=citing_ref,
                 non_segment_ref=resolved_ref,
@@ -351,8 +361,12 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
-    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
-        logger.info("Skipping deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+
+    query = {"ref": payload.ref, "versionTitle": payload.versionTitle, "language": payload.language}
+    linker_output = LinkerOutput().load(query)
+    mutc_doc = MarkedUpTextChunk().load(query)
+    candidate_refs = [payload.resolved_non_segment_ref, resolved_ref]
+    if _bail_if_deleted(payload, candidate_refs, "Skipping deleted non-segment citation resolution", resolved_ref, linker_output, mutc_doc):
         return
 
     mutc, span_data = _upsert_mutc_span(
@@ -378,8 +392,7 @@ def _apply_non_segment_resolution_with_record(payload: NonSegmentResolutionPaylo
             "llm_resolved_phrase_non_segment": result.llm_resolved_phrase,
         })
 
-    if _citation_was_deleted(payload, [payload.resolved_non_segment_ref, resolved_ref]):
-        logger.info("Skipping link write for deleted non-segment citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+    if _bail_if_deleted(payload, candidate_refs, "Skipping link write for deleted non-segment citation resolution", resolved_ref, linker_output, mutc_doc):
         return
     link_obj, action = _create_or_update_link_for_non_segment_resolution(
         citing_ref=citing_ref,
@@ -414,8 +427,12 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
     resolved_ref = result.resolved_ref
     if not citing_ref or not resolved_ref:
         return
-    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
-        logger.info("Skipping deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+
+    query = {"ref": payload.ref, "versionTitle": payload.versionTitle, "language": payload.language}
+    linker_output = LinkerOutput().load(query)
+    mutc_doc = MarkedUpTextChunk().load(query)
+    candidate_refs = [*payload.ambiguous_refs, resolved_ref, result.matched_segment]
+    if _bail_if_deleted(payload, candidate_refs, "Skipping deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
         return
 
     mutc, span_data = _upsert_mutc_span(
@@ -442,8 +459,7 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
             "llm_ambiguous_option_valid": True,
         })
 
-    if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
-        logger.info("Skipping link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+    if _bail_if_deleted(payload, candidate_refs, "Skipping link write for deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
         return
     link_obj = _create_link_for_resolution(citing_ref, resolved_ref)
     if link_obj is not None:
@@ -474,8 +490,7 @@ def _apply_ambiguous_resolution_with_record(payload: AmbiguousResolutionPayload,
                 text=payload.text,
                 resolved_ref=result.matched_segment,
             )
-            if _citation_was_deleted(payload, [*payload.ambiguous_refs, resolved_ref, result.matched_segment]):
-                logger.info("Skipping matched-segment link write for deleted ambiguous citation resolution", payload=asdict(payload), resolved_ref=resolved_ref)
+            if _bail_if_deleted(payload, candidate_refs, "Skipping matched-segment link write for deleted ambiguous citation resolution", resolved_ref, linker_output, mutc_doc):
                 return
             link_obj, action = _create_or_update_link_for_non_segment_resolution(
                 citing_ref=citing_ref,
@@ -556,22 +571,45 @@ def _span_refs(span: dict) -> set[str]:
     return refs
 
 
-def _citation_was_deleted(payload: object, candidate_refs: list[Optional[str]]) -> bool:
+def _iter_citation_spans(spans: list[dict], *, deleted: Optional[bool] = False):
+    """
+    Yield spans of type CITATION.
+    deleted=False (default): only non-deleted citation spans.
+    deleted=True: only deleted citation spans.
+    deleted=None: all citation spans, regardless of the deleted flag.
+    """
+    for span in spans:
+        if span.get("type") != MUTCSpanType.CITATION.value:
+            continue
+        if deleted is not None and bool(span.get("deleted")) != deleted:
+            continue
+        yield span
+
+
+def _citation_was_deleted(
+    payload: object,
+    candidate_refs: list[Optional[str]],
+    linker_output: Optional[LinkerOutput] = None,
+    mutc: Optional[MarkedUpTextChunk] = None,
+) -> bool:
+    """
+    linker_output/mutc let a caller pass docs it already loaded for this payload's
+    ref/versionTitle/language, instead of each _citation_was_deleted call re-fetching them.
+    """
     payload_refs = {ref for ref in candidate_refs if ref}
     query = {
         "ref": payload.ref,
         "versionTitle": payload.versionTitle,
         "language": payload.language,
     }
-    for klass in (LinkerOutput, MarkedUpTextChunk):
-        chunk = klass().load(query)
+    docs = [
+        linker_output if linker_output is not None else LinkerOutput().load(query),
+        mutc if mutc is not None else MarkedUpTextChunk().load(query),
+    ]
+    for chunk in docs:
         if not chunk:
             continue
-        for span in chunk.spans:
-            if not span.get("deleted"):
-                continue
-            if span.get("type") != MUTCSpanType.CITATION.value:
-                continue
+        for span in _iter_citation_spans(chunk.spans, deleted=True):
             if span.get("charRange") != payload.charRange:
                 continue
             if span.get("text") != payload.text:
@@ -579,6 +617,20 @@ def _citation_was_deleted(payload: object, candidate_refs: list[Optional[str]]) 
             if not payload_refs or _span_refs(span) & payload_refs:
                 return True
     return False
+
+
+def _bail_if_deleted(
+    payload: object,
+    candidate_refs: list[Optional[str]],
+    log_message: str,
+    resolved_ref: Optional[str] = None,
+    linker_output: Optional[LinkerOutput] = None,
+    mutc: Optional[MarkedUpTextChunk] = None,
+) -> bool:
+    if not _citation_was_deleted(payload, candidate_refs, linker_output=linker_output, mutc=mutc):
+        return False
+    logger.info(log_message, payload=asdict(payload), resolved_ref=resolved_ref)
+    return True
 
 
 def _record_disambiguated_mutc(payload: dict) -> None:
@@ -694,9 +746,7 @@ def _mutc_deleted_spans_from_linker_output(ref: str, version_title: str, languag
     if not linker_output:
         return []
     deleted_spans = []
-    for span in linker_output.spans:
-        if not span.get("deleted") or span.get("type") != MUTCSpanType.CITATION.value:
-            continue
+    for span in _iter_citation_spans(linker_output.spans, deleted=True):
         if not span.get("ref"):
             continue
         deleted_spans.append({
@@ -893,20 +943,16 @@ def _get_link_trefs_to_add_and_delete_from_msg(msg: DeleteAndSaveLinksMsg, exist
         if mutc.ref == msg.ref and mutc.versionTitle == msg.vtitle and mutc.language == msg.lang:
             # Skip MUTC that matches the current version
             continue
-        for span in mutc.spans:
-            if span.get("deleted"):
-                continue
-            if span['type'] == MUTCSpanType.CITATION.value and ('ref' in span):
+        for span in _iter_citation_spans(mutc.spans):
+            if 'ref' in span:
                 other_mutc_trefs.add(span['ref'])
 
     # we need to consider all other MUTCs that link to this ref, to avoid deleting links that are still needed
     # a link should be deleted if it isn't backed by any MUTCs, either an alternate version of the target ref or for any ref that is linked to the target ref
     linked_mutcs = MarkedUpTextChunkSet({"ref": {"$in": list(existing_linked_trefs)}}, hint="ref_1")
     for mutc in linked_mutcs:
-        for span in mutc.spans:
-            if span.get("deleted"):
-                continue
-            if span['type'] == MUTCSpanType.CITATION.value and span.get('ref') == msg.ref:
+        for span in _iter_citation_spans(mutc.spans):
+            if span.get('ref') == msg.ref:
                 # this is an MUTC that links back to the current ref implying we need to keep this link
                 other_mutc_trefs.add(mutc.ref)
 
