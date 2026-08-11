@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
+import SearchAnalytics from './sefaria/searchAnalytics';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
@@ -82,6 +83,7 @@ function SearchResultCard({
   onResultClick,
   query,
   accentColor,
+  analyticsPosition,
   // Sources-mode specific props
   snippet,
   snippetLang,
@@ -92,9 +94,21 @@ function SearchResultCard({
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
 
+  // Reports this click as a search_element_clicked (type 'result') GA4 event
+  // and ends the search flow with reason 'clicked_result'. Must fire from the
+  // card itself: entity cards navigate via window.location.href and the title
+  // link stops propagation, so neither path reaches ReaderApp's central link
+  // handler. Only cards given an analyticsPosition (main search page) report.
+  const fireResultClickAnalytics = () => {
+    if (analyticsPosition) {
+      SearchAnalytics.resultClicked(tref ?? name, analyticsPosition);
+    }
+  };
+
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
     Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
+    fireResultClickAnalytics();
     if (onResultClick) {
       onResultClick(tref ?? href, null, null);
     } else {
@@ -158,7 +172,8 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={e => e.stopPropagation()}>
+            <a href={href} className="searchResultCard-titleLink"
+               onClick={e => { e.stopPropagation(); fireResultClickAnalytics(); }}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -289,6 +304,7 @@ SearchResultCard.propTypes = {
   onResultClick:        PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
+  analyticsPosition:    PropTypes.number,   // 1-based rank; presence opts the card into search analytics
   // Sources mode
   snippet:              PropTypes.string,
   snippetLang:          PropTypes.oneOf(['en', 'he']),

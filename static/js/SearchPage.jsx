@@ -24,6 +24,7 @@ import {
 import SearchLoadSkeleton from './SearchLoadSkeleton';
 import SearchToggle from './SearchToggle';
 import SearchTabsMobileWeb from './SearchTabsMobileWeb';
+import SearchAnalytics from './sefaria/searchAnalytics';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -190,7 +191,7 @@ const ENTITY_CARD_PROP_BUILDERS = {
 };
 
 
-const EntitySearchResults = ({type, data, query, loadMore}) => {
+const EntitySearchResults = ({type, data, query, loadMore, trackClicks}) => {
   if (!data) {
     return <LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />;
   }
@@ -204,9 +205,12 @@ const EntitySearchResults = ({type, data, query, loadMore}) => {
       isLoading={data.isLoadingMore}
       isLoadingMore={data.isLoadingMore}
       loadMore={loadMore}>
-      {data.hits.map(hit => {
+      {data.hits.map((hit, i) => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
-        return <SearchResultCard key={cardProps.href} {...cardProps} />;
+        // analyticsPosition (1-based rank) opts the card into firing the
+        // search_element_clicked / search_flow_ended GA4 events on click.
+        return <SearchResultCard key={cardProps.href} {...cardProps}
+                                 analyticsPosition={trackClicks ? i + 1 : undefined} />;
       })}
     </InfiniteScroll>
   );
@@ -289,8 +293,20 @@ class SearchPage extends Component {
   }
 
   toggleBookCategoryFilter(filter) {
+    if (!this.props.compare) {
+      SearchAnalytics.elementClicked({elementType: 'filter', elementValue: filter.title, count: filter.docCount});
+    }
     filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
     this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]});
+  }
+
+  // Wraps the sources-tab filter callback so the click is also reported to
+  // search analytics before the filter is applied.
+  handleSourcesFilterClick(filter) {
+    if (!this.props.compare) {
+      SearchAnalytics.elementClicked({elementType: 'filter', elementValue: filter.title, count: filter.docCount});
+    }
+    this.props.updateAppliedFilter(this.props.searchState, filter);
   }
 
   componentDidMount() {
@@ -313,12 +329,19 @@ class SearchPage extends Component {
     const query = this.props.query;
     if (!query || this.props.searchInBook) { return; }
     ["topic", "author", "book"].forEach(type => {
+      // Analytics: each entity search is one of the four APIs whose return
+      // completes a query (search_query_executed fires once all report in).
+      // The API key is the plural tab name ('topics'/'authors'/'books').
       Sefaria.search.entitySearch(query, type)
           .then(data => {
             if (this.props.query !== query) { return; }  // a newer query superseded this one
+            if (!this.props.compare) { SearchAnalytics.recordApiResult(type + 's', data.total); }
             this.setState(prev => ({entityData: {...prev.entityData, [type]: this.makeEntityEntry(data)}}));
           })
-          .catch(() => {});  // count badge stays at "0", panel stays on the loading message
+          .catch((err) => {  // count badge stays at "0", panel stays on the loading message
+            if (this.props.query !== query || this.props.compare) { return; }
+            SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
+          });
     });
   }
 
@@ -366,6 +389,21 @@ class SearchPage extends Component {
   setTab(tab, replaceHistory) {
     // The active tab lives in panel state (this.props.tab) so it is serialized
     // into the URL and history; back/forward restores it via handlePopState.
+    // replaceHistory is only passed (as true) by TabView's programmatic
+    // default-tab call on mount (Misc.jsx TabView.componentDidMount) -- that's
+    // not a user click, so don't report it. User clicks omit the argument.
+    if (!this.props.compare && !replaceHistory) {
+      // Raw (unformatted) count shown on the clicked tab; sources' count lives
+      // in props, the entity tabs' counts in state.
+      const tabCounts = {
+        sources: this.props.totalResults?.getValue(),
+        books:   this.state.entityData.book?.total,
+        authors: this.state.entityData.author?.total,
+        topics:  this.state.entityData.topic?.total,
+      };
+      const tabLabels = {sources: 'Sources', books: 'Books', authors: 'Authors', topics: 'Topics'};
+      SearchAnalytics.elementClicked({elementType: 'tab', elementValue: tabLabels[tab] || tab, count: tabCounts[tab]});
+    }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
   }
@@ -425,7 +463,7 @@ class SearchPage extends Component {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
-          updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
+          updateAppliedFilter={this.handleSourcesFilterClick}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
@@ -527,6 +565,7 @@ class SearchPage extends Component {
           }
         </div>
         <EntitySearchResults type="book" data={this.getSortedEntityData('book')} query={this.props.query}
+                             trackClicks={!this.props.compare}
                              loadMore={() => this.loadNextEntityPage('book')}/>
       </div>,
       <div className="searchTabPanel" key="authors">
@@ -545,6 +584,7 @@ class SearchPage extends Component {
           }
         </div>
         <EntitySearchResults type="author" data={this.getSortedEntityData('author')} query={this.props.query}
+                             trackClicks={!this.props.compare}
                              loadMore={() => this.loadNextEntityPage('author')}/>
       </div>,
       <div className="searchTabPanel" key="topics">
@@ -563,6 +603,7 @@ class SearchPage extends Component {
           }
         </div>
         <EntitySearchResults type="topic" data={this.getSortedEntityData('topic')} query={this.props.query}
+                             trackClicks={!this.props.compare}
                              loadMore={() => this.loadNextEntityPage('topic')}/>
       </div>,
     ];

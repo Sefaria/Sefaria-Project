@@ -83,7 +83,10 @@ class SearchResultList extends Component {
 
         if (type === "text") {
           results = Sefaria.search.mergeTextResultsVersions(this.props.hits);
-          results = results.filter(result => !!result._source.version).map(result =>
+          // trackClicks: search analytics (sc-46034) cover the main search
+          // page only; the compare panel and search-in-book are out of scope.
+          const trackClicks = !this.props.compare && !this.props.searchInBook;
+          results = results.filter(result => !!result._source.version).map((result, i) =>
             this.props.searchInBook
               ? <SearchTextResult
                   data={result}
@@ -94,6 +97,7 @@ class SearchResultList extends Component {
               : <SearchResultCard
                   key={result._id}
                   {...sourceHitCardProps(result, this.props.query)}
+                  analyticsPosition={trackClicks ? i + 1 : undefined}
                   onResultClick={this.props.onResultClick} />
           );
 

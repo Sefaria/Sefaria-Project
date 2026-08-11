@@ -13,6 +13,7 @@ import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
 import SearchInVoicesPage from "./SearchInVoicesPage";
+import SearchAnalytics from "./sefaria/searchAnalytics";
 
 class TopicQuerier {
     async addCollection(collection) {
@@ -126,10 +127,23 @@ class ElasticSearchQuerier extends Component {
       }
     }
     componentDidMount() {
+        // Search analytics (sc-46034) cover the main search page only -- not
+        // the compare panel, sidebar search-in-book, or the Voices module.
+        // Mounting this component IS "arriving at the search page", so the
+        // flow starts here; SearchAnalytics no-ops everywhere else because no
+        // flow was ever started.
+        if (this._searchAnalyticsInScope()) {
+            SearchAnalytics.startFlow();
+            SearchAnalytics.startQuery(this.props.query);
+        }
         this._executeAllQueries();
     }
     componentWillUnmount() {
         this._abortRunningQuery();  // todo: make this work w/ promises
+    }
+    _searchAnalyticsInScope() {
+        return !this.props.compare && !this.props.searchInBook &&
+            Sefaria.activeModule !== Sefaria.VOICES_MODULE;
     }
     componentWillReceiveProps(newProps) {
         let state = {
@@ -138,6 +152,8 @@ class ElasticSearchQuerier extends Component {
             moreToLoad: true
         };
         if (this.props.query !== newProps.query) {
+            // New query text within the same visit: same flow_id, new search_id.
+            SearchAnalytics.startQuery(newProps.query);
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
@@ -232,6 +248,11 @@ class ElasticSearchQuerier extends Component {
 
       args.success = data => {
               this.updateRunningQuery(null);
+              // Report the "sources" API as returned. Duplicate reports (the
+              // sources query re-runs when filters/sort change) are ignored
+              // inside SearchAnalytics -- only the first response per search_id
+              // counts toward firing search_query_executed.
+              SearchAnalytics.recordApiResult('sources', data.hits.total.getValue());
               if (this.state.pagesLoaded === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 const currTotal = data.hits.total;
                 let state = {
@@ -319,6 +340,7 @@ class ElasticSearchQuerier extends Component {
         //this.updateCurrentQuery(null);
         return;
       }
+      SearchAnalytics.recordApiResult('sources', null, errorThrown || textStatus || 'unknown error');
       this.setState({error: true});
       this.updateRunningQuery(null);
     }
