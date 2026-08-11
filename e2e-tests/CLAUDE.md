@@ -620,7 +620,7 @@ Tests would then declare `async ({ page, pm }) => { ... }` directly. Also recomm
 | Run commands, env setup, prereqs | [README.md](README.md) |
 | What a Sanity test is + the `@sanity` tag convention | [Sanity/README.md](Sanity/README.md) |
 | Library Assistant deep-dive guide (incl. coverage + backlog) | [assistant/README.md](assistant/README.md) |
-| Library Assistant opt-out test plan + migration runbook (sc-46240) | [library-assistant-setting/README.md](library-assistant-setting/README.md) |
+| Library Assistant opt-out setting (LAS-NNN) deep-dive guide | [library-assistant-setting/README.md](library-assistant-setting/README.md) |
 | Resource Panel deep-dive guide | [Full testing by Feature/Resource Panel/README.md](Full%20testing%20by%20Feature/Resource%20Panel/README.md) |
 | Voices Topics deep-dive guide | [Full testing by Feature/Voices Topics/README.md](Full%20testing%20by%20Feature/Voices%20Topics/README.md) |
 | Library Topics deep-dive guide | [Full testing by Feature/Library Topics/README.md](Full%20testing%20by%20Feature/Library%20Topics/README.md) |
