@@ -91,7 +91,9 @@ data:
       --no-tablespaces \
       --no-unlogged-table-data \
       {{- range .Values.backup.postgres.excludeTableData }}
-      --exclude-table-data={{ . }} \
+      {{- /* Single-quoted so the shell neither globs nor splits it; pg_dump still
+             applies its own pattern matching to the value it receives. */}}
+      --exclude-table-data={{ . | squote }} \
       {{- end }}
       "$PG_DB" 2>&1
 

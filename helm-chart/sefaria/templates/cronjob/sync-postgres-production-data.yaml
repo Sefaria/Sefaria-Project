@@ -80,6 +80,15 @@ spec:
                   echo "Restoring to database: $PGDATABASE"
                   echo "Using PostgreSQL host: $PGHOST"
 
+                  # An empty value here would shift the flags of the DROP/CREATE commands
+                  # below, so refuse before anything destructive runs.
+                  for VAR in PGHOST PGUSER PGDATABASE; do
+                    if [[ -z "${!VAR}" ]]; then
+                      echo "ERROR: $VAR is empty; refusing to run."
+                      exit 1
+                    fi
+                  done
+
                   # Never drop the shared database; mirrors the postgres-destroy guard.
                   if [[ "$PGDATABASE" == "sefaria_auth" ]]; then
                     echo "ERROR: refusing to sync into the default 'sefaria_auth' database."
@@ -87,14 +96,16 @@ spec:
                     exit 1
                   fi
 
-                  PSQL="psql -v ON_ERROR_STOP=1 -h $PGHOST -U $PGUSER -d postgres"
+                  # An array, not a string: word-splitting a string would let a stray space
+                  # in a value silently become an extra argument.
+                  PSQL=(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d postgres)
 
                   # Recreate rather than pg_restore --clean, whose DROP SCHEMA public fails
                   # when this env holds objects production lacks. FORCE avoids racing
                   # reconnecting app pods.
                   echo "Dropping and recreating database $PGDATABASE..."
-                  $PSQL -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
-                  $PSQL -c "CREATE DATABASE \"$PGDATABASE\" TEMPLATE template0 ENCODING 'UTF8';"
+                  "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
+                  "${PSQL[@]}" -c "CREATE DATABASE \"$PGDATABASE\" TEMPLATE template0 ENCODING 'UTF8';"
 
                   # --single-transaction: a mid-restore failure rolls back rather than
                   # leaving a half-populated database.
