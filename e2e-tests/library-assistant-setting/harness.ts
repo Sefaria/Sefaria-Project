@@ -139,8 +139,7 @@ export async function suppressOverlays(context: BrowserContext) {
  * So the outcome is verified twice: the browser must still be on the origin we started
  * from, and the server must actually recognise the session. `Sefaria._uid` answers the
  * second question — the server renders it into the page props only for an authenticated
- * request, which is why the app itself uses it as the logged-in test, and why it is the
- * same signal the promo banner gates on.
+ * request, which is why the app itself uses it as the logged-in test.
  */
 export async function logIn(page: Page, email: string, password: string) {
   // Checking only where the login *ended* is not enough: the language redirect bounces to
@@ -300,11 +299,11 @@ export const SETTINGS_URL = '/settings/account';
 export async function goToAccountSettings(page: Page) {
   await page.goto(`${BASE_URL}${SETTINGS_URL}`, { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: t(20000) });
-  // The promo banner mounts on this page too and can sit over the save controls, so a
-  // click on Save fails with "intercepts pointer events" rather than anything to do with
-  // the setting. Hide it rather than dismissing it — dismissal writes backoff state that
-  // suppresses the banner on later visits, and whether the banner should be shown at all
-  // is the promo tests' assertion to make, not a side effect of some other navigation.
+  // A site-wide banner can mount on this page and sit over the save controls, so a click
+  // on Save fails with "intercepts pointer events" rather than anything to do with the
+  // setting. Hide it rather than dismissing it — dismissal writes backoff state into
+  // localStorage, which is a lasting side effect of a navigation that only wanted to read
+  // a toggle.
   await page.addStyleTag({ content: '.siteWideBannerContent { display: none !important; }' })
     .catch(() => {});
 }

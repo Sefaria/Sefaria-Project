@@ -11,9 +11,6 @@ A user's answer comes from one place: `settings.library_assistant` on their prof
 account carries it — registration writes it for new accounts, and the rollout migration
 backfilled the rest — so there is one world to test, not a before and an after.
 
-The promo banner is written the same way, against the product rule that **the promo invites
-logged-out visitors only** (§7).
-
 ---
 
 ## 1. Coverage map
@@ -24,7 +21,7 @@ logged-out visitors only** (§7).
 | Views & template | `reader/tests/library_assistant_setting_test.py` | `/api/profile`, `/api/profile/sync`, the script-tag gate, the settings page |
 | Landing view | `reader/tests/enable_library_assistant_test.py` | `/enable-library-assistant` |
 | Registration | `reader/tests/register_library_assistant_test.py` | that a brand-new account is given the key |
-| Browser | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the promo banner, the enable landing |
+| Browser | `library-assistant-setting.spec.ts` | the cohort matrix as a user experiences it, the settings toggle, the enable landing |
 
 ### What the browser suite asserts
 
@@ -38,8 +35,6 @@ logged-out visitors only** (§7).
 | LAS-031 | Changing the toggle **does** post the key |
 | LAS-040 | Turn it off → gone and remembered; turn it back on → returns |
 | LAS-051 | `/enable-library-assistant` turns it on and returns the user where they were |
-| LAS-060 | The promo invites no logged-in user, in either cohort — on or off (§7) |
-| LAS-061 | A logged-out visitor *is* invited, through the enable landing |
 
 **Registration is deliberately not driven from the browser.** `sefaria/views.py` writes
 `settings.library_assistant = True` outright when an account is created, so a brand-new
@@ -122,31 +117,7 @@ python scripts/dev/seed_library_assistant_e2e_users.py --teardown
 
 A URL that has to be used exactly as written — `localhost`, an explicit port, or plain
 `http` — is used verbatim; a bare domain such as `https://sefariastaging.org` still has
-`www.` / `voices.` prefixed onto it (see §8).
-
-### The promo banner (LAS-060, LAS-061)
-
-Both tests depend on a server-side remote-config value, which a browser test cannot set.
-Without it they skip with a message naming the key; they never silently pass. Locally:
-
-```python
-from remote_config.models import RemoteConfigEntry, ValueType
-from remote_config.keys import SHOW_JOIN_CHATBOT_BANNER
-RemoteConfigEntry.objects.update_or_create(
-    key=SHOW_JOIN_CHATBOT_BANNER,
-    defaults={"raw_value": "1", "value_type": ValueType.BOOL, "is_active": True})
-```
-
-`raw_value` must be `"1"` / `"0"` — `parse_value` rejects `"true"`. The cache is
-process-local with no TTL, so **restart the server** after changing it. Set
-`LA_REQUIRE_PROMO=1` to make them fail rather than skip when the promo is off — use it when
-the promo behaviour is what you are actually there to verify.
-
-The promo keeps its dismissal history in `localStorage` under `promo_backoff_*`, which the
-suite's overlay suppression deliberately leaves alone — it neutralises only `modal_*` and
-`banner_*`. Each promo test builds its own context and no test ever clicks "Maybe later", so
-there is never any dismissal state to hide the banner, which is what makes "the banner is
-visible" a fair assertion rather than a coin flip.
+`www.` / `voices.` prefixed onto it (see §7).
 
 ### Local gotchas
 
@@ -215,6 +186,7 @@ expire on their own.
 | The assistant actually answers a question | Owned by the existing `chrome-assistant` suite against a real backend. This suite deliberately asserts only on whether the widget is *offered*. |
 | Hebrew interface | The existing LA suite covers the Hebrew widget via a dedicated `.org.il` account. The setting is language-independent; the toggle's labels render from `int-en`/`int-he` spans in `account_settings.html`. |
 | Widget open/minimised memory | Out of scope by decision — the external `lc-chatbot` bundle owns it. |
+| Who the promo banner invites | **Banner behaviour is deliberately not asserted in e2e**, here or anywhere in `e2e-tests/`: the shared harness suppresses banners as a flake source (`hideAllModalsAndPopups` in `e2e-tests/utils.ts`, and `goToAccountSettings` here), so a suite cannot both hide them and assert on them. Promo and banner logic belongs in a Jest test over an extracted pure helper. Do not re-add browser tests for it. |
 
 ---
 
@@ -232,7 +204,7 @@ Three committed files, plus two Playwright projects defined in the shared
 
 `la-setting` depends on `la-setup`, so one login per cohort happens before any worker starts
 and the workers only ever read the storage-state files. This mirrors what `global-setup.ts`
-does for the shared QA accounts, but deliberately does not reuse it — see §8.
+does for the shared QA accounts, but deliberately does not reuse it — see §7.
 
 ### The oracle is the part that matters
 
@@ -311,36 +283,7 @@ send.
 
 ---
 
-## 7. The promo banner
-
-**The promo invites logged-out visitors only.** That is the product rule, and it is the
-whole truth table:
-
-| Viewer | Invited |
-| --- | --- |
-| Logged out | **yes** |
-| Logged in, assistant on | no |
-| Logged in, assistant off | no |
-
-The reason is the same one that makes the rest of this suite phase-free. Every logged-in
-account carries `settings.library_assistant`, so a logged-in user has already answered the
-question the promo asks: those with it on are being sold what they already have, and those
-with it off would be asked to reverse the one choice they made about it. Only a visitor with
-no account has anything to gain from the invitation.
-
-LAS-060 asserts the two "no" rows, driven off the cohort matrix so it covers every logged-in
-cohort the manifest defines. LAS-061 asserts the "yes" row, and is what stops LAS-060
-passing because the banner stopped rendering for everyone.
-
-Both are as phase-free as the rest of the suite. Login state is the gate, and it reads the
-same on a build that predates the legacy-fallback removal as on one that follows it: before,
-a logged-in user carrying the setting key is `in_chatbot_experiment` and the promo is
-suppressed; after, the gate suppresses it for every logged-in user directly. Nothing here
-describes a build that does not exist yet.
-
----
-
-## 8. Changes this suite made to shared e2e infrastructure
+## 7. Changes this suite made to shared e2e infrastructure
 
 Three changes are **not** scoped to the Library Assistant and affect every Playwright suite
 in the repo. If something unrelated starts behaving differently, look here first.

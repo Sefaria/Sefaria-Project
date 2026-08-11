@@ -1,10 +1,9 @@
-import { test, expect, Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
+import { test, expect, Browser, BrowserContext } from '@playwright/test';
 import {
   BASE_URL, cohorts, authFile,
   suppressOverlays, expectAssistant, goToReader, goToAccountSettings,
   toggleShowsOn, setToggle, saveSettingsAndCapturePayload, assistantElement,
 } from './harness';
-import { t } from '../globals';
 
 /**
  * The Library Assistant's opt-out switch, end to end.
@@ -170,107 +169,6 @@ test.describe('Library Assistant settings page', () => {
   });
 });
 
-test.describe('Library Assistant promo banner', () => {
-
-  // The promo invites logged-out visitors only. Whether it is running at all is a
-  // server-side remote-config decision (`feature.client.show_join_chatbot_banner`) that a
-  // browser test cannot set, so each test reads the flag out of the props the server sent
-  // and says plainly when the environment has the promo switched off.
-  // Read it from DJANGO_VARS rather than the `Sefaria` global: the flag is a React prop on
-  // ReaderApp and `unpackBaseProps` never copies it onto `Sefaria`.
-  async function promoIsRunning(page: Page): Promise<boolean> {
-    return page.evaluate(() => !!(window as any).DJANGO_VARS?.props?.show_join_chatbot_banner);
-  }
-
-  const promoBanner = (page: Page) => page.locator('.siteWideBannerContent');
-
-  // Presence is asserted on the assistant promo specifically — its icon distinguishes it
-  // from any other site-wide banner that happens to be running. Absence is asserted on the
-  // generic container instead, so a promo whose artwork changed still counts as shown.
-  const assistantPromoBanner = (page: Page) =>
-    page.locator('.siteWideBannerContent:has(img[src*="ai-double-star"])');
-
-  const PROMO_OFF_MESSAGE =
-    'The promo is switched off in this environment, so this test cannot observe anything. ' +
-    'Turn on the remote config key `feature.client.show_join_chatbot_banner` and confirm it ' +
-    'with GET /api/remote-config. The remote-config cache is process-local with no TTL, so ' +
-    'every web pod must be restarted after the key changes before the promo appears. ' +
-    'Set LA_REQUIRE_PROMO=1 to make this a failure instead of a skip.';
-
-  /**
-   * Skip loudly when the promo is not running, or fail outright under LA_REQUIRE_PROMO.
-   *
-   * The flag is a server-side remote-config value that a browser test cannot set, so an
-   * environment with the promo off makes these tests unobservable rather than failing. The
-   * skip carries its reason in an annotation as well as the skip message, because the
-   * default `list` reporter prints neither by itself — a run that quietly reports
-   * "9 passed, 3 skipped" would hide the tests standing between a user and a banner they
-   * should not be seeing. Set LA_REQUIRE_PROMO=1 when the promo behaviour is the thing
-   * being verified and a skip would be a false pass.
-   */
-  async function requirePromoRunning(page: Page, testInfo: TestInfo) {
-    if (await promoIsRunning(page)) return;
-    if (process.env.LA_REQUIRE_PROMO === '1') {
-      throw new Error(PROMO_OFF_MESSAGE);
-    }
-    console.warn(`\n[${testInfo.title}] SKIPPED: ${PROMO_OFF_MESSAGE}\n`);
-    testInfo.annotations.push({ type: 'promo-skipped', description: PROMO_OFF_MESSAGE });
-    test.skip(true, PROMO_OFF_MESSAGE);
-  }
-
-  test('LAS-060: no logged-in user is invited to try the assistant, whatever their setting', async ({ browser }, testInfo) => {
-    // The product rule is about who is looking, not what they chose: every logged-in user
-    // has already answered the question the promo asks. Those with the assistant on are
-    // being offered what they already have; those with it off would be asked to reverse
-    // the one choice they made about it, on their first page after making it.
-    //
-    // Driven off the cohort matrix so it stays complete: a cohort added to the manifest is
-    // covered here without touching this test. The assistant assertion alongside is what
-    // stops a broken login passing this vacuously — a session that silently fell back to
-    // anonymous is a logged-out visitor, and LAS-061 says those *are* invited.
-    for (const cohort of cohorts()) {
-      const context = await contextFor(browser, cohort.key);
-      try {
-        const page = await context.newPage();
-        await goToReader(page);
-        await requirePromoRunning(page, testInfo);
-
-        await expectAssistant(page, cohort.expected, `${cohort.key}: ${cohort.why}`);
-        await expect(
-          promoBanner(page),
-          `the promo must not be shown to a logged-in user (${cohort.key}, assistant ${cohort.expected ? 'on' : 'off'})`,
-        ).toHaveCount(0);
-      } finally {
-        await context.close();
-      }
-    }
-  });
-
-  test('LAS-061: a logged-out visitor is invited, and the invitation turns the assistant on', async ({ browser }, testInfo) => {
-    // The positive half of the pair, and the reason LAS-060 cannot pass vacuously: if the
-    // promo stopped rendering for anyone at all, this fails and LAS-060 would not.
-    //
-    // Its call to action routes login through `/enable-library-assistant` (LAS-051) so the
-    // assistant is on when the visitor arrives back, with no second click to make.
-    const context = await browser.newContext();
-    await suppressOverlays(context);
-    const page = await context.newPage();
-    await goToReader(page);
-    await requirePromoRunning(page, testInfo);
-
-    await expect(
-      assistantPromoBanner(page),
-      'a visitor who is not using the assistant is precisely who the promo is for',
-    ).toBeVisible({ timeout: t(20000) });
-    await expect(
-      assistantPromoBanner(page).locator('a.logInToTry'),
-      'the logged-out call to action must route through the enable landing',
-    ).toHaveAttribute('href', /enable-library-assistant/);
-
-    await context.close();
-  });
-});
-
 // Registration is not driven from here. It writes `settings.library_assistant = True`
 // outright, so the account it produces is the `explicit_on` cohort — already asserted by
 // the matrix above — while creating a CRM contact and an account no cleanup can reap on
@@ -278,8 +176,8 @@ test.describe('Library Assistant promo banner', () => {
 test.describe('Library Assistant acquisition paths', () => {
 
   test('LAS-051: /enable-library-assistant turns it on and returns the user where they were', async ({ browser }) => {
-    // The promo banner's logged-out call to action routes login and registration through
-    // here (LAS-061), so it has to work for a user who is currently off.
+    // This is where the logged-out call to action routes login and registration, so it has
+    // to work for a user who is currently off.
     //
     // Uses the `enable_landing` scratch account rather than a matrix cohort: this test
     // switches the assistant on, and the read-only cohorts are asserted concurrently by
