@@ -104,7 +104,9 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
-    # Linker editor (staff-only). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
+
+    # Linker editor (staff-only): edit index linker metadata (match templates, address types,
+    # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
     path('api/linker/non-unique-terms', linker_api_views.LinkerEditorNonUniqueTermSearchView.as_view()),
     path('_api/linker-editor/address-types', linker_api_views.LinkerEditorAddressTypesListView.as_view()),
     path('_api/linker-editor/non-unique-term', linker_api_views.LinkerEditorNonUniqueTermCreateView.as_view()),
@@ -115,12 +117,16 @@ shared_patterns = [
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/address-type', linker_api_views.LinkerEditorAddressTypeView.as_view()),
     path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/properties', linker_api_views.LinkerEditorNodePropertiesView.as_view()),
     path('_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils', linker_api_views.LinkerEditorRebuildDiburHamatchilView.as_view()),
+
+    # Linker admin (staff-only): debug/delete/recreate individual linker-generated citations,
+    # rerun the linker on a segment, and capture NER/ref-part training examples.
     path('_api/linker-admin/citation/delete', linker_api_views.LinkerAdminDeleteCitationView.as_view()),
     path('_api/linker-admin/citation/recreate', linker_api_views.LinkerAdminRecreateCitationView.as_view()),
     path('_api/linker-admin/citation/parse', linker_api_views.LinkerAdminParseCitationView.as_view()),
     path('_api/linker-admin/segment/rerun', linker_api_views.LinkerAdminRerunSegmentView.as_view()),
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
+
     path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
