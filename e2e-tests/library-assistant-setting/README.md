@@ -7,25 +7,14 @@ Everything here is written against that product rule, never against the mechanis
 currently implements it. That is what let one suite serve the whole opt-in → opt-out
 rollout, and it is what keeps the suite meaningful now the rollout is done.
 
-## `LA_PHASE`
+A user's answer comes from one place: `settings.library_assistant` on their profile. Every
+account carries it — registration writes it for new accounts, and the rollout migration
+backfilled the rest — so there is one world to test, not a before and an after.
 
-One environment variable, `LA_PHASE=pre|post`, changes the expectation for exactly one
-cohort — the user who never made a choice.
-
-| `LA_PHASE` | Meaning | The `never_chose` cohort |
-| --- | --- | --- |
-| `pre` *(default)* | A profile with no setting key falls back to the legacy experiments rule. | off |
-| `post` | Every profile carries an explicit value. | on |
-
-Freshly seeded cohorts are always in the `pre` state — the seed script deliberately leaves
-the key absent on three of them — so `pre` is the mode an ordinary run uses. `post` is for a
-run taken *after* the migration script has been applied to the seeded accounts, which is how
-the suite proved that removing the legacy fallback is unobservable.
-
-> **The legacy fallback is scheduled for removal.** When it goes, an absent key reads as
-> off, and the three cohorts that rely on the fallback (`beta_opt_in`, `beta_opt_out`,
-> `never_chose`) no longer describe anything real. That removal owns updating them and
-> retiring `LA_PHASE`; see the note in §7.
+> **One assertion runs ahead of `master`.** LAS-062 describes the promo banner's gate
+> *after* the legacy-fallback removal, where the invitation goes to everyone the assistant
+> is not running for. Against a build that still gates the promo on whether the user has
+> made a choice, that test fails and nothing else does. See §7.
 
 ---
 
@@ -43,15 +32,17 @@ the suite proved that removing the legacy fallback is unobservable.
 
 | ID | Test |
 | --- | --- |
-| LAS-001…005 | Five read-only cohorts × the right answer for the phase (§2) |
+| LAS-001/002 | The two read-only cohorts × the right answer (§2) |
 | LAS-010 | A logged-out visitor never gets the assistant |
 | LAS-011 | Not loaded on a mobile viewport (server says on, client withholds it) |
-| LAS-020…024 | The toggle exists for every logged-in user and shows the *effective* value |
+| LAS-020/021 | The toggle exists for every logged-in user and shows the *effective* value |
 | LAS-030 | Saving unrelated settings does **not** write the assistant key |
 | LAS-031 | Changing the toggle **does** post the key |
 | LAS-040 | Turn it off → gone and remembered; turn it back on → returns |
 | LAS-051 | `/enable-library-assistant` turns it on and returns the user where they were |
-| LAS-060/061 | The promo never invites a user who opted out, or who already has it |
+| LAS-060 | The promo never invites a user the assistant is already running for |
+| LAS-061 | A logged-out visitor *is* invited, through the enable landing |
+| LAS-062 | So is a user who turned it off — the promo audience is "assistant off" (§7) |
 
 **Registration is deliberately not driven from the browser.** `sefaria/views.py` writes
 `settings.library_assistant = True` outright when an account is created, so a brand-new
@@ -82,23 +73,20 @@ document instead.**
 deterministic ids above `reader.conftest.SYNTHETIC_USER_ID_FLOOR`, so re-seeding reuses the
 same accounts and no real profile document can ever be in range.
 
-| Cohort | Postgres row | `settings.library_assistant` | `pre` | `post` |
-| --- | --- | --- | --- | --- |
-| `beta_opt_in` | `experiments=True` | absent | on | on |
-| `beta_opt_out` | `experiments=False` | absent | **off** | **off** |
-| `never_chose` | none | absent | off | **on** |
-| `explicit_on` *(also: any brand-new account)* | none | `True` | on | on |
-| `explicit_off` | none | `False` | off | off |
-| `toggler` *(scratch)* | none | `True` | on | on |
-| `enable_landing` *(scratch)* | none | `False` | off | off |
+| Cohort | `settings.library_assistant` | Assistant |
+| --- | --- | --- |
+| `explicit_on` *(also: any brand-new account)* | `True` | on |
+| `explicit_off` | `False` | **off** |
+| `toggler` *(scratch)* | `True` | on |
+| `enable_landing` *(scratch)* | `False` | off |
 
-`beta_opt_out` is the one that must never break: a person who joined the beta and turned the
-assistant off stays off. `never_chose` is the only row whose answer depends on the phase.
+`explicit_off` is the one that must never break: a person who turned the assistant off stays
+off, through any later change to how the setting is read.
 
-Note the trap the cohorts encode: `never_chose` carries `experiments: False` in Mongo without
-ever having chosen anything, because `UserProfile` defaults the field and serializes it on
-every save. Any rule keyed on the Mongo field would read the whole userbase as deliberate
-opt-outs. Enrollment comes from Postgres.
+Two cohorts the suite used to seed — a beta opt-in, a beta opt-out — carried no setting key
+at all and were answered by the legacy experiments whitelist. That rule is gone: an absent
+key reads as off, so those accounts described nothing. They are still torn down (their ids
+are listed in the seed script) so an environment seeded by an older revision is left clean.
 
 Inspect cohort state at any point with
 `python scripts/dev/seed_library_assistant_e2e_users.py --report`.
@@ -139,10 +127,10 @@ A URL that has to be used exactly as written — `localhost`, an explicit port, 
 `http` — is used verbatim; a bare domain such as `https://sefariastaging.org` still has
 `www.` / `voices.` prefixed onto it (see §8).
 
-### The promo banner (LAS-060/061)
+### The promo banner (LAS-060…062)
 
-Both tests depend on a server-side remote-config value, which a browser test cannot set.
-Without it they skip with a message naming the key; they never silently pass. Locally:
+All three tests depend on a server-side remote-config value, which a browser test cannot
+set. Without it they skip with a message naming the key; they never silently pass. Locally:
 
 ```python
 from remote_config.models import RemoteConfigEntry, ValueType
@@ -154,8 +142,14 @@ RemoteConfigEntry.objects.update_or_create(
 
 `raw_value` must be `"1"` / `"0"` — `parse_value` rejects `"true"`. The cache is
 process-local with no TTL, so **restart the server** after changing it. Set
-`LA_REQUIRE_PROMO=1` to make the two tests fail rather than skip when the promo is off — use
-it when the promo behaviour is what you are actually there to verify.
+`LA_REQUIRE_PROMO=1` to make them fail rather than skip when the promo is off — use it when
+the promo behaviour is what you are actually there to verify.
+
+The promo keeps its dismissal history in `localStorage` under `promo_backoff_*`, which the
+suite's overlay suppression deliberately leaves alone — it neutralises only `modal_*` and
+`banner_*`. Each promo test builds its own context and no test ever clicks "Maybe later", so
+there is never any dismissal state to hide the banner, which is what makes "the banner is
+visible" a fair assertion rather than a coin flip.
 
 ### Local gotchas
 
@@ -273,8 +267,8 @@ because the tag is emitted server-side: the assertion tests the gate, not the fe
 ### `logIn` verifies the login actually happened
 
 An earlier version waited only for the URL to leave `/login`. A failed submit satisfies that,
-and so does a cross-domain redirect — so the suite once reported all seven cohorts logged in
-and then failed 13 of 19 tests as though the product had regressed. It now asserts that the
+and so does a cross-domain redirect — so the suite once reported every cohort logged in and
+then failed most of its tests as though the product had regressed. It now asserts that the
 browser is still on the expected origin **and** that `Sefaria._uid` is present, which the
 server renders into the page props only for an authenticated request. (`/api/profile` has no
 GET route and 404s, so it is not the check to reach for despite the name.)
@@ -299,11 +293,12 @@ matrices. This is not tidiness, it is a real failure this design fixed:
 
 - Keeping `toggler` in the matrix meant that when LAS-040 failed and left the account off,
   the *next* run reported three failures instead of one — a real bug buried under two false
-  ones. LAS-040 also establishes its own starting state rather than assuming it.
+  ones. LAS-040 also establishes its own starting state rather than assuming it. LAS-030 and
+  LAS-031 drive the same account, but fulfil the save request instead of letting it through,
+  so they never write to it.
 - `enable_landing` exists because LAS-051 turns the assistant **on** for whichever account it
   drives. Pointing it at `explicit_off` put a mutation inside the read-only matrix, where
-  three other tests assert that account is off and, under `fullyParallel`, can read it
-  mid-flip.
+  other tests assert that account is off and, under `fullyParallel`, can read it mid-flip.
 
 > **Generalisable: a test that mutates shared state must own an account nothing else reads,
 > and must set up its own starting state rather than inheriting the previous run's.**
@@ -312,29 +307,38 @@ matrices. This is not tidiness, it is a real failure this design fixed:
 
 It asserts on the *posted request body* — that saving an unrelated setting does not include
 the assistant key. That decision lives in jQuery in `templates/account_settings.html` and is
-invisible to every Python test. It mattered during the rollout because the migration skipped
-any profile that already carried the key, so a settings page that posted the toggle
-unconditionally would have stamped anyone who changed an unrelated preference with their
-pre-flip value. It still matters: it is the only assertion that the page sends what it means
-to send.
+invisible to every Python test. Without it, a user who changed their email preference in one
+tab would silently stamp the assistant value that tab happened to render over whatever they
+had since chosen elsewhere. It is the only assertion that the page sends what it means to
+send.
 
 ---
 
-## 7. What the legacy-fallback removal owns
+## 7. The promo banner, and the one assertion that runs ahead
 
-The removal of the legacy experiments fallback lands after this suite. When it does:
+The assistant's own behaviour is phase-free: it reads one setting key, and every account has
+one. The promo banner is not, because the rule for *who gets invited* changed with the
+legacy-fallback removal.
 
-- `beta_opt_in`, `beta_opt_out` and `never_chose` stop describing anything — all three have
-  no setting key, and an absent key will read as off. Their `expected_*` values in
-  `scripts/dev/seed_library_assistant_e2e_users.py` need updating or the cohorts need
-  retiring.
-- `LA_PHASE` has one remaining meaning (`post`) and should be removed along with the
-  `expected_pre` / `expected_post` split in `harness.ts`.
-- `LAS-061`'s `pre` branch asserts the promo *is* visible to a logged-in `never_chose` user.
-  Any change to the promo gate makes that false; it is a real difference, not a flake.
+| Viewer | Gate before the removal (`!in_chatbot_experiment`) | Gate after (`!chatbot_enabled`) |
+| --- | --- | --- |
+| Logged out | invited | invited |
+| Assistant on | not invited | not invited |
+| Assistant **off** | not invited | **invited** |
 
-Nothing in this suite needs changing before then — every assertion describes code that is
-live today.
+The first two rows are the same in both worlds, and they are what LAS-060 and LAS-061
+assert. The third genuinely flips: the old gate suppressed the promo for anyone who had
+*made a choice*, the new one suppresses it only for people the assistant is already running
+for. Turning the assistant off no longer removes you from the audience — how often the
+invitation may come back is the banner's own backoff schedule, not this setting.
+
+**LAS-062 asserts the right-hand column.** It is the only test here that describes behaviour
+a pre-removal build does not have, so a manual run against such a build fails that one test
+and nothing else. That is the intended trade: the end state is the thing worth protecting,
+and the window in which it is wrong is short.
+
+If you are looking at a failing LAS-062 on a build that predates the removal, that is this
+note, not a regression.
 
 ---
 

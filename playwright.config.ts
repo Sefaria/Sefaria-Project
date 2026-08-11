@@ -204,17 +204,13 @@ export default defineConfig({
     // Library Assistant opt-out setting (LAS-NNN). Two projects: one login per seeded
     // cohort account into a storage-state file, then the specs that read those files.
     //
-    // LA_PHASE=pre|post selects the expectations for the one cohort whose correct answer
-    // differs across the rollout — `pre` before the Phase 2 migration, `post` after it
-    // (Phase 3 also runs `post`). Read in e2e-tests/library-assistant-setting/harness.ts.
-    //
     // Present only once the cohorts have been seeded. The suite logs in as accounts named
     // by that manifest and can assert nothing without them, so on an environment where
     // nobody ran the seeding script these are not projects at all — rather than two
     // projects that fail a full run for a reason unrelated to the code under test.
     //
-    // Artifacts go to their own directory so a migration-day run can be kept alongside an
-    // ordinary sandbox run instead of overwriting it.
+    // Artifacts go to their own directory, so a run against a development server can be
+    // kept alongside an ordinary sandbox run instead of overwriting it.
     ...(LA_COHORTS_SEEDED ? [
       {
         name: 'la-setup',
