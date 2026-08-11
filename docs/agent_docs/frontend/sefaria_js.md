@@ -123,7 +123,7 @@ A jQuery-based ref input validator that uses `Sefaria.getName()` for autocomplet
 
 Imports the translation maps from JSON (`static/js/sefaria/i18n/`, editable in Weblate) and exports them as a `Strings` object:
 
-- `_i18nInterfaceStrings` -- `{en, he}` maps of stable keyed IDs (e.g. `header.log_in`) to display text. Merged at load time from `i18n/interface/{en,he}.json` (general strings) and `i18n/interface-context/{en,he}.json` (strings scoped to a specific component, e.g. `follow_button.follow`). Every key is an ID -- never English text; the ID is the stable key so English copy can change without orphaning translations. `en.json` values are also the runtime English display text.
+- `_i18nInterfaceStrings` -- `{en, he}` maps of stable keyed IDs (e.g. `header.log_in`) to display text, loaded from `i18n/interface/{en,he}.json`. IDs are namespaced either generally (`common.cancel`) or by the component that owns them (`follow_button.follow`). Every key is an ID -- never English text; the ID is the stable key so English copy can change without orphaning translations. `en.json` values are also the runtime English display text.
 
 **Translation function** (on `Sefaria`):
 - `Sefaria._(inputStr)` -- the main i18n function. If `inputStr` matches the keyed-ID shape (`/^[a-z0-9_]+(\.[a-z0-9_]+)+$/`), it resolves through `_i18nInterfaceStrings` in both languages (Hebrew falls back to English, then to the ID). Non-ID strings are data values (categories, book titles, license names): in English they pass through unchanged; in Hebrew they fall back through Hebrew terms -> pipe-separated compound strings -> original string.
@@ -201,7 +201,7 @@ An immutable-style state class for search parameters:
 
 **Adding a new translatable UI string:**
 1. Pick a keyed ID, `<namespace>.<slug>` — namespace is the component/file (snake_case) or `common` for shared strings (e.g. `header.log_in`)
-2. Add the ID with its English text to `static/js/sefaria/i18n/interface/en.json` and the Hebrew to `static/js/sefaria/i18n/interface/he.json` (both required; `static/js/sefaria/tests/strings.test.js` enforces parity). Use `i18n/interface-context/` instead when the string belongs to a specific component whose strings need contextual translations.
+2. Add the ID with its English text to `static/js/sefaria/i18n/interface/en.json` and the Hebrew to `static/js/sefaria/i18n/interface/he.json` (both required; `static/js/sefaria/tests/strings.test.js` enforces parity)
 3. Use `Sefaria._("your_namespace.your_slug")` or `<InterfaceText>your_namespace.your_slug</InterfaceText>` in component code
 4. Context-dependent Hebrew does not need a `context` argument — keyed IDs are globally unique, so just mint a separate ID per meaning
 5. For strings whose value is only known at runtime (language names, license names, connection modes), map the runtime value to an ID at the call site (see `Sefaria.translateISOLanguageName`, `Sefaria.translateLicense`, `CONNECTION_MODE_STRING_IDS` in `constants.js`); values with no ID fall back to the terms dictionary or pass through untranslated
