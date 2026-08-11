@@ -104,6 +104,7 @@ const SiteWideBanner = ({
   enableBackoffDismissal,
   nudgeSchedule,
   promoSessionLengthSeconds,
+  imgSrc,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
   const storageKeys = getPromoStorageKeys(cookieName);
@@ -177,49 +178,48 @@ const SiteWideBanner = ({
     trackBannerInteraction("close");
   };
 
-  return (!isDismissed() &&
-    <div className={`siteWideBanner ${bannerVisibility}`}>
-      <div className="siteWideBannerContent">
-        <div className="siteWideBannerTextBox">
-          <span className="bannerMainText">{mainText}</span>
-          {secondaryText && (
-            <span className="bannerSecondaryText">{secondaryText}</span>
-          )}
-        </div>
-        <div className="siteWideBannerButtonBox">
-          {actionButtons(trackBannerInteraction)}
-          {enableBackoffDismissal && (
-            <button
-              type="button"
-              className="button small siteWideBannerMaybeLater"
-              onClick={closeBanner}
-            >
-              <span>{Sefaria._("Maybe later")}</span>
-            </button>
-          )}
-        </div>
-        {learnMoreUrl && (
-          <a
-            href={learnMoreUrl}
-            className="bannerLearnMore"
-            target="_blank"
-            onClick={() => trackBannerInteraction("learn_more")}
-          >
-            {Sefaria._(learnMoreText) || Sefaria._("Learn More")}
-          </a>
+  return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
+    <div className="siteWideBannerContent">
+      {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
+      <div className="siteWideBannerTextBox">
+        <span className="bannerMainText">{mainText}</span>
+        {secondaryText && (
+          <span className="bannerSecondaryText">{secondaryText}</span>
         )}
-        {!enableBackoffDismissal && (
+      </div>
+      <div className="siteWideBannerButtonBox">
+        {actionButtons(trackBannerInteraction)}
+        {enableBackoffDismissal && (
           <button
-            className="siteWideBannerClose"
+            type="button"
+            className="button small siteWideBannerMaybeLater"
             onClick={closeBanner}
-            aria-label="Close banner"
           >
-            &times;
+            <span>{Sefaria._("site_wide_banner.maybe_later")}</span>
           </button>
         )}
       </div>
+      {learnMoreUrl && (
+        <a
+          href={learnMoreUrl}
+          className="bannerLearnMore"
+          target="_blank"
+          onClick={() => trackBannerInteraction("learn_more")}
+        >
+          {Sefaria._(learnMoreText) || Sefaria._("common.learn_more")}
+        </a>
+      )}
+      {!enableBackoffDismissal && (
+        <button
+          className="siteWideBannerClose"
+          onClick={closeBanner}
+          aria-label="Close banner"
+        >
+          &times;
+        </button>
+      )}
     </div>
-  );
+  </div>);
 };
 
 SiteWideBanner.propTypes = {
@@ -233,23 +233,36 @@ SiteWideBanner.propTypes = {
   enableBackoffDismissal: PropTypes.bool,
   nudgeSchedule: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
+  imgSrc: PropTypes.string,
 };
 
-const CHATBOT_BANNER_MAIN_TEXT = Sefaria._("Enhance Your Learning Experience");
-const CHATBOT_BANNER_SECONDARY_TEXT_HE = <div>נסו את <a href="https://help.sefaria.org/hc/he/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">עוזר הספרייה</a> שלנו, המופעל על ידי בינה מלאכותית, על מנת להעמיק את הבנתכם ולגלות מקורות חדשים.</div>;
-const CHATBOT_BANNER_SECONDARY_TEXT = <div>Try our AI-powered <a href="https://help.sefaria.org/hc/en-us/articles/26006423836828-How-to-Use-the-Sefaria-Library-Assistant">Library Assistant</a> to deepen your understanding and discover new texts.</div>;
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
 
-const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
+// Keep authentication and password-recovery screens focused on the task at hand.
+const isChatbotBannerExcludedPath = (path, moduleUrl) => {
+  let pathname;
+  try {
+    // moduleUrl can be false (getModuleURL falls back to apiHost, which is empty
+    // during server-side rendering); only the pathname matters here, so any valid
+    // base keeps URL parsing from throwing mid-render.
+    pathname = new URL(path, moduleUrl || "https://www.sefaria.org").pathname;
+  } catch (e) {
+    return false;
+  }
+  return CHATBOT_BANNER_EXCLUDED_PATHS.some(
+    excludedPath => pathname === excludedPath || pathname.startsWith(`${excludedPath}/`)
+  );
+};
+
+const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   const [isActionPending, setIsActionPending] = useState(false);
-  // Learn-more URL is now embedded in the banner copy; no separate learn-more link needed.
 
   const handleJoin = async () => {
     setIsActionPending(true);
     try {
-      await Sefaria.experimentsOptInAPI()
-        .then(() => Sefaria.editProfileAPI({experiments: true}))
+      await Sefaria.editProfileAPI({settings: {library_assistant: true}})
         .then(() => {
           window.location.reload();
           return new Promise(() => {}); // never resolves
@@ -259,23 +272,28 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
     }
   };
 
-  const isLoggedIn = !!Sefaria._uid;
-  if (!isLoggedIn && !Sefaria.isReturningVisitor()) {
+  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
     return null;
   }
-  const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  const isLoggedIn = !!Sefaria._uid;
+  // Route anon login/register through /enable-library-assistant so that, once they
+  // authenticate, the assistant is turned on and they're returned here — it then
+  // appears on reload with no extra "Join" click.
+  const enableDest = "/enable-library-assistant?next=" + encodeURIComponent(Sefaria.util.currentPath());
+  const nextParam = "?next=" + encodeURIComponent(enableDest);
 
   return (
     <SiteWideBanner
-      mainText={CHATBOT_BANNER_MAIN_TEXT}
-      secondaryText={Sefaria._v({en: CHATBOT_BANNER_SECONDARY_TEXT, he: CHATBOT_BANNER_SECONDARY_TEXT_HE})}
+      mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
+      secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
+      imgSrc="/static/icons/ai-double-star.svg"
       actionButtons={(track) => isLoggedIn ? (
-        <button type="button" className="button small" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
-          <span>{isActionPending ? Sefaria._("Loading...") : Sefaria._("Try It")}</span>
+        <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
+          <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
         </button>
       ) : (<>
-        <a className="button small logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
-          <span>{Sefaria._("Log in to Try")}</span>
+        <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
+          <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}
       cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
@@ -288,9 +306,8 @@ const ChatbotExperimentBanner = ({ promoLearnMoreUrls, promoMaybeLaterJSON, prom
 };
 
 ChatbotExperimentBanner.propTypes = {
-  promoLearnMoreUrls: PropTypes.object,
   promoMaybeLaterJSON: PropTypes.object,
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { SiteWideBanner, ChatbotExperimentBanner };
+export { SiteWideBanner, ChatbotExperimentBanner, isChatbotBannerExcludedPath };

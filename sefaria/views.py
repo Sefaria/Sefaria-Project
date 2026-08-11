@@ -42,12 +42,13 @@ from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
@@ -62,12 +63,14 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
+from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -172,6 +175,10 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
+            # New accounts get the Library Assistant on. Written explicitly: the key is
+            # deliberately absent from the settings defaults, so a new account starts
+            # with no value at all unless one is written here.
+            p.settings[library_assistant.SETTING_KEY] = True
 
 
             # auto-add profile pic from gravatar if exists
@@ -724,6 +731,7 @@ def collections_image_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
+    signal_and_reset_skip_counts("reset_cache")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
@@ -836,6 +844,7 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
+    signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")
@@ -1417,6 +1426,10 @@ def index_sheets_by_timestamp(request):
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
 
+# Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
+# It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
+STRAPI_SCHEMA_VERSION = "v5"
+
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
     """
@@ -1476,8 +1489,9 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
-        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
+        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
@@ -1503,12 +1517,27 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         )
 
         if response.status_code != 200:
+            logger.error(
+                f"Strapi returned HTTP {response.status_code} for graphql-cache. "
+                f"Response body: {response.text[:500]}"
+            )
             return jsonResponse(
                 {"error": f"Strapi request failed with status {response.status_code}"},
                 status=500,
             )
 
         result_json = response.text
+
+        # GraphQL always returns HTTP 200, even for query errors — check the body for errors too
+        parsed = response.json()
+        if parsed.get("errors"):
+            logger.error(
+                f"Strapi GraphQL query returned errors: {parsed['errors']}"
+            )
+            # Do not cache error responses.
+            # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL.
+            # Still return the body so the client can degrade gracefully — the frontend renders nothing when there is no data.
+            return HttpResponse(result_json, content_type="application/json")
 
         # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
         set_cache_elem(
@@ -1518,7 +1547,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return HttpResponse(result_json, content_type="application/json")
 
     except Exception as e:
-        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}", exc_info=True)
         return jsonResponse({"error": "Internal server error"}, status=500)
 
 
@@ -1813,6 +1842,74 @@ def version_bulk_edit_api(request):
         "failures": failures
     }
     return jsonResponse(result)
+
+
+@staff_member_required
+def version_rename_api(request):
+    """
+    Rename Version.versionTitle for a single index.
+
+    Request:
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+
+    Response:
+      Celery enabled: 202 {"task_id": "..."}
+      Celery disabled: 200 {"status": "ok"} or non-200 {"error": "..."}
+
+    Callers that need to rename a versionTitle across many indices should call
+    this endpoint once per index and aggregate per-index results.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        new_version_title = data["newVersionTitle"]
+        index_title = data["index"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not isinstance(new_version_title, str):
+        return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
+
+    new_version_title = new_version_title.strip()
+    if not new_version_title:
+        return jsonResponse({"error": "newVersionTitle may not be empty"}, status=400)
+
+    if isinstance(version_title, str) and version_title.strip() == new_version_title:
+        return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
+
+    language = data.get("language")
+    rename_payload = {
+        "user_id": request.user.id,
+        "versionTitle": version_title,
+        "newVersionTitle": new_version_title,
+        "index": index_title,
+        "language": language,
+    }
+
+    if CELERY_ENABLED:
+        async_result = rename_version_title.apply_async(
+            args=(rename_payload,),
+            queue=CeleryQueue.TASKS.value,
+        )
+        return celeryResponse(async_result.id)
+
+    result, status_code = run_version_rename(
+        user_id=request.user.id,
+        version_title=version_title,
+        new_version_title=new_version_title,
+        index_title=index_title,
+        language=language,
+    )
+    if result.get("status") == "error" and "error" in result:
+        return jsonResponse({"error": result["error"]}, status=status_code)
+    return jsonResponse(result, status=status_code)
 
 
 @staff_member_required

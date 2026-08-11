@@ -17,7 +17,9 @@ from sefaria.model.following import aggregate_profiles
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 import re2 as re
 import structlog
+from sefaria.helper.skip_tracking import bad_record_guard
 logger = structlog.get_logger(__name__)
+skip_bad_record = bad_record_guard(logger)
 
 
 letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
@@ -27,11 +29,21 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u200e\u200f\u2013\u201c\u201d\ufeff" \
             + " Iabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
+APOSTROPHE_CHARS = {"'", "’", "‘", "׳"}
+
+
+def strip_apostrophes(text):
+    return "".join(c for c in text if c not in APOSTROPHE_CHARS)
+
+
+def normalize_chars(text):
+    return strip_apostrophes("".join([c if c in letter_scope else unidecode(c) for c in text]))
+
 
 def normalizer(lang):
     if lang == "he":
-        return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in hebrew.normalize_final_letters_in_str(x)])
-    return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in str.lower(x)])
+        return lambda x: normalize_chars(hebrew.normalize_final_letters_in_str(x))
+    return lambda x: normalize_chars(str.lower(x))
 
 
 splitter = re.compile(r"[\s,]+")
@@ -113,18 +125,20 @@ class AutoCompleter(object):
             unames = []
             normal_user_names = []
             for id, u in users.items():
-                fullname = u.first_name + " " + u.last_name
-                normal_name = self.normalizer(fullname)
-                self.title_trie[normal_name] = {
-                    "title": fullname,
-                    "type": "User",
-                    "key": profiles[id]["user"]["slug"],
-                    "pic": profiles[id]["user"]["profile_pic_url_small"],
-                    "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
-                    "is_primary": True,
-                }
-                unames += [fullname]
-                normal_user_names += [normal_name]
+                # One user/profile with a missing name or profile field must not abort startup.
+                with skip_bad_record("startup", "AutoCompleter user", record=id):
+                    fullname = f"{u.first_name or ''} {u.last_name or ''}"
+                    normal_name = self.normalizer(fullname)
+                    self.title_trie[normal_name] = {
+                        "title": fullname,
+                        "type": "User",
+                        "key": profiles[id]["user"]["slug"],
+                        "pic": profiles[id]["user"]["profile_pic_url_small"],
+                        "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
+                        "is_primary": True,
+                    }
+                    unames += [fullname]
+                    normal_user_names += [normal_name]
             self.spell_checker.train_phrases(unames)
             self.ngram_matcher.train_phrases(unames, normal_user_names)
         if include_collections:
@@ -480,9 +494,11 @@ class LexiconTrie(datrie.Trie):
         super(LexiconTrie, self).__init__(letter_scope)
 
         for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
-            self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
-            for ahw in entry.get_alt_headwords():
-                self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
+            # One malformed lexicon entry (e.g. missing headword) must not abort startup.
+            with skip_bad_record("startup", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", "<unknown>")):
+                self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
+                for ahw in entry.get_alt_headwords():
+                    self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]
 
 
 class TitleTrie(datrie.Trie):
@@ -700,4 +716,3 @@ class TfidfScorer:
         tf = 1 / (1 + len(doc_tokens))  # approximation of tf excluding # of times token appears in document. this seems like a small factor for AC and adds function calls.
         idf = self._token_idf_map.get(query_token, self._missing_idf_value)
         return tf * idf
-

@@ -68,7 +68,14 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    version: 10.3
+    # Optional `app` label to co-locate the dumper with. Hard scheduling rule: a
+    # label no pod carries leaves the backup Job Pending silently.
+    podAffinityApp: ""
+    version: 18.3
+    # Table contents omitted from the dump -- data only, never the table itself: the
+    # restored django_migrations marks the migration applied, so Django won't recreate it.
+    excludeTableData:
+      - django_session
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
@@ -408,6 +415,15 @@ secrets:
     # should be commented out and vice-versa.
     ref: elastic-admin
     # data:
+  pgvectorPassword:
+    ref: pgvector-secret
+    # data:
+  semanticSearchApiToken:
+    ref: semantic-search-api-token
+    # data:
+  geminiApiKey:
+    ref: gemini-api-key
+    # data:
 
 # Settings for various cronjobs
 cronJobs:
@@ -468,6 +484,10 @@ localSettings:
   CSRF_COOKIE_SECURE: true
   CSRF_COOKIE_HTTPONLY: false
   CSRF_COOKIE_SAMESITE: "Lax"
+  PGVECTOR_HOST: pgvector.default.svc.cluster.local
+  PGVECTOR_DB_PORT: "5432"
+  PGVECTOR_DB: pgvector
+  PGVECTOR_USER: pgvector
 
 instrumentation:
   enabled: false

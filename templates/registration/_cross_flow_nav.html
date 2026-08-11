@@ -1,0 +1,13 @@
+{% comment %}
+Cross-flow navigation between auth pages (login <-> register).
+Params (passed via {% include ... with %}):
+  link_href             - base URL for the link (caller passes via {% url ... as %})
+  next                  - optional ?next= value to preserve redirect-back (raw, matches existing link)
+  prompt_en / prompt_he - plain-text prompt preceding the link
+  link_en   / link_he   - the linked call-to-action text
+Styling: .registration-prompt in static/css/static.css (Figma 2WflG98PDhWQ7OKrDkaCPb node 35:430).
+{% endcomment %}
+<p class="registration-prompt control-elem">
+    <span class="int-en">{{ prompt_en }}<a href="{{ link_href }}{% if next %}?next={{ next }}{% endif %}">{{ link_en }}</a></span>
+    <span class="int-he">{{ prompt_he }}<a href="{{ link_href }}{% if next %}?next={{ next }}{% endif %}">{{ link_he }}</a></span>
+</p>

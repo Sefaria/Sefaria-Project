@@ -53,6 +53,17 @@ a, a:hover {
   --sans-serif-h3-font-size: 22px;
   --sans-serif-body-font-size: 16px;
   --sans-serif-small-font-size: 14px;
+
+  /* z-index layers (co-located with the app's other z-index declarations below).
+     --z-overlay is the floating-overlay layer shared by the Library assistant chatbot and
+     popovers. The chatbot sets z-index: 9999 inside the external ai-chatbot web component,
+     so this token mirrors that value for in-app overlays that must share its layer — keep
+     them in sync if the chatbot's value ever changes.
+     --z-header-menu-open lifts the header one step above the overlay layer while a header
+     dropdown is open (relative, so it tracks --z-overlay rather than being a magic number). */
+  --z-header: 1001;
+  --z-overlay: 9999;
+  --z-header-menu-open: calc(var(--z-overlay) + 1);
 }
 
 .sr-only,
@@ -367,16 +378,28 @@ body.hasBannerMessage #s2.headerOnly {
 .interface-hebrew .siteWideBanner {
   direction: rtl;
 }
+/* Hardcoded at Design's request, deliberately not one of the purple tokens.
+   --sefaria-purple (#7C416F) reads pink on some screens, and the design file's
+   own purple for this promo is #653259 — which is NOT the same as this codebase's
+   --kabbalah-purple (#594176) despite sharing that name in the design system.
+   The promo is short-lived, so it is not worth a token of its own. */
 .siteWideBanner .siteWideBannerContent {
   display: flex;
   flex: 1;
   align-items: center;
   justify-content: space-between;
-  color: black;
-  border: 1px solid #d2dcff;
+  color: white;
   border-radius: 10px;
   padding: 20px;
-  background: #f0f7ff;
+  background: #653259;
+}
+/* Matches the 41x43 "double star icon" frame in the design, exported whole so
+   its internal padding keeps the stars aligned against the two lines of text. */
+.siteWideBanner .siteWideBannerIcon {
+  width: 41px;
+  height: 43px;
+  flex-shrink: 0;
+  margin-inline-end: 18px;
 }
 .siteWideBanner .siteWideBannerTextBox {
   flex: 1;
@@ -389,9 +412,6 @@ body.hasBannerMessage #s2.headerOnly {
   opacity: 0.85;
   margin-top: 4px;
 }
-.siteWideBanner .bannerSecondaryText a {
-  text-decoration: underline;
-}
 .siteWideBanner .siteWideBannerButtonBox {
   display: flex;
   align-items: center;
@@ -403,7 +423,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .siteWideBannerMaybeLater,
 .siteWideBanner .siteWideBannerMaybeLater:hover {
-  color:#18345D;
+  color: white;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   font-style: normal;
@@ -413,6 +433,10 @@ body.hasBannerMessage #s2.headerOnly {
   border-radius: 0px;
   box-shadow: revert;
   white-space: nowrap;
+}
+.siteWideBanner .button.white,
+.siteWideBanner .button.white:hover {
+  color: #653259;
 }
 .siteWideBanner .logInToTry {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8076,25 +8100,6 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
 }
 
-.connectionsPanel .divineNameReplacer p {
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  line-height: 19px;
-  color: var(--dark-grey);
-}
-
-.divineNameDepricationNotification {
-  padding-top: 10px;
-}
-
-.divineNameDepricationNotification p a {
-  color: var(--inline-link-blue);
-}
-
-.divineNameDepricationNotification p a:hover {
-  text-decoration: underline;
-}
-
 
 .addConnectionBox {
   font-size: 18px;
@@ -8412,16 +8417,6 @@ But not to use a display block directive that might break continuous mode for ot
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-#appLoading img.int-en {
-  width: 150px;
-  height: 42px;
-  margin-bottom: 6px;
-}
-#appLoading img.int-he {
-  width: 150px;
-  height: 49px;
-  margin-bottom: 6px;
 }
 .emptyDesktop {
   margin-top: 200px;
@@ -12492,7 +12487,8 @@ cursor: pointer;
 .interface-hebrew .profile-summary .sub-sub-title > span:last-child .small-margin {
   margin: 0 4px 0 0;
 }
-.profile-page .aboutText {
+.profile-page .aboutText,
+.profile-page .aboutText * {
   margin-top: 20px;
   font-size: 18px;
   line-height: 1.4;
@@ -14953,6 +14949,15 @@ span.ref-link-color-3 {color: blue}
 .dropdownItem:hover {
   background-color: var(--highlight-blue);
   text-decoration: none;
+}
+
+/* Static account name rows are rendered as anchors without hrefs; avoid making them look clickable. */
+.dropdownItem:not([href]) {
+  cursor: default;
+}
+
+.dropdownItem:not([href]):hover {
+  background-color: transparent;
 }
 
 .dropdownLogoItem {

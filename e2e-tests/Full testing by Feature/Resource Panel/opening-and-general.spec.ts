@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../../utils';
+import { goToPageWithLang } from '../../utils';
 import { LANGUAGES, t } from '../../globals';
 import { PageManager } from '../../pages/pageManager';
 import { MODULE_URLS } from '../../constants';
@@ -11,14 +11,13 @@ import { MODULE_URLS } from '../../constants';
  * always available, has commentary connections, and has both Hebrew and
  * English text. Tests that need a specific segment use Genesis 1:1.
  */
-test.describe('Resource Panel — Opening & General — English', () => {
+test.describe('Resource Panel — Opening & General — English', { tag: '@sanity' }, () => {
   let page: Page;
   let pm: PageManager;
 
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onResourcePanel().waitForReaderReady();
   });
 
