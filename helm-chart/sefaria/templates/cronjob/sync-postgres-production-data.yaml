@@ -110,12 +110,20 @@ spec:
                     exit 1
                   fi
 
-                  # Dumps taken from a server where 'public' is a user-owned schema carry an
-                  # explicit "CREATE SCHEMA public", which collides with the one template0
-                  # already provides -- and --exit-on-error turns that into a full rollback.
-                  # Drop the entry instead of pre-dropping the schema, so dumps that omit it
-                  # (the PG15+ default) still restore.
-                  grep -v ' SCHEMA - public ' /storage/full.toc > /storage/restore.toc
+                  # Dumps whose source server owns 'public' as a user schema carry both a
+                  # "CREATE SCHEMA public" entry and its COMMENT. Either collides with the
+                  # schema template0 already provides, and --exit-on-error turns one
+                  # collision into a full rollback. Filter the entries rather than
+                  # pre-dropping the schema, so dumps that omit them (the PG15+ default)
+                  # still restore.
+                  PUBLIC_SCHEMA_TOC='[[:space:]](SCHEMA[[:space:]]+-|COMMENT[[:space:]]+-[[:space:]]+SCHEMA)[[:space:]]+public([[:space:]]|$)'
+                  grep -vE "$PUBLIC_SCHEMA_TOC" /storage/full.toc > /storage/restore.toc
+
+                  # Log the counts: a filter that silently matches nothing is precisely the
+                  # failure this guards against, so make it visible rather than implicit.
+                  TOC_TOTAL=$(grep -cv '^;' /storage/full.toc || true)
+                  TOC_KEPT=$(grep -cv '^;' /storage/restore.toc || true)
+                  echo "TOC: $TOC_TOTAL entries, $TOC_KEPT to restore, $((TOC_TOTAL - TOC_KEPT)) public-schema entries filtered."
 
                   # An array, not a string: word-splitting a string would let a stray space
                   # in a value silently become an extra argument.
