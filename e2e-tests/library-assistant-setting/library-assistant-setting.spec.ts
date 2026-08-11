@@ -172,11 +172,10 @@ test.describe('Library Assistant settings page', () => {
 
 test.describe('Library Assistant promo banner', () => {
 
-  // The promo invites people to try the assistant, and goes to everyone the assistant is
-  // not already running for. Whether it is running at all is a server-side remote-config
-  // decision (`feature.client.show_join_chatbot_banner`) that a browser test cannot set, so
-  // each test reads the flag out of the props the server sent and says plainly when the
-  // environment has the promo switched off.
+  // The promo invites logged-out visitors only. Whether it is running at all is a
+  // server-side remote-config decision (`feature.client.show_join_chatbot_banner`) that a
+  // browser test cannot set, so each test reads the flag out of the props the server sent
+  // and says plainly when the environment has the promo switched off.
   // Read it from DJANGO_VARS rather than the `Sefaria` global: the flag is a React prop on
   // ReaderApp and `unpackBaseProps` never copies it onto `Sefaria`.
   async function promoIsRunning(page: Page): Promise<boolean> {
@@ -219,25 +218,37 @@ test.describe('Library Assistant promo banner', () => {
     test.skip(true, PROMO_OFF_MESSAGE);
   }
 
-  test('LAS-060: a user the assistant is already running for is not invited to try it', async ({ browser }, testInfo) => {
-    // Inviting someone to try what they are already using is the one thing the promo must
-    // never do, and it is the only suppression rule left: the promo goes to everyone the
-    // assistant is off for, so having it on is what takes a user out of the audience.
-    const context = await contextFor(browser, 'explicit_on');
-    const page = await context.newPage();
-    await goToReader(page);
-    await requirePromoRunning(page, testInfo);
+  test('LAS-060: no logged-in user is invited to try the assistant, whatever their setting', async ({ browser }, testInfo) => {
+    // The product rule is about who is looking, not what they chose: every logged-in user
+    // has already answered the question the promo asks. Those with the assistant on are
+    // being offered what they already have; those with it off would be asked to reverse
+    // the one choice they made about it, on their first page after making it.
+    //
+    // Driven off the cohort matrix so it stays complete: a cohort added to the manifest is
+    // covered here without touching this test. The assistant assertion alongside is what
+    // stops a broken login passing this vacuously — a session that silently fell back to
+    // anonymous is a logged-out visitor, and LAS-061 says those *are* invited.
+    for (const cohort of cohorts()) {
+      const context = await contextFor(browser, cohort.key);
+      try {
+        const page = await context.newPage();
+        await goToReader(page);
+        await requirePromoRunning(page, testInfo);
 
-    await expectAssistant(page, true, 'explicit_on has the assistant on');
-    await expect(promoBanner(page), 'the promo must not be shown to a user who already has the assistant')
-      .toHaveCount(0);
-
-    await context.close();
+        await expectAssistant(page, cohort.expected, `${cohort.key}: ${cohort.why}`);
+        await expect(
+          promoBanner(page),
+          `the promo must not be shown to a logged-in user (${cohort.key}, assistant ${cohort.expected ? 'on' : 'off'})`,
+        ).toHaveCount(0);
+      } finally {
+        await context.close();
+      }
+    }
   });
 
   test('LAS-061: a logged-out visitor is invited, and the invitation turns the assistant on', async ({ browser }, testInfo) => {
     // The positive half of the pair, and the reason LAS-060 cannot pass vacuously: if the
-    // promo stopped rendering for everyone, this fails and LAS-060 would not.
+    // promo stopped rendering for anyone at all, this fails and LAS-060 would not.
     //
     // Its call to action routes login through `/enable-library-assistant` (LAS-051) so the
     // assistant is on when the visitor arrives back, with no second click to make.
@@ -255,28 +266,6 @@ test.describe('Library Assistant promo banner', () => {
       assistantPromoBanner(page).locator('a.logInToTry'),
       'the logged-out call to action must route through the enable landing',
     ).toHaveAttribute('href', /enable-library-assistant/);
-
-    await context.close();
-  });
-
-  test('LAS-062: a user who turned the assistant off is invited to try it again', async ({ browser }, testInfo) => {
-    // Turning the assistant off takes a user out of the product, not out of the audience
-    // for the invitation: the promo is gated on the assistant being off, and how often it
-    // may re-ask is the banner's own backoff schedule, not this setting.
-    //
-    // This is the one assertion in the suite that describes the promo gate *after* the
-    // legacy-fallback removal. It fails against a build that still gates the promo on
-    // whether the user has made a choice — see the suite README.
-    const context = await contextFor(browser, 'explicit_off');
-    const page = await context.newPage();
-    await goToReader(page);
-    await requirePromoRunning(page, testInfo);
-
-    await expectAssistant(page, false, 'explicit_off has the assistant off');
-    await expect(
-      assistantPromoBanner(page),
-      'the promo goes to everyone the assistant is not running for',
-    ).toBeVisible({ timeout: t(20000) });
 
     await context.close();
   });

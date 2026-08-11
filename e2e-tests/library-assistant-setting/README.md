@@ -11,10 +11,8 @@ A user's answer comes from one place: `settings.library_assistant` on their prof
 account carries it — registration writes it for new accounts, and the rollout migration
 backfilled the rest — so there is one world to test, not a before and an after.
 
-> **One assertion runs ahead of `master`.** LAS-062 describes the promo banner's gate
-> *after* the legacy-fallback removal, where the invitation goes to everyone the assistant
-> is not running for. Against a build that still gates the promo on whether the user has
-> made a choice, that test fails and nothing else does. See §7.
+The promo banner is written the same way, against the product rule that **the promo invites
+logged-out visitors only** (§7).
 
 ---
 
@@ -40,9 +38,8 @@ backfilled the rest — so there is one world to test, not a before and an after
 | LAS-031 | Changing the toggle **does** post the key |
 | LAS-040 | Turn it off → gone and remembered; turn it back on → returns |
 | LAS-051 | `/enable-library-assistant` turns it on and returns the user where they were |
-| LAS-060 | The promo never invites a user the assistant is already running for |
+| LAS-060 | The promo invites no logged-in user, in either cohort — on or off (§7) |
 | LAS-061 | A logged-out visitor *is* invited, through the enable landing |
-| LAS-062 | So is a user who turned it off — the promo audience is "assistant off" (§7) |
 
 **Registration is deliberately not driven from the browser.** `sefaria/views.py` writes
 `settings.library_assistant = True` outright when an account is created, so a brand-new
@@ -127,10 +124,10 @@ A URL that has to be used exactly as written — `localhost`, an explicit port, 
 `http` — is used verbatim; a bare domain such as `https://sefariastaging.org` still has
 `www.` / `voices.` prefixed onto it (see §8).
 
-### The promo banner (LAS-060…062)
+### The promo banner (LAS-060, LAS-061)
 
-All three tests depend on a server-side remote-config value, which a browser test cannot
-set. Without it they skip with a message naming the key; they never silently pass. Locally:
+Both tests depend on a server-side remote-config value, which a browser test cannot set.
+Without it they skip with a message naming the key; they never silently pass. Locally:
 
 ```python
 from remote_config.models import RemoteConfigEntry, ValueType
@@ -314,31 +311,32 @@ send.
 
 ---
 
-## 7. The promo banner, and the one assertion that runs ahead
+## 7. The promo banner
 
-The assistant's own behaviour is phase-free: it reads one setting key, and every account has
-one. The promo banner is not, because the rule for *who gets invited* changed with the
-legacy-fallback removal.
+**The promo invites logged-out visitors only.** That is the product rule, and it is the
+whole truth table:
 
-| Viewer | Gate before the removal (`!in_chatbot_experiment`) | Gate after (`!chatbot_enabled`) |
-| --- | --- | --- |
-| Logged out | invited | invited |
-| Assistant on | not invited | not invited |
-| Assistant **off** | not invited | **invited** |
+| Viewer | Invited |
+| --- | --- |
+| Logged out | **yes** |
+| Logged in, assistant on | no |
+| Logged in, assistant off | no |
 
-The first two rows are the same in both worlds, and they are what LAS-060 and LAS-061
-assert. The third genuinely flips: the old gate suppressed the promo for anyone who had
-*made a choice*, the new one suppresses it only for people the assistant is already running
-for. Turning the assistant off no longer removes you from the audience — how often the
-invitation may come back is the banner's own backoff schedule, not this setting.
+The reason is the same one that makes the rest of this suite phase-free. Every logged-in
+account carries `settings.library_assistant`, so a logged-in user has already answered the
+question the promo asks: those with it on are being sold what they already have, and those
+with it off would be asked to reverse the one choice they made about it. Only a visitor with
+no account has anything to gain from the invitation.
 
-**LAS-062 asserts the right-hand column.** It is the only test here that describes behaviour
-a pre-removal build does not have, so a manual run against such a build fails that one test
-and nothing else. That is the intended trade: the end state is the thing worth protecting,
-and the window in which it is wrong is short.
+LAS-060 asserts the two "no" rows, driven off the cohort matrix so it covers every logged-in
+cohort the manifest defines. LAS-061 asserts the "yes" row, and is what stops LAS-060
+passing because the banner stopped rendering for everyone.
 
-If you are looking at a failing LAS-062 on a build that predates the removal, that is this
-note, not a regression.
+Both are as phase-free as the rest of the suite. Login state is the gate, and it reads the
+same on a build that predates the legacy-fallback removal as on one that follows it: before,
+a logged-in user carrying the setting key is `in_chatbot_experiment` and the promo is
+suppressed; after, the gate suppresses it for every logged-in user directly. Nothing here
+describes a build that does not exist yet.
 
 ---
 
