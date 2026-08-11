@@ -19,11 +19,12 @@ spec:
           restartPolicy: Never
           containers:
           - name: embed-library-to-pgvector
-            image: "{{ .Values.cronJobs.embedLibraryToPgvector.image.registry }}:{{ .Values.cronJobs.embedLibraryToPgvector.image.tag }}"
-            command: ["/app/run"]
-            args:
-              - "/app/sefaria/helper/vector/embed_library_to_pgvector.py"
-              - "--threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }}"
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            command: ["bash"]
+            args: [
+              "-c",
+              "pip install 'patot[chunking] @ git+https://github.com/Sefaria/patot.git@{{ .Values.cronJobs.embedLibraryToPgvector.patotVersion }}' && /app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }}"
+            ]
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
