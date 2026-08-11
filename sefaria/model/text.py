@@ -5590,11 +5590,8 @@ class Library(object):
     def refresh_non_unique_term_in_cache(self, slug: str):
         """
         Drop `slug` from NonUniqueTerm's process-level `.init()` cache so the next lookup
-        re-reads current data from Mongo. NonUniqueTerm.cacheable=True makes `.init()` cache
-        instances for the life of the process; nothing else invalidates that cache, so an
-        edit to a term's titles (e.g. via the linker editor) is otherwise invisible to any
-        already-running process -- including a RefResolver rebuild, since MatchTemplate.get_terms()
-        reads terms via `NonUniqueTerm.init()`, not a fresh query.
+        re-reads it from Mongo -- otherwise an edit (e.g. via the linker editor) stays
+        invisible to this process, including on a RefResolver rebuild.
         """
         from sefaria.model.schema import NonUniqueTerm
         NonUniqueTerm._init_cache.pop(slug, None)
@@ -5777,17 +5774,6 @@ class Library(object):
         if not linker or rebuild:
             linker = self.build_linker(lang)
         return linker
-
-    def rebuild_linker(self, langs=("en", "he")):
-        """
-        Rebuild the cached linker (ref-resolver) for each language so that linker
-        metadata edits (match_templates / addressTypes / NonUniqueTerms) take effect on
-        the live linker. A full rebuild (loads spaCy models); prefer
-        rebuild_linker_resolvers for the RefResolver/CategoryResolver-only case used by
-        /linker-editor. Not exposed via any web view — call from a worker or shell.
-        """
-        for lang in langs:
-            self.build_linker(lang)
 
     def rebuild_linker_resolvers(self, langs=("en", "he")):
         """

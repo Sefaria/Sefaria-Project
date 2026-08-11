@@ -6,9 +6,9 @@ Append-only audit log of every mutating action taken through the staff linker ed
 (/linker-editor), recording who (uid) did what (action) with what inputs (params), so the
 full action sequence has enough detail to be replayed against a different environment.
 
-Does NOT log rebuild_linker / rebuild_linker_resolvers (sefaria.model.text.Library, triggered
-from sefaria/views.py) -- those are global in-process cache rebuilds, not scoped to a single
-uid+index mutation, and are out of scope by design.
+Does NOT log rebuild_linker_resolvers (sefaria.model.text.Library, triggered from
+sefaria/views.py) -- that's a global in-process cache rebuild, not scoped to a single
+uid+index mutation, and is out of scope by design.
 """
 import time
 
