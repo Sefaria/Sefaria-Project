@@ -2,10 +2,10 @@
 """
 Seed the accounts the Library Assistant end-to-end suite logs in as.
 
-The suite needs one account per cohort of the opt-out switch, in a known state, and it
-needs them to survive the migration run that happens between its two passes. Registering
-throwaway accounts per run would not do: the whole point of the beta cohorts is that they
-predate the migration.
+The suite needs one account per state of the opt-out switch — on, off, and the two scratch
+accounts the mutation tests write to — each in a known state and stable across runs, so a
+test that leaves an account dirty can be diagnosed rather than papered over by a fresh
+registration.
 
 Every account gets an id above ``reader.conftest.SYNTHETIC_USER_ID_FLOOR``. Mongo is not
 swapped for a test database the way Postgres is, and a developer's local ``profiles``
@@ -59,70 +59,32 @@ MANIFEST = Path(__file__).resolve().parents[2] / "e2e-tests" / ".la-e2e-users.js
 # and the resulting ids stay under int4 max (User.pk is a 32-bit AutoField).
 _OFFSET_BASE = 99_000_000
 
-# whitelist_row is the Postgres `UserExperimentSettings.experiments` value, or None for a
-# user who never enrolled. setting is `profiles.settings.library_assistant`, or None for a
-# profile that does not carry the key. The two `expected_*` columns are what the assistant
-# should do for that account, and are asserted by the Playwright suite.
+# setting is `profiles.settings.library_assistant`. `expected` is what the assistant should
+# do for that account, and is asserted by the Playwright suite.
+#
+# Offsets are never reused: an account seeded by an earlier revision of this script keeps
+# its id, so `--teardown` can still reap it (see `_RETIRED_OFFSETS`).
 COHORTS = [
-    {
-        "key": "beta_opt_in",
-        "offset": 1,
-        "whitelist_row": True,
-        "experiments": True,
-        "setting": None,
-        "expected_pre": True,
-        "expected_post": True,
-        "why": "joined the beta and kept it on — on before the flip, on after",
-    },
-    {
-        "key": "beta_opt_out",
-        "offset": 2,
-        "whitelist_row": False,
-        "experiments": False,
-        "setting": None,
-        "expected_pre": False,
-        "expected_post": False,
-        "why": "joined the beta and turned it off — the deliberate opt-out the flip must preserve",
-    },
-    {
-        "key": "never_chose",
-        "offset": 3,
-        "whitelist_row": None,
-        "experiments": False,
-        "setting": None,
-        "expected_pre": False,
-        "expected_post": True,
-        "why": "never enrolled; carries experiments=False only because every profile save writes it",
-    },
     {
         "key": "explicit_on",
         "offset": 4,
-        "whitelist_row": None,
-        "experiments": False,
         "setting": True,
-        "expected_pre": True,
-        "expected_post": True,
-        "why": "already carries the key — the migration must skip it; also the state a "
+        "expected": True,
+        "why": "turned the assistant on, or never turned it off — also the state a "
                "brand-new account is in, since registration writes the key outright",
     },
     {
         "key": "explicit_off",
         "offset": 5,
-        "whitelist_row": None,
-        "experiments": False,
         "setting": False,
-        "expected_pre": False,
-        "expected_post": False,
-        "why": "turned it off through the settings page — must stay off through the flip",
+        "expected": False,
+        "why": "turned it off through the settings page — the opt-out the switch exists for",
     },
     {
         "key": "toggler",
         "offset": 6,
-        "whitelist_row": None,
-        "experiments": False,
         "setting": True,
-        "expected_pre": True,
-        "expected_post": True,
+        "expected": True,
         # Scratch: the only account any test writes to. Kept out of the cohort matrix so a
         # failed mutation test cannot make unrelated assertions fail on the next run.
         "scratch": True,
@@ -131,22 +93,31 @@ COHORTS = [
     {
         "key": "enable_landing",
         "offset": 7,
-        "whitelist_row": None,
-        "experiments": False,
         "setting": False,
-        "expected_pre": False,
-        "expected_post": False,
+        "expected": False,
         # Scratch: the landing page turns this account on mid-test. It needs an account
         # that starts off, and `explicit_off` cannot be it — that one is read-only, and
-        # three other tests assert it is off while this test would be flipping it.
+        # other tests assert it is off while this test would be flipping it.
         "scratch": True,
         "why": "scratch account the /enable-library-assistant landing test turns on",
     },
 ]
 
+# Offsets this script used to seed. They are still torn down, because the accounts they
+# created can log in and nothing else would ever reap them.
+_RETIRED_OFFSETS = (1, 2, 3)
+
+
+def _uid_for_offset(offset):
+    return SYNTHETIC_USER_ID_FLOOR + _OFFSET_BASE + offset
+
 
 def _uid(cohort):
-    return SYNTHETIC_USER_ID_FLOOR + _OFFSET_BASE + cohort["offset"]
+    return _uid_for_offset(cohort["offset"])
+
+
+def _reapable_uids():
+    return [_uid(c) for c in COHORTS] + [_uid_for_offset(o) for o in _RETIRED_OFFSETS]
 
 
 def _email(cohort):
@@ -157,7 +128,7 @@ def _purge():
     # Every deletion here is keyed to this exact id list, never to a range or a pattern.
     # `purge_test_profiles` additionally asserts every id is at or above
     # `SYNTHETIC_USER_ID_FLOOR`, so a wrong id raises instead of removing a real profile.
-    uids = [_uid(c) for c in COHORTS]
+    uids = _reapable_uids()
     purge_test_profiles(*uids)
     UserExperimentSettings.objects.filter(user_id__in=uids).delete()
     User.objects.filter(id__in=uids).delete()
@@ -182,35 +153,20 @@ def _seed_one(cohort):
     user.is_active = True
     user.save()
 
-    if cohort["whitelist_row"] is None:
-        UserExperimentSettings.objects.filter(user=user).delete()
-    else:
-        UserExperimentSettings.objects.update_or_create(
-            user=user, defaults={"experiments": cohort["whitelist_row"]},
-        )
+    # The assistant does not read the parked experiments framework, but a whitelist row
+    # left behind by an earlier seeding would still put its toggle on the settings page.
+    UserExperimentSettings.objects.filter(user=user).delete()
 
-    # Build the profile document directly rather than through `_set_user_experiments`:
-    # that helper is the parked experiments framework's own write path, and going through
-    # it would make the fixtures depend on code Phase 3 leaves behind.
     profile = UserProfile(id=uid)
-    profile.experiments = bool(cohort["experiments"])
-    profile.settings.pop(SETTING_KEY, None)
-    if cohort["setting"] is not None:
-        profile.settings[SETTING_KEY] = cohort["setting"]
+    profile.settings[SETTING_KEY] = cohort["setting"]
     profile.save()
-
-    # `UserProfile.update` deep-merges settings, so a key that must be *absent* has to be
-    # unset on the stored document after the save rather than merely left out of it.
-    if cohort["setting"] is None:
-        db.profiles.update_one({"id": uid}, {"$unset": {f"settings.{SETTING_KEY}": ""}})
 
     return {
         "key": cohort["key"],
         "id": uid,
         "email": email,
         "password": PASSWORD,
-        "expected_pre": cohort["expected_pre"],
-        "expected_post": cohort["expected_post"],
+        "expected": cohort["expected"],
         "scratch": cohort.get("scratch", False),
         "why": cohort["why"],
     }
@@ -219,34 +175,27 @@ def _seed_one(cohort):
 def _observed(uid):
     profile = db.profiles.find_one({"id": uid}) or {}
     settings = profile.get("settings", {})
-    row = UserExperimentSettings.objects.filter(user_id=uid).first()
     return {
         "profile": bool(profile),
-        "row": None if row is None else row.experiments,
-        "experiments": profile.get("experiments", "-"),
         "setting": settings.get(SETTING_KEY, "-"),
     }
 
 
 def _report(stream=sys.stdout):
-    print(
-        f"{'cohort':<14} {'uid':>12}  {'row':<5} {'experiments':<11} {'setting':<8}",
-        file=stream,
-    )
-    print("-" * 58, file=stream)
+    print(f"{'cohort':<14} {'uid':>12}  {'setting':<8}", file=stream)
+    print("-" * 40, file=stream)
     for cohort in COHORTS:
         uid = _uid(cohort)
         state = _observed(uid)
         marker = "" if state["profile"] else "  (no profile document)"
         print(
-            f"{cohort['key']:<14} {uid:>12}  {str(state['row']):<5} "
-            f"{str(state['experiments']):<11} {str(state['setting']):<8}{marker}",
+            f"{cohort['key']:<14} {uid:>12}  {str(state['setting']):<8}{marker}",
             file=stream,
         )
 
 
 def _teardown():
-    uids = [_uid(c) for c in COHORTS]
+    uids = _reapable_uids()
     profiles = db.profiles.count_documents({"id": {"$in": uids}})
     rows = UserExperimentSettings.objects.filter(user_id__in=uids).count()
     users = User.objects.filter(id__in=uids).count()

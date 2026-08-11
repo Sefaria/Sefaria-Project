@@ -30,26 +30,13 @@ if (LIVE_HOSTS.test(new URL(BASE_URL).hostname)) {
   );
 }
 
-/**
- * Which side of the Phase 2 migration the environment under test is on.
- *
- *   `pre`  — Phase 1 deployed, migration not yet run. Profiles with no setting key fall
- *            back to the experiments rule, so a never-enrolled user has no assistant.
- *   `post` — the migration has run. Every profile carries the key, so the never-enrolled
- *            user is on. Phase 3 removes the fallback but changes no expectation here,
- *            because after the migration nothing reads it — which is exactly what makes
- *            one suite serve all three phases.
- */
-export type Phase = 'pre' | 'post';
-export const PHASE: Phase = (process.env.LA_PHASE as Phase) || 'pre';
-
 export type Account = {
   key: string;
   id: number;
   email: string;
   password: string;
-  expected_pre: boolean;
-  expected_post: boolean;
+  /** What the assistant should do for this account. */
+  expected: boolean;
   /** Written to by the mutation tests, so excluded from the read-only cohort matrix. */
   scratch: boolean;
   why: string;
@@ -74,17 +61,6 @@ export function accounts(): Account[] {
  */
 export function cohorts(): Account[] {
   return accounts().filter(a => !a.scratch);
-}
-
-export function account(key: string): Account {
-  const found = accounts().find(a => a.key === key);
-  if (!found) throw new Error(`No seeded account "${key}". Re-run the seeding script.`);
-  return found;
-}
-
-/** What the assistant should do for this account in the environment under test. */
-export function expected(a: Account): boolean {
-  return PHASE === 'pre' ? a.expected_pre : a.expected_post;
 }
 
 export const authFile = (key: string) => path.join(__dirname, '.auth', `${key}.json`);
@@ -237,8 +213,7 @@ export async function logIn(page: Page, email: string, password: string) {
 
 /**
  * Whether the assistant is switched on for the current session, read from the props the
- * server sent. This is the server's answer — the one the helper module computes — and it
- * is the same field in every phase.
+ * server sent. This is the server's answer — the one the helper module computes.
  */
 export async function assistantEnabledInProps(page: Page): Promise<boolean> {
   return page.evaluate(() => !!(window as any).Sefaria?.chatbot_enabled);
@@ -327,9 +302,9 @@ export async function goToAccountSettings(page: Page) {
   await expect(page.locator('#libraryAssistantSetting')).toBeVisible({ timeout: t(20000) });
   // The promo banner mounts on this page too and can sit over the save controls, so a
   // click on Save fails with "intercepts pointer events" rather than anything to do with
-  // the setting. Hide it rather than dismissing it — dismissal writes a cookie, and
-  // whether the banner should be here at all is LAS-060's assertion to make, not a side
-  // effect of some other test's navigation.
+  // the setting. Hide it rather than dismissing it — dismissal writes backoff state that
+  // suppresses the banner on later visits, and whether the banner should be shown at all
+  // is the promo tests' assertion to make, not a side effect of some other navigation.
   await page.addStyleTag({ content: '.siteWideBannerContent { display: none !important; }' })
     .catch(() => {});
 }
