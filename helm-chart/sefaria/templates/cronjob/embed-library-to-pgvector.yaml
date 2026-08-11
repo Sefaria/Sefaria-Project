@@ -1,0 +1,64 @@
+{{- if .Values.cronJobs.embedLibraryToPgvector.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-embed-library-to-pgvector
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  concurrencyPolicy: Forbid
+  schedule: {{ .Values.cronJobs.embedLibraryToPgvector.schedule | quote }}
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: {{ .Values.cronJobs.embedLibraryToPgvector.activeDeadlineSeconds }}
+      ttlSecondsAfterFinished: {{ .Values.cronJobs.embedLibraryToPgvector.ttlSecondsAfterFinished }}
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: embed-library-to-pgvector
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            command: ["bash"]
+            args: [
+              "-c",
+              # TEMP: --limit-indexes/--max-versions for a dev-cluster smoke test, revert before merge
+              "pip install 'patot[chunking] @ git+https://github.com/Sefaria/patot.git@{{ .Values.cronJobs.embedLibraryToPgvector.patotVersion }}' && /app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }} --limit-indexes 10 --max-versions 5"
+            ]
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: TQDM_DISABLE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            envFrom:
+            - secretRef:
+                name: {{ template "sefaria.secrets.pgvectorPassword" . }}
+            - secretRef:
+                name: {{ template "sefaria.secrets.geminiApiKey" . }}
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            resources: {{ toYaml .Values.cronJobs.embedLibraryToPgvector.resources | nindent 14 }}
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

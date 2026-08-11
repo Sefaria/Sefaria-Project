@@ -432,6 +432,30 @@ cronJobs:
     enabled: true
   dailyEmailNotifications:
     enabled: false
+  embedLibraryToPgvector:
+    enabled: true  # TEMP: dev-cluster smoke test, revert before merge
+    # Sunday 05:00 UTC - off-peak, offset from the Sun-midnight postgres backup and the
+    # Fri-21:00 ES reindex so they don't compete for cluster resources.
+    schedule: "0 5 * * 0"
+    threads: 10
+    # patot (the chunking dependency embed_library_to_pgvector.py requires) isn't in the
+    # standard web image's requirements.txt, so the job installs it at startup instead of
+    # needing a dedicated image - same pattern as cronJobs.reindexElasticSearch's
+    # `pip install numpy && ...`. Pinned to a released tag (github.com/Sefaria/patot); bump
+    # this when patot cuts a new release.
+    patotVersion: "v0.1.5"
+    # 2 CPU / 4Gi request matches the prod sizing fix noted in the pgvector embed runbook - the
+    # workload is Gemini-API-bound, not CPU-bound, and a 4 CPU/8Gi request left the pod Pending
+    # (cluster had no node with that much spare capacity).
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2"
+      limits:
+        memory: "16Gi"
+        cpu: "4"
+    activeDeadlineSeconds: 21600  # 6h safety cap so a stuck run doesn't block next week's trigger
+    ttlSecondsAfterFinished: 432000  # 5 days, matches the one-off Job
   indexFromQueue:
     enabled: false
   metrics:

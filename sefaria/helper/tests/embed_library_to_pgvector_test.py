@@ -124,6 +124,58 @@ class TestGetChunkContext:
         assert segment_pagerank != section_pagerank
 
 
+class TestHashSectionText:
+    def test_deterministic(self):
+        assert pgv.hash_section_text("hello") == pgv.hash_section_text("hello")
+
+    def test_distinguishes_different_text(self):
+        assert pgv.hash_section_text("hello") != pgv.hash_section_text("hello ")
+
+
+class TestResolveSectionRef:
+    def test_direct_segment_match(self):
+        assert pgv.resolve_section_ref("Genesis 1:3", {"Genesis 1"}) == "Genesis 1"
+
+    def test_exact_match_when_section_is_segment(self):
+        assert pgv.resolve_section_ref("Genesis 1", {"Genesis 1"}) == "Genesis 1"
+
+    def test_does_not_confuse_prefix_collisions(self):
+        # "Genesis 1" must not swallow "Genesis 10:3" - a boundary-aware check, not a bare
+        # substring test.
+        known = {"Genesis 1", "Genesis 10"}
+        assert pgv.resolve_section_ref("Genesis 10:3", known) == "Genesis 10"
+
+    def test_multi_level_address_strips_only_last_component(self):
+        known = {"Mishneh Torah, Sabbath 1:2"}
+        assert pgv.resolve_section_ref("Mishneh Torah, Sabbath 1:2:3", known) == "Mishneh Torah, Sabbath 1:2"
+
+    def test_unknown_ref_returns_none(self):
+        assert pgv.resolve_section_ref("Nonexistent Book 1:1", set()) is None
+
+
+class TestCollectAllSectionRefs:
+    def test_genesis(self):
+        index = library.get_index("Genesis")
+        refs = pgv.collect_all_section_refs([index])
+        expected = {section_ref.normal() for section_ref in index.all_section_refs()}
+        assert refs == expected
+
+
+class TestCollectSectionTextsByRef:
+    def test_matches_collect_segment_records_by_section(self):
+        version = Version().load({"title": "Mishnah Berakhot", "versionTitle": "Torat Emet 357"})
+        index = library.get_index("Mishnah Berakhot")
+        known_section_refs = pgv.collect_all_section_refs([index])
+
+        section_texts = pgv.collect_section_texts_by_ref(version, known_section_refs)
+        records_by_section = pgv.collect_segment_records_by_section(version)
+
+        assert set(section_texts.keys()) == set(records_by_section.keys())
+        first_section = "Mishnah Berakhot 1"
+        expected_text = "\n".join(record.text for record in records_by_section[first_section])
+        assert section_texts[first_section] == expected_text
+
+
 class TestCollectSegmentRecordsBySection:
     def test_groups_by_section_and_preserves_order(self):
         version = Version().load({"title": "Mishnah Berakhot", "versionTitle": "Torat Emet 357"})
@@ -144,3 +196,60 @@ class TestCollectSegmentRecordsBySection:
         indices = [record.segment_index for record in first_section_records]
         assert indices == sorted(indices)
         assert indices[0] == 0
+
+
+class TestBuildChunkDataOrdinals:
+    """
+    chunk_ordinal must be 1 for any chunk spanning one whole segment or more (its ref is
+    unique within the unit), and must number pieces sequentially when a single oversized
+    segment is hard-split into multiple chunks sharing the same ref (patot's hard_max_split
+    pass - see chunker.py's `_apply_hard_max_pass` / `_split_text_evenly_by_max_tokens`).
+    """
+    def _fake_patot_chunk(self, text, source_segment_refs, kind="single_segment"):
+        return SimpleNamespace(
+            text=text, source_segment_refs=source_segment_refs, kind=kind,
+            pass_number=1, token_count=len(text.split()), triggered=False, score=None,
+        )
+
+    def _contexts(self):
+        index = library.get_index("Genesis")
+        index_context = pgv.get_index_context(index)
+        version = Version().load({"title": "Genesis", "language": "en"})
+        version_context = pgv.get_version_context(version)
+        return version, index_context, version_context
+
+    def _build(self, chunks):
+        version, index_context, version_context = self._contexts()
+        embedder = SimpleNamespace(embed_text=lambda text, task_type: [0.0, 0.0, 0.0, 0.0])
+        result = SimpleNamespace(chunks=chunks)
+        return pgv.build_chunk_data(
+            Ref("Genesis 1"), version_context["language"], version.versionTitle, "Genesis",
+            embedder, result, index_context, version_context,
+        )
+
+    def test_chunks_with_distinct_refs_all_get_ordinal_one(self):
+        built = self._build([
+            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+            self._fake_patot_chunk("verse two", ["Genesis 1:2"]),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 1]
+        assert len({b.chunk.ref for b in built}) == 2
+
+    def test_hard_split_pieces_of_one_segment_get_incrementing_ordinal(self):
+        built = self._build([
+            self._fake_patot_chunk("piece one", ["Genesis 1:1"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece two", ["Genesis 1:1"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece three", ["Genesis 1:1"], kind="hard_max_split"),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 2, 3]
+        assert len({b.chunk.ref for b in built}) == 1
+        assert [b.text for b in built] == ["piece one", "piece two", "piece three"]
+
+    def test_mixed_whole_segment_and_split_chunks(self):
+        built = self._build([
+            self._fake_patot_chunk("verse one", ["Genesis 1:1"]),
+            self._fake_patot_chunk("piece a", ["Genesis 1:2"], kind="hard_max_split"),
+            self._fake_patot_chunk("piece b", ["Genesis 1:2"], kind="hard_max_split"),
+            self._fake_patot_chunk("verse three", ["Genesis 1:3"]),
+        ])
+        assert [b.chunk.chunk_ordinal for b in built] == [1, 1, 2, 1]
