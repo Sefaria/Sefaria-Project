@@ -14,7 +14,7 @@ from sefaria.model.linker_dataset_example import LinkerDatasetExample
 from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
 from sefaria.model.text import TextChunk
 from sefaria.system.exceptions import InputError
-from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain
+from sefaria.helper.linker.tasks import LinkingArgs, enqueue_linking_chain, _span_refs
 
 
 REF_PART_TYPE_BY_NAME = {part_type.name: part_type for part_type in RefPartType}
@@ -83,15 +83,6 @@ def _normalize_char_range(raw_char_range: Any) -> list[int]:
         raise InputError("charRange values must be integers")
 
 
-def _span_refs(span: dict) -> set[str]:
-    refs = set()
-    for key in ("ref", "llm_resolved_ref_ambiguous", "llm_resolved_ref_non_segment"):
-        ref = span.get(key)
-        if ref:
-            refs.add(ref)
-    return refs
-
-
 def _span_matches(span: dict, payload: dict) -> bool:
     return (
         span.get("type") == MUTCSpanType.CITATION.value
@@ -101,15 +92,19 @@ def _span_matches(span: dict, payload: dict) -> bool:
     )
 
 
-def _target_ref_aliases(payload: dict) -> set[str]:
+def _chunk_query(ref: str, version_title: str, lang: str) -> dict:
+    return {"ref": ref, "versionTitle": version_title, "language": lang}
+
+
+def _load_chunks(ref: str, version_title: str, lang: str) -> dict:
+    """Load the LinkerOutput and MarkedUpTextChunk docs for a ref/version/lang once, keyed by class."""
+    query = _chunk_query(ref, version_title, lang)
+    return {klass: klass().load(query) for klass in (LinkerOutput, MarkedUpTextChunk)}
+
+
+def _target_ref_aliases(payload: dict, chunks: dict) -> set[str]:
     target_refs = {payload["targetRef"]}
-    query = {
-        "ref": payload["ref"],
-        "versionTitle": payload["versionTitle"],
-        "language": payload["lang"],
-    }
-    for klass in (LinkerOutput, MarkedUpTextChunk):
-        chunk = klass().load(query)
+    for chunk in chunks.values():
         if not chunk:
             continue
         for span in chunk.spans:
@@ -122,12 +117,7 @@ def _target_ref_aliases(payload: dict) -> set[str]:
     return target_refs
 
 
-def _update_deleted_marker(klass, payload: dict, deleted: bool) -> bool:
-    chunk = klass().load({
-        "ref": payload["ref"],
-        "versionTitle": payload["versionTitle"],
-        "language": payload["lang"],
-    })
+def _update_deleted_marker(payload: dict, deleted: bool, chunk) -> bool:
     if not chunk:
         return False
     updated = False
@@ -191,10 +181,11 @@ def set_linker_citation_deleted(payload: dict, user_id: Optional[int], deleted: 
         "charRange": _normalize_char_range(_required(payload, "charRange")),
         "targetRef": Ref(_required(payload, "targetRef")).normal(),
     }
-    normalized["targetRefs"] = _target_ref_aliases(normalized)
+    chunks = _load_chunks(normalized["ref"], normalized["versionTitle"], normalized["lang"])
+    normalized["targetRefs"] = _target_ref_aliases(normalized, chunks)
 
-    mutc_updated = _update_deleted_marker(MarkedUpTextChunk, normalized, deleted)
-    linker_output_updated = _update_deleted_marker(LinkerOutput, normalized, deleted)
+    mutc_updated = _update_deleted_marker(normalized, deleted, chunks[MarkedUpTextChunk])
+    linker_output_updated = _update_deleted_marker(normalized, deleted, chunks[LinkerOutput])
     link_deleted = False
     if deleted:
         link_deleted = _delete_generated_link(normalized["ref"], normalized["targetRefs"], user_id)
@@ -411,7 +402,7 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     normalizer = get_linker_normalizer(lang)
     normalized_text = normalizer.normalize(original_text)
 
-    chunk = LinkerOutput().load({"ref": ref, "versionTitle": version_title, "language": lang})
+    chunk = LinkerOutput().load(_chunk_query(ref, version_title, lang))
     if not chunk:
         raise InputError(f"No stored linker output found for {ref}, {lang}, {version_title}")
 
@@ -535,7 +526,7 @@ def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     lang = _required(payload, "lang")
     char_range = _normalize_char_range(_required(payload, "charRange"))
 
-    chunk = LinkerOutput().load({"ref": ref, "versionTitle": version_title, "language": lang})
+    chunk = LinkerOutput().load(_chunk_query(ref, version_title, lang))
     if not chunk:
         raise InputError(f"No stored linker output found for {ref}, {lang}, {version_title}")
 
