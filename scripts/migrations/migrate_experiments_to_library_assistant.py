@@ -23,8 +23,7 @@ and safe to re-run as a catch-up for any profile that turns up without the key. 
 writes `profiles.experiments` and never touches the Postgres table.
 
 Every write is archived to `db.library_assistant_migration_archive` (user id, value
-written, cohort, run id) — both the historical record and the input for
-`rollback_library_assistant_migration.py`.
+written, cohort, run id) — the historical record of what this migration changed.
 
 Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
 sefaria):
@@ -78,9 +77,10 @@ def _write(user_ids, value, cohort, run_id):
         if not pending:
             continue
         # Archive before writing. A crash between the two leaves an archive entry for a
-        # profile that never received the setting, which rollback ignores — it only unsets
-        # where the stored value matches. Writing first would instead leave written
-        # profiles with no archive entry, and rollback would miss them permanently.
+        # profile that never received the setting — an over-record, visible by comparing
+        # the entry against the profile. Writing first would instead leave written
+        # profiles with no archive entry at all, and the record would under-report what
+        # the run changed with no way to tell which profiles were missed.
         _archive(run_id, [
             {
                 "run_id": run_id,
