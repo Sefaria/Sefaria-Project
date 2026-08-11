@@ -2448,11 +2448,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    // The promo invites visitors to log in and try the assistant, so it is for logged-out
-    // visitors only. Every logged-in user carries an explicit `library_assistant` setting;
-    // showing it to those with the assistant off would ask them to reverse the one choice
-    // they made about it.
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria._uid;
+    // The promo goes to anyone the assistant isn't already running for: logged-out
+    // visitors, and logged-in users who have it turned off.
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !this.props.chatbot_enabled;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
