@@ -19,6 +19,10 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 12px;
   margin-bottom: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
 }
 .linkerEditorTopBar h1 { font-size: 24px; margin: 0; }
 .linkerEditorTopActions {
