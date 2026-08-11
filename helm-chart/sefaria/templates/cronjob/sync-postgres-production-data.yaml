@@ -96,6 +96,27 @@ spec:
                     exit 1
                   fi
 
+                  # Inspect the archive BEFORE dropping anything. Both faults below are
+                  # visible in the file while the old database is still intact, so a bad
+                  # dump costs a failed job rather than the environment.
+                  echo "Inspecting dump archive..."
+                  pg_restore --list /storage/pg.dump > /storage/full.toc
+
+                  # A dump lacking --section=post-data restores cleanly but carries no
+                  # indexes or constraints. Refuse it rather than sit silently unindexed.
+                  if ! grep -qE ' (INDEX|CONSTRAINT|FK CONSTRAINT) ' /storage/full.toc; then
+                    echo "ERROR: dump has no post-data section (no indexes or constraints)."
+                    echo "Refusing to drop $PGDATABASE for a dump that cannot restore them."
+                    exit 1
+                  fi
+
+                  # Dumps taken from a server where 'public' is a user-owned schema carry an
+                  # explicit "CREATE SCHEMA public", which collides with the one template0
+                  # already provides -- and --exit-on-error turns that into a full rollback.
+                  # Drop the entry instead of pre-dropping the schema, so dumps that omit it
+                  # (the PG15+ default) still restore.
+                  grep -v ' SCHEMA - public ' /storage/full.toc > /storage/restore.toc
+
                   # An array, not a string: word-splitting a string would let a stray space
                   # in a value silently become an extra argument.
                   PSQL=(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d postgres)
@@ -111,10 +132,11 @@ spec:
                   # leaving a half-populated database.
                   echo "Restoring PostgreSQL data..."
                   pg_restore --no-owner --no-privileges --exit-on-error --single-transaction \
+                    --use-list=/storage/restore.toc \
                     --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
 
-                  # A dump lacking --section=post-data restores cleanly but carries no
-                  # indexes or constraints. Fail rather than sit silently unindexed.
+                  # The pre-flight check above proves the dump *contains* post-data; this
+                  # proves it landed.
                   echo "Verifying indexes and constraints were restored..."
                   IDX_COUNT=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
                     "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indrelid
