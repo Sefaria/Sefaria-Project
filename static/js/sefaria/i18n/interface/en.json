@@ -595,7 +595,6 @@
     "search.null.caption": "Something seem wrong? {reportBugLink} or {contactUsLink}.",
     "search.null.caption.bug.label": "Report a bug",
     "search.null.caption.contact.label": "contact us",
-    "search.null.caption.divider": "or",
     "search.null.caption.contact.link": "https://github.com/Sefaria/Sefaria-Project/issues",
     "search.null.caption.bug.link": "https://github.com/Sefaria/Sefaria-Project/issues"
 }
