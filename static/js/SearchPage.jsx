@@ -61,6 +61,7 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           onChange={e => setValue(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") { submit(); } }}
           maxLength={75}
+          enterKeyHint="search"
       />
       {value.length ?
           <img
@@ -106,16 +107,22 @@ const authorLifespan = (hit) => {
 };
 
 
-const topicHitCardProps = (hit, query) => ({
-  mode: 'topics',
-  type: 'topic',
-  name: hit.title_en || hit.title_he,
-  hebrewName: hit.title_he || hit.title_en,
-  description: hit.description_en,
-  hebrewDescription: hit.description_he,
-  href: `/topics/${hit.slug}`,
-  query,
-});
+const topicHitCardProps = (hit, query) => {
+  const parentCategory = Sefaria.displayTopicTocCategory(hit.slug);
+  return {
+    mode: 'topics',
+    type: 'topic',
+    name: hit.title_en || hit.title_he,
+    hebrewName: hit.title_he || hit.title_en,
+    description: hit.description_en,
+    hebrewDescription: hit.description_he,
+    href: `/topics/${hit.slug}`,
+    query,
+    crumbs: parentCategory
+      ? [{ label: parentCategory.en, hebrewLabel: parentCategory.he, href: `/topics/category/${parentCategory.slug}` }]
+      : undefined,
+  };
+};
 
 
 const authorHitCardProps = (hit, query) => {

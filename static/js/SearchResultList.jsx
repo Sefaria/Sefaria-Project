@@ -237,7 +237,7 @@ const MobileFilterIconButton = ({ openMobileFilters, disabled }) => (
     aria-disabled={disabled || undefined}
     onKeyDown={disabled ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
   >
-    <img src="/static/icons/sliders.svg" alt="" aria-hidden="true" />
+    <img src="/static/icons/sliders-horizontal.svg" alt="" aria-hidden="true" />
   </div>
 );
 

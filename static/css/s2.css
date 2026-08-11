@@ -4771,6 +4771,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
               0 8px 16px 0 rgba(31,31,31,0.05);
   cursor: pointer;
 }
+.searchResultCard.is-pressed {
+  background-color: var(--lighter-grey, #ededec);
+}
 .searchResultCard:focus-visible {
   outline: 2px solid var(--navy, #18345d);
   outline-offset: 2px;
