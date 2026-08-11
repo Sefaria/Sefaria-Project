@@ -18,9 +18,8 @@ currently present so the index can be fully rebuilt/cleared. Entries look like::
         "scope": "combined",
     }
 
-The index is rebuilt from scratch by the `build_nonuniqueterm_index` management command,
-surgically updated by the linker editor API whenever a MatchTemplate is saved or deleted, and
-self-heals on read: if the registry key is missing (e.g. a Redis restart/flush dropped the
+The index is surgically updated by the linker editor API whenever a MatchTemplate is saved or
+deleted, and self-heals on read: if the registry key is missing (e.g. a Redis restart/flush dropped the
 whole shared cache), `get_term_usages` detects the empty registry and enqueues a full rebuild
 in the background (see rebuild_nonuniqueterm_index_task in sefaria/helper/linker/tasks.py),
 instead of silently returning `[]` for every term forever. The rebuild walks the entire
