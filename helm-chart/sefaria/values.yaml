@@ -425,6 +425,33 @@ cronJobs:
     enabled: true
   dailyEmailNotifications:
     enabled: false
+  embedLibraryToPgvector:
+    enabled: false
+    # Sunday 05:00 UTC - off-peak, offset from the Sun-midnight postgres backup and the
+    # Fri-21:00 ES reindex so they don't compete for cluster resources.
+    schedule: "0 5 * * 0"
+    threads: 10
+    # No production image currently bundles the `patot` chunking dependency that
+    # embed_library_to_pgvector.py requires (see sefaria/helper/vector/embed_library_to_pgvector.py
+    # docstring and requirements.txt - it's deliberately not in the standard web image).
+    # This points at the known-working feature-branch image used by the one-off Job
+    # (scripts/k8s/embed-library-to-pgvector-job.yaml) as a placeholder - update this to a real
+    # image (ideally once patot lands in a production build) before enabling in any environment.
+    image:
+      registry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-sc-43834
+      tag: sha-65180a8-202606232007
+    # 2 CPU / 4Gi request matches the prod sizing fix noted in the pgvector embed runbook - the
+    # workload is Gemini-API-bound, not CPU-bound, and a 4 CPU/8Gi request left the pod Pending
+    # (cluster had no node with that much spare capacity).
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2"
+      limits:
+        memory: "16Gi"
+        cpu: "4"
+    activeDeadlineSeconds: 21600  # 6h safety cap so a stuck run doesn't block next week's trigger
+    ttlSecondsAfterFinished: 432000  # 5 days, matches the one-off Job
   indexFromQueue:
     enabled: false
   metrics:
