@@ -40,6 +40,22 @@ def _save_linker_metadata(index) -> None:
         invalidate_title(index.title)
 
 
+def _invalidate_non_unique_term_cache(slug: str) -> None:
+    """
+    NonUniqueTerm.cacheable=True means `.init(slug)` caches instances for the life of the
+    process, and nothing else invalidates that cache. Without this, an edit to a term's
+    titles is invisible to any already-running process -- web pod or Celery worker -- even
+    after an explicit RefResolver rebuild, since MatchTemplate.get_terms() reads terms via
+    `NonUniqueTerm.init()`, not a fresh query. Mirrors _save_linker_metadata's index-cache
+    refresh above.
+    """
+    library.refresh_non_unique_term_in_cache(slug)
+
+    if MULTISERVER_ENABLED:
+        from sefaria.system.multiserver.coordinator import server_coordinator
+        server_coordinator.publish_event("library", "refresh_non_unique_term_in_cache", [slug])
+
+
 # ---------------------------------------------------------------------------
 # Node resolution
 # ---------------------------------------------------------------------------
@@ -566,6 +582,7 @@ def add_non_unique_term_titles(slug: str, titles: List[dict], uid: int) -> dict:
         term.add_title(text, lang)
 
     term.save()
+    _invalidate_non_unique_term_cache(slug)
     log_linker_editor_action(
         uid, "add_non_unique_term_titles", {"slug": slug, "titles": titles}, slug=slug,
     )
@@ -586,6 +603,7 @@ def delete_non_unique_term(slug: str, uid: int) -> None:
         )
 
     term.delete()
+    _invalidate_non_unique_term_cache(slug)
     nut_index.set_term_usages(slug, [])
     log_linker_editor_action(uid, "delete_non_unique_term", {"slug": slug}, slug=slug)
 
