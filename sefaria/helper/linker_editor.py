@@ -108,6 +108,15 @@ def get_node_by_editor_path(index, key_path: List[str]):
     return get_node_by_key_path(index, key_path), None
 
 
+def _resolve_node(title: str, node_key_path: str):
+    """Load an index and resolve one of its nodes, raising InputError if either is missing."""
+    index = library.get_index(title)
+    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
+    if node is None:
+        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    return index, node, struct_name
+
+
 # ---------------------------------------------------------------------------
 # MatchTemplate editing
 # ---------------------------------------------------------------------------
@@ -137,10 +146,7 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
     _validate_slugs(term_slugs)
     scope = _normalize_scope(scope)
 
-    index = library.get_index(title)
-    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
-    if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    index, node, struct_name = _resolve_node(title, node_key_path)
 
     template = MatchTemplate(list(term_slugs), scope)
     serialized = template.serialize()
@@ -158,10 +164,7 @@ def add_match_template(title: str, node_key_path: str, term_slugs: List[str], sc
 
 def remove_match_template(title: str, node_key_path: str, serialized_template: dict, uid: int) -> None:
     """Remove the MatchTemplate matching `serialized_template` from a node."""
-    index = library.get_index(title)
-    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
-    if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    index, node, struct_name = _resolve_node(title, node_key_path)
 
     existing = list(getattr(node, "match_templates", []))
     remaining = [mt for mt in existing if not _match_templates_equal(mt, serialized_template)]
@@ -192,10 +195,7 @@ def _replace_match_template_impl(title: str, node_key_path: str, old_template_da
     _validate_slugs(new_term_slugs)
     new_scope = _normalize_scope(new_template_data.get("scope", "combined"))
 
-    index = library.get_index(title)
-    node, struct_name = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
-    if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    index, node, struct_name = _resolve_node(title, node_key_path)
 
     old_serialized = {
         "term_slugs": list(old_template_data.get("term_slugs", [])),
@@ -255,10 +255,7 @@ def all_address_type_names() -> List[str]:
 
 def set_address_types(title: str, node_key_path: str, address_types: List[str], uid: int) -> List[str]:
     """Overwrite a node's addressTypes. Validates length == depth and that each name resolves."""
-    index = library.get_index(title)
-    node, _ = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
-    if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    index, node, _ = _resolve_node(title, node_key_path)
 
     depth = getattr(node, "depth", None)
     if depth is None:
@@ -402,10 +399,7 @@ def set_node_properties(title: str, node_key_path: str, properties: dict, uid: i
     if not isinstance(properties, dict) or not properties:
         raise InputError("'properties' must be a non-empty object.")
 
-    index = library.get_index(title)
-    node, _ = get_node_by_editor_path(index, parse_node_key_path(node_key_path))
-    if node is None:
-        raise InputError("Could not find node '{}' in index '{}'.".format(node_key_path, title))
+    index, node, _ = _resolve_node(title, node_key_path)
 
     for prop, value in properties.items():
         if prop not in EDITABLE_NODE_PROPERTIES:
@@ -512,16 +506,31 @@ def get_non_unique_term_titles(slugs: List[str]) -> dict:
     return titles
 
 
-def get_non_unique_term_detail(slug: str) -> dict:
-    """Term titles (all languages) plus every node that uses it (from the usage index)."""
+def _require_term(slug: str) -> NonUniqueTerm:
     term = NonUniqueTerm.init(slug)
     if term is None:
         raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+    return term
+
+
+def get_non_unique_term_detail(slug: str) -> dict:
+    """Term titles (all languages) plus every node that uses it (from the usage index)."""
+    term = _require_term(slug)
     return {
         "slug": term.slug,
         "titles": term.get_titles_object(),
         "usages": nut_index.get_term_usages(slug),
     }
+
+
+def _validated_title(title: dict) -> tuple:
+    """Validate one {lang, text} title dict and return (lang, normalized_text)."""
+    if not isinstance(title, dict):
+        raise InputError("Each title must be an object.")
+    lang = title.get("lang")
+    if lang not in ("en", "he"):
+        raise InputError("Title lang must be 'en' or 'he'.")
+    return lang, _normalize_non_unique_term_title(title.get("text"), lang)
 
 
 def create_non_unique_term(titles: List[dict], uid: int) -> dict:
@@ -534,12 +543,7 @@ def create_non_unique_term(titles: List[dict], uid: int) -> dict:
         raise InputError("titles must be a list.")
     cleaned = []
     for title in titles:
-        if not isinstance(title, dict):
-            raise InputError("Each title must be an object.")
-        lang = title.get("lang")
-        if lang not in ("en", "he"):
-            raise InputError("Title lang must be 'en' or 'he'.")
-        text = _normalize_non_unique_term_title(title.get("text"), lang)
+        lang, text = _validated_title(title)
         if text:
             cleaned.append((lang, text))
     if not cleaned:
@@ -564,19 +568,12 @@ def create_non_unique_term(titles: List[dict], uid: int) -> dict:
 
 def add_non_unique_term_titles(slug: str, titles: List[dict], uid: int) -> dict:
     """Add alternate titles to a NonUniqueTerm and return the refreshed term detail."""
-    term = NonUniqueTerm.init(slug)
-    if term is None:
-        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+    term = _require_term(slug)
     if not isinstance(titles, list) or not titles:
         raise InputError("titles must be a non-empty list.")
 
     for title in titles:
-        if not isinstance(title, dict):
-            raise InputError("Each title must be an object.")
-        lang = title.get("lang")
-        if lang not in ("en", "he"):
-            raise InputError("Title lang must be 'en' or 'he'.")
-        text = _normalize_non_unique_term_title(title.get("text"), lang)
+        lang, text = _validated_title(title)
         if not text:
             raise InputError("Title text may not be blank.")
         term.add_title(text, lang)
@@ -591,9 +588,7 @@ def add_non_unique_term_titles(slug: str, titles: List[dict], uid: int) -> dict:
 
 def delete_non_unique_term(slug: str, uid: int) -> None:
     """Delete a NonUniqueTerm only when it has no MatchTemplate usages."""
-    term = NonUniqueTerm.init(slug)
-    if term is None:
-        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
+    term = _require_term(slug)
 
     usages = nut_index.get_term_usages(slug)
     if len(usages) > 0:
@@ -610,12 +605,8 @@ def delete_non_unique_term(slug: str, uid: int) -> None:
 
 def swap_non_unique_term_usages(slug: str, new_slug: str, uid: int) -> dict:
     """Replace every MatchTemplate usage of `slug` with `new_slug`."""
-    old_term = NonUniqueTerm.init(slug)
-    if old_term is None:
-        raise InputError("No NonUniqueTerm with slug '{}'.".format(slug))
-    new_term = NonUniqueTerm.init(new_slug)
-    if new_term is None:
-        raise InputError("No NonUniqueTerm with slug '{}'.".format(new_slug))
+    old_term = _require_term(slug)
+    new_term = _require_term(new_slug)
     if slug == new_slug:
         raise InputError("Choose a different NonUniqueTerm to swap with.")
 
