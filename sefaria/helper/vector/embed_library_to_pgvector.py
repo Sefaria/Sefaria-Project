@@ -589,16 +589,16 @@ def main():
     all_indexes = library.all_index_records()
     logger.info(f"Total indexes: {len(all_indexes)}")
 
-    if args.limit_indexes is not None:
-        all_indexes = all_indexes[:args.limit_indexes]
-        logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
-
     if args.max_versions is not None:
         before = len(all_indexes)
         all_indexes = [idx for idx in all_indexes
                        if VersionSet({"title": idx.title}).count() <= args.max_versions]
         logger.info(f"--max-versions={args.max_versions}: excluded {before - len(all_indexes)} index(es), "
                     f"{len(all_indexes)} remaining")
+
+    if args.limit_indexes is not None:
+        all_indexes = all_indexes[:args.limit_indexes]
+        logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
     section_cache_store = SectionTextCache()
     cached_hashes = section_cache_store.all_hashes()
