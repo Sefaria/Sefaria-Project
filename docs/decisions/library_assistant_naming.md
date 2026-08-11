@@ -28,7 +28,9 @@ third-party integration contract — and buys nothing a comment can't.
 
 ## Deliberate exceptions
 
-- The promo banner's dismissal storage key stays `chatbot_experiment_banner_dismissed`.
-  Renaming it would reset every user's dismissal history and start nagging them again.
+- The promo banner's dismissal storage key is `signup_promo_banner_dismissed`, not
+  something Library-Assistant-named. The promo is for logged-out visitors only, so the
+  key it writes is the anonymous-visitor one; renaming it would reset every visitor's
+  dismissal history and start nagging them again.
 - The analytics `experiment` field is Guided Learning's "Experiment" pill, unrelated to
   the retired experiments program and to the Library Assistant. Leave it alone.

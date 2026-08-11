@@ -256,26 +256,13 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
   );
 };
 
+// The promo is for logged-out visitors only, so this renders a single call to action:
+// log in and try the assistant. Logged-in users never see it — ReaderApp gates it on the
+// viewer being logged out.
 const LibraryAssistantPromoBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
-  const [isActionPending, setIsActionPending] = useState(false);
-
-  const handleJoin = async () => {
-    setIsActionPending(true);
-    try {
-      await Sefaria.editProfileAPI({settings: {library_assistant: true}})
-        .then(() => {
-          window.location.reload();
-          return new Promise(() => {}); // never resolves
-        });
-    } finally {
-      setIsActionPending(false);
-    }
-  };
-
   if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
     return null;
   }
-  const isLoggedIn = !!Sefaria._uid;
   // Route anon login/register through /enable-library-assistant so that, once they
   // authenticate, the assistant is turned on and they're returned here — it then
   // appears on reload with no extra "Join" click.
@@ -287,18 +274,12 @@ const LibraryAssistantPromoBanner = ({ promoMaybeLaterJSON, promoSessionLengthSe
       mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
       secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
       imgSrc="/static/icons/ai-double-star.svg"
-      actionButtons={(track) => isLoggedIn ? (
-        <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
-          <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
-        </button>
-      ) : (<>
+      actionButtons={(track) => (
         <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
-      </>)}
-      // The storage key keeps its original name on purpose: renaming it would reset
-      // every logged-in user's dismissal history and start nagging them again.
-      cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
+      )}
+      cookieName="signup_promo_banner_dismissed"
       gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
       enableBackoffDismissal={true}
       nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
