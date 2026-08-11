@@ -19,9 +19,10 @@ Every deleted row is archived to `db.experiments_data_archive` (user id, experim
 value, run id) — alongside `db.library_assistant_migration_archive`, this preserves the
 full pre-wipe record.
 
-Usage:
-    python scripts/migrations/wipe_experiments_data.py --dry-run
-    python scripts/migrations/wipe_experiments_data.py
+Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
+sefaria):
+    ./run scripts/migrations/wipe_experiments_data.py --dry-run
+    ./run scripts/migrations/wipe_experiments_data.py
 """
 
 import argparse
