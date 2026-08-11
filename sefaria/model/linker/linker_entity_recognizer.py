@@ -12,13 +12,9 @@ logger = structlog.get_logger(__name__)
 
 def get_linker_normalizer(lang: str) -> NormalizerComposer:
     """
-    The normalizer the linker applies to input text server-side before recognition.
-    See ML Repo library_exporter.py:TextWalker.__init__() which uses the same normalization;
-    important that normalization is equivalent to normalization done at training time.
-
-    Exposed as a module-level function so other server-side code (e.g. the linker editor,
-    when storing NonUniqueTerm titles) can normalize strings identically to what the linker
-    sees at match time.
+    The normalizer the linker applies to input text server-side. Must match ML Repo
+    library_exporter.py:TextWalker's normalization (the models were trained on it). Module-level
+    so other code (e.g. the linker editor, for NonUniqueTerm titles) can normalize identically.
     """
     normalizer_steps = ['unidecode', 'fn-marker', 'html', 'double-space']
     if lang == 'he':
