@@ -1,28 +1,29 @@
 import { defineConfig, devices } from '@playwright/test';
 import { t } from './e2e-tests/globals';
+import { moduleUrls } from './e2e-tests/moduleUrls';
 
 // load environment variables from .env file in the e2e-tests directory
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
+  // The file supplies defaults; anything already in the environment wins, so
+  // `SANDBOX_URL=… npx playwright test` targets what it says rather than being
+  // silently overridden by the checked-in default.
   process.env = {
-    ...process.env,
     ...env,
+    ...process.env,
   };
 }
 
-// Extract domain from SANDBOX_URL
-const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
-const MODULE_URLS = {
-  EN: {
-    LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
-    VOICES: `https://voices.${SANDBOX_DOMAIN}`
-  },
-  HE: {
-    LIBRARY: `https://www.${SANDBOX_DOMAIN_IL}`,
-    VOICES: `https://chiburim.${SANDBOX_DOMAIN_IL}`
-  }
-} as const;
+// Called here, after dotenv, rather than imported as a constant: a module's body runs
+// before its importer's first statement, so a constant would be computed against the
+// environment as it stood before `.env` was read. Same derivation the specs use through
+// e2e-tests/constants.ts, so a project's baseURL and MODULE_URLS can never diverge.
+const MODULE_URLS = moduleUrls();
+
+// The Library Assistant suite runs as the accounts in this manifest, written by
+// `scripts/dev/seed_library_assistant_e2e_users.py`. See the `la-*` projects below.
+const LA_COHORTS_SEEDED = require('fs')
+  .existsSync(require('path').join(__dirname, 'e2e-tests', '.la-e2e-users.json'));
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -49,8 +50,10 @@ export default defineConfig({
 
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 2,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Opt out of parallel tests on CI. LA_WORKERS is an opt-in cap for a run pointed at a
+   * development server, which serves the reader page far more slowly than a sandbox does;
+   * unset, the worker count is Playwright's default for every suite. */
+  workers: process.env.CI ? 1 : (process.env.LA_WORKERS ? Number(process.env.LA_WORKERS) : undefined),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
     ? [['github']]
@@ -198,6 +201,48 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Library Assistant opt-out setting (LAS-NNN). Two projects: one login per seeded
+    // cohort account into a storage-state file, then the specs that read those files.
+    //
+    // Present only once the cohorts have been seeded. The suite logs in as accounts named
+    // by that manifest and can assert nothing without them, so on an environment where
+    // nobody ran the seeding script these are not projects at all — rather than two
+    // projects that fail a full run for a reason unrelated to the code under test.
+    //
+    // Artifacts go to their own directory, so a run against a development server can be
+    // kept alongside an ordinary sandbox run instead of overwriting it.
+    ...(LA_COHORTS_SEEDED ? [
+      {
+        name: 'la-setup',
+        testDir: './e2e-tests/library-assistant-setting',
+        testMatch: /auth\.setup\.ts/,
+        outputDir: './e2e-tests/e2e-test-logs/la-test-results',
+        use: {
+          ...devices['Desktop Chrome'],
+          baseURL: MODULE_URLS.EN.LIBRARY,
+          // A development server has no valid certificate chain and a cauldron may use a
+          // short-lived one; these tests assert on application behavior, not on TLS.
+          ignoreHTTPSErrors: true,
+        },
+      },
+      {
+        name: 'la-setting',
+        testDir: './e2e-tests/library-assistant-setting',
+        testMatch: /.*\.spec\.ts/,
+        dependencies: ['la-setup'],
+        outputDir: './e2e-tests/e2e-test-logs/la-test-results',
+        // Longer than the suite-wide budget: every test here loads a full reader page, and
+        // the settings tests reload it after each save.
+        timeout: t(90000),
+        expect: { timeout: t(15000) },
+        retries: process.env.CI ? 2 : 1,
+        use: {
+          ...devices['Desktop Chrome'],
+          baseURL: MODULE_URLS.EN.LIBRARY,
+          ignoreHTTPSErrors: true,
+        },
+      },
+    ] : []),
     // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
     {
       name: 'chrome-cross-module',
