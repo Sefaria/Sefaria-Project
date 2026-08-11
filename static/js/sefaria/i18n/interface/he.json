@@ -591,5 +591,10 @@
     "guide.previous_card": "הכרטיס הקודם",
     "guide.show_guide": "הצג מדריך",
     "guide.your_browser_does_not_support_the_video_tag": "הדפדפן שלך אינו תומך בתגית הווידאו.",
-    "search_filters.collections": "באסופות"
+    "search_filters.collections": "באסופות",
+    "search.null.caption": "נתקלתם בבעיה? אפשר {bug} או {contact}.",
+    "search.null.caption.bug.label": "לדווח על תקלה",
+    "search.null.caption.contact.label": "ליצור איתנו קשר",
+    "search.null.caption.contact.link": "https://github.com/Sefaria/Sefaria-Project/issues",
+    "search.null.caption.bug.link": "https://github.com/Sefaria/Sefaria-Project/issues"
 }
