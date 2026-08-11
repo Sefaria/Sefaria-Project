@@ -41,6 +41,8 @@ ARCHIVE_COLLECTION = "experiments_data_archive"
 
 SETTING_PATH = f"settings.{SETTING_KEY}"
 
+BATCH_SIZE = 1000
+
 
 def wipe(dry_run=False, force=False):
     run_id = uuid.uuid4().hex
@@ -80,7 +82,14 @@ def wipe(dry_run=False, force=False):
             }
             for uid, experiments in rows
         ])
-    deleted, _ = UserExperimentSettings.objects.all().delete()
+    # Delete exactly what was archived, not everything present at this instant: a row
+    # created between the read above and here would otherwise be deleted unarchived.
+    # Left in place it survives for a re-run, which archives and deletes it in turn.
+    uids = [uid for uid, _ in rows]
+    deleted = 0
+    for start in range(0, len(uids), BATCH_SIZE):
+        batch = uids[start:start + BATCH_SIZE]
+        deleted += UserExperimentSettings.objects.filter(user_id__in=batch).delete()[0]
     unset = db.profiles.update_many(
         {"experiments": {"$exists": True}},
         {"$unset": {"experiments": ""}},
