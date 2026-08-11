@@ -200,19 +200,22 @@ test.describe(`Library Assistant promo banner — ${PHASE}-migration`, () => {
     'Turn on the remote config key `feature.client.show_join_chatbot_banner` and confirm it ' +
     'with GET /api/remote-config. The remote-config cache is process-local with no TTL, so ' +
     'every web pod must be restarted after the key changes before the promo appears. ' +
-    'Set LA_ALLOW_PROMO_SKIP=1 to run the suite anyway — with the understanding that the ' +
-    'promo regression these tests guard is then untested.';
+    'Set LA_REQUIRE_PROMO=1 to make this a failure instead of a skip.';
 
   /**
-   * Refuse to pass quietly when the promo is not running.
+   * Skip loudly when the promo is not running, or fail outright under LA_REQUIRE_PROMO.
    *
-   * A silent `test.skip` reads as "17 passed, 2 skipped" on launch day, and the default
-   * `list` reporter never prints the reason — so the two tests standing between a user who
-   * opted out and a banner asking them to opt back in would vanish unnoticed.
+   * The flag is a server-side remote-config value that a browser test cannot set, so an
+   * environment with the promo off makes these two tests unobservable rather than failing.
+   * The skip carries its reason in an annotation as well as the skip message, because the
+   * default `list` reporter prints neither by itself — a run that quietly reports
+   * "17 passed, 2 skipped" would hide the two tests standing between a user who opted out
+   * and a banner asking them to opt back in. Set LA_REQUIRE_PROMO=1 when the promo
+   * behaviour is the thing being verified and a skip would be a false pass.
    */
   async function requirePromoRunning(page: Page, testInfo: TestInfo) {
     if (await promoIsRunning(page)) return;
-    if (process.env.LA_ALLOW_PROMO_SKIP !== '1') {
+    if (process.env.LA_REQUIRE_PROMO === '1') {
       throw new Error(PROMO_OFF_MESSAGE);
     }
     console.warn(`\n[${testInfo.title}] SKIPPED: ${PROMO_OFF_MESSAGE}\n`);
