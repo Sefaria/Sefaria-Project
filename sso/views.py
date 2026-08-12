@@ -13,7 +13,9 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from emailusernames.utils import user_exists, get_user
 from sefaria.forms import SefariaPasswordResetForm
@@ -50,6 +52,30 @@ def _sso_only_account_error(email):
         },
         status=401,
     )
+
+
+class MobileTokenObtainPairView(TokenObtainPairView):
+    """
+    api/login/ -- the stock SimpleJWT endpoint the mobile app posts
+    email/password to. Identical to TokenObtainPairView except that a failed
+    login is checked against _sso_only_account_error before falling back to
+    SimpleJWT's generic 401, so mobile gets the same 'this account only has
+    Google/Apple sign-in' signal that email_login already gives web.
+
+    Kept at the existing api/login/ URL (not a new endpoint) so apps already
+    in the wild pick up the richer error without an app store release.
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except AuthenticationFailed:
+            username_field = self.get_serializer_class().username_field
+            email = request.data.get(username_field, "")
+            err = _sso_only_account_error(email)
+            if err:
+                return err
+            raise
 
 
 def _social_login_or_error(
