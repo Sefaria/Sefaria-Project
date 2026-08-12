@@ -107,6 +107,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.88.0-disable-content-cache-setting.1.tgz
     version: 0.88.0-disable-content-cache-setting.1
   - apiVersion: v2
+    appVersion: v6.110.8
+    created: "2026-08-12T06:30:33.646666499Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 68a767d0cb881fbddf44ac4a2714bdbf3657ea3cab444c58be0de35002b83291
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.87.2.tgz
+    version: 0.87.2
+  - apiVersion: v2
     appVersion: v6.110.7
     created: "2026-08-11T15:36:30.452191497Z"
     description: Chart to deploy complete Sefaria environment
@@ -19890,4 +19905,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-08-11T19:01:39.887241853Z"
+generated: "2026-08-12T06:30:33.643903891Z"
