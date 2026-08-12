@@ -118,10 +118,20 @@ data:
 
     # Verify dump contents - count rows in dump
     echo "=== Verifying Dump Contents ==="
-    
-    # Get tables from dump
-    DUMP_TABLES=$(pg_restore --list "$DUMP_FILE" 2>/dev/null | grep "TABLE DATA" | awk '{print $6}')
-    
+
+    # Get tables from dump.
+    # A `pg_restore --list` TABLE DATA entry is:
+    #   3339; 0 16401 TABLE DATA public auth_group sefaria
+    #    $1  $2  $3    $4    $5    $6      $7        $8
+    # $6 is the schema and $7 the table. This previously read $6, so every entry
+    # was the literal "public" -- each comparison below was 0-vs-0 and always passed.
+    DUMP_ENTRIES=$(pg_restore --list "$DUMP_FILE" | awk '$4 == "TABLE" && $5 == "DATA" { print $6 "." $7 }')
+
+    if [[ -z "$DUMP_ENTRIES" ]]; then
+      echo "ERROR: no TABLE DATA entries found in the dump; cannot verify."
+      exit 1
+    fi
+
     echo ""
     printf "%-35s | %12s | %12s | %12s | %s\n" "Table" "DB Rows" "Dump Rows" "Diff" "Status"
     printf "%-35s-|-%12s-|-%12s-|-%12s-|-%s\n" "-----------------------------------" "------------" "------------" "------------" "--------"
@@ -130,31 +140,36 @@ data:
     TOTAL_DUMP=0
     MISMATCH=0
 
-    for TABLE in $DUMP_TABLES; do
-      if [[ -z "$TABLE" ]]; then
+    for ENTRY in $DUMP_ENTRIES; do
+      if [[ -z "$ENTRY" ]]; then
         continue
       fi
 
+      SCHEMA="${ENTRY%%.*}"
+      TABLE="${ENTRY#*.}"
+
       # Get DB count (live query)
       DB_COUNT=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c \
-        "SELECT COUNT(*) FROM \"$TABLE\";" 2>/dev/null | xargs)
-      
+        "SELECT COUNT(*) FROM \"$SCHEMA\".\"$TABLE\";" 2>/dev/null | xargs)
+
       if [[ -z "$DB_COUNT" ]]; then
-        DB_COUNT=0
+        printf "%-35s | %12s | %12s | %12s | %s\n" "$SCHEMA.$TABLE" "ERROR" "-" "-" "DB ERROR"
+        MISMATCH=$((MISMATCH + 1))
+        continue
       fi
 
       # Get dump count by extracting and counting rows
-      DUMP_COUNT=$(pg_restore --data-only --table="$TABLE" "$DUMP_FILE" 2>/dev/null | \
+      DUMP_COUNT=$(pg_restore --data-only --schema="$SCHEMA" --table="$TABLE" "$DUMP_FILE" 2>/dev/null | \
         grep -v "^SET " | grep -v "^SELECT " | grep -v "^--" | grep -v "^$" | \
         grep -v "^COPY " | grep -v "^\\\." | wc -l | xargs)
-      
+
       if [[ -z "$DUMP_COUNT" ]]; then
         DUMP_COUNT=0
       fi
 
       # Calculate difference and percentage
       DIFF=$((DB_COUNT - DUMP_COUNT))
-      
+
       # Calculate percentage difference (allow 1% tolerance for changes during backup)
       if [[ $DB_COUNT -gt 0 ]]; then
         DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $DB_COUNT) * 100}")
@@ -162,7 +177,7 @@ data:
       else
         ABS_DIFF_PCT=0
       fi
-      
+
       # Status logic: OK if exact match or within 1% tolerance
       if [[ $DIFF -eq 0 ]]; then
         STATUS="OK"
@@ -176,7 +191,7 @@ data:
         MISMATCH=$((MISMATCH + 1))
       fi
 
-      printf "%-35s | %12s | %12s | %12s | %s\n" "$TABLE" "$DB_COUNT" "$DUMP_COUNT" "$DIFF" "$STATUS"
+      printf "%-35s | %12s | %12s | %12s | %s\n" "$SCHEMA.$TABLE" "$DB_COUNT" "$DUMP_COUNT" "$DIFF" "$STATUS"
 
       TOTAL_DB=$((TOTAL_DB + DB_COUNT))
       TOTAL_DUMP=$((TOTAL_DUMP + DUMP_COUNT))
@@ -188,7 +203,7 @@ data:
 
     # Final summary
     echo "=== Summary ==="
-    echo "Tables checked: $(echo "$DUMP_TABLES" | wc -w)"
+    echo "Tables checked: $(echo "$DUMP_ENTRIES" | wc -w)"
     echo "Tables with mismatches (>1%): $MISMATCH"
     echo ""
 
@@ -206,10 +221,10 @@ data:
     echo "Dump file: $DUMP_FILE"
     echo "Row counts saved to: $COUNTS_FILE"
 
-    # Exit with error if mismatches found (optional - comment out if you want to allow mismatches)
-    # if [[ $MISMATCH -gt 0 ]]; then
-    #   exit 1
-    # fi
+    if [[ $MISMATCH -gt 0 ]]; then
+      echo "ERROR: verification failed for $MISMATCH table(s); refusing to publish this dump."
+      exit 1
+    fi
 
     exit $DUMP_EXIT_CODE
 {{- end }}

@@ -36,7 +36,7 @@ spec:
         serviceAccount: database-backup-write
       postgres:
         enabled: true
-        version: 10.3
+        version: 18.3
         prefix: ""
         bucket: sefaria-user-backup
         serviceAccount: database-backup-write
