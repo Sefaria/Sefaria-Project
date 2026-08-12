@@ -21,6 +21,7 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
@@ -393,6 +394,11 @@ def base_props(request):
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -4489,6 +4495,7 @@ def account_settings(request):
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
