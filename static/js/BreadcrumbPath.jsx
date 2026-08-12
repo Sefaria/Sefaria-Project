@@ -9,7 +9,11 @@ function Breadcrumb({ label, hebrewLabel, href }) {
   const text = <InterfaceText text={{ en: label, he: hebrewLabel }} />;
   if (href) {
     return (
-      <a href={href} className="searchResultCard-crumb searchResultCard-crumb--link">
+      <a
+        href={href}
+        className="searchResultCard-crumb searchResultCard-crumb--link"
+        onClick={(e) => e.stopPropagation()}
+      >
         {text}
       </a>
     );
@@ -42,12 +46,12 @@ function CrumbList({ crumbs }) {
  *
  * Props: crumbs – array of { label: string, hebrewLabel?: string, href?: string }
  *
- * Truncation rules (per designer spec):
+ * Truncation rules (per spec):
  *   - Never truncate individual nodes mid-label.
  *   - If the full path overflows, show [first] > [...] > [last].
  *   - The "..." node has the same hover style as a text crumb.
  *   - Hovering "..." shows a static tooltip listing the hidden middle crumbs
- *     joined by " > ", styled like the reader-header tooltip.
+ *     joined by ">", styled like the reader-header tooltip.
  */
 function BreadcrumbPath({ crumbs }) {
   const containerRef = useRef(null);

@@ -1,11 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
+// Tracks whether a touch gesture is a tap (no/minimal movement) so we can show
+// a pressed state only for taps, not for scrolls that happen to start on a card.
+function usePressState() {
+  const ref = useRef(null);
+  const [pressed, setPressed] = useState(false);
+  const startPos = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const onStart = (e) => {
+      const t = e.touches[0];
+      startPos.current = { x: t.clientX, y: t.clientY };
+      setPressed(true);
+    };
+    const onMove = (e) => {
+      if (!startPos.current) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - startPos.current.x) > 10 ||
+          Math.abs(t.clientY - startPos.current.y) > 10) {
+        setPressed(false);
+        startPos.current = null;
+      }
+    };
+    const onEnd = () => {
+      setPressed(false);
+      startPos.current = null;
+    };
+
+    el.addEventListener('touchstart',  onStart, { passive: true });
+    el.addEventListener('touchmove',   onMove,  { passive: true });
+    el.addEventListener('touchend',    onEnd,   { passive: true });
+    el.addEventListener('touchcancel', onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener('touchstart',  onStart);
+      el.removeEventListener('touchmove',   onMove);
+      el.removeEventListener('touchend',    onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, []);
+
+  return [ref, pressed];
+}
+
 const TYPE_ICONS = {
-  author:     '/static/img/authors-icon.png',
+  author:     '/static/icons/iconmonstr-pen-17.svg',
   topic:      '/static/icons/topic.svg',
   text:       '/static/icons/book.svg',
   collection: '/static/icons/collection.svg',
@@ -24,6 +69,7 @@ function SearchResultCard({
   hebrewSecondaryDate,
   secondaryAuthor,
   hebrewSecondaryAuthor,
+  secondaryAuthorHref,
   secondaryAuthorAlt,
   hebrewSecondaryAuthorAlt,
   description,
@@ -44,12 +90,22 @@ function SearchResultCard({
   versions,
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [pressRef, isPressed] = usePressState();
 
-  const handleClick = (e) => {
+  const handleCardClick = () => {
+    if (window.getSelection && window.getSelection().toString()) return;
+    Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
     if (onResultClick) {
+      onResultClick(tref ?? href, null, null);
+    } else {
+      window.location.href = href;
+    }
+  };
+
+  const handleCardKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
-      onResultClick(tref ?? href, null, null); // matches handleNavigationClick(ref, currVersions, options)
+      handleCardClick();
     }
   };
 
@@ -61,14 +117,40 @@ function SearchResultCard({
   const isSourcesMode = mode === 'sources';
   // Sources cards don't show the icon circle — the colored bar and ref title are sufficient.
   const resolvedIcon = isSourcesMode ? null : (icon || TYPE_ICONS[type.toLowerCase()] || TYPE_ICONS.text);
+  const hasDescription = !isSourcesMode && !!(descriptionHtml || description);
 
   return (
-    <div className={`searchResultCard searchResultCard--${mode}`}>
+    <div
+      ref={pressRef}
+      className={`searchResultCard searchResultCard--${mode}${isPressed ? ' is-pressed' : ''}`}
+      role="link"
+      tabIndex={0}
+      aria-label={name}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+    >
       <div className="searchResultCard-bar" style={{ backgroundColor: resolvedAccentColor }} />
-      <div className="searchResultCard-content">
+      <div className={`searchResultCard-content${hasDescription ? '' : ' searchResultCard-content--centered'}`}>
         {resolvedIcon && (
           <div className="searchResultCard-iconCircle">
-            <img src={resolvedIcon} alt={`${type} icon`} className="searchResultCard-iconImg" />
+            {(type === 'text' || type === 'collection') && MODES_WITH_CATEGORY_COLOR.has(mode) ? (
+              <span
+                className="searchResultCard-iconImg searchResultCard-iconImg--masked"
+                role="img"
+                aria-label={`${type} icon`}
+                style={{
+                  WebkitMaskImage: `url(${resolvedIcon})`,
+                  maskImage: `url(${resolvedIcon})`,
+                  backgroundColor: resolvedAccentColor,
+                }}
+              />
+            ) : (
+              <img
+                src={resolvedIcon}
+                alt={`${type} icon`}
+                className={`searchResultCard-iconImg searchResultCard-iconImg--${type.toLowerCase()}`}
+              />
+            )}
           </div>
         )}
         <div className="searchResultCard-body">
@@ -76,7 +158,7 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <a href={href} onClick={handleClick} className="searchResultCard-titleLink">
+            <a href={href} className="searchResultCard-titleLink" onClick={e => e.stopPropagation()}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -100,7 +182,13 @@ function SearchResultCard({
                 )}
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
-                    <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                    {secondaryAuthorHref ? (
+                      <a href={secondaryAuthorHref} onClick={e => e.stopPropagation()}>
+                        <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                      </a>
+                    ) : (
+                      <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
+                    )}
                   </span>
                 )}
                 {secondaryAuthor && secondaryAuthorAlt && (
@@ -130,12 +218,12 @@ function SearchResultCard({
               <button
                 type="button"
                 className="searchResultCard-versionsToggle"
-                onClick={() => setVersionsOpen(o => !o)}
+                onClick={(e) => { e.stopPropagation(); setVersionsOpen(o => !o); }}
                 aria-expanded={versionsOpen}
               >
                 <InterfaceText text={{
                   en: versions.length === 1 ? '1 more version' : `${versions.length} more versions`,
-                  he: versions.length === 1 ? 'גרסה נוספת 1' : `${versions.length} גרסאות נוספות`,
+                  he: versions.length === 1 ? '1 גרסה נוספת' : `${versions.length} גרסאות נוספות`,
                 }} />
                 <span
                   className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`}
@@ -189,6 +277,7 @@ SearchResultCard.propTypes = {
   hebrewSecondaryDate:     PropTypes.string,
   secondaryAuthor:         PropTypes.string,
   hebrewSecondaryAuthor:   PropTypes.string,
+  secondaryAuthorHref:     PropTypes.string,
   secondaryAuthorAlt:      PropTypes.string,
   hebrewSecondaryAuthorAlt: PropTypes.string,
   description:          PropTypes.string,

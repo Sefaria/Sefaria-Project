@@ -3954,6 +3954,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .searchTopLine {
   margin-bottom: 20px;
 }
+/* Zero out the largeTabs bottom margin so the controls row is the sole gap
+   between the tab bar and the first card. */
+.searchContent .tab-view.largeTabs .tab-list {
+  margin-bottom: 0;
+}
+/* Fixed 76px row between the tab bar and the first result card on all tabs.
+   Controls live inside this row in normal flow — no absolute positioning needed. */
+.searchSortBar {
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+.searchContent .searchTopMatter {
+  height: 76px;
+}
 .searchPageSearchBar {
   display: flex;
   align-items: center;
@@ -4130,6 +4145,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   display: inline-flex;
   align-items: center;
+  width: 216px;
   padding: 4px;
   background: #fafafa;
   border: 1px solid var(--lighter-grey);
@@ -4151,6 +4167,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchToggle__option {
   position: relative;
   z-index: 1;
+  width: 104px;
   padding: 8px 12px;
   background: none;
   border: none;
@@ -4162,6 +4179,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 18px;
   color: var(--darker-grey);
   white-space: nowrap;
+  text-align: center;
   transition: color 150ms ease;
 }
 .searchToggle__option--active {
@@ -4170,9 +4188,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .searchContent .searchResultList {
-  padding-top: 25px;
-  max-width: 665px;
-  padding-top: 25px;
   max-width: 665px;
 }
 
@@ -4352,6 +4367,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 480px;
   box-sizing: border-box;
   margin-bottom: 20px;
+}
+.searchContent .sidebarLayout {
+  min-height: 100%;
+}
+.searchContent .navSidebar {
+  min-height: 100vh;
 }
 .searchContent .navSidebar .searchFilters {
   /* Align the sidebar heading underline with the tab group underline:
@@ -4742,15 +4763,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 20px;
   position: relative;
   transition: box-shadow 0.15s ease;
+  cursor: pointer;
 }
 .searchResultCard:hover {
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
               0 1px 2px 0  rgba(31,31,31,0.04),
               0 8px 16px 0 rgba(31,31,31,0.05);
+  cursor: pointer;
 }
-.searchResultCard:hover .searchResultCard-name,
-.searchResultCard:hover .searchResultCard-altName {
-  text-decoration: underline;
+.searchResultCard.is-pressed {
+  background-color: var(--lighter-grey, #ededec);
+}
+.searchResultCard:focus-visible {
+  outline: 2px solid var(--navy, #18345d);
+  outline-offset: 2px;
 }
 .searchResultCard-bar {
   width: 4px;
@@ -4765,6 +4791,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: flex-start;
   padding: 16px 20px;
   min-width: 0;
+}
+.searchResultCard-content--centered {
+  align-items: center;
 }
 .searchResultCard-iconCircle {
   display: flex;
@@ -4781,6 +4810,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 18px;
   display: block;
   object-fit: contain;
+}
+/* Masked variant — used for book/text icons so background-color drives the category color */
+.searchResultCard-iconImg--masked {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+/* Topic icon is always black */
+.searchResultCard-iconImg--topic {
+  filter: brightness(0);
 }
 .searchResultCard-body {
   display: flex;
@@ -4819,6 +4861,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.interface-hebrew .searchResultCard-name {
+  font-size: 29px;
 }
 .searchResultCard-altName {
   font-size: 24px;
@@ -4872,7 +4917,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
 }
-
 /* Breadcrumbs */
 .searchResultCard-breadcrumbs {
   position: relative;
@@ -4910,6 +4954,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .interface-hebrew .searchResultCard-crumbChevron {
   transform: scaleX(-1);
+}
+/* Target the InterfaceText spans directly: the .serif class on .readerPanel sets
+   --english-font/--hebrew-font to serif stacks, and the * rule in fonts.css applies
+   those vars to every child element including .int-en/.int-he, overriding inheritance.
+   Using --english-sans-serif-font-family (root-level var, never touched by .serif)
+   bypasses that cascade entirely. */
+.searchResultCard-crumb .int-en,
+.searchResultCard-description .int-en {
+  font-family: var(--english-sans-serif-font-family);
+}
+.searchResultCard-crumb .int-he,
+.searchResultCard-description .int-he {
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 .searchResultCard-crumb {
   font-size: 12px;
@@ -4970,12 +5027,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 /* ── Sources mode card extensions ────────────────────────────────────── */
-.searchResultCard--sources:hover .searchResultCard-name {
-  text-decoration: none;
-}
-.searchResultCard--sources .searchResultCard-titleLink:hover .searchResultCard-name {
-  text-decoration: underline;
-}
 .searchResultCard--sources .searchResultCard-body {
   gap: 8px;
 }
@@ -16547,7 +16598,6 @@ span.ref-link-color-3 {color: blue}
 }
 .interface-hebrew .searchSortDropdown {
   font-family: var(--hebrew-sans-serif-font-family);
-  flex-direction: row-reverse;
 }
 .searchSortDropdown:hover,
 .searchSortDropdown:focus-visible {

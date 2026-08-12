@@ -15,6 +15,7 @@ spec:
       template:
         spec:
           serviceAccount: {{ .Values.backup.postgres.serviceAccount }}
+          {{- with .Values.backup.postgres.podAffinityApp }}
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -23,8 +24,9 @@ spec:
                   - key: app
                     operator: In
                     values:
-                    - postgres
+                    - {{ . }}
                 topologyKey: kubernetes.io/hostname
+          {{- end }}
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"
@@ -33,9 +35,8 @@ spec:
           initContainers:
           - name: postgres-dumper
             image:  postgres:{{ .Values.backup.postgres.version }}
-            env:
-            - name: DATABASES_HOST
-              value: "postgres"
+            # DATABASES_HOST deliberately not overridden: it comes from local-settings
+            # below, so the dump follows whatever the app connects to.
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
