@@ -39,10 +39,11 @@ def clean_and_default_post_body(body):
     Validate a POST body against the Project writable-field rules.
 
     Returns (cleaned, error). On success `cleaned` is a dict of field name ->
-    validated value, containing only allowlisted fields present in `body`
-    (plus submission_source/submission_date defaulted if omitted), and
-    `error` is None. On failure `cleaned` is None and `error` is a
-    human-readable message naming the offending field.
+    validated value, containing only allowlisted fields actually present in
+    `body` (no additional defaults — defaulting of submission_source/submission_date
+    is the caller's responsibility to apply only on create). On failure
+    `cleaned` is None and `error` is a human-readable message naming the
+    offending field.
     """
     if not isinstance(body, dict):
         return None, "Request body must be a JSON object"
@@ -74,9 +75,6 @@ def clean_and_default_post_body(body):
                 return None, f"{field} must be a valid URL"
 
         cleaned[field] = value
-
-    cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
-    cleaned.setdefault("submission_date", timezone.now())
 
     return cleaned, None
 
@@ -114,6 +112,11 @@ def _powered_by_post(request):
         return jsonResponse({"error": error}, status=400)
 
     project_link = cleaned.pop("project_link")
+    # Apply defaults only when creating a new project (not on partial updates).
+    if not Project.objects.filter(project_link=project_link).exists():
+        cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
+        cleaned.setdefault("submission_date", timezone.now())
+
     project, created = Project.objects.update_or_create(
         project_link=project_link,
         defaults=cleaned,

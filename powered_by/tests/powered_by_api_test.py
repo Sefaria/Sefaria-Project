@@ -134,10 +134,10 @@ def test_clean_rejects_blank_required_field():
     assert error == "project_name is required"
 
 
-def test_clean_defaults_submission_source_to_formstack_when_omitted():
+def test_clean_does_not_default_submission_source_when_omitted():
     cleaned, error = clean_and_default_post_body({"project_name": "Example", "project_link": "https://example.com"})
     assert error is None
-    assert cleaned["submission_source"] == "formstack"
+    assert "submission_source" not in cleaned
 
 
 def test_clean_respects_explicit_submission_source():
@@ -147,10 +147,10 @@ def test_clean_respects_explicit_submission_source():
     assert cleaned["submission_source"] == "manual"
 
 
-def test_clean_defaults_submission_date_when_omitted():
+def test_clean_does_not_default_submission_date_when_omitted():
     cleaned, error = clean_and_default_post_body({"project_name": "Example", "project_link": "https://example.com"})
     assert error is None
-    assert cleaned["submission_date"] is not None
+    assert "submission_date" not in cleaned
 
 
 def test_clean_rejects_invalid_submission_source():
@@ -348,3 +348,28 @@ def test_post_update_preserves_staff_only_fields(client):
     assert project.featured is True
     assert project.tags == ["AI"]
     assert project.is_buggy is True
+
+
+@pytest.mark.django_db
+def test_post_update_does_not_reset_submission_source_or_date(client):
+    # Create project via direct DB insert with specific submission_source and submission_date.
+    from datetime import datetime, timezone as dt_timezone
+    past_date = datetime(2025, 1, 1, 12, 0, 0, tzinfo=dt_timezone.utc)
+    project = make_project(
+        project_link="https://submissiontracking.example.com",
+        submission_source="manual",
+        submission_date=past_date,
+    )
+
+    # POST an update that omits submission_source and submission_date entirely.
+    update_body = {
+        "project_name": "Updated Project",
+        "project_link": "https://submissiontracking.example.com",
+    }
+    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
+    assert response.status_code == 200
+
+    # Verify submission_source and submission_date were NOT reset to defaults.
+    project.refresh_from_db()
+    assert project.submission_source == "manual"  # NOT reset to "formstack"
+    assert project.submission_date == past_date  # NOT bumped to "now"
