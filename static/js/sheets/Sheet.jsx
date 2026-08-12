@@ -51,7 +51,21 @@ class Sheet extends Component {
       if (!href) { return; }
       const moduleTarget = target.getAttribute('data-target-module');
       const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
-      Sefaria.util.openInNewTab(fullUrl);
+      let url;
+      try {
+        url = new URL(fullUrl, window.location.href); // second arg resolves relative paths against the current page
+      } catch (err) {
+        Sefaria.util.openInNewTab(fullUrl);
+        return;
+      }
+      const isSheetLink = /^\/sheets\/\d+/.test(url.pathname);
+      const voicesHostname = Sefaria.getModuleURL(Sefaria.VOICES_MODULE)?.hostname;
+      const isVoicesDomain = url.hostname === voicesHostname;
+      if (isSheetLink || isVoicesDomain) {
+        window.location.href = fullUrl;
+      } else {
+        Sefaria.util.openInNewTab(fullUrl);
+      }
     }
   }
   handleCollectionsChange() {
@@ -94,6 +108,7 @@ class Sheet extends Component {
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           scrollToHighlighted={this.props.scrollToHighlighted}
           setSelectedWords={this.props.setSelectedWords}
+          handleClick={this.handleClick}
           sheetID={sheet.id}
           authorStatement={sheet.ownerName}
           authorID={sheet.owner}
