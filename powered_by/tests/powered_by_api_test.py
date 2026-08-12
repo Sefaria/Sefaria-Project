@@ -217,6 +217,45 @@ def test_clean_drops_non_writable_fields():
         assert field not in cleaned
 
 
+def test_clean_rejects_unparseable_submission_date():
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "submission_date": "yesterday",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert error == "submission_date must be a valid ISO 8601 datetime"
+
+
+def test_clean_accepts_valid_iso_submission_date():
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "submission_date": "2025-01-01T12:00:00Z",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert error is None
+    assert cleaned["submission_date"] is not None
+
+
+def test_clean_rejects_overlong_field():
+    body = {
+        "project_name": "X" * 256, "project_link": "https://example.com",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert error == "project_name must be at most 255 characters"
+
+
+def test_clean_rejects_invalid_email():
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "creator_email": "not-an-email",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert error == "creator_email must be a valid email address"
+
+
 # --- view: POST create path ---------------------------------------------------
 
 import json as _json
@@ -344,7 +383,10 @@ def test_post_update_preserves_staff_only_fields(client):
 
     project.refresh_from_db()
     assert project.project_name == "Resubmitted Name"
-    assert project.is_published is True
+    # is_published is force-unpublished on every update (see
+    # test_post_update_unpublishes_previously_published_project); other
+    # staff-only fields are untouched since they're not writable via POST.
+    assert project.is_published is False
     assert project.featured is True
     assert project.tags == ["AI"]
     assert project.is_buggy is True
@@ -373,3 +415,51 @@ def test_post_update_does_not_reset_submission_source_or_date(client):
     project.refresh_from_db()
     assert project.submission_source == "manual"  # NOT reset to "formstack"
     assert project.submission_date == past_date  # NOT bumped to "now"
+
+
+@pytest.mark.django_db
+def test_post_update_unpublishes_previously_published_project(client):
+    # A published project's project_link is public (returned by GET), so an
+    # anonymous caller can learn it and then POST an "update" to it. Any such
+    # update must force is_published back to False so staff review the change
+    # before it goes live again.
+    project = make_project(
+        project_link="https://livesite.example.com",
+        is_published=True,
+    )
+
+    update_body = {
+        "project_name": "Defaced Name",
+        "project_link": "https://livesite.example.com",
+        # Even an explicit attempt to keep it published must be ignored.
+        "is_published": True,
+    }
+    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
+    assert response.status_code == 200
+
+    project.refresh_from_db()
+    assert project.project_name == "Defaced Name"
+    assert project.is_published is False
+
+
+@pytest.mark.django_db
+def test_post_create_still_defaults_unpublished(client):
+    body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://brandnew.example.com")
+    assert project.is_published is False
+
+
+# --- view: HTTP method restriction --------------------------------------------
+
+@pytest.mark.django_db
+def test_delete_method_returns_405(client):
+    response = client.delete("/api/powered-by")
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_put_method_returns_405(client):
+    response = client.put("/api/powered-by", data=_json.dumps({}), content_type="application/json")
+    assert response.status_code == 405

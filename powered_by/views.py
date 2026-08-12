@@ -1,9 +1,11 @@
 import json
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
+from django.core.validators import URLValidator, validate_email
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.client.util import jsonResponse
@@ -32,6 +34,27 @@ CHOICE_FIELDS = {
 }
 
 _url_validator = URLValidator()
+
+
+def _writable_char_field_max_lengths():
+    """
+    Map of writable CharField name -> model max_length, introspected from
+    Project so this stays correct if the model changes.
+    """
+    from django.db.models import CharField
+
+    lengths = {}
+    for field_name in WRITABLE_FIELDS:
+        try:
+            field = Project._meta.get_field(field_name)
+        except Exception:
+            continue
+        if isinstance(field, CharField) and field.max_length:
+            lengths[field_name] = field.max_length
+    return lengths
+
+
+_CHAR_FIELD_MAX_LENGTHS = _writable_char_field_max_lengths()
 
 
 def clean_and_default_post_body(body):
@@ -74,6 +97,26 @@ def clean_and_default_post_body(body):
             except DjangoValidationError:
                 return None, f"{field} must be a valid URL"
 
+        if field == "submission_date":
+            parsed = None
+            try:
+                parsed = parse_datetime(value) if isinstance(value, str) else None
+            except (TypeError, ValueError):
+                parsed = None
+            if parsed is None:
+                return None, "submission_date must be a valid ISO 8601 datetime"
+            value = parsed
+
+        if field == "creator_email" and value:
+            try:
+                validate_email(value)
+            except DjangoValidationError:
+                return None, "creator_email must be a valid email address"
+
+        max_length = _CHAR_FIELD_MAX_LENGTHS.get(field)
+        if max_length is not None and isinstance(value, str) and len(value) > max_length:
+            return None, f"{field} must be at most {max_length} characters"
+
         cleaned[field] = value
 
     return cleaned, None
@@ -81,6 +124,7 @@ def clean_and_default_post_body(body):
 
 @csrf_exempt
 @catch_error_as_json
+@require_http_methods(["GET", "POST"])
 def powered_by_api(request):
     """
     GET: list Powered by Sefaria projects. Non-staff callers see only
@@ -116,6 +160,13 @@ def _powered_by_post(request):
     if not Project.objects.filter(project_link=project_link).exists():
         cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
         cleaned.setdefault("submission_date", timezone.now())
+    else:
+        # Any edit to an existing project un-publishes it, regardless of prior
+        # state or anything in the request body, so a staff member must review
+        # and re-publish. project_link is a public field (visible via GET), so
+        # without this an anonymous caller could deface a live project by
+        # POSTing an "update" and have it stay published immediately.
+        cleaned["is_published"] = False
 
     project, created = Project.objects.update_or_create(
         project_link=project_link,
