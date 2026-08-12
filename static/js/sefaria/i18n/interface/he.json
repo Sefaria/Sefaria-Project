@@ -544,7 +544,6 @@
     "search.null.sources.body": "נסו איות אחר או מונח חיפוש קצר יותר, תשנו את הפילטרים/טוגל, או עיינו בספרייה.",
     "search.null.sources.button": "לעיון בספרייה",
     "search.null.sources.button.link": "https://www.sefaria.org.il/texts",
-    "search.null.sources.caption": "נתקלתם בבעיה? אפשר לדווח על תקלה או ליצור איתנו קשר",
     "search.null.books.h1": "לא נמצאו ספרים עבור ״{userquery}״",
     "search.null.books.body": "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בספרייה.",
     "search.null.books.button": "לעיון בספרייה",
