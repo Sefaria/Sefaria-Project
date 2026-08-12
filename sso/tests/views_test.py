@@ -369,6 +369,63 @@ class AppleMobileTest(TestCase):
         self.assertFalse(User.objects.get(pk=user.pk).has_usable_password())
 
 
+class MobileLoginTest(TestCase):
+    """api/login/ -- the SimpleJWT endpoint the mobile app posts to. Mobile
+    sends the email address in the 'username' field (see api.js's
+    Sefaria.api.login), matching this project's USERNAME_FIELD='username'
+    default-User-model setup."""
+
+    def setUp(self):
+        self.client = Client()
+        self.url = '/api/login/'
+
+    def _post(self, body):
+        return self.client.post(
+            self.url,
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+
+    def test_valid_login_returns_tokens(self):
+        User.objects.create_user(username='ml-a@test.com', email='ml-a@test.com', password='pass123')
+        res = self._post({'username': 'ml-a@test.com', 'password': 'pass123'})
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn('access', data)
+        self.assertIn('refresh', data)
+
+    def test_wrong_password_returns_generic_error_unchanged(self):
+        User.objects.create_user(username='ml-b@test.com', email='ml-b@test.com', password='correct')
+        res = self._post({'username': 'ml-b@test.com', 'password': 'wrong'})
+        self.assertEqual(res.status_code, 401)
+        data = res.json()
+        # Ordinary failures must keep SimpleJWT's stock shape -- no '_auth' key.
+        self.assertIn('detail', data)
+        self.assertNotIn('_auth', data)
+
+    def test_unknown_username_returns_generic_error_unchanged(self):
+        res = self._post({'username': 'ml-nobody@test.com', 'password': 'x'})
+        self.assertEqual(res.status_code, 401)
+        data = res.json()
+        self.assertIn('detail', data)
+        self.assertNotIn('_auth', data)
+
+    def test_sso_only_account_returns_code_and_providers(self):
+        user = User.objects.create_user(username='ml-sso@test.com', email='ml-sso@test.com', password='x')
+        user.set_unusable_password()
+        user.save()
+        SocialAccount.objects.create(user=user, provider='google', uid='mobile-12345')
+
+        res = self._post({'username': 'ml-sso@test.com', 'password': 'anything'})
+        self.assertEqual(res.status_code, 401)
+        data = res.json()
+        self.assertEqual(data['error'], 'auth.generic_error')
+        self.assertEqual(data['_auth']['code'], 'sso_only_account')
+        self.assertIn('google', data['_auth']['providers'])
+        self.assertNotIn('access', data)
+        self.assertNotIn('refresh', data)
+
+
 class PasswordResetApiTest(TestCase):
     def setUp(self):
         self.client = Client()
