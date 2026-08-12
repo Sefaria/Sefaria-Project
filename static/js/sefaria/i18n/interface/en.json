@@ -556,7 +556,6 @@
     "search.null.topics.body": "Try a different spelling or shorter search term, or browse all topics.",
     "search.null.topics.button": "Browse Topics",
     "search.null.topics.button.link": "https://www.sefaria.org/topics",
-    "search.null.topics.caption": "Something seem wrong? Report a bug or contact us.",
     "ai_info_tooltip.some_of_the_text_on_this_page": "Some of the text on this page has been AI generated.",
     "ai_info_tooltip.the_questions_and_answers_in_this_learning_guide": "The questions and answers in this Learning Guide have been written and curated by AI with human review. Something not right? Let us know.",
     "auth.already_have_an_account": "Already have an account?",
