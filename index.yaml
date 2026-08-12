@@ -108,6 +108,21 @@ entries:
     version: 0.88.0-disable-content-cache-setting.1
   - apiVersion: v2
     appVersion: v6.110.9
+    created: "2026-08-12T15:07:09.677090852Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 85f2b420d9e0f67f18d8ef88986f63718885d19df1b36295fe061826a46496a7
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.87.4-fixmongo-restore-verify-and-exclude.1.tgz
+    version: 0.87.4-fixmongo-restore-verify-and-exclude.1
+  - apiVersion: v2
+    appVersion: v6.110.9
     created: "2026-08-12T13:08:47.594859353Z"
     description: Chart to deploy complete Sefaria environment
     digest: 65e7899132d05fe996d42da807cf39f278fed33d4eabfe2af7f161501b7dfbbf
@@ -20025,4 +20040,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-08-12T13:08:47.59128565Z"
+generated: "2026-08-12T15:07:09.674115953Z"
