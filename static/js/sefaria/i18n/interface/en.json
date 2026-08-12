@@ -548,7 +548,6 @@
     "search.null.books.body": "Try a different spelling or shorter search term, or browse the library.",
     "search.null.books.button": "Browse the Library",
     "search.null.books.button.link": "https://www.sefaria.org/texts",
-    "search.null.books.caption": "Something seem wrong? Report a bug or contact us.",
     "search.null.authors.h1": "No authors found for “{userquery}”.",
     "search.null.authors.body": "Try a different spelling or shorter search term, or browse all authors.",
     "search.null.authors.button": "Browse Authors",
