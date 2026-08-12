@@ -2,7 +2,7 @@ import { DEFAULT_LANGUAGE, LANGUAGES, t } from './globals'
 import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
-import { MODULE_URLS, MODULE_SELECTORS } from './constants';
+import { MODULE_URLS, MODULE_SELECTORS, AUTH_LABELS } from './constants';
 import path from 'path';
 import fs from 'fs';
 
@@ -194,6 +194,20 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  */
 export const changeLanguage = async (page: Page, language: string) => {
   await toggleLanguage(page, language)
+};
+
+/**
+ * /login and /register (static/js/auth/AuthPage.jsx) both land on ChooseView
+ * (provider buttons + "Continue with Email") before any email/password form
+ * exists. Shared by LoginPage and SignUpPage rather than duplicated per class.
+ */
+export const clickContinueWithEmail = async (page: Page, language: string) => {
+  const label = language === LANGUAGES.HE
+    ? AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.HE]
+    : AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.EN];
+  const button = page.getByRole('button', { name: label });
+  await button.waitFor({ state: 'visible', timeout: t(15000) });
+  await button.click();
 };
 
 

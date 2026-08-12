@@ -3965,6 +3965,9 @@ Sefaria.unpackBaseProps = function(props){
       "chatbot_api_base_url",
       "chatbot_version",
       "chatbot_use_local_script",
+      "googleClientId",
+      "appleClientId",
+      "recaptchaSiteKey",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
@@ -4003,6 +4006,11 @@ Sefaria.palette.indexColor = function(title) {
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 Sefaria = extend(Sefaria, Strings);
+
+Sefaria.ssoUseRedirect = function() {
+  return window.matchMedia('(max-width: 767px)').matches ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+};
 
 Sefaria.setup = function(data, props = null, resetCache = false) {
     if (resetCache) {

@@ -254,6 +254,14 @@ GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 GPU_SERVER_URL = 'http://localhost:5000'
 
+# SSO (Google + Apple Sign In via django-allauth)
+GOOGLE_SSO_CLIENT_ID = ""
+APPLE_SSO_CLIENT_ID = "org.sefaria.web.signin"
+APPLE_SSO_IOS_BUNDLE_ID = "org.sefaria.sefariaApp"
+APPLE_SSO_TEAM_ID = ""
+APPLE_SSO_KEY_ID = ""
+APPLE_SSO_PRIVATE_KEY = ""
+
 # Simple JWT
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
