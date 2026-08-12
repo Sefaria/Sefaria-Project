@@ -100,6 +100,21 @@ spec:
                   # in a value silently become an extra argument.
                   PSQL=(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d postgres)
 
+                  # The post-restore assertion below is correct but fires too late:
+                  # by then the target is already dropped, so a bad archive costs
+                  # this environment its data rather than merely leaving it stale.
+                  # Check the artifact first -- a dump without post-data is knowable
+                  # before anything destructive happens.
+                  echo "Checking the downloaded archive carries a post-data section..."
+                  ARCHIVE_POSTDATA=$(pg_restore --list /storage/pg.dump | \
+                    awk '$4 == "INDEX" || $4 == "CONSTRAINT" || ($4 == "FK" && $5 == "CONSTRAINT") {n++} END {print n+0}')
+                  if [[ "$ARCHIVE_POSTDATA" -eq 0 ]]; then
+                    echo "ERROR: archive has no INDEX or CONSTRAINT entries -- it was dumped without --section=post-data."
+                    echo "Refusing to drop $PGDATABASE for an archive that cannot restore a usable schema."
+                    exit 1
+                  fi
+                  echo "Archive carries $ARCHIVE_POSTDATA index/constraint entries."
+
                   # Recreate rather than pg_restore --clean, whose DROP SCHEMA public fails
                   # when this env holds objects production lacks. FORCE avoids racing
                   # reconnecting app pods.

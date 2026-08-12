@@ -47,6 +47,35 @@ data:
     fi
     echo ""
 
+    # A client older than the server aborts pg_dump outright; a client newer than
+    # the server means this job is pointed at an instance the chart no longer
+    # tracks. Either way the version pin and the host have drifted apart.
+    SERVER_VERSION_NUM=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -tAc "SHOW server_version_num;" | xargs)
+    SERVER_MAJOR=$((SERVER_VERSION_NUM / 10000))
+    # $3, not $NF: builds append a packaging suffix ("... 18.3 (Debian 18.3-1.pgdg13+1)",
+    # "... 14.18 (Homebrew)"), and the last field is not always the version.
+    CLIENT_MAJOR=$(pg_dump --version | awk '{print $3}' | cut -d. -f1)
+    if [[ "$SERVER_MAJOR" != "$CLIENT_MAJOR" ]]; then
+      echo "ERROR: pg_dump client major version $CLIENT_MAJOR does not match server major version $SERVER_MAJOR at $PG_HOST."
+      echo "Set backup.postgres.version to match the server, or correct postgres.host."
+      exit 1
+    fi
+    echo "Client/server major version: $CLIENT_MAJOR (match)"
+{{- if gt (int .Values.backup.postgres.maxSourceStalenessDays) 0 }}
+    # A frozen source is the failure this backup went 12 weeks without noticing:
+    # the job dumped a decommissioned instance whose newest row predated the
+    # cutover. Row counts alone cannot see it -- a stale database still counts.
+    MAX_STALE_DAYS={{ .Values.backup.postgres.maxSourceStalenessDays }}
+    SOURCE_AGE_DAYS=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -tAc \
+      "SELECT COALESCE(floor(EXTRACT(EPOCH FROM (now() - max(date_joined))) / 86400)::int, 999999) FROM auth_user;" | xargs)
+    if [[ "$SOURCE_AGE_DAYS" -gt "$MAX_STALE_DAYS" ]]; then
+      echo "ERROR: newest auth_user.date_joined is $SOURCE_AGE_DAYS days old (limit $MAX_STALE_DAYS)."
+      echo "This source looks frozen -- check that $PG_HOST is the live instance."
+      exit 1
+    fi
+    echo "Source freshness: newest account is $SOURCE_AGE_DAYS day(s) old (limit $MAX_STALE_DAYS)"
+{{- end }}
+
     # Count rows in all tables BEFORE dump
     echo "=== Pre-Dump Row Counts ==="
     echo "table_name,row_count" > "$COUNTS_FILE"
