@@ -552,7 +552,6 @@
     "search.null.authors.body": "Try a different spelling or shorter search term, or browse all authors.",
     "search.null.authors.button": "Browse Authors",
     "search.null.authors.button.link": "https://www.sefaria.org/topics/category/authors",
-    "search.null.authors.caption": "Something seem wrong? Report a bug or contact us.",
     "search.null.topics.h1": "No topics found for “{userquery}”.",
     "search.null.topics.body": "Try a different spelling or shorter search term, or browse all topics.",
     "search.null.topics.button": "Browse Topics",
