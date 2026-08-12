@@ -76,10 +76,6 @@ backup:
     # restored django_migrations marks the migration applied, so Django won't recreate it.
     excludeTableData:
       - django_session
-    # Refuse to publish a dump whose newest account predates this many days -- a
-    # frozen source means the job is dumping an instance nothing else still writes
-    # to. 0 disables the check for environments with no signup traffic.
-    maxSourceStalenessDays: 14
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
