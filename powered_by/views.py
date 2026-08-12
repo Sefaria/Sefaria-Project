@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
 
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.client.util import jsonResponse
@@ -82,18 +81,38 @@ def clean_and_default_post_body(body):
     return cleaned, None
 
 
-@require_GET
+@csrf_exempt
 @catch_error_as_json
 def powered_by_api(request):
     """
-    Basic GET endpoint returning Powered by Sefaria projects.
-
-    Non-staff callers see only published projects, with PII / internal fields
-    (Project.PRIVATE_FIELDS) stripped. Staff see all projects with all fields.
-    No pagination. Returns:
+    GET: list Powered by Sefaria projects. Non-staff callers see only
+    published projects, with PII / internal fields (Project.PRIVATE_FIELDS)
+    stripped. Staff see all projects with all fields. No pagination.
         {"projects": [ { ...project fields... }, ... ]}
+
+    POST: create a Powered by Sefaria project from a JSON body (see
+    clean_and_default_post_body for field rules and defaults).
+        {"project": { ...project fields... }}
     """
+    if request.method == "POST":
+        return _powered_by_post(request)
+
     authenticated = request.user.is_staff
     queryset = Project.objects.all() if authenticated else Project.objects.filter(is_published=True)
     projects = [project.contents(authenticated=authenticated) for project in queryset]
     return jsonResponse({"projects": projects})
+
+
+def _powered_by_post(request):
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return jsonResponse({"error": "Request body must be valid JSON"}, status=400)
+
+    cleaned, error = clean_and_default_post_body(body)
+    if error:
+        return jsonResponse({"error": error}, status=400)
+
+    project = Project.objects.create(**cleaned)
+    authenticated = request.user.is_staff
+    return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=201)

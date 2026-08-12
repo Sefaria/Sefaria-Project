@@ -215,3 +215,78 @@ def test_clean_drops_non_writable_fields():
     assert error is None
     for field in ("is_published", "featured", "tags", "is_buggy", "id", "status"):
         assert field not in cleaned
+
+
+# --- view: POST create path ---------------------------------------------------
+
+import json as _json
+
+
+@pytest.mark.django_db
+def test_post_creates_project_and_returns_201(client):
+    body = {"project_name": "New Project", "project_link": "https://newproject.example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    project = response.json()["project"]
+    assert project["project_name"] == "New Project"
+    assert project["project_link"] == "https://newproject.example.com"
+    assert project["submission_source"] == "formstack"
+    assert Project.objects.filter(project_link="https://newproject.example.com").exists()
+
+
+@pytest.mark.django_db
+def test_post_missing_project_name_returns_400(client):
+    body = {"project_link": "https://newproject.example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 400
+    assert response.json()["error"] == "project_name is required"
+    assert not Project.objects.filter(project_link="https://newproject.example.com").exists()
+
+
+@pytest.mark.django_db
+def test_post_invalid_json_returns_400(client):
+    response = client.post("/api/powered-by", data="not json", content_type="application/json")
+    assert response.status_code == 400
+    assert "JSON" in response.json()["error"]
+
+
+@pytest.mark.django_db
+def test_post_invalid_submission_source_returns_400(client):
+    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "submission_source": "carrier_pigeon"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 400
+    assert not Project.objects.filter(project_link="https://newproject.example.com").exists()
+
+
+@pytest.mark.django_db
+def test_post_response_strips_private_fields_for_anonymous(client):
+    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    assert "creator_email" not in response.json()["project"]
+    assert Project.objects.get(project_link="https://newproject.example.com").creator_email == "a@example.com"
+
+
+@pytest.mark.django_db
+def test_post_response_includes_private_fields_for_staff(client):
+    staff = User.objects.create_user(username="staff2", password="pw", is_staff=True)
+    client.force_login(staff)
+    body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    assert response.json()["project"]["creator_email"] == "a@example.com"
+
+
+@pytest.mark.django_db
+def test_post_ignores_staff_only_fields_on_create(client):
+    body = {
+        "project_name": "New Project", "project_link": "https://newproject.example.com",
+        "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
+    }
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://newproject.example.com")
+    assert project.is_published is False
+    assert project.featured is False
+    assert project.tags == []
+    assert project.is_buggy is False
