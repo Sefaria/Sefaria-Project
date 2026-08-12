@@ -113,6 +113,11 @@ def _powered_by_post(request):
     if error:
         return jsonResponse({"error": error}, status=400)
 
-    project = Project.objects.create(**cleaned)
+    project_link = cleaned.pop("project_link")
+    project, created = Project.objects.update_or_create(
+        project_link=project_link,
+        defaults=cleaned,
+    )
     authenticated = request.user.is_staff
-    return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=201)
+    status = 201 if created else 200
+    return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=status)

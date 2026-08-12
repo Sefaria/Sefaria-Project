@@ -290,3 +290,61 @@ def test_post_ignores_staff_only_fields_on_create(client):
     assert project.featured is False
     assert project.tags == []
     assert project.is_buggy is False
+
+
+# --- view: POST idempotency / update path ------------------------------------
+
+@pytest.mark.django_db
+def test_post_same_project_link_updates_not_duplicates(client):
+    body = {"project_name": "Original Name", "project_link": "https://sameproject.example.com"}
+    first = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert first.status_code == 201
+
+    body["project_name"] = "Updated Name"
+    second = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert second.status_code == 200
+
+    matching = Project.objects.filter(project_link="https://sameproject.example.com")
+    assert matching.count() == 1
+    assert matching.get().project_name == "Updated Name"
+
+
+@pytest.mark.django_db
+def test_post_partial_update_does_not_clobber_omitted_fields(client):
+    create_body = {
+        "project_name": "Original Name",
+        "project_link": "https://partialupdate.example.com",
+        "project_desc": "Original description.",
+    }
+    client.post("/api/powered-by", data=_json.dumps(create_body), content_type="application/json")
+
+    update_body = {"project_name": "New Name", "project_link": "https://partialupdate.example.com"}
+    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
+    assert response.status_code == 200
+
+    project = Project.objects.get(project_link="https://partialupdate.example.com")
+    assert project.project_name == "New Name"
+    assert project.project_desc == "Original description."
+
+
+@pytest.mark.django_db
+def test_post_update_preserves_staff_only_fields(client):
+    project = make_project(
+        project_link="https://staffcurated.example.com",
+        is_published=True, featured=True, tags=["AI"], is_buggy=True,
+    )
+
+    update_body = {
+        "project_name": "Resubmitted Name",
+        "project_link": "https://staffcurated.example.com",
+        "is_published": False, "featured": False, "tags": [], "is_buggy": False,
+    }
+    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
+    assert response.status_code == 200
+
+    project.refresh_from_db()
+    assert project.project_name == "Resubmitted Name"
+    assert project.is_published is True
+    assert project.featured is True
+    assert project.tags == ["AI"]
+    assert project.is_buggy is True
