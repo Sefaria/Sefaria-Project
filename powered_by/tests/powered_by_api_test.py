@@ -103,3 +103,115 @@ def test_staff_sees_all_projects_with_private_fields(client, projects):
     for project in data:
         for field in PRIVATE_FIELDS:
             assert field in project
+
+
+# --- clean_and_default_post_body() -------------------------------------------
+
+from powered_by.views import clean_and_default_post_body
+
+
+def test_clean_rejects_non_dict_body():
+    cleaned, error = clean_and_default_post_body(["not", "a", "dict"])
+    assert cleaned is None
+    assert error == "Request body must be a JSON object"
+
+
+def test_clean_requires_project_name():
+    cleaned, error = clean_and_default_post_body({"project_link": "https://example.com"})
+    assert cleaned is None
+    assert error == "project_name is required"
+
+
+def test_clean_requires_project_link():
+    cleaned, error = clean_and_default_post_body({"project_name": "Example"})
+    assert cleaned is None
+    assert error == "project_link is required"
+
+
+def test_clean_rejects_blank_required_field():
+    cleaned, error = clean_and_default_post_body({"project_name": "   ", "project_link": "https://example.com"})
+    assert cleaned is None
+    assert error == "project_name is required"
+
+
+def test_clean_defaults_submission_source_to_formstack_when_omitted():
+    cleaned, error = clean_and_default_post_body({"project_name": "Example", "project_link": "https://example.com"})
+    assert error is None
+    assert cleaned["submission_source"] == "formstack"
+
+
+def test_clean_respects_explicit_submission_source():
+    body = {"project_name": "Example", "project_link": "https://example.com", "submission_source": "manual"}
+    cleaned, error = clean_and_default_post_body(body)
+    assert error is None
+    assert cleaned["submission_source"] == "manual"
+
+
+def test_clean_defaults_submission_date_when_omitted():
+    cleaned, error = clean_and_default_post_body({"project_name": "Example", "project_link": "https://example.com"})
+    assert error is None
+    assert cleaned["submission_date"] is not None
+
+
+def test_clean_rejects_invalid_submission_source():
+    body = {"project_name": "Example", "project_link": "https://example.com", "submission_source": "carrier_pigeon"}
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert "submission_source" in error
+
+
+def test_clean_rejects_invalid_technical_experience():
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "technical_experience": "a decade",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert "technical_experience" in error
+
+
+def test_clean_rejects_non_boolean_for_boolean_field():
+    body = {"project_name": "Example", "project_link": "https://example.com", "vibe_coded": "true"}
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert "vibe_coded" in error
+
+
+def test_clean_accepts_real_boolean():
+    body = {"project_name": "Example", "project_link": "https://example.com", "vibe_coded": True}
+    cleaned, error = clean_and_default_post_body(body)
+    assert error is None
+    assert cleaned["vibe_coded"] is True
+
+
+def test_clean_rejects_non_list_for_list_field():
+    body = {"project_name": "Example", "project_link": "https://example.com", "sefaria_tools_used": "Sefaria API"}
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert "sefaria_tools_used" in error
+
+
+def test_clean_accepts_real_list():
+    body = {"project_name": "Example", "project_link": "https://example.com", "sefaria_tools_used": ["Sefaria API"]}
+    cleaned, error = clean_and_default_post_body(body)
+    assert error is None
+    assert cleaned["sefaria_tools_used"] == ["Sefaria API"]
+
+
+def test_clean_rejects_invalid_url():
+    body = {"project_name": "Example", "project_link": "not-a-url"}
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert "project_link" in error
+
+
+def test_clean_drops_non_writable_fields():
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
+        "id": 999, "status": "live",
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert error is None
+    for field in ("is_published", "featured", "tags", "is_buggy", "id", "status"):
+        assert field not in cleaned
