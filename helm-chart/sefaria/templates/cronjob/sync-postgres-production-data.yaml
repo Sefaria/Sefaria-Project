@@ -106,8 +106,17 @@ spec:
                   # Check the artifact first -- a dump without post-data is knowable
                   # before anything destructive happens.
                   echo "Checking the downloaded archive carries a post-data section..."
-                  ARCHIVE_POSTDATA=$(pg_restore --list /storage/pg.dump | \
-                    awk '$4 == "INDEX" || $4 == "CONSTRAINT" || ($4 == "FK" && $5 == "CONSTRAINT") {n++} END {print n+0}')
+                  # Read the table of contents to a file first. Piping straight into
+                  # awk hides a failed pg_restore behind awk's exit status, and an
+                  # unreadable archive -- truncated download, wrong format, a client
+                  # too old for the header -- would then be misreported below as
+                  # "dumped without post-data".
+                  if ! pg_restore --list /storage/pg.dump > /storage/pg.toc; then
+                    echo "ERROR: could not read the archive's table of contents."
+                    echo "The download may be truncated, or this client cannot read the archive format."
+                    exit 1
+                  fi
+                  ARCHIVE_POSTDATA=$(awk '$4 == "INDEX" || $4 == "CONSTRAINT" || ($4 == "FK" && $5 == "CONSTRAINT") {n++} END {print n+0}' /storage/pg.toc)
                   if [[ "$ARCHIVE_POSTDATA" -eq 0 ]]; then
                     echo "ERROR: archive has no INDEX or CONSTRAINT entries -- it was dumped without --section=post-data."
                     echo "Refusing to drop $PGDATABASE for an archive that cannot restore a usable schema."
