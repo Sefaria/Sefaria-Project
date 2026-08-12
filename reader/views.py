@@ -5231,16 +5231,50 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
+# still opens the app (see AASA_PATHS below).
+#
+# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
+# the browser, which the app can't see. When the SSO round-trip returns from
+# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
+# into sefaria.org -- exactly the trigger for a universal link -- so without these
+# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
+# has no route for these paths either; they fall through to its catchAll, which bounces
+# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
+    "/_allauth/*",          # allauth headless API
+    "/login",
+    "/login/",
+    "/register",
+    "/register/",
+    "/logout",
+    "/logout/",
+    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+]
+
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }
