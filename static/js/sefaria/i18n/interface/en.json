@@ -544,7 +544,6 @@
     "search.null.sources.body": "Try a different spelling or shorter search term, change your filter/toggle selections, or browse the library.",
     "search.null.sources.button": "Browse the Library",
     "search.null.sources.button.link": "https://www.sefaria.org/texts",
-    "search.null.sources.caption": "Something seem wrong? Report a bug or contact us.",
     "search.null.books.h1": "No books found for “{userquery}”.",
     "search.null.books.body": "Try a different spelling or shorter search term, or browse the library.",
     "search.null.books.button": "Browse the Library",
