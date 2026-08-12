@@ -548,7 +548,6 @@
     "search.null.books.body": "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בספרייה.",
     "search.null.books.button": "לעיון בספרייה",
     "search.null.books.button.link": "https://www.sefaria.org.il/texts",
-    "search.null.books.caption": "מהשו נראה לא תקין? אפשר לדווח על תקלה או ליצור איתנו קשר.",
     "search.null.authors.h1": "לא נמצאו מחברים עבור ״{userquery}״",
     "search.null.authors.body": "נסו איות אחר, או מונח חיפוש קצר יותר, או עיינו בכל המחברים.",
     "search.null.authors.button": "לעיון בכל המחברים",
