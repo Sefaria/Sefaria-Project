@@ -398,7 +398,7 @@ class SearchPage extends Component {
     />;
 
     const makeSortFilterControls = (disabled = false) =>
-      useDesktopTabs && !this.props.compare
+      Sefaria.multiPanel && !this.props.compare
         ? <SearchSortBox
               type={this.props.type}
               sortTypeArray={this.props.sortTypeArray}
@@ -452,14 +452,14 @@ class SearchPage extends Component {
           filters={visibleBookFilters}
           updateSelected={this.toggleBookCategoryFilter}
           hideEmpty={dataLoaded}
-          mobileSortProps={!useDesktopTabs ? {
+          mobileSortProps={!Sefaria.multiPanel ? {
             sortOptions: ENTITY_SORT_OPTIONS.books,
             sortType: this.state.entitySort.book,
             onSortChange: (key) => this.setEntitySort('book', key),
             onClose: closeMobileFilters,
           } : null}
       />;
-    } else if (!useDesktopTabs) {
+    } else if (!Sefaria.multiPanel) {
       if (activeTab === "authors") {
         sidebar = <EntitySortPanel
             sortOptions={ENTITY_SORT_OPTIONS.authors}
@@ -493,7 +493,7 @@ class SearchPage extends Component {
     const tabPanels = [
       <div className="searchTabPanel" key="sources">
         <div className="searchTopMatter">
-          {useDesktopTabs && !this.props.compare && this.props.type === "text" && (
+          {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
             <SearchToggle
               options={[
                 {name: "all",   en: "All results",  he: "כל התוצאות"},
@@ -513,7 +513,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="books">
         <div className="searchSortBar">
-          {useDesktopTabs
+          {Sefaria.multiPanel
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.books}
                 sortType={this.state.entitySort.book}
@@ -531,7 +531,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="authors">
         <div className="searchSortBar">
-          {useDesktopTabs
+          {Sefaria.multiPanel
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.authors}
                 sortType={this.state.entitySort.author}
@@ -549,7 +549,7 @@ class SearchPage extends Component {
       </div>,
       <div className="searchTabPanel" key="topics">
         <div className="searchSortBar">
-          {useDesktopTabs
+          {Sefaria.multiPanel
             ? <SearchSortDropdown
                 options={ENTITY_SORT_OPTIONS.topics}
                 sortType={this.state.entitySort.topic}

@@ -148,14 +148,16 @@ SearchResultList.propTypes = {
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, disabled}) => {
     const [isOpen, setIsOpen] = useState(false);
+    const currentOption = (sortTypeArray || []).find(o => o.type === sortType) || (sortTypeArray || [])[0];
+    const sortLabel = currentOption
+      ? <InterfaceText text={{en: currentOption.name, he: currentOption.heName}} />
+      : <InterfaceText text={{en: "Sort", he: "מיון"}} />;
 
     if (disabled) {
       return (
         <div className="searchSortDropdown disabled" aria-disabled="true" tabIndex={-1}>
           <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
-          <span className="searchSortDropdown__label">
-            <InterfaceText text={{en: "Sort", he: "מיון"}} />
-          </span>
+          <span className="searchSortDropdown__label">{sortLabel}</span>
           <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down-line.svg" alt="" aria-hidden="true" />
         </div>
       );
@@ -179,9 +181,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
             aria-expanded={isOpen}
           >
             <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
-            <span className="searchSortDropdown__label">
-              <InterfaceText text={{en: "Sort", he: "מיון"}} />
-            </span>
+            <span className="searchSortDropdown__label">{sortLabel}</span>
             <img
               className="searchSortDropdown__chevron"
               src="/static/icons/chevron-down-line.svg"

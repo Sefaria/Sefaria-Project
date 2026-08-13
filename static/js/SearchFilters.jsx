@@ -337,7 +337,7 @@ const BookSearchFilters = ({filters, updateSelected, mobileSortProps, hideEmpty}
         expandable={true}
         hideEmpty={hideEmpty}
         checkOnPartial={true}
-        searchPlaceholder={Sefaria._("common.search")} />
+        />
     </div>
   );
 
