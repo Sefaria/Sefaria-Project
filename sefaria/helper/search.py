@@ -10,6 +10,7 @@ from remote_config.keys import (
 )
 import structlog
 import re
+import unicodedata
 
 # This module must not import sefaria.model at module level: it is imported by
 # sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
@@ -262,10 +263,10 @@ _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see 
 # the year their result card displays. Changing either derivation needs a reindex.
 _ENTITY_YEAR_SORT_FIELDS = {"author": "sortYear", "book": "compDate"}
 
-# Default per-field match boosts for the tier-3 best_fields multi_match, in priority
-# order: title -> title variants -> the name/works fields (author names on books,
-# authored titles on authors). Descriptions are deliberately excluded from search
-# entirely — a description mention is not a meaningful entity match.
+# Default per-field match boosts for the all-words (tier 3) and any-word (tier 6)
+# multi_match clauses, in priority order: title -> title variants -> the name/works fields
+# (author names on books, authored titles on authors). Descriptions are deliberately
+# excluded from search entirely — a description mention is not a meaningful entity match.
 #
 # These defaults double as the *allow-list* of valid field names. A RemoteConfig
 # override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
@@ -289,9 +290,9 @@ _ENTITY_FIELD_BOOSTS_RC_KEYS = {
 
 def _resolve_entity_field_boosts(type):
     """
-    Return the tier-3 multi_match field list (["title_en^3", "titleVariants^2", ...]) for
-    `type`, applying any RemoteConfig per-field boost overrides on top of the hardcoded
-    defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
+    Return the multi_match field list (["title_en^3", "titleVariants^2", ...]) used by the
+    all-words and any-word tiers for `type`, applying any RemoteConfig per-field boost
+    overrides on top of the hardcoded defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
 
     The defaults are the source of truth for *which* fields are searchable; the RemoteConfig
     JSON only tunes their boosts. So an override is honored only when:
@@ -347,6 +348,35 @@ _ENTITY_SECONDARY_KEYWORD_FIELDS = {
     "book": ["titleVariants.keyword"],
 }
 
+# The all-prefixes tier (see get_entity_query_obj) builds `prefix` queries, which are NOT run
+# through an analyzer — each term is compared raw against the tokens already stored in the
+# index. So the query has to be split the same way the `exact_english` analyzer splits the
+# titles it indexed, or the terms silently match nothing. The three steps below mirror that
+# analyzer's own pipeline (icu_normalizer char_filter -> standard tokenizer -> icu_folding);
+# every example cited was confirmed against a live index via the _analyze API.
+#
+# Step 1: fold the typographic quotes the way icu_folding does, so "Me’am" and "רמב״ם" carry
+# the ASCII forms actually stored ("me'am", 'רמב"ם').
+_ENTITY_QUOTE_FOLDING = str.maketrans({"’": "'", "׳": "'", "״": '"'})
+# Step 3: approximate the `standard` tokenizer's word boundaries (Unicode UAX #29). Break on
+# whitespace and punctuation, but keep a quote sitting *between* two letters — that tokenizer
+# does not split there, so "Ba'al ha-Turim" is [ba'al, ha, turim] and "רמב״ם" is one token.
+# (Splitting on all punctuation, as a naive reading suggests, would wreck far more of these
+# than the hyphens it fixes.) A *trailing* quote survives only after a Hebrew letter — the
+# "ר׳" = Rabbi abbreviation — and is dropped after a Latin one ("Yosi'" -> yosi).
+_ENTITY_TOKEN_RE = re.compile(r"\w+(?:['\"]\w+)*(?:(?<=[֐-׿])')?", re.UNICODE)
+
+
+def _entity_query_tokens(query):
+    """Split `query` into terms comparable to the tokens `exact_english` actually stores."""
+    query = query.translate(_ENTITY_QUOTE_FOLDING)
+    # Step 2: strip combining marks (icu_folding). This has to happen *before* tokenizing,
+    # as the analyzer's char_filter does: Hebrew niqqud are combining marks that `\w` will
+    # not match, so leaving them in place would split "בְּרֵאשִׁית" into four tokens.
+    query = "".join(c for c in unicodedata.normalize("NFKD", query) if not unicodedata.combining(c))
+    return _ENTITY_TOKEN_RE.findall(query)
+
+
 # Exact-match boosts are applied via constant_score (below), so they are IDF-independent:
 # an exact primary-title hit contributes a fixed, dominant amount that a longer title merely
 # *containing* the query words — or an exact hit on a variant — can never sum past. This is
@@ -395,11 +425,19 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                          partial tiers below on a longer title, and no exact *variant* hit, can
                          sum past it.
       2. Exact phrase  — `match_phrase` on title fields.
-      3. All words     — `multi_match best_fields` over the per-type field list (with
-                         per-field ^N boosts: title > variants > name/works; descriptions
-                         are not searched).
-      4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
-      5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
+      3. All words     — `multi_match cross_fields` with `operator: and` over the per-type
+                         field list (with per-field ^N boosts: title > variants > name/works;
+                         descriptions are not searched). Every query word must match, but the
+                         words may split across fields — "Rambam Torah" finds Mishneh Torah
+                         via author_names + title_en.
+      4. All prefixes  — every query word matches the *start* of a word in one title field
+                         ("Or Chaim" -> "Orach Chaim", "Orchot Chaim"). This is what keeps
+                         near-misses ranked above single-word matches: "Chafetz Chaim" fails
+                         it because nothing there starts with "Or". Multi-word queries only.
+      5. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
+      6. Any word      — the old OR match at a deliberately tiny boost, so results matching
+                         only part of the query stay findable but sink below everything that
+                         matched all of it.
 
     Relevance is *purely textual* — the match tiers above are the whole score. Topic/author
     results were briefly multiplied by a log-scaled `numSources` popularity factor; that was
@@ -448,12 +486,32 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                      for kf in secondary_kw]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
-    # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
-    tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
-    # Tier 4 — prefix / begins-with on titles only.
-    tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
-    text_query = Q("bool", should=[*tier1_primary, *tier1_variant, tier2_phrase, tier3_words, tier4_prefix],
-                   minimum_should_match=1)
+    # Tier 3 — ALL query words must match (operator "and"), not any one of them. cross_fields
+    # lets the words land in different fields ("Rambam Torah": author_names + title_en) as
+    # long as every word matches somewhere; per-field ^N boosts still apply inside `fields`.
+    tier3_all_words = Q("multi_match", query=query, fields=fields, type="cross_fields",
+                        operator="and", boost=2)
+    # Tier 4 — every word as a prefix, all within a single title field. `prefix` runs against
+    # the analyzed (lowercased) tokens and each prefix hit scores a constant 1, so a field's
+    # bool-must totals the token count; dis_max keeps the best field instead of summing fields.
+    # Only built for multi-word queries — for one word this duplicates tier 5.
+    tokens = _entity_query_tokens(query)
+    tier4_all_prefix = None
+    if len(tokens) > 1:
+        per_field = [Q("bool", must=[Q("prefix", **{f: {"value": t, "case_insensitive": True}})
+                                     for t in tokens])
+                     for f in title_fields]
+        tier4_all_prefix = Q("dis_max", queries=per_field, boost=1.5)
+    # Tier 5 — prefix / begins-with on titles only.
+    tier5_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
+    # Tier 6 — any word (OR). The tiny boost keeps partial matches present at the bottom of
+    # the results without letting a common word ("Chaim") crowd out all-word matches above.
+    tier6_any_word = Q("multi_match", query=query, fields=fields, type="best_fields", boost=0.1)
+    tiers = [*tier1_primary, *tier1_variant, tier2_phrase, tier3_all_words]
+    if tier4_all_prefix is not None:
+        tiers.append(tier4_all_prefix)
+    tiers += [tier5_prefix, tier6_any_word]
+    text_query = Q("bool", should=tiers, minimum_should_match=1)
 
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
