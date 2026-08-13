@@ -1510,8 +1510,11 @@ def make_book_index_document(index, author_name_cache=None):
         'titleVariants': variants,
         'categories': categories,
         'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or ''),
-        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or ''),
+        # Prefer the short description, but fall back to the long one — many Indexes
+        # carry only `enDesc`/`heDesc`, and showing that beats showing nothing. Mirrors
+        # the author-works aggregation in helper.topic._serialize_author_index().
+        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or getattr(index, 'enDesc', '') or ''),
+        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or getattr(index, 'heDesc', '') or ''),
         'compDate': comp_date,
         'era': getattr(index, 'era', None),
         'authors': author_slugs,
