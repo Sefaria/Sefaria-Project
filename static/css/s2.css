@@ -477,6 +477,14 @@ body.hasBannerMessage #s2.headerOnly {
   flex: 1;
   min-height: 0;
   position: relative;
+  /* Consumed by full-bleed absolutely-positioned children (currently just
+     .sefaria-auth-page) that need to sit below the (absolutely positioned,
+     zero-flow-height) header. When a siteWideBanner precedes #main, #main is
+     already pushed down by the banner's flow height, so this collapses to 0. */
+  --header-offset: var(--header-height);
+}
+.siteWideBanner ~ #main {
+  --header-offset: 0px;
 }
 
 #main .panelContainer {
