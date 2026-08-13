@@ -8,9 +8,9 @@ from remote_config.keys import (
     SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR,
     SEARCH_ENTITY_FIELD_BOOSTS_BOOK,
 )
-import string
 import structlog
 import re
+import unicodedata
 
 # This module must not import sefaria.model at module level: it is imported by
 # sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
@@ -348,6 +348,35 @@ _ENTITY_SECONDARY_KEYWORD_FIELDS = {
     "book": ["titleVariants.keyword"],
 }
 
+# The all-prefixes tier (see get_entity_query_obj) builds `prefix` queries, which are NOT run
+# through an analyzer — each term is compared raw against the tokens already stored in the
+# index. So the query has to be split the same way the `exact_english` analyzer splits the
+# titles it indexed, or the terms silently match nothing. The three steps below mirror that
+# analyzer's own pipeline (icu_normalizer char_filter -> standard tokenizer -> icu_folding);
+# every example cited was confirmed against a live index via the _analyze API.
+#
+# Step 1: fold the typographic quotes the way icu_folding does, so "Me’am" and "רמב״ם" carry
+# the ASCII forms actually stored ("me'am", 'רמב"ם').
+_ENTITY_QUOTE_FOLDING = str.maketrans({"’": "'", "׳": "'", "״": '"'})
+# Step 3: approximate the `standard` tokenizer's word boundaries (Unicode UAX #29). Break on
+# whitespace and punctuation, but keep a quote sitting *between* two letters — that tokenizer
+# does not split there, so "Ba'al ha-Turim" is [ba'al, ha, turim] and "רמב״ם" is one token.
+# (Splitting on all punctuation, as a naive reading suggests, would wreck far more of these
+# than the hyphens it fixes.) A *trailing* quote survives only after a Hebrew letter — the
+# "ר׳" = Rabbi abbreviation — and is dropped after a Latin one ("Yosi'" -> yosi).
+_ENTITY_TOKEN_RE = re.compile(r"\w+(?:['\"]\w+)*(?:(?<=[֐-׿])')?", re.UNICODE)
+
+
+def _entity_query_tokens(query):
+    """Split `query` into terms comparable to the tokens `exact_english` actually stores."""
+    query = query.translate(_ENTITY_QUOTE_FOLDING)
+    # Step 2: strip combining marks (icu_folding). This has to happen *before* tokenizing,
+    # as the analyzer's char_filter does: Hebrew niqqud are combining marks that `\w` will
+    # not match, so leaving them in place would split "בְּרֵאשִׁית" into four tokens.
+    query = "".join(c for c in unicodedata.normalize("NFKD", query) if not unicodedata.combining(c))
+    return _ENTITY_TOKEN_RE.findall(query)
+
+
 # Exact-match boosts are applied via constant_score (below), so they are IDF-independent:
 # an exact primary-title hit contributes a fixed, dominant amount that a longer title merely
 # *containing* the query words — or an exact hit on a variant — can never sum past. This is
@@ -466,7 +495,7 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     # the analyzed (lowercased) tokens and each prefix hit scores a constant 1, so a field's
     # bool-must totals the token count; dis_max keeps the best field instead of summing fields.
     # Only built for multi-word queries — for one word this duplicates tier 5.
-    tokens = [t for t in (tok.strip(string.punctuation) for tok in query.split()) if t]
+    tokens = _entity_query_tokens(query)
     tier4_all_prefix = None
     if len(tokens) > 1:
         per_field = [Q("bool", must=[Q("prefix", **{f: {"value": t, "case_insensitive": True}})
