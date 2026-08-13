@@ -6,6 +6,12 @@ import {
   groupByDocumentId,
   buildInterfaceTextDoc,
 } from "./sefaria/strapiLocalization";
+import {
+  ContentType,
+  CONTENT_FIELDS,
+  selectContent,
+  buildViewerContext,
+} from "./sefaria/strapiSelection";
 
 const ReaderPanelContext = React.createContext({
   language: "english",
@@ -209,53 +215,35 @@ function StrapiDataProvider({ children }) {
             // Promotions is the only consumer of strapiData; it iterates each grouped ad's `locales`/`byLocale` directly, so no InterfaceText normalization needed here.
             setStrapiData({ sidebarAds: groupedSidebarAds });
 
-            let removeContentKeysFromLocalStorage = ({ prefix = "", except = "" } = {}) => {
-              let keysToRemove = [];
-              // Removing keys while iterating affects the length of localStorage
-              for (let i = 0; i < localStorage.length; i++) {
-                let key = localStorage.key(i);
-                if (key.startsWith(prefix) && (except === "" || key !== prefix + except)) {
-                  keysToRemove.push(key);
-                }
-              }
-              keysToRemove.forEach((key) => {
-                localStorage.removeItem(key);
-              });
+            // Forget dismissals of documents that are no longer in the payload, so a campaign
+            // republished much later gets a fresh chance. Dismissals of every LIVE document are
+            // kept — that is what lets selection fall through to the runner-up instead of
+            // re-showing something the viewer already closed.
+            const removeStaleDismissals = ({ prefix, keep }) => {
+              const keysToKeep = new Set(keep.map((name) => prefix + name));
+              // Collect keys first, then remove: deleting while looping shifts localStorage's indexing.
+              const allKeys = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i));
+              allKeys
+                .filter((key) => key.startsWith(prefix) && !keysToKeep.has(key))
+                .forEach((key) => localStorage.removeItem(key));
             };
 
-            const currentDate = new Date();
-            if (groupedModals.length) {
-              // Only one modal can be displayed currently. The first one that matches will be the one shown
-              let matchedModal = groupedModals.find(
-                (modal) => currentDate >= new Date(modal.modalStartDate) && currentDate <= new Date(modal.modalEndDate),
-              );
-              if (matchedModal) {
-                // Remove any other previous modals since there is potentially new modal to replace it
-                // However, do not remove the existing modal if the eligible one found is the same as the current one
-                removeContentKeysFromLocalStorage({
-                  prefix: "modal_",
-                  except: matchedModal.internalModalName,
-                });
-                setModal(buildInterfaceTextDoc(matchedModal, LOCALIZED_FIELDS.modal));
-              }
-            }
+            // Only one modal and one banner can be displayed at a time. All the viewer gates
+            // (date window, locale, country, audience, dismissal) run HERE, during selection, so
+            // a document this viewer can't see is skipped in favor of one they can — not chosen
+            // and then suppressed at display time, which would leave the surface empty
+            // (sc-45891). Among several eligible documents the most specific one wins; see
+            // strapiSelection.js for the ranking tiers.
+            const viewerContext = buildViewerContext();
+            const chooseContent = (groupedDocs, contentType, localizedFields) => {
+              const docs = groupedDocs.map((doc) => buildInterfaceTextDoc(doc, localizedFields));
+              const { storagePrefix, name } = CONTENT_FIELDS[contentType];
+              removeStaleDismissals({ prefix: storagePrefix, keep: docs.map((doc) => doc[name]) });
+              return selectContent(docs, viewerContext, contentType);
+            };
 
-            if (groupedBanners.length) {
-              // Only one banner can be displayed currently. The first one that matches will be the one shown
-              let matchedBanner = groupedBanners.find(
-                (b) => currentDate >= new Date(b.bannerStartDate) && currentDate <= new Date(b.bannerEndDate),
-              );
-
-              if (matchedBanner) {
-                // Remove any other previous banner since there is potentially new modal to replace it
-                // However, do not remove the existing banner if the eligible one found is the same as the current one
-                removeContentKeysFromLocalStorage({
-                  prefix: "banner_",
-                  except: matchedBanner.internalBannerName,
-                });
-                setBanner(buildInterfaceTextDoc(matchedBanner, LOCALIZED_FIELDS.banner));
-              }
-            }
+            setModal(chooseContent(groupedModals, ContentType.MODAL, LOCALIZED_FIELDS.modal));
+            setBanner(chooseContent(groupedBanners, ContentType.BANNER, LOCALIZED_FIELDS.banner));
           })
           .catch((error) => {
             console.error("Failed to get strapi data: ", error);
