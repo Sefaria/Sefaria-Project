@@ -30,7 +30,7 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
 | [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | Holds the factory's field set to what every committed recording actually contains — the guard that keeps synthetic payloads honest. Needs no server. |
 | [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js) | *(synthetic)* Each surface waits exactly its own `showDelay` — hidden a second before, visible a second after, with two surfaces on different delays. |
-| [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Only the first date-active banner/modal is surfaced; reversing the order flips the winner; an English-only banner masks a Hebrew-only one. Carries the known-gap `test.fail` for targeting-after-selection. |
+| [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Selection runs every viewer gate (locale, country, dismissal) and ranks eligible documents by specificity — Hebrew readers get their own document past English competitors, a dismissed winner falls through to the runner-up, a shorter window outranks a longer one, and identical documents tie to payload order. |
 | [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. |
 | [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
@@ -264,7 +264,7 @@ Every gate each surface applies, so a new scenario can be checked against this b
 | date window: expired / future | — | ✓ ✓ (`context.js` selection) | ✓ ✓ (`Promotions` filtering) |
 | dismissal persists across reload | — | ✓ | n/a — no dismiss control |
 | `showDelay` boundary | ✓ *(synthetic)* | ✓ *(synthetic)* | n/a — no delay on this type |
-| selection among several in-window | ✓ *(synthetic)* | ✓ *(synthetic; locale masking marked as a known gap)* | n/a — all matches render |
+| selection among several in-window | ✓ *(synthetic; locale gate + ranking)* | ✓ *(synthetic; locale + country gates, dismissal fallthrough, window ranking)* | n/a — all matches render |
 | `excludedPaths`, incl. cross-locale | ✓ *(synthetic)* | — (same code path as the modal) | n/a |
 | malformed / failed response | ✓ *(synthetic)* | ✓ *(synthetic)* | ✓ *(synthetic)* |
 
@@ -280,29 +280,32 @@ Deliberately **not** covered, with reasons:
 - **Analytics.** Impression and interaction events fire through `gtag`/`sa_event`; see the note in
   the interaction section for why a naive stub does not capture them.
 
-### Known gap, deliberately marked
+### Selection behavior (formerly the "known gap")
 
-`strapi-selection-order.spec.js` carries **three `test.fail()` markers** for one defect: gating is
-applied *after* selection, not during it. `context.js` picks a single winner on the date window
-alone (`.find()`, lines 229 and 245), then `Misc.jsx` gates that one document — and there is no
-fallback to the runner-up, so a reader the runner-up was written for sees **nothing at all**.
+This suite once carried `test.fail()` markers for one defect: gating was applied *after*
+selection. `context.js` picked a single winner on the date window alone (`.find()`), then
+`Misc.jsx` gated that one document with no fallback to the runner-up — so a Hebrew reader saw
+**nothing at all** while any English-only document shared the window (`groupByDocumentId`
+flattens every `en` row before every `he` row, so order was never a workaround).
 
-It bites twice:
+The sc-45891 fix moved every viewer gate into selection itself
+(`static/js/sefaria/strapiSelection.js`, shared with `shouldShow()`): date window, locale,
+country, audience (`showTo` + user-kind flags), and dismissal all run *before* the list is
+collapsed, so an ineligible document is skipped in favor of one the viewer can see. Among several
+eligible documents the most specific wins, tier by tier:
 
-- **Country** (1 marker). Two modals scheduled at the same time targeting different countries: the
-  first wins on date, fails the country check, and the modal aimed at this viewer is never
-  reconsidered. Listing the right one first *does* rescue it, so order is at least a workaround.
-- **Locale** (2 markers). An English-only and a Hebrew-only banner over the same window: the
-  English one is handed to everyone and rejected for Hebrew readers. **Order is not a workaround
-  here** — `groupByDocumentId` flattens every `en` row before every `he` row, so the English
-  document sorts first however the payload was ordered. Measured across all four combinations: the
-  English reader is served either way, the Hebrew reader neither way. So a Hebrew-only banner
-  cannot reach Hebrew readers at all while any English banner shares its window. Both orders are
-  marked, so a partial fix that merely respected payload order cannot close the gap prematurely.
+1. country include-list naming the viewer > untargeted;
+2. restricted audience > everyone;
+3. locale-exclusive > bilingual;
+4. shorter date window > longer;
+5. payload order (stable) breaks remaining ties.
 
-Each marker is paired with passing controls proving the content renders in isolation, so the
-failure is "nothing was surfaced", not "this document is unrenderable". A fix is planned
-separately; Playwright fails the run the moment a marker starts passing, so they close themselves.
+Two consequences worth knowing when writing tests here: a **dismissed** document is ineligible, so
+the runner-up wins the next load (dismissal keys are kept for every document still in the payload
+and dropped for vanished ones); and the **path guard** (`/donate` etc. + the button's own page)
+stays display-only, so the winner is page-independent and nothing is shown on excluded pages
+rather than a lower-ranked rival. The former `test.fail` markers are now ordinary passing tests in
+`strapi-selection-order.spec.js`, each still paired with its controls.
 
 ## The levers
 
