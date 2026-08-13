@@ -58,6 +58,12 @@ const TYPE_ICONS = {
 
 const MODES_WITH_CATEGORY_COLOR = new Set(['books', 'sources']);
 
+// Singular and plural are separate interface strings so each language can inflect its own way.
+const versionsToggleLabel = (count) => Sefaria._bilingual(
+  count === 1 ? 'search.result_card.one_more_version' : 'search.result_card.more_versions',
+  { count }
+);
+
 function SearchResultCard({
   mode,
   name,
@@ -221,10 +227,7 @@ function SearchResultCard({
                 onClick={(e) => { e.stopPropagation(); setVersionsOpen(o => !o); }}
                 aria-expanded={versionsOpen}
               >
-                <InterfaceText text={{
-                  en: versions.length === 1 ? '1 more version' : `${versions.length} more versions`,
-                  he: versions.length === 1 ? '1 גרסה נוספת' : `${versions.length} גרסאות נוספות`,
-                }} />
+                <InterfaceText text={versionsToggleLabel(versions.length)} />
                 <span
                   className={`searchResultCard-versionsChevron${versionsOpen ? ' open' : ''}`}
                   aria-hidden="true"

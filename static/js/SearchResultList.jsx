@@ -109,12 +109,14 @@ class SearchResultList extends Component {
           );
         }
 
-        const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        const noResults = Sefaria._bilingual("search.no_results");
+        const searching = Sefaria._bilingual("search.searching");
+        const noResultsMessage = (<LoadingMessage message={noResults.en} heMessage={noResults.he} />);
         // "Searching..." only shows on an initial load with no results yet (e.g. sidebar
         // search-in-book, which renders this list directly without the page skeleton). Once
         // results exist, a running query is a scroll-triggered next page, so the shared
         // InfiniteScroll shows its "Loading more results..." message instead.
-        const initialLoadingMessage = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        const initialLoadingMessage = (<LoadingMessage message={searching.en} heMessage={searching.he} />);
         const haveResults      = !!results.length;
 
         return (
@@ -151,7 +153,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
     const currentOption = (sortTypeArray || []).find(o => o.type === sortType) || (sortTypeArray || [])[0];
     const sortLabel = currentOption
       ? <InterfaceText text={{en: currentOption.name, he: currentOption.heName}} />
-      : <InterfaceText text={{en: "Sort", he: "מיון"}} />;
+      : <InterfaceText>common.sort</InterfaceText>;
 
     if (disabled) {
       return (
@@ -233,7 +235,7 @@ const MobileFilterIconButton = ({ openMobileFilters, disabled }) => (
     onClick={disabled ? undefined : openMobileFilters}
     role="button"
     tabIndex={disabled ? -1 : 0}
-    aria-label={disabled ? undefined : Sefaria._("Filter and Sort")}
+    aria-label={disabled ? undefined : Sefaria._("search.sort.aria")}
     aria-disabled={disabled || undefined}
     onKeyDown={disabled ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
   >

@@ -3691,6 +3691,23 @@ _media: {},
     const lang = Sefaria._getShortInterfaceLang();
     return langOptions[lang] ? langOptions[lang] : "";
   },
+  _bilingual: function(id, params) {
+    /* The inverse of _v: takes a keyed interface string ID and returns
+     * {en: "something", he: "משהו"}.
+     * Sefaria._() returns only the string for the *current* interface language, but some
+     * components (InterfaceText's `text` prop, LoadingMessage) render both languages and
+     * let CSS hide one, so they need both.
+     * `params` fills {placeholder} tokens: _bilingual("search.year.ce", {year: 1204}).
+     */
+    const resolve = (lang) => {
+      let str = Sefaria._keyedString(id, lang);
+      for (const [key, value] of Object.entries(params || {})) {
+        str = str.split(`{${key}}`).join(value);
+      }
+      return str;
+    };
+    return {en: resolve("en"), he: resolve("he")};
+  },
   _r: function (inputRef) {
     const oref = Sefaria.getRefFromCache(inputRef);
     if (!oref) { return inputRef; }

@@ -583,20 +583,22 @@ class Search {
         const noAggregate = typeof window !== "undefined" &&
             new URLSearchParams(window.location.search).get("aggregate") === "0";
         const cacheKey = `entitySearch|${type}|${query}|${start}${noAggregate ? "|noAggregate" : ""}`;
-        const cacheResult = this.cache(cacheKey);
-        if (cacheResult !== undefined) {
-            return Promise.resolve(cacheResult);
-        }
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}`;
         if (noAggregate) { url += "&aggregate=0"; }
-        // Wrapped in a real Promise because jQuery 2's Deferred has no .catch()
-        return new Promise((resolve, reject) => {
-            $.getJSON(url).then(data => {
-                if (data.error) { reject(new Error(data.error)); return; }
-                this.cache(cacheKey, data);
-                resolve(data);
-            }, reject);
-        });
+        // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
+        // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
+        // concurrent requests for the same url. Promise.resolve() re-wraps its result because
+        // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
+        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
+            .then(data => {
+                if (data.error) {
+                    // The helper caches whatever the API returned, so evict the error body —
+                    // otherwise one failed page would stick for the rest of the session.
+                    delete this._cache[cacheKey];
+                    throw new Error(data.error);
+                }
+                return data;
+            });
     }
 }
 

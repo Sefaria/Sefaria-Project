@@ -4038,7 +4038,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow-x: scroll;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid var(--light-grey);
 }
 .searchTabsMobileWeb-spacer {
   flex-shrink: 0;
@@ -4056,7 +4056,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border: none;
   border-bottom: 4px solid transparent;
   cursor: pointer;
-  color: var(--Semantic-Text-Secondary, #575757);
+  color: var(--darker-grey);
   padding: 10px 0 14px;
   margin-inline-end: 24px;
   white-space: nowrap;
@@ -4071,7 +4071,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
 }
 .searchTabsMobileWeb-tab.active {
-  color: var(--Semantic-Text-Primary, #121212);
+  color: var(--near-black);
   border-bottom-color: var(--light-grey);
 }
 .searchTabsMobileWeb-count {
@@ -4097,11 +4097,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchTabsMobileWeb-gradient.right {
   right: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), var(--white));
 }
 .searchTabsMobileWeb-gradient.left {
   left: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0), #fff);
+  background: linear-gradient(to left, rgba(255, 255, 255, 0), var(--white));
 }
 .searchContent .searchTopMatter {
   position: relative;
@@ -4156,7 +4156,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 216px;
   padding: 4px;
   box-sizing: border-box;
-  background: #fafafa;
+  background: var(--background-grey);
   border: 1px solid var(--lighter-grey);
   border-radius: 9999px;
   --english-font: var(--english-sans-serif-font-family);
@@ -4192,7 +4192,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   transition: color 150ms ease;
 }
 .searchToggle__option--active {
-  color: #121212;
+  color: var(--near-black);
   font-weight: 600;
 }
 
@@ -4622,7 +4622,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
 }
 .sortRadioLabel {
-  color: var(--Semantic-Text-Primary, #121212);
+  color: var(--near-black);
 }
 .searchContent .result {
   padding-bottom: 20px;
@@ -4646,7 +4646,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   font-weight: 600;
   line-height: 18.75px;
-  color: #000000;
+  color: var(--black);
 }
 .sheetResult .snippet.en {
   color: var(--dark-grey);
@@ -4709,7 +4709,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .snippet {
   font-size: 18px;
-  color: #000;
+  color: var(--black);
 }
 .searchContent .sheet_result .snippet:hover {
   text-decoration: none;
@@ -4768,8 +4768,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchResultCard {
   display: flex;
   align-items: stretch;
-  background: #fff;
-  border-bottom: 1px solid var(--lighter-grey, #ededec);
+  background: var(--white);
+  border-bottom: 1px solid var(--lighter-grey);
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
               0 1px 2px 0  rgba(31,31,31,0.04),
               0 8px 16px 0 rgba(31,31,31,0.05);
@@ -4785,17 +4785,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
 }
 .searchResultCard.is-pressed {
-  background-color: var(--lighter-grey, #ededec);
+  background-color: var(--lighter-grey);
 }
 .searchResultCard:focus-visible {
-  outline: 2px solid var(--navy, #18345d);
+  outline: 2px solid var(--sefaria-blue);
   outline-offset: 2px;
 }
 .searchResultCard-bar {
   width: 4px;
   flex-shrink: 0;
   align-self: stretch;
-  background-color: #000;
+  background-color: var(--black);
 }
 .searchResultCard-content {
   display: flex;
@@ -4816,7 +4816,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 40px;
   flex-shrink: 0;
   border-radius: 20px;
-  background: var(--background-grey, #fafafa);
+  background: var(--background-grey);
 }
 .searchResultCard-iconImg {
   width: 18px;
@@ -4868,7 +4868,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
   font-weight: 400;
-  color: var(--near-black, #121212);
+  color: var(--near-black);
   flex-shrink: 0;    /* title never yields space to altName */
   max-width: 100%;   /* but can't overflow the row when alone */
   white-space: nowrap;
@@ -4882,7 +4882,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
   font-weight: 400;
-  color: var(--near-black, #121212);
+  color: var(--near-black);
   flex-shrink: 1;    /* altName is first to give up space */
   min-width: 0;      /* allows shrinking all the way to 0 */
   white-space: nowrap;
@@ -4900,7 +4900,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
   font-weight: 400;
   line-height: 18px;
-  color: #707070;
+  color: var(--secondary-text-grey);
 }
 .searchResultCard-secondary-date,
 .searchResultCard-secondary-dot {
@@ -4923,7 +4923,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 400;
   line-height: 18px;
-  color: #707070;
+  color: var(--secondary-text-grey);
   max-height: 72px;
   overflow: hidden;
   display: -webkit-box;
@@ -4986,7 +4986,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 400;
   line-height: 20px;
-  color: #707070;
+  color: var(--secondary-text-grey);
   white-space: nowrap;
   text-decoration: none;
   flex-shrink: 0;
@@ -4994,7 +4994,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 /* Breadcrumb links — underline only the crumb being hovered */
 .searchResultCard-crumb--link:hover {
   text-decoration: underline;
-  color: var(--sefaria-blue, #18345d);
+  color: var(--sefaria-blue);
 }
 /* Ellipsis breadcrumb — same hover style as a linked crumb */
 .searchResultCard-crumb--ellipsis {
@@ -5002,7 +5002,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultCard-crumb--ellipsis:hover {
   text-decoration: underline;
-  color: var(--sefaria-blue, #18345d);
+  color: var(--sefaria-blue);
 }
 /* Tooltip for the ellipsis — uses the existing .tooltip-toggle pattern.
    Positioned above the ellipsis node; wider than the default 140 px to
@@ -5046,7 +5046,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchResultCard-snippet {
   font-size: 18px;
   line-height: 1.5;
-  color: #707070;
+  color: var(--secondary-text-grey);
   word-break: break-word;
 }
 .searchResultCard-snippet.he {
@@ -5067,7 +5067,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-style: normal;
   font-weight: 400;
   line-height: 20px;
-  color: #707070;
+  color: var(--secondary-text-grey);
 }
 .interface-hebrew .searchResultCard-versionName,
 .interface-hebrew .searchResultCard-versionName * {
@@ -5086,7 +5086,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-style: normal;
   font-weight: 400;
   line-height: 20px;
-  color: #707070;
+  color: var(--secondary-text-grey);
 }
 .searchResultCard-versionsToggle {
   display: flex;
@@ -5106,7 +5106,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchResultCard-versionsToggle:hover,
 .searchResultCard-versionsToggle:hover * {
-  color: var(--near-black, #121212);
+  color: var(--near-black);
 }
 .searchResultCard-versionsChevron {
   display: inline-block;
@@ -5133,7 +5133,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background: var(--background-grey, #fafafa);
+  background: var(--background-grey);
 }
 
 /* ── Search loading skeleton ──────────────────────────────────────────── */
@@ -5151,7 +5151,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: linear-gradient(
     90deg,
     var(--skeleton-grey) 25%,
-    #efefef 50%,
+    var(--skeleton-grey-shimmer) 50%,
     var(--skeleton-grey) 75%
   );
   background-size: 300% 100%;
@@ -5205,7 +5205,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchLoadSkeleton-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: var(--white);
   height: 145px;
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.04),
               0 1px 2px 0  rgba(31,31,31,0.04),
@@ -5299,7 +5299,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .noSearchResults-heading {
   font-size: 30px;
-  color: #121212;
+  color: var(--near-black);
   font-weight: 400;
   margin: 0;
 }
@@ -5320,7 +5320,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: var(--sefaria-blue);
   border: 1.5px solid var(--sefaria-blue);
   border-radius: 4px;
-  color: #fff;
+  color: var(--white);
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-style: normal;
@@ -5331,7 +5331,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 .noSearchResults-cta:hover {
-  color: #fff;
+  color: var(--white);
   opacity: 0.9;
   text-decoration: none;
 }
@@ -5340,7 +5340,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
   line-height: 18px;
-  color: #707070;
+  color: var(--secondary-text-grey);
   text-align: center;
   margin: 0;
 }
@@ -16615,13 +16615,13 @@ span.ref-link-color-3 {color: blue}
   gap: 8px;
   padding: 8px;
   margin: 8px;
-  background-color: #ededec;
+  background-color: var(--lighter-grey);
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-family: var(--english-sans-serif-font-family);
   font-size: 16px;
-  color: #575757;
+  color: var(--darker-grey);
   user-select: none;
   outline: none;
 }
@@ -16630,7 +16630,7 @@ span.ref-link-color-3 {color: blue}
 }
 .searchSortDropdown:hover,
 .searchSortDropdown:focus-visible {
-  background-color: #dfdfdf;
+  background-color: var(--lighter-grey-hover);
 }
 .searchSortDropdown__icon {
   width: 18px;

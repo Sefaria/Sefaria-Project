@@ -1,25 +1,34 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import Sefaria from './sefaria/sefaria';
 import { InterfaceText, DropdownModal, DropdownOptionList } from './Misc';
 
 
+// Labels live in i18n/interface/{en,he}.json. Both consumers of these options
+// (DropdownOptionList here, SortRadioList in SearchFilters) render an English *and* a
+// Hebrew span and let CSS hide one, hence _bilingual rather than Sefaria._().
+const makeSortOption = (type, stringId) => {
+  const {en, he} = Sefaria._bilingual(stringId);
+  return {type, name: en, heName: he};
+};
+
 export const ENTITY_SORT_OPTIONS = {
   books: [
-    { type: 'relevance',  name: 'Relevance',                       heName: 'רלוונטיות' },
-    { type: 'year_asc',   name: 'Composition Date (Oldest First)', heName: 'תאריך חיבור (ישן לחדש)' },
-    { type: 'year_desc',  name: 'Composition Date (Newest First)', heName: 'תאריך חיבור (חדש לישן)' },
-    { type: 'alpha',      name: 'A-Z',                             heName: 'א-ת' },
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('year_asc',  'search.sort.books.year_asc'),
+    makeSortOption('year_desc', 'search.sort.books.year_desc'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
   ],
   authors: [
-    { type: 'relevance', name: 'Relevance',           heName: 'רלוונטיות' },
-    { type: 'year_asc',  name: 'Year (Oldest First)', heName: 'שנה (ישן לחדש)' },
-    { type: 'year_desc', name: 'Year (Newest First)', heName: 'שנה (חדש לישן)' },
-    { type: 'alpha',     name: 'A-Z',                 heName: 'א-ת' },
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('year_asc',  'search.sort.authors.year_asc'),
+    makeSortOption('year_desc', 'search.sort.authors.year_desc'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
   ],
   topics: [
-    { type: 'relevance', name: 'Relevance', heName: 'רלוונטיות' },
-    { type: 'alpha',     name: 'A-Z',       heName: 'א-ת' },
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
   ],
 };
 
