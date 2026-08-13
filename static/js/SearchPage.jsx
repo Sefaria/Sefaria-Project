@@ -568,7 +568,7 @@ class SearchPage extends Component {
     ];
 
     return (
-        <div className={classes} key={this.props.query}>
+        <div className={classes}>
           {this.props.compare ?
               <ComparePanelHeader
                   search={true}
@@ -590,6 +590,7 @@ class SearchPage extends Component {
                   ? <SearchLoadSkeleton />
                   : useDesktopTabs
                     ? <TabView
+                          key={this.props.query}
                           tabs={tabs}
                           currTabName={isValidTab ? this.props.tab : null}
                           setTab={this.setTab}
@@ -597,13 +598,13 @@ class SearchPage extends Component {
                           containerClasses={"largeTabs"}>
                         {tabPanels}
                       </TabView>
-                    : <>
+                    : <React.Fragment key={this.props.query}>
                         <SearchTabsMobileWeb
                             tabs={tabs}
                             currTabName={activeTab}
                             setTab={this.setTab}/>
                         {tabPanels[tabs.findIndex(t => t.id === activeTab)]}
-                      </>
+                      </React.Fragment>
                 }
               </div>
 
