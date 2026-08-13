@@ -5,10 +5,6 @@
  * It makes no assertions about modals or sidebar ads — those surfaces have their own specs, so a
  * failure here always points at the banner path.
  *
- * The banner has one gate the modal does not: `if (Sefaria.experiments) return false`
- * (Misc.jsx). Anonymous users get `experiments: False` from the server (reader/views.py), and
- * these specs run logged out, so the gate passes.
- *
  * HOW THIS SUITE DIFFERS FROM THE REST OF e2e-tests/ (read before "fixing" it):
  *   The standard entry helpers (goToPageWithLang / goToPageWithUser) call
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty

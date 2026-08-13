@@ -78,9 +78,7 @@ Per-scenario quirks worth knowing, because they shaped the assertions:
 - **Modal (Hebrew row)**: by contrast it *does* have a `modalHeader`, so the `int-he` `<h1>`
   renders and is asserted. Same field, opposite nullability per locale on the same document.
 - **Banner**: `bannerText` is markdown (`**MATCHING**` → `<strong>`), so the asserted substring
-  deliberately avoids the bold span. Banners also carry a gate modals do not —
-  `if (Sefaria.experiments) return false` — which passes here because anonymous users get
-  `experiments: False` from the server.
+  deliberately avoids the bold span.
 - **Hebrew-only banner**: the *same document* as `publishedBanner` with a different locale
   published, which is why one recording covers both directions of locale separation — the GraphQL
   query always asks for every locale, so the request is identical under either interface language
