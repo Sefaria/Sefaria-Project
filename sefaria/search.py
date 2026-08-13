@@ -1419,11 +1419,15 @@ def make_topic_index_document(topic, authored_titles_map=None):
         # fields are sparse; _without_none() omits any that are absent (rather than
         # writing null into _source).
         doc['era'] = topic.get_property('era')
-        doc['birthYear'] = topic.get_property('birthYear')
-        doc['deathYear'] = topic.get_property('deathYear')
-        # birthYear/deathYear above are indexed raw for display; `sortYear` is the derived
-        # single year the chronological sort keys on (death year, else birth year). It is
-        # computed here rather than in the query so the sort stays a plain field sort.
+        # Both are mapped as `integer`, but the stored properties are free-form and can
+        # hold '' or 'c. 1204'. ES rejects the *whole document* on a type mismatch, which
+        # would silently drop the author from the index entirely, so coerce here and let
+        # _without_none() omit anything unparseable.
+        doc['birthYear'] = _as_year_int(topic.get_property('birthYear'))
+        doc['deathYear'] = _as_year_int(topic.get_property('deathYear'))
+        # `sortYear` is the derived single year the chronological sort keys on (death
+        # year, else birth year). It is computed here rather than in the query so the
+        # sort stays a plain field sort.
         doc['sortYear'] = _author_sort_year(topic)
         # Denormalize the titles of this author's works (EN incl. variants + HE, the
         # same title set the book index carries — see _authored_index_titles) so the

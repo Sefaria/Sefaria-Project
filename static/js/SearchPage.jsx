@@ -222,7 +222,12 @@ class SearchPage extends Component {
       entityData: {topic: null, author: null, book: null},  // full {hits, total} response per type
       entitySort: {book: 'relevance', author: 'relevance', topic: 'relevance'},
       bookCategoryFilters: this.makeBookCategoryFilters(),
-      useDesktopTabs: window.innerWidth > 985,
+      // `window` does not exist in the Node server bundle (USE_NODE), so the viewport
+      // cannot be measured here. Default to desktop: this is ANDed with
+      // `Sefaria.multiPanel` (decided server-side from the User-Agent) at render time,
+      // so a mobile UA never gets desktop tabs regardless. componentDidMount re-measures
+      // and corrects the narrow-desktop-window case on the client.
+      useDesktopTabs: true,
     };
     this._onResize = () => {
       const next = window.innerWidth > 985;
@@ -295,6 +300,7 @@ class SearchPage extends Component {
 
   componentDidMount() {
     this.fetchEntityResults();
+    this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
   }
 
