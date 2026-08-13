@@ -2291,11 +2291,10 @@ const Banner = ({ onClose }) => {
   // Selection (context.js) already ran every viewer gate, so the banner in context is one this
   // viewer may see. isEligible re-checks anyway — selection happened once, when the Strapi data
   // arrived, and things can change afterwards (e.g. the banner was dismissed in another tab).
-  // Render-only guards stay here: the experiments kill-switch, and the path guard, which depends
-  // on the page the viewer is on now while selection is deliberately page-independent.
+  // The path guard stays display-only on purpose: it depends on the page the viewer is on now,
+  // and selection is deliberately page-independent (see strapiSelection.js).
   const shouldShow = () =>
     Boolean(strapi.banner) &&
-    !Sefaria.experiments &&
     isEligible(strapi.banner, buildViewerContext(), ContentType.BANNER) &&
     !isPathExcluded(strapi.banner, window.location.pathname);
 
