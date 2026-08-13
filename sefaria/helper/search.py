@@ -243,6 +243,12 @@ from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
 
 ENTITY_TYPES = ("topic", "author", "book")
 
+# Elasticsearch's default `max_result_window`: it rejects any from/size request whose
+# from+size reads past this offset, so paging through entity results stops here. The API
+# enforces it by *shortening the last page*, never by moving `start` backward — see
+# entity_search_api. The frontend mirrors this cap as ES_MAX_RESULT_WINDOW in SearchPage.jsx.
+ENTITY_MAX_RESULT_WINDOW = 10000
+
 # Sort options per entity type. "relevance" is the scored default; the others impose an
 # explicit field order: "alpha" A-Z on the lowercased English title, "year_asc"/"year_desc"
 # chronological on the per-type year field (books: composition date; authors: death year,

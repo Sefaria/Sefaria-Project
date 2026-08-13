@@ -4893,6 +4893,9 @@ def entity_search_api(request):
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.
+    Paging stops at Elasticsearch's result window (ENTITY_MAX_RESULT_WINDOW): a request
+    straddling the edge keeps its `start` and comes back short rather than being shifted
+    backward, so successive pages never overlap.
 
     `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
     `book` searches the `book` index, or — when the query resolves to an author — returns
@@ -4911,7 +4914,7 @@ def entity_search_api(request):
     the flat list — a QA escape hatch for comparing the two views. Ignored for types
     that never aggregate (topic/author).
     """
-    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
 
     query = request.GET.get("q", "").strip()
     entity_type = request.GET.get("type", "topic").strip()
@@ -4944,9 +4947,16 @@ def entity_search_api(request):
         size = 20
 
     try:
-        start = max(0, min(int(request.GET.get("start", 0)), 10000 - size))
+        start = max(0, min(int(request.GET.get("start", 0)), ENTITY_MAX_RESULT_WINDOW - 1))
     except (TypeError, ValueError):
         start = 0
+
+    # The result window is a ceiling on start+size, and the only way to honour it without
+    # corrupting the response is to shorten the final page. Clamping `start` backward to
+    # ENTITY_MAX_RESULT_WINDOW - size instead would silently re-serve rows the caller
+    # already has: start=9950&size=100 would become start=9900 and repeat 50 earlier hits
+    # as if they were new. `start` is capped at WINDOW - 1 above, so this stays >= 1.
+    size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
 
     try:
         results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths,
