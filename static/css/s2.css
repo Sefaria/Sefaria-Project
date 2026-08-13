@@ -5156,11 +5156,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .searchLoadSkeleton-tabs {
   display: flex;
-  gap: 32px;
+  gap: 42px;
   align-items: flex-start;
-  padding-bottom: 8px;
+  padding-top: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--skeleton-grey);
   width: 100%;
+  margin-bottom: 16px;
 }
 
 .searchLoadSkeleton-tab {
@@ -5176,10 +5178,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   height: 42px;
   width: 100%;
+  margin-bottom: 17px;
 }
 
 .searchLoadSkeleton-sort {
-  width: 68px;
+  width: 140px;
   height: 35px;
   border-radius: 6px;
 }
@@ -5236,6 +5239,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   width: 100%;
   border-radius: 4px;
+}
+
+@media (max-width: 540px) {
+  .searchLoadSkeleton-tabs {
+    gap: 16px;
+    overflow-x: auto;
+  }
+  .searchLoadSkeleton-tab {
+    flex-shrink: 0;
+  }
+  .searchLoadSkeleton-sort {
+    width: 90px;
+  }
 }
 
 /* ── No search results ──────────────────────────────────────────── */
