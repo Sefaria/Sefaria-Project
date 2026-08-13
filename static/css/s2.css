@@ -4147,6 +4147,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
   width: 216px;
   padding: 4px;
+  box-sizing: border-box;
   background: #fafafa;
   border: 1px solid var(--lighter-grey);
   border-radius: 9999px;
@@ -4226,12 +4227,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--dark-grey);
 }
 
-@media (min-width: 701px) {
-  /* prevent width of left-pane from changing due to content size when filters applied */
-  .searchContent .searchResultList {
-    width: 60vw;
-  }
-}
 
 .searchContent .searchFilters h2 {
   --english-font: var(--english-sans-serif-font-family);
@@ -4370,6 +4365,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .sidebarLayout {
   min-height: 100%;
+}
+@media (min-width: 701px) {
+  .searchContent .sidebarLayout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+  }
 }
 .searchContent .navSidebar {
   min-height: 100vh;
@@ -4740,6 +4741,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 30px;
 }
 
+.entitySearchResults {
+  max-width: 665px;
+}
+
 /* "Loading more results..." — shown at the bottom of any search tab while the next page
    loads on scroll. Small, non-italic grey, aligned to the card content inset. */
 .searchResultList .searchLoadMore,
@@ -4887,7 +4892,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", Georgia, "Times New Roman", serif;
   font-weight: 400;
   line-height: 18px;
-  color: var(--medium-grey, #575757);
+  color: #707070;
 }
 .searchResultCard-secondary-date,
 .searchResultCard-secondary-dot {
@@ -4910,7 +4915,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 400;
   line-height: 18px;
-  color: var(--dark-grey, #707070);
+  color: #707070;
   max-height: 72px;
   overflow: hidden;
   display: -webkit-box;
@@ -4973,7 +4978,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 400;
   line-height: 20px;
-  color: var(--dark-grey, #707070);
+  color: #707070;
   white-space: nowrap;
   text-decoration: none;
   flex-shrink: 0;
@@ -5033,7 +5038,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchResultCard-snippet {
   font-size: 18px;
   line-height: 1.5;
-  color: var(--near-black, #121212);
+  color: #707070;
   word-break: break-word;
 }
 .searchResultCard-snippet.he {
@@ -5054,7 +5059,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-style: normal;
   font-weight: 400;
   line-height: 20px;
-  color: var(--darker-grey, #575757);
+  color: #707070;
 }
 .interface-hebrew .searchResultCard-versionName,
 .interface-hebrew .searchResultCard-versionName * {
@@ -5073,7 +5078,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-style: normal;
   font-weight: 400;
   line-height: 20px;
-  color: var(--darker-grey, #575757);
+  color: #707070;
 }
 .searchResultCard-versionsToggle {
   display: flex;
