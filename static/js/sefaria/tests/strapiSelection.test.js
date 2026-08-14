@@ -191,6 +191,31 @@ describe("selectContent", function () {
     expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe("hebrew");
   });
 
+  it("selection is page-independent: a winner whose button URL collides with a page is still selected", function () {
+    // The ratified render-guard boundary (2026-08-14): selectContent never consults the current
+    // page — isPathExcluded is display's job. The colliding document stays the WINNER; the
+    // display layer withholds it on the colliding page and renders it everywhere else. If path
+    // exclusion ever became a selection gate, the runner-up would win here and this would fail.
+    const docs = [
+      modal({
+        internalModalName: "runner-up",
+        modalStartDate: "2026-09-12T00:00:00.000Z",
+        modalEndDate: "2026-09-19T00:00:00.000Z",
+      }),
+      modal({
+        internalModalName: "colliding-winner",
+        modalStartDate: "2026-09-15T00:00:00.000Z",
+        modalEndDate: "2026-09-16T00:00:00.000Z",
+        buttonURL: { en: "https://example.org/texts", he: null },
+      }),
+    ];
+    const winner = selectContent(docs, viewer(), ContentType.MODAL);
+    expect(winner.internalModalName).toBe("colliding-winner");
+    // Display withholds it exactly where it collides, and nowhere else.
+    expect(isPathExcluded(winner, "/texts")).toBe(true);
+    expect(isPathExcluded(winner, "/topics")).toBe(false);
+  });
+
   it("falls through to the runner-up when the first choice was dismissed", function () {
     const docs = [
       modal({ internalModalName: "dismissed-one" }),

@@ -136,6 +136,66 @@ test.describe('Strapi dismissal lifecycle — repeat exposure is the baseline', 
   });
 });
 
+test.describe('Strapi dismissal lifecycle — the button click dismisses like the ×', () => {
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  test("clicking the banner's button counts as dismissal — the runner-up shows next load", async ({
+    page,
+    context,
+  }) => {
+    // Misc.jsx wires BOTH exits through closeBanner: the × ("close_clicked") and the CTA button
+    // ("banner_button_clicked"). The × path is covered elsewhere; this pins the button path —
+    // engaging with a campaign retires it exactly like closing it, so the next load belongs to
+    // the runner-up. The button is a real <a href> to an external campaign page, so the
+    // navigation is aborted at the network layer; the onClick (which writes the dismissal key)
+    // fires before the navigation dies.
+    const WINNER = 'Synthetic banner retired by its own button';
+    const RUNNER_UP = 'Synthetic runner-up after button click';
+    await context.route('https://example.org/**', (route) => route.abort());
+
+    strapi = await open(
+      page,
+      context,
+      strapiPayload({
+        banners: [
+          banner({
+            window: { start: daysFromNow(-3), end: daysFromNow(4) },
+            shared: { showDelay: DELAY_SECONDS, internalBannerName: 'button-runner-up' },
+            locales: { en: { bannerText: RUNNER_UP } },
+          }),
+          banner({
+            window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+            shared: {
+              showDelay: DELAY_SECONDS,
+              internalBannerName: 'button-clicked-winner',
+              buttonURL: 'https://example.org/external-campaign',
+            },
+            locales: { en: { bannerText: WINNER } },
+          }),
+        ],
+      }),
+    );
+
+    await elapseShowDelay(page);
+    await expect(bannerBox(page)).toContainText(WINNER);
+
+    await page.locator('#bannerButtonBox a.int-en').click();
+    await expect(bannerBox(page)).toHaveCount(0);
+
+    // Explicit goto rather than reload(): the aborted CTA navigation left the browser's current
+    // navigation entry pointing at the dead external URL, so reload() would retry THAT and fail
+    // with net::ERR_FAILED. Going back to the page is also truer to "the next visit".
+    await page.goto(PAGE_PATH);
+    await elapseShowDelay(page);
+    await expect(bannerBox(page)).toContainText(RUNNER_UP);
+    await expect(bannerBox(page)).not.toContainText(WINNER);
+  });
+});
+
 test.describe('Strapi dismissal lifecycle — surfaces are independent', () => {
   let strapi;
 
