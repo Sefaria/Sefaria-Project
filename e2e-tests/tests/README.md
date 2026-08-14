@@ -174,8 +174,8 @@ Both pin the **same instant**, so the pair differs only in where the content sit
 They are not redundant: if the first comparison were inverted, every expired test would still pass.
 
 **Sidebar ads get all three states in one recording**, because Promotions filters each ad
-independently and renders every match, whereas `context.js` surfaces only the first date-active
-banner/modal. `sidebarAdDateStates` holds an expired, an active and a future ad that are identical
+independently and renders every match, whereas `context.js` surfaces only a single
+highest-priority banner/modal. `sidebarAdDateStates` holds an expired, an active and a future ad that are identical
 apart from title and window — same `!everywhere` keywords, `showTo`, `debug` and locale — so the
 date is the only thing that can separate them, and if the filter were ignored all three would
 render. The active ad doubles as the positive control.
@@ -185,7 +185,7 @@ other:
 
 | surface | where | shape |
 | --- | --- | --- |
-| banner / modal | `context.js` | `.find()` — selects the first active item |
+| banner / modal | `context.js` → `strapiSelection.js` | `isDateActive` gate — an out-of-window document is never eligible for selection |
 | sidebar ad | `Promotions.jsx` | `.filter()` — rejects each inactive ad |
 
 Two design choices make that assertion mean something:
@@ -230,7 +230,7 @@ Worth reading before extending that surface — four differences, each of which 
 | | Banners / modals | Sidebar ads |
 | --- | --- | --- |
 | Locale filtering | rows merged per `documentId`, component gates on `locales.includes(active)` | one in-app ad emitted **per locale**, filtered by `ad.trigger.interfaceLang === context.interfaceLang` |
-| How many render | only the FIRST date-active one is surfaced by `context.js` | Promotions renders **all** matches |
+| How many render | exactly ONE — the highest-priority eligible document (gates + ranking, `strapiSelection.js`) | Promotions renders **all** matches |
 | Delay | `showDelay` timer must elapse | none — renders as soon as the payload lands, so ad specs never advance the clock |
 | Extra gating | date window, country, showTo, excluded paths | date window, showTo, `debug`, and **keyword overlap with the page** |
 
