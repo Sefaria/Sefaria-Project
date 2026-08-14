@@ -76,12 +76,14 @@ export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] =
  * preconditions exist before any navigation:
  *
  * 1. `addInitScript` monkey-patches `Storage.prototype.getItem` so any
- *    `modal_*` / `banner_*` key returns the string `"true"`. This causes the
- *    `shouldShow()` short-circuits in `InterruptingMessage` (Misc.jsx:2100)
- *    and `Banner` (Misc.jsx:2282) to treat every campaign as already
- *    dismissed, killing the Strapi "Sustainer" modal before the `showDelay`
- *    timer even arms. SignUpModal (Misc.jsx:1964-2011) renders from
- *    `this.props.show` and never touches localStorage, so auth-gated tests
+ *    `modal_*` / `banner_*` key returns the string `"true"`. Every campaign
+ *    therefore reads as already dismissed — which now bites at SELECTION
+ *    (the dismissal gate in strapiSelection.js rules every document out, so
+ *    context.js sets no modal/banner at all), with the `shouldShow()`
+ *    re-checks in `InterruptingMessage` and `Banner` (Misc.jsx) as backstop.
+ *    Either way the Strapi "Sustainer" modal dies before its `showDelay`
+ *    timer arms. SignUpModal (Misc.jsx:1988) renders from `this.props.show`
+ *    and never touches localStorage, so auth-gated tests
  *    (RP-121/122/123/131/132/161) are unaffected. `TopicsLaunchBanner` uses
  *    `sessionStorage`, not `localStorage`, so the patch doesn't reach it.
  *
@@ -130,7 +132,7 @@ export const installOverlaySuppression = async (context: BrowserContext) => {
   });
 
   // Layer 1c: pre-seed the cookies-accepted cookie so the CookiesNotification
-  // component (Misc.jsx:2861) short-circuits at constructor time and never
+  // component (Misc.jsx:2799) short-circuits at constructor time and never
   // renders. Without this, the banner appears post-hydration (after
   // hideAllModalsAndPopups has already run) when the storage-state lacks the
   // accepted cookie — observed mid-test on Voices during the Sanity suite.

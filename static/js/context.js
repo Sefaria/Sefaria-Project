@@ -152,9 +152,9 @@ function StrapiDataProvider({ children }) {
         twoWeeksAgo.setDate(currentDate.getDate() - 14);
         let startDate = getJSONDateStringInLocalTimeZone(twoWeeksAgo);
         let endDate = getJSONDateStringInLocalTimeZone(twoWeeksFromNow);
-        // The GraphQL query has a filter for each content type to find instances that have start dates earlier than the present time
-        // Content type instances will be found that are one month within their start date. Their date range can't exceed one month
-        // There is no conflict resolution for overlapping timeframes
+        // The GraphQL query fetches, per content type, every document whose WHOLE date window fits
+        // inside this ±14-day envelope around now (so a window can span four weeks at most). All
+        // overlapping documents arrive; which ONE a viewer sees is decided below by chooseContent.
         const query = `
         query {
           ${buildLocalizedQueryBlock(

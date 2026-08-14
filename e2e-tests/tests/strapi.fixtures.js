@@ -88,8 +88,9 @@ export const SCENARIOS = {
    *
    * Strapi also holds three other Hebrew modals and a Hebrew sidebar ad, but their date windows
    * fall outside this scenario's ±14-day fetch range — verified against the live endpoint before
-   * recording. That isolation matters more for modals than for banners: context.js surfaces only
-   * the FIRST date-active modal, so a second in-window modal could mask this one entirely.
+   * recording. That isolation matters more for modals than for banners: selection surfaces a
+   * single winner (gates + ranking, strapiSelection.js), so another eligible in-window modal
+   * could outrank and mask this one entirely.
    *
    * Note the contrast with the English row of the same document: this row HAS a modalHeader
    * ('Support Sefaria'), so an <h1 class="int-he"> renders and is asserted, whereas the English
@@ -570,9 +571,9 @@ export const SCENARIOS = {
    *
    * WHY ADS ARE THE RIGHT SURFACE FOR THIS. Promotions filters each ad independently and renders
    * every match, so all three date states coexist in one payload and one page load — whereas
-   * context.js surfaces only the FIRST date-active banner/modal, which is why those needed a
+   * selection surfaces only a single winning banner/modal, which is why those needed a
    * recording each. It is also a genuinely different implementation of the same rule:
-   *   banner/modal → context.js  `.find()`   — selects the first active item
+   *   banner/modal → strapiSelection.js `isDateActive` — an out-of-window doc is never eligible
    *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
    *
    * EVERY OTHER GATE IS NEUTRALISED so the date is the only differentiator:
