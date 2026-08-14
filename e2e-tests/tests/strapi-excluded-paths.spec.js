@@ -2,14 +2,10 @@
  * Playwright Tests: excludedPaths suppression (synthetic payload)
  *
  * A banner or modal is withheld on the page its own button points at — no sense urging a reader to
- * visit somewhere they already are:
- *
- *     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
- *     if (strapi.modal.buttonURL) {
- *       if (strapi.modal.buttonURL.en) excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
- *       if (strapi.modal.buttonURL.he) excludedPaths.push(new URL(strapi.modal.buttonURL.he).pathname);
- *     }
- *     return excludedPaths.indexOf(window.location.pathname) === -1;          // Misc.jsx:2189-2199
+ * visit somewhere they already are. The rule lives in isPathExcluded (strapiSelection.js): the
+ * four fixed paths (/donate, /mobile, /app, /ways-to-give) plus BOTH locales' buttonURL pathnames,
+ * checked against window.location.pathname in shouldShow (Misc.jsx) — at DISPLAY time only. It is
+ * deliberately NOT a selection gate; the last describe below pins that boundary from both sides.
  *
  * WHY THIS COULD NOT BE RECORDED. The gate only fires when a button URL's pathname equals the path
  * under test, and no editor authors a donation button pointing at /texts. It was attempted once
@@ -38,7 +34,7 @@
 
 import { test, expect } from '@playwright/test';
 import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
-import { SYNTHETIC_NOW, banner, modal, strapiPayload } from '../support/strapi-payload-factory.js';
+import { SYNTHETIC_NOW, banner, modal, strapiPayload, daysFromNow } from '../support/strapi-payload-factory.js';
 import {
   prepareStrapiPage,
   useInterfaceLanguage,
@@ -136,5 +132,88 @@ test.describe('Strapi excludedPaths — a surface is withheld on the page its bu
     strapi = await open(page, context, { en: SAFE_URL, he: SAFE_URL }, { language: LANGUAGES.EN });
     await expect(modalBox(page)).toBeVisible();
     await expect(modalBox(page)).toContainText(MODAL_TEXT);
+  });
+});
+
+test.describe('Strapi excludedPaths — a render guard, not a selection gate', () => {
+  // The ratified boundary (2026-08-13/14), pinned from both sides: selection is deliberately
+  // page-independent, so a document whose button URL collides with the current page is STILL the
+  // selected winner — the runner-up is never promoted onto the winner's own destination page,
+  // and the winner still renders everywhere else. Only dismissal (the × or the button click)
+  // unseats it; being path-suppressed on one page changes nothing about who won.
+  //
+  // The winner is the RANKING winner (shorter window) and is listed SECOND, so neither payload
+  // order nor a lucky tie can explain any outcome below.
+
+  const OTHER_PATH = '/topics/category/prayer';
+  const WINNER_MODAL = 'Synthetic colliding winner modal';
+  const RUNNER_UP_MODAL = 'Synthetic runner-up modal';
+
+  const guardPayload = (winnerButtonURL) =>
+    strapiPayload({
+      banners: [
+        banner({
+          shared: { showDelay: DELAY_SECONDS, buttonURL: SAFE_URL },
+          locales: { en: { bannerText: CONTROL_BANNER_TEXT } },
+        }),
+      ],
+      modals: [
+        modal({
+          window: { start: daysFromNow(-3), end: daysFromNow(4) },
+          shared: { showDelay: DELAY_SECONDS, buttonURL: SAFE_URL },
+          locales: { en: { modalText: RUNNER_UP_MODAL } },
+        }),
+        modal({
+          window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+          shared: { showDelay: DELAY_SECONDS, buttonURL: winnerButtonURL },
+          locales: { en: { modalText: WINNER_MODAL } },
+        }),
+      ],
+    });
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  async function openAt(page, context, payload, path) {
+    strapi = await routeWithStrapiPayload(context, payload);
+    await prepareStrapiPage(page, { pinnedNow: SYNTHETIC_NOW });
+    await useInterfaceLanguage(page, LANGUAGES.EN);
+    await page.goto(path);
+    await expectInterfaceLanguage(page, LANGUAGES.EN);
+    // The control banner proves the payload arrived and supplies the timer the clock advance
+    // needs — a suppressed modal never arms one of its own.
+    await waitForTimerArmed(page, DELAY_SECONDS * 1000);
+    await advanceBy(page, DELAY_SECONDS * 1000 + 1000);
+    await expect(bannerBox(page)).toContainText(CONTROL_BANNER_TEXT);
+  }
+
+  test('on the colliding page, NOTHING shows — the runner-up is not promoted', async ({ page, context }) => {
+    await openAt(page, context, guardPayload(COLLIDING_URL), PAGE_PATH);
+
+    // Not "the winner is hidden and the runner-up shows" — the slot is simply empty here.
+    await expect(modalBox(page)).toHaveCount(0);
+  });
+
+  test('on any other page, the SAME winner renders — path suppression did not unseat it', async ({
+    page,
+    context,
+  }) => {
+    await openAt(page, context, guardPayload(COLLIDING_URL), OTHER_PATH);
+
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(WINNER_MODAL);
+    await expect(modalBox(page)).not.toContainText(RUNNER_UP_MODAL);
+  });
+
+  test('control: with no collision the winner renders on the original page too', async ({ page, context }) => {
+    // Pairs the absence above: same page, same documents, only the winner's button URL moves off
+    // the current path — so the collision is provably what emptied the slot.
+    await openAt(page, context, guardPayload(SAFE_URL), PAGE_PATH);
+
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(WINNER_MODAL);
   });
 });
