@@ -298,8 +298,9 @@ const targetCountries = (countryMode, codes = []) => ({
  * Assemble documents into the response body `/api/strapi/graphql-cache` returns.
  *
  * ROW ORDER WITHIN EACH ALIAS IS THE ORDER DOCUMENTS ARE PASSED — a guarantee, not an accident.
- * context.js selects a banner/modal with `.find()`, so only the first date-active one is ever
- * surfaced and order decides which. Tests that assert on selection depend on this being stable.
+ * Selection ranks eligible documents by specificity and urgency (strapiSelection.js), and payload
+ * order is the FINAL tie-break — so the tests that pin tie-break outcomes, and every test that
+ * lists a decoy first to prove position cannot explain a winner, depend on this being stable.
  *
  * Note this reproduces the endpoint faithfully but not `groupByDocumentId`'s downstream ordering:
  * that function flattens all `en` rows before all `he` rows, so a Hebrew-only document always

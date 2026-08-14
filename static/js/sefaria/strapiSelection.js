@@ -181,26 +181,33 @@ const localeSpecificity = (doc) => (doc.locales.length === 1 ? 1 : 0);
 
 // How long the document runs for, in milliseconds. A one-day special is more deliberately
 // scheduled than a month-long campaign, so SHORTER ranks higher.
-const windowMillis = (doc, fields) =>
+const windowLengthMillis = (doc, fields) =>
   new Date(doc[fields.end]) - new Date(doc[fields.start]);
 
 // When the document's window opened, in milliseconds since the epoch. Tie-break for
 // SAME-LENGTH overlapping windows: they expire in start order, so the earlier one leaves the
 // stage first — the viewer will still get to see the later one after it ends, which makes the
-// earlier one the more urgent of the two right now. EARLIER ranks higher. This is windowMillis's
-// urgency principle at finer granularity (see the Ranking header), not a competing rule.
-const startMillis = (doc, fields) => new Date(doc[fields.start]).getTime();
+// earlier one the more urgent of the two right now. EARLIER ranks higher. This is the previous
+// tier's urgency principle at finer granularity (see the Ranking header), not a competing rule.
+//
+// START DATE VS END DATE: at this tier they are provably the same comparison — the tier only
+// runs when windowLengthMillis tied, and for equal lengths, earlier start IS earlier end. Start
+// is used because the editorial reading is "the incumbent wins". Do NOT "simplify" the pair of
+// window tiers into a single rank-by-earliest-end: without the length tier ahead of it, that is
+// a DIFFERENT policy (a three-day and a one-day campaign expiring the same Thursday would tie,
+// where the ratified policy says the more tightly scheduled one wins).
+const windowStartMillis = (doc, fields) => new Date(doc[fields.start]).getTime();
 
 // The document's rank as a comparable array, best = smallest. The specificity scores are
 // negated because sortBy sorts ascending: a score of 1 becomes -1, which sorts before 0.
-// windowMillis and startMillis are NOT negated — smaller (shorter, earlier) already sorts
+// The window values are NOT negated — smaller (shorter, earlier) already sorts
 // first. Array order (Strapi's return order) breaks any remaining tie, because sortBy is stable.
-const specificityKey = (doc, ctx, fields) => [
+const selectionPriorityKey = (doc, ctx, fields) => [
   -countrySpecificity(doc, ctx),
   -audienceSpecificity(doc),
   -localeSpecificity(doc),
-  windowMillis(doc, fields),
-  startMillis(doc, fields),
+  windowLengthMillis(doc, fields),
+  windowStartMillis(doc, fields),
 ];
 
 // compareArrays([0, 5], [0, 9]) -> negative (first sorts before second). Element by element,
@@ -221,12 +228,12 @@ const sortBy = (list, keyFn) =>
 
 // ── Selection ───────────────────────────────────────────────────────────────
 
-// The one document this viewer should see: drop everything they may not see, then take the most
-// specific of what remains. Returns null when nothing fits — the surface simply stays empty.
+// The one document this viewer should see: drop everything they may not see, then take the
+// highest-priority of what remains. Returns null when nothing fits — the surface stays empty.
 const selectContent = (docs, ctx, contentType) => {
   const fields = CONTENT_FIELDS[contentType];
   const eligible = docs.filter((doc) => isEligible(doc, ctx, contentType));
-  return sortBy(eligible, (doc) => specificityKey(doc, ctx, fields))[0] ?? null;
+  return sortBy(eligible, (doc) => selectionPriorityKey(doc, ctx, fields))[0] ?? null;
 };
 
 // ── Render-only guard ───────────────────────────────────────────────────────
@@ -283,7 +290,7 @@ export {
   CONTENT_FIELDS,
   isEligible,
   selectContent,
-  specificityKey,
+  selectionPriorityKey,
   sortBy,
   isPathExcluded,
   buildViewerContext,
