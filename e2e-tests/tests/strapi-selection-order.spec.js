@@ -6,9 +6,10 @@
  * static/js/sefaria/strapiSelection.js), so a document the viewer cannot see is skipped in favor
  * of one they can. Among several eligible documents the most specific wins, tier by tier:
  * country-targeted > untargeted, restricted audience > everyone, locale-exclusive > bilingual,
- * shorter window > longer, then payload order. Display (Misc.jsx shouldShow) re-checks
- * eligibility and adds the page-dependent path guard, which deliberately does NOT participate in
- * selection.
+ * shorter window > longer, earlier start > later (equal-length overlaps expire in start order,
+ * so the earlier one is the more urgent of the two), then payload order. Display (Misc.jsx
+ * shouldShow) re-checks eligibility and adds the page-dependent path guard, which deliberately
+ * does NOT participate in selection.
  *
  * Recorded scenarios contain at most one banner and one modal in window, so selection is never
  * asked to choose there. Recording multi-item states would mean a separate publishing session per
@@ -521,6 +522,285 @@ test.describe('Strapi selection — among eligible documents, the shorter window
       await expect(modalBox(page)).toBeVisible();
       await expect(modalBox(page)).toContainText(SHORT_MODAL);
       await expect(modalBox(page)).not.toContainText(LONG_MODAL);
+    }),
+  );
+});
+
+test.describe('Strapi selection — a locale-exclusive daily outranks a bilingual weekly for its reader', () => {
+  // The editorial convention these tests pin down: a document published in ONE locale was written
+  // for that audience specifically; a bilingual document is for the general audience. So when an
+  // English reader could see both, the English-only daily wins — on locale exclusivity (tier 3),
+  // before the window tier is even consulted — while a Hebrew reader, for whom the daily fails
+  // the locale GATE, still gets the bilingual weekly. Same payload, each reader served the
+  // document meant for them.
+  //
+  // The bilingual weekly is listed FIRST in the payload so payload order can never explain the
+  // daily winning. Unlike the unit-level version of this scenario, the bilingual document here
+  // arrives as two per-locale rows that groupByDocumentId must merge — the e2e run proves the
+  // merge feeds the ranking the `locales: ["en", "he"]` shape it keys on.
+
+  const WEEKLY_BILINGUAL_EN = 'Synthetic bilingual weekly modal in English';
+  const WEEKLY_BILINGUAL_HE = 'מודעה שבועית דו־לשונית בעברית';
+  const DAILY_ENGLISH_ONLY = 'Synthetic English-only daily modal';
+
+  const bilingualWeekly = () =>
+    modal({
+      window: { start: daysFromNow(-1), end: daysFromNow(6) },
+      shared: { showDelay: DELAY_SECONDS },
+      locales: {
+        en: { modalText: WEEKLY_BILINGUAL_EN },
+        he: { modalText: WEEKLY_BILINGUAL_HE },
+      },
+    });
+  const englishOnlyDaily = () =>
+    modal({
+      window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+      shared: { showDelay: DELAY_SECONDS },
+      locales: { en: { modalText: DAILY_ENGLISH_ONLY } },
+    });
+
+  const payload = () => strapiPayload({ modals: [bilingualWeekly(), englishOnlyDaily()] });
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  test('an English reader gets the English-only daily, not the bilingual weekly', async ({ page, context }) => {
+    strapi = await open(page, context, payload());
+
+    await elapseShowDelay(page);
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(DAILY_ENGLISH_ONLY);
+    await expect(modalBox(page)).not.toContainText(WEEKLY_BILINGUAL_EN);
+  });
+
+  test('a Hebrew reader still gets the bilingual weekly (the daily fails their locale gate)', async ({
+    page,
+    context,
+  }) => {
+    strapi = await open(page, context, payload(), { language: LANGUAGES.HE });
+
+    await elapseShowDelay(page);
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(WEEKLY_BILINGUAL_HE);
+    await expect(modalBox(page)).not.toContainText(DAILY_ENGLISH_ONLY);
+  });
+});
+
+test.describe('Strapi selection — between two bilingual documents, the shorter window wins for every reader', () => {
+  // Both documents are for the general audience (both locales published), so tiers 1-3 all tie
+  // and the window tier decides: the more tightly scheduled — potentially more urgent — daily
+  // takes the slot, for the English and the Hebrew reader alike. The weekly is listed first so
+  // order cannot explain the outcome.
+
+  const WEEKLY_EN = 'Synthetic bilingual weekly in English';
+  const WEEKLY_HE = 'שבועי דו־לשוני בעברית';
+  const DAILY_EN = 'Synthetic bilingual daily in English';
+  const DAILY_HE = 'יומי דו־לשוני בעברית';
+
+  const bilingual = (window, en, he) =>
+    modal({
+      window,
+      shared: { showDelay: DELAY_SECONDS },
+      locales: { en: { modalText: en }, he: { modalText: he } },
+    });
+
+  const payload = () =>
+    strapiPayload({
+      modals: [
+        bilingual({ start: daysFromNow(-1), end: daysFromNow(6) }, WEEKLY_EN, WEEKLY_HE),
+        bilingual({ start: daysFromNow(-0.5), end: daysFromNow(0.5) }, DAILY_EN, DAILY_HE),
+      ],
+    });
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  const READERS = [
+    { label: 'an English reader', language: LANGUAGES.EN, daily: DAILY_EN, weekly: WEEKLY_EN },
+    { label: 'a Hebrew reader', language: LANGUAGES.HE, daily: DAILY_HE, weekly: WEEKLY_HE },
+  ];
+
+  READERS.forEach(({ label, language, daily, weekly }) =>
+    test(`${label} gets the daily in their language`, async ({ page, context }) => {
+      strapi = await open(page, context, payload(), { language });
+
+      await elapseShowDelay(page);
+      await expect(modalBox(page)).toBeVisible();
+      await expect(modalBox(page)).toContainText(daily);
+      await expect(modalBox(page)).not.toContainText(weekly);
+    }),
+  );
+});
+
+test.describe('Strapi selection — exclusivity beats urgency when the two point at different documents', () => {
+  // THE TIER-ORDERING COLLISION, pinned as a deliberate policy decision (2026-08-13): a
+  // locale-exclusive document ("written for this audience specifically", tier 3) outranks a more
+  // tightly scheduled one ("potentially more urgent", tier 4) when they disagree. The two
+  // describes above cannot test this — in both, every deciding tier favors the same document.
+  // Here they conflict: the weekly is English-ONLY, the daily is bilingual.
+  //
+  // The bilingual daily is listed FIRST and has the SHORTER window, so neither payload order nor
+  // urgency can explain the weekly winning for the English reader — only tier 3 can. If this
+  // test starts failing after a ranking change, the tier order moved; update the policy docs
+  // (e2e-tests/tests/README.md "Selection behavior") in the same change.
+
+  const EXCLUSIVE_WEEKLY = 'Synthetic English-only weekly modal';
+  const URGENT_DAILY_EN = 'Synthetic bilingual daily in English';
+  const URGENT_DAILY_HE = 'יומי דחוף דו־לשוני בעברית';
+
+  const payload = () =>
+    strapiPayload({
+      modals: [
+        modal({
+          window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+          shared: { showDelay: DELAY_SECONDS },
+          locales: { en: { modalText: URGENT_DAILY_EN }, he: { modalText: URGENT_DAILY_HE } },
+        }),
+        modal({
+          window: { start: daysFromNow(-1), end: daysFromNow(6) },
+          shared: { showDelay: DELAY_SECONDS },
+          locales: { en: { modalText: EXCLUSIVE_WEEKLY } },
+        }),
+      ],
+    });
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  test('an English reader gets the English-only weekly despite the daily being more urgent', async ({
+    page,
+    context,
+  }) => {
+    strapi = await open(page, context, payload());
+
+    await elapseShowDelay(page);
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(EXCLUSIVE_WEEKLY);
+    await expect(modalBox(page)).not.toContainText(URGENT_DAILY_EN);
+  });
+
+  test('a Hebrew reader never sees the collision — the daily wins as their only eligible document', async ({
+    page,
+    context,
+  }) => {
+    strapi = await open(page, context, payload(), { language: LANGUAGES.HE });
+
+    await elapseShowDelay(page);
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(URGENT_DAILY_HE);
+    await expect(modalBox(page)).not.toContainText(EXCLUSIVE_WEEKLY);
+  });
+});
+
+test.describe('Strapi selection — country targeting outranks urgency for a viewer both documents may address', () => {
+  // The other tier-ordering collision, ratified as deliberate policy (2026-08-13): naming the
+  // viewer's country (tier 1) is a stronger signal of intent than a tighter schedule (tier 4).
+  // Both documents pass every GATE for this viewer — the untargeted daily addresses everyone,
+  // the GB-include monthly addresses them by name — so this is purely the ranking deciding.
+  //
+  // The untargeted daily is listed FIRST and is SHORTER, so neither payload order nor the window
+  // tier can explain the monthly winning — only tier 1 can.
+  //
+  // Viewer country comes from the cf-ipcountry header; candidates are a UNION of IP, timezone
+  // and navigator.language, and the config's America/New_York timezone contributes 'us' — so the
+  // discriminating target is include[GB], which this viewer matches only via the header.
+  test.use({ extraHTTPHeaders: { 'cf-ipcountry': 'GB' } });
+
+  const UNTARGETED_DAILY = 'Synthetic untargeted daily modal';
+  const TARGETED_MONTHLY = 'Synthetic Britain-targeted monthly modal';
+
+  const payload = () =>
+    strapiPayload({
+      modals: [
+        modal({
+          window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+          shared: { showDelay: DELAY_SECONDS },
+          locales: { en: { modalText: UNTARGETED_DAILY } },
+        }),
+        modal({
+          window: { start: daysFromNow(-13), end: daysFromNow(13) },
+          shared: {
+            showDelay: DELAY_SECONDS,
+            countriesToTarget: targetCountries('include', ['GB']),
+          },
+          locales: { en: { modalText: TARGETED_MONTHLY } },
+        }),
+      ],
+    });
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  test('the Britain-targeted monthly beats the untargeted daily for a British viewer', async ({
+    page,
+    context,
+  }) => {
+    strapi = await open(page, context, payload());
+
+    await elapseShowDelay(page);
+    await expect(modalBox(page)).toBeVisible();
+    await expect(modalBox(page)).toContainText(TARGETED_MONTHLY);
+    await expect(modalBox(page)).not.toContainText(UNTARGETED_DAILY);
+  });
+});
+
+test.describe('Strapi selection — equal-length overlapping campaigns: the earlier start wins', () => {
+  // User-ratified tiebreak (2026-08-13): when every specificity tier ties and the windows are
+  // the same LENGTH, the campaign that STARTED EARLIER wins (tier 5) — same-length overlapping
+  // windows expire in start order, so the earlier one leaves the stage first, and the viewer
+  // will still get to see the later one after it ends. Before this tier existed, this case fell
+  // through to payload order, which made the outcome an accident of creation order.
+  //
+  // Both payload orders are asserted so the winner provably comes from the start date.
+
+  const INCUMBENT = 'Synthetic incumbent campaign modal';
+  const NEWCOMER = 'Synthetic newcomer campaign modal';
+
+  // Both 7 days long, overlapping now: the incumbent started 3 days ago, the newcomer yesterday.
+  const incumbentModal = () =>
+    modal({
+      window: { start: daysFromNow(-3), end: daysFromNow(4) },
+      shared: { showDelay: DELAY_SECONDS },
+      locales: { en: { modalText: INCUMBENT } },
+    });
+  const newcomerModal = () =>
+    modal({
+      window: { start: daysFromNow(-1), end: daysFromNow(6) },
+      shared: { showDelay: DELAY_SECONDS },
+      locales: { en: { modalText: NEWCOMER } },
+    });
+
+  const MODAL_ORDERS = [
+    { label: 'the incumbent listed first', modals: () => [incumbentModal(), newcomerModal()] },
+    { label: 'the newcomer listed first', modals: () => [newcomerModal(), incumbentModal()] },
+  ];
+
+  let strapi;
+
+  test.afterEach(() => {
+    expectStrapiServed(strapi);
+  });
+
+  MODAL_ORDERS.forEach(({ label, modals }) =>
+    test(`serves the incumbent, with ${label}`, async ({ page, context }) => {
+      strapi = await open(page, context, strapiPayload({ modals: modals() }));
+
+      await elapseShowDelay(page);
+      await expect(modalBox(page)).toBeVisible();
+      await expect(modalBox(page)).toContainText(INCUMBENT);
+      await expect(modalBox(page)).not.toContainText(NEWCOMER);
     }),
   );
 });
