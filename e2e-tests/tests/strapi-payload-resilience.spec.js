@@ -45,6 +45,9 @@ const DELAY_SECONDS = 5;
 /** The exact prefixes the two handlers log; asserting on them proves the handler ran. */
 const FETCH_FAILURE_LOG = 'Failed to get strapi data:';
 const AD_PROCESSING_FAILURE_LOG = 'Failed to process sidebar ads from Strapi:';
+// Row hygiene in groupByDocumentId (strapiLocalization.js) reports every dropped row with this
+// prefix — the "loud" half of the malformed-document guards (see strapi-malformed-documents.spec.js).
+const SKIPPED_ROWS_LOG = 'Skipped unusable Strapi row(s):';
 
 const BANNER_TEXT = 'Synthetic banner delivered alongside a broken payload';
 const AD_TITLE = 'Synthetic Resilience Ad';
@@ -136,7 +139,11 @@ test.describe('Strapi payload resilience — a bad response degrades to no promo
     await expect(bannerBox(page)).toContainText(BANNER_TEXT);
 
     await expect(sidebarAds(page)).toHaveCount(0);
-    expect(loggedOnce(opened.consoleErrors, AD_PROCESSING_FAILURE_LOG)).toHaveLength(1);
+    // The containment point moved upstream with the malformed-document guards: the v4 wrapper
+    // is not a usable row, so row hygiene drops it — loudly — before the ad builder ever runs.
+    // Still one report, just from the earlier, more general guard.
+    expect(loggedOnce(opened.consoleErrors, SKIPPED_ROWS_LOG)).toHaveLength(1);
+    expect(loggedOnce(opened.consoleErrors, AD_PROCESSING_FAILURE_LOG)).toEqual([]);
     await expectPageStillWorks(page);
   });
 
