@@ -6,6 +6,7 @@ import {
   selectContent,
   isPathExcluded,
   sortBy,
+  buildViewerContext,
 } from "../strapiSelection";
 
 // A viewer context with harmless defaults; each test overrides only what it is about.
@@ -430,6 +431,36 @@ describe("sortBy", function () {
   });
 });
 
+describe("malformed document data — skipped, never fatal", function () {
+  // A bad campaign from Strapi must cost only itself: the gates treat unusable values as
+  // "not eligible" and selection moves on to the next document. Nothing here may throw.
+
+  it("a document with an unparseable date is skipped, and a healthy one still wins", function () {
+    const docs = [
+      modal({ internalModalName: "broken-dates", modalStartDate: "not a date", modalEndDate: null }),
+      modal({ internalModalName: "healthy" }),
+    ];
+    // Invalid Date comparisons are always false, so the date gate rejects quietly.
+    expect(isEligible(docs[0], viewer(), ContentType.MODAL)).toBe(false);
+    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("healthy");
+  });
+
+  it("a document with entirely missing dates is skipped the same way", function () {
+    const docs = [
+      modal({ internalModalName: "no-dates", modalStartDate: undefined, modalEndDate: undefined }),
+      modal({ internalModalName: "healthy" }),
+    ];
+    expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("healthy");
+  });
+
+  it("a malformed countriesToTarget shape matches everyone rather than throwing", function () {
+    // A locale block holding a bare string (not the {countryMode, countries} shape) has no
+    // countries list and no recognized mode — matchesCountryTarget defaults to "matches".
+    const doc = modal({ countriesToTarget: { en: "garbage", he: null } });
+    expect(isEligible(doc, viewer(), ContentType.MODAL)).toBe(true);
+  });
+});
+
 describe("isPathExcluded", function () {
   it("excludes the fixed fundraising/app paths", function () {
     ["/donate", "/mobile", "/app", "/ways-to-give"].forEach((path) => {
@@ -457,5 +488,49 @@ describe("isPathExcluded", function () {
     const doc = modal({ buttonURL: { en: "https://example.org/campaign", he: null } });
     expect(isPathExcluded(doc, "/campaign")).toBe(true);
     expect(isPathExcluded(doc, "/texts")).toBe(false);
+  });
+
+  it("an unparseable button URL contributes no excluded path — and never throws", function () {
+    // The realistic editor mistake: a relative URL instead of an absolute one. new URL() throws
+    // on it, and this runs inside shouldShow's useEffect at display time — before this guard,
+    // one bad URL on the SELECTED document crashed the entire React tree, not just promotions.
+    const relative = modal({ buttonURL: { en: "give/451346", he: null } });
+    expect(() => isPathExcluded(relative, "/texts")).not.toThrow();
+    expect(isPathExcluded(relative, "/texts")).toBe(false);
+    // The fixed exclusions still apply; only the broken URL's contribution is lost.
+    expect(isPathExcluded(relative, "/donate")).toBe(true);
+
+    const garbage = modal({ buttonURL: { en: "not a url at all", he: "" } });
+    expect(() => isPathExcluded(garbage, "/texts")).not.toThrow();
+    expect(isPathExcluded(garbage, "/texts")).toBe(false);
+  });
+
+  it("a parseable URL still excludes even when its sibling locale's URL is broken", function () {
+    const doc = modal({ buttonURL: { en: "give/451346", he: "https://example.org/trumot" } });
+    expect(isPathExcluded(doc, "/trumot")).toBe(true);
+  });
+});
+
+describe("buildViewerContext().hasDismissed — corrupted storage is not fatal", function () {
+  // localStorage is shared, writable ground: another feature, an extension, or an old code
+  // version can leave a non-JSON value under a dismissal key. JSON.parse throwing here would
+  // kill selection for every surface, so an unreadable value must read as "not dismissed".
+  afterEach(function () {
+    localStorage.clear();
+  });
+
+  it('reads the normal "true" marker as dismissed', function () {
+    localStorage.setItem("modal_test", "true");
+    expect(buildViewerContext().hasDismissed("modal_test")).toBe(true);
+  });
+
+  it("reads an absent key as not dismissed", function () {
+    expect(buildViewerContext().hasDismissed("modal_absent")).toBe(false);
+  });
+
+  it("reads a corrupted, non-JSON value as not dismissed rather than throwing", function () {
+    localStorage.setItem("modal_test", "yes"); // not valid JSON
+    expect(() => buildViewerContext().hasDismissed("modal_test")).not.toThrow();
+    expect(buildViewerContext().hasDismissed("modal_test")).toBe(false);
   });
 });
