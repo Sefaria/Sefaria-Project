@@ -202,6 +202,19 @@ function StrapiDataProvider({ children }) {
             return response.json();
           })
           .then((result) => {
+            // GraphQL reports failures INSIDE a 200 response ({errors: [...], data: null}), and
+            // the cache endpoint passes those through uncached (sefaria/views.py). Treat them
+            // like the network failures they morally are. Without this guard a transient error
+            // is indistinguishable from "nothing published": the dismissal-key cleanup below
+            // would wipe every viewer's dismissal state, re-showing dismissed campaigns the
+            // moment the error clears. A REAL nothing-published response still carries a data
+            // OBJECT (with empty per-locale arrays), so it passes this check and proceeds.
+            if (!result?.data || result.errors) {
+              throw new Error(
+                "Strapi response carried no data" +
+                  (result?.errors ? `: ${JSON.stringify(result.errors).slice(0, 200)}` : ""),
+              );
+            }
             setDataFromStrapiHasBeenReceived(true);
 
             // Each content type's per-locale rows, keyed by locale, e.g. {en: [...], he: [...]}

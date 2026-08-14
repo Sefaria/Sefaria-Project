@@ -158,6 +158,34 @@ test.describe('Strapi payload resilience — a bad response degrades to no promo
     expect(loggedOnce(opened.consoleErrors, AD_PROCESSING_FAILURE_LOG)).toEqual([]);
   });
 
+  test('GraphQL errors inside a 200 are a failed fetch — and dismissals survive them', async ({
+    page,
+    context,
+  }) => {
+    // GraphQL reports failures inside HTTP 200 ({errors: [...], data: null}), and the cache
+    // endpoint passes that through uncached (sefaria/views.py). The client must treat it as a
+    // FAILED fetch, not as "nothing published": the two are indistinguishable at the surface
+    // (nothing renders either way), but only genuine emptiness may prune dismissal keys. A
+    // seeded dismissal is the discriminator — before this guard, a transient error wiped every
+    // viewer's dismissal state, and dismissed campaigns re-showed the moment the error cleared.
+    await page.addInitScript(() => localStorage.setItem('modal_seeded-campaign', 'true'));
+
+    const opened = await open(page, context, {
+      errors: [{ message: 'Internal Server Error', extensions: { code: 'INTERNAL_SERVER_ERROR' } }],
+      data: null,
+    });
+    strapi = opened.strapi;
+
+    await expect(bannerBox(page)).toHaveCount(0);
+    await expect(modalBox(page)).toHaveCount(0);
+    expect(loggedOnce(opened.consoleErrors, FETCH_FAILURE_LOG)).toHaveLength(1);
+
+    // The point of the test: transient emptiness must not wipe dismissal state.
+    const seededKey = await page.evaluate(() => localStorage.getItem('modal_seeded-campaign'));
+    expect(seededKey).toBe('true');
+    await expectPageStillWorks(page);
+  });
+
   test('an HTTP 500 leaves the page working and is reported once', async ({ page, context }) => {
     const opened = await open(page, context, null, { status: 500, rawBody: 'Internal Server Error' });
     strapi = opened.strapi;
