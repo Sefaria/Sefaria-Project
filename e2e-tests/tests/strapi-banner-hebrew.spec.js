@@ -77,6 +77,28 @@ test.describe('Strapi Banner — Hebrew-only', () => {
     await expect(button).toHaveAttribute('href', scenario.expected.banner.buttonURL);
   });
 
+  test('renders Hebrew body text right-aligned', async ({ page }) => {
+    await useInterfaceLanguage(page, LANGUAGES.HE);
+    await page.goto('/');
+    await expectInterfaceLanguage(page, LANGUAGES.HE);
+
+    const banner = page.locator('#bannerMessage');
+    await advanceUntilVisible(page, banner);
+
+    // Confirm Hebrew content actually rendered before asserting on its layout — an alignment
+    // check on the wrong text would prove nothing.
+    await expect(banner).toContainText(scenario.expected.banner.bodyText);
+
+    // Unlike the modal, the banner has no explicit text-align rule anywhere in s2.css —
+    // .interface-hebrew #bannerMessage (s2.css:306-308) sets only `direction: rtl`. Deliberately
+    // NOT asserting text-align too: verified live that Chromium's getComputedStyle reports it as
+    // the literal string "start" here (the CSS initial value), never "right", even though
+    // direction: rtl is fully inherited down to the .int-he span — "start" renders right-aligned
+    // under rtl but is not the same computed value as "right". direction: rtl is the one property
+    // this app's CSS actually controls, so it's the only one worth pinning.
+    await expect(banner).toHaveCSS('direction', 'rtl');
+  });
+
   test('does not render under English interface', async ({ page }) => {
     await useInterfaceLanguage(page, LANGUAGES.EN);
     const responsesBeforeNavigation = strapiResponseCount(page);
