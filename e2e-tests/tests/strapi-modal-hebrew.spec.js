@@ -75,6 +75,26 @@ test.describe('Strapi Modal — Hebrew-only', () => {
     await expect(button).toHaveAttribute('href', expected.buttonURL);
   });
 
+  test('renders Hebrew body text right-aligned', async ({ page }) => {
+    await useInterfaceLanguage(page, LANGUAGES.HE);
+    await page.goto(scenario.pagePath);
+    await expectInterfaceLanguage(page, LANGUAGES.HE);
+
+    const modal = page.locator('#interruptingMessageBox');
+    await advanceUntilVisible(page, modal);
+
+    // Confirm Hebrew content actually rendered before asserting on its layout — an alignment
+    // check on the wrong text would prove nothing.
+    const body = page.locator('#defaultModalBody');
+    await expect(body).toContainText(expected.bodyText);
+
+    // #defaultModal is the only element with an explicit rule (.interface-hebrew #defaultModal,
+    // s2.css:1048-1051); #defaultModalBody has none of its own, so asserting here also confirms
+    // the cascade reaches the actual text container.
+    await expect(body).toHaveCSS('direction', 'rtl');
+    await expect(body).toHaveCSS('text-align', 'right');
+  });
+
   test('does not render under English interface', async ({ page }) => {
     await useInterfaceLanguage(page, LANGUAGES.EN);
     const responsesBeforeNavigation = strapiResponseCount(page);
