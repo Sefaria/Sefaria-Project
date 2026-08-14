@@ -31,6 +31,8 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | Holds the factory's field set to what every committed recording actually contains — the guard that keeps synthetic payloads honest. Needs no server. |
 | [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js) | *(synthetic)* Each surface waits exactly its own `showDelay` — hidden a second before, visible a second after, with two surfaces on different delays. |
 | [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Selection runs every viewer gate (locale, country, dismissal) and ranks eligible documents by specificity — Hebrew readers get their own document past English competitors, a dismissed winner falls through to the runner-up, a shorter window outranks a longer one, and identical documents tie to payload order. |
+| [`strapi-audience.spec.js`](strapi-audience.spec.js) | *(synthetic)* The audience gate for anonymous readers: `logged_out_only` shows and `logged_in_only` doesn't, and new vs. returning visitors (a fresh context IS a new visitor; returning is seeded by writing what `markUserAsReturningVisitor` writes). Mixed payloads prove selection-time filtering in both orders. |
+| [`strapi-audience-real.spec.js`](strapi-audience-real.spec.js) | *(synthetic, real session)* `logged_in_only` against a genuine Django session via `test.use({storageState})` — the newsletter suite's `*-real` pattern. Also pins that a logged-in reader is ALWAYS a returning visitor (ReaderApp marks them so). Skips with a message unless `PLAYWRIGHT_USER_EMAIL`/`PASSWORD` are set. |
 | [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. |
 | [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
@@ -263,6 +265,7 @@ Every gate each surface applies, so a new scenario can be checked against this b
 | dismissal persists across reload | — | ✓ | n/a — no dismiss control |
 | `showDelay` boundary | ✓ *(synthetic)* | ✓ *(synthetic)* | n/a — no delay on this type |
 | selection among several in-window | ✓ *(synthetic; locale gate + ranking)* | ✓ *(synthetic; locale + country gates, dismissal fallthrough, window ranking)* | n/a — all matches render |
+| audience: `showTo` / visitor kind | — (same code path as the modal) | ✓ *(synthetic; logged-out + new/returning; logged-in via `-real`, needs creds; sustainer uncovered)* | `showTo: "all"` only |
 | `excludedPaths`, incl. cross-locale | ✓ *(synthetic)* | — (same code path as the modal) | n/a |
 | malformed / failed response | ✓ *(synthetic)* | ✓ *(synthetic)* | ✓ *(synthetic)* |
 
@@ -271,9 +274,12 @@ Deliberately **not** covered, with reasons:
 - **More country modes or edge cases at this layer.** `matchesCountryTarget` has ~28 exhaustive Jest
   cases; integration owns the wiring, not the predicate. Two country cases per call site is the
   budget — a synthetic country matrix would be cheap to write and would still be duplication.
-- **Logged-in visitor states** (`showTo: logged_in_only`, sustainer, returning-visitor). Needs an
-  authenticated profile; every scenario so far runs logged out. The factory removes the *payload*
-  obstacle, so this is now only an auth-fixture problem.
+- **Sustainer vs. non-sustainer.** The one audience state still uncovered: `is_sustainer` comes
+  from the user profile and cannot be seeded client-side, so it needs a sustainer-flagged test
+  account. Everything else in the audience gate IS covered now — `strapi-audience.spec.js`
+  (anonymous: `logged_out_only`, new vs. returning visitors via the web-storage lever) and
+  `strapi-audience-real.spec.js` (`logged_in_only` against a real Django session; skips with a
+  message when `PLAYWRIGHT_USER_EMAIL`/`PASSWORD` are absent).
 - **Mobile viewport.** `shouldDeployOnMobile` exists on the payload and is never asserted.
 - **Analytics.** Impression and interaction events fire through `gtag`/`sa_event`; see the note in
   the interaction section for why a naive stub does not capture them.
