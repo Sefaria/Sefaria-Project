@@ -5,10 +5,12 @@
 //      viewer should get. Every gate must run here, otherwise a document the viewer can't see
 //      (wrong language, wrong country, already dismissed...) wins the spot and the one written
 //      for them is thrown away. That was bug sc-45891.
-//   2. DISPLAY (Misc.jsx shouldShow) — the chosen document re-checks itself just before
-//      rendering. Selection happens once when the Strapi data arrives, so this catches anything
-//      that changed since (e.g. the user dismissed it in another tab), plus the render-only
-//      guards that depend on the current page (see isPathExcluded).
+//   2. DISPLAY (Misc.jsx shouldShow) — re-checked at each mount before the reveal timer is
+//      armed (never for an already-visible surface). The dismissal gate is what makes a
+//      dismissal survive remounts: the dismissed document stays selected for the whole page
+//      view, and the component's local "interacted" state resets on every navigation. It also
+//      picks up cross-tab dismissals on the next remount — not live — and date windows that
+//      expired while the tab stayed open, plus the render-only page guard (see isPathExcluded).
 //
 // Everything here except buildViewerContext is a pure function: the viewer's situation comes in
 // as a plain `ctx` object, never read from globals. That keeps the logic unit-testable with no
@@ -142,9 +144,22 @@ const isEligible = (doc, ctx, contentType) => {
 };
 
 // ── Ranking ─────────────────────────────────────────────────────────────────
-// When several documents are eligible for the same viewer, the MOST SPECIFIC one wins: a
-// campaign aimed narrowly at this viewer beats a catch-all. Specificity is judged tier by tier;
-// a later tier only matters when every earlier one ties.
+// When several documents are eligible for the same viewer, the winner is chosen by ONE value
+// system with two principles, applied in that order (a later tier only matters when every
+// earlier one ties):
+//
+//   SPECIFICITY OF INTENT (tiers 1-3) — how narrowly the editor aimed this document at this
+//   viewer: named their country, restricted the audience, published only their language. A
+//   campaign written FOR someone beats a catch-all. Specificity always outranks urgency —
+//   ratified deliberately (2026-08-13) for both collisions: "country beats urgency" (tier 1
+//   over 4) and "exclusivity beats urgency" (tier 3 over 4), each pinned by its own tests.
+//
+//   URGENCY (tiers 4-5) — how scarce the remaining chance to show the document is: a shorter
+//   window is scarcer than a longer one, and among equal-length windows the one that started
+//   earlier ends earlier, so it is scarcer still. Tier 5 is tier 4's principle at finer
+//   granularity, NOT a new value — for equal lengths, earlier start IS earlier end.
+//
+// Payload order (tier 6) is only reachable when documents agree under both principles.
 
 // 1 when the document names the viewer's country on an include list, 0 otherwise. Only ranked
 // among ELIGIBLE documents, so include-mode here always means "and the viewer is on the list".
@@ -169,14 +184,23 @@ const localeSpecificity = (doc) => (doc.locales.length === 1 ? 1 : 0);
 const windowMillis = (doc, fields) =>
   new Date(doc[fields.end]) - new Date(doc[fields.start]);
 
+// When the document's window opened, in milliseconds since the epoch. Tie-break for
+// SAME-LENGTH overlapping windows: they expire in start order, so the earlier one leaves the
+// stage first — the viewer will still get to see the later one after it ends, which makes the
+// earlier one the more urgent of the two right now. EARLIER ranks higher. This is windowMillis's
+// urgency principle at finer granularity (see the Ranking header), not a competing rule.
+const startMillis = (doc, fields) => new Date(doc[fields.start]).getTime();
+
 // The document's rank as a comparable array, best = smallest. The specificity scores are
 // negated because sortBy sorts ascending: a score of 1 becomes -1, which sorts before 0.
-// Array order (Strapi's return order) breaks any remaining tie, because sortBy is stable.
+// windowMillis and startMillis are NOT negated — smaller (shorter, earlier) already sorts
+// first. Array order (Strapi's return order) breaks any remaining tie, because sortBy is stable.
 const specificityKey = (doc, ctx, fields) => [
   -countrySpecificity(doc, ctx),
   -audienceSpecificity(doc),
   -localeSpecificity(doc),
   windowMillis(doc, fields),
+  startMillis(doc, fields),
 ];
 
 // compareArrays([0, 5], [0, 9]) -> negative (first sorts before second). Element by element,

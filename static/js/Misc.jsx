@@ -2153,11 +2153,15 @@ const InterruptingMessage = ({
     sa_event("modal_viewed", { campaignID: strapi.modal.internalModalName });
   };
 
-  // Selection (context.js) already ran every viewer gate, so the modal in context is one this
-  // viewer may see. isEligible re-checks anyway — selection happened once, when the Strapi data
-  // arrived, and things can change afterwards (e.g. the modal was dismissed in another tab).
-  // The path guard stays display-only on purpose: it depends on the page the viewer is on now,
-  // and selection is deliberately page-independent (see strapiSelection.js).
+  // Runs only in the useEffect below (mount + strapi.modal change), so it gates whether the
+  // reveal timer is ARMED — an already-visible modal is never re-evaluated. Selection
+  // (context.js) already ran every viewer gate, but the dismissal re-check here is load-bearing:
+  // the dismissed document stays selected for the whole page view, and a remount resets
+  // hasInteractedWithModal, so without it the modal would re-arm on every navigation. It also
+  // picks up a dismissal from another tab on the next remount (there is no live cross-tab
+  // removal — nothing listens for storage events), and a date window that expired while the tab
+  // stayed open. The path guard stays display-only on purpose: it depends on the page the viewer
+  // is on now, and selection is deliberately page-independent (see strapiSelection.js).
   const shouldShow = () =>
     Boolean(strapi.modal) &&
     isEligible(strapi.modal, buildViewerContext(), ContentType.MODAL) &&
@@ -2288,11 +2292,15 @@ const Banner = ({ onClose }) => {
     sa_event("banner_viewed", { campaign_id: strapi.banner.internalBannerName });
   };
 
-  // Selection (context.js) already ran every viewer gate, so the banner in context is one this
-  // viewer may see. isEligible re-checks anyway — selection happened once, when the Strapi data
-  // arrived, and things can change afterwards (e.g. the banner was dismissed in another tab).
-  // The path guard stays display-only on purpose: it depends on the page the viewer is on now,
-  // and selection is deliberately page-independent (see strapiSelection.js).
+  // Runs only in the useEffect below (mount + strapi.banner change), so it gates whether the
+  // reveal timer is ARMED — an already-visible banner is never re-evaluated. Selection
+  // (context.js) already ran every viewer gate, but the dismissal re-check here is load-bearing:
+  // the dismissed document stays selected for the whole page view, and a remount resets
+  // hasInteractedWithBanner, so without it the banner would re-arm on every navigation. It also
+  // picks up a dismissal from another tab on the next remount (there is no live cross-tab
+  // removal — nothing listens for storage events), and a date window that expired while the tab
+  // stayed open. The path guard stays display-only on purpose: it depends on the page the viewer
+  // is on now, and selection is deliberately page-independent (see strapiSelection.js).
   const shouldShow = () =>
     Boolean(strapi.banner) &&
     isEligible(strapi.banner, buildViewerContext(), ContentType.BANNER) &&

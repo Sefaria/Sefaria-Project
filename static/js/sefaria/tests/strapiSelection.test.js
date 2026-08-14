@@ -254,7 +254,7 @@ describe("selectContent", function () {
       expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("one-day");
     });
 
-    it("tier 5: array order breaks a complete tie", function () {
+    it("tier 6: payload order breaks a complete tie (identical windows AND identical starts)", function () {
       const docs = [modal({ internalModalName: "first" }), modal({ internalModalName: "second" })];
       expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("first");
     });
@@ -278,6 +278,136 @@ describe("selectContent", function () {
         }),
       ];
       expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe("country-targeted");
+    });
+  });
+
+  describe("ranking, editorial scenarios", function () {
+    // The shapes editors actually publish, asserted end to end through the ranking. A
+    // locale-exclusive document is authored FOR that audience; a bilingual one is for everyone.
+
+    const weeklyWindow = {
+      modalStartDate: "2026-09-12T00:00:00.000Z",
+      modalEndDate: "2026-09-19T00:00:00.000Z",
+    };
+    const dailyWindow = {
+      modalStartDate: "2026-09-15T00:00:00.000Z",
+      modalEndDate: "2026-09-16T00:00:00.000Z",
+    };
+
+    it("a locale-exclusive daily outranks a bilingual weekly for the shared reader (tier 3, before window)", function () {
+      const docs = [
+        modal({ internalModalName: "bilingual-weekly", locales: ["en", "he"], ...weeklyWindow }),
+        modal({ internalModalName: "english-daily", locales: ["en"], ...dailyWindow }),
+      ];
+      // The English reader can see both; the daily was written for English readers specifically.
+      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
+        "english-daily",
+      );
+      // The Hebrew reader can only see the bilingual weekly — the daily fails the locale GATE,
+      // so this is not a ranking outcome. The general-audience document still serves them.
+      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
+        "bilingual-weekly",
+      );
+    });
+
+    it("between two bilingual documents the shorter window wins, for either reader (tier 4)", function () {
+      const docs = [
+        modal({ internalModalName: "bilingual-weekly", locales: ["en", "he"], ...weeklyWindow }),
+        modal({ internalModalName: "bilingual-daily", locales: ["en", "he"], ...dailyWindow }),
+      ];
+      // Tiers 1-3 tie (untargeted, unrestricted, both bilingual); the more tightly scheduled —
+      // potentially more urgent — document takes the slot for every reader.
+      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
+        "bilingual-daily",
+      );
+      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
+        "bilingual-daily",
+      );
+    });
+
+    it("exclusivity beats urgency: a locale-exclusive weekly outranks a bilingual daily (tier 3 before tier 4)", function () {
+      // THE tier-ordering collision, pinned deliberately (user decision, 2026-08-13): when
+      // "written for this audience specifically" (locale exclusivity) and "more tightly
+      // scheduled" (shorter window) point at DIFFERENT documents, exclusivity wins — it is the
+      // stronger signal of intent. This is the discriminating case the scenario above cannot
+      // test, because there both tiers favor the same document.
+      const docs = [
+        modal({ internalModalName: "bilingual-daily", locales: ["en", "he"], ...dailyWindow }),
+        modal({ internalModalName: "english-weekly", locales: ["en"], ...weeklyWindow }),
+      ];
+      // The English reader gets the document written for English readers, even though the
+      // bilingual daily is more urgent — and listed first, so order cannot explain it either.
+      expect(selectContent(docs, viewer({ locale: "en" }), ContentType.MODAL).internalModalName).toBe(
+        "english-weekly",
+      );
+      // The Hebrew reader never sees the collision: the English-only weekly fails their locale
+      // gate and the bilingual daily wins as the only eligible document.
+      expect(selectContent(docs, viewer({ locale: "he" }), ContentType.MODAL).internalModalName).toBe(
+        "bilingual-daily",
+      );
+    });
+
+    it("country-targeting outranks urgency: an include-targeted monthly beats an untargeted daily (tier 1 before tier 4)", function () {
+      // The other tier-ordering collision, ratified deliberately (user decision, 2026-08-13):
+      // naming the viewer's country is a stronger signal of intent than a tighter schedule.
+      // The untargeted daily is listed first AND shorter, so only tier 1 explains the winner.
+      const docs = [
+        modal({
+          internalModalName: "untargeted-daily",
+          modalStartDate: "2026-09-15T00:00:00.000Z",
+          modalEndDate: "2026-09-16T00:00:00.000Z",
+        }),
+        modal({
+          internalModalName: "us-targeted-monthly",
+          countriesToTarget: { en: include("US"), he: null },
+          modalStartDate: "2026-09-01T00:00:00.000Z",
+          modalEndDate: "2026-09-29T00:00:00.000Z",
+        }),
+      ];
+      expect(selectContent(docs, viewer(), ContentType.MODAL).internalModalName).toBe(
+        "us-targeted-monthly",
+      );
+    });
+
+    it("overlapping equal-length campaigns: the earlier start wins, in either payload order (tier 5)", function () {
+      // User-ratified tiebreak (2026-08-13): when windows are the same LENGTH and every earlier
+      // tier ties, the campaign that STARTED EARLIER wins. Same-length overlapping windows
+      // expire in start order, so the earlier one leaves the stage first — the viewer will
+      // still get to see the later one after it ends, which makes the earlier one the more
+      // urgent of the two right now.
+      const incumbent = modal({
+        internalModalName: "incumbent",
+        modalStartDate: "2026-09-12T00:00:00.000Z",
+        modalEndDate: "2026-09-19T00:00:00.000Z",
+      });
+      const newcomer = modal({
+        internalModalName: "newcomer",
+        modalStartDate: "2026-09-15T00:00:00.000Z",
+        modalEndDate: "2026-09-22T00:00:00.000Z",
+      });
+      // Both orders — the winner comes from the start date, not from position.
+      expect(selectContent([incumbent, newcomer], viewer(), ContentType.MODAL).internalModalName).toBe(
+        "incumbent",
+      );
+      expect(selectContent([newcomer, incumbent], viewer(), ContentType.MODAL).internalModalName).toBe(
+        "incumbent",
+      );
+    });
+
+    it("overlapping campaigns of different lengths: the shorter wins whichever started first", function () {
+      const longIncumbent = modal({
+        internalModalName: "long-incumbent",
+        modalStartDate: "2026-09-12T00:00:00.000Z",
+        modalEndDate: "2026-09-19T00:00:00.000Z",
+      });
+      const shortNewcomer = modal({
+        internalModalName: "short-newcomer",
+        modalStartDate: "2026-09-15T00:00:00.000Z",
+        modalEndDate: "2026-09-16T00:00:00.000Z",
+      });
+      expect(
+        selectContent([longIncumbent, shortNewcomer], viewer(), ContentType.MODAL).internalModalName,
+      ).toBe("short-newcomer");
     });
   });
 });
