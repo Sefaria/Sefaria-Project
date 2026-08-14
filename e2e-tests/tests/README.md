@@ -296,7 +296,14 @@ eligible documents the most specific wins, tier by tier:
 2. restricted audience > everyone;
 3. locale-exclusive > bilingual;
 4. shorter date window > longer;
-5. payload order (stable) breaks remaining ties.
+5. earlier start date > later (equal-length overlaps expire in start order, so the earlier one
+   is the more urgent — the viewer will still see the later one after it ends);
+6. payload order (stable) breaks remaining ties.
+
+Two tier orderings were examined and deliberately ratified (2026-08-13), each pinned by its own
+unit + e2e tests: **exclusivity beats urgency** (a locale-exclusive weekly outranks a bilingual
+daily for its reader) and **country targeting beats urgency** (an include-targeted monthly
+outranks an untargeted daily for a viewer both may address).
 
 Two consequences worth knowing when writing tests here: a **dismissed** document is ineligible, so
 the runner-up wins the next load (dismissal keys are kept for every document still in the payload
