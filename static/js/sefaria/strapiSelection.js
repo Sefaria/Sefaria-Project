@@ -6,11 +6,11 @@
 //      (wrong language, wrong country, already dismissed...) wins the spot and the one written
 //      for them is thrown away. That was bug sc-45891.
 //   2. DISPLAY (Misc.jsx shouldShow) — re-checked at each mount before the reveal timer is
-//      armed (never for an already-visible surface). The dismissal gate is what makes a
-//      dismissal survive remounts: the dismissed document stays selected for the whole page
-//      view, and the component's local "interacted" state resets on every navigation. It also
-//      picks up cross-tab dismissals on the next remount — not live — and date windows that
-//      expired while the tab stayed open, plus the render-only page guard (see isPathExcluded).
+//      armed (never for an already-visible surface). Today the surfaces mount once per page
+//      load at the ReaderApp root, so this is DEFENSE IN DEPTH — a full reload re-runs
+//      selection anyway. The re-check keeps dismissed-stays-dismissed standing if the
+//      components ever start remounting in-page (a key, a wrapper, a move into the panel
+//      tree). What is genuinely display-only is the page guard (see isPathExcluded).
 //
 // Everything here except buildViewerContext is a pure function: the viewer's situation comes in
 // as a plain `ctx` object, never read from globals. That keeps the logic unit-testable with no

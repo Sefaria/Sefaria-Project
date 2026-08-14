@@ -2155,13 +2155,16 @@ const InterruptingMessage = ({
 
   // Runs only in the useEffect below (mount + strapi.modal change), so it gates whether the
   // reveal timer is ARMED — an already-visible modal is never re-evaluated. Selection
-  // (context.js) already ran every viewer gate, but the dismissal re-check here is load-bearing:
-  // the dismissed document stays selected for the whole page view, and a remount resets
-  // hasInteractedWithModal, so without it the modal would re-arm on every navigation. It also
-  // picks up a dismissal from another tab on the next remount (there is no live cross-tab
-  // removal — nothing listens for storage events), and a date window that expired while the tab
-  // stayed open. The path guard stays display-only on purpose: it depends on the page the viewer
-  // is on now, and selection is deliberately page-independent (see strapiSelection.js).
+  // (context.js) already ran every viewer gate, so today this re-check is DEFENSE IN DEPTH, not
+  // load-bearing: the component mounts key-less at the ReaderApp root (ReaderApp.jsx:2461), so
+  // it only ever remounts on a full page load — where selection has re-run with the dismissal
+  // gate anyway, and where a cross-tab dismissal is likewise caught by selection itself. The
+  // re-check is what keeps dismissed-stays-dismissed standing the day that changes: a key, a
+  // conditional wrapper, or a move into the panel tree would reset hasInteractedWithModal on an
+  // in-page remount while the dismissed document is still the selected one. No real flow can
+  // exercise that today (see the remount note in strapi-dismissal-lifecycle.spec.js). The path
+  // guard stays display-only on purpose: it depends on the page the viewer is on now, and
+  // selection is deliberately page-independent (see strapiSelection.js).
   const shouldShow = () =>
     Boolean(strapi.modal) &&
     isEligible(strapi.modal, buildViewerContext(), ContentType.MODAL) &&
@@ -2294,13 +2297,16 @@ const Banner = ({ onClose }) => {
 
   // Runs only in the useEffect below (mount + strapi.banner change), so it gates whether the
   // reveal timer is ARMED — an already-visible banner is never re-evaluated. Selection
-  // (context.js) already ran every viewer gate, but the dismissal re-check here is load-bearing:
-  // the dismissed document stays selected for the whole page view, and a remount resets
-  // hasInteractedWithBanner, so without it the banner would re-arm on every navigation. It also
-  // picks up a dismissal from another tab on the next remount (there is no live cross-tab
-  // removal — nothing listens for storage events), and a date window that expired while the tab
-  // stayed open. The path guard stays display-only on purpose: it depends on the page the viewer
-  // is on now, and selection is deliberately page-independent (see strapiSelection.js).
+  // (context.js) already ran every viewer gate, so today this re-check is DEFENSE IN DEPTH, not
+  // load-bearing: the component mounts key-less at the ReaderApp root (ReaderApp.jsx:2462), so
+  // it only ever remounts on a full page load — where selection has re-run with the dismissal
+  // gate anyway, and where a cross-tab dismissal is likewise caught by selection itself. The
+  // re-check is what keeps dismissed-stays-dismissed standing the day that changes: a key, a
+  // conditional wrapper, or a move into the panel tree would reset hasInteractedWithBanner on an
+  // in-page remount while the dismissed document is still the selected one. No real flow can
+  // exercise that today (see the remount note in strapi-dismissal-lifecycle.spec.js). The path
+  // guard stays display-only on purpose: it depends on the page the viewer is on now, and
+  // selection is deliberately page-independent (see strapiSelection.js).
   const shouldShow = () =>
     Boolean(strapi.banner) &&
     isEligible(strapi.banner, buildViewerContext(), ContentType.BANNER) &&

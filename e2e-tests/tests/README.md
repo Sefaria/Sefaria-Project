@@ -36,6 +36,7 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. |
 | [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
 | [`strapi-malformed-documents.spec.js`](strapi-malformed-documents.spec.js) | *(synthetic)* One bad document among healthy ones costs only itself: broken dates are skipped by the gates, null/junk rows are dropped loudly by row hygiene (`SKIPPED_ROWS_LOG`), and an unparseable buttonURL on the selected doc can no longer crash the React tree. |
+| [`strapi-dismissal-lifecycle.spec.js`](strapi-dismissal-lifecycle.spec.js) | *(synthetic)* Dismissal-state seams crossed the way a user crosses them — real clicks, real reloads, no seeded storage: banner/modal dismissals stay independent even under a shared internal name; a dismissed-then-unpublished campaign gets a fresh showing when republished; a dismissal survives client-side browsing (TOC → book → reader → resource panel, with timer-capture non-vacuity anchors); and the next session (storageState = carried localStorage, fresh sessionStorage) crosses the new→returning visitor transition. The drain sequence (winner → runner-up → quiet) lives in `strapi-selection-order.spec.js`. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
 | [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI. |
 | [`strapi-modal-bilingual.spec.js`](strapi-modal-bilingual.spec.js) | Both locales published: each interface shows its own copy, plus the optional-header asymmetry. |
@@ -538,8 +539,28 @@ Three things to know before using it:
   stale-fixture guard: here the payload always matches, so the danger is that no request happens at
   all (`STRAPI_INSTANCE` unset, or the standard entry helpers suppressing the endpoint), which
   would make every absence assertion pass while testing nothing.
-- **Row order within each alias is the order documents are passed** — a documented guarantee, since
-  `context.js` selects with `.find()` and order decides the winner.
+- **Row order within each alias is the order documents are passed** — a documented guarantee.
+  Selection ranks eligible documents by specificity and payload order is only the final tie-break
+  (tier 6), but the tests that pin tie-break outcomes depend on this order being stable.
+
+### Absence assertions need a positive anchor
+
+A recurring principle in this suite, worth naming because it keeps appearing in new clothes:
+"still not visible" can be true for a dozen wrong reasons — the payload never arrived, the clock
+never moved, the element was renamed, the page crashed. An absence assertion becomes trustworthy
+only when paired with a **positive fact that bounds it**: find something the forbidden behavior
+would *have* to change — a served-request list, an armed timer, a monotonic counter — and assert
+it as well. Instances already in the suite:
+
+| Absence being asserted | Positive anchor that bounds it |
+| --- | --- |
+| "this surface never rendered" | `expectStrapiServed` / `expectStrapiServedFromHar` — the payload really reached the page |
+| "hidden before its delay" | `waitForTimerArmed` — the timer exists, so advancing the clock past it means something |
+| "did not render under the other locale/audience" | a sibling test renders the same document for the audience it *does* target |
+| "a dismissed banner never came back during in-app browsing" | the instrumented `setTimeout` capture shows exactly ONE arm of the banner's (unique) delay, and the capture array surviving proves no reload quietly re-ran selection (`strapi-dismissal-lifecycle.spec.js`) |
+
+When writing a new absence assertion, ask: what counter, log line, or captured artifact would the
+bug have to touch? Assert that too, or the absence proves nothing.
 
 ### Which to reach for
 

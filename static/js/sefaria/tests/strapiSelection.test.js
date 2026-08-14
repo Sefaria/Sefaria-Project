@@ -200,6 +200,35 @@ describe("selectContent", function () {
     expect(selectContent(docs, ctx, ContentType.MODAL).internalModalName).toBe("runner-up");
   });
 
+  it("a dismissed RANKING winner falls through to a lower-ranked runner-up", function () {
+    // Sharper than the identical-docs case above: here the dismissed document would win the
+    // ranking outright (shorter window, tier 4). Dismissal is a GATE, and gates run before
+    // ranking — so the daily never reaches the sort, and the lower-ranked weekly wins as the
+    // only eligible document. This is what makes "see the next promotion on your next visit"
+    // work when the campaigns are not equals.
+    const weekly = modal({
+      internalModalName: "bilingual-weekly",
+      locales: ["en", "he"],
+      modalStartDate: "2026-09-12T00:00:00.000Z",
+      modalEndDate: "2026-09-19T00:00:00.000Z",
+    });
+    const daily = modal({
+      internalModalName: "bilingual-daily",
+      locales: ["en", "he"],
+      modalStartDate: "2026-09-15T00:00:00.000Z",
+      modalEndDate: "2026-09-16T00:00:00.000Z",
+    });
+    // First load: the daily wins on the shorter window.
+    expect(selectContent([weekly, daily], viewer(), ContentType.MODAL).internalModalName).toBe(
+      "bilingual-daily",
+    );
+    // Next load, after dismissing it: the weekly surfaces.
+    const dismissedDaily = viewer({ hasDismissed: (key) => key === "modal_bilingual-daily" });
+    expect(selectContent([weekly, daily], dismissedDaily, ContentType.MODAL).internalModalName).toBe(
+      "bilingual-weekly",
+    );
+  });
+
   describe("ranking, tier by tier", function () {
     it("tier 1: country-targeted beats untargeted", function () {
       const docs = [
