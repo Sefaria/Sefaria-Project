@@ -48,11 +48,26 @@ const omit = (obj, keys) => {
 // mapLocales(locale => locale.toUpperCase()) -> {en: "EN", he: "HE"}
 const mapLocales = (fn) => Object.fromEntries(SUPPORTED_LOCALES.map((locale) => [locale, fn(locale)]));
 
+// A row we can actually work with: a real object carrying the documentId that everything
+// downstream keys on. Anything else (null, a stray string, a row Strapi returned without an
+// id) is DROPPED rather than processed — one bad row must cost only itself. Before this
+// guard, a single null in any locale array threw here, and the catch in context.js then
+// swallowed every surface: no modal, no banner, no sidebar ads, for every viewer.
+const isUsableRow = (row) => Boolean(row) && typeof row === "object" && row.documentId != null;
+
+// The prefix the resilience tests grep for — dropping bad rows must be LOUD, not silent, or a
+// misbehaving Strapi looks identical to "nothing published" and nobody investigates.
+const SKIPPED_ROWS_LOG = "Skipped unusable Strapi row(s):";
+
 // rowsByLocale: {en: [row, ...], he: [row, ...]} where each row carries its own
 // `documentId` and `locale` fields (the GraphQL alias's locale, per Strapi v5 docs).
 // Returns one entry per distinct documentId, merging whichever locales are present.
 const groupByDocumentId = (rowsByLocale, localizedFields) => {
-  const allRows = SUPPORTED_LOCALES.flatMap((locale) => rowsByLocale[locale] || []);
+  const rawRows = SUPPORTED_LOCALES.flatMap((locale) => rowsByLocale[locale] || []);
+  const allRows = rawRows.filter(isUsableRow);
+  if (allRows.length < rawRows.length) {
+    console.error(`${SKIPPED_ROWS_LOG} ${rawRows.length - allRows.length} of ${rawRows.length}`);
+  }
   const rowsByDocumentId = groupBy(allRows, (row) => row.documentId);
   return Object.values(rowsByDocumentId).map((rows) => {
     const byLocale = keyBy(rows, (row) => row.locale);
@@ -79,6 +94,7 @@ export {
   LOCALE_TO_INTERFACE_LANG,
   INTERFACE_LANG_TO_LOCALE,
   LOCALIZED_FIELDS,
+  SKIPPED_ROWS_LOG,
   groupBy,
   keyBy,
   omit,

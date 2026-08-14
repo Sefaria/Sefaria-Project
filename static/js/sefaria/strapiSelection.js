@@ -236,12 +236,24 @@ const selectContent = (docs, ctx, contentType) => {
 
 const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/app", "/ways-to-give"];
 
+// The pathname of a URL, or null when it cannot be parsed. new URL() THROWS on anything
+// relative or malformed — a realistic editor mistake (a buttonURL of "give/451346") — and this
+// runs inside shouldShow's useEffect, where an uncaught throw takes down the whole React tree.
+// A broken URL just contributes no excluded path; everything else keeps working.
+const pathnameOf = (url) => {
+  try {
+    return new URL(url).pathname;
+  } catch (error) {
+    return null;
+  }
+};
+
 // Does this page refuse the document? True on the fixed list above and on the page the
 // document's own button leads to — no point advertising the page someone is already reading.
 const isPathExcluded = (doc, pathname) => {
   const buttonPathnames = Object.values(doc.buttonURL || {})
-    .filter(Boolean)
-    .map((url) => new URL(url).pathname);
+    .map(pathnameOf)
+    .filter(Boolean);
   return [...ALWAYS_EXCLUDED_PATHS, ...buttonPathnames].includes(pathname);
 };
 
@@ -257,9 +269,12 @@ const buildViewerContext = () => ({
   isSustainer: Boolean(Sefaria.is_sustainer),
   isReturningVisitor: Sefaria.isReturningVisitor(),
   isNewVisitor: Sefaria.isNewVisitor(),
-  // Dismissal keys are written as the string "true"; JSON.parse turns absent (null) into null.
-  hasDismissed: (storageKey) =>
-    Boolean(JSON.parse(localStorage.getItem(storageKey))),
+  // Dismissal keys are only ever written as the literal string "true" (see
+  // markModalAsHasBeenInteractedWith in Misc.jsx), so compare against exactly that. A plain
+  // comparison also survives a corrupted value: localStorage is shared, writable ground, and
+  // the JSON.parse this used to do would THROW on a non-JSON value under our key — killing
+  // selection for every surface. An unreadable value now just reads as "not dismissed".
+  hasDismissed: (storageKey) => localStorage.getItem(storageKey) === "true",
 });
 
 export {
