@@ -54,6 +54,8 @@ import {
   expectInterfaceLanguage,
   advanceBy,
   waitForTimerArmed,
+  waitForStrapiResponse,
+  strapiResponseCount,
 } from './strapi.fixtures.js';
 import { LANGUAGES } from '../globals';
 
@@ -850,6 +852,76 @@ test.describe('Strapi selection — a dismissed document falls through to the ru
     await expect(modalBox(page)).toBeVisible();
     await expect(modalBox(page)).toContainText(RUNNER_UP_MODAL);
     await expect(modalBox(page)).not.toContainText(DISMISSED_MODAL);
+  });
+
+  test('dismissing each winner in turn drains the eligible set: daily, then weekly, then quiet', async ({
+    page,
+    context,
+  }) => {
+    // The full lifecycle of "see the next promotion on your next visit", on the banner surface,
+    // with REAL dismissal clicks and REAL reloads — no seeded storage:
+    //   load 1: the bilingual daily outranks the bilingual weekly (shorter window, tier 4) and
+    //           renders; the viewer clicks the × — Misc.jsx writes banner_<name> = "true";
+    //   load 2: removeStaleDismissals keeps the key (the daily is still live), the dismissal
+    //           GATE now rejects the daily before ranking ever runs, and the weekly — ranked
+    //           lower, but the only eligible document left — takes the slot; dismissed too;
+    //   load 3: every live document is dismissed — the surface stays QUIET. No re-showing, no
+    //           error; an exhausted eligible set is the same non-event as nothing published.
+    // The weekly is listed FIRST so only ranking can explain the daily winning load 1.
+    //
+    // WHY THIS TEST CROSSES PAGE BOUNDARIES INSTEAD OF SEEDING STORAGE (a general principle):
+    // a seeded-storage test proves one component reads state correctly — a policy. State written
+    // by one component in one page view and consumed by different components in the next is a
+    // SEAM, and seams are where unit-style tests go blind: any party can break the chain (the
+    // writer, a cleanup that wipes the key, the reader, the gate) while every per-component test
+    // stays green. When a behavior's definition spans a boundary — page load, session, tab —
+    // at least one test should physically cross that boundary the way a user does.
+    const WEEKLY_BANNER = 'Synthetic bilingual weekly banner';
+    const DAILY_BANNER = 'Synthetic bilingual daily banner';
+    const payload = strapiPayload({
+      banners: [
+        banner({
+          window: { start: daysFromNow(-3), end: daysFromNow(4) },
+          shared: { showDelay: DELAY_SECONDS, internalBannerName: 'fallthrough-weekly' },
+          locales: { en: { bannerText: WEEKLY_BANNER }, he: { bannerText: 'שבועי' } },
+        }),
+        banner({
+          window: { start: daysFromNow(-0.5), end: daysFromNow(0.5) },
+          shared: { showDelay: DELAY_SECONDS, internalBannerName: 'fallthrough-daily' },
+          locales: { en: { bannerText: DAILY_BANNER }, he: { bannerText: 'יומי' } },
+        }),
+      ],
+    });
+
+    strapi = await open(page, context, payload);
+
+    // Load 1: the daily wins the ranking and renders.
+    await elapseShowDelay(page);
+    await expect(bannerBox(page)).toBeVisible();
+    await expect(bannerBox(page)).toContainText(DAILY_BANNER);
+
+    // The viewer dismisses it for real — the click is what writes the localStorage marker.
+    await page.locator('#bannerMessageClose').click();
+    await expect(bannerBox(page)).toHaveCount(0);
+
+    // Load 2: same context (localStorage survives), fresh page. The init scripts re-pin the
+    // clock and reset the timer capture, so the elapse helper works again.
+    await page.reload();
+    await elapseShowDelay(page);
+    await expect(bannerBox(page)).toBeVisible();
+    await expect(bannerBox(page)).toContainText(WEEKLY_BANNER);
+    await expect(bannerBox(page)).not.toContainText(DAILY_BANNER);
+
+    // The viewer dismisses the runner-up as well.
+    await page.locator('#bannerMessageClose').click();
+    await expect(bannerBox(page)).toHaveCount(0);
+
+    // Load 3: the eligible set is exhausted. Prove the payload arrived, advance far past the
+    // delay without requiring a timer (nothing eligible arms one), and assert quiet.
+    await page.reload();
+    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await advanceBy(page, DELAY_SECONDS * 1000 * 5);
+    await expect(bannerBox(page)).toHaveCount(0);
   });
 
   test('keeps dismissal keys of live documents and drops keys of vanished ones', async ({ page, context }) => {
