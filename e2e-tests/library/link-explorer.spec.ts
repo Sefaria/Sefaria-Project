@@ -23,12 +23,18 @@ import { MODULE_URLS } from '../constants';
  *   detached. It fails against unfixed code on ANY Chromium version, because
  *   the detach is a DOM fact rather than an event-dispatch consequence.
  *
- *   LEX-002 / LEX-003 / LEX-004 assert the user-visible symptoms. They can only
- *   fail on Chromium >= 144; on the older browser this suite currently pins
- *   (141, per playwright-core/browsers.json) the old dispatch rules keep
- *   unfixed code working, so they pass either way. They are still worth having:
- *   they describe what a person actually experiences, and they start
- *   discriminating the moment the suite's Playwright is upgraded.
+ *   LEX-002 / LEX-003 / LEX-004 assert the user-visible symptoms, and they do
+ *   NOT catch this defect — measured, not assumed. Replayed against the
+ *   known-unfixed production bundle they fail under playwright-core 1.56 with
+ *   Chromium 145, but pass under 1.62 with Chromium 145 or 151, at every
+ *   `mouse.move` step count tried (1, 5, 25). The detach still happens there
+ *   (LEX-001 still fails); Playwright's synthetic input simply re-establishes
+ *   the hover chain that a real pointer does not, so the symptom never
+ *   surfaces. Treat them as coverage of ordinary hover / tooltip / drill-down
+ *   behavior — they would catch a highlight that never applies or a click
+ *   handler that vanishes — and never as a reason to weaken LEX-001.
+ *
+ *   Filed upstream as microsoft/playwright#42270, with a minimal repro.
  */
 test.describe('Library Link Explorer — English', () => {
   let page: Page;
