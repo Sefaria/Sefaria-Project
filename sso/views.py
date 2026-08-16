@@ -249,8 +249,11 @@ def apple_mobile(request):
     return JsonResponse(tokens)
 
 
+@csrf_exempt
 @require_POST
 def password_reset_api(request):
+    # Target email comes from the body, not the session, so CSRF adds no
+    # protection here; the mobile client carries no cookie/Referer to supply it.
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):

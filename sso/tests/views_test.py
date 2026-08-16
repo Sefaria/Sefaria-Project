@@ -478,3 +478,19 @@ class PasswordResetApiTest(TestCase):
         self.assertEqual(data['_auth']['code'], 'sso_only_account')
         self.assertIn('google', data['_auth']['providers'])
         mock_save.assert_not_called()
+
+    def test_reachable_without_csrf_token(self):
+        # Mobile holds no csrftoken cookie and sends no Referer, so a client
+        # that actually enforces CSRF (unlike the default test Client) must
+        # still reach the view rather than being rejected by the middleware.
+        csrf_client = Client(enforce_csrf_checks=True)
+        User.objects.create_user(username='csrf@test.com', email='csrf@test.com', password='x')
+        with patch('sso.views.SefariaPasswordResetForm.save') as mock_save:
+            res = csrf_client.post(
+                self.url,
+                data=json.dumps({'email': 'csrf@test.com'}),
+                content_type='application/json',
+            )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {})
+        mock_save.assert_called_once()
