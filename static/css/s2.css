@@ -4192,6 +4192,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--near-black);
   font-weight: 600;
 }
+/* Inside the mobile filter panel the toggle stretches full width, options split evenly. */
+.mobileSearchFilters .searchToggle {
+  display: flex;
+  width: 100%;
+}
+.mobileSearchFilters .searchToggle__option {
+  flex: 1 0 0;
+  width: auto;
+  min-width: 0;
+}
 
 .searchContent .searchResultList {
   max-width: 665px;
@@ -16671,6 +16681,7 @@ span.ref-link-color-3 {color: blue}
   height: 24px;
   display: block;
 }
+.mobileFilterIconButton:hover,
 .mobileFilterIconButton:active {
   background-color: var(--lighter-grey);
 }

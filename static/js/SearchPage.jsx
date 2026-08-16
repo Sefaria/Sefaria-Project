@@ -9,7 +9,7 @@ import SearchFilters, {BookSearchFilters, EntitySortPanel} from './SearchFilters
 import FilterNode from './sefaria/FilterNode';
 import SearchState from './sefaria/searchState';
 import Component from 'react-class';
-import {MobileFilterIconButton, SearchSortBox, SearchFilterButton} from './SearchResultList';
+import {MobileFilterIconButton, SearchSortBox} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
 import SearchSortDropdown, {ENTITY_SORT_OPTIONS} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
@@ -477,9 +477,8 @@ class SearchPage extends Component {
               updateAppliedOptionSort={this.props.updateAppliedOptionSort}
               sortType={this.props.searchState.sortType}
               disabled={disabled} />
-        : <SearchFilterButton
+        : <MobileFilterIconButton
               openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-              nFilters={this.props.searchState.appliedFilters.length}
               disabled={disabled} />;
 
     if (this.props.searchInBook) {
@@ -490,6 +489,27 @@ class SearchPage extends Component {
     const activeTab = isValidTab ? this.props.tab : "sources";
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
 
+    const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
+    const handleExactMatchChange = (val) => {
+      const defaultField = SearchState.metadataByType[this.props.type]?.field;
+      this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
+    };
+    // On mobile the exact/all toggle lives inside the filter panel (passed as topSection);
+    // on desktop it renders separately above the results (see searchTopMatter below).
+    const searchTypeSection = this.props.type === "text" ? (
+      <div className="searchFilterGroup">
+        <h2><InterfaceText>search_page.search_type</InterfaceText></h2>
+        <SearchToggle
+          options={[
+            {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
+            {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
+          ]}
+          selected={isExactSearch ? "exact" : "all"}
+          onChange={handleExactMatchChange}
+        />
+      </div>
+    ) : null;
+
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
@@ -499,6 +519,7 @@ class SearchPage extends Component {
           searchState={this.props.searchState}
           updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
           updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          topSection={searchTypeSection}
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
@@ -542,12 +563,6 @@ class SearchPage extends Component {
         />;
       }
     }
-
-    const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
-    const handleExactMatchChange = (val) => {
-      const defaultField = SearchState.metadataByType[this.props.type]?.field;
-      this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
-    };
 
     const tabs = [
       {id: "sources", title: "common.sources", count: this.props.totalResults?.asString() || ""},
