@@ -5046,7 +5046,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchResultCard-snippet {
   font-size: 18px;
   line-height: 1.5;
-  color: var(--secondary-text-grey);
+  color: var(--near-black);
   word-break: break-word;
 }
 .searchResultCard-snippet.he {
