@@ -709,8 +709,18 @@ Sefaria = extend(Sefaria, {
   getPrimaryAndTranslationFromVersions: function(versions) {
     let primary, translation;
     if (versions.length === 1) {
-      primary = versions[0];
-      translation = {text: []};
+      // A single version is not necessarily the primary one. When a ref has no source text --
+      // e.g. a siddur segment holding only an English instruction rubric -- the API returns the
+      // translation alone. Promoting it to primary hands its `ltr` direction and `english`
+      // language to everything downstream, which is how landing on such a segment flipped a whole
+      // Hebrew section to left-to-right (sc-46469).
+      if (versions[0].isPrimary || versions[0].isSource) {
+        primary = versions[0];
+        translation = {text: []};
+      } else {
+        translation = versions[0];
+        primary = {text: []};
+      }
     } else if (versions[0].isPrimary && !versions[1].isSource) {
       [primary, translation] = versions;
     } else {
