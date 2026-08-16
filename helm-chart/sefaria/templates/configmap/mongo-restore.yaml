@@ -14,8 +14,17 @@ data:
   restore-mongo.sh: |-
     #!/bin/bash
     set -e
+    set -o pipefail
 
-    tar xzvf /storage/dump.tar.gz -C /storage 
+    # Excluded at extraction time, so skipped bytes never hit the (disk-bound) untar.
+    TAR_EXCLUDES=()
+    {{- range .Values.restore.excludeCollections }}
+    echo "Skipping collection: {{ . }}"
+    TAR_EXCLUDES+=( "--exclude=./dump/sefaria/{{ . }}.bson" "--exclude=./dump/sefaria/{{ . }}.metadata.json" )
+    {{- end }}
+
+    tar xzf /storage/dump.tar.gz -C /storage ${TAR_EXCLUDES[@]+"${TAR_EXCLUDES[@]}"}
+
     if [[ -z "$MONGO_HOST" ]]; then
       echo "Mongo Host not specified"
       exit 1
@@ -48,4 +57,32 @@ data:
     {{- end }}
 
     mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
+
+    {{- if .Values.restore.verify }}
+
+    # Compare what was extracted against what mongo actually has, so a truncated
+    # restore fails instead of passing for a good one. Excluded collections are
+    # not on disk, so they are not expected -- nothing to hardcode.
+    echo "Verifying restore completeness..."
+
+    EXPECTED=$(cd /storage/dump/sefaria && ls -1 ./*.bson 2>/dev/null | sed -e 's|^\./||' -e 's|\.bson$||' | sort)
+    if [[ -z "$EXPECTED" ]]; then
+      echo "ERROR: no .bson files found in the extracted dump -- nothing was restored"
+      exit 1
+    fi
+
+    ACTUAL=$(mongo --quiet "$URI" --eval \
+      "db.getSiblingDB('${DATABASE}').getCollectionNames().forEach(function(c){print(c)})" | sort)
+
+    MISSING=$(comm -23 <(echo "$EXPECTED") <(echo "$ACTUAL") || true)
+
+    if [[ -n "$MISSING" ]]; then
+      echo "ERROR: restore is incomplete. Expected $(echo "$EXPECTED" | wc -l) collections, found $(echo "$ACTUAL" | wc -l)."
+      echo "Missing collections:"
+      echo "$MISSING" | sed 's/^/  - /'
+      exit 1
+    fi
+
+    echo "Restore verified: $(echo "$ACTUAL" | wc -l) collections present in ${DATABASE}"
+    {{- end }}
 {{- end }}
