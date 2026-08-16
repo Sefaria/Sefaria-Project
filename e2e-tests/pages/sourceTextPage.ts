@@ -7,30 +7,74 @@ export class SourceTextPage extends HelperBase {
         super(page, language)
     }
 
-    async setContentLanguage(mode: RegExp) {
-        await this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' }).click();
-        await this.page.getByRole('radio', { name: mode }).click();
+    /**
+     * The reader's display-settings ("Aa") toggle.
+     *
+     * Anchored on the class hardcoded in DisplaySettingsButton (Misc.jsx) rather than the
+     * accessible name: that name is `Sefaria._("common.text_display_options")`, which renders as
+     * "אפשרויות תצוגת טקסט" under a Hebrew interface. See CLAUDE.md §2 rule 15.
+     */
+    private get displaySettingsToggle() {
+        return this.page.locator('.readerOptionsTooltip').first()
     }
 
-    private get displaySettingsToggle() {
-        return this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' })
+    private async openDisplaySettings() {
+        const menu = this.page.locator('.texts-properties-menu')
+        if (!(await menu.isVisible().catch(() => false))) {
+            await this.displaySettingsToggle.click()
+            await expect(menu).toBeVisible({ timeout: t(10000) })
+        }
+    }
+
+    private async closeDisplaySettings() {
+        const menu = this.page.locator('.texts-properties-menu')
+        if (await menu.isVisible().catch(() => false)) {
+            await this.displaySettingsToggle.click()
+            await expect(menu).toBeHidden({ timeout: t(10000) })
+        }
     }
 
     /**
-     * Choose the bilingual layout. The radios are labelled with the internal, interface-language
-     * invariant values ('stacked' | 'heLeft' | 'heRight'), so this is safe under a Hebrew UI.
-     * Only meaningful while the content language is "Source with Translation".
+     * Pick Source / Translation / Source with Translation, using the SOURCE_LANGUAGES constants.
+     *
+     * The radios' accessible names are translated, but their `value` attributes are always the
+     * English keys — and the SOURCE_LANGUAGES regexes list the English spelling as one branch, so
+     * matching on `value` works from either interface language.
+     */
+    async setContentLanguage(mode: RegExp) {
+        await this.openDisplaySettings()
+        const radios = this.page.locator('.texts-properties-menu input[type="radio"][name^="languageOptions"]')
+        await expect(radios.first()).toBeVisible({ timeout: t(10000) })
+
+        const values = await radios.evaluateAll(
+            (els) => els.map(el => (el as HTMLInputElement).value))
+        const index = values.findIndex(v => mode.test(v))
+        if (index === -1) {
+            throw new Error(`No content-language option matching ${mode} — found: ${values.join(', ')}`)
+        }
+
+        // The <input> sits behind its styled <label>, so click the label the user actually sees.
+        await radios.nth(index).locator('..').click()
+        await expect(radios.nth(index)).toBeChecked({ timeout: t(10000) })
+        await this.closeDisplaySettings()
+    }
+
+    /**
+     * Choose the bilingual layout. Only meaningful while the content language is
+     * "Source with Translation".
+     *
+     * Anchored on the input's `value` for the same reason as above: these radios take their
+     * accessible name from a visible <span class="int-en"> label ("Show RTL Text Right of LTR
+     * Text"), which changes under a Hebrew interface.
      */
     async setBiLayout(layout: 'stacked' | 'heLeft' | 'heRight') {
-        const radio = this.page.getByRole('radio', { name: layout, exact: true })
-        if (!(await radio.isVisible())) {
-            await this.displaySettingsToggle.click()
-        }
+        await this.openDisplaySettings()
+        const radio = this.page.locator(
+            `.texts-properties-menu .layout-options input[type="radio"][value="${layout}"]`).first()
         await expect(radio).toBeVisible({ timeout: t(10000) })
-        await radio.click()
-        // Close the settings dialog so it can't intercept later clicks or screenshots.
-        await this.displaySettingsToggle.click()
-        await expect(radio).toBeHidden({ timeout: t(10000) })
+        await radio.locator('..').click()
+        await expect(radio).toBeChecked({ timeout: t(10000) })
+        await this.closeDisplaySettings()
     }
 
     /**
