@@ -652,6 +652,7 @@ class TextSegment extends Component {
       invisibleHighlight: this.props.highlight,
       heOnly: heOnly,
       enOnly: enOnly,
+      noPrimary: hasNoPrimarry,
       showNamedEntityLinks: !!this.props.onNamedEntityClick,
     });
     if(hasNoTranslation && !this.props.he){
