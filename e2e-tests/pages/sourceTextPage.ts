@@ -12,6 +12,79 @@ export class SourceTextPage extends HelperBase {
         await this.page.getByRole('radio', { name: mode }).click();
     }
 
+    private get displaySettingsToggle() {
+        return this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' })
+    }
+
+    /**
+     * Choose the bilingual layout. The radios are labelled with the internal, interface-language
+     * invariant values ('stacked' | 'heLeft' | 'heRight'), so this is safe under a Hebrew UI.
+     * Only meaningful while the content language is "Source with Translation".
+     */
+    async setBiLayout(layout: 'stacked' | 'heLeft' | 'heRight') {
+        const radio = this.page.getByRole('radio', { name: layout, exact: true })
+        if (!(await radio.isVisible())) {
+            await this.displaySettingsToggle.click()
+        }
+        await expect(radio).toBeVisible({ timeout: t(10000) })
+        await radio.click()
+        // Close the settings dialog so it can't intercept later clicks or screenshots.
+        await this.displaySettingsToggle.click()
+        await expect(radio).toBeHidden({ timeout: t(10000) })
+    }
+
+    /**
+     * Read the resolved layout of one segment's source/translation spans in a single round trip.
+     * Returned widths are rounded CSS pixels; `segmentWidth` is the width of the segment's own
+     * text container, so callers can assert "spans the full column" without hardcoding a pixel
+     * value that varies with viewport.
+     *
+     * One atomic evaluate rather than a sequence of locator reads — see CLAUDE.md §2 rule 20(b).
+     */
+    async getSegmentSpanLayout(ref: string) {
+        return await this.page.evaluate((segRef: string) => {
+            const seg = document.querySelector(`.basetext .segment[data-ref="${segRef}"]`)
+            if (!seg) return null
+            const read = (sel: string) => {
+                const el = seg.querySelector(`:scope > p > .contentSpan.${sel}`)
+                if (!el) return null
+                const cs = window.getComputedStyle(el)
+                return {
+                    display: cs.display,
+                    float: cs.float,
+                    width: Math.round(parseFloat(cs.width)),
+                    direction: cs.direction,
+                    className: el.className,
+                    hasInstruction: !!el.querySelector(':scope > i.instruction'),
+                }
+            }
+            return {
+                segmentWidth: Math.round(seg.getBoundingClientRect().width),
+                primary: read('primary'),
+                translation: read('translation'),
+            }
+        }, ref)
+    }
+
+    /**
+     * Whether a segment's instruction rubric is actually rendered to the reader.
+     * Uses offsetParent + rect rather than :visible so a `display:none` ancestor counts as hidden.
+     */
+    async isInstructionRendered(ref: string) {
+        return await this.page.evaluate((segRef: string) => {
+            const seg = document.querySelector(`.basetext .segment[data-ref="${segRef}"]`)
+            if (!seg) return null
+            const instr = seg.querySelector('i.instruction')
+            if (!instr) return { present: false, rendered: false, height: 0 }
+            const rect = (instr as HTMLElement).getBoundingClientRect()
+            return {
+                present: true,
+                rendered: (instr as HTMLElement).offsetParent !== null && rect.height > 0,
+                height: Math.round(rect.height),
+            }
+        }, ref)
+    }
+
     // Refactored from utils.ts: changeLanguageOfText
     async changeTextLanguage(sourceLanguage: RegExp) {
         // Clicking on the Source Language toggle

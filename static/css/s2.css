@@ -1306,6 +1306,13 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerPanel.hebrew .versionsTextList .translation {
   display: block;
 }
+/* Rubrics (<i class="instruction">) generally exist only on the translation side, in segments
+   that have no source text at all. In source-only mode those segments would otherwise render
+   empty, so show the instruction — but only to an English-speaking reader, since the rubric
+   itself is English. */
+.interface-english .readerPanel.hebrew .basetext .segment.noPrimary > p > .contentSpan.translation:has(> i.instruction) {
+  display: inline;
+}
 
 .readerPanel.english .he.heOnly{
   display: inline;
@@ -6261,6 +6268,21 @@ big {
 .heLeft.bilingual .SheetSource .sheetItem.segment > .he{
   float: left;
   padding-right: 20px;
+}
+/* A segment with no source text has nothing to sit beside in side-by-side mode, so let its
+   translation span both columns rather than wrap inside half the width. In practice these are
+   the instruction rubrics of siddurim and similar texts. */
+.heLeft.bilingual .basetext .segment.noPrimary > p > .contentSpan.translation,
+.heRight.bilingual .basetext .segment.noPrimary > p > .contentSpan.translation {
+  display: block;
+  width: 100%;
+  float: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+.heLeft.bilingual .basetext .segment.noPrimary > p > .contentSpan.primary,
+.heRight.bilingual .basetext .segment.noPrimary > p > .contentSpan.primary {
+  display: none;
 }
 .segment > p > .he.translation {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
