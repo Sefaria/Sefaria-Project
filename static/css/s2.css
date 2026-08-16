@@ -5128,12 +5128,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-direction: column;
   gap: 16px;
 }
+/* An <a> so each row opens its own version, and so Cmd-click opens it in a new tab.
+   display:flex overrides the inline default, keeping the previous div layout. */
 .searchResultCard-versionItem {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 12px;
   background: var(--background-grey);
+  text-decoration: none;
+  color: inherit;
 }
 
 /* ── Search loading skeleton ──────────────────────────────────────────── */

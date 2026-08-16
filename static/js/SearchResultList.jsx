@@ -63,6 +63,9 @@ const sourceHitCardProps = (hit, query) => {
   const snippetLang = Sefaria.hebrew.isHebrew(snippet) ? 'he' : 'en';
   const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${query}`;
 
+  // Duplicates are hits on the *same* ref from other versions (search.js:435-440), so each
+  // row carries its own version and its own matched words. Without that, clicking a row
+  // would open whatever version the card itself is showing.
   const versions = (hit.duplicates || [])
     .filter(d => !!d._source.version)
     .map(d => {
@@ -72,7 +75,10 @@ const sourceHitCardProps = (hit, query) => {
         snippetLang: Sefaria.hebrew.isHebrew(dSnippet) ? 'he' : 'en',
         versionName: d._source.version,
         hebrewVersionName: d._source.hebrew_version_title,
+        tref: d._source.ref,
         href: `/${Sefaria.normRef(d._source.ref)}?v${d._source.lang}=${Sefaria.util.encodeVtitle(d._source.version)}&qh=${query}`,
+        currVersions: getCurrVersionsFromHit(d._source),
+        textHighlights: getHighlightsFromHit(d),
       };
     });
 

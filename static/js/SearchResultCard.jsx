@@ -100,45 +100,49 @@ function SearchResultCard({
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
 
-  // The single click path for the whole card. Opening a result has to carry two things
-  // the ref alone can't: which version matched, and which words to highlight once the
-  // panel renders. Both arrive as props from whoever built the card.
-  const handleResultClick = async () => {
+  // The single click path for every clickable part of the card. Opening a result has to
+  // carry two things the ref alone can't: which version matched, and which words to
+  // highlight once the panel renders. `target` says *which* result was clicked — the
+  // card's own version, or one of the rows in the expanded versions list.
+  const openResult = async (target) => {
     Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
     if (!onResultClick) {
-      window.location.href = href;
+      window.location.href = target.href;
       return;
     }
-    let ref = tref ?? href;
-    if (tref) {
+    let ref = target.tref ?? target.href;
+    if (target.tref) {
       // If a title was renamed since the last Elasticsearch reindex, there's no local
       // index entry for this ref, so ask the API to normalize it
       // (e.g. "Bereishit Rabbah 3" => "Bereshit Rabbah 3") before handing it to the reader.
-      const parsedRef = Sefaria.parseRef(tref);
-      ref = parsedRef.index?.length ? parsedRef.ref : (await Sefaria.getRef(tref)).ref;
+      const parsedRef = Sefaria.parseRef(target.tref);
+      ref = parsedRef.index?.length ? parsedRef.ref : (await Sefaria.getRef(target.tref)).ref;
     }
     onResultClick(
       ref,
-      currVersions ?? null,
-      textHighlights?.length ? { textHighlights } : null
+      target.currVersions ?? null,
+      target.textHighlights?.length ? { textHighlights: target.textHighlights } : null
     );
   };
 
+  // The card's own result — the version named in searchResultCard-versionName.
+  const ownResult = { tref, href, currVersions, textHighlights };
+
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
-    handleResultClick();
+    openResult(ownResult);
   };
 
-  // The title link keeps a real href so Cmd/Ctrl-click and middle-click still open a new
-  // tab, but a plain click runs the same handler as the rest of the card — otherwise the
-  // two halves of one card behave differently.
-  const handleTitleClick = (e) => {
-    e.stopPropagation();  // the card's own onClick would fire too
+  // Links inside the card keep a real href so Cmd/Ctrl-click still opens a new tab, but a
+  // plain click runs the in-app handler — otherwise different parts of one card behave
+  // differently depending on where you click.
+  const handleLinkClick = (target) => (e) => {
+    e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
     // Modified clicks, and modes with no in-app handler, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
     if (!onResultClick || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-    handleResultClick();
+    openResult(target);
   };
 
   const handleCardKeyDown = (e) => {
@@ -197,7 +201,7 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={handleTitleClick}>
+            <a href={href} className="searchResultCard-titleLink" onClick={handleLinkClick(ownResult)}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -269,7 +273,12 @@ function SearchResultCard({
               {versionsOpen && (
                 <div className="searchResultCard-versionsList">
                   {versions.map((v, i) => (
-                    <div key={i} className="searchResultCard-versionItem">
+                    <a
+                      key={i}
+                      href={v.href}
+                      className="searchResultCard-versionItem"
+                      onClick={handleLinkClick(v)}
+                    >
                       <div
                         className={`searchResultCard-snippet${v.snippetLang === 'he' ? ' he' : ' en'}`}
                         dangerouslySetInnerHTML={{ __html: v.snippet }}
@@ -277,7 +286,7 @@ function SearchResultCard({
                       <div className="searchResultCard-versionName">
                         <InterfaceText text={{ en: v.versionName, he: v.hebrewVersionName || v.versionName }} />
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               )}
@@ -336,6 +345,10 @@ SearchResultCard.propTypes = {
     versionName:      PropTypes.string,
     hebrewVersionName: PropTypes.string,
     href:             PropTypes.string,
+    // Each row opens its own version, so it needs its own ref/version/highlights.
+    tref:             PropTypes.string,
+    currVersions:     PropTypes.object,
+    textHighlights:   PropTypes.arrayOf(PropTypes.string),
   })),
   // The version that matched, keyed by reader slot: 'he' = primary text, 'en' = translation.
   currVersions:         PropTypes.shape({
