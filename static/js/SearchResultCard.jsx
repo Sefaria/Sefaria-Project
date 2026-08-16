@@ -94,18 +94,51 @@ function SearchResultCard({
   versionName,
   hebrewVersionName,
   versions,
+  currVersions,
+  textHighlights,
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
 
+  // The single click path for the whole card. Opening a result has to carry two things
+  // the ref alone can't: which version matched, and which words to highlight once the
+  // panel renders. Both arrive as props from whoever built the card.
+  const handleResultClick = async () => {
+    Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
+    if (!onResultClick) {
+      window.location.href = href;
+      return;
+    }
+    let ref = tref ?? href;
+    if (tref) {
+      // If a title was renamed since the last Elasticsearch reindex, there's no local
+      // index entry for this ref, so ask the API to normalize it
+      // (e.g. "Bereishit Rabbah 3" => "Bereshit Rabbah 3") before handing it to the reader.
+      const parsedRef = Sefaria.parseRef(tref);
+      ref = parsedRef.index?.length ? parsedRef.ref : (await Sefaria.getRef(tref)).ref;
+    }
+    onResultClick(
+      ref,
+      currVersions ?? null,
+      textHighlights?.length ? { textHighlights } : null
+    );
+  };
+
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
-    Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
-    if (onResultClick) {
-      onResultClick(tref ?? href, null, null);
-    } else {
-      window.location.href = href;
-    }
+    handleResultClick();
+  };
+
+  // The title link keeps a real href so Cmd/Ctrl-click and middle-click still open a new
+  // tab, but a plain click runs the same handler as the rest of the card — otherwise the
+  // two halves of one card behave differently.
+  const handleTitleClick = (e) => {
+    e.stopPropagation();  // the card's own onClick would fire too
+    // Modified clicks, and modes with no in-app handler, fall through to the browser;
+    // the href already points at the matched version with the query highlighted.
+    if (!onResultClick || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    handleResultClick();
   };
 
   const handleCardKeyDown = (e) => {
@@ -164,7 +197,7 @@ function SearchResultCard({
             <BreadcrumbPath crumbs={crumbs} />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={e => e.stopPropagation()}>
+            <a href={href} className="searchResultCard-titleLink" onClick={handleTitleClick}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -304,6 +337,13 @@ SearchResultCard.propTypes = {
     hebrewVersionName: PropTypes.string,
     href:             PropTypes.string,
   })),
+  // The version that matched, keyed by reader slot: 'he' = primary text, 'en' = translation.
+  currVersions:         PropTypes.shape({
+    en: PropTypes.shape({ versionTitle: PropTypes.string, languageFamilyName: PropTypes.string }),
+    he: PropTypes.shape({ versionTitle: PropTypes.string, languageFamilyName: PropTypes.string }),
+  }),
+  // Matched words, re-highlighted in the reader after the panel opens.
+  textHighlights:       PropTypes.arrayOf(PropTypes.string),
 };
 
 export { BreadcrumbPath };

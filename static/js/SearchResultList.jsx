@@ -27,6 +27,36 @@ const getSnippetFromHit = (data) => {
   return data._source.exact || '';
 };
 
+// Pulls the matched words out of a hit's highlight field — Elasticsearch marks them
+// with <b> tags. The reader re-highlights these same words after the panel opens, so
+// clicking a result lands you on the words you actually searched for.
+const getHighlightsFromHit = (data) => {
+  if (!data.highlight) { return []; }
+  const vals = Object.values(data.highlight);
+  if (vals.length === 0) { return []; }
+  const highlights = [];
+  const highlightReg = /((?:[\s,.?!:;]){0,}<b>[^<]+<\/b>[\s,.?!:;]{0,})+/g;  // capture consecutive <b> tags in one match
+  // vals should have only one entry, either 'naive_lemmatizer' or 'exact'
+  for (const h of vals[0]) {
+    let matches = null;
+    while ((matches = highlightReg.exec(h)) !== null) {
+      highlights.push(matches[0].replace(/<\/?b>/g, ''));
+    }
+  }
+  return highlights;
+};
+
+// The reader files a version under 'he' or 'en' — not the version's own language, but
+// the slot it occupies: 'he' for the primary text, 'en' for a translation. That slot
+// decides which version the panel loads and what language it displays in
+// (ReaderApp.jsx:100-102, ReaderApp.jsx:1573).
+const getCurrVersionsFromHit = (source) => ({
+  [source.isPrimary ? 'he' : 'en']: {
+    languageFamilyName: source.languageFamilyName,
+    versionTitle: source.version,
+  },
+});
+
 const sourceHitCardProps = (hit, query) => {
   const s = hit._source;
   const snippet = getSnippetFromHit(hit);
@@ -59,6 +89,10 @@ const sourceHitCardProps = (hit, query) => {
     versionName: s.version,
     hebrewVersionName: s.hebrew_version_title,
     versions,
+    // Carried through the click so the reader opens the version that matched and
+    // highlights the matched words, instead of falling back to the default version.
+    currVersions: getCurrVersionsFromHit(s),
+    textHighlights: getHighlightsFromHit(hit),
   };
 };
 
