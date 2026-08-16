@@ -11,7 +11,7 @@ import SearchState from './sefaria/searchState';
 import Component from 'react-class';
 import {MobileFilterIconButton, SearchSortBox, SearchFilterButton} from './SearchResultList';
 import {SearchResultList} from "./SearchResultList";
-import SearchSortDropdown, {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown';
+import SearchSortDropdown, {ENTITY_SORT_OPTIONS} from './SearchSortDropdown';
 import SearchResultCard from './SearchResultCard';
 import InfiniteScroll from './InfiniteScroll';
 import NoSearchResults from './NoSearchResults';
@@ -242,9 +242,14 @@ class SearchPage extends Component {
     this.state = {
       totalResults: null,
       mobileFiltersOpen: false,
-      entityData: emptyEntityData(),  // full {hits, total} response per type
+      entityData: emptyEntityData(),  // accumulated pages per type; null while a fetch is in flight
       entitySort: defaultEntitySort(),
       bookCategoryFilters: this.makeBookCategoryFilters(),
+      // {"Tanakh": 11, "Tanakh/Torah": 5, ...} from the API — how many books match the query
+      // in each category, over the whole match set. Kept outside `entityData` on purpose: it
+      // survives the refetch that a sort or filter change triggers, so the sidebar keeps its
+      // numbers instead of blanking out and back on every click.
+      bookCategoryCounts: null,
       // `window` does not exist in the Node server bundle (USE_NODE), so the viewport
       // cannot be measured here. Default to desktop: this is ANDed with
       // `Sefaria.multiPanel` (decided server-side from the User-Agent) at render time,
@@ -256,6 +261,12 @@ class SearchPage extends Component {
       const next = window.innerWidth > DESKTOP_TABS_MIN_WIDTH;
       if (next !== this.state.useDesktopTabs) this.setState({useDesktopTabs: next});
     };
+    // One counter per type, bumped every time that type's accumulated pages are thrown away
+    // (new query, new sort, new category filter). A response is only applied if its counter
+    // still matches: without this, a page that was already in flight when the sort changed
+    // would land afterwards and mix rows from the old ordering into the new list. Kept off
+    // `state` because it must update synchronously, before React re-renders.
+    this._entityFetchTokens = Object.fromEntries(ENTITY_TABS.map(t => [t.type, 0]));
   }
 
   makeBookCategoryFilters() {
@@ -281,44 +292,47 @@ class SearchPage extends Component {
   }
 
   setEntitySort(type, sortKey) {
-    this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}));
+    if (this.state.entitySort[type] === sortKey) { return; }
+    // The server sorts the entire match set, so every page already downloaded is in the old
+    // order and can't be reused — discard them and start again from the first page.
+    this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}),
+                  () => this.resetEntityResults([type]));
   }
 
-  getSortedEntityData(type) {
+  // The category paths currently checked in the Books sidebar, in the form the API expects
+  // ("Tanakh", "Tanakh/Torah"). getAppliedFilters() already collapses a fully-selected
+  // parent to its own key and only descends into partially-selected ones. Categories apply
+  // to books alone — the API rejects a filter on any other type.
+  selectedCategoryPaths(type) {
+    if (type !== 'book') { return []; }
+    return this.state.bookCategoryFilters.flatMap(f => f.getAppliedFilters());
+  }
+
+  // Disabled only when we *know* there is nothing to sort — a loaded but empty result set.
+  // While a fetch is in flight (entityData null: first load, or a refetch after a sort or
+  // filter change) the control stays live, so a second change doesn't have to wait out the
+  // first round trip.
+  isEntitySortDisabled(type) {
     const data = this.state.entityData[type];
-    if (!data) return null;
-    const sortKey = this.state.entitySort[type];
-    let hits = sortEntityHits(data.hits, type, sortKey);
-    if (type === 'book') {
-      const selectedKeys = [];
-      const collectSelected = (filterList) => {
-        filterList.forEach(f => {
-          if (f.isSelected()) {
-            selectedKeys.push(f.aggKey);
-          } else if (f.isPartial()) {
-            collectSelected(f.children);
-          }
-        });
-      };
-      collectSelected(this.state.bookCategoryFilters);
-      if (selectedKeys.length > 0) {
-        hits = hits.filter(hit => {
-          if (!hit.categories) return false;
-          const path = hit.categories.join("/");
-          return selectedKeys.some(key => path === key || path.startsWith(key + "/"));
-        });
-      }
-    }
-    return {...data, hits};
-  }
-
-  hasEntityResults(type) {
-    return !!this.getSortedEntityData(type)?.hits?.length;
+    return !!data && !data.hits.length;
   }
 
   toggleBookCategoryFilter(filter) {
     filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
-    this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]});
+    // Same as a sort change: the server applies the filter to the whole match set, so the
+    // downloaded pages (a filtered slice of the first ~20 rows) have to go.
+    this.setState({bookCategoryFilters: [...this.state.bookCategoryFilters]},
+                  () => this.resetEntityResults(['book']));
+  }
+
+  // Throw away the accumulated pages for each of `types` and refetch page 1 under the
+  // current sort and filters.
+  resetEntityResults(types) {
+    types.forEach(type => { this._entityFetchTokens[type] += 1; });  // abandon in-flight pages
+    this.setState(
+      prev => ({entityData: {...prev.entityData, ...Object.fromEntries(types.map(t => [t, null]))}}),
+      () => this.fetchEntityResults(types),  // runs after state settles, so it reads the new sort/filters
+    );
   }
 
   componentDidMount() {
@@ -333,19 +347,25 @@ class SearchPage extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.query !== this.props.query) {
-      this.setState({entityData: emptyEntityData(), bookCategoryFilters: this.makeBookCategoryFilters()});
-      this.fetchEntityResults();
+      // A new query invalidates the category selections and their counts — both describe the
+      // previous result set — so rebuild the filter tree unselected before refetching.
+      this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
+                    () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
     }
   }
 
-  fetchEntityResults() {
+  fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
     const query = this.props.query;
     if (!query || this.props.searchInBook) { return; }
-    ENTITY_TABS.forEach(({type}) => {
-      Sefaria.search.entitySearch(query, type)
+    types.forEach(type => {
+      const token = ++this._entityFetchTokens[type];
+      Sefaria.search.entitySearch(query, type, 0, {
+            sort: this.state.entitySort[type],
+            categoryPaths: this.selectedCategoryPaths(type),
+          })
           .then(data => {
-            if (this.props.query !== query) { return; }  // a newer query superseded this one
-            this.setState(prev => ({entityData: {...prev.entityData, [type]: this.makeEntityEntry(data)}}));
+            if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
+            this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
           })
           .catch(() => {});  // count badge stays at "0", panel stays on the loading message
     });
@@ -362,23 +382,39 @@ class SearchPage extends Component {
     return {hits, total: data.total, moreToLoad: hits.length < loadableTotal, isLoadingMore: false};
   }
 
+  // Book responses carry `categoryCounts` for the sidebar; every other response leaves the
+  // counts we already hold alone. They are identical on every page of a search — the API
+  // counts the whole match set regardless of paging or filtering — so taking the latest is
+  // safe, and there is nothing to merge.
+  withCategoryCounts(entityData, data) {
+    return data.categoryCounts ? {entityData, bookCategoryCounts: data.categoryCounts} : {entityData};
+  }
+
   loadNextEntityPage(type) {
     const query = this.props.query;
     const cur = this.state.entityData[type];
     if (!cur || cur.isLoadingMore || !cur.moreToLoad) { return; }
+    // Not bumped, only captured: this extends the current result set rather than replacing
+    // it, so the page is dropped if a sort/filter/query change intervenes.
+    const token = this._entityFetchTokens[type];
     this.setState(prev => ({
       entityData: {...prev.entityData, [type]: {...prev.entityData[type], isLoadingMore: true}},
     }));
-    Sefaria.search.entitySearch(query, type, cur.hits.length)
+    Sefaria.search.entitySearch(query, type, cur.hits.length, {
+          sort: this.state.entitySort[type],
+          categoryPaths: this.selectedCategoryPaths(type),
+        })
         .then(data => {
-          if (this.props.query !== query) { return; }  // a newer query superseded this one
+          if (this._entityFetchTokens[type] !== token) { return; }  // superseded — these rows are stale
           this.setState(prev => {
             const prevEntry = prev.entityData[type];
-            if (!prevEntry) { return null; }  // query was reset while this page was in flight
-            return {entityData: {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}};
+            if (!prevEntry) { return null; }  // results were reset while this page was in flight
+            return this.withCategoryCounts(
+                {...prev.entityData, [type]: this.makeEntityEntry(data, prevEntry.hits)}, data);
           });
         })
         .catch(() => {
+          if (this._entityFetchTokens[type] !== token) { return; }
           this.setState(prev => {
             const prevEntry = prev.entityData[type];
             if (!prevEntry) { return null; }
@@ -462,27 +498,24 @@ class SearchPage extends Component {
           compare={this.props.compare}
           type={this.props.type}/>;
     } else if (activeTab === "books") {
-      const dataLoaded = !!this.state.entityData.book;
+      // The numbers next to each category come from the API (`categoryCounts`), which counts
+      // the whole match set — not from the rows on screen. Counting those would mean "how
+      // many of the ~20 books I downloaded", a number that climbs as you scroll and, once
+      // the server does the filtering, drops to zero for every category except the selected
+      // one — hiding them all and stranding the reader in a one-row sidebar.
+      const counts = this.state.bookCategoryCounts;
       let visibleBookFilters = this.state.bookCategoryFilters;
-      if (dataLoaded) {
-        const counts = {};
-        this.state.entityData.book.hits.forEach(hit => {
-          if (!hit.categories) return;
-          const topKey = hit.categories[0];
-          const subKey = hit.categories.length > 1 ? `${hit.categories[0]}/${hit.categories[1]}` : null;
-          counts[topKey] = (counts[topKey] || 0) + 1;
-          if (subKey) counts[subKey] = (counts[subKey] || 0) + 1;
-        });
+      if (counts) {
         this.state.bookCategoryFilters.forEach(f => {
-          f.docCount = counts[f.aggKey];
-          f.children.forEach(child => { child.docCount = counts[child.aggKey]; });
+          f.docCount = counts[f.aggKey] || 0;
+          f.children.forEach(child => { child.docCount = counts[child.aggKey] || 0; });
         });
-        visibleBookFilters = this.state.bookCategoryFilters.filter(f => (f.docCount || 0) > 0);
+        visibleBookFilters = this.state.bookCategoryFilters.filter(f => f.docCount > 0);
       }
       sidebar = <BookSearchFilters
           filters={visibleBookFilters}
           updateSelected={this.toggleBookCategoryFilter}
-          hideEmpty={dataLoaded}
+          hideEmpty={!!counts}
           mobileSortProps={!Sefaria.multiPanel ? {
             sortOptions: ENTITY_SORT_OPTIONS.books,
             sortType: this.state.entitySort.book,
@@ -549,15 +582,15 @@ class SearchPage extends Component {
                   options={ENTITY_SORT_OPTIONS[sortOptions]}
                   sortType={this.state.entitySort[type]}
                   onSortChange={(key) => this.setEntitySort(type, key)}
-                  disabled={!this.hasEntityResults(type)}
+                  disabled={this.isEntitySortDisabled(type)}
                 />
               : <MobileFilterIconButton
                   openMobileFilters={() => this.setState({mobileFiltersOpen: true})}
-                  disabled={!this.hasEntityResults(type)}
+                  disabled={this.isEntitySortDisabled(type)}
                 />
             }
           </div>
-          <EntitySearchResults type={type} data={this.getSortedEntityData(type)} query={this.props.query}
+          <EntitySearchResults type={type} data={this.state.entityData[type]} query={this.props.query}
                                loadMore={() => this.loadNextEntityPage(type)}/>
         </div>
       )),

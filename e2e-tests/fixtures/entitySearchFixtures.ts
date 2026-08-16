@@ -3,15 +3,17 @@
  *
  * The Books / Authors / Topics tabs on the rewritten search page are fed by
  * `Sefaria.search.entitySearch()` (static/js/sefaria/search.js), which returns
- * `{hits: [...], total: N}`. Sorting and category filtering of those hits happen
- * ENTIRELY IN THE BROWSER — see `sortEntityHits` in static/js/SearchSortDropdown.jsx
- * and `getSortedEntityData` in static/js/SearchPage.jsx:228. The API never receives
- * a `sort` param. That is why mocking this endpoint gives exact, deterministic
- * coverage of sort/filter behavior rather than an approximation.
+ * `{hits: [...], total: N}` plus `categoryCounts` for books.
+ *
+ * Sorting and category filtering happen ON THE SERVER, over the entire match set
+ * (`entity_search` in sefaria/helper/search.py): the page sends `sort` and repeated
+ * `filter` params and renders the response as-is. `installEntitySearchMock` mirrors
+ * those semantics against the fixtures below, so the expected orderings here are
+ * exact rather than approximate.
  *
  * Field names below mirror the real ES documents (see `make_topic_index_document`
  * and `make_book_index_document` in sefaria/search.py). Only the fields the card
- * builders actually read are populated.
+ * builders and the mock's sort/filter logic actually read are populated.
  */
 
 /** One hit as returned by /api/entity-search. */
@@ -22,12 +24,19 @@ export interface EntityHit {
   title_he?: string;
   description_en?: string;
   description_he?: string;
-  /** authors only — may be null to exercise the "undated" branch of sortEntityHits */
+  /** authors only — displayed on the card as the lifespan */
   birthYear?: number | string | null;
   deathYear?: number | string | null;
-  /** books only — negative values are BCE */
+  /**
+   * authors only — the single sortable year the backend derives at index time
+   * (death year, falling back to birth year; `_author_sort_year` in
+   * sefaria/search.py). This, NOT birthYear/deathYear, is what the year sorts key
+   * on; null exercises the "undated hits go last in both directions" branch.
+   */
+  sortYear?: number | null;
+  /** books only — negative values are BCE; the field the book year sorts key on */
   compDate?: number | null;
-  /** books only — categories[0] is what the Books-tab category filter matches on */
+  /** books only — the category path the Books-tab filter matches against */
   categories?: string[];
 }
 
@@ -39,8 +48,8 @@ export interface EntityHit {
  * Deliberately NOT in alphabetical or chronological order, so a passing sort
  * assertion can only mean the sort actually ran.
  *
- * `Zechariah ben Avkulas` carries no years at all: sortEntityHits pushes undated
- * hits to the end for BOTH directions (`if (ya == null) return 1`), which is the
+ * `Zechariah ben Avkulas` carries no years at all: undated hits sort to the end
+ * for BOTH directions (`missing: "_last"` in `_entity_sort_clauses`), which is the
  * easiest behavior to regress.
  */
 export const AUTHOR_HITS: EntityHit[] = [
@@ -52,6 +61,7 @@ export const AUTHOR_HITS: EntityHit[] = [
     description_en: 'Medieval Sephardic rabbi, physician and philosopher.',
     birthYear: 1138,
     deathYear: 1204,
+    sortYear: 1204,
   },
   {
     slug: 'rashi',
@@ -61,6 +71,7 @@ export const AUTHOR_HITS: EntityHit[] = [
     description_en: 'Medieval French commentator on the Tanakh and Talmud.',
     birthYear: 1040,
     deathYear: 1105,
+    sortYear: 1105,
   },
   {
     slug: 'hillel',
@@ -71,6 +82,7 @@ export const AUTHOR_HITS: EntityHit[] = [
     // BCE — exercises the negative-year branch of formatEntityYear/authorLifespan.
     birthYear: -110,
     deathYear: -10,
+    sortYear: -10,
   },
   {
     slug: 'ibn-ezra',
@@ -80,6 +92,7 @@ export const AUTHOR_HITS: EntityHit[] = [
     description_en: 'Medieval Spanish commentator, poet and grammarian.',
     birthYear: 1089,
     deathYear: 1167,
+    sortYear: 1167,
   },
   {
     slug: 'zechariah-ben-avkulas',
@@ -89,6 +102,7 @@ export const AUTHOR_HITS: EntityHit[] = [
     description_en: 'Sage with no recorded dates.',
     birthYear: null,
     deathYear: null,
+    sortYear: null,
   },
 ];
 
@@ -102,12 +116,12 @@ export const AUTHORS_BY_ALPHA = [
   'Abraham Ibn Ezra', 'Hillel the Elder', 'Rambam', 'Rashi', 'Zechariah ben Avkulas',
 ];
 
-/** deathYear ?? birthYear, ascending; undated last. */
+/** sortYear ascending; undated last. */
 export const AUTHORS_BY_YEAR_ASC = [
   'Hillel the Elder', 'Rashi', 'Abraham Ibn Ezra', 'Rambam', 'Zechariah ben Avkulas',
 ];
 
-/** deathYear ?? birthYear, descending; undated STILL last (not first). */
+/** sortYear descending; undated STILL last (not first). */
 export const AUTHORS_BY_YEAR_DESC = [
   'Rambam', 'Abraham Ibn Ezra', 'Rashi', 'Hillel the Elder', 'Zechariah ben Avkulas',
 ];
@@ -118,8 +132,10 @@ export const AUTHORS_BY_YEAR_DESC = [
 
 /**
  * Six books spread over four real top-level TOC categories. The Books-tab filter
- * sidebar is built from `Sefaria.toc` (SearchPage.jsx:215), so the category names
- * here must be genuine top-level categories or no checkbox will exist to click.
+ * sidebar is built from `Sefaria.toc` (`makeBookCategoryFilters` in SearchPage.jsx),
+ * so the category names here must be genuine top-level categories or no checkbox
+ * will exist to click. They also drive the mock's `categoryCounts`, which is what
+ * decides whether a category row is shown at all (`hideEmpty`).
  *
  * No `url` field: that is reserved for author-works aggregation rows, and its
  * absence sends these through the individual-work branch of `bookHitCardProps`
@@ -194,20 +210,33 @@ export const BOOKS_BY_YEAR_DESC = [
 ];
 
 /**
- * The Books filter matches `categories[0]` only (SearchPage.jsx:238), so a book
- * filed under ['Tanakh', 'Commentary'] counts as Tanakh.
+ * The filter matches a category path and everything nested under it (the same
+ * `make_path_filter` rule the text search uses), so a book filed under
+ * ['Tanakh', 'Commentary'] is matched by the path 'Tanakh'.
  */
 export const BOOKS_IN_TANAKH = ['Genesis', 'Rashi on Genesis'];
 export const BOOKS_IN_HALAKHAH = ['Mishneh Torah', 'Shulchan Arukh'];
 
 /**
- * Two categories selected at once. Multiple filters OR together, and filtering
- * runs AFTER sorting (SearchPage.jsx:232-240), so with the default Relevance
- * sort the survivors keep their original fixture order.
+ * Two categories selected at once — multiple filters OR together. With the
+ * default Relevance sort the survivors keep their original fixture order.
  */
 export const BOOKS_IN_TANAKH_OR_HALAKHAH = [
   'Genesis', 'Rashi on Genesis', 'Mishneh Torah', 'Shulchan Arukh',
 ];
+
+/**
+ * The counts the sidebar must show for BOOK_HITS — one entry per ancestor
+ * category, over the WHOLE match set. These are what `categoryCounts` reports and
+ * they do not move when a category is selected or when more pages are loaded,
+ * which is the property that keeps every category clickable after a filter is on.
+ */
+export const BOOK_CATEGORY_COUNTS: Record<string, number> = {
+  Tanakh: 2,
+  Mishnah: 1,
+  Talmud: 1,
+  Halakhah: 2,
+};
 
 // ---------------------------------------------------------------------------
 // Topics

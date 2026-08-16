@@ -4901,6 +4901,12 @@ def entity_search_api(request):
     `book` searches the `book` index, or — when the query resolves to an author — returns
     that author's works aggregated by category. Returns {"hits": [...], "total": N}.
 
+    A `book` response carries one extra key, `categoryCounts`: {category path -> number of
+    matching books}, e.g. {"Tanakh": 11, "Tanakh/Torah": 5}. These counts are computed by an
+    aggregation over the *entire* match set, so they are unaffected by `filter` and by how
+    many pages the client has fetched — that is what lets the Books sidebar show true
+    numbers and stay complete once a category is selected.
+
     `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
     "year_desc" sort books by composition date and authors by birth year (topics have no
     year, so they only accept relevance/alpha).

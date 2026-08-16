@@ -269,6 +269,26 @@ _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see 
 # the year their result card displays. Changing either derivation needs a reindex.
 _ENTITY_YEAR_SORT_FIELDS = {"author": "sortYear", "book": "compDate"}
 
+# Per-category result counts for the Books sidebar ("Tanakh (11)"), returned as
+# `categoryCounts` on every book response.
+#
+# They are computed by an Elasticsearch terms aggregation rather than by counting the hits
+# in the response, because the sidebar has to stay honest under paging and filtering: the
+# numbers must describe the *whole* match set, not the twenty rows that happen to be
+# downloaded, and they must not collapse to "only the selected category has any results"
+# the moment a filter is applied (which is what would hide every other category and leave
+# the reader unable to switch). The category filter is therefore applied as a `post_filter`
+# — Elasticsearch runs aggregations *before* post filters, so the counts span the unfiltered
+# match set while the hits (and `total`) are the filtered page.
+#
+# The aggregation runs on `path` ("Tanakh/Torah/Genesis"), the only indexed field carrying
+# the full hierarchy; the per-category numbers are summed from those buckets in
+# _category_counts_from_response. `path` is unique per book, so there is one bucket per
+# matching book — the cap below sits well above the whole book index, and truncation (which
+# would silently read the counts low) is logged rather than passed off as a real number.
+_ENTITY_CATEGORY_AGG_NAME = "category_paths"
+_ENTITY_CATEGORY_AGG_SIZE = 10000
+
 # Default per-field match boosts for the all-words (tier 3) and any-word (tier 6)
 # multi_match clauses, in priority order: title -> title variants -> the name/works fields
 # (author names on books, authored titles on authors). Descriptions are deliberately
@@ -456,8 +476,11 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
 
     `category_paths` (books only) restricts hits to books whose `path` sits at or under
     any of the given category paths — the same path-regexp semantics as text search
-    filters (see make_path_filter). Multiple paths OR together; the clause is a
-    non-scoring `filter`, so it never perturbs relevance ranking.
+    filters (see make_path_filter). Multiple paths OR together. It is attached as a
+    `post_filter` rather than a query filter: non-scoring either way, but a post filter
+    runs *after* aggregations, which is what keeps the sidebar's category counts spanning
+    the whole match set instead of only the selected category (see
+    _ENTITY_CATEGORY_AGG_NAME). Book searches always carry that aggregation.
 
     :param query: the user query string
     :param type: one of "topic", "author", "book"
@@ -522,15 +545,26 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
         base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
-    elif category_paths:
-        # Category filter: match set restricted to books at/under any given path (OR).
-        path_filter = Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1)
-        base_query = Q("bool", must=[text_query], filter=[path_filter])
     else:
         base_query = text_query
 
     # Score is the tiered text match, nothing else — no document-signal (popularity) boost.
     search_obj.query = base_query
+
+    if type == "book":
+        # Per-category counts for the Books sidebar, over the whole match set — see
+        # _ENTITY_CATEGORY_AGG_NAME and _category_counts_from_response.
+        search_obj.aggs.bucket(_ENTITY_CATEGORY_AGG_NAME, "terms", field="path",
+                               size=_ENTITY_CATEGORY_AGG_SIZE)
+
+    if category_paths:
+        # Category filter: hits restricted to books at/under any given path (OR). Applied as
+        # a post_filter, *not* as a query filter, so it narrows the hits and `total` while
+        # leaving the aggregation above spanning the unfiltered match set — otherwise
+        # selecting "Tanakh" would zero out every other category's count and collapse the
+        # sidebar to a single row. Non-scoring either way, so ranking is untouched.
+        search_obj = search_obj.post_filter(
+            Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1))
 
     if sort_clauses is not None:
         search_obj = search_obj.sort(*sort_clauses)
@@ -540,6 +574,41 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
 def _total_from_response(response):
     total = response.hits.total
     return total.value if hasattr(total, "value") else total
+
+
+def _category_counts_from_response(response):
+    """
+    Sum the per-book `path` buckets of the category aggregation into a count for every
+    category path that holds at least one matching book:
+
+        {"Tanakh/Torah/Genesis": 1, "Tanakh/Torah/Exodus": 1, "Halakhah/Mishneh Torah/...": 1}
+        -> {"Tanakh": 2, "Tanakh/Torah": 2, "Halakhah": 1, "Halakhah/Mishneh Torah": 1}
+
+    A book is counted once for each of its ancestor categories, so a book in
+    "Tanakh/Torah" adds to both "Tanakh" and "Tanakh/Torah" — the same nesting the sidebar
+    displays. The *last* component of a path is the book's own title, not a category, so it
+    is dropped: "Tanakh/Torah/Genesis" contributes "Tanakh" and "Tanakh/Torah", never
+    "Tanakh/Torah/Genesis".
+
+    Returns {} when the response carries no aggregation (i.e. anything but a book search).
+    """
+    aggs = getattr(response, "aggregations", None)
+    agg = getattr(aggs, _ENTITY_CATEGORY_AGG_NAME, None) if aggs is not None else None
+    if agg is None:
+        return {}
+    # Buckets past _ENTITY_CATEGORY_AGG_SIZE are dropped by ES, which would read the counts
+    # low without any other signal. Not worth failing the search over, but never silent.
+    dropped = getattr(agg, "sum_other_doc_count", 0)
+    if dropped:
+        logger.warning("entity search: category count aggregation truncated, %s book(s) uncounted "
+                       "(raise _ENTITY_CATEGORY_AGG_SIZE, currently %s)", dropped, _ENTITY_CATEGORY_AGG_SIZE)
+    counts = {}
+    for bucket in agg.buckets:
+        parts = [p for p in bucket.key.split("/") if p]
+        for depth in range(1, len(parts)):  # 1..len-1: every ancestor, excluding the book itself
+            key = "/".join(parts[:depth])
+            counts[key] = counts.get(key, 0) + bucket.doc_count
+    return counts
 
 
 def _query_matches_entity_title(query, hit):
@@ -657,6 +726,28 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
     return {"hits": hits, "total": total, "author_slug": author.slug}
 
 
+def _book_category_counts(query, es_client):
+    """
+    Run an aggregation-only (size=0) flat book search purely for the sidebar's
+    `categoryCounts`.
+
+    Only the author-works path needs this. There the response rows are aggregated works
+    rather than book hits, so no aggregation rides along on the main query — but the sidebar
+    is still shown, and selecting a category there drops back to the flat book list (see
+    entity_search). Counting the flat match set is therefore the deliberate choice: the
+    number next to a category is exactly how many results selecting it returns.
+    """
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="book", search_obj=search_obj, start=0, size=0)
+    response = search_obj.execute()
+    if not response.success():
+        # The sidebar degrades to an uncounted category list; the results themselves are fine,
+        # so a failed count is not worth failing the whole search over.
+        logger.warning("entity search: category count aggregation failed for query %r", query)
+        return {}
+    return _category_counts_from_response(response)
+
+
 def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
@@ -677,6 +768,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     returns the flat list — a QA escape hatch for comparing the two views side by side.
     Only books aggregate, so the flag is a no-op for other types.
 
+    Book responses carry a third key, `categoryCounts`: {category path -> number of matching
+    books}, counted over the entire match set independent of `category_paths` and of paging,
+    so the Books sidebar can show stable, true numbers. See _ENTITY_CATEGORY_AGG_NAME.
+
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
     """
@@ -693,7 +788,9 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
         if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author, query, sort=sort, start=start, size=size)
+                results = _author_works_response(author, query, sort=sort, start=start, size=size)
+                results["categoryCounts"] = _book_category_counts(query, es_client)
+                return results
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
@@ -705,7 +802,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     if not response.success():
         raise IOError("Elasticsearch entity search failed.")
     hits = [hit.to_dict() for hit in response.hits]
-    return {"hits": hits, "total": _total_from_response(response)}
+    results = {"hits": hits, "total": _total_from_response(response)}
+    if type == "book":
+        results["categoryCounts"] = _category_counts_from_response(response)
+    return results
 
 
 def get_elasticsearch_client():

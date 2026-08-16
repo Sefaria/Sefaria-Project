@@ -208,6 +208,24 @@ export class SearchPage extends HelperBase{
         await label.click();
     }
 
+    /**
+     * The visible category rows as `{category: count}`.
+     *
+     * Each row renders its title and its `(N)` count inside one `.searchFilterTitle`
+     * span (SearchFilters.jsx), separated by a non-breaking space. N is the number
+     * the API reported in `categoryCounts` — how many books match the query in that
+     * category across the whole result set, not how many are currently on screen.
+     */
+    async bookCategoryCounts(): Promise<Record<string, number>> {
+        const texts = await this.filterSidebar.locator('.searchFilterTitle').allTextContents();
+        const counts: Record<string, number> = {};
+        texts.forEach((text) => {
+            const match = text.trim().match(/^(.*?)\s*\((\d+)\)$/);
+            if (match) { counts[match[1].trim()] = Number(match[2]); }
+        });
+        return counts;
+    }
+
     // ---------------------------------------------------------------------
     // Infinite scroll
     // ---------------------------------------------------------------------

@@ -32,43 +32,11 @@ export const ENTITY_SORT_OPTIONS = {
   ],
 };
 
-export const sortEntityHits = (hits, type, sortKey) => {
-  if (!hits || sortKey === 'relevance') return hits;
-  const sorted = [...hits];
-  if (sortKey === 'alpha') {
-    return sorted.sort((a, b) =>
-      (a.title_en || a.title_he || '').localeCompare(b.title_en || b.title_he || '')
-    );
-  }
-  // Years reach us from free-form Mongo properties, so a record can carry one as a numeric
-  // string ('1804') rather than an int; coerce before comparing — string subtraction happens
-  // to work, but '' would coerce to 0 and sort as year zero.
-  const toYear = (val) => {
-    if (val === null || val === undefined || val === '') { return null; }
-    const num = Number(val);
-    return Number.isFinite(num) ? num : null;
-  };
-  // Both types sort on the single year the *backend* derived at index time, never on the raw
-  // properties: books on `compDate` (Mongo's compDate list collapsed by best_time_period),
-  // authors on `sortYear` (deathYear, falling back to birthYear — see _author_sort_year in
-  // sefaria/search.py). Re-deriving the author fallback here as `deathYear ?? birthYear` is
-  // what let this rule drift out of sync with the server sort, which keyed on a bare
-  // deathYear and dropped birth-year-only authors into its undated tail.
-  const getYear = (hit) => {
-    if (type === 'book')   return toYear(hit.compDate);
-    if (type === 'author') return toYear(hit.sortYear);
-    return null;
-  };
-  const asc = sortKey.endsWith('_asc');
-  return sorted.sort((a, b) => {
-    const ya = getYear(a);
-    const yb = getYear(b);
-    if (ya == null && yb == null) return 0;
-    if (ya == null) return 1;
-    if (yb == null) return -1;
-    return asc ? ya - yb : yb - ya;
-  });
-};
+// The `type` values above are sent straight to /api/entity-search as its `sort` param, which
+// orders the entire match set in Elasticsearch (ENTITY_SORTS in sefaria/helper/search.py).
+// There is deliberately no client-side sort helper here: sorting the hits already downloaded
+// could only ever reorder those hits, so on "A-Z" the alphabetically-first result would still
+// be missing whenever it happened to fall outside the pages fetched so far.
 
 
 const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {

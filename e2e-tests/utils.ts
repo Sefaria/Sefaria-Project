@@ -152,6 +152,10 @@ export interface EntitySearchRequest {
   type: string;
   start: number;
   query: string;
+  /** `sort` param — 'relevance' | 'alpha' | 'year_asc' | 'year_desc'. */
+  sort: string;
+  /** Repeated `filter` params: the selected category paths (books only). */
+  filters: string[];
   url: string;
 }
 
@@ -180,6 +184,79 @@ export interface EntitySearchMockOptions {
   delayMs?: number;
 }
 
+/** A fixture hit, as far as the mock's own sort/filter logic needs to see it. */
+interface MockEntityHit {
+  title_en?: string;
+  title_he?: string;
+  /** books: composition year; authors: the year the backend derived at index time. */
+  compDate?: number | string | null;
+  sortYear?: number | string | null;
+  /** books only — the category path, mirroring the ES `path` field minus the title. */
+  categories?: string[];
+}
+
+/** Mirrors `_ENTITY_YEAR_SORT_FIELDS` in sefaria/helper/search.py. */
+const mockSortYear = (hit: MockEntityHit, type: string): number | null => {
+  const raw = type === 'book' ? hit.compDate : hit.sortYear;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : null;
+};
+
+/**
+ * Order a fixture list the way Elasticsearch would for a given `sort`, so the mock
+ * is a faithful stand-in for the real endpoint (see `_entity_sort_clauses`):
+ * 'alpha' is A-Z on the lowercased English title; the year sorts run on the
+ * per-type year field with missing values LAST in either direction.
+ */
+const applyMockSort = (hits: MockEntityHit[], type: string, sort: string): MockEntityHit[] => {
+  if (sort === 'relevance') return hits;
+  const sorted = [...hits];
+  if (sort === 'alpha') {
+    return sorted.sort((a, b) =>
+      (a.title_en || '').toLowerCase().localeCompare((b.title_en || '').toLowerCase()));
+  }
+  const asc = sort === 'year_asc';
+  return sorted.sort((a, b) => {
+    const ya = mockSortYear(a, type);
+    const yb = mockSortYear(b, type);
+    if (ya === null && yb === null) return 0;
+    if (ya === null) return 1;   // missing: _last, in BOTH directions
+    if (yb === null) return -1;
+    return asc ? ya - yb : yb - ya;
+  });
+};
+
+/**
+ * Keep only hits at or under one of the selected category paths — the same
+ * "path itself, or anything nested under it" rule as `make_path_filter`, with
+ * multiple paths OR'd together.
+ */
+const applyMockCategoryFilter = (hits: MockEntityHit[], filters: string[]): MockEntityHit[] => {
+  if (!filters.length) return hits;
+  return hits.filter((hit) => {
+    const path = (hit.categories || []).join('/');
+    return filters.some((f) => path === f || path.startsWith(`${f}/`));
+  });
+};
+
+/**
+ * Per-category counts over the WHOLE match set, exactly as the real endpoint's
+ * terms aggregation reports them: computed before the category filter and
+ * independent of paging, with one entry per ancestor category.
+ */
+const mockCategoryCounts = (hits: MockEntityHit[]): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  hits.forEach((hit) => {
+    const parts = hit.categories || [];
+    for (let depth = 1; depth <= parts.length; depth++) {
+      const key = parts.slice(0, depth).join('/');
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+  return counts;
+};
+
 /**
  * Serve `/api/entity-search` from fixtures instead of Elasticsearch.
  *
@@ -189,7 +266,14 @@ export interface EntitySearchMockOptions {
  *
  * Paging mirrors the real endpoint: the client sends `start` and the server
  * returns a slice plus the FULL `total` (see `entitySearch` in
- * static/js/sefaria/search.js and `makeEntityEntry` in SearchPage.jsx:276).
+ * static/js/sefaria/search.js and `makeEntityEntry` in SearchPage.jsx).
+ *
+ * So do sorting and category filtering, which are the SERVER's job — the page
+ * sends `sort` and repeated `filter` params and renders whatever comes back
+ * (see `entity_search` in sefaria/helper/search.py). The mock therefore sorts,
+ * then filters, then slices, and reports `total` as the size of the filtered
+ * set. `categoryCounts` is deliberately computed BEFORE filtering: that is what
+ * keeps the Books sidebar complete once a category is selected.
  *
  * Note this covers the Books / Authors / Topics tabs only. The Sources tab is
  * served by the text-search API and is untouched by this mock.
@@ -208,11 +292,14 @@ export const installEntitySearchMock = async (
     const type = params.get('type') || 'topic';
     const start = Number.parseInt(params.get('start') || '0', 10) || 0;
     const query = params.get('q') || '';
+    const sort = params.get('sort') || 'relevance';
+    const filters = params.getAll('filter').filter(Boolean);
 
-    requests.push({ type, start, query, url: requestUrl });
+    requests.push({ type, start, query, sort, filters, url: requestUrl });
 
-    const all = hitsByType[type] ?? [];
-    const total = totals[type] ?? all.length;
+    const all = (hitsByType[type] ?? []) as MockEntityHit[];
+    const matching = applyMockCategoryFilter(applyMockSort(all, type, sort), filters);
+    const total = totals[type] ?? matching.length;
 
     if (delayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -221,7 +308,12 @@ export const installEntitySearchMock = async (
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ hits: all.slice(start, start + pageSize), total }),
+      body: JSON.stringify({
+        hits: matching.slice(start, start + pageSize),
+        total,
+        // Books only, matching the real response shape.
+        ...(type === 'book' ? { categoryCounts: mockCategoryCounts(all) } : {}),
+      }),
     });
   });
 

@@ -2,7 +2,12 @@
 import json
 import pytest
 from sefaria.helper.search import *
-from sefaria.helper.search import _author_works_response, _query_matches_entity_title
+from sefaria.helper.search import (
+    _author_works_response,
+    _query_matches_entity_title,
+    _category_counts_from_response,
+    _ENTITY_CATEGORY_AGG_NAME,
+)
 
 
 def test_extract_filter_values():
@@ -131,22 +136,24 @@ def test_entity_query_obj_sort_keeps_match_set():
 
 
 def test_entity_query_obj_category_filter():
+    # The category filter is a POST filter, not a query filter: Elasticsearch runs it after
+    # aggregations, which is what keeps the sidebar's category counts spanning the whole
+    # match set instead of only the category the reader just selected.
     s = get_entity_query_obj("torah", "book", category_paths=["Tanakh/Torah"]).to_dict()
-    filters = s["query"]["bool"]["filter"]
-    assert filters == [{
+    assert s["post_filter"] == {
         "bool": {
             "should": [{"regexp": {"path": "Tanakh/Torah|Tanakh/Torah/.*"}}],
             "minimum_should_match": 1,
         }
-    }]
+    }
     # the text query itself is unchanged — the filter clause is non-scoring
     unfiltered = get_entity_query_obj("torah", "book").to_dict()
-    assert ordered(s["query"]["bool"]["must"]) == ordered([unfiltered["query"]])
+    assert ordered(s["query"]) == ordered(unfiltered["query"])
 
 
 def test_entity_query_obj_category_filter_multiple_paths_or():
     s = get_entity_query_obj("torah", "book", category_paths=["Tanakh", "Halakhah"]).to_dict()
-    shoulds = s["query"]["bool"]["filter"][0]["bool"]["should"]
+    shoulds = s["post_filter"]["bool"]["should"]
     assert {"regexp": {"path": "Tanakh|Tanakh/.*"}} in shoulds
     assert {"regexp": {"path": "Halakhah|Halakhah/.*"}} in shoulds
 
@@ -154,13 +161,87 @@ def test_entity_query_obj_category_filter_multiple_paths_or():
 def test_entity_query_obj_category_filter_composes_with_sort():
     s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"]).to_dict()
     assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
-    assert s["query"]["bool"]["filter"][0]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+    assert s["post_filter"]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+
+
+def test_entity_query_obj_book_always_aggregates_categories():
+    # Every book search carries the sidebar's category aggregation, filtered or not — the
+    # counts have to be there on the very first response, before anything is selected.
+    for paths in (None, ["Tanakh"]):
+        s = get_entity_query_obj("torah", "book", category_paths=paths).to_dict()
+        assert s["aggs"][_ENTITY_CATEGORY_AGG_NAME]["terms"]["field"] == "path"
+        assert s["aggs"][_ENTITY_CATEGORY_AGG_NAME]["terms"]["size"] >= 10000
+
+
+def test_entity_query_obj_no_category_aggregation_for_topics_and_authors():
+    # Only books have a category sidebar; aggregating for the other two would be pure cost.
+    for entity_type in ("topic", "author"):
+        assert "aggs" not in get_entity_query_obj("moshe", entity_type).to_dict()
 
 
 def test_entity_query_obj_category_filter_books_only():
     for entity_type in ("topic", "author"):
         with pytest.raises(ValueError):
             get_entity_query_obj("torah", entity_type, category_paths=["Tanakh"])
+
+
+class _FakeBucket:
+    def __init__(self, key, doc_count):
+        self.key = key
+        self.doc_count = doc_count
+
+
+class _FakeAgg:
+    def __init__(self, buckets, sum_other_doc_count=0):
+        self.buckets = buckets
+        self.sum_other_doc_count = sum_other_doc_count
+
+
+class _FakeAggResponse:
+    """Stands in for an elasticsearch_dsl response carrying only the category aggregation."""
+    def __init__(self, buckets=None, sum_other_doc_count=0):
+        if buckets is not None:
+            self.aggregations = type("Aggs", (), {
+                _ENTITY_CATEGORY_AGG_NAME: _FakeAgg(buckets, sum_other_doc_count)
+            })()
+
+
+def test_category_counts_roll_up_every_ancestor():
+    # One bucket per matching book (`path` is unique per book). A book counts toward every
+    # category above it, so the sidebar's parent rows total their children.
+    response = _FakeAggResponse([
+        _FakeBucket("Tanakh/Torah/Genesis", 1),
+        _FakeBucket("Tanakh/Torah/Exodus", 1),
+        _FakeBucket("Tanakh/Prophets/Isaiah", 1),
+        _FakeBucket("Halakhah/Mishneh Torah/Sefer Madda", 1),
+    ])
+    assert _category_counts_from_response(response) == {
+        "Tanakh": 3,
+        "Tanakh/Torah": 2,
+        "Tanakh/Prophets": 1,
+        "Halakhah": 1,
+        "Halakhah/Mishneh Torah": 1,
+    }
+
+
+def test_category_counts_exclude_the_book_itself():
+    # The last path component is the book's title, not a category: "Genesis" must not become
+    # a filterable category, and a book sitting directly under a top-level category
+    # contributes to that category only.
+    counts = _category_counts_from_response(_FakeAggResponse([_FakeBucket("Talmud/Berakhot", 4)]))
+    assert counts == {"Talmud": 4}
+
+
+def test_category_counts_absent_aggregation():
+    # topic/author responses carry no aggregation at all — not an error, just no counts.
+    assert _category_counts_from_response(_FakeAggResponse()) == {}
+
+
+def test_category_counts_survive_truncated_aggregation():
+    # If ES ever drops buckets past the size cap the counts read low; they must still be
+    # usable numbers rather than an exception (the drop is logged, see the helper).
+    response = _FakeAggResponse([_FakeBucket("Tanakh/Torah/Genesis", 1)], sum_other_doc_count=7)
+    assert _category_counts_from_response(response) == {"Tanakh": 1, "Tanakh/Torah": 1}
 
 
 def test_entity_query_obj_invalid_sort():

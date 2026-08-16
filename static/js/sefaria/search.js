@@ -572,18 +572,33 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
-    entitySearch(query, type, start = 0) {
+    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
-        // load more on scroll. Each page is cached separately by `start`; `total` reports the
-        // full match count so the count badges and "more to load" checks stay correct.
+        // load more on scroll. `total` reports the full match count so the count badges and
+        // "more to load" checks stay correct.
+        //
+        // `sort` and `categoryPaths` are applied by the API over the entire match set, not
+        // by the caller over the page it happens to hold — sorting the downloaded rows would
+        // only ever reorder those rows, so result #500 could never rise to the top on "A-Z".
+        // `categoryPaths` (Books tab only; the API rejects it for other types) are category
+        // paths like "Tanakh" or "Tanakh/Torah", OR'd together by the server.
+        //
+        // Both belong in the cache key alongside `start`: page 1 sorted by year and page 1
+        // sorted by relevance are different responses at the same offset, and caching them
+        // under one key would serve whichever arrived first for both.
+        //
         // QA escape hatch: appending &aggregate=0 to the search page URL turns off the
         // author-works aggregation on the Books tab (flat book hits instead of category
         // rows). Forwarded on every tab's request; the API ignores it for types that
         // never aggregate.
         const noAggregate = typeof window !== "undefined" &&
             new URLSearchParams(window.location.search).get("aggregate") === "0";
-        const cacheKey = `entitySearch|${type}|${query}|${start}${noAggregate ? "|noAggregate" : ""}`;
-        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}`;
+        // Sorted so the key depends on which categories are selected, not on the order they
+        // were clicked in.
+        const paths = [...categoryPaths].sort();
+        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}${noAggregate ? "|noAggregate" : ""}`;
+        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+        paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
         if (noAggregate) { url += "&aggregate=0"; }
         // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
         // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
