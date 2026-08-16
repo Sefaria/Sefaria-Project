@@ -684,10 +684,23 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
     exactly matches the query) first, then category entries, then the remaining works — so a
     search for "Chafetz Chaim" leads with the book of that name rather than burying it among
     the author's other works. Explicit alpha/year sorts are left as pure orderings.
+
+    Individual works also carry `authors`/`author_names` naming this author, in the same shape
+    the flat book search denormalizes onto its hits, so a result card shows the author line on
+    either path (without it, searching an author's exact name — the one query where the author
+    is certain — was the one case that displayed no author at all). Category rows deliberately
+    omit them: such a row collapses many books into a single entry, so an author line there
+    would label the grouping rather than a book.
     """
+    # EN first, then HE — the order the card builder relies on to pick a name per language.
+    # Disambiguation suffixes are suppressed to match _resolve_author_names in sefaria/search.py,
+    # which builds the flat path's `author_names`; otherwise the same author could render as
+    # "Yehuda ben Yakar" on one path and "Yehuda ben Yakar (Rishon)" on the other.
+    author_names = [name for name in (author.get_primary_title(lang, with_disambiguation=False)
+                                      for lang in ("en", "he")) if name]
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
-        hits.append({
+        hit = {
             "title_en": agg["title"]["en"],
             "title_he": agg["title"]["he"],
             "isCategory": agg["isCategory"],
@@ -698,7 +711,11 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
             "description_en": agg["description"]["en"],
             "description_he": agg["description"]["he"],
             "compDate": agg["compDate"],
-        })
+        }
+        if not agg["isCategory"]:
+            hit["authors"] = [author.slug]
+            hit["author_names"] = author_names
+        hits.append(hit)
     if sort == "alpha":
         hits.sort(key=lambda h: (h.get("title_en") or "").lower())
     elif sort in ("year_asc", "year_desc"):

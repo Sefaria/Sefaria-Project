@@ -168,6 +168,13 @@ const categoryPathCrumbs = (categories) => categories.map((cat, i) => ({
 
 const bookHitCardProps = (hit, query) => {
   const date = formatEntityYear(hit.compDate);
+  // Both response shapes carry the author the same way — the flat book index denormalizes
+  // `authors`/`author_names` onto every hit, and the author-works aggregation adds them to
+  // individual works (see _author_works_response). Rows with no author resolve to undefined
+  // and the card omits the line: category rows, which collapse many books, and the handful of
+  // books whose Mongo record simply has no author recorded.
+  const authorNames = hit.author_names || [];
+  const isHebrew = s => /[֐-׿]/.test(s);
   const common = {
     mode: 'books',
     name: hit.title_en || hit.title_he,
@@ -176,6 +183,9 @@ const bookHitCardProps = (hit, query) => {
     hebrewSecondaryDate: date?.he,
     description: hit.description_en,
     hebrewDescription: hit.description_he,
+    secondaryAuthor: authorNames.find(n => !isHebrew(n)) || authorNames[0],
+    hebrewSecondaryAuthor: authorNames.find(isHebrew),
+    secondaryAuthorHref: hit.authors?.[0] ? `/topics/${hit.authors[0]}?tab=author-works-on-sefaria` : undefined,
     query,
   };
   if (hit.url) {
@@ -191,16 +201,11 @@ const bookHitCardProps = (hit, query) => {
         : hit.categoryLabel_en ? [{label: hit.categoryLabel_en, hebrewLabel: hit.categoryLabel_he}] : undefined,
     };
   }
-  const authorNames = hit.author_names || [];
-  const isHebrew = s => /[֐-׿]/.test(s);
   return {
     ...common,
     type: 'text',
     href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
     crumbs: categoryPathCrumbs(hit.categories || []),
-    secondaryAuthor: authorNames.find(n => !isHebrew(n)) || authorNames[0],
-    hebrewSecondaryAuthor: authorNames.find(isHebrew),
-    secondaryAuthorHref: hit.authors?.[0] ? `/topics/${hit.authors[0]}?tab=author-works-on-sefaria` : undefined,
   };
 };
 

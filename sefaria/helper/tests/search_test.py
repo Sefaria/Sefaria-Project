@@ -251,8 +251,21 @@ def test_entity_query_obj_invalid_sort():
         get_entity_query_obj("moshe", "book", sort="alphabetical")  # unknown sort value
 
 
+class _DummyAuthorNames:
+    """
+    Shared half of the `_author_works_response` test doubles: the author's own display names.
+    That helper reads them to stamp `author_names` onto individual works, so every dummy needs
+    them; each test's subclass supplies only the aggregation rows it cares about.
+    """
+    name_en = "Rambam"
+    name_he = "רמב\"ם"
+
+    def get_primary_title(self, lang='en', with_disambiguation=True):
+        return self.name_en if lang == 'en' else self.name_he
+
+
 def test_author_works_response_row_shape():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "rambam"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -290,8 +303,76 @@ def test_author_works_response_row_shape():
     assert work_row["categories"] == ["Jewish Thought", "Rishonim"]
 
 
+def test_author_works_response_stamps_author_on_individual_works_only():
+    # Regression (sc-46638): searching an author's exact name switches the Books tab from the
+    # flat book search to this aggregated view, which carried no author field at all — so the
+    # one query where the author is certain ("Rashi") was the one that rendered no author on
+    # any card. Individual works now carry `authors`/`author_names` in the same shape the flat
+    # book index denormalizes, so the card builder reads one field pair on either path.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "rambam"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/texts/Halakhah/Mishneh Torah", "title": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                 "categories": None, "compDate": 1178},
+                {"url": "/Guide_for_the_Perplexed", "title": {"en": "Guide for the Perplexed", "he": "מורה נבוכים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Jewish Thought"], "compDate": 1190},
+            ]
+
+    category_row, work_row = _author_works_response(_DummyAuthor(), "rambam")["hits"]
+    # EN before HE: the card builder picks a name per language out of this one flat list.
+    assert work_row["author_names"] == ["Rambam", "רמב\"ם"]
+    assert work_row["authors"] == ["rambam"]
+    # A category row collapses many books into one entry, so an author line there would label
+    # the grouping rather than a book. The keys are absent entirely, not empty.
+    assert "author_names" not in category_row and "authors" not in category_row
+
+
+def test_author_works_response_omits_disambiguation_from_author_names():
+    # The flat path builds `author_names` via _resolve_author_names, which passes
+    # with_disambiguation=False. This path must match, or the same author renders as
+    # "Yehuda ben Yakar" on one path and "Yehuda ben Yakar (Rishon)" on the other.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "yehuda-ben-yakar"
+
+        def get_primary_title(self, lang='en', with_disambiguation=True):
+            suffix = " (Rishon)" if with_disambiguation else ""
+            return ("Yehuda ben Yakar" if lang == 'en' else "יהודה בן יקר") + suffix
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/w", "title": {"en": "Perush HaTefillot", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Liturgy"], "compDate": 1200},
+            ]
+
+    work_row = _author_works_response(_DummyAuthor(), "yehuda ben yakar")["hits"][0]
+    assert work_row["author_names"] == ["Yehuda ben Yakar", "יהודה בן יקר"]
+
+
+def test_author_works_response_drops_missing_author_name():
+    # An author with no Hebrew title must yield a one-name list, not a [name, None] that the
+    # card builder would render as an empty Hebrew author line.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "english-only"
+        name_he = ""
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/w", "title": {"en": "Some Work", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1900},
+            ]
+
+    assert _author_works_response(_DummyAuthor(), "q")["hits"][0]["author_names"] == ["Rambam"]
+
+
 def test_author_works_response_surfaces_eponymous_work():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "israel-meir-kagan"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -316,7 +397,7 @@ def test_author_works_response_surfaces_eponymous_work():
 
 
 def test_author_works_response_paginates_with_full_total():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "rambam"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -418,7 +499,7 @@ def test_author_works_response_eponymous_beats_matching_category():
     # Regression: when a category row's title happens to equal the query, it must not sort
     # ahead of the actual eponymous (non-category) work. The eponymous tier explicitly
     # excludes category rows so the real work still leads.
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "israel-meir-kagan"
 
         def get_aggregated_urls_for_authors_indexes(self):
