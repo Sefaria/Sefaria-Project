@@ -380,6 +380,7 @@ class SearchPage extends Component {
             if (this._entityFetchTokens[type] !== token) { return; }
             this.setState(prev => ({
               entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
+              ...(type === 'book' ? {bookCategoryCounts: null} : {}),
             }));
           });
     });
