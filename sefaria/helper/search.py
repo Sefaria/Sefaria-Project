@@ -765,7 +765,7 @@ def _book_category_counts(query, es_client):
     return _category_counts_from_response(response)
 
 
-def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
+def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None):
     """
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
@@ -780,10 +780,6 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     code with the same semantics as the flat ES sorts (see _author_works_response). A
     category filter still runs the flat search — a category row spans many per-book
     paths, so it can't be filtered as a unit.
-
-    `aggregate=False` skips the author resolution entirely, so a book query always
-    returns the flat list — a QA escape hatch for comparing the two views side by side.
-    Only books aggregate, so the flag is a no-op for other types.
 
     Book responses carry a third key, `categoryCounts`: {category path -> number of matching
     books}, counted over the entire match set independent of `category_paths` and of paging,
@@ -802,7 +798,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
-        if aggregate and not category_paths:
+        if not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
                 results = _author_works_response(author, query, sort=sort, start=start, size=size)

@@ -587,19 +587,12 @@ class Search {
         // sorted by relevance are different responses at the same offset, and caching them
         // under one key would serve whichever arrived first for both.
         //
-        // QA escape hatch: appending &aggregate=0 to the search page URL turns off the
-        // author-works aggregation on the Books tab (flat book hits instead of category
-        // rows). Forwarded on every tab's request; the API ignores it for types that
-        // never aggregate.
-        const noAggregate = typeof window !== "undefined" &&
-            new URLSearchParams(window.location.search).get("aggregate") === "0";
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
         const paths = [...categoryPaths].sort();
-        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}${noAggregate ? "|noAggregate" : ""}`;
+        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
         paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
-        if (noAggregate) { url += "&aggregate=0"; }
         // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
         // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
         // concurrent requests for the same url. Promise.resolve() re-wraps its result because
