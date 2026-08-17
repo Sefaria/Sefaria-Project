@@ -918,8 +918,9 @@ test.describe('Strapi selection — a dismissed document falls through to the ru
 
     // Load 3: the eligible set is exhausted. Prove the payload arrived, advance far past the
     // delay without requiring a timer (nothing eligible arms one), and assert quiet.
+    const responsesBeforeFinalReload = strapiResponseCount(page);
     await page.reload();
-    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await waitForStrapiResponse(page, responsesBeforeFinalReload);
     await advanceBy(page, DELAY_SECONDS * 1000 * 5);
     await expect(bannerBox(page)).toHaveCount(0);
   });

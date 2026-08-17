@@ -86,8 +86,10 @@ async function open(page, context, payload) {
   const strapi = await routeWithStrapiPayload(context, payload);
   await prepareStrapiPage(page, { pinnedNow: SYNTHETIC_NOW });
   await useInterfaceLanguage(page, LANGUAGES.EN);
+  const responsesBeforeNavigation = strapiResponseCount(page);
   await page.goto(PAGE_PATH);
   await expectInterfaceLanguage(page, LANGUAGES.EN);
+  await waitForStrapiResponse(page, responsesBeforeNavigation);
   return strapi;
 }
 
@@ -103,7 +105,6 @@ async function elapseShowDelay(page) {
  * absence assertions must not wait for a timer).
  */
 async function expectNoModal(page) {
-  await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
   await advanceBy(page, DELAY_SECONDS * 1000 * 5);
   await expect(modalBox(page)).toHaveCount(0);
 }
