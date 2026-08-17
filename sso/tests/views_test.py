@@ -448,10 +448,17 @@ class MobileLoginTest(TestCase):
         self.assertNotIn("_auth", data)
 
     def test_wrong_password_with_linked_social_account_is_not_sso_only(self):
-        # A user who has BOTH a password and a linked provider looks identical
-        # to an SSO-only user by socialaccount_set alone. Only the
-        # has_usable_password() check separates them; drop it and a single
-        # typo tells this user their account is Google-only.
+        # Defence-in-depth, not a reachable state today: no application path
+        # produces a user with both a usable password and a linked provider.
+        # Linking wipes the password (sso/adapters.py pre_social_login), the
+        # reset API rejects SSO-only accounts outright, and the web reset form
+        # inherits Django's get_users(), which skips unusable-password users.
+        #
+        # This constructs that state directly to pin the guard: if the
+        # "SSO always wins on an email collision" product decision in
+        # adapters.py is ever revisited, has_usable_password() is the only
+        # thing keeping a mistyped password from being reported as
+        # "your account is Google-only".
         user = User.objects.create_user(
             username="ml-c@test.com", email="ml-c@test.com", password="correct"
         )
@@ -556,12 +563,14 @@ class PasswordResetApiTest(TestCase):
         # that actually enforces CSRF (unlike the default test Client) must
         # still reach the view rather than being rejected by the middleware.
         csrf_client = Client(enforce_csrf_checks=True)
-        User.objects.create_user(username='csrf@test.com', email='csrf@test.com', password='x')
-        with patch('sso.views.SefariaPasswordResetForm.save') as mock_save:
+        User.objects.create_user(
+            username="csrf@test.com", email="csrf@test.com", password="x"
+        )
+        with patch("sso.views.SefariaPasswordResetForm.save") as mock_save:
             res = csrf_client.post(
                 self.url,
-                data=json.dumps({'email': 'csrf@test.com'}),
-                content_type='application/json',
+                data=json.dumps({"email": "csrf@test.com"}),
+                content_type="application/json",
             )
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json(), {})
