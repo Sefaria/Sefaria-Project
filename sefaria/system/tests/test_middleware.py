@@ -810,6 +810,14 @@ class TestWebSessionRedirectMiddleware:
 
         assert 'no_applink=1' in result['Location']
 
+    def test_google_one_tap_redirect_path_marks_redirect_regardless_of_referer(self):
+        # accounts.google.com POSTs here directly (redirect-mode SSO) -- Referer is
+        # always Google's, never sefaria's, same as /accounts/* and /_allauth/*.
+        request = RequestFactory().post('/api/auth/google/redirect', HTTP_REFERER='https://accounts.google.com/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
     def test_non_redirect_response_is_untouched(self):
         request = RequestFactory().get('/accounts/google/login/callback/')
         response = HttpResponse('ok')
