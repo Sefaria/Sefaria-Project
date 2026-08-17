@@ -1275,6 +1275,21 @@ def library_topic_slugs():
     """
     return list(DjangoTopic.objects.get_topic_slugs_by_pool(PoolType.LIBRARY.value))
 
+
+def is_library_pool_topic(slug):
+    """
+    Whether one topic is in the `library` TopicPool — the same inclusion rule
+    `library_topic_slugs` applies to the full rebuild, asked one slug at a time so the
+    per-save hook doesn't pull all ~5.5k pool slugs on every Topic save.
+
+    Deliberately a live query rather than DjangoTopic.objects.get_pools_by_topic_slug,
+    whose `slug_to_pools` cache is per-process and is only rebuilt by a Django-side
+    Topic.save() — a pool edit on one web server would leave every other server's copy
+    stale, and this decides what the public index contains.
+    """
+    return DjangoTopic.objects.filter(slug=slug, pools__name=PoolType.LIBRARY.value).exists()
+
+
 def _book_title_variants(index, lang):
     """
     The book-level title variants of an Index: the root node's own title group.
@@ -1419,11 +1434,15 @@ def make_topic_index_document(topic, authored_titles_map=None):
         # fields are sparse; _without_none() omits any that are absent (rather than
         # writing null into _source).
         doc['era'] = topic.get_property('era')
-        doc['birthYear'] = topic.get_property('birthYear')
-        doc['deathYear'] = topic.get_property('deathYear')
-        # birthYear/deathYear above are indexed raw for display; `sortYear` is the derived
-        # single year the chronological sort keys on (death year, else birth year). It is
-        # computed here rather than in the query so the sort stays a plain field sort.
+        # Both are mapped as `integer`, but the stored properties are free-form and can
+        # hold '' or 'c. 1204'. ES rejects the *whole document* on a type mismatch, which
+        # would silently drop the author from the index entirely, so coerce here and let
+        # _without_none() omit anything unparseable.
+        doc['birthYear'] = _as_year_int(topic.get_property('birthYear'))
+        doc['deathYear'] = _as_year_int(topic.get_property('deathYear'))
+        # `sortYear` is the derived single year the chronological sort keys on (death
+        # year, else birth year). It is computed here rather than in the query so the
+        # sort stays a plain field sort.
         doc['sortYear'] = _author_sort_year(topic)
         # Denormalize the titles of this author's works (EN incl. variants + HE, the
         # same title set the book index carries — see _authored_index_titles) so the
@@ -1510,8 +1529,11 @@ def make_book_index_document(index, author_name_cache=None):
         'titleVariants': variants,
         'categories': categories,
         'path': "/".join(categories + [title_en]),  # mirrors the text index path shape
-        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or ''),
-        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or ''),
+        # Prefer the short description, but fall back to the long one — many Indexes
+        # carry only `enDesc`/`heDesc`, and showing that beats showing nothing. Mirrors
+        # the author-works aggregation in helper.topic._serialize_author_index().
+        'description_en': strip_markdown(getattr(index, 'enShortDesc', '') or getattr(index, 'enDesc', '') or ''),
+        'description_he': strip_markdown(getattr(index, 'heShortDesc', '') or getattr(index, 'heDesc', '') or ''),
         'compDate': comp_date,
         'era': getattr(index, 'era', None),
         'authors': author_slugs,
@@ -1629,12 +1651,27 @@ def _current_entity_index_name(entity_type):
 
 def index_topic_doc(topic):
     """
-    Upsert the ES doc for a single topic (doc id = slug) in the live `topic` index.
+    Upsert the ES doc for a single topic (doc id = slug) in the live `topic` index —
+    but only for topics in the `library` TopicPool, which is the same inclusion rule
+    index_topics applies to the full rebuild. A topic outside the pool has its doc
+    deleted instead, so this hook can only ever move the live index toward what the
+    next rebuild would produce, never away from it.
+
+    Without the pool check every save of one of the ~35k uncurated Mongo topics would
+    publish it to live entity search, where it would sit until the weekly rebuild
+    dropped it again.
     """
     slug = getattr(topic, 'slug', '<no-slug>')
     try:
         index_name = _current_entity_index_name('topic')
         if not index_name:
+            return
+        if not is_library_pool_topic(slug):
+            # Not a no-op: pool membership can be revoked after the topic was indexed,
+            # and this is the only hook that notices. warn_if_missing=False because the
+            # overwhelming majority of these were never indexed at all — a miss here is
+            # the normal case, not an anomaly worth a log line.
+            delete_topic_doc(slug, warn_if_missing=False)
             return
         # No authored_titles_map: for a single author topic the per-slug IndexSet
         # fallback inside the builder is the right trade-off (see its docstring).
@@ -1643,12 +1680,18 @@ def index_topic_doc(topic):
             return
         es_client.index(index=index_name, document=doc, id=doc['slug'])
     except Exception as e:
+        # Includes a failed pool lookup: on an unreachable Postgres this leaves the doc
+        # exactly as it was rather than guessing, which is the safe direction for both a
+        # wrongful publish and a wrongful delete.
         logger.error(f"Failed to index topic doc - slug: {slug}, error: {e}")
 
 
-def delete_topic_doc(slug):
+def delete_topic_doc(slug, warn_if_missing=True):
     """
     Delete the ES doc for a single topic (doc id = slug) from the live `topic` index.
+
+    `warn_if_missing=False` for callers where an absent doc is the expected outcome
+    rather than a symptom (see index_topic_doc's non-pool branch).
     """
     try:
         index_name = _current_entity_index_name('topic')
@@ -1658,7 +1701,8 @@ def delete_topic_doc(slug):
     except NotFoundError:
         # Expected for topics that never made it into the index (no titles,
         # oversized slug, or indexed while SEARCH_INDEX_ON_SAVE was off).
-        logger.warning(f"Topic doc not found when deleting - slug: {slug}")
+        if warn_if_missing:
+            logger.warning(f"Topic doc not found when deleting - slug: {slug}")
     except Exception as e:
         logger.error(f"Failed to delete topic doc - slug: {slug}, error: {e}")
 

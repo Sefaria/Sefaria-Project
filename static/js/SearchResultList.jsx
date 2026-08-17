@@ -27,12 +27,45 @@ const getSnippetFromHit = (data) => {
   return data._source.exact || '';
 };
 
+// Pulls the matched words out of a hit's highlight field — Elasticsearch marks them
+// with <b> tags. The reader re-highlights these same words after the panel opens, so
+// clicking a result lands you on the words you actually searched for.
+const getHighlightsFromHit = (data) => {
+  if (!data.highlight) { return []; }
+  const vals = Object.values(data.highlight);
+  if (vals.length === 0) { return []; }
+  const highlights = [];
+  const highlightReg = /((?:[\s,.?!:;]){0,}<b>[^<]+<\/b>[\s,.?!:;]{0,})+/g;  // capture consecutive <b> tags in one match
+  // vals should have only one entry, either 'naive_lemmatizer' or 'exact'
+  for (const h of vals[0]) {
+    let matches = null;
+    while ((matches = highlightReg.exec(h)) !== null) {
+      highlights.push(matches[0].replace(/<\/?b>/g, ''));
+    }
+  }
+  return highlights;
+};
+
+// The reader files a version under 'he' or 'en' — not the version's own language, but
+// the slot it occupies: 'he' for the primary text, 'en' for a translation. That slot
+// decides which version the panel loads and what language it displays in
+// (ReaderApp.jsx:100-102, ReaderApp.jsx:1573).
+const getCurrVersionsFromHit = (source) => ({
+  [source.isPrimary ? 'he' : 'en']: {
+    languageFamilyName: source.languageFamilyName,
+    versionTitle: source.version,
+  },
+});
+
 const sourceHitCardProps = (hit, query) => {
   const s = hit._source;
   const snippet = getSnippetFromHit(hit);
   const snippetLang = Sefaria.hebrew.isHebrew(snippet) ? 'he' : 'en';
   const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${query}`;
 
+  // Duplicates are hits on the *same* ref from other versions (search.js:435-440), so each
+  // row carries its own version and its own matched words. Without that, clicking a row
+  // would open whatever version the card itself is showing.
   const versions = (hit.duplicates || [])
     .filter(d => !!d._source.version)
     .map(d => {
@@ -42,7 +75,10 @@ const sourceHitCardProps = (hit, query) => {
         snippetLang: Sefaria.hebrew.isHebrew(dSnippet) ? 'he' : 'en',
         versionName: d._source.version,
         hebrewVersionName: d._source.hebrew_version_title,
+        tref: d._source.ref,
         href: `/${Sefaria.normRef(d._source.ref)}?v${d._source.lang}=${Sefaria.util.encodeVtitle(d._source.version)}&qh=${query}`,
+        currVersions: getCurrVersionsFromHit(d._source),
+        textHighlights: getHighlightsFromHit(d),
       };
     });
 
@@ -59,6 +95,10 @@ const sourceHitCardProps = (hit, query) => {
     versionName: s.version,
     hebrewVersionName: s.hebrew_version_title,
     versions,
+    // Carried through the click so the reader opens the version that matched and
+    // highlights the matched words, instead of falling back to the default version.
+    currVersions: getCurrVersionsFromHit(s),
+    textHighlights: getHighlightsFromHit(hit),
   };
 };
 
@@ -113,12 +153,14 @@ class SearchResultList extends Component {
           );
         }
 
-        const noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
+        const noResults = Sefaria._bilingual("search.no_results");
+        const searching = Sefaria._bilingual("search.searching");
+        const noResultsMessage = (<LoadingMessage message={noResults.en} heMessage={noResults.he} />);
         // "Searching..." only shows on an initial load with no results yet (e.g. sidebar
         // search-in-book, which renders this list directly without the page skeleton). Once
         // results exist, a running query is a scroll-triggered next page, so the shared
         // InfiniteScroll shows its "Loading more results..." message instead.
-        const initialLoadingMessage = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
+        const initialLoadingMessage = (<LoadingMessage message={searching.en} heMessage={searching.he} />);
         const haveResults      = !!results.length;
 
         return (
@@ -152,14 +194,16 @@ SearchResultList.propTypes = {
 
 const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, disabled}) => {
     const [isOpen, setIsOpen] = useState(false);
+    const currentOption = (sortTypeArray || []).find(o => o.type === sortType) || (sortTypeArray || [])[0];
+    const sortLabel = currentOption
+      ? <InterfaceText text={{en: currentOption.name, he: currentOption.heName}} />
+      : <InterfaceText>common.sort</InterfaceText>;
 
     if (disabled) {
       return (
         <div className="searchSortDropdown disabled" aria-disabled="true" tabIndex={-1}>
           <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
-          <span className="searchSortDropdown__label">
-            <InterfaceText text={{en: "Sort", he: "מיון"}} />
-          </span>
+          <span className="searchSortDropdown__label">{sortLabel}</span>
           <img className="searchSortDropdown__chevron" src="/static/icons/chevron-down-line.svg" alt="" aria-hidden="true" />
         </div>
       );
@@ -183,9 +227,7 @@ const SearchSortBox = ({type, updateAppliedOptionSort, sortType, sortTypeArray, 
             aria-expanded={isOpen}
           >
             <img className="searchSortDropdown__icon" src="/static/icons/sort.svg" alt="" aria-hidden="true" />
-            <span className="searchSortDropdown__label">
-              <InterfaceText text={{en: "Sort", he: "מיון"}} />
-            </span>
+            <span className="searchSortDropdown__label">{sortLabel}</span>
             <img
               className="searchSortDropdown__chevron"
               src="/static/icons/chevron-down-line.svg"
@@ -237,7 +279,7 @@ const MobileFilterIconButton = ({ openMobileFilters, disabled }) => (
     onClick={disabled ? undefined : openMobileFilters}
     role="button"
     tabIndex={disabled ? -1 : 0}
-    aria-label={disabled ? undefined : Sefaria._("Filter and Sort")}
+    aria-label={disabled ? undefined : Sefaria._("search.sort.aria")}
     aria-disabled={disabled || undefined}
     onKeyDown={disabled ? undefined : (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMobileFilters(); } }}
   >

@@ -2,7 +2,12 @@
 import json
 import pytest
 from sefaria.helper.search import *
-from sefaria.helper.search import _author_works_response, _query_matches_entity_title
+from sefaria.helper.search import (
+    _author_works_response,
+    _query_matches_entity_title,
+    _category_counts_from_response,
+    _ENTITY_CATEGORY_AGG_NAME,
+)
 
 
 def test_extract_filter_values():
@@ -131,22 +136,24 @@ def test_entity_query_obj_sort_keeps_match_set():
 
 
 def test_entity_query_obj_category_filter():
+    # The category filter is a POST filter, not a query filter: Elasticsearch runs it after
+    # aggregations, which is what keeps the sidebar's category counts spanning the whole
+    # match set instead of only the category the reader just selected.
     s = get_entity_query_obj("torah", "book", category_paths=["Tanakh/Torah"]).to_dict()
-    filters = s["query"]["bool"]["filter"]
-    assert filters == [{
+    assert s["post_filter"] == {
         "bool": {
             "should": [{"regexp": {"path": "Tanakh/Torah|Tanakh/Torah/.*"}}],
             "minimum_should_match": 1,
         }
-    }]
+    }
     # the text query itself is unchanged — the filter clause is non-scoring
     unfiltered = get_entity_query_obj("torah", "book").to_dict()
-    assert ordered(s["query"]["bool"]["must"]) == ordered([unfiltered["query"]])
+    assert ordered(s["query"]) == ordered(unfiltered["query"])
 
 
 def test_entity_query_obj_category_filter_multiple_paths_or():
     s = get_entity_query_obj("torah", "book", category_paths=["Tanakh", "Halakhah"]).to_dict()
-    shoulds = s["query"]["bool"]["filter"][0]["bool"]["should"]
+    shoulds = s["post_filter"]["bool"]["should"]
     assert {"regexp": {"path": "Tanakh|Tanakh/.*"}} in shoulds
     assert {"regexp": {"path": "Halakhah|Halakhah/.*"}} in shoulds
 
@@ -154,13 +161,87 @@ def test_entity_query_obj_category_filter_multiple_paths_or():
 def test_entity_query_obj_category_filter_composes_with_sort():
     s = get_entity_query_obj("torah", "book", sort="year_asc", category_paths=["Tanakh"]).to_dict()
     assert s["sort"][0] == {"compDate": {"order": "asc", "missing": "_last"}}
-    assert s["query"]["bool"]["filter"][0]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+    assert s["post_filter"]["bool"]["should"] == [{"regexp": {"path": "Tanakh|Tanakh/.*"}}]
+
+
+def test_entity_query_obj_book_always_aggregates_categories():
+    # Every book search carries the sidebar's category aggregation, filtered or not — the
+    # counts have to be there on the very first response, before anything is selected.
+    for paths in (None, ["Tanakh"]):
+        s = get_entity_query_obj("torah", "book", category_paths=paths).to_dict()
+        assert s["aggs"][_ENTITY_CATEGORY_AGG_NAME]["terms"]["field"] == "path"
+        assert s["aggs"][_ENTITY_CATEGORY_AGG_NAME]["terms"]["size"] >= 10000
+
+
+def test_entity_query_obj_no_category_aggregation_for_topics_and_authors():
+    # Only books have a category sidebar; aggregating for the other two would be pure cost.
+    for entity_type in ("topic", "author"):
+        assert "aggs" not in get_entity_query_obj("moshe", entity_type).to_dict()
 
 
 def test_entity_query_obj_category_filter_books_only():
     for entity_type in ("topic", "author"):
         with pytest.raises(ValueError):
             get_entity_query_obj("torah", entity_type, category_paths=["Tanakh"])
+
+
+class _FakeBucket:
+    def __init__(self, key, doc_count):
+        self.key = key
+        self.doc_count = doc_count
+
+
+class _FakeAgg:
+    def __init__(self, buckets, sum_other_doc_count=0):
+        self.buckets = buckets
+        self.sum_other_doc_count = sum_other_doc_count
+
+
+class _FakeAggResponse:
+    """Stands in for an elasticsearch_dsl response carrying only the category aggregation."""
+    def __init__(self, buckets=None, sum_other_doc_count=0):
+        if buckets is not None:
+            self.aggregations = type("Aggs", (), {
+                _ENTITY_CATEGORY_AGG_NAME: _FakeAgg(buckets, sum_other_doc_count)
+            })()
+
+
+def test_category_counts_roll_up_every_ancestor():
+    # One bucket per matching book (`path` is unique per book). A book counts toward every
+    # category above it, so the sidebar's parent rows total their children.
+    response = _FakeAggResponse([
+        _FakeBucket("Tanakh/Torah/Genesis", 1),
+        _FakeBucket("Tanakh/Torah/Exodus", 1),
+        _FakeBucket("Tanakh/Prophets/Isaiah", 1),
+        _FakeBucket("Halakhah/Mishneh Torah/Sefer Madda", 1),
+    ])
+    assert _category_counts_from_response(response) == {
+        "Tanakh": 3,
+        "Tanakh/Torah": 2,
+        "Tanakh/Prophets": 1,
+        "Halakhah": 1,
+        "Halakhah/Mishneh Torah": 1,
+    }
+
+
+def test_category_counts_exclude_the_book_itself():
+    # The last path component is the book's title, not a category: "Genesis" must not become
+    # a filterable category, and a book sitting directly under a top-level category
+    # contributes to that category only.
+    counts = _category_counts_from_response(_FakeAggResponse([_FakeBucket("Talmud/Berakhot", 4)]))
+    assert counts == {"Talmud": 4}
+
+
+def test_category_counts_absent_aggregation():
+    # topic/author responses carry no aggregation at all — not an error, just no counts.
+    assert _category_counts_from_response(_FakeAggResponse()) == {}
+
+
+def test_category_counts_survive_truncated_aggregation():
+    # If ES ever drops buckets past the size cap the counts read low; they must still be
+    # usable numbers rather than an exception (the drop is logged, see the helper).
+    response = _FakeAggResponse([_FakeBucket("Tanakh/Torah/Genesis", 1)], sum_other_doc_count=7)
+    assert _category_counts_from_response(response) == {"Tanakh": 1, "Tanakh/Torah": 1}
 
 
 def test_entity_query_obj_invalid_sort():
@@ -170,8 +251,21 @@ def test_entity_query_obj_invalid_sort():
         get_entity_query_obj("moshe", "book", sort="alphabetical")  # unknown sort value
 
 
+class _DummyAuthorNames:
+    """
+    Shared half of the `_author_works_response` test doubles: the author's own display names.
+    That helper reads them to stamp `author_names` onto individual works, so every dummy needs
+    them; each test's subclass supplies only the aggregation rows it cares about.
+    """
+    name_en = "Rambam"
+    name_he = "רמב\"ם"
+
+    def get_primary_title(self, lang='en', with_disambiguation=True):
+        return self.name_en if lang == 'en' else self.name_he
+
+
 def test_author_works_response_row_shape():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "rambam"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -209,8 +303,76 @@ def test_author_works_response_row_shape():
     assert work_row["categories"] == ["Jewish Thought", "Rishonim"]
 
 
+def test_author_works_response_stamps_author_on_individual_works_only():
+    # Regression (sc-46638): searching an author's exact name switches the Books tab from the
+    # flat book search to this aggregated view, which carried no author field at all — so the
+    # one query where the author is certain ("Rashi") was the one that rendered no author on
+    # any card. Individual works now carry `authors`/`author_names` in the same shape the flat
+    # book index denormalizes, so the card builder reads one field pair on either path.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "rambam"
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/texts/Halakhah/Mishneh Torah", "title": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                 "description": {"en": "", "he": ""}, "isCategory": True,
+                 "categoryLabel": {"en": "Mishneh Torah", "he": "משנה תורה"},
+                 "categories": None, "compDate": 1178},
+                {"url": "/Guide_for_the_Perplexed", "title": {"en": "Guide for the Perplexed", "he": "מורה נבוכים"},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Jewish Thought"], "compDate": 1190},
+            ]
+
+    category_row, work_row = _author_works_response(_DummyAuthor(), "rambam")["hits"]
+    # EN before HE: the card builder picks a name per language out of this one flat list.
+    assert work_row["author_names"] == ["Rambam", "רמב\"ם"]
+    assert work_row["authors"] == ["rambam"]
+    # A category row collapses many books into one entry, so an author line there would label
+    # the grouping rather than a book. The keys are absent entirely, not empty.
+    assert "author_names" not in category_row and "authors" not in category_row
+
+
+def test_author_works_response_omits_disambiguation_from_author_names():
+    # The flat path builds `author_names` via _resolve_author_names, which passes
+    # with_disambiguation=False. This path must match, or the same author renders as
+    # "Yehuda ben Yakar" on one path and "Yehuda ben Yakar (Rishon)" on the other.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "yehuda-ben-yakar"
+
+        def get_primary_title(self, lang='en', with_disambiguation=True):
+            suffix = " (Rishon)" if with_disambiguation else ""
+            return ("Yehuda ben Yakar" if lang == 'en' else "יהודה בן יקר") + suffix
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/w", "title": {"en": "Perush HaTefillot", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Liturgy"], "compDate": 1200},
+            ]
+
+    work_row = _author_works_response(_DummyAuthor(), "yehuda ben yakar")["hits"][0]
+    assert work_row["author_names"] == ["Yehuda ben Yakar", "יהודה בן יקר"]
+
+
+def test_author_works_response_drops_missing_author_name():
+    # An author with no Hebrew title must yield a one-name list, not a [name, None] that the
+    # card builder would render as an empty Hebrew author line.
+    class _DummyAuthor(_DummyAuthorNames):
+        slug = "english-only"
+        name_he = ""
+
+        def get_aggregated_urls_for_authors_indexes(self):
+            return [
+                {"url": "/w", "title": {"en": "Some Work", "he": ""},
+                 "description": {"en": "", "he": ""}, "isCategory": False,
+                 "categoryLabel": {"en": None, "he": None}, "categories": ["Halakhah"], "compDate": 1900},
+            ]
+
+    assert _author_works_response(_DummyAuthor(), "q")["hits"][0]["author_names"] == ["Rambam"]
+
+
 def test_author_works_response_surfaces_eponymous_work():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "israel-meir-kagan"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -235,7 +397,7 @@ def test_author_works_response_surfaces_eponymous_work():
 
 
 def test_author_works_response_paginates_with_full_total():
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "rambam"
 
         def get_aggregated_urls_for_authors_indexes(self):
@@ -271,11 +433,73 @@ def test_entity_query_obj_exact_tier_is_case_insensitive():
         assert spec["case_insensitive"] is True, f"{field} exact-match tier must be case-insensitive"
 
 
+def _entity_should_clauses(query, entity_type):
+    s = get_entity_query_obj(query, entity_type).to_dict()
+    q = s["query"]
+    # topic/author (and filtered book) queries wrap the text query in a bool must
+    if "must" in q.get("bool", {}):
+        q = q["bool"]["must"][0]
+    return q["bool"]["should"]
+
+
+def test_entity_query_obj_all_words_is_and():
+    # A multi-word query must not degrade to OR: the all-words tier requires every word
+    # (operator "and"), and cross_fields lets the words split across fields ("Rambam
+    # Torah" -> author_names + title_en) as long as all of them match somewhere.
+    for entity_type in ("topic", "author", "book"):
+        shoulds = _entity_should_clauses("Or Chaim", entity_type)
+        all_words = [c["multi_match"] for c in shoulds
+                     if "multi_match" in c and c["multi_match"].get("operator") == "and"]
+        assert len(all_words) == 1, "expected exactly one AND multi_match tier"
+        assert all_words[0]["type"] == "cross_fields"
+        # the AND tier must outweigh the any-word tier by a wide margin
+        any_word = [c["multi_match"] for c in shoulds
+                    if "multi_match" in c and c["multi_match"].get("type") == "best_fields"]
+        assert len(any_word) == 1, "expected exactly one any-word (OR) multi_match tier"
+        assert all_words[0]["boost"] > any_word[0]["boost"] * 10
+
+
+def test_entity_query_obj_all_prefix_tier_multi_word_only():
+    # "Or Chaim" should rank "Orach Chaim"/"Orchot Chaim" (every word matches a word-start
+    # in one title field) above one-word matches like "Chafetz Chaim". The tier is a
+    # dis_max of per-title-field bools, each requiring a case-insensitive prefix per word.
+    shoulds = _entity_should_clauses("Or Chaim", "book")
+    dis_max = [c["dis_max"] for c in shoulds if "dis_max" in c]
+    assert len(dis_max) == 1, "expected the all-prefixes dis_max tier for a multi-word query"
+    per_field = dis_max[0]["queries"]
+    assert len(per_field) == len(["title_en", "title_he", "titleVariants"])
+    for field_bool in per_field:
+        musts = field_bool["bool"]["must"]
+        values = [list(m["prefix"].values())[0]["value"] for m in musts]
+        assert values == ["Or", "Chaim"]
+        assert all(list(m["prefix"].values())[0]["case_insensitive"] is True for m in musts)
+
+    # single-word query: the tier would just duplicate the phrase_prefix tier, so it's absent
+    shoulds = _entity_should_clauses("Chaim", "book")
+    assert not any("dis_max" in c for c in shoulds)
+
+
+def test_entity_query_obj_partial_matches_kept_at_bottom():
+    # Product decision (2026-08-11): one-word matches stay findable, but only via the
+    # tiny-boost any-word tier — so the match set still includes them while every tier
+    # above (exact / phrase / all-words / all-prefixes / begins-with) outscores them.
+    shoulds = _entity_should_clauses("Or Chaim", "book")
+    boosts = []
+    for c in shoulds:
+        if "multi_match" in c:
+            boosts.append(c["multi_match"]["boost"])
+        elif "dis_max" in c:
+            boosts.append(c["dis_max"]["boost"])
+    any_word_boost = min(boosts)
+    assert any_word_boost <= 0.1
+    assert all(b >= 1 for b in boosts if b != any_word_boost)
+
+
 def test_author_works_response_eponymous_beats_matching_category():
     # Regression: when a category row's title happens to equal the query, it must not sort
     # ahead of the actual eponymous (non-category) work. The eponymous tier explicitly
     # excludes category rows so the real work still leads.
-    class _DummyAuthor:
+    class _DummyAuthor(_DummyAuthorNames):
         slug = "israel-meir-kagan"
 
         def get_aggregated_urls_for_authors_indexes(self):

@@ -8,17 +8,23 @@
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --highlight-green-light: #F1FCF5;
+  --near-black: #121212;
   --beit-midrash-grey: #333333;
   --darkest-grey: #333333;
   --darker-grey: #575757;
   --dark-grey: #666666;
   --medium-grey: #6f6f6f;
+  --secondary-text-grey: #707070;
   --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
+  --lighter-grey-hover: #DFDFDF;  /* hover state for surfaces painted --lighter-grey */
   --lighter-grey: #EDEDEC;
-  --lightest-grey: #FBFBFA;
+  --skeleton-grey-shimmer: #EFEFEF;  /* the moving highlight in a --skeleton-grey shimmer */
   --skeleton-grey: #e6e6e6;
+  --background-grey: #FAFAFA;
+  --lightest-grey: #FBFBFA;
   --black: #000000;
+  --white: #FFFFFF;
   --commentary-blue: #4B71B7;
   --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;

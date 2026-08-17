@@ -279,6 +279,33 @@ def test_make_topic_index_document_omits_unusable_sort_year(properties):
     assert "sortYear" not in doc
 
 
+@pytest.mark.parametrize("properties, expected", [
+    # already ints: passed through untouched
+    ({"birthYear": 1138, "deathYear": 1204}, {"birthYear": 1138, "deathYear": 1204}),
+    # numeric strings coerce to the ints the `integer` mapping expects
+    ({"birthYear": "1138", "deathYear": "1204"}, {"birthYear": 1138, "deathYear": 1204}),
+    # unusable values are dropped entirely rather than sent as-is
+    ({"birthYear": 1138, "deathYear": ""}, {"birthYear": 1138}),
+    ({"birthYear": "c. 1138", "deathYear": "c. 1204"}, {}),
+    # BCE years are negative and year 0 is real: neither may be dropped as falsy
+    ({"birthYear": -100, "deathYear": 0}, {"birthYear": -100, "deathYear": 0}),
+])
+def test_make_topic_index_document_coerces_display_years(properties, expected):
+    """
+    birthYear/deathYear are mapped as `integer` (put_topic_mapping) but come from free-form
+    Topic properties, so a value like '' or 'c. 1204' used to be indexed raw. ES rejects the
+    *entire document* on a type mismatch, which silently dropped those authors from the
+    index. They must be coerced like sortYear, and omitted when unparseable.
+    """
+    doc = make_topic_index_document(_FakeYearAuthorTopic(**properties),
+                                    {"rambam": {"en": [], "he": []}})
+    for field in ("birthYear", "deathYear"):
+        if field in expected:
+            assert doc[field] == expected[field]
+        else:
+            assert field not in doc
+
+
 def test_make_topic_index_document_no_sort_year_on_plain_topics():
     """Only authors carry years; topics have no year sort at all (see ENTITY_SORTS)."""
     doc = make_topic_index_document(_FakePlainTopic())

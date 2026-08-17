@@ -34,6 +34,7 @@ import {
   CookiesNotification,
 } from './Misc';
 import Button from './common/Button';
+import GoogleOneTap from './auth/GoogleOneTap';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -41,6 +42,9 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
+import AuthPage from './auth/AuthPage';
+import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
+import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -111,6 +115,7 @@ class ReaderApp extends Component {
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
     const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
+    const { showAuth, authPath } = resolveInitialAuthState(props.initialPath, props.authResetUid);
 
     this.state = {
       panels: panels,
@@ -125,11 +130,19 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
+      showAuth,
+      authPath,
+      // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
+      // legitimately has no attributable source.
+      authSource: null,
     };
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
+  handleAuthNavigate = (path, source = null) => {
+    this.setState({ showAuth: true, authPath: path, authSource: source });
+  }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -225,6 +238,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
+    resumePendingSignUpAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -396,6 +410,9 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+    if (!!history.state?.showAuth !== !!this.state.showAuth) { return true; }
+    if (this.state.showAuth && history.state?.authPath !== this.state.authPath) { return true; }
+
     if (!history.state
         || (!history.state.panels && !!this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
@@ -464,6 +481,11 @@ class ReaderApp extends Component {
 
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
+    if (this.state.showAuth) {
+      const { authPath, authSource } = this.state;
+      return { state: { showAuth: true, authPath, authSource, panels: [] }, url: authPath, title: document.title };
+    }
+
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
     const shortLang = Sefaria._getShortInterfaceLang();
@@ -762,7 +784,7 @@ class ReaderApp extends Component {
     if (Sefaria._debug_mode === "linker") {
         url += "&debug_mode=linker";
     }
-    hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
+    hist = {state: {panels: states, showAuth: false}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
       let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
@@ -866,7 +888,7 @@ class ReaderApp extends Component {
     //    "sticking" and affecting ALL future history updates
     // 4. We use the shouldReplace parameter for this specific update
     this.replaceHistory = false;
-    
+
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -1159,10 +1181,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     
     const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.VOICES_MODULE or Sefaria.LIBRARY_MODULE or null
+    // which CTA led to /register, for sign-up funnel analytics — closest(), not getAttribute(),
+    // so a plain wrapper element can carry this for components that don't expose it as a prop
+    const signupSource = linkTarget.closest('[data-signup-source]')?.getAttribute('data-signup-source') || null;
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true, false, moduleTarget);
+      const handled = this.openURL(href, true, false, moduleTarget, signupSource);
       if (handled) {
         // Any in-app navigation away from the search page ends its analytics
         // flow. Result clicks don't reach here (SearchResultCard handles them
@@ -1177,7 +1202,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isSheet = !!(linkTarget.closest(".sheetItem"));
     const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
       // See the mobile branch above -- ends any active search analytics flow.
       SearchAnalytics.endFlow('abandoned');
@@ -1268,7 +1293,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.updateModuleLinkHref(link);
   }
 
-  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null, signupSource=null) {
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
         return true;
@@ -1304,6 +1329,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setDefaultOption("language", lang)
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
+
+    if (isAuthPath(path)) {
+      const next = this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
+      this.handleAuthNavigate(withNext(path, next), signupSource);
+      return true;
+    }
+
+    if (this.state.showAuth) { this.setState({ showAuth: false }); }
+
     if (path === "/") {
       this.showRoot();
 
@@ -2483,6 +2517,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Button href="#main" className="skip-link">{Sefaria._("reader_app.skip_to_main_content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
+            <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {showChatbotBanner && (
@@ -2492,9 +2527,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 />
               )}
               <main id="main" role="main">
+                {this.state.showAuth ? (
+                  <AuthPage
+                    initialPath={this.state.authPath}
+                    authSource={this.state.authSource}
+                    resetValid={this.props.authResetValid}
+                    onNavigate={this.handleAuthNavigate}
+                  />
+                ) : (
                 <div className="panelContainer">
                   {panels}
                 </div>
+                )}
                 {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}

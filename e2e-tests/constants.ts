@@ -2,6 +2,18 @@
  * Constant variables for E2E tests
  */
 
+import { LANGUAGES } from './globals';
+
+// AuthPage (static/js/auth/AuthPage.jsx) labels shared by every page object
+// that has to click through ChooseView before an email/password form exists
+// (LoginPage, SignUpPage) — both /login and /register land there first.
+export const AUTH_LABELS = {
+  CONTINUE_WITH_EMAIL: {
+    [LANGUAGES.EN]: 'Continue with Email',
+    [LANGUAGES.HE]: 'המשך עם דוא״ל',
+  },
+} as const;
+
 // Interface for save state objects
 export interface SaveState {
   text: RegExp;

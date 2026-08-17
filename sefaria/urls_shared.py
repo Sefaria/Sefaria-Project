@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.urls import re_path
 from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
@@ -16,6 +16,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 shared_patterns = [
+    path('_allauth/', include('allauth.headless.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('', include('sso.urls')),
+
     re_path(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
     re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
