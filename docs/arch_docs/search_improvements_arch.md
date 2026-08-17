@@ -408,7 +408,7 @@ Populate all three locally with `python scripts/populate_dev_entity_search.py`, 
 
 The `category` index is independent of both — it is built from the TOC tree, not from denormalized book or author data — so it can be rebuilt alone without desynchronizing anything.
 
-Rebuild a single entity index on demand with `index_all_of_type('book')` / `index_all_of_type('topic')` / `index_all_of_type('category')` (blue-green: builds a fresh index, then swaps the alias). Note `index_topics` only indexes the curated **library TopicPool** (~5.5k topics/authors), so the `topic` doc count is far below an older all-topics index (~36k) — expected, not data loss. Likewise `index_categories` indexes only the ~80 *main* categories, not the ~1,000-node category tree.
+Rebuild a single entity index on demand with `index_all_of_type('book')` / `index_all_of_type('topic')` / `index_all_of_type('category')` (blue-green: builds a fresh index, then swaps the alias). Note `index_topics` only indexes the curated **library TopicPool** (~5.5k topics/authors), so the `topic` doc count is far below an older all-topics index (~36k) — expected, not data loss. Likewise `index_categories` indexes only the ~309 *searchable* categories, not the ~1,000-node category tree (see [Which categories are indexed](#categories-as-first-class-search-entities)).
 
 ## Showing Result Counts While Results Load
 

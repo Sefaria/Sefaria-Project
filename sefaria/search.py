@@ -1989,7 +1989,9 @@ def resync_category_docs():
             return
 
         # Delete docs for paths that no longer exist (renames, deletions, categories that
-        # dropped out of the main set). Scan is bounded by the index's ~80 docs.
+        # dropped out of the main set). Scan is bounded by the index's ~309 docs, well under
+        # the size cap below — a category set that outgrew the cap would silently stop having
+        # its stale docs deleted.
         try:
             existing = es_client.search(index=index_name, size=1000, source=False, query={"match_all": {}})
             for hit in existing.get('hits', {}).get('hits', []):
