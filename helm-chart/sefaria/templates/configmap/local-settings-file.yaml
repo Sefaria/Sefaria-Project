@@ -197,7 +197,8 @@ data:
     SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
     SEARCH_INDEX_NAME_TOPIC = os.getenv("SEARCH_INDEX_NAME_TOPIC", "topic")
     SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
-
+    SEARCH_INDEX_NAME_CATEGORY = os.getenv("SEARCH_INDEX_NAME_CATEGORY", "category")
+    
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5

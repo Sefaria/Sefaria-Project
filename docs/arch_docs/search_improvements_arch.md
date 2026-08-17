@@ -26,15 +26,15 @@ Two query paths run in parallel on every search:
       ┌─────┴──────┐        ┌───────────────┼───────────────┐
       ▼            ▼        ▼               ▼                ▼
   Dicta API   ES text    type=topic     type=author      type=book
-  (Tanakh,    index      ES topic       ES topic         ES book
-   fuzzy)     (other)    index          index            index
+  (Tanakh,    index      ES topic       ES topic         ES category
+   fuzzy)     (other)    index          index            + ES book
             │                               │
             ▼                               ▼
        Sources tab             Topics / Authors / Books tabs
 ```
 
 1. **Source search** — `Sefaria.search` function, uses our elastic search endpoint for texts aside from Tanakh. For Tanakh, it uses the Dicta search for fuzzy matching.
-2. **Entity search** — A new endpoint using Elastic Search, `/api/entity-search?q=<query>&type=<topic|author|book>`, is fired once per tab. This endpoint queries the dedicated `topic` and `book` Elasticsearch indices built for the POC; see [Backend Architecture](#backend-architecture) below.
+2. **Entity search** — A new endpoint using Elastic Search, `/api/entity-search?q=<query>&type=<topic|author|book>`, is fired once per tab. This endpoint queries the dedicated `topic` and `book` Elasticsearch indices built for the POC, plus the `category` index that backs category results on the Books tab; see [Backend Architecture](#backend-architecture) below. Note `category` is not a `type` the API accepts — it is a kind of *row* the Books tab can return, not a tab of its own.
 * Note - this API was called search-poc in the POC. It will be renamed for clarity to `entity-search`. 
 
 > **Note on history.** The POC originally fed the entity tabs from the autocomplete **Name API** (`/api/name/<query>?limit=50`), reusing the dropdown's existing result handling - this was not the right decision, since while the Name API excels at returning results sorted by type, **it is not searching!** The Name API is _**autocompleting**_, which is an entirely different functionality. (Additionally, the Name API `ref` type conflated books and section-level refs)
@@ -43,9 +43,9 @@ Two query paths run in parallel on every search:
 
 ## Backend Architecture
 
-The `/api/entity-search` endpoint is backed by two new Elasticsearch indices — `topic` and `book` — added alongside the existing `text` and `sheet` indices. This section covers what those indices contain, how they're built, and how the query path uses them.
+The `/api/entity-search` endpoint is backed by three new Elasticsearch indices — `topic`, `book` and `category` — added alongside the existing `text` and `sheet` indices. This section covers what those indices contain, how they're built, and how the query path uses them. The `category` index is documented separately under [Categories as first-class search entities](#categories-as-first-class-search-entities), since it exists to solve one specific problem on the Books tab.
 
-### The two indices
+### The two entity indices
 
 **`topic` index — topics and authors**
 
@@ -113,7 +113,7 @@ The pipeline plugs into the existing reindex infrastructure rather than building
 **Bulk indexers** — `index_topics` iterates the topics in the `library` TopicPool (slugs fetched from `django_topics`, then queried from Mongo via `TopicSet`); `index_books` iterates all Index records. Each calls its builder, writes under the document's natural id, and collects skipped slugs/titles into a summary report rather than aborting.
 
 
-Index names are configured via `SEARCH_INDEX_NAME_TOPIC` and `SEARCH_INDEX_NAME_BOOK` (defaulting to `topic` and `book`), parallel to `SEARCH_INDEX_NAME_TEXT` / `_SHEET`.
+Index names are configured via `SEARCH_INDEX_NAME_TOPIC`, `SEARCH_INDEX_NAME_BOOK` and `SEARCH_INDEX_NAME_CATEGORY` (defaulting to `topic`, `book` and `category`), parallel to `SEARCH_INDEX_NAME_TEXT` / `_SHEET`. `SEARCH_INDEX_NAME_CATEGORY` additionally carries a default in `settings.py` after the local-settings import, so a deployment whose `local_settings.py` predates it still boots — without one, the name is simply undefined and the `global_settings` context processor raises `NameError` on every page render.
 
 ### Query path
 
@@ -287,13 +287,105 @@ match set across all categories — unaffected by `filter` and by how many pages
 which is why its numbers don't line up with the collapsed rows shown above; see
 [Category counts](#category-counts-books-sidebar).
 
+## Categories as first-class search entities
+
+**The gap.** Some of the most likely queries a user will type — "Talmud", "Mishnah", "Halakhah", "Kabbalah", "Midrash" — name a *category* in Sefaria's text tree, not an `Index` record. The `book` index has one document per `Index`, and `categories` / `path` are `keyword` fields used for filtering only; they are not in the searchable field list. So the corpus a user is asking for has no document to match. Measured against the cauldron (`/api/entity-search?type=book`):
+
+| Query | Result |
+|---|---|
+| `Bavli` | **0 hits** — the token appears in no title anywhere |
+| `Talmud Bavli` | byte-identical to `Talmud`; "Bavli" contributes nothing |
+| `Halakhah` | **22 hits**, in a category holding thousands of books |
+| `Kabbalah` | **1 hit** |
+| `Talmud` | 579 hits, none of which is the Talmud |
+
+A second, sharper version of the same gap: a query like "Mishneh Torah" *does* match books — dozens of them, one per volume ("Mishneh Torah, Laws of Prayer", "Mishneh Torah, Blessings", …) — burying the thing the user actually asked for under its own parts. This is exactly the shape the author-works aggregation already fixes for authors.
+
+Note that these same terms *do* resolve correctly on the Topics tab (`talmud`, 747 sources; `mishnah`; `kabbalah` all rank #1), so the concept is already represented in the `topic` index. The gap is specific to Books.
+
+**Rejected: making `categories` a searchable text field.** The cheap fix — add `categories` to `_DEFAULT_ENTITY_FIELD_BOOSTS["book"]` — converts "0 results for Bavli" into "7,000 undifferentiated Talmud books". A user typing "Talmud" wants *one thing*, not the corpus flattened. Useful only as a weak recall signal underneath a real solution.
+
+### What was built
+
+A dedicated **`category` index**, and a category branch in the Books resolution chain that replaces a matched category's books with a single category row.
+
+**Storage — a separate index, not a `doctype` on `book`.** An earlier draft of this section proposed discriminating category documents inside the existing `book` index via a `doctype` field, on the grounds that one index means one query and one `total`. The built version uses a separate `category` index instead, a deliberate product decision: categories are a distinct kind of thing with a distinct lifecycle (~309 documents that change on TOC edits, versus ~6,600 that change on text edits), and keeping them apart means the category logic is legible in one place and a category reindex can't disturb the book index. The cost is real and accepted — **the Books tab now issues a second Elasticsearch round-trip**, and its `total` is summed in Python rather than read off one response. At ~309 documents the extra query is sub-10ms locally.
+
+**Which categories are indexed.** Not all of them. `get_search_categories` (`sefaria/model/autospell.py`) yields **309 documents** out of a ~1,000-node category tree, by two rules:
+
+- keep only real **containers of texts** — a category with at least **two indices anywhere beneath it** (`is_index_container`). A category holding a single book is that book under another name, and the book is already searchable on its own, so `Shulchan Arukh/Commentary/Magen Avraham` and 67 others like it are dropped. The count is over the whole subtree, not direct children: Tanakh, Talmud, Mishnah, Midrash and Mishneh Torah have **no** direct index children at all, so a direct-children test would discard exactly the categories users search for most;
+- at a *collection boundary* — a node whose name matches `commentary|commentaries|rishonim|acharonim|geonim|savoraim|other`, or is exactly one of `comment/comments/modern/targum/guides` — **drop the boundary node itself**, harvest its child categories one level down (Rashi, Ramban, Kessef Mishneh, …), and never descend past it into the repeated per-book structure.
+
+So "Rishonim", "Acharonim", "Modern", "Targum" and "Commentary" are *not* searchable categories; the commentator names underneath them are — provided they hold two or more texts. By depth the set is 14 / 44 / 112 / 131 / 8 across levels 1-5.
+
+> **Deviation from the source branch.** `feat/autospell-search-categories` gates the taxonomy on `len(child.children) >= 2` and applies no gate at all to the harvested children. Counting *child nodes* is a proxy for "is this a collection?"; counting *indices* is the thing itself, so the proxy is replaced by `is_index_container` on both branches. Net effect: 376 categories -> 309 (68 single-book categories dropped, and `Jewish Thought/Guide for the Perplexed` — one child, but Moreh Nevukhim plus commentaries inside — gained).
+
+This function was already the definition of "a category worth autocompleting"; it was lifted from a private static method on `AutoCompleter` to a module-level function so the indexer and the autocompleter share one definition and cannot drift into a state where a category completes but doesn't search. It is imported into `sefaria/search.py` **under an alias** (`get_searchable_toc_categories`), because that module already defines an unrelated `get_search_categories(oref, categories)` for text-index category paths which would otherwise shadow it.
+
+**Titles come from the shared `Term`.** All 309 searchable categories carry a `sharedTitle` naming a `Term`, and `AbstractTitledOrTermedObject._process_terms` replaces the category's title group with the Term's during load. So `category.get_titles(lang)` already returns the Term's full title list — which is where the real aliases live: "Bible" → Tanakh, "Gemara" → Talmud, "Mishnah Torah" → Mishneh Torah, "Halacha"/"Halachah"/"Halocha" → Halakhah. A category *without* a sharedTitle falls back to its own titles, so the same call is correct either way and no explicit Term lookup is needed. Note the titles cannot be read off the TOC node: `TocCategory.__init__` copies only the primary EN/HE titles, so the variants exist only on the backing `Category` record (`toc_node.get_category_object()`).
+
+| Field | Type | Notes |
+|---|---|---|
+| `path` | `keyword` | `"Halakhah/Mishneh Torah"` — document id, and the key used to exclude the category's books |
+| `title_en` / `title_he` | `text` + `keyword` + `sort` | Same analyzers and sub-fields as the `book` index |
+| `titleVariants` | `text` (`alias_bag`) | The shared Term's other titles |
+| `categories` | `keyword` | **Parent** path — the result card's breadcrumb; empty for a top-level category |
+| `depth`, `order` | `integer` | `depth` breaks ties between same-titled categories |
+| `description_en` / `description_he` | `text` | Display only, never searched — same rule as every other entity |
+
+**Ranking needed no new machinery.** Tier 1 is already a `constant_score` exact match on `title_en.keyword` at boost 1000, and the same tiered builder runs against the `category` index (its per-type entries live alongside the others in `_DEFAULT_ENTITY_FIELD_BOOSTS` / `_ENTITY_TITLE_FIELDS` / `_ENTITY_SECONDARY_KEYWORD_FIELDS`). Resolution then applies `_query_matches_entity_title` — the same exact-match guard the author path uses — so only a query that *names* a category flips the tab into category mode. Exact and never prefix, for the same reason as authors: a prefix test would let "Mod" or "Tal" hijack the whole Books tab.
+
+**Resolution chain.** The `book` branch of `entity_search` is now `_resolve_author` → `_resolve_categories` → flat book search.
+
+- **Author wins — and this is the common case, not an edge case.** **138** category titles are also an author's name or title variant, because the TOC collects a commentator's works under a category named after him (Rashi, Ramban, Maggid Mishneh, Lechem Mishneh, Ramak, Ramchal, Josephus, …). For a name query the person is the likelier intent, so author resolution runs first and every one of those keeps returning aggregated author works, never reaching category resolution. A consequence worth noting: most of the commentator categories harvested from below the boundaries are therefore unreachable as category rows.
+- **All exact matches are returned, not one.** **57** titles name more than one category: "Seder Moed" names five (under Mishnah, Bavli, Yerushalmi and both Tosefta editions), "Rashi" names three, and "Halakhah" names both the top-level category and `Midrash/Halakhah`. Picking a single winner would be arbitrary, so every exact match becomes a row, ordered **shallowest-first then A-Z** — so top-level Halakhah leads Midrash/Halakhah — and the breadcrumbs tell them apart.
+- **`aggregate=0` bypasses category mode** as well as author mode, so the QA escape hatch still shows the flat list for any query.
+
+**The response.** Rows, in order:
+
+1. **the eponymous book**, if the query also names a book *inside* a matched category. **11** exist — Zohar, Tur, Sefer Yetzirah, Shulchan Arukh HaRav, Mishnah Berurah, Sefer HaMitzvot, … — and without this they would vanish behind their own category card. Mirrors the eponymous-work lift `_author_works_response` already does for "Chafetz Chaim". Only books inside a matched category need rescuing; a same-titled book elsewhere was never excluded and the exact-match tier already floats it to #1.
+2. **one row per matched category**
+3. **the ordinary flat book results, with every book at or under a matched category path excluded** — a `must_not` built from the same `make_path_filter` helper the category *filter* uses, in non-scoring context so it never perturbs relevance.
+
+Step 3 is the point: `q=Mishneh Torah` answers with one "Mishneh Torah" card instead of forty-odd volumes, while books matching the query from *other* categories still appear beneath it.
+
+**Sorting.** Category mode is a decision about *which* books to show, not what order to show them in, so it holds under every sort rather than collapsing back to a flat list (unlike the category *filter*, which does bypass collapsed views). The leading rows order among themselves — A-Z under `alpha`, otherwise shallowest-first — and the flat remainder honors the requested sort. Year sorts leave the leading rows in place rather than banishing them to the `missing: _last` tail; they are the query's answer, not a dateless straggler.
+
+**Pagination and counting.** The leading rows are a small fixed block: paging walks them first, then offsets into Elasticsearch by `start - lead_count`. `total` is `lead_count + es_total`, so the tab badge and the "more to load" check stay honest. When a page is filled by leading rows alone, the book query still runs at `size: 0` purely for its total — no fetch, scoring or highlighting.
+
+**No frontend change was needed.** A category row carries `isCategory`, `url` and `categories`, which is exactly the contract `bookHitCardProps` (`static/js/SearchPage.jsx`) already branches on for author-works rows, so it renders through the existing `SearchResultCard` with the collection icon and a breadcrumb. `categoryLabel_*` is deliberately *omitted*: on an author-works row it names the category that collapsed several books, but here the category *is* the row's title, and sending it would render the same words as both heading and breadcrumb. The parent path in `categories` is the breadcrumb — empty for a top-level category, which correctly yields no breadcrumb at all.
+
+**Freshness.** Unlike topics and books, which get surgical per-document upserts, a category save or delete re-syncs the **whole** `category` index (`resync_category_docs`). A single category edit is not a single-document change: renaming "Halakhah" rewrites the path — and therefore the document id — of every category beneath it, and a category whose child count crosses the two-child threshold (or whose rename turns it into a boundary) moves in or out of the indexed set entirely. Tracking those cascades individually would be easy to get subtly wrong; a full re-sync of ~309 documents in one bulk request is unconditionally correct and cheaper than the logic it replaces. The hook must stay subscribed *after* `text.rebuild_library_after_category_change`, since it reads the rebuilt TOC tree.
+
+### Verified locally
+
+Full local reindex: **309 category documents, 0 errors**, ~0.36s.
+
+| Query | Result |
+|---|---|
+| `Mishneh Torah` | Mishneh Torah category card; all 40+ volumes gone (`aggregate=0` shows them: 1,931 flat hits) |
+| `Zohar` | the **book** Zohar, then the Zohar category, then unrelated Zohar books |
+| `Rishonim` | **no category** — it is a boundary name, so it is deliberately not indexed; 1 book |
+| `Halakhah` | top-level Halakhah, then Midrash/Halakhah, then 4 books |
+| `Bavli` | 1 hit — the Talmud/Bavli category (**was 0**) |
+| `Bible`, `Gemara` | resolve Tanakh and Talmud via shared-Term variants |
+| `Rashi`, `Ramchal` | unchanged: author-works aggregation |
+| `Bereshit` | unchanged: flat book search |
+
+### Still open
+
+- **Duplication with the Topics tab.** "Talmud" now returns a strong result on *two* tabs — the corpus on Books, the concept on Topics. That may be correct or may read as redundant; worth a deliberate product look now that it is observable.
+- **Multi-word noise in the excluded remainder.** `q=Mishneh Torah` correctly hides the Mishneh Torah volumes, but the flat remainder below the card is weak ("Torah Temimah on Torah" et al.), because a two-word query matches any book containing either common word. This is the pre-existing flat-ranking behavior, not something category mode introduced, but the category card makes it more visible. Related to the numeric-token false positives already listed under [Backend Limitations](#backend-limitations).
+- **Counting.** A category row counts as one toward the Books tab badge; the collapsed-vs-raw ambiguity already flagged for author works applies here too.
+- **Weak `categories` recall.** Now that an exact-match category document owns the head of the list, adding `categories` as a low-boost (~0.5) searchable text field on `book` is safe and would help queries like "talmud commentary". Not built.
+
 ## Elastic Search Indexing Operations
 
 ### Scheduled reindex
 
-The scheduled cron job rebuilds the `topic` and `book` indices on the same schedule as `text`/`sheet`. Each index is rebuilt using a blue-green strategy: a fresh index is built in the background under a temporary name, and only swapped in as the live index once it's complete. This means search stays available on the old data during the rebuild, with zero downtime. A failure rebuilding one index type is recorded but does not block the other from completing.
+The scheduled cron job rebuilds the `topic`, `book` and `category` indices on the same schedule as `text`/`sheet`. Each index is rebuilt using a blue-green strategy: a fresh index is built in the background under a temporary name, and only swapped in as the live index once it's complete. This means search stays available on the old data during the rebuild, with zero downtime. A failure rebuilding one index type is recorded but does not block the others from completing.
 
-We need sample scripts to minimally populate a dev environment, as well as a script for a **full reindex** which runs the reindex for `topic` and/or `book` on demand.
+We need sample scripts to minimally populate a dev environment, as well as a script for a **full reindex** which runs the reindex for `topic`, `book` and/or `category` on demand.
 
 ### Local development setup
 
@@ -302,16 +394,21 @@ Add these constants to `sefaria/local_settings.py` before running any indexing s
 ```python
 SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
+SEARCH_INDEX_NAME_CATEGORY = 'category'
 ```
 
 `settings.py` defines these for production, but `local_settings.py` does not include them by default. Without them, indexing scripts fail with `ImportError: cannot import name 'SEARCH_INDEX_NAME_TOPIC' from sefaria.settings`.
+
+Populate all three locally with `python scripts/populate_dev_entity_search.py`, or one at a time with `--type topic|book|category`. `--limit` is ignored for categories: the whole set is only ~309 documents, and a partial one would make category resolution silently miss queries.
 
 **Reindex both `book` and `topic` together.** The two indices are coupled by denormalized data, so a partial reindex produces confusing, half-working results:
 
 - The **Authors tab depends on the `topic` index.** An author matches a book-title query (e.g. "Zevachim" → Rambam, Ovadiah Bartenura) through the author's `authored_titles_*` field, which lives on the `topic` index. If only `book` is rebuilt, the Authors tab returns **0** for these queries until `topic` is rebuilt too.
 - `author_names` (on `book`) and `authored_titles_*` (on `topic`) are both snapshots taken at index time, so any author rename or book-title change needs both indices refreshed to stay consistent.
 
-Rebuild a single entity index on demand with `index_all_of_type('book')` / `index_all_of_type('topic')` (blue-green: builds a fresh index, then swaps the alias). Note `index_topics` only indexes the curated **library TopicPool** (~5.5k topics/authors), so the `topic` doc count is far below an older all-topics index (~36k) — expected, not data loss.
+The `category` index is independent of both — it is built from the TOC tree, not from denormalized book or author data — so it can be rebuilt alone without desynchronizing anything.
+
+Rebuild a single entity index on demand with `index_all_of_type('book')` / `index_all_of_type('topic')` / `index_all_of_type('category')` (blue-green: builds a fresh index, then swaps the alias). Note `index_topics` only indexes the curated **library TopicPool** (~5.5k topics/authors), so the `topic` doc count is far below an older all-topics index (~36k) — expected, not data loss. Likewise `index_categories` indexes only the ~309 *searchable* categories, not the ~1,000-node category tree (see [Which categories are indexed](#categories-as-first-class-search-entities)).
 
 ## Showing Result Counts While Results Load
 
@@ -338,7 +435,7 @@ This resolves the open **"eager vs. lazy entity search"** question (see [Open Qu
 
 ### Backend Limitations
 
-- **No on-save freshness.** When a text is saved in Sefaria, a hook automatically updates its Elasticsearch entry right away. The `topic` and `book` indices don't have this — they only get updated when the cron job runs its full rebuild. So edits to a topic or book won't appear in search results until the next scheduled rebuild.
+- **On-save freshness is gated on `SEARCH_INDEX_ON_SAVE`.** All three entity indices now have save hooks (`sefaria/model/dependencies.py`), so an edit shows up in search immediately where that setting is on: topics and books upsert the single changed document, while a category save or delete re-syncs the whole `category` index (see [Categories as first-class search entities](#categories-as-first-class-search-entities) for why). Where the setting is off, edits only appear after the next scheduled rebuild. All of these hooks are best-effort — they log and swallow failures, since the Mongo write is already committed and the cron reconciles.
 - **Relevance is unproven at scale.** Field boosting is a reasonable first cut; default ranking and cross-language behavior still need tuning against real queries.
 - **Denormalization staleness.** `author_names` on book docs and `authored_titles_*` on author docs are snapshots taken at index time; an author rename (or a book title/variant change) requires reindexing the affected docs to stay consistent.
 - **Numeric token false positives.** Queries containing numbers (e.g., "Genesis 1:1") match books with "1" in the title or `titleVariants` — "I Kings", "Vol. I", numbered tractates, etc. — producing noisy results. Needs a fix before production (e.g., exclude purely-numeric tokens from `titleVariants` matching, or treat numeric-heavy queries as ref queries rather than book searches).
@@ -415,34 +512,3 @@ The infrastructure (Coolify instance, Google SSO, machine user) is **already sto
 - **Date of Death** - Show author date of death next to name if relevant
 
 > **Done (was listed here): send the entity `sort` and `filter` to the API.** The POC applied both in the browser to the hits already downloaded, leaving the server-side sort clauses and category filter unreachable from the UI. Both are now threaded through `entitySearch` (URL **and** cache key) with a refetch from `start=0` on every change, `sortEntityHits` is deleted, and the sidebar's counts come from an ES aggregation rather than from the loaded rows. See [Sorting](#sorting-entity-tabs-only), [Category filter](#category-filter-books-only), and [Category counts](#category-counts-books-sidebar).
-
-### Categories as first-class search entities
-
-**The gap.** Some of the most likely queries a user will type — "Talmud", "Mishnah", "Halakhah", "Kabbalah", "Midrash" — name a *category* in Sefaria's text tree, not an `Index` record. The `book` index has one document per `Index`, and `categories` / `path` are `keyword` fields used for filtering only; they are not in the searchable field list. So the corpus a user is asking for has no document to match. Measured against the cauldron (`/api/entity-search?type=book`):
-
-| Query | Result |
-|---|---|
-| `Bavli` | **0 hits** — the token appears in no title anywhere |
-| `Talmud Bavli` | byte-identical to `Talmud`; "Bavli" contributes nothing |
-| `Halakhah` | **22 hits**, in a category holding thousands of books |
-| `Kabbalah` | **1 hit** |
-| `Talmud` | 579 hits, none of which is the Talmud |
-
-Note that these same terms *do* resolve correctly on the Topics tab (`talmud`, 747 sources; `mishnah`; `kabbalah` all rank #1), so the concept is already represented in the `topic` index. The gap is specific to Books.
-
-**Rejected: making `categories` a searchable text field.** The cheap fix — add `categories` to `_DEFAULT_ENTITY_FIELD_BOOSTS["book"]` — converts "0 results for Bavli" into "7,000 undifferentiated Talmud books". A user typing "Talmud" wants *one thing*, not the corpus flattened. Useful only as a weak recall signal underneath a real solution (see below).
-
-**Proposed: reuse the author-works pattern.** This system already solves this exact shape once — an author query does not return a flat list; `_resolve_author` → `_author_works_response` returns a collapsed aggregate. Categories should mirror it.
-
-- **Storage.** Add a second document type to the existing `book` index, discriminated by a `doctype` field (`"book" | "category"`) — the same move the `topic` index already makes with `subtype` for topics vs. authors. Keeping it in one index means one query, one `total`, and a category row that interleaves into the ranked list. No new `SEARCH_INDEX_NAME_*` setting, no new blue-green target, no new cron wiring.
-- **Source data is favorable.** `Category` (`sefaria/model/category.py`) subclasses `AbstractTitledOrTermedObject`, so it carries `titles` / `sharedTitle` natively — real EN+HE title variants without a curated map — plus `enDesc`/`heDesc`/`enShortDesc`, `path`, `depth`, and `order`. Document id = the `path` string, so reindexing stays idempotent. The category set is ~1,000 nodes, so the added reindex cost is negligible.
-- **Ranking needs no new machinery.** Tier 1 is already a `constant_score` exact match on `title_en.keyword` at boost 1000. Once a category document titled "Talmud" exists, `q=Talmud` matches it exactly and it wins outright over every book — no new tier, no new weights. And because tier 1 is `constant_score` rather than scored, a *non*-exact category match only competes at tiers 2–4 like anything else, so category documents cannot swamp partial queries.
-- **Collapse to children, not leaves.** When a query resolves to a category (reusing `_query_matches_entity_title` unchanged), return the category's **direct children** via `library.get_toc_tree().lookup(path)` — `Talmud` → Bavli, Yerushalmi, Rishonim on Talmud — rather than thousands of leaf books. This mirrors both `_author_works_response` and Sefaria's own TOC UX.
-- **Frontend contract is already in place.** Rows would carry `isCategory` and `categoryLabel`, which already exist from the author-works aggregation. The only addition needed is a `url` pointing at `/texts/<path>`.
-- **Where it slots in.** The `book` branch of `entity_search` becomes a resolution chain: `_resolve_category` → `_resolve_author` → flat book search. *Then*, underneath that, `categories` can be added as a weak searchable text field (~0.5 boost) for recall on queries like "talmud commentary" — now harmless, because the exact-match category document owns the head of the list.
-
-**Open questions to settle with product before building:**
-
-- **Author/category collision.** "Rashi" is both an author and a category (`Talmud/Bavli/Rishonim on Talmud/Rashi`). Author probably should win — a person is the likelier intent — but this should be tested against real queries rather than assumed.
-- **Duplication with the Topics tab.** Since "Talmud" already ranks #1 as a topic, adding a category document means the query returns a strong result on *two* tabs. That may be correct (corpus on Books, concept on Topics) or may read as redundant; worth deciding deliberately rather than discovering post-build.
-- **Counting.** Does a category row count toward the Books tab result badge (see [Showing Result Counts While Results Load](#showing-result-counts-while-results-load))? Same collapsed-vs-raw ambiguity already flagged for author works.
